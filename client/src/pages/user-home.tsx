@@ -112,13 +112,13 @@ export default function UserHome() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="logo flex items-center">
+          <Link href="/" className="logo flex items-center cursor-pointer">
             <img 
               src="/src/assets/all-star-teams-logo-250px.png" 
               alt="AllStarTeams" 
               className="h-10 w-auto"
             />
-          </div>
+          </Link>
           
           <div className="flex items-center space-x-3">
             <span className="text-gray-700 font-medium">{user?.name}</span>
