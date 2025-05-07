@@ -203,30 +203,30 @@ export default function StarCard({
                style={{ top: '25px', left: '15px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side - readjusted for new box positions */}
-          <div className="absolute" style={{ right: '55px', top: '85px', height: '120px' }}>
-            <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px]" style={{ bottom: '0' }}>
+          {/* Right Arrow - Down arrow on right side - centered, 70% length, aligned with flow box centers */}
+          <div className="absolute" style={{ right: '45px', top: '85px', height: '84px' }}>
+            <div className="absolute left-0 top-[7px] h-[70px] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px] top-[77px]">
               <svg width="10" height="14" viewBox="0 0 10 14">
                 <path d="M5 14 L0 7 L10 7 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom - readjusted for new box positions */}
-          <div className="absolute" style={{ top: '234px', left: '85px', width: '95px' }}>
-            <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
-            <div className="absolute left-0 top-[-4px]">
+          {/* Bottom Arrow - Left arrow on bottom - centered, 70% length, aligned with flow box centers */}
+          <div className="absolute" style={{ top: '233px', left: '85px', width: '95px' }}>
+            <div className="absolute left-[10px] top-0 w-[67px] h-[1px] bg-gray-400"></div>
+            <div className="absolute left-[10px] top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
                 <path d="M0 5 L7 0 L7 10 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow - readjusted for new box positions */}
-          <div className="absolute" style={{ left: '55px', top: '85px', height: '120px' }}>
-            <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px]" style={{ top: '0' }}>
+          {/* Left Arrow - Up arrow - centered, 70% length, aligned with flow box centers */}
+          <div className="absolute" style={{ left: '45px', top: '85px', height: '84px' }}>
+            <div className="absolute left-0 top-[7px] h-[70px] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px] top-[7px]">
               <svg width="10" height="14" viewBox="0 0 10 14">
                 <path d="M5 0 L0 7 L10 7 Z" fill="#9CA3AF" />
               </svg>
