@@ -124,7 +124,6 @@ export default function FindYourFlow() {
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
@@ -171,14 +170,9 @@ export default function FindYourFlow() {
     setSelectedAttributes(updatedAttrs);
   };
   
-  // Filter attributes based on search query
+  // Get all flow attributes
   const getFilteredAttributes = (): string[] => {
-    if (!searchQuery || searchQuery.trim() === '') {
-      return flowAttributes;
-    }
-    return flowAttributes.filter(attr => 
-      attr.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return flowAttributes;
   };
   
   // Get rank badge color
@@ -538,18 +532,14 @@ export default function FindYourFlow() {
                 <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-2">
-                      <strong>I find myself in flow when I am being:</strong>
-                    </p>
                     <p className="text-sm text-gray-600 mb-4">
-                      Choose 4 words that best describe your flow state. Select attributes in order of importance 
-                      (1 = most important, 4 = least important). Drag badges to reorder.
+                      Choose 4 words that best describe your flow state. Drag badges to reorder.
                     </p>
                     
                     {/* Selected attributes with drag and drop */}
-                    {selectedAttributes.length > 0 && (
-                      <div className="mb-4">
-                        <h4 className="text-sm font-medium mb-2">Your Selected Attributes:</h4>
+                    <div className="mb-4">
+                      <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
+                      {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext 
                           sensors={sensors}
                           collisionDetection={closestCenter}
@@ -576,19 +566,9 @@ export default function FindYourFlow() {
                             </div>
                           </SortableContext>
                         </DndContext>
-                      </div>
-                    )}
-                    
-                    {/* Search */}
-                    <div className="mb-4">
-                      <label className="block text-sm font-medium mb-1">Search Attributes</label>
-                      <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Type to search..."
-                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
-                      />
+                      ) : (
+                        <p className="text-sm text-gray-500 italic">Select a word below to add it to your flow attributes</p>
+                      )}
                     </div>
                     
                     {/* Available attributes */}
