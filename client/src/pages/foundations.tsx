@@ -29,23 +29,16 @@ export default function Foundations() {
       </header>
       
       <main className="container mx-auto px-4 py-8 max-w-5xl">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-2xl font-bold text-indigo-700">Understanding Your Star Card</h1>
-            <p className="text-gray-600">Learn about the four quadrants of your strengths profile</p>
-          </div>
-          <Link href="/assessment">
-            <Button className="bg-indigo-700 hover:bg-indigo-800">
-              Start Assessment
-            </Button>
-          </Link>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-indigo-700">Understanding Your Star Card</h1>
+          <p className="text-gray-600">Learn about the four quadrants of your strengths profile</p>
         </div>
         
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <Tabs defaultValue="intro" className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
-              <TabsTrigger value="intro">Introduction</TabsTrigger>
-              <TabsTrigger value="flow">Flow</TabsTrigger>
+              <TabsTrigger value="intro">Strengths</TabsTrigger>
+              <TabsTrigger value="flow">Scenarios</TabsTrigger>
               <TabsTrigger value="reflect">Reflect</TabsTrigger>
               <TabsTrigger value="rounding">Rounding Out</TabsTrigger>
             </TabsList>
@@ -53,7 +46,7 @@ export default function Foundations() {
             <TabsContent value="intro" className="space-y-6">
               <div className="aspect-w-16 aspect-h-9 mb-4">
                 <iframe 
-                  src="https://www.youtube.com/embed/NzDxPRpBvUM" 
+                  src="https://www.youtube.com/embed/ao04eaeDIFQ" 
                   title="Introduction to AllStarTeams" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -104,60 +97,49 @@ export default function Foundations() {
                   onClick={() => document.querySelector('[data-value="flow"]')?.click()}
                   className="bg-indigo-700 hover:bg-indigo-800"
                 >
-                  Next: Understanding Flow
+                  Next: Assessment Scenarios
                 </Button>
               </div>
             </TabsContent>
             
             <TabsContent value="flow" className="space-y-6">
               <div className="prose max-w-none">
-                <h2>Understanding Your Flow State</h2>
+                <h2>Assessment Scenarios</h2>
                 <p>
-                  Flow is that state of perfect engagement where you're completely absorbed in what you're doing. Time seems to disappear, and you're performing at your best without even trying.
+                  You're about to begin the AllStarTeams assessment, which consists of 22 different scenarios. For each scenario, you'll rank four options from "most like me" to "least like me".
                 </p>
                 
                 <div className="my-8 bg-indigo-50 p-6 rounded-lg border border-indigo-100">
-                  <h3 className="text-indigo-700">Key Characteristics of Flow</h3>
+                  <h3 className="text-indigo-700">Instructions</h3>
                   <ul>
-                    <li>Complete concentration on the task</li>
-                    <li>Clarity of goals and immediate feedback</li>
-                    <li>A balance between challenge and skill</li>
-                    <li>A sense of control and reduced self-consciousness</li>
-                    <li>An altered perception of time (usually feeling faster)</li>
-                    <li>The activity becomes intrinsically rewarding</li>
+                    <li>Read each scenario carefully</li>
+                    <li>Rank the four options in order of how well they describe your natural tendencies</li>
+                    <li>Be honest - there are no right or wrong answers</li>
+                    <li>Go with your first instinct rather than overthinking</li>
+                    <li>The assessment takes approximately 10-15 minutes to complete</li>
                   </ul>
                 </div>
                 
-                <h3>How Flow Relates to Your Strengths</h3>
-                <p>
-                  Your natural strengths are often the gateway to your flow state. When you're working in alignment with your strengths, you're much more likely to experience flow.
+                <p className="font-medium text-indigo-700">
+                  Click the button below to begin your assessment journey!
                 </p>
-                
-                <p>
-                  The assessment will help identify not just your strengths quadrants, but also the types of activities and environments where you're most likely to experience flow.
-                </p>
-                
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 my-6">
-                  <h4 className="text-amber-700 font-medium">Did You Know?</h4>
-                  <p className="text-sm">
-                    Research shows that people who experience flow regularly report higher levels of happiness, fulfillment, and productivity. By identifying your strengths and working in flow, you can boost both your performance and wellbeing.
-                  </p>
-                </div>
               </div>
               
-              <div className="flex justify-between mt-6">
-                <Button 
-                  onClick={() => document.querySelector('[data-value="intro"]')?.click()}
-                  variant="outline"
-                >
-                  Previous: Introduction
-                </Button>
-                <Button 
-                  onClick={() => document.querySelector('[data-value="reflect"]')?.click()}
-                  className="bg-indigo-700 hover:bg-indigo-800"
-                >
-                  Next: Reflect
-                </Button>
+              <div className="flex flex-col items-center mt-8">
+                <Link href="/assessment">
+                  <Button className="bg-green-600 hover:bg-green-700 text-lg py-6 px-8">
+                    Begin Assessment →
+                  </Button>
+                </Link>
+                <div className="mt-4">
+                  <Button 
+                    onClick={() => document.querySelector('[data-value="intro"]')?.click()}
+                    variant="outline"
+                    size="sm"
+                  >
+                    ← Back to Strengths
+                  </Button>
+                </div>
               </div>
             </TabsContent>
             
@@ -206,7 +188,7 @@ export default function Foundations() {
                   onClick={() => document.querySelector('[data-value="flow"]')?.click()}
                   variant="outline"
                 >
-                  Previous: Flow
+                  Previous: Scenarios
                 </Button>
                 <Button 
                   onClick={() => document.querySelector('[data-value="rounding"]')?.click()}
