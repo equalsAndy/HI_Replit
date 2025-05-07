@@ -31,12 +31,12 @@ export default function StarCard({
   
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    // Create array of quadrant objects with initial properties
+    // Create array of quadrant objects with colors matching the reference image
     const quadrants: QuadrantInfo[] = [
-      { key: 'thinking', label: 'THINKING', color: 'bg-blue-500', score: quadrantData?.thinking || 0, position: 0 },
-      { key: 'acting', label: 'ACTING', color: 'bg-orange-500', score: quadrantData?.acting || 0, position: 0 },
-      { key: 'feeling', label: 'FEELING', color: 'bg-yellow-500', score: quadrantData?.feeling || 0, position: 0 },
-      { key: 'planning', label: 'PLANNING', color: 'bg-green-500', score: quadrantData?.planning || 0, position: 0 }
+      { key: 'thinking', label: 'THINKING', color: 'bg-green-500', score: quadrantData?.thinking || 0, position: 0 },
+      { key: 'acting', label: 'ACTING', color: 'bg-red-500', score: quadrantData?.acting || 0, position: 0 },
+      { key: 'feeling', label: 'FEELING', color: 'bg-blue-500', score: quadrantData?.feeling || 0, position: 0 },
+      { key: 'planning', label: 'PLANNING', color: 'bg-yellow-500', score: quadrantData?.planning || 0, position: 0 }
     ];
     
     // Sort by score in descending order
@@ -119,7 +119,7 @@ export default function StarCard({
         <div className="relative mx-auto mb-6" style={{ width: '300px', height: '300px' }}>
           {/* Center Star */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
-            <div className="h-16 w-16 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
+            <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
@@ -133,7 +133,7 @@ export default function StarCard({
           
           {/* Position 1 - Top Right - Highest score */}
           {getQuadrantAtPosition(0) && (
-            <div className="absolute top-[70px] right-[70px] w-16 h-16">
+            <div className="absolute top-1/2 right-1/2 w-16 h-16 transform translate-x-[1px] -translate-y-[49px]">
               <div className={`${getQuadrantAtPosition(0)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(0)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</p>
@@ -143,7 +143,7 @@ export default function StarCard({
           
           {/* Position 2 - Bottom Right - Second highest */}
           {getQuadrantAtPosition(1) && (
-            <div className="absolute bottom-[70px] right-[70px] w-16 h-16">
+            <div className="absolute top-1/2 right-1/2 w-16 h-16 transform translate-x-[49px] translate-y-[1px]">
               <div className={`${getQuadrantAtPosition(1)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(1)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</p>
@@ -153,7 +153,7 @@ export default function StarCard({
           
           {/* Position 3 - Bottom Left - Third highest */}
           {getQuadrantAtPosition(2) && (
-            <div className="absolute bottom-[70px] left-[70px] w-16 h-16">
+            <div className="absolute top-1/2 right-1/2 w-16 h-16 transform -translate-x-[49px] translate-y-[1px]">
               <div className={`${getQuadrantAtPosition(2)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(2)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</p>
@@ -163,7 +163,7 @@ export default function StarCard({
           
           {/* Position 4 - Top Left - Lowest score */}
           {getQuadrantAtPosition(3) && (
-            <div className="absolute top-[70px] left-[70px] w-16 h-16">
+            <div className="absolute top-1/2 right-1/2 w-16 h-16 transform -translate-x-[49px] -translate-y-[49px]">
               <div className={`${getQuadrantAtPosition(3)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(3)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
@@ -194,14 +194,58 @@ export default function StarCard({
             <p className="text-xs font-medium">Flow</p>
             <p className="text-sm font-bold">4</p>
           </div>
+          
+          {/* Arrow from Flow 1 to Flow 2 (right side, top to bottom) */}
+          <div className="absolute right-8 top-1/2 h-[120px] w-6 z-5">
+            <div className="absolute right-0 top-0 h-full w-[1px] bg-gray-400"></div>
+            {/* Arrow head */}
+            <div className="absolute right-[-4px] bottom-0 rotate-90">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L10 5 L0 10 Z" fill="#9CA3AF" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Arrow from Flow 2 to Flow 3 (bottom, right to left) */}
+          <div className="absolute bottom-8 left-1/2 w-[120px] h-6 z-5">
+            <div className="absolute bottom-0 left-0 h-[1px] w-full bg-gray-400"></div>
+            {/* Arrow head */}
+            <div className="absolute left-0 bottom-[-4px]">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 0 L0 5 L10 10 Z" fill="#9CA3AF" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Arrow from Flow 3 to Flow 4 (left side, bottom to top) */}
+          <div className="absolute left-8 top-1/2 h-[120px] w-6 z-5">
+            <div className="absolute left-0 bottom-0 h-full w-[1px] bg-gray-400"></div>
+            {/* Arrow head */}
+            <div className="absolute left-[-4px] top-0 rotate-90">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 0 L0 5 L10 10 Z" fill="#9CA3AF" />
+              </svg>
+            </div>
+          </div>
+          
+          {/* Arrow from Flow 4 to Flow 1 (top, left to right) */}
+          <div className="absolute top-8 left-1/2 w-[120px] h-6 z-5">
+            <div className="absolute top-0 right-0 h-[1px] w-full bg-gray-400"></div>
+            {/* Arrow head */}
+            <div className="absolute right-0 top-[-4px]">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 0 L10 5 L0 10 Z" fill="#9CA3AF" />
+              </svg>
+            </div>
+          </div>
         </div>
         
-        {/* Logo */}
-        <div className="flex justify-end mt-auto">
+        {/* Logo - Positioned completely within the card */}
+        <div className="flex justify-center mt-5 mb-2">
           <img 
             src="/src/assets/all-star-teams-logo-250px.png" 
             alt="AllStarTeams" 
-            className="h-6 w-auto"
+            className="h-8 w-auto"
           />
         </div>
       </div>
