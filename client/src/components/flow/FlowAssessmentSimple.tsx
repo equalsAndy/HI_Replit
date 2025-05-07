@@ -112,36 +112,63 @@ export default function FlowAssessmentSimple() {
   
   // Handle selection
   const handleSelection = (value: number) => {
+    // Skip if it's the same value to prevent unnecessary updates
+    if (answers[question.id] === value) {
+      return;
+    }
+    
     log(`Selection made: ${value} for question ${question.id}`);
     
     // Store the value
-    setAnswers(prev => ({
-      ...prev,
-      [question.id]: value
-    }));
-    
-    // Clear error
-    setError(null);
-    
-    // Show temporary message when turning on auto-advance
-    if (message) {
-      setMessage(null);
-    }
-    
-    // Auto advance if enabled
-    if (autoAdvance) {
-      log("Auto-advancing after selection");
-      // Allow a brief moment to see the selection before advancing
-      setTimeout(() => {
-        goToNextQuestion();
-      }, 700);
-    }
+    setAnswers(prev => {
+      const newAnswers = {
+        ...prev,
+        [question.id]: value
+      };
+      
+      // Clear error
+      setError(null);
+      
+      // Clear any temporary message
+      if (message) {
+        setMessage(null);
+      }
+      
+      // Auto advance if enabled - using a separate function call
+      // to ensure we have the latest state
+      if (autoAdvance) {
+        log("Auto-advancing after selection");
+        // Allow a brief moment to see the selection before advancing
+        setTimeout(() => {
+          const currentQ = question.id;
+          if (newAnswers[currentQ]) {
+            // Directly call next with answer validated
+            if (currentQuestion < flowQuestions.length - 1) {
+              setCurrentQuestion(prevQ => prevQ + 1);
+            } else {
+              // On last question, show results if all questions are answered
+              const allAnswered = flowQuestions.every(q => !!newAnswers[q.id]);
+              if (allAnswered) {
+                setShowResults(true);
+              }
+            }
+          }
+        }, 700);
+      }
+      
+      return newAnswers;
+    });
   };
   
   // Next button handler
   const goToNextQuestion = () => {
+    // Create a local reference to prevent closure issues
+    const currentQ = question.id;
+    
+    log(`Advancing from question ${currentQ}, answer=${answers[currentQ]}`);
+    
     // Validate answer
-    if (!answers[question.id]) {
+    if (!answers[currentQ]) {
       setError("Please select an answer before proceeding");
       return;
     }
@@ -236,19 +263,7 @@ export default function FlowAssessmentSimple() {
               ))}
             </div>
             
-            {/* Progress bar */}
-            <div className="mt-8 max-w-xl mx-auto">
-              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-indigo-600 rounded-full" 
-                  style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
-                ></div>
-              </div>
-              <div className="flex justify-between mt-1 text-xs text-gray-500">
-                <span>Question {currentQuestion + 1}</span>
-                <span>of {flowQuestions.length}</span>
-              </div>
-            </div>
+
           </div>
           
           {/* Current selection display */}
@@ -317,23 +332,40 @@ export default function FlowAssessmentSimple() {
           </div>
         )}
 
-        {/* Navigation buttons */}
-        <div className="flex justify-between">
-          <Button 
-            variant="outline" 
-            onClick={goToPrevQuestion}
-            disabled={currentQuestion === 0}
-          >
-            Go Back
-          </Button>
+        {/* Navigation with progress bar */}
+        <div className="space-y-4">
+          {/* Progress bar */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-indigo-600 rounded-full" 
+                style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
+              ></div>
+            </div>
+            <div className="flex justify-between w-full mt-1 text-xs text-gray-500">
+              <span>Question {currentQuestion + 1}</span>
+              <span>of {flowQuestions.length}</span>
+            </div>
+          </div>
           
-          <Button 
-            onClick={goToNextQuestion}
-            disabled={!currentValue || (autoAdvance && currentValue > 0)}
-            className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance ? 'opacity-50' : ''}`}
-          >
-            {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
-          </Button>
+          {/* Navigation buttons */}
+          <div className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={goToPrevQuestion}
+              disabled={currentQuestion === 0}
+            >
+              Go Back
+            </Button>
+            
+            <Button 
+              onClick={goToNextQuestion}
+              disabled={!currentValue || (autoAdvance && currentValue > 0)}
+              className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance ? 'opacity-50' : ''}`}
+            >
+              {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
+            </Button>
+          </div>
         </div>
       </div>
       
