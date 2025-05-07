@@ -214,7 +214,7 @@ export default function StarCard({
           </div>
           
           {/* Arrow 2 - Precisely equidistant between Flow 2 and Flow 3 */}
-          <div className="absolute" style={{ top: '234px', left: '75px', width: '73px' }}>
+          <div className="absolute" style={{ top: '234px', left: '89px', width: '73px' }}>
             <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
