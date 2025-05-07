@@ -127,29 +127,42 @@ export default function FindYourFlow() {
   
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
-    // Check if we already have 4 ranked attributes
-    const rankedCount = selectedAttributes.filter(attr => attr.rank !== null).length;
-    if (rankedCount >= 4 && !selectedAttributes.some(attr => attr.text === text && attr.rank !== null)) {
-      toast({
-        title: "Maximum attributes selected",
-        description: "Please deselect an attribute before selecting another one.",
-        variant: "destructive"
+    // Check if attribute is already in the list (selected)
+    const existingAttr = selectedAttributes.find(attr => attr.text === text);
+    
+    if (existingAttr) {
+      // If it's already selected, remove it and adjust other ranks
+      const removedRank = existingAttr.rank;
+      
+      // Remove the attribute and recalculate ranks if it had a rank
+      const filteredAttrs = selectedAttributes.filter(attr => attr.text !== text);
+      const updatedAttrs = filteredAttrs.map(attr => {
+        if (attr.rank !== null && removedRank !== null && attr.rank > removedRank) {
+          return { ...attr, rank: attr.rank - 1 };
+        }
+        return attr;
       });
-      return;
+      
+      setSelectedAttributes(updatedAttrs);
+    } else {
+      // Check if we already have 4 ranked attributes
+      const rankedCount = selectedAttributes.filter(attr => attr.rank !== null).length;
+      if (rankedCount >= 4) {
+        toast({
+          title: "Maximum attributes selected",
+          description: "Please deselect an attribute before selecting another one.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      // Add the attribute to the list with the next available rank
+      const nextRank = rankedCount + 1;
+      setSelectedAttributes([
+        ...selectedAttributes,
+        { text, rank: nextRank }
+      ]);
     }
-    
-    // If attribute is already in the list, remove it
-    if (selectedAttributes.some(attr => attr.text === text)) {
-      setSelectedAttributes(selectedAttributes.filter(attr => attr.text !== text));
-      return;
-    }
-    
-    // Add the attribute to the list with the next available rank
-    const nextRank = rankedCount + 1;
-    setSelectedAttributes([
-      ...selectedAttributes,
-      { text, rank: nextRank }
-    ]);
   };
   
   const handleRemoveAttribute = (text: string) => {
