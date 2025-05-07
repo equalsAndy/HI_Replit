@@ -128,30 +128,34 @@ export default function StarCard({
           
           {/* Text positioned on top of cloud */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-2xl font-medium text-gray-500">{quadrantData?.apexStrength || 'Imagination'}</p>
+            <p className="text-2xl font-medium text-gray-500">Imagination</p>
             <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
           </div>
         </div>
         
         {/* Main Star Card Diagram - The "cluster" of strength and flow boxes */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
-          {/* Flow Label at right side */}
-          <div className="absolute top-1/4 right-4 text-sm font-medium text-gray-700">
+          {/* Flow Label above Flow 1 (top right flow box) */}
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '-30px', right: '35px' }}>
             Flow
           </div>
           
-          {/* Center Star - repositioned between Flow 4 and Flow 1 */}
-          <div className="absolute left-1/2 top-[30px] transform -translate-x-1/2 z-20">
+          {/* Core Label above Strength 1 (top left strength box) */}
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '55px', left: '56px' }}>
+            Core
+          </div>
+          
+          {/* Center Star - centered between Flow 4 and Flow 1, not touching any boxes */}
+          <div className="absolute z-20" style={{ left: '120px', top: '15px' }}>
             <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            <p className="text-xs text-gray-500 text-center mt-1">Core</p>
           </div>
           
-          {/* The Four Strength Squares - Part of the cluster - moved up */}
-          <div className="absolute left-1/2 top-[calc(40%-15px)] transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[1px] w-[120px] h-[120px] z-10">
+          {/* The Four Strength Squares - Part of the cluster */}
+          <div className="absolute grid grid-cols-2 gap-[1px] w-[120px] h-[120px] z-10" style={{ left: '80px', top: '90px' }}>
             {/* Top Left - Thinking */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
               <p className="text-xs font-bold">THINKING</p>
@@ -177,58 +181,58 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Flow Squares - repositioned closer to strength box corners */}
-          {/* Top Right Flow Square */}
+          {/* Flow Squares - uniform positioning in relation to strength boxes */}
+          {/* Flow 1 - Top Right Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300" 
-               style={{ top: '-10px', right: '15px' }}>
+               style={{ top: '0px', right: '25px' }}>
           </div>
           
-          {/* Bottom Right Flow Square */}
+          {/* Flow 2 - Bottom Right Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '50px', right: '15px' }}>
+               style={{ bottom: '30px', right: '25px' }}>
           </div>
           
-          {/* Bottom Left Flow Square */}
+          {/* Flow 3 - Bottom Left Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '50px', left: '15px' }}>
+               style={{ bottom: '30px', left: '25px' }}>
           </div>
           
-          {/* Top Left Flow Square */}
+          {/* Flow 4 - Top Left Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ top: '-10px', left: '15px' }}>
+               style={{ top: '0px', left: '25px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side - centered and shortened */}
-          <div className="absolute" style={{ right: '45px', top: '55px', height: '105px' }}>
-            <div className="absolute left-0 top-[12.5%] h-[75%] w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px]" style={{ bottom: '12.5%' }}>
+          {/* Right Arrow - Down arrow on right side - adjusted for new box positions */}
+          <div className="absolute" style={{ right: '55px', top: '65px', height: '95px' }}>
+            <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px]" style={{ bottom: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
                 <path d="M5 14 L0 7 L10 7 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom - centered and shortened */}
-          <div className="absolute" style={{ bottom: '80px', left: '75px', width: '105px' }}>
-            <div className="absolute left-[12.5%] top-0 w-[75%] h-[1px] bg-gray-400"></div>
-            <div className="absolute left-[12.5%] top-[-4px]">
+          {/* Bottom Arrow - Left arrow on bottom - adjusted for new box positions */}
+          <div className="absolute" style={{ bottom: '60px', left: '85px', width: '95px' }}>
+            <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
+            <div className="absolute left-0 top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
                 <path d="M0 5 L7 0 L7 10 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow - centered and shortened */}
-          <div className="absolute" style={{ left: '45px', top: '55px', height: '105px' }}>
-            <div className="absolute left-0 top-[12.5%] h-[75%] w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px]" style={{ top: '12.5%' }}>
+          {/* Left Arrow - Up arrow - adjusted for new box positions */}
+          <div className="absolute" style={{ left: '55px', top: '65px', height: '95px' }}>
+            <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px]" style={{ top: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
                 <path d="M5 0 L0 7 L10 7 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Removed the Top Arrow line between flow 1 and flow 4 as requested */}
+          {/* No Top Arrow between flow 1 and flow 4 as requested */}
         </div>
         
         {/* Logo - Positioned at bottom right like in example */}
