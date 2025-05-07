@@ -343,7 +343,7 @@ export default function UserHome() {
                   
                   <div className="aspect-w-16 aspect-h-9 mb-4">
                     <iframe 
-                      src="https://www.youtube.com/embed/ao04eaeDIFQ" 
+                      src="https://www.youtube.com/embed/JxdhWd8agmE" 
                       title="Introduction to Flow State" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

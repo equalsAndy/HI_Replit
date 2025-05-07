@@ -1,8 +1,16 @@
 import { useState, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { HelpCircle } from "lucide-react";
 import { AssessmentQuestion as QuestionType, RankedOption, AssessmentOption } from "@shared/schema";
 
 interface AssessmentQuestionProps {
@@ -24,6 +32,7 @@ export default function AssessmentQuestion({
   const [rankings, setRankings] = useState<RankedOption[]>([]);
   const [draggedOptionId, setDraggedOptionId] = useState<string | null>(null);
   const [ranking, setRanking] = useState<{[key: string]: number}>({});
+  const [autoAdvance, setAutoAdvance] = useState(false);
   
   // Order options by default (needed if we want a consistent display)
   const options = [...question.options].sort((a, b) => a.id.localeCompare(b.id));
@@ -111,6 +120,18 @@ export default function AssessmentQuestion({
 
   // Check if the form is complete (all options have rankings)
   const isComplete = options.every(option => ranking[option.id] > 0);
+
+  // Effect to auto-advance when all options are ranked
+  useEffect(() => {
+    if (autoAdvance && isComplete) {
+      // Add a short delay to give user time to see their selection
+      const timer = setTimeout(() => {
+        handleContinue();
+      }, 1000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [ranking, autoAdvance]);
 
   // Handle form submission
   const handleContinue = () => {

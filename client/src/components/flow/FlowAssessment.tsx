@@ -1,6 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -9,6 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { HelpCircle } from 'lucide-react';
 
 interface FlowQuestion {
   id: number;
@@ -36,6 +44,7 @@ export default function FlowAssessment() {
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
+  const [autoAdvance, setAutoAdvance] = useState(false);
   
   // Calculate total score
   const calculateScore = () => {
@@ -73,6 +82,13 @@ export default function FlowAssessment() {
       ...prev,
       [questionId]: value[0]
     }));
+    
+    // Auto advance to next question after a short delay if enabled
+    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
+      setTimeout(() => {
+        nextQuestion();
+      }, 700); // delay to give user time to see their selection
+    }
   };
   
   // Handle submit
@@ -154,6 +170,34 @@ export default function FlowAssessment() {
           </p>
         </div>
         
+        <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="auto-advance" 
+              checked={autoAdvance}
+              onCheckedChange={(checked) => setAutoAdvance(!!checked)}
+            />
+            <label
+              htmlFor="auto-advance"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Auto Advance
+            </label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Check the box to advance to the next question after you have ranked each one. You can always go back and adjust your answers.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+
         <div className="flex justify-between">
           <Button 
             variant="outline" 
