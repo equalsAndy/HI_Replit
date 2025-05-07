@@ -203,9 +203,9 @@ export default function StarCard({
                style={{ top: '25px', left: '15px' }}>
           </div>
           
-          {/* Arrow 1 - Vertically centered between Flow 1 and Flow 2 */}
-          <div className="absolute" style={{ right: '44px', top: '84px', height: '120px' }}>
-            <div className="absolute left-0 top-0 h-[120px] w-[1px] bg-gray-400"></div>
+          {/* Arrow 1 - 70% of original size and equidistant from Flow 1 and Flow 2 */}
+          <div className="absolute" style={{ right: '44px', top: '105px', height: '84px' }}>
+            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M5 10 L0 5 L10 5 Z" fill="#9CA3AF" />
