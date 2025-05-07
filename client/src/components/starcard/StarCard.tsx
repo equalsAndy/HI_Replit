@@ -31,12 +31,12 @@ export default function StarCard({
   
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    // Create array of quadrant objects with colors matching the reference image
+    // Create array of quadrant objects with exact RGB colors matching the reference image
     const quadrants: QuadrantInfo[] = [
-      { key: 'thinking', label: 'THINKING', color: 'bg-green-500', score: quadrantData?.thinking || 0, position: 0 },
-      { key: 'acting', label: 'ACTING', color: 'bg-red-500', score: quadrantData?.acting || 0, position: 0 },
-      { key: 'feeling', label: 'FEELING', color: 'bg-blue-500', score: quadrantData?.feeling || 0, position: 0 },
-      { key: 'planning', label: 'PLANNING', color: 'bg-yellow-500', score: quadrantData?.planning || 0, position: 0 }
+      { key: 'thinking', label: 'THINKING', color: 'rgb(1, 162, 82)', score: quadrantData?.thinking || 0, position: 0 },
+      { key: 'acting', label: 'ACTING', color: 'rgb(241, 64, 64)', score: quadrantData?.acting || 0, position: 0 },
+      { key: 'feeling', label: 'FEELING', color: 'rgb(22, 126, 253)', score: quadrantData?.feeling || 0, position: 0 },
+      { key: 'planning', label: 'PLANNING', color: 'rgb(255, 203, 47)', score: quadrantData?.planning || 0, position: 0 }
     ];
     
     // Sort by score in descending order
@@ -135,25 +135,25 @@ export default function StarCard({
           {/* The Four Strength Squares - Perfectly aligned with 2px gaps - 15% bigger */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[2px] w-[120px] h-[120px] z-10">
             {/* Top Left - Thinking */}
-            <div className="bg-green-500 text-white p-2 flex flex-col items-center justify-center aspect-square">
+            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
               <p className="text-[10px] font-bold">THINKING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.thinking || 0)}%</p>
             </div>
             
             {/* Top Right - Acting */}
-            <div className="bg-red-500 text-white p-2 flex flex-col items-center justify-center aspect-square">
+            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(241, 64, 64)' }}>
               <p className="text-[10px] font-bold">ACTING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.acting || 0)}%</p>
             </div>
             
             {/* Bottom Left - Feeling */}
-            <div className="bg-blue-500 text-white p-2 flex flex-col items-center justify-center aspect-square">
+            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(22, 126, 253)' }}>
               <p className="text-[10px] font-bold">FEELING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.feeling || 0)}%</p>
             </div>
             
             {/* Bottom Right - Planning */}
-            <div className="bg-yellow-500 text-white p-2 flex flex-col items-center justify-center aspect-square">
+            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(255, 203, 47)' }}>
               <p className="text-[10px] font-bold">PLANNING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.planning || 0)}%</p>
             </div>
