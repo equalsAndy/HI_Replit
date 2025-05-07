@@ -308,15 +308,15 @@ export default function Assessment() {
           <div className="mb-4">
             <div className="bg-amber-50 p-4 rounded-lg mb-4">
               {availableOptions.length > 0 ? (
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {availableOptions.map(option => (
                     <div 
                       key={option.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, option)}
-                      className="bg-gray-100 p-2 rounded-lg text-center flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-200 transition-colors shadow"
+                      className="bg-gray-100 rounded-lg flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-200 transition-colors shadow p-2"
                     >
-                      <p className="text-xs sm:text-sm">{option.text}</p>
+                      <p className="text-xs sm:text-sm text-center">{option.text}</p>
                     </div>
                   ))}
                 </div>
@@ -341,9 +341,9 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-indigo-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-indigo-100 rounded-lg cursor-move p-2"
                     >
-                      <p className="text-xs sm:text-sm text-center p-1">{rankings.mostLikeMe.text}</p>
+                      <p className="text-xs sm:text-sm text-center">{rankings.mostLikeMe.text}</p>
                     </div>
                   ) : (
                     <p className="text-gray-400 text-xs text-center">Drop here</p>
@@ -366,9 +366,9 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.second as Option)}
-                      className="w-full h-full flex items-center justify-center bg-purple-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-purple-100 rounded-lg cursor-move p-2"
                     >
-                      <p className="text-xs sm:text-sm text-center p-1">{rankings.second.text}</p>
+                      <p className="text-xs sm:text-sm text-center">{rankings.second.text}</p>
                     </div>
                   ) : (
                     <p className="text-gray-400 text-xs text-center">Drop here</p>
@@ -391,9 +391,9 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.third as Option)}
-                      className="w-full h-full flex items-center justify-center bg-teal-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-teal-100 rounded-lg cursor-move p-2"
                     >
-                      <p className="text-xs sm:text-sm text-center p-1">{rankings.third.text}</p>
+                      <p className="text-xs sm:text-sm text-center">{rankings.third.text}</p>
                     </div>
                   ) : (
                     <p className="text-gray-400 text-xs text-center">Drop here</p>
@@ -416,7 +416,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-rose-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-rose-100 rounded-lg cursor-move p-2"
                     >
                       <p className="text-xs sm:text-sm text-center p-1">{rankings.leastLikeMe.text}</p>
                     </div>
