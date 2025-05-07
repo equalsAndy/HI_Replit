@@ -37,7 +37,7 @@ export default function FindYourFlow() {
     if (tabId === "intro") return false;
     
     // For sequential progression
-    const tabSequence = ["intro", "assessment", "reflect"];
+    const tabSequence = ["intro", "assessment", "roundingout", "starcard"];
     const currentIndex = tabSequence.indexOf(activeTab);
     const targetIndex = tabSequence.indexOf(tabId);
     
@@ -78,7 +78,7 @@ export default function FindYourFlow() {
       
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid grid-cols-3 mb-6">
+          <TabsList className="grid grid-cols-4 mb-6">
             <TabsTrigger value="intro" data-value="intro">Flow Intro</TabsTrigger>
             <TabsTrigger value="assessment" data-value="assessment" disabled={isTabDisabled("assessment")}>
               {isTabDisabled("assessment") ? (
@@ -90,15 +90,25 @@ export default function FindYourFlow() {
                 </span>
               ) : "Flow Assessment"}
             </TabsTrigger>
-            <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
-              {isTabDisabled("reflect") ? (
+            <TabsTrigger value="roundingout" data-value="roundingout" disabled={isTabDisabled("roundingout")}>
+              {isTabDisabled("roundingout") ? (
                 <span className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
                   </svg>
-                  Reflect
+                  Rounding Out
                 </span>
-              ) : "Reflect"}
+              ) : "Rounding Out"}
+            </TabsTrigger>
+            <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
+              {isTabDisabled("starcard") ? (
+                <span className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                  </svg>
+                  Add Flow to StarCard
+                </span>
+              ) : "Add Flow to StarCard"}
             </TabsTrigger>
           </TabsList>
           
@@ -187,19 +197,19 @@ export default function FindYourFlow() {
             
             <div className="flex justify-end mt-6">
               <Button 
-                onClick={() => handleTabChange("reflect")}
+                onClick={() => handleTabChange("roundingout")}
                 className="bg-indigo-700 hover:bg-indigo-800"
               >
-                Next: Reflect on Your Flow
+                Next: Rounding Out
               </Button>
             </div>
           </TabsContent>
           
-          <TabsContent value="reflect" className="space-y-6">
+          <TabsContent value="roundingout" className="space-y-6">
             <div className="prose max-w-none mb-6">
-              <h2>Reflect on Your Flow State</h2>
+              <h2>Rounding Out Your Flow Understanding</h2>
               <p>
-                Now that you've completed the flow assessment, take some time to reflect on your personal flow experiences 
+                Now that you've completed the flow assessment, take some time to round out your understanding of flow
                 and how you can create more opportunities for flow in your work and life.
               </p>
             </div>
@@ -255,8 +265,8 @@ export default function FindYourFlow() {
                 <div className="aspect-video mb-6 relative">
                   <iframe 
                     className="w-full h-full"
-                    src="https://www.youtube.com/embed/Le_HtpWziQE" 
-                    title="Flow State Reflection" 
+                    src="https://www.youtube.com/embed/x6h7LDtdnJw" 
+                    title="Flow State and Performance" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowFullScreen>
                   </iframe>
@@ -271,6 +281,68 @@ export default function FindYourFlow() {
                     Flow State Guide PDF
                   </a>
                 </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-6">
+              <Button 
+                onClick={() => handleTabChange("starcard")}
+                className="bg-indigo-700 hover:bg-indigo-800"
+              >
+                Next: Add Flow to StarCard
+              </Button>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="starcard" className="space-y-6">
+            <div className="prose max-w-none mb-6">
+              <h2>Add Flow to Your StarCard</h2>
+              <p>
+                Now that you've completed your flow assessment and reflection, you can add your flow insights to your 
+                personal StarCard. This will help you visualize how your strengths connect to your optimal flow state.
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <div className="space-y-6">
+                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
+                    <h3 className="text-amber-700 font-medium mb-2">Your Flow Pattern</h3>
+                    <p className="text-sm">
+                      Based on your assessment, you experience flow most often when engaged in activities that combine
+                      focused attention with clear goals and immediate feedback. Activities that balance challenge and skill
+                      are particularly conducive to your flow state.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-100">
+                    <h3 className="text-teal-700 font-medium mb-2">Flow + Strengths</h3>
+                    <p className="text-sm">
+                      Your flow experiences are closely connected to your core strengths. When you leverage your natural
+                      talents, you're more likely to enter a flow state. Recognizing these connections can help you design
+                      work and activities that energize rather than drain you.
+                    </p>
+                  </div>
+                  
+                  <div className="text-center pt-4">
+                    <Button className="bg-indigo-700 hover:bg-indigo-800">
+                      Update My StarCard
+                    </Button>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex flex-col items-center justify-center">
+                <img 
+                  src="/src/assets/starcardcloudimage.png" 
+                  alt="Star Card Visualization" 
+                  className="w-full max-w-md h-auto mb-4"
+                />
+                
+                <p className="text-center text-sm text-gray-600 max-w-md">
+                  Your updated StarCard now includes both your core strengths and flow insights, 
+                  creating a comprehensive visualization of your professional profile.
+                </p>
               </div>
             </div>
             
