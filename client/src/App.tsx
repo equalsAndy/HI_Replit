@@ -18,23 +18,32 @@ import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
 
+// Import DemoModeProvider
+import { DemoModeProvider } from "@/hooks/use-demo-mode";
+
+// Import NavBar
+import { NavBar } from "./components/layout/NavBar";
+
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">
-      <Switch>
-        <Route path="/" component={Landing} />
-        <Route path="/auth" component={AuthPage} />
-        <Route path="/user-home" component={UserHome} />
-        <Route path="/foundations" component={Foundations} />
-        <Route path="/assessment" component={Assessment} />
-        <Route path="/report" component={Report} />
-        <Route path="/core-strengths" component={CoreStrengths} />
-        <Route path="/flow-assessment" component={FlowAssessment} />
-        <Route path="/find-your-flow" component={FindYourFlow} />
-        <Route path="/rounding-out" component={RoundingOut} />
-        <Route path="/visualize-yourself" component={VisualizeYourself} />
-        <Route component={NotFound} />
-      </Switch>
+      <NavBar />
+      <div className="flex-1">
+        <Switch>
+          <Route path="/" component={Landing} />
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/user-home" component={UserHome} />
+          <Route path="/foundations" component={Foundations} />
+          <Route path="/assessment" component={Assessment} />
+          <Route path="/report" component={Report} />
+          <Route path="/core-strengths" component={CoreStrengths} />
+          <Route path="/flow-assessment" component={FlowAssessment} />
+          <Route path="/find-your-flow" component={FindYourFlow} />
+          <Route path="/rounding-out" component={RoundingOut} />
+          <Route path="/visualize-yourself" component={VisualizeYourself} />
+          <Route component={NotFound} />
+        </Switch>
+      </div>
     </div>
   );
 }
@@ -43,8 +52,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <Toaster />
-        <Router />
+        <DemoModeProvider>
+          <Toaster />
+          <Router />
+        </DemoModeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
