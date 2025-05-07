@@ -315,6 +315,55 @@ export default function UserHome() {
                 </div>
               )}
             </div>
+
+            {/* Step 2B: Find your Flow State */}
+            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+              <div 
+                className="flex justify-between items-center p-4 cursor-pointer"
+                onClick={() => toggleSection("flow")}
+              >
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  <span className="text-indigo-700 font-medium">Find your Flow State</span>
+                </div>
+                {expandedSection === "flow" ? (
+                  <MinusIcon className="h-5 w-5 text-indigo-600" />
+                ) : (
+                  <PlusIcon className="h-5 w-5 text-indigo-600" />
+                )}
+              </div>
+              
+              {expandedSection === "flow" && (
+                <div className="p-4 border-t border-gray-200">
+                  <p className="mb-4 text-sm text-gray-700">
+                    This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
+                  </p>
+                  
+                  <div className="aspect-w-16 aspect-h-9 mb-4">
+                    <iframe 
+                      src="https://www.youtube.com/embed/ao04eaeDIFQ" 
+                      title="Introduction to Flow State" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="w-full h-64 rounded border border-gray-200"
+                    ></iframe>
+                  </div>
+                  
+                  <p className="mb-4 text-sm text-gray-700">
+                    Complete your Flow State Self-Assessment to identify how you experience flow and understand your current flow state.
+                  </p>
+                  
+                  <Link href="/flow-assessment">
+                    <Button className="bg-indigo-700 hover:bg-indigo-800">
+                      Take Flow Assessment
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
             
             {/* Step 3: Review your Star Report */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
