@@ -167,7 +167,12 @@ export default function FlowAssessment() {
           
           <div className="mb-6 relative">
             <div className="h-12 relative">
-              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-6 z-0"></div>
+              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-6 z-0">
+                <div 
+                  className="absolute h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" 
+                  style={{ width: `${((currentValue - 1) / 4) * 100}%` }}
+                ></div>
+              </div>
               
               {/* Custom slider track with positions for 1-5 */}
               <div className="absolute flex justify-between w-full top-4 px-1 z-10">
@@ -344,7 +349,12 @@ export default function FlowAssessment() {
                           <div className="flex items-center justify-center">
                             <div className="relative w-24 h-6 mx-2">
                               {/* Custom slider track */}
-                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-2 z-0"></div>
+                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-2 z-0">
+                                <div 
+                                  className="absolute h-2 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600" 
+                                  style={{ width: `${((answers[q.id] || 3) - 1) / 4 * 100}%` }}
+                                ></div>
+                              </div>
                               
                               {/* Custom markers */}
                               <div className="absolute flex justify-between w-full px-1 z-10">
