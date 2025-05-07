@@ -84,6 +84,9 @@ export default function FlowAssessment() {
       [questionId]: value[0]
     }));
     
+    // Clear any error message when user selects an answer
+    setError(null);
+    
     // Auto advance to next question after a short delay if enabled
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
       setTimeout(() => {
@@ -98,6 +101,9 @@ export default function FlowAssessment() {
       ...prev,
       [questionId]: 3
     }));
+    
+    // Clear any error message when user selects an answer
+    setError(null);
     
     // Auto advance to next question after a short delay if enabled
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
@@ -179,10 +185,7 @@ export default function FlowAssessment() {
         
         <div className="mb-8">
           <p className="font-medium mb-4">
-            <span className="inline-block w-8 h-8 rounded-full bg-indigo-600 text-white text-center leading-8 mr-2">
-              {question.id}
-            </span>
-            {question.text}
+            <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
           </p>
           
           <div className="mb-6 relative">
@@ -384,10 +387,7 @@ export default function FlowAssessment() {
                     {flowQuestions.map((q) => (
                       <tr key={q.id} className={q.id % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                         <td className="px-3 py-2 text-xs text-gray-700">
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 mr-1 text-xs font-semibold">
-                            {q.id}
-                          </span>
-                          {q.text}
+                          <span className="font-semibold mr-1">Question #{q.id}:</span> {q.text}
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center">
