@@ -206,8 +206,8 @@ export default function Assessment() {
       // If the option is already ranked somewhere, swap positions
       if (optionPreviousPosition) {
         // Put the previous option from the drop target into the spot where the dragged option came from
-        // Need to cast to avoid type errors
-        newRankings[optionPreviousPosition] = previousOption as (Option | null);
+        // TypeScript needs help here
+        (newRankings as any)[optionPreviousPosition] = previousOption;
       }
       
       // Place the dragged option in the drop target
@@ -428,7 +428,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-rose-100 rounded-lg cursor-move p-2"
+                      className="w-full h-full flex items-center justify-center bg-rose-100 rounded-lg cursor-move p-2 md:p-1"
                     >
                       <p className="text-xs sm:text-sm text-center">{rankings.leastLikeMe.text}</p>
                     </div>
