@@ -341,8 +341,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       return;
-      
-      res.status(200).json(starCard);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

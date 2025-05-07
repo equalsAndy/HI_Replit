@@ -1,67 +1,76 @@
 import { useQuery } from "@tanstack/react-query";
-import MainContainer, { LeftPanel, RightPanel } from "@/components/layout/MainContainer";
-import ProgressBar from "@/components/ui/progress-bar";
-import StepList from "@/components/steps/StepList";
-import StarCard from "@/components/starcard/StarCard";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
 export default function Home() {
   // Fetch user profile
-  const { data: user, isLoading: loadingUser } = useQuery({
+  const { data: user } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
     refetchInterval: 60000 // Refetch every minute to keep progress updated
   });
 
-  // Fetch star card data if we have a user
-  const { data: starCard, isLoading: loadingStarCard } = useQuery({
-    queryKey: ['/api/starcard'],
-    enabled: !!user,
-    staleTime: Infinity
-  });
-
-  // Default empty star card data
-  const defaultQuadrantData = {
-    thinking: 0,
-    acting: 0,
-    feeling: 0,
-    planning: 0,
-    apexStrength: "Imagination"
-  };
-
-  // Default profile data
-  const defaultProfileData = {
-    name: user?.name || "User",
-    title: user?.title || "Title",
-    organization: user?.organization || "Organization",
-    avatarUrl: user?.avatarUrl
-  };
-
   return (
-    <MainContainer>
-      <LeftPanel>
-        <h1 className="text-primary text-2xl font-bold">Hi, {user?.name || "User"}!</h1>
-        <p className="text-neutral-700 mb-6">Use these steps to track progress.</p>
+    <div className="container max-w-4xl mx-auto px-4 py-8">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Welcome</h1>
         
-        <div className="mb-8">
-          <ProgressBar progress={user?.progress || 0} />
+        <div className="max-w-3xl mx-auto">
+          <p className="text-lg md:text-xl mb-6">
+            This experience is designed to help you unlock and apply your <span className="font-bold">core strengths</span>, with a special focus on 
+            <span className="font-bold"> imagination</span> — so you can show up more fully, align more clearly, and collaborate more powerfully.
+          </p>
+  
+          <div className="grid md:grid-cols-2 gap-8 mb-12">
+            <Card className="p-6">
+              <h2 className="text-xl font-bold mb-4">PART I: INDIVIDUAL MICRO COURSE</h2>
+              <p className="mb-4">
+                Build your personal foundation through a 90-minute self-guided
+                journey. You'll deepen self-awareness and gain new insight into
+                how your strengths work — and how to grow them.
+              </p>
+              <ul className="list-disc pl-5 mb-4">
+                <li>Star Self-Assessment</li>
+                <li>Scaffolded Reflection Exercises</li>
+                <li>Personal Insights & Takeaways</li>
+              </ul>
+            </Card>
+            
+            <Card className="p-6">
+              <h2 className="text-xl font-bold mb-4">PART 2: TEAM PRACTICE WORKSHOP</h2>
+              <p className="mb-4">
+                Put your insights into motion in a 3-hour guided session with your
+                team. You'll practice applying your strengths in real collaboration,
+                building trust, clarity, and alignment.
+              </p>
+              <ul className="list-disc pl-5 mb-4">
+                <li>Facilitated Group Session</li>
+                <li>Team-Based Reflection & Fusion</li>
+                <li>Shared Outcomes & Collective Takeaways</li>
+              </ul>
+            </Card>
+          </div>
+          
+          <div className="my-8 aspect-video">
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+              title="AllStarTeams Workshop Orientation" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen>
+            </iframe>
+          </div>
+          
+          <div className="mt-10">
+            <Link href="/assessment">
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded">
+                NEXT
+              </Button>
+            </Link>
+          </div>
         </div>
-        
-        <StepList />
-      </LeftPanel>
-      
-      <RightPanel>
-        <h2 className="text-primary text-xl font-bold mb-2">Your Star Card</h2>
-        <p className="text-neutral-700 mb-6">Complete the activities on this page to build your Star Card. Once you've finished, download your Star Card for use in the whiteboard activities.</p>
-        
-        {loadingStarCard ? (
-          <div className="p-8 text-center">Loading your Star Card...</div>
-        ) : (
-          <StarCard 
-            profile={defaultProfileData} 
-            quadrantData={starCard || defaultQuadrantData} 
-          />
-        )}
-      </RightPanel>
-    </MainContainer>
+      </div>
+    </div>
   );
 }
