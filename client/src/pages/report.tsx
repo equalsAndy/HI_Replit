@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Link } from "wouter";
 import StarCard from "@/components/starcard/StarCard";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -36,7 +36,6 @@ export default function Report() {
         description: "Your progress has been updated.",
         variant: "default",
       });
-      navigate('/');
     },
     onError: (error) => {
       toast({
@@ -74,14 +73,11 @@ export default function Report() {
   // Show loading state
   if (userLoading || starCardLoading) {
     return (
-      <div className="container mx-auto py-10">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center p-8">
-              <p className="text-lg">Loading your Star Report...</p>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Your Star Profile + Star Card</h1>
+          <p className="text-lg">Loading your profile information...</p>
+        </div>
       </div>
     );
   }
@@ -89,20 +85,14 @@ export default function Report() {
   // Ensure we have star card data
   if (!starCard) {
     return (
-      <div className="container mx-auto py-10">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-center p-8">
-              <p className="text-lg text-red-500">No star card data found. Please complete the assessment first.</p>
-              <Button 
-                onClick={handleReturnToDashboard}
-                className="mt-4"
-              >
-                Return to Dashboard
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="container mx-auto py-8 max-w-4xl">
+        <div className="text-center">
+          <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Your Star Profile + Star Card</h1>
+          <p className="text-lg text-red-500 mb-4">No star card data found. Please complete the assessment first.</p>
+          <Button onClick={handleReturnToDashboard}>
+            Return to Dashboard
+          </Button>
+        </div>
       </div>
     );
   }
@@ -116,55 +106,58 @@ export default function Report() {
   };
   
   return (
-    <div className="container mx-auto py-10 max-w-4xl">
-      <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-2xl font-bold">Your Star Report</h1>
-        <Button onClick={handleReturnToDashboard}>
-          Return to Dashboard
-        </Button>
+    <div className="container mx-auto py-8 max-w-4xl">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Your Star Profile + Star Card</h1>
       </div>
       
-      <Card>
-        <CardContent className="pt-6">
-          <div className="mb-6">
-            <p className="text-lg mb-4">
-              This is your personal Star Report based on your assessment responses. Your apex strength is <strong>{starCard.apexStrength}</strong>.
+      <div className="grid md:grid-cols-2 gap-8 mb-12">
+        <div>
+          <div className="text-left mb-6">
+            <p className="mb-4">
+              Your Star Profile captures your current strengths and
+              growth edge. It's not a fixed label — it's a reflection of
+              where you are now in your development journey.
             </p>
             
-            <StarCard 
-              profile={profileData}
-              quadrantData={starCard}
-              downloadable={true}
-            />
+            <p className="mb-4">This exercise invites you to:</p>
             
-            <div className="mt-8">
-              <h2 className="text-xl font-bold mb-2">Understanding Your Quadrants</h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <div className="border border-neutral-200 rounded-lg p-4">
-                  <h3 className="font-bold text-chart-1 mb-2">Thinking ({starCard.thinking}%)</h3>
-                  <p>The Thinking quadrant represents your analytical and conceptual abilities. You use logic, reason, and abstract thinking to understand complex situations.</p>
-                </div>
-                
-                <div className="border border-neutral-200 rounded-lg p-4">
-                  <h3 className="font-bold text-chart-2 mb-2">Acting ({starCard.acting}%)</h3>
-                  <p>The Acting quadrant represents your preference for taking action, being decisive, and making things happen. You are results-oriented and practical.</p>
-                </div>
-                
-                <div className="border border-neutral-200 rounded-lg p-4">
-                  <h3 className="font-bold text-chart-3 mb-2">Feeling ({starCard.feeling}%)</h3>
-                  <p>The Feeling quadrant represents your emotional intelligence and social awareness. You are attuned to people's needs and value collaboration.</p>
-                </div>
-                
-                <div className="border border-neutral-200 rounded-lg p-4">
-                  <h3 className="font-bold text-chart-4 mb-2">Planning ({starCard.planning}%)</h3>
-                  <p>The Planning quadrant represents your organizational skills and preference for structure. You like to plan ahead and create systems and processes.</p>
-                </div>
-              </div>
-            </div>
+            <ul className="list-disc pl-5 mb-4 space-y-2">
+              <li>Reflect on your apex strength and how it shows up</li>
+              <li>Consider how your profile shifts over time and in different roles</li>
+              <li>Use your Star Card as a personal development compass</li>
+            </ul>
+            
+            <p className="mb-4">Watch the short video, then explore your profile with fresh eyes.</p>
           </div>
-        </CardContent>
-      </Card>
+          
+          <div className="aspect-video mb-6">
+            <iframe 
+              className="w-full h-full"
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+              title="Star Review Video" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen>
+            </iframe>
+          </div>
+        </div>
+        
+        <div className="flex justify-center items-start">
+          <StarCard 
+            profile={profileData}
+            quadrantData={starCard}
+            downloadable={true}
+          />
+        </div>
+      </div>
+      
+      <div className="text-center mt-8">
+        <Link href="/core-strengths">
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded">
+            NEXT
+          </Button>
+        </Link>
+      </div>
     </div>
   );
 }

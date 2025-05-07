@@ -9,6 +9,11 @@ import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import AppHeader from "@/components/layout/AppHeader";
 
+// Lazy load additional pages
+import CoreStrengths from "./pages/core-strengths";
+import FlowAssessment from "./pages/flow-assessment";
+import RoundingOut from "./pages/rounding-out";
+
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">
@@ -17,6 +22,9 @@ function Router() {
         <Route path="/" component={Home} />
         <Route path="/assessment" component={Assessment} />
         <Route path="/report" component={Report} />
+        <Route path="/core-strengths" component={CoreStrengths} />
+        <Route path="/flow-assessment" component={FlowAssessment} />
+        <Route path="/rounding-out" component={RoundingOut} />
         <Route component={NotFound} />
       </Switch>
     </div>
