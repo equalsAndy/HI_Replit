@@ -109,8 +109,8 @@ export default function StarCard({
           </div>
         </div>
         
-        {/* Cloud graphic with Apex Strength - Matches example exactly */}
-        <div className="relative text-center mb-2 pt-4">
+        {/* Cloud graphic with Apex Strength - Moved up 20px */}
+        <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
           {/* Cloud SVG */}
           <svg 
             viewBox="0 0 400 120" 
@@ -133,20 +133,20 @@ export default function StarCard({
           </div>
         </div>
         
-        {/* Main Star Card Diagram - The "cluster" of strength and flow boxes */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
+        {/* Main Star Card Diagram - The "cluster" moved up 35px */}
+        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-35px' }}>
           {/* Flow Label above Flow 1 (top right flow box) */}
-          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '-30px', right: '35px' }}>
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '10px', right: '60px' }}>
             Flow
           </div>
           
           {/* Core Label above Strength 1 (top left strength box) */}
-          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '55px', left: '56px' }}>
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '70px', left: '56px' }}>
             Core
           </div>
           
           {/* Center Star - centered between Flow 4 and Flow 1, not touching any boxes */}
-          <div className="absolute z-20" style={{ left: '120px', top: '15px' }}>
+          <div className="absolute z-20" style={{ left: '120px', top: '30px' }}>
             <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -154,52 +154,52 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* The Four Strength Squares - Part of the cluster */}
-          <div className="absolute grid grid-cols-2 gap-[1px] w-[120px] h-[120px] z-10" style={{ left: '80px', top: '90px' }}>
-            {/* Top Left - Thinking */}
-            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
-              <p className="text-xs font-bold">THINKING</p>
-              <p className="text-xs font-medium">{normalizeScore(quadrantData?.thinking || 0)}%</p>
+          {/* The Four Strength Squares - Moved up */}
+          <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '75px' }}>
+            {/* Top Left - Thinking - Improved text fitting */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
+              <p className="text-[10px] font-bold">THINKING</p>
+              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.thinking || 0)}%</p>
             </div>
             
-            {/* Top Right - Acting */}
-            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(241, 64, 64)' }}>
-              <p className="text-xs font-bold">ACTING</p>
-              <p className="text-xs font-medium">{normalizeScore(quadrantData?.acting || 0)}%</p>
+            {/* Top Right - Acting - Improved text fitting */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(241, 64, 64)' }}>
+              <p className="text-[10px] font-bold">ACTING</p>
+              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.acting || 0)}%</p>
             </div>
             
-            {/* Bottom Left - Feeling */}
-            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(22, 126, 253)' }}>
-              <p className="text-xs font-bold">FEELING</p>
-              <p className="text-xs font-medium">{normalizeScore(quadrantData?.feeling || 0)}%</p>
+            {/* Bottom Left - Feeling - Improved text fitting */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(22, 126, 253)' }}>
+              <p className="text-[10px] font-bold">FEELING</p>
+              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.feeling || 0)}%</p>
             </div>
             
-            {/* Bottom Right - Planning */}
-            <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(255, 203, 47)' }}>
-              <p className="text-xs font-bold">PLANNING</p>
-              <p className="text-xs font-medium">{normalizeScore(quadrantData?.planning || 0)}%</p>
+            {/* Bottom Right - Planning - Improved text fitting */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(255, 203, 47)' }}>
+              <p className="text-[10px] font-bold">PLANNING</p>
+              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.planning || 0)}%</p>
             </div>
           </div>
           
-          {/* Flow Squares - uniform positioning in relation to strength boxes */}
+          {/* Flow Squares - exactly 3px from strength corners */}
           {/* Flow 1 - Top Right Flow Square */}
-          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300" 
-               style={{ top: '0px', right: '25px' }}>
+          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
+               style={{ top: '15px', right: '15px' }}>
           </div>
           
           {/* Flow 2 - Bottom Right Flow Square */}
-          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '30px', right: '25px' }}>
+          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
+               style={{ bottom: '45px', right: '15px' }}>
           </div>
           
           {/* Flow 3 - Bottom Left Flow Square */}
-          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '30px', left: '25px' }}>
+          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
+               style={{ bottom: '45px', left: '15px' }}>
           </div>
           
           {/* Flow 4 - Top Left Flow Square */}
-          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ top: '0px', left: '25px' }}>
+          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
+               style={{ top: '15px', left: '15px' }}>
           </div>
           
           {/* Right Arrow - Down arrow on right side - adjusted for new box positions */}
