@@ -330,7 +330,7 @@ export default function FlowAssessment() {
 
         {previousQuestion && (
           <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
-            <p className="text-xs text-gray-500 mb-1">Question #{previousQuestion.id}:</p>
+            <p className="text-xs text-gray-500 mb-1">Previous Question (#{previousQuestion.id}):</p>
             <p className="text-xs text-gray-700 mb-1">{previousQuestion.text}</p>
             {prevAnswer > 0 && (
               <p className="text-xs font-medium text-indigo-600">Previous answer: {prevAnswer} - {valueToLabel(prevAnswer)}</p>
