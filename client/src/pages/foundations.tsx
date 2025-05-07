@@ -309,14 +309,23 @@ export default function Foundations() {
                 </div>
               </div>
               
-              <div className="bg-purple-50 rounded-lg border border-purple-100 p-6 mb-8">
-                <h3 className="text-lg font-semibold text-purple-800 mb-4">Your Core Strengths Reflection</h3>
-                <p className="mb-6 text-sm text-gray-700">
-                  Express in your own words on how you see yourself, your strengths, values, what you uniquely bring to the team, what you value in others, and what you're passionate about professionally. Click into each box below and type your response. Just a few short sentences for each.
-                </p>
+              <div className="bg-white rounded-lg p-6 mb-8">
+                <div className="flex items-center space-x-2 mb-6">
+                  <div className="flex items-center justify-center bg-blue-600 text-white h-8 w-8 rounded-full font-bold">A</div>
+                  <h3 className="text-xl font-bold text-gray-800">Reflect On Your Strengths</h3>
+                </div>
+                
+                <div className="mb-6">
+                  <p className="text-gray-700 mb-2">
+                    <span className="font-medium">Purpose:</span> Express in your own words how you see yourself, your strengths, values, what you uniquely bring to the team, what you value in others, and what you are enthused about professionally.
+                  </p>
+                  <p className="text-gray-700">
+                    <span className="font-medium">Directions:</span> Respond to the prompts.
+                  </p>
+                </div>
                 
                 {!starCard ? (
-                  <div className="text-center p-8 bg-white rounded-lg border border-gray-200">
+                  <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
                     <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
                     <p className="text-sm text-gray-500 mb-4">
                       To access this reflection, you need to complete the AllStarTeams assessment first.
@@ -328,140 +337,101 @@ export default function Foundations() {
                     </Link>
                   </div>
                 ) : (
-                  <div className="space-y-6">
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        How and when I see my 1st strength ({starCard.apexStrength})
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px]"
-                      />
+                  <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 1st strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 2nd strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        How and when I see my 2nd strength (
-                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [1][0].charAt(0).toUpperCase() + 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [1][0].slice(1)
-                            : "Second Strength"
-                          }
-                        )
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px]"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Reflect on your Stress Coping Strengths
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how you use your strengths under stress..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 3rd strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        How and when I see my 3rd strength (
-                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [2][0].charAt(0).toUpperCase() + 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [2][0].slice(1)
-                            : "Third Strength"
-                          }
-                        )
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px]"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Three complementary strengths I value in others
+                        </label>
+                        <Textarea 
+                          placeholder="Describe strengths you appreciate in colleagues and teammates..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Current or future projects I'm really enthused about
+                        </label>
+                        <Textarea 
+                          placeholder="Describe projects that excite or inspire you..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        How and when I see my 4th strength (
-                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [3][0].charAt(0).toUpperCase() + 
-                            Object.entries({
-                              thinking: starCard.thinking,
-                              acting: starCard.acting,
-                              feeling: starCard.feeling,
-                              planning: starCard.planning
-                            })
-                            .sort((a, b) => b[1] - a[1])
-                            [3][0].slice(1)
-                            : "Fourth Strength"
-                          }
-                        )
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px]"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          What I uniquely bring to the team
+                        </label>
+                        <Textarea 
+                          placeholder="Describe your unique contribution to your team or organization..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 4th strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        Three complementary strengths I value in others
-                      </label>
-                      <Textarea 
-                        placeholder="Describe strengths you appreciate in colleagues and teammates..."
-                        className="w-full min-h-[100px]"
-                      />
-                    </div>
-                    
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        What I uniquely bring to the team
-                      </label>
-                      <Textarea 
-                        placeholder="Describe your unique contribution to your team or organization..."
-                        className="w-full min-h-[100px]"
-                      />
-                    </div>
-                    
-                    <div className="bg-white rounded-lg border border-gray-200 p-4">
-                      <label className="block font-medium text-purple-700 mb-2">
-                        Current or future projects I'm really enthused about
-                      </label>
-                      <Textarea 
-                        placeholder="Describe projects that excite or inspire you..."
-                        className="w-full min-h-[100px]"
-                      />
-                    </div>
-                    
-                    <div className="flex justify-center mt-6">
-                      <Button className="bg-purple-600 hover:bg-purple-700">
-                        Save My Reflections
+                    <div className="flex space-x-2 mt-6">
+                      <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        Save
+                      </Button>
+                      <Button variant="outline">
+                        Return
                       </Button>
                     </div>
                   </div>
