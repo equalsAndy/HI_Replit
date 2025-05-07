@@ -278,7 +278,7 @@ export default function UserHome() {
               )}
             </div>
             
-            {/* Step 2: Complete an Assessment */}
+            {/* Step 2: Learn about your Strengths */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
               <div 
                 className="flex justify-between items-center p-4 cursor-pointer"
@@ -286,7 +286,7 @@ export default function UserHome() {
               >
                 <div className="flex items-center">
                   <StarIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  <span className="text-indigo-700 font-medium">Complete an Assessment</span>
+                  <span className="text-indigo-700 font-medium">Learn about your Strengths</span>
                 </div>
                 {expandedSection === "assessment" ? (
                   <MinusIcon className="h-5 w-5 text-indigo-600" />
@@ -298,12 +298,18 @@ export default function UserHome() {
               {expandedSection === "assessment" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
-                    Start your assessment to discover your unique strengths and talents.
+                    Take the assessment to discover your unique strengths. You'll rank options from 'most like me' to 'least like me' for a series of scenarios.
                   </p>
+                  
+                  <Link href="/foundations">
+                    <Button className="bg-indigo-700 hover:bg-indigo-800 mr-2">
+                      Learn about Strengths
+                    </Button>
+                  </Link>
                   
                   <Link href="/assessment">
                     <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Begin Assessment
+                      Start Assessment
                     </Button>
                   </Link>
                 </div>

@@ -38,14 +38,14 @@ export default function StarCard({
     <div className="flex flex-col items-center">
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 rounded-lg p-4 ${preview ? 'w-full max-w-[320px]' : 'w-full max-w-[480px]'}`}
-        style={{ aspectRatio: '0.7' }}
+        className={`bg-white border border-gray-200 rounded-lg p-4 ${preview ? 'max-w-[300px]' : 'max-w-[400px]'}`}
+        style={{ aspectRatio: '1/1.4' }}
       >
         <h2 className="text-xl font-bold text-center mb-4">Star Card</h2>
         
         {/* User Profile */}
-        <div className="flex items-center mb-5">
-          <div className="bg-gray-200 rounded-full h-14 w-14 flex items-center justify-center mr-3">
+        <div className="flex items-center mb-4">
+          <div className="bg-gray-200 rounded-full h-12 w-12 flex items-center justify-center mr-3">
             {profile.avatarUrl ? (
               <img 
                 src={profile.avatarUrl} 
@@ -53,38 +53,24 @@ export default function StarCard({
                 className="h-full w-full object-cover rounded-full"
               />
             ) : (
-              <UserIcon className="h-7 w-7 text-gray-400" />
+              <UserIcon className="h-6 w-6 text-gray-400" />
             )}
           </div>
           <div>
-            <p className="font-medium text-sm text-gray-800">Name: {profile.name || 'User'}</p>
-            <p className="text-xs text-gray-600">Title: {profile.title || 'title'}</p>
-            <p className="text-xs text-gray-600">Organization: {profile.organization || 'company'}</p>
+            <p className="font-medium text-sm text-gray-800">{profile.name || 'User'}</p>
+            <p className="text-xs text-gray-600">{profile.title || 'title'}</p>
+            <p className="text-xs text-gray-600">{profile.organization || 'company'}</p>
           </div>
         </div>
         
         {/* Apex Strength */}
-        <div className="text-center mb-5 relative">
-          <div className="absolute top-0 left-0 right-0 h-8 bg-contain bg-center bg-no-repeat" 
-            style={{ backgroundImage: "url('data:image/svg+xml;utf8,<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 1000 100\"><path d=\"M0,100 C300,20 700,20 1000,100\" fill=\"none\" stroke=\"%23f0f0f0\" stroke-width=\"60\"/></svg>')" }}>
-          </div>
-          <div className="pt-3">
-            <p className="text-base text-gray-700">Imagination</p>
-            <p className="text-xs text-gray-500 italic">Your Apex Strength</p>
-          </div>
-        </div>
-        
-        {/* Flow Sides */}
-        <div className="flex justify-between px-3 mb-2">
-          <div className="h-16 w-16 bg-gray-100"></div>
-          <div className="h-16 w-16 bg-gray-100"></div>
+        <div className="text-center mb-3">
+          <p className="text-base text-gray-700">{quadrantData?.apexStrength || 'Imagination'}</p>
+          <p className="text-xs text-gray-500 italic">Your Apex Strength</p>
         </div>
         
         {/* Star and Core */}
-        <div className="flex items-center justify-center">
-          <div className="flex-1 text-right mr-2">
-            <span className="text-xs text-gray-600">Flow</span>
-          </div>
+        <div className="flex items-center justify-center mb-3">
           <div className="relative">
             <div className="h-16 w-16 rounded-full border-2 border-gray-300 flex items-center justify-center">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-300">
@@ -92,57 +78,48 @@ export default function StarCard({
               </svg>
             </div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <p className="text-xs text-gray-500 mt-12">Core</p>
+              <p className="text-xs text-gray-500 mt-14">Core</p>
             </div>
-          </div>
-          <div className="flex-1 text-left ml-2">
-            <span className="text-xs text-gray-600">Flow</span>
           </div>
         </div>
         
         {/* Quadrants */}
-        <div className="grid grid-cols-2 gap-px mt-2 w-40 mx-auto">
-          <div className="bg-gray-300 p-2 text-center">
+        <div className="grid grid-cols-2 gap-1 mb-3 mx-auto">
+          <div className="bg-gray-200 p-3 text-center aspect-square flex flex-col items-center justify-center">
             <p className="text-xs font-bold uppercase">THINKING</p>
-            <p className="text-xs">{quadrantData?.thinking || 0}%</p>
+            <p className="text-sm font-medium mt-1">{quadrantData?.thinking || 0}%</p>
           </div>
-          <div className="bg-gray-300 p-2 text-center">
+          <div className="bg-gray-200 p-3 text-center aspect-square flex flex-col items-center justify-center">
             <p className="text-xs font-bold uppercase">ACTING</p>
-            <p className="text-xs">{quadrantData?.acting || 0}%</p>
+            <p className="text-sm font-medium mt-1">{quadrantData?.acting || 0}%</p>
           </div>
-          <div className="bg-gray-300 p-2 text-center">
+          <div className="bg-gray-200 p-3 text-center aspect-square flex flex-col items-center justify-center">
             <p className="text-xs font-bold uppercase">PLANNING</p>
-            <p className="text-xs">{quadrantData?.planning || 0}%</p>
+            <p className="text-sm font-medium mt-1">{quadrantData?.planning || 0}%</p>
           </div>
-          <div className="bg-gray-300 p-2 text-center">
+          <div className="bg-gray-200 p-3 text-center aspect-square flex flex-col items-center justify-center">
             <p className="text-xs font-bold uppercase">FEELING</p>
-            <p className="text-xs">{quadrantData?.feeling || 0}%</p>
+            <p className="text-sm font-medium mt-1">{quadrantData?.feeling || 0}%</p>
           </div>
         </div>
         
-        {/* Arrows */}
-        <div className="flex justify-between items-center mt-2 px-8">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 text-gray-400 transform rotate-90">
-            <path d="M5 12h14M12 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 text-gray-400 transform -rotate-90">
-            <path d="M5 12h14M12 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <div className="text-center mb-2">
+          <p className="text-xs text-gray-600">FLOW</p>
         </div>
         
-        {/* Bottom Areas */}
-        <div className="flex justify-between mt-2">
-          <div className="h-16 w-16 bg-gray-100"></div>
-          <div className="flex items-center">
+        {/* Flow Areas */}
+        <div className="grid grid-cols-3 gap-1 mb-3">
+          <div className="aspect-square bg-gray-100"></div>
+          <div className="aspect-square bg-white flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 text-gray-400">
-              <path d="M5 12h14M12 5l-7 7 7 7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M5 12h14M5 12l7 7M5 12l7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="h-16 w-16 bg-gray-100"></div>
+          <div className="aspect-square bg-gray-100"></div>
         </div>
         
         {/* Logo */}
-        <div className="text-right mt-2">
+        <div className="text-right mt-1">
           <img 
             src="/src/assets/all-star-teams-logo-250px.png" 
             alt="AllStarTeams" 
