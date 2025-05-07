@@ -127,26 +127,26 @@ export default function StarCard({
             />
           </svg>
           
-          {/* Text positioned on top of cloud */}
+          {/* Text positioned on top of cloud - smaller and bold */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-2xl font-medium text-gray-500">Imagination</p>
+            <p className="text-xl font-bold text-gray-500">Imagination</p>
             <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
           </div>
         </div>
         
-        {/* Main Star Card Diagram - The "cluster" moved up 35px */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-35px' }}>
+        {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
+        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
           {/* Flow Label above Flow 1 (top right flow box) - moved higher to avoid overlap */}
           <div className="absolute text-sm font-medium text-gray-700" style={{ top: '-5px', right: '40px' }}>
             Flow
           </div>
           
-          {/* Core Label above Strength 1 (top left strength box) - repositioned */}
-          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '55px', left: '56px' }}>
+          {/* Core Label moved to above right strength 1 box (acting) */}
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '55px', right: '56px' }}>
             Core
           </div>
           
-          {/* Center Star - centered between Flow 4 and Flow 1, not touching any boxes, moved up */}
+          {/* Center Star - position kept the same (not moved down with cluster) */}
           <div className="absolute z-20" style={{ left: '115px', top: '15px' }}>
             <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
@@ -155,8 +155,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* The Four Strength Squares - Moved up */}
-          <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '75px' }}>
+          {/* The Four Strength Squares - Moved down 10px */}
+          <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left - Thinking - Improved text fitting */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
               <p className="text-[10px] font-bold">THINKING</p>
@@ -182,29 +182,29 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Flow Squares - exactly 3px from strength corners */}
+          {/* Flow Squares - exactly 3px from strength corners - updated with moved strength squares */}
           {/* Flow 1 - Top Right Flow Square */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
-               style={{ top: '15px', right: '15px' }}>
+               style={{ top: '25px', right: '15px' }}>
           </div>
           
           {/* Flow 2 - Bottom Right Flow Square */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '45px', right: '15px' }}>
+               style={{ bottom: '35px', right: '15px' }}>
           </div>
           
           {/* Flow 3 - Bottom Left Flow Square */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '45px', left: '15px' }}>
+               style={{ bottom: '35px', left: '15px' }}>
           </div>
           
           {/* Flow 4 - Top Left Flow Square */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
-               style={{ top: '15px', left: '15px' }}>
+               style={{ top: '25px', left: '15px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side - adjusted for new box positions */}
-          <div className="absolute" style={{ right: '55px', top: '65px', height: '95px' }}>
+          {/* Right Arrow - Down arrow on right side - readjusted for new box positions */}
+          <div className="absolute" style={{ right: '55px', top: '75px', height: '95px' }}>
             <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4px]" style={{ bottom: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
@@ -213,8 +213,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom - adjusted for new box positions */}
-          <div className="absolute" style={{ bottom: '60px', left: '85px', width: '95px' }}>
+          {/* Bottom Arrow - Left arrow on bottom - readjusted for new box positions */}
+          <div className="absolute" style={{ bottom: '50px', left: '85px', width: '95px' }}>
             <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
@@ -223,8 +223,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow - adjusted for new box positions */}
-          <div className="absolute" style={{ left: '55px', top: '65px', height: '95px' }}>
+          {/* Left Arrow - Up arrow - readjusted for new box positions */}
+          <div className="absolute" style={{ left: '55px', top: '75px', height: '95px' }}>
             <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4px]" style={{ top: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
