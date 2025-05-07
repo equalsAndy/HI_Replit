@@ -2,15 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
+import { QuadrantData } from '@shared/schema';
+import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 
-// Define question types
-type Option = {
-  id: string;
-  text: string;
-  category: 'thinking' | 'acting' | 'feeling' | 'planning';
-};
+// Define question types - match the types from data file
+type Option = AssessmentOption;
 
 type Question = {
   id: number;
@@ -18,52 +17,15 @@ type Question = {
   options: Option[];
 };
 
-type RankedOption = {
-  optionId: string;
-  rank: number; // 1 = most like me, 4 = least like me
-};
-
-// Sample question data (normally would come from API)
-const sampleQuestions: Question[] = [
-  {
-    id: 1,
-    text: 'When solving a problem at work, I typically...',
-    options: [
-      { id: '1a', text: 'Look at the facts and think through different solutions', category: 'thinking' },
-      { id: '1b', text: 'Talk with colleagues to hear their concerns and ideas', category: 'feeling' },
-      { id: '1c', text: 'Jump in quickly to find a practical fix', category: 'acting' },
-      { id: '1d', text: 'Create a step-by-step plan to tackle the issue', category: 'planning' }
-    ]
-  },
-  {
-    id: 2,
-    text: 'When starting a new project, I prefer to...',
-    options: [
-      { id: '2a', text: 'Start working right away and adjust as I go', category: 'acting' },
-      { id: '2b', text: 'Get to know my teammates and build good working relationships', category: 'feeling' },
-      { id: '2c', text: 'Break down the work into clear steps with deadlines', category: 'planning' },
-      { id: '2d', text: 'Consider different approaches before deciding how to proceed', category: 'thinking' }
-    ]
-  },
-  {
-    id: 3,
-    text: 'In a meeting, I am most likely to...',
-    options: [
-      { id: '3a', text: 'Offer logical analysis of the situation', category: 'thinking' },
-      { id: '3b', text: 'Focus on how the decision will affect people', category: 'feeling' },
-      { id: '3c', text: 'Push for immediate action and results', category: 'acting' },
-      { id: '3d', text: 'Ensure we have a clear process and timeline', category: 'planning' }
-    ]
-  }
-];
-
 export default function Assessment() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // Current question state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{[key: number]: RankedOption[]}>({});
+  const [progress, setProgress] = useState<number>(0);
   
   // Drag and drop state
   const [draggedOption, setDraggedOption] = useState<Option | null>(null);
@@ -79,8 +41,15 @@ export default function Assessment() {
     leastLikeMe: null
   });
   
-  const currentQuestion = sampleQuestions[currentQuestionIndex];
-  const totalQuestions = sampleQuestions.length;
+  const currentQuestion = assessmentQuestions[currentQuestionIndex];
+  const totalQuestions = assessmentQuestions.length;
+  
+  // Update progress when answers change
+  useEffect(() => {
+    const answeredCount = Object.keys(answers).length;
+    const newProgress = Math.floor((answeredCount / totalQuestions) * 100);
+    setProgress(newProgress);
+  }, [answers, totalQuestions]);
   
   // Initialize rankings when question changes
   React.useEffect(() => {
@@ -115,6 +84,18 @@ export default function Assessment() {
     }
   }, [currentQuestionIndex, currentQuestion.id]);
   
+  // Function to get quadrant scores from answers
+  const getQuadrantScores = (): QuadrantData => {
+    // Convert answers object to array
+    const answersArray = Object.entries(answers).map(([questionId, rankings]) => ({
+      questionId: parseInt(questionId),
+      rankings
+    }));
+    
+    // Use the imported calculation function
+    return calculateQuadrantScores(answersArray, optionCategoryMapping);
+  };
+  
   // Save answer mutation
   const saveAnswer = useMutation({
     mutationFn: async (data: { questionId: number, rankings: RankedOption[] }) => {
@@ -142,10 +123,32 @@ export default function Assessment() {
   // Complete assessment mutation
   const completeAssessment = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/assessment/complete', {});
+      // Calculate final results
+      const results = getQuadrantScores();
+      
+      // Save to server
+      const res = await apiRequest('POST', '/api/assessment/complete', {
+        quadrantData: results,
+        answers: Object.entries(answers).map(([questionId, rankings]) => ({
+          questionId: parseInt(questionId),
+          rankings
+        }))
+      });
+      
       return await res.json();
     },
     onSuccess: () => {
+      // Update user progress
+      const updateProgress = async () => {
+        try {
+          await apiRequest('PUT', '/api/user/progress', { progress: 100 });
+          queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+        } catch (error) {
+          console.error("Failed to update progress:", error);
+        }
+      };
+      updateProgress();
+      
       toast({
         title: "Assessment Complete!",
         description: "Your results are ready to view."
@@ -231,14 +234,20 @@ export default function Assessment() {
       [currentQuestion.id]: rankingData
     }));
     
-    // Send to server (commented out for now)
-    // saveAnswer.mutate({ questionId: currentQuestion.id, rankings: rankingData });
+    // Update progress based on local state
+    const newProgress = Math.floor(((Object.keys(answers).length + 1) / totalQuestions) * 100);
     
     // For demo, just go to next question
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      // Complete assessment - for demo just go to report page
+      // Complete assessment - calculate results and go to report page
+      const results = getQuadrantScores();
+      console.log("Assessment Results:", results);
+      
+      // In a real app, we would submit these results to the server
+      // completeAssessment.mutate();
+      
       toast({
         title: "Assessment Complete!",
         description: "Your results are ready to view."
@@ -246,6 +255,12 @@ export default function Assessment() {
       navigate('/report');
     }
   };
+  
+  // Progress bar calculation
+  const progressPercentage = Math.min(
+    Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100),
+    100
+  );
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -262,17 +277,25 @@ export default function Assessment() {
           
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600">English 🇺🇸</span>
-            <Button variant="destructive" size="sm" className="rounded-md">Logout</Button>
+            <Button variant="outline" size="sm" className="rounded-md" asChild>
+              <Link href="/user-home">Dashboard</Link>
+            </Button>
           </div>
         </div>
       </header>
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
           <div>
             <h2 className="text-xl font-semibold text-gray-800">
               Question {currentQuestionIndex + 1} of {totalQuestions}
             </h2>
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 mb-4">
+              <div 
+                className="bg-indigo-600 h-2.5 rounded-full" 
+                style={{ width: `${progressPercentage}%` }}
+              ></div>
+            </div>
           </div>
           <Link href="/user-home">
             <Button variant="outline">Return to Dashboard</Button>
@@ -286,7 +309,7 @@ export default function Assessment() {
           <div className="mb-10">
             <div className="bg-amber-50 p-6 rounded-lg mb-8">
               {availableOptions.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {availableOptions.map(option => (
                     <div 
                       key={option.id}
@@ -311,15 +334,15 @@ export default function Assessment() {
                   onDrop={(e) => handleDrop(e, 'mostLikeMe')}
                   className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.mostLikeMe 
-                      ? 'border-transparent bg-gray-200' 
+                      ? 'border-transparent bg-green-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
                   {rankings.mostLikeMe ? (
                     <div 
                       draggable
-                      onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe)}
-                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                      onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe as Option)}
+                      className="w-full h-full flex items-center justify-center bg-green-100 rounded-md cursor-move"
                     >
                       <p className="text-sm text-center p-2">{rankings.mostLikeMe.text}</p>
                     </div>
@@ -336,15 +359,15 @@ export default function Assessment() {
                   onDrop={(e) => handleDrop(e, 'second')}
                   className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.second 
-                      ? 'border-transparent bg-gray-200' 
+                      ? 'border-transparent bg-blue-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
                   {rankings.second ? (
                     <div 
                       draggable
-                      onDragStart={(e) => handleDragStart(e, rankings.second)}
-                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                      onDragStart={(e) => handleDragStart(e, rankings.second as Option)}
+                      className="w-full h-full flex items-center justify-center bg-blue-100 rounded-md cursor-move"
                     >
                       <p className="text-sm text-center p-2">{rankings.second.text}</p>
                     </div>
@@ -361,15 +384,15 @@ export default function Assessment() {
                   onDrop={(e) => handleDrop(e, 'third')}
                   className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.third 
-                      ? 'border-transparent bg-gray-200' 
+                      ? 'border-transparent bg-yellow-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
                   {rankings.third ? (
                     <div 
                       draggable
-                      onDragStart={(e) => handleDragStart(e, rankings.third)}
-                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                      onDragStart={(e) => handleDragStart(e, rankings.third as Option)}
+                      className="w-full h-full flex items-center justify-center bg-yellow-100 rounded-md cursor-move"
                     >
                       <p className="text-sm text-center p-2">{rankings.third.text}</p>
                     </div>
@@ -386,15 +409,15 @@ export default function Assessment() {
                   onDrop={(e) => handleDrop(e, 'leastLikeMe')}
                   className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.leastLikeMe 
-                      ? 'border-transparent bg-gray-200' 
+                      ? 'border-transparent bg-red-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
                   {rankings.leastLikeMe ? (
                     <div 
                       draggable
-                      onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe)}
-                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                      onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
+                      className="w-full h-full flex items-center justify-center bg-red-100 rounded-md cursor-move"
                     >
                       <p className="text-sm text-center p-2">{rankings.leastLikeMe.text}</p>
                     </div>
