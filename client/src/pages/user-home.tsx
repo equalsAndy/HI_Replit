@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon } from "lucide-react";
-import { EditableStarCard } from "@/components/starcard/EditableStarCard";
+import StarCard from "@/components/starcard/StarCard";
 
 export default function UserHome() {
   const [location, navigate] = useLocation();
@@ -17,6 +17,7 @@ export default function UserHome() {
   
   // Profile form state
   const [profileData, setProfileData] = useState({
+    name: "",
     title: "",
     organization: ""
   });
@@ -67,6 +68,7 @@ export default function UserHome() {
       // Initialize form data if opening profile section
       if (sectionId === "profile" && user) {
         setProfileData({
+          name: user.name || "",
           title: user.title || "",
           organization: user.organization || ""
         });
@@ -280,10 +282,21 @@ export default function UserHome() {
                   
                   <form onSubmit={handleSaveProfile}>
                     <p className="text-red-500 mb-3 text-sm">
-                      Enter your Title and Company
+                      Enter your information to complete your profile
                     </p>
                     
                     <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm text-gray-700 mb-1">Name:</label>
+                        <Input 
+                          name="name"
+                          value={profileData.name}
+                          onChange={handleProfileChange}
+                          placeholder="Your full name"
+                          className="w-full"
+                        />
+                      </div>
+
                       <div>
                         <label className="block text-sm text-gray-700 mb-1">Title:</label>
                         <Input 
@@ -311,7 +324,7 @@ export default function UserHome() {
                         className="bg-indigo-700 hover:bg-indigo-800"
                         disabled={updateProfile.isPending}
                       >
-                        {updateProfile.isPending ? "Saving..." : "Edit Profile"}
+                        {updateProfile.isPending ? "Updating..." : "Update Profile"}
                       </Button>
                     </div>
                   </form>
@@ -559,30 +572,25 @@ export default function UserHome() {
               
               <div className="flex flex-col items-center">
                 {user && (
-                  <EditableStarCard 
-                    profile={{
-                      name: user.name || '',
-                      title: user.title || '',
-                      organization: user.organization || ''
-                    }}
-                    quadrantData={{
-                      thinking: starCard?.thinking || 0,
-                      acting: starCard?.acting || 0,
-                      feeling: starCard?.feeling || 0,
-                      planning: starCard?.planning || 0,
-                      apexStrength: starCard?.apexStrength || 'Imagination'
-                    }}
-                    imageUrl={starCard?.imageUrl || null}
-                    downloadable={true}
-                    preview={false}
-                    onImageUrlChange={(url) => {
-                      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-                      toast({
-                        title: "Image updated",
-                        description: "Your Star Card image has been updated successfully.",
-                      });
-                    }}
-                  />
+                  <div className="flex justify-center" style={{ width: '400px', height: '555px' }}>
+                    <StarCard 
+                      profile={{
+                        name: user.name || "",
+                        title: user.title || "",
+                        organization: user.organization || ""
+                      }}
+                      quadrantData={{
+                        thinking: 0,
+                        acting: 0,
+                        feeling: 0,
+                        planning: 0,
+                        apexStrength: ""
+                      }}
+                      imageUrl={starCard?.imageUrl || null}
+                      downloadable={true}
+                      preview={false}
+                    />
+                  </div>
                 )}
               </div>
             </div>
