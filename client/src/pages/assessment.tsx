@@ -7,6 +7,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
+import MainContainer from '@/components/layout/MainContainer';
 
 // Define question types - match the types from data file
 type Option = AssessmentOption;
@@ -328,7 +329,7 @@ export default function Assessment() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <MainContainer showStepNavigation={false} className="bg-gray-50">
       {/* Results Popup */}
       {showResultsPopup && assessmentResults && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
@@ -411,26 +412,7 @@ export default function Assessment() {
         </div>
       )}
       
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 py-2">
-        <div className="container mx-auto px-3 flex justify-between items-center">
-          <Link href="/" className="logo flex items-center cursor-pointer">
-            <img 
-              src="/src/assets/all-star-teams-logo-250px.png" 
-              alt="AllStarTeams" 
-              className="h-8 w-auto"
-            />
-          </Link>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" className="rounded-md text-xs h-8" asChild>
-              <Link href="/user-home">Dashboard</Link>
-            </Button>
-          </div>
-        </div>
-      </header>
-      
-      <main className="container mx-auto px-3 py-2 max-w-3xl">
+      <div className="max-w-3xl mx-auto">
         <div className="flex flex-row justify-between items-center mb-2 gap-2">
           <div className="flex-1">
             <div className="flex justify-between items-center mb-1">
@@ -587,7 +569,7 @@ export default function Assessment() {
             </Button>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </MainContainer>
   );
 }
