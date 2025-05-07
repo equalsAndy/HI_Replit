@@ -206,103 +206,81 @@ export default function FindYourFlow() {
           </TabsContent>
           
           <TabsContent value="roundingout" className="space-y-6">
-            <div className="prose max-w-none mb-6">
+            <div className="aspect-w-16 aspect-h-9 mb-4">
+              <iframe 
+                src="https://www.youtube.com/embed/srLM8lHPj40" 
+                title="Understanding Flow States" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+                className="w-full h-80 rounded border border-gray-200"
+              ></iframe>
+            </div>
+
+            <div className="prose max-w-none">
               <h2>Rounding Out Your Flow Understanding</h2>
               <p>
                 Now that you've completed the flow assessment, take some time to round out your understanding of flow
                 and how you can create more opportunities for flow in your work and life.
               </p>
               
-              <div className="my-6">
-                <h3 className="text-lg font-semibold mb-3">Watch: Understanding Flow States</h3>
-                <div className="aspect-video w-full max-w-3xl mx-auto border border-gray-200 rounded-lg overflow-hidden">
-                  <iframe 
-                    width="100%" 
-                    height="100%" 
-                    src="https://www.youtube.com/embed/srLM8lHPj40" 
-                    title="Understanding Flow States" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                  ></iframe>
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  This video explores the concept of flow states and provides practical tips for entering flow more consistently in your work and life.
-                </p>
-              </div>
+              <h3 className="mt-6">Flow Reflection Questions</h3>
+              <p>Reflect on your personal experiences with flow to better understand how to create optimal conditions in your work and life.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 mt-4">
               <div>
-                {/* Form for flow reflection */}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">What activities or tasks consistently put you in a flow state?</label>
-                    <Textarea 
-                      placeholder="Your answer" 
-                      className="min-h-[80px] border border-gray-300 w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">What are the biggest barriers to experiencing flow in your work?</label>
-                    <Textarea 
-                      placeholder="Your answer" 
-                      className="min-h-[80px] border border-gray-300 w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">What conditions help you get into flow more easily?</label>
-                    <Textarea 
-                      placeholder="Your answer" 
-                      className="min-h-[80px] border border-gray-300 w-full"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium mb-1">What one change could you make to experience more flow in your work?</label>
-                    <Textarea 
-                      placeholder="Your answer" 
-                      className="min-h-[80px] border border-gray-300 w-full"
-                    />
-                  </div>
-                  
-                  <div className="flex space-x-3 mt-8">
-                    <Button type="button" variant="outline" className="px-8">
-                      Return
-                    </Button>
-                    <Button type="button" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8">
-                      Save
-                    </Button>
-                  </div>
-                </div>
+                <label className="block text-sm font-medium mb-1">What activities or tasks consistently put you in a flow state?</label>
+                <Textarea 
+                  placeholder="Your answer" 
+                  className="min-h-[80px] border border-gray-300 w-full"
+                />
               </div>
               
               <div>
-                <div className="aspect-video mb-6 relative">
-                  <iframe 
-                    className="w-full h-full"
-                    src="https://www.youtube.com/embed/x6h7LDtdnJw" 
-                    title="Flow State and Performance" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen>
-                  </iframe>
-                </div>
-                
-                <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
-                  <h3 className="uppercase font-bold text-lg mb-2 text-blue-700">Flow State Resources</h3>
-                  <p className="text-sm text-gray-700 mb-2">
-                    Download our guide to creating more flow experiences in your daily work:
-                  </p>
-                  <a href="#" className="text-blue-600 hover:text-blue-800 text-sm">
-                    Flow State Guide PDF
-                  </a>
-                </div>
+                <label className="block text-sm font-medium mb-1">What are the biggest barriers to experiencing flow in your work?</label>
+                <Textarea 
+                  placeholder="Your answer" 
+                  className="min-h-[80px] border border-gray-300 w-full"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">What conditions help you get into flow more easily?</label>
+                <Textarea 
+                  placeholder="Your answer" 
+                  className="min-h-[80px] border border-gray-300 w-full"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium mb-1">What one change could you make to experience more flow in your work?</label>
+                <Textarea 
+                  placeholder="Your answer" 
+                  className="min-h-[80px] border border-gray-300 w-full"
+                />
               </div>
             </div>
             
-            <div className="flex justify-end mt-6">
+            <div className="grid grid-cols-1 gap-4 mt-6">
+              <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
+                <h3 className="uppercase font-bold text-lg mb-2 text-blue-700">Flow State Resources</h3>
+                <p className="text-sm text-gray-700 mb-2">
+                  Download our guide to creating more flow experiences in your daily work:
+                </p>
+                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm">
+                  Flow State Guide PDF
+                </a>
+              </div>
+            </div>
+            
+            <div className="flex justify-between mt-8">
+              <Button 
+                onClick={() => handleTabChange("assessment")}
+                variant="outline"
+              >
+                Go Back
+              </Button>
               <Button 
                 onClick={() => handleTabChange("starcard")}
                 className="bg-indigo-700 hover:bg-indigo-800"
