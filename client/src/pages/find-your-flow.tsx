@@ -11,6 +11,7 @@ import FlowAssessment from '@/components/flow/FlowAssessment';
 import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 import {
   DndContext, 
   closestCenter,
@@ -124,6 +125,7 @@ export default function FindYourFlow() {
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
+  const { isDemoMode } = useDemoMode();
   
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
