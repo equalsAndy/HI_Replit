@@ -78,6 +78,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if the user has a star card
       const starCard = await storage.getStarCard(userId);
       
+      // If there's an existing image, delete it
+      if (starCard && starCard.imageUrl) {
+        const oldImagePath = starCard.imageUrl.split('/uploads/')[1];
+        if (oldImagePath) {
+          const oldImageFullPath = path.join(uploadsDir, oldImagePath);
+          // Check if file exists before attempting to delete
+          if (fs.existsSync(oldImageFullPath)) {
+            fs.unlinkSync(oldImageFullPath);
+          }
+        }
+      }
+      
       if (starCard) {
         // Update the existing star card with the new image URL
         await storage.updateStarCard(starCard.id, { imageUrl });
@@ -105,6 +117,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ 
         success: false, 
         message: 'Failed to upload image' 
+      });
+    }
+  });
+  
+  // Delete image endpoint for star card
+  app.delete('/api/upload/starcard', async (req: Request, res: Response) => {
+    try {
+      // Get user ID
+      let userId: number;
+      try {
+        userId = parseInt(req.cookies.userId || req.query.userId as string);
+      } catch (e) {
+        userId = 1; // Default for development
+      }
+      
+      if (!userId) {
+        userId = 1; // Default for development
+      }
+      
+      // Check if the user has a star card
+      const starCard = await storage.getStarCard(userId);
+      
+      if (!starCard || !starCard.imageUrl) {
+        return res.status(404).json({ message: 'No image found to delete' });
+      }
+      
+      // Extract the filename from the URL
+      const imageFilename = starCard.imageUrl.split('/uploads/')[1];
+      if (imageFilename) {
+        const imageFullPath = path.join(uploadsDir, imageFilename);
+        
+        // Delete the file if it exists
+        if (fs.existsSync(imageFullPath)) {
+          fs.unlinkSync(imageFullPath);
+        }
+      }
+      
+      // Update the star card to remove the image URL
+      await storage.updateStarCard(starCard.id, { imageUrl: null });
+      
+      res.status(200).json({
+        success: true,
+        message: 'Image removed successfully'
+      });
+    } catch (error) {
+      console.error('Error removing image:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to remove image'
       });
     }
   });

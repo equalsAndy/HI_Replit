@@ -37,14 +37,48 @@ export default function StarCard({
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   
+  // Determine if assessment is completed - all scores must be greater than 0
+  const hasCompletedAssessment = useMemo(() => {
+    return (
+      (quadrantData?.thinking || 0) > 0 &&
+      (quadrantData?.acting || 0) > 0 &&
+      (quadrantData?.feeling || 0) > 0 &&
+      (quadrantData?.planning || 0) > 0
+    );
+  }, [quadrantData]);
+
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
     // Create array of quadrant objects with exact RGB colors matching the reference image
     const quadrants: QuadrantInfo[] = [
-      { key: 'thinking', label: 'THINKING', color: 'rgb(1, 162, 82)', score: quadrantData?.thinking || 0, position: 0 },
-      { key: 'acting', label: 'ACTING', color: 'rgb(241, 64, 64)', score: quadrantData?.acting || 0, position: 0 },
-      { key: 'feeling', label: 'FEELING', color: 'rgb(22, 126, 253)', score: quadrantData?.feeling || 0, position: 0 },
-      { key: 'planning', label: 'PLANNING', color: 'rgb(255, 203, 47)', score: quadrantData?.planning || 0, position: 0 }
+      { 
+        key: 'thinking', 
+        label: 'THINKING', 
+        color: hasCompletedAssessment ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
+        score: hasCompletedAssessment ? (quadrantData?.thinking || 0) : 0, 
+        position: 0 
+      },
+      { 
+        key: 'acting', 
+        label: 'ACTING', 
+        color: hasCompletedAssessment ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
+        score: hasCompletedAssessment ? (quadrantData?.acting || 0) : 0, 
+        position: 0 
+      },
+      { 
+        key: 'feeling', 
+        label: 'FEELING', 
+        color: hasCompletedAssessment ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
+        score: hasCompletedAssessment ? (quadrantData?.feeling || 0) : 0, 
+        position: 0 
+      },
+      { 
+        key: 'planning', 
+        label: 'PLANNING', 
+        color: hasCompletedAssessment ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
+        score: hasCompletedAssessment ? (quadrantData?.planning || 0) : 0, 
+        position: 0 
+      }
     ];
     
     // Sort by score in descending order
@@ -189,12 +223,13 @@ export default function StarCard({
           </div>
           
           {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
+          {/* Determine if flow attributes exist */}
           {/* Flow 1 - Top Right Flow Square */}
           <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
                style={{ 
                  top: '25px', 
                  right: '15px',
-                 backgroundColor: flowAttributes[0]?.color || 'rgb(156, 163, 175)'
+                 backgroundColor: flowAttributes[0]?.text ? (flowAttributes[0]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
                }}>
             <p className="text-[9px] font-medium text-center leading-tight">
               {flowAttributes[0]?.text || ''}
@@ -206,7 +241,7 @@ export default function StarCard({
                style={{ 
                  top: '204px', 
                  right: '15px',
-                 backgroundColor: flowAttributes[1]?.color || 'rgb(156, 163, 175)'
+                 backgroundColor: flowAttributes[1]?.text ? (flowAttributes[1]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
                }}>
             <p className="text-[9px] font-medium text-center leading-tight">
               {flowAttributes[1]?.text || ''}
@@ -218,7 +253,7 @@ export default function StarCard({
                style={{ 
                  top: '204px', 
                  left: '15px', 
-                 backgroundColor: flowAttributes[2]?.color || 'rgb(156, 163, 175)'
+                 backgroundColor: flowAttributes[2]?.text ? (flowAttributes[2]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
                }}>
             <p className="text-[9px] font-medium text-center leading-tight">
               {flowAttributes[2]?.text || ''}
@@ -230,7 +265,7 @@ export default function StarCard({
                style={{ 
                  top: '25px', 
                  left: '15px',
-                 backgroundColor: flowAttributes[3]?.color || 'rgb(156, 163, 175)'
+                 backgroundColor: flowAttributes[3]?.text ? (flowAttributes[3]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
                }}>
             <p className="text-[9px] font-medium text-center leading-tight">
               {flowAttributes[3]?.text || ''}
