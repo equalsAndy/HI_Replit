@@ -103,8 +103,6 @@ export default function StarCard({
           </div>
         </div>
         
-
-        
         {/* Logo */}
         <div className="text-right mt-1">
           <img 
