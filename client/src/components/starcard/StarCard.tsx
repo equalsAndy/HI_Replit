@@ -136,13 +136,13 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label centered above Flow 1 box and 2px above it */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '22px', right: '35px' }}>
+          {/* Flow Label centered above Flow 1 box and 2px above it - fixed visibility */}
+          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '22px', right: '35px', zIndex: 30 }}>
             Flow
           </div>
           
-          {/* Core Label moved above Strength 1 box (acting) and 2px above it */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '82px', left: '80px' }}>
+          {/* Core Label moved above Strength 1 box (acting) and 2px above it - fixed visibility */}
+          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '82px', left: '80px', zIndex: 30 }}>
             Core
           </div>
           
@@ -203,32 +203,32 @@ export default function StarCard({
                style={{ top: '25px', left: '15px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side - centered, 70% length, aligned with flow box centers */}
-          <div className="absolute" style={{ right: '45px', top: '85px', height: '84px' }}>
-            <div className="absolute left-0 top-[7px] h-[70px] w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px] top-[77px]">
-              <svg width="10" height="14" viewBox="0 0 10 14">
-                <path d="M5 14 L0 7 L10 7 Z" fill="#9CA3AF" />
+          {/* Right Arrow - Down arrow on right side - fixed alignment */}
+          <div className="absolute" style={{ right: '44px', top: '85px', height: '84px' }}>
+            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4.5px] bottom-0">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M5 10 L0 5 L10 5 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom - centered, 70% length, aligned with flow box centers */}
-          <div className="absolute" style={{ top: '233px', left: '85px', width: '95px' }}>
-            <div className="absolute left-[10px] top-0 w-[67px] h-[1px] bg-gray-400"></div>
-            <div className="absolute left-[10px] top-[-4px]">
-              <svg width="14" height="10" viewBox="0 0 14 10">
-                <path d="M0 5 L7 0 L7 10 Z" fill="#9CA3AF" />
+          {/* Bottom Arrow - Left arrow on bottom - fixed alignment */}
+          <div className="absolute" style={{ top: '234px', left: '74px', width: '110px' }}>
+            <div className="absolute left-0 top-0 w-[110px] h-[1px] bg-gray-400"></div>
+            <div className="absolute left-0 top-[-4.5px]">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M0 5 L5 0 L5 10 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow - centered, 70% length, aligned with flow box centers */}
-          <div className="absolute" style={{ left: '45px', top: '85px', height: '84px' }}>
-            <div className="absolute left-0 top-[7px] h-[70px] w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px] top-[7px]">
-              <svg width="10" height="14" viewBox="0 0 10 14">
-                <path d="M5 0 L0 7 L10 7 Z" fill="#9CA3AF" />
+          {/* Left Arrow - Up arrow - fixed alignment */}
+          <div className="absolute" style={{ left: '44px', top: '85px', height: '84px' }}>
+            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4.5px] top-0">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M5 0 L0 5 L10 5 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
@@ -236,12 +236,12 @@ export default function StarCard({
           {/* No Top Arrow between flow 1 and flow 4 as requested */}
         </div>
         
-        {/* Logo - Actual AllStarTeams logo, moved up 8px */}
-        <div className="flex justify-end mt-[-2px] pr-4">
+        {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 16px */}
+        <div className="flex justify-end mt-[-10px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
-            className="h-8" 
+            className="h-[26px]" 
           />
         </div>
       </div>
