@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useToast } from "@/hooks/use-toast";
 import MainContainer from '@/components/layout/MainContainer';
 import FlowAssessment from '@/components/flow/FlowAssessment';
+import StarCard from '@/components/starcard/StarCard';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // Define the user type based on the app's data structure
 interface UserType {
@@ -19,11 +22,122 @@ interface UserType {
   avatarUrl?: string;
 }
 
+// Flow attribute categories
+const thinkingAttributes = [
+  "Abstract", "Analytic", "Astute", "Big Picture", "Curious", 
+  "Focused", "Insightful", "Logical", "Investigative", "Rational", 
+  "Reflective", "Sensible", "Strategic", "Thoughtful"
+];
+
+const feelingAttributes = [
+  "Collaborative", "Compassionate", "Creative", "Encouraging", "Expressive",
+  "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
+  "Positive", "Receptive", "Supportive"
+];
+
+const planningAttributes = [
+  "Detail-Oriented", "Diligent", "Immersed", "Industrious", "Methodical",
+  "Organized", "Precise", "Punctual", "Reliable", "Responsible",
+  "Straightforward", "Tidy", "Systematic", "Thorough"
+];
+
+const actingAttributes = [
+  "Adventuresome", "Competitive", "Dynamic", "Effortless", "Energetic",
+  "Engaged", "Funny", "Persuasive", "Open-Minded", "Optimistic",
+  "Practical", "Resilient", "Spontaneous", "Vigorous"
+];
+
+interface RankedAttribute {
+  text: string;
+  category: 'thinking' | 'feeling' | 'planning' | 'acting';
+  rank: number | null;
+}
+
 export default function FindYourFlow() {
   const [location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("intro");
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
+  const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
+  const [currentCategory, setCurrentCategory] = useState<'thinking' | 'feeling' | 'planning' | 'acting'>('thinking');
+  
+  // Helper functions for attribute selection
+  const handleAttributeSelect = (text: string, category: 'thinking' | 'feeling' | 'planning' | 'acting') => {
+    // Check if we already have 4 ranked attributes
+    const rankedCount = selectedAttributes.filter(attr => attr.rank !== null).length;
+    if (rankedCount >= 4 && !selectedAttributes.some(attr => attr.text === text && attr.rank !== null)) {
+      toast({
+        title: "Maximum attributes selected",
+        description: "Please deselect an attribute before selecting another one.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    // If attribute is already in the list, remove it
+    if (selectedAttributes.some(attr => attr.text === text)) {
+      setSelectedAttributes(selectedAttributes.filter(attr => attr.text !== text));
+      return;
+    }
+    
+    // Add the attribute to the list with the next available rank
+    const nextRank = rankedCount + 1;
+    setSelectedAttributes([
+      ...selectedAttributes,
+      { text, category, rank: nextRank }
+    ]);
+  };
+  
+  const handleRemoveAttribute = (text: string) => {
+    const removedAttr = selectedAttributes.find(attr => attr.text === text);
+    if (!removedAttr || removedAttr.rank === null) return;
+    
+    const removedRank = removedAttr.rank;
+    
+    // Remove the attribute and recalculate ranks
+    const filteredAttrs = selectedAttributes.filter(attr => attr.text !== text);
+    const updatedAttrs = filteredAttrs.map(attr => {
+      if (attr.rank !== null && attr.rank > removedRank) {
+        return { ...attr, rank: attr.rank - 1 };
+      }
+      return attr;
+    });
+    
+    setSelectedAttributes(updatedAttrs);
+  };
+  
+  // Function to get the attributes for the current category
+  const getCurrentCategoryAttributes = (): string[] => {
+    switch (currentCategory) {
+      case 'thinking': return thinkingAttributes;
+      case 'feeling': return feelingAttributes;
+      case 'planning': return planningAttributes;
+      case 'acting': return actingAttributes;
+      default: return [];
+    }
+  };
+  
+  // Get color class for category
+  const getCategoryColorClass = (category: 'thinking' | 'feeling' | 'planning' | 'acting'): string => {
+    switch (category) {
+      case 'thinking': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'feeling': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
+      case 'planning': return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
+      case 'acting': return 'bg-green-100 text-green-800 hover:bg-green-200';
+      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+    }
+  };
+  
+  // Get rank badge color
+  const getRankBadgeColor = (rank: number): string => {
+    switch (rank) {
+      case 1: return 'bg-blue-500 text-white';
+      case 2: return 'bg-purple-500 text-white';
+      case 3: return 'bg-amber-500 text-white';
+      case 4: return 'bg-green-500 text-white';
+      default: return 'bg-gray-200 text-gray-800';
+    }
+  };
   
   // Get user profile to determine progress
   const { data: user, isLoading: userLoading } = useQuery<UserType>({
@@ -294,55 +408,154 @@ export default function FindYourFlow() {
             <div className="prose max-w-none mb-6">
               <h2>Add Flow to Your StarCard</h2>
               <p>
-                Now that you've completed your flow assessment and reflection, you can add your flow insights to your 
-                personal StarCard. This will help you visualize how your strengths connect to your optimal flow state.
+                Now that you've completed the flow assessment and reflection, select four flow attributes 
+                that best describe your optimal flow state. These will be added to your StarCard to create 
+                a comprehensive visualization of your strengths and flow profile.
               </p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
-                <div className="space-y-6">
-                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
-                    <h3 className="text-amber-700 font-medium mb-2">Your Flow Pattern</h3>
-                    <p className="text-sm">
-                      Based on your assessment, you experience flow most often when engaged in activities that combine
-                      focused attention with clear goals and immediate feedback. Activities that balance challenge and skill
-                      are particularly conducive to your flow state.
-                    </p>
+                <h3 className="text-lg font-semibold mb-4">Your StarCard</h3>
+                {user && (
+                  <div className="bg-white p-4 rounded shadow-sm border border-gray-200">
+                    <StarCard 
+                      profile={{
+                        name: user.name || '',
+                        title: user.title || '',
+                        organization: user.organization || ''
+                      }}
+                      quadrantData={{
+                        thinking: 25,
+                        acting: 25,
+                        feeling: 25,
+                        planning: 25,
+                        apexStrength: 'Imagination'
+                      }}
+                      downloadable={false}
+                      preview={true}
+                    />
                   </div>
-                  
-                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-100">
-                    <h3 className="text-teal-700 font-medium mb-2">Flow + Strengths</h3>
-                    <p className="text-sm">
-                      Your flow experiences are closely connected to your core strengths. When you leverage your natural
-                      talents, you're more likely to enter a flow state. Recognizing these connections can help you design
-                      work and activities that energize rather than drain you.
-                    </p>
-                  </div>
-                  
-                  <div className="text-center pt-4">
-                    <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Update My StarCard
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
               
-              <div className="flex flex-col items-center justify-center">
-                <img 
-                  src="/src/assets/starcardcloudimage.png" 
-                  alt="Star Card Visualization" 
-                  className="w-full max-w-md h-auto mb-4"
-                />
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
+                <div className="bg-white border border-gray-200 rounded-lg p-4">
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-2">
+                      Choose 4 words that best describe your flow state when you're at your best.
+                      Select attributes in order of importance (1 = most important, 4 = least important).
+                    </p>
+                    
+                    {/* Category selector */}
+                    <div className="flex space-x-2 mb-4">
+                      <Button 
+                        onClick={() => setCurrentCategory('thinking')} 
+                        variant={currentCategory === 'thinking' ? 'default' : 'outline'}
+                        className={currentCategory === 'thinking' ? 'bg-blue-600' : ''}
+                        size="sm"
+                      >
+                        Thinking
+                      </Button>
+                      <Button 
+                        onClick={() => setCurrentCategory('feeling')} 
+                        variant={currentCategory === 'feeling' ? 'default' : 'outline'}
+                        className={currentCategory === 'feeling' ? 'bg-purple-600' : ''}
+                        size="sm"
+                      >
+                        Feeling
+                      </Button>
+                      <Button 
+                        onClick={() => setCurrentCategory('planning')} 
+                        variant={currentCategory === 'planning' ? 'default' : 'outline'}
+                        className={currentCategory === 'planning' ? 'bg-amber-600' : ''}
+                        size="sm"
+                      >
+                        Planning
+                      </Button>
+                      <Button 
+                        onClick={() => setCurrentCategory('acting')} 
+                        variant={currentCategory === 'acting' ? 'default' : 'outline'}
+                        className={currentCategory === 'acting' ? 'bg-green-600' : ''}
+                        size="sm"
+                      >
+                        Acting
+                      </Button>
+                    </div>
+                    
+                    {/* Selected attributes */}
+                    {selectedAttributes.length > 0 && (
+                      <div className="mb-4">
+                        <h4 className="text-sm font-medium mb-2">Your Selected Attributes:</h4>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedAttributes
+                            .sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity))
+                            .map(attr => (
+                              <Badge 
+                                key={attr.text}
+                                className={`${getCategoryColorClass(attr.category)} cursor-pointer`}
+                                onClick={() => handleRemoveAttribute(attr.text)}
+                              >
+                                {attr.text}
+                                {attr.rank !== null && (
+                                  <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs ${getRankBadgeColor(attr.rank)}`}>
+                                    {attr.rank}
+                                  </span>
+                                )}
+                              </Badge>
+                            ))}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Available attributes */}
+                    <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                      <h4 className="text-sm font-medium mb-2 capitalize">{currentCategory} Attributes:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {getCurrentCategoryAttributes().map(attr => {
+                          const isSelected = selectedAttributes.some(selected => selected.text === attr);
+                          const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
+                          
+                          return (
+                            <Badge 
+                              key={attr}
+                              variant="outline"
+                              className={`${isSelected ? getCategoryColorClass(currentCategory) : 'hover:bg-gray-100'} cursor-pointer transition-colors`}
+                              onClick={() => handleAttributeSelect(attr, currentCategory)}
+                            >
+                              {attr}
+                              {rank !== null && rank !== undefined && (
+                                <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs ${getRankBadgeColor(rank)}`}>
+                                  {rank}
+                                </span>
+                              )}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
-                <p className="text-center text-sm text-gray-600 max-w-md">
-                  Your updated StarCard now includes both your core strengths and flow insights, 
-                  creating a comprehensive visualization of your professional profile.
-                </p>
+                <div className="mt-6">
+                  <Button
+                    className="w-full bg-indigo-700 hover:bg-indigo-800"
+                    disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4}
+                  >
+                    Add Flow Attributes to StarCard
+                  </Button>
+                </div>
               </div>
             </div>
             
-            <div className="flex justify-end mt-6">
+            <div className="flex justify-between mt-8">
+              <Button 
+                onClick={() => handleTabChange("roundingout")}
+                variant="outline"
+              >
+                Go Back
+              </Button>
               <Link href="/user-home">
                 <Button className="bg-indigo-700 hover:bg-indigo-800">
                   Return to Dashboard
