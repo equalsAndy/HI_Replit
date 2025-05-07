@@ -22,26 +22,24 @@ interface UserType {
   avatarUrl?: string;
 }
 
-// Flow attribute categories
-const thinkingAttributes = [
+// All flow attributes in a single list
+const flowAttributes = [
+  // Thinking attributes
   "Abstract", "Analytic", "Astute", "Big Picture", "Curious", 
   "Focused", "Insightful", "Logical", "Investigative", "Rational", 
-  "Reflective", "Sensible", "Strategic", "Thoughtful"
-];
-
-const feelingAttributes = [
+  "Reflective", "Sensible", "Strategic", "Thoughtful",
+  
+  // Feeling attributes
   "Collaborative", "Compassionate", "Creative", "Encouraging", "Expressive",
   "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
-  "Positive", "Receptive", "Supportive"
-];
-
-const planningAttributes = [
+  "Positive", "Receptive", "Supportive",
+  
+  // Planning attributes
   "Detail-Oriented", "Diligent", "Immersed", "Industrious", "Methodical",
   "Organized", "Precise", "Punctual", "Reliable", "Responsible",
-  "Straightforward", "Tidy", "Systematic", "Thorough"
-];
-
-const actingAttributes = [
+  "Straightforward", "Tidy", "Systematic", "Thorough",
+  
+  // Acting attributes
   "Adventuresome", "Competitive", "Dynamic", "Effortless", "Energetic",
   "Engaged", "Funny", "Persuasive", "Open-Minded", "Optimistic",
   "Practical", "Resilient", "Spontaneous", "Vigorous"
@@ -49,7 +47,6 @@ const actingAttributes = [
 
 interface RankedAttribute {
   text: string;
-  category: 'thinking' | 'feeling' | 'planning' | 'acting';
   rank: number | null;
 }
 
@@ -59,10 +56,10 @@ export default function FindYourFlow() {
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
-  const [currentCategory, setCurrentCategory] = useState<'thinking' | 'feeling' | 'planning' | 'acting'>('thinking');
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Helper functions for attribute selection
-  const handleAttributeSelect = (text: string, category: 'thinking' | 'feeling' | 'planning' | 'acting') => {
+  const handleAttributeSelect = (text: string) => {
     // Check if we already have 4 ranked attributes
     const rankedCount = selectedAttributes.filter(attr => attr.rank !== null).length;
     if (rankedCount >= 4 && !selectedAttributes.some(attr => attr.text === text && attr.rank !== null)) {
@@ -84,7 +81,7 @@ export default function FindYourFlow() {
     const nextRank = rankedCount + 1;
     setSelectedAttributes([
       ...selectedAttributes,
-      { text, category, rank: nextRank }
+      { text, rank: nextRank }
     ]);
   };
   
@@ -106,26 +103,14 @@ export default function FindYourFlow() {
     setSelectedAttributes(updatedAttrs);
   };
   
-  // Function to get the attributes for the current category
-  const getCurrentCategoryAttributes = (): string[] => {
-    switch (currentCategory) {
-      case 'thinking': return thinkingAttributes;
-      case 'feeling': return feelingAttributes;
-      case 'planning': return planningAttributes;
-      case 'acting': return actingAttributes;
-      default: return [];
+  // Filter attributes based on search query
+  const getFilteredAttributes = (): string[] => {
+    if (!searchQuery || searchQuery.trim() === '') {
+      return flowAttributes;
     }
-  };
-  
-  // Get color class for category
-  const getCategoryColorClass = (category: 'thinking' | 'feeling' | 'planning' | 'acting'): string => {
-    switch (category) {
-      case 'thinking': return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
-      case 'feeling': return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
-      case 'planning': return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
-      case 'acting': return 'bg-green-100 text-green-800 hover:bg-green-200';
-      default: return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
-    }
+    return flowAttributes.filter(attr => 
+      attr.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
   
   // Get rank badge color
@@ -448,42 +433,6 @@ export default function FindYourFlow() {
                       Select attributes in order of importance (1 = most important, 4 = least important).
                     </p>
                     
-                    {/* Category selector */}
-                    <div className="flex space-x-2 mb-4">
-                      <Button 
-                        onClick={() => setCurrentCategory('thinking')} 
-                        variant={currentCategory === 'thinking' ? 'default' : 'outline'}
-                        className={currentCategory === 'thinking' ? 'bg-blue-600' : ''}
-                        size="sm"
-                      >
-                        Thinking
-                      </Button>
-                      <Button 
-                        onClick={() => setCurrentCategory('feeling')} 
-                        variant={currentCategory === 'feeling' ? 'default' : 'outline'}
-                        className={currentCategory === 'feeling' ? 'bg-purple-600' : ''}
-                        size="sm"
-                      >
-                        Feeling
-                      </Button>
-                      <Button 
-                        onClick={() => setCurrentCategory('planning')} 
-                        variant={currentCategory === 'planning' ? 'default' : 'outline'}
-                        className={currentCategory === 'planning' ? 'bg-amber-600' : ''}
-                        size="sm"
-                      >
-                        Planning
-                      </Button>
-                      <Button 
-                        onClick={() => setCurrentCategory('acting')} 
-                        variant={currentCategory === 'acting' ? 'default' : 'outline'}
-                        className={currentCategory === 'acting' ? 'bg-green-600' : ''}
-                        size="sm"
-                      >
-                        Acting
-                      </Button>
-                    </div>
-                    
                     {/* Selected attributes */}
                     {selectedAttributes.length > 0 && (
                       <div className="mb-4">
@@ -494,7 +443,7 @@ export default function FindYourFlow() {
                             .map(attr => (
                               <Badge 
                                 key={attr.text}
-                                className={`${getCategoryColorClass(attr.category)} cursor-pointer`}
+                                className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 cursor-pointer"
                                 onClick={() => handleRemoveAttribute(attr.text)}
                               >
                                 {attr.text}
@@ -509,11 +458,23 @@ export default function FindYourFlow() {
                       </div>
                     )}
                     
+                    {/* Search */}
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium mb-1">Search Attributes</label>
+                      <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Type to search..."
+                        className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                      />
+                    </div>
+                    
                     {/* Available attributes */}
                     <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                      <h4 className="text-sm font-medium mb-2 capitalize">{currentCategory} Attributes:</h4>
+                      <h4 className="text-sm font-medium mb-2">Flow Attributes:</h4>
                       <div className="flex flex-wrap gap-2">
-                        {getCurrentCategoryAttributes().map(attr => {
+                        {getFilteredAttributes().map((attr: string) => {
                           const isSelected = selectedAttributes.some(selected => selected.text === attr);
                           const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
                           
@@ -521,8 +482,8 @@ export default function FindYourFlow() {
                             <Badge 
                               key={attr}
                               variant="outline"
-                              className={`${isSelected ? getCategoryColorClass(currentCategory) : 'hover:bg-gray-100'} cursor-pointer transition-colors`}
-                              onClick={() => handleAttributeSelect(attr, currentCategory)}
+                              className={`${isSelected ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-gray-100'} cursor-pointer transition-colors`}
+                              onClick={() => handleAttributeSelect(attr)}
                             >
                               {attr}
                               {rank !== null && rank !== undefined && (
