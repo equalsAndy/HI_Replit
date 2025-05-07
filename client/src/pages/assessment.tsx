@@ -265,76 +265,75 @@ export default function Assessment() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+      <header className="bg-white border-b border-gray-200 py-2">
+        <div className="container mx-auto px-3 flex justify-between items-center">
           <div className="logo flex items-center">
             <img 
               src="/src/assets/all-star-teams-logo-250px.png" 
               alt="AllStarTeams" 
-              className="h-10 w-auto"
+              className="h-8 w-auto"
             />
           </div>
           
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">English 🇺🇸</span>
-            <Button variant="outline" size="sm" className="rounded-md" asChild>
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="rounded-md text-xs h-8" asChild>
               <Link href="/user-home">Dashboard</Link>
             </Button>
           </div>
         </div>
       </header>
       
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-800">
-              Question {currentQuestionIndex + 1} of {totalQuestions}
-            </h2>
-            <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2 mb-4">
+      <main className="container mx-auto px-3 py-2 max-w-3xl">
+        <div className="flex flex-row justify-between items-center mb-2 gap-2">
+          <div className="flex-1">
+            <div className="flex justify-between items-center mb-1">
+              <h2 className="text-sm font-semibold text-gray-800">
+                Question {currentQuestionIndex + 1} of {totalQuestions}
+              </h2>
+              <span className="text-xs text-gray-500">{progressPercentage}% complete</span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
               <div 
-                className="bg-indigo-600 h-2.5 rounded-full" 
+                className="bg-indigo-600 h-2 rounded-full" 
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
           </div>
-          <Link href="/user-home">
-            <Button variant="outline">Return to Dashboard</Button>
-          </Link>
         </div>
         
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h3 className="text-xl font-medium text-indigo-700 mb-6">{currentQuestion.text}</h3>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3">
+          <h3 className="text-lg font-medium text-indigo-700 mb-3">{currentQuestion.text}</h3>
           
           {/* Options to rank - displayed as draggable squares */}
-          <div className="mb-10">
-            <div className="bg-amber-50 p-6 rounded-lg mb-8">
+          <div className="mb-4">
+            <div className="bg-amber-50 p-4 rounded-lg mb-4">
               {availableOptions.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-2">
                   {availableOptions.map(option => (
                     <div 
                       key={option.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, option)}
-                      className="bg-gray-200 p-4 rounded-lg text-center flex items-center justify-center aspect-square cursor-move hover:bg-gray-300 transition-colors shadow"
+                      className="bg-gray-200 p-2 rounded-lg text-center flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-300 transition-colors shadow"
                     >
-                      <p className="text-sm">{option.text}</p>
+                      <p className="text-xs sm:text-sm">{option.text}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500">All options have been ranked. You can drag them to reorder.</p>
+                <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
               )}
             </div>
             
             {/* Ranking Slots as drop zones */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div className="flex flex-col items-center">
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'mostLikeMe')}
-                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.mostLikeMe 
-                      ? 'border-transparent bg-green-100' 
+                      ? 'border-transparent bg-indigo-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
@@ -342,24 +341,24 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-green-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-indigo-100 rounded-md cursor-move"
                     >
-                      <p className="text-sm text-center p-2">{rankings.mostLikeMe.text}</p>
+                      <p className="text-xs sm:text-sm text-center p-1">{rankings.mostLikeMe.text}</p>
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop here</p>
+                    <p className="text-gray-400 text-xs text-center">Drop here</p>
                   )}
                 </div>
-                <p className="mt-2 text-gray-700 font-medium">Most like me</p>
+                <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Most like me</p>
               </div>
               
               <div className="flex flex-col items-center">
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'second')}
-                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.second 
-                      ? 'border-transparent bg-blue-100' 
+                      ? 'border-transparent bg-purple-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
@@ -369,20 +368,20 @@ export default function Assessment() {
                       onDragStart={(e) => handleDragStart(e, rankings.second as Option)}
                       className="w-full h-full flex items-center justify-center bg-blue-100 rounded-md cursor-move"
                     >
-                      <p className="text-sm text-center p-2">{rankings.second.text}</p>
+                      <p className="text-xs sm:text-sm text-center p-1">{rankings.second.text}</p>
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop here</p>
+                    <p className="text-gray-400 text-xs text-center">Drop here</p>
                   )}
                 </div>
-                <p className="mt-2 text-gray-700 font-medium">Second</p>
+                <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Second</p>
               </div>
               
               <div className="flex flex-col items-center">
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'third')}
-                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 h-16 sm:h-20 w-full flex items-center justify-center transition-colors ${
                     rankings.third 
                       ? 'border-transparent bg-yellow-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -394,20 +393,20 @@ export default function Assessment() {
                       onDragStart={(e) => handleDragStart(e, rankings.third as Option)}
                       className="w-full h-full flex items-center justify-center bg-yellow-100 rounded-md cursor-move"
                     >
-                      <p className="text-sm text-center p-2">{rankings.third.text}</p>
+                      <p className="text-xs sm:text-sm text-center p-1">{rankings.third.text}</p>
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop here</p>
+                    <p className="text-gray-400 text-xs text-center">Drop here</p>
                   )}
                 </div>
-                <p className="mt-2 text-gray-700 font-medium">Third</p>
+                <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Third</p>
               </div>
               
               <div className="flex flex-col items-center">
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'leastLikeMe')}
-                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 h-16 sm:h-20 w-full flex items-center justify-center transition-colors ${
                     rankings.leastLikeMe 
                       ? 'border-transparent bg-red-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -419,13 +418,13 @@ export default function Assessment() {
                       onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
                       className="w-full h-full flex items-center justify-center bg-red-100 rounded-md cursor-move"
                     >
-                      <p className="text-sm text-center p-2">{rankings.leastLikeMe.text}</p>
+                      <p className="text-xs sm:text-sm text-center p-1">{rankings.leastLikeMe.text}</p>
                     </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop here</p>
+                    <p className="text-gray-400 text-xs text-center">Drop here</p>
                   )}
                 </div>
-                <p className="mt-2 text-gray-700 font-medium">Least like me</p>
+                <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Least like me</p>
               </div>
             </div>
           </div>
