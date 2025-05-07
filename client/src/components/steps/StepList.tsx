@@ -6,7 +6,7 @@ import StepItem from './StepItem';
 import ProfileForm from '@/components/profile/ProfileForm';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import type { User, Assessment, StarCard } from '../../../shared/schema';
+import type { User, Assessment, StarCard } from '@shared/schema';
 
 interface StepListProps {
   activeStep?: string;
@@ -73,9 +73,10 @@ export default function StepList({ activeStep }: StepListProps) {
   }
 
   // Calculate completion state
-  const isProfileComplete = user?.progress >= 33;
-  const isAssessmentComplete = user?.progress >= 67;
-  const isReportReviewed = user?.progress === 100;
+  const userProgress = user?.progress ?? 0;
+  const isProfileComplete = userProgress >= 33;
+  const isAssessmentComplete = userProgress >= 67;
+  const isReportReviewed = userProgress === 100;
 
   return (
     <div className="steps-sidebar space-y-4">

@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Globe, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
+import type { User } from "@shared/schema";
 
 export default function AppHeader() {
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity
   });
@@ -25,7 +26,7 @@ export default function AppHeader() {
         </Link>
         
         <div className="flex items-center space-x-4">
-          {user && (
+          {user && user.name && (
             <div className="flex items-center space-x-1">
               <span>{user.name}</span>
               <TooltipProvider>
