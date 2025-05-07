@@ -29,6 +29,7 @@ function Router() {
         <Route path="/report" component={Report} />
         <Route path="/core-strengths" component={CoreStrengths} />
         <Route path="/flow-assessment" component={FlowAssessment} />
+        <Route path="/find-your-flow" component={FindYourFlow} />
         <Route path="/rounding-out" component={RoundingOut} />
         <Route component={NotFound} />
       </Switch>
