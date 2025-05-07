@@ -263,7 +263,7 @@ export default function FlowAssessment() {
       
       {/* Results Dialog */}
       <Dialog open={showResult} onOpenChange={setShowResult}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
             <DialogTitle>Your Flow Assessment Results</DialogTitle>
             <DialogDescription>
@@ -285,6 +285,61 @@ export default function FlowAssessment() {
               <p>{getInterpretation(calculateScore()).description}</p>
             </div>
             
+            {/* Questions and Answers Recap */}
+            <div className="mb-6">
+              <h4 className="font-semibold mb-3">Your Answers Summary</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Review your answers below. Click "Edit" next to any question to change your response.
+              </p>
+              
+              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Question
+                      </th>
+                      <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Your Answer
+                      </th>
+                      <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {flowQuestions.map((q) => (
+                      <tr key={q.id} className={q.id % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="px-3 py-2 text-xs text-gray-700">
+                          {q.text}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800">
+                            {answers[q.id] ? `${answers[q.id]} - ${valueToLabel(answers[q.id])}` : 'Not answered'}
+                          </span>
+                        </td>
+                        <td className="px-3 py-2 text-right">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-xs text-blue-600 hover:text-blue-800"
+                            onClick={() => {
+                              setShowResult(false);
+                              setTimeout(() => {
+                                setCurrentQuestion(flowQuestions.findIndex(fq => fq.id === q.id));
+                              }, 300);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
             <div className="space-y-3">
               <h4 className="font-semibold">Scoring & Interpretation</h4>
               <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
@@ -294,9 +349,18 @@ export default function FlowAssessment() {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowResult(false);
+                setCurrentQuestion(0);
+              }}
+            >
+              Restart Assessment
+            </Button>
             <Button onClick={closeResultDialog} className="bg-indigo-700 hover:bg-indigo-800">
-              Close
+              Continue
             </Button>
           </DialogFooter>
         </DialogContent>
