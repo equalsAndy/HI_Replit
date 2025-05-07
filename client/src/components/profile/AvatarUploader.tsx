@@ -142,14 +142,18 @@ export default function AvatarUploader({
       rotate
     );
     
-    // Convert canvas to base64 image
-    const base64Image = previewCanvasRef.current.toDataURL('image/jpeg');
+    // Convert canvas to base64 image with quality parameter
+    // Reduce quality to ensure the image size is manageable
+    const base64Image = previewCanvasRef.current.toDataURL('image/jpeg', 0.8);
     
     // Call the prop function with the result
     onAvatarChange(base64Image);
     
     // Close dialog
     setIsDialogOpen(false);
+    
+    // Debug to console
+    console.log("Image processed and passed to parent component", base64Image.substring(0, 50) + "...");
   }, [completedCrop, scale, rotate, onAvatarChange]);
   
   const handleRemoveAvatar = () => {

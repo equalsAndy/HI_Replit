@@ -71,7 +71,10 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
   };
 
   const handleAvatarChange = (base64Image: string) => {
+    console.log("Avatar changed in ProfileForm", base64Image ? "Image received" : "Avatar removed");
     setAvatarUrl(base64Image);
+    // Immediately update the form value
+    setValue('avatarUrl', base64Image);
   };
 
   if (isLoading) {
