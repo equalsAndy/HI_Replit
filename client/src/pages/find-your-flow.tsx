@@ -67,6 +67,57 @@ interface RankedAttribute {
   rank: number | null;
 }
 
+// Sortable attribute component for drag and drop
+interface SortableAttributeProps {
+  id: string;
+  text: string;
+  rank: number;
+  rankBadgeColor: string;
+  onRemove: () => void;
+}
+
+function SortableAttribute({ id, text, rank, rankBadgeColor, onRemove }: SortableAttributeProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+  };
+  
+  // Use a styled div instead of Badge component to avoid TypeScript errors with ref
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 cursor-move px-2 py-1 rounded-md inline-flex items-center text-sm font-medium"
+      {...attributes}
+      {...listeners}
+      onClick={(e) => {
+        e.stopPropagation();
+        onRemove();
+      }}
+    >
+      <div className="flex items-center">
+        <span className="mr-1">
+          {text}
+        </span>
+        <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs ${rankBadgeColor}`}>
+          {rank}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function FindYourFlow() {
   const [location, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState("intro");
@@ -174,9 +225,14 @@ export default function FindYourFlow() {
     }
   };
 
-  // Get user profile to determine progress
+  // Get user profile and star card data
   const { data: user, isLoading: userLoading } = useQuery<UserType>({
     queryKey: ['/api/user/profile'],
+    staleTime: Infinity,
+  });
+  
+  const { data: starCard, isLoading: starCardLoading } = useQuery({
+    queryKey: ['/api/starcard'],
     staleTime: Infinity,
   });
   
@@ -441,7 +497,7 @@ export default function FindYourFlow() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-lg font-semibold mb-4">Your StarCard</h3>
-                {user && (
+                {user && starCard && (
                   <div className="bg-white p-4 rounded shadow-sm border border-gray-200">
                     <StarCard 
                       profile={{
@@ -450,15 +506,28 @@ export default function FindYourFlow() {
                         organization: user.organization || ''
                       }}
                       quadrantData={{
-                        thinking: 25,
-                        acting: 25,
-                        feeling: 25,
-                        planning: 25,
-                        apexStrength: 'Imagination'
+                        thinking: starCard.thinking || 0,
+                        acting: starCard.acting || 0,
+                        feeling: starCard.feeling || 0,
+                        planning: starCard.planning || 0,
+                        apexStrength: starCard.apexStrength || ''
                       }}
                       downloadable={false}
                       preview={true}
                     />
+                  </div>
+                )}
+                {(userLoading || starCardLoading) && (
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
+                    <p>Loading your StarCard data...</p>
+                  </div>
+                )}
+                {user && !starCard && !(userLoading || starCardLoading) && (
+                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
+                    <p className="text-amber-700 font-medium">StarCard not available</p>
+                    <p className="text-sm text-gray-600 mt-2">
+                      You need to complete the strengths assessment first.
+                    </p>
                   </div>
                 )}
               </div>
@@ -468,32 +537,43 @@ export default function FindYourFlow() {
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="mb-4">
                     <p className="text-sm text-gray-600 mb-2">
-                      Choose 4 words that best describe your flow state when you're at your best.
-                      Select attributes in order of importance (1 = most important, 4 = least important).
+                      <strong>I find myself in flow when I am being:</strong>
+                    </p>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Choose 4 words that best describe your flow state. Select attributes in order of importance 
+                      (1 = most important, 4 = least important). Drag badges to reorder.
                     </p>
                     
-                    {/* Selected attributes */}
+                    {/* Selected attributes with drag and drop */}
                     {selectedAttributes.length > 0 && (
                       <div className="mb-4">
                         <h4 className="text-sm font-medium mb-2">Your Selected Attributes:</h4>
-                        <div className="flex flex-wrap gap-2">
-                          {selectedAttributes
-                            .sort((a, b) => (a.rank || Infinity) - (b.rank || Infinity))
-                            .map(attr => (
-                              <Badge 
-                                key={attr.text}
-                                className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200 cursor-pointer"
-                                onClick={() => handleRemoveAttribute(attr.text)}
-                              >
-                                {attr.text}
-                                {attr.rank !== null && (
-                                  <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs ${getRankBadgeColor(attr.rank)}`}>
-                                    {attr.rank}
-                                  </span>
-                                )}
-                              </Badge>
-                            ))}
-                        </div>
+                        <DndContext 
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={selectedAttributes.filter(attr => attr.rank !== null).map(attr => attr.text)}
+                            strategy={horizontalListSortingStrategy}
+                          >
+                            <div className="flex flex-wrap gap-2">
+                              {selectedAttributes
+                                .filter(attr => attr.rank !== null)
+                                .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                                .map(attr => (
+                                  <SortableAttribute
+                                    key={attr.text}
+                                    id={attr.text}
+                                    text={attr.text}
+                                    rank={attr.rank || 0}
+                                    onRemove={() => handleRemoveAttribute(attr.text)}
+                                    rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
+                                  />
+                                ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     )}
                     
