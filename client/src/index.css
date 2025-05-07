@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 20 14.3% 4.1%;
+  --muted: 60 4.8% 95.9%;
+  --muted-foreground: 25 5.3% 44.7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 20 14.3% 4.1%;
+  --card: 0 0% 100%;
+  --card-foreground: 20 14.3% 4.1%;
+  --border: 20 5.9% 90%;
+  --input: 20 5.9% 90%;
+  --primary: 260 47% 43%; /* AllStarTeams purple */
+  --primary-foreground: 211 100% 99%;
+  --secondary: 212 96% 60%; /* AllStarTeams blue */
+  --secondary-foreground: 24 9.8% 10%;
+  --accent: 60 4.8% 95.9%;
+  --accent-foreground: 24 9.8% 10%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  --ring: 20 14.3% 4.1%;
+  --radius: 0.5rem;
+  
+  /* Chart/quadrant colors */
+  --chart-1: 142 70% 45%; /* Green */
+  --chart-2: 0 84% 60%; /* Red */
+  --chart-3: 217 91% 60%; /* Blue */
+  --chart-4: 47.9 95.8% 53.1%; /* Yellow */
+}
+
+.dark {
+  --background: 240 10% 3.9%;
+  --foreground: 0 0% 98%;
+  --muted: 240 3.7% 15.9%;
+  --muted-foreground: 240 5% 64.9%;
+  --popover: 240 10% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --card: 240 10% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --border: 240 3.7% 15.9%;
+  --input: 240 3.7% 15.9%;
+  --primary: 260 47% 43%;
+  --primary-foreground: 211 100% 99%;
+  --secondary: 212 96% 60%;
+  --secondary-foreground: 0 0% 98%;
+  --accent: 240 3.7% 15.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --ring: 240 4.9% 83.9%;
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply font-sans antialiased bg-neutral-50 text-neutral-700;
+  }
+}
+
+/* Quadrant colors */
+.quadrant-thinking {
+  @apply bg-chart-1 text-white;
+}
+
+.quadrant-acting {
+  @apply bg-chart-2 text-white;
+}
+
+.quadrant-feeling {
+  @apply bg-chart-3 text-white;
+}
+
+.quadrant-planning {
+  @apply bg-chart-4 text-black;
+}
+
+/* Common styles for the accordion/steps */
+.step-item {
+  @apply bg-white border border-neutral-200 rounded-lg overflow-hidden mb-4;
+}
+
+.step-header {
+  @apply flex justify-between items-center p-4 cursor-pointer hover:bg-neutral-50;
+}
+
+.step-content {
+  @apply p-4 border-t border-neutral-200;
+}
+
+.assessment-card {
+  @apply bg-neutral-100 p-4 rounded-lg shadow-sm cursor-pointer transition-transform duration-200;
+}
+
+.assessment-card:hover {
+  @apply -translate-y-1;
+}
+
+.star-card {
+  @apply bg-white border border-neutral-200 rounded-lg p-6 mb-6;
+}
