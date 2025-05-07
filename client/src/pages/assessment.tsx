@@ -326,7 +326,7 @@ export default function Assessment() {
                       key={option.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, option)}
-                      className="bg-gray-100 rounded-lg flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-200 transition-colors shadow p-2"
+                      className="bg-gray-100 rounded-lg flex items-center justify-center aspect-square w-full md:w-[70%] md:mx-auto cursor-move hover:bg-gray-200 transition-colors shadow p-2"
                     >
                       <p className="text-xs sm:text-sm text-center">{option.text}</p>
                     </div>
@@ -343,7 +343,7 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'mostLikeMe')}
-                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full md:w-[70%] md:mx-auto flex items-center justify-center transition-colors ${
                     rankings.mostLikeMe 
                       ? 'border-transparent bg-indigo-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -353,7 +353,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-indigo-100 rounded-lg cursor-move p-2"
+                      className="w-full h-full flex items-center justify-center bg-indigo-100 rounded-lg cursor-move p-2 md:p-1"
                     >
                       <p className="text-xs sm:text-sm text-center">{rankings.mostLikeMe.text}</p>
                     </div>
@@ -368,7 +368,7 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'second')}
-                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full md:w-[70%] md:mx-auto flex items-center justify-center transition-colors ${
                     rankings.second 
                       ? 'border-transparent bg-purple-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -378,7 +378,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.second as Option)}
-                      className="w-full h-full flex items-center justify-center bg-purple-100 rounded-lg cursor-move p-2"
+                      className="w-full h-full flex items-center justify-center bg-purple-100 rounded-lg cursor-move p-2 md:p-1"
                     >
                       <p className="text-xs sm:text-sm text-center">{rankings.second.text}</p>
                     </div>
@@ -393,7 +393,7 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'third')}
-                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full md:w-[70%] md:mx-auto flex items-center justify-center transition-colors ${
                     rankings.third 
                       ? 'border-transparent bg-teal-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -403,7 +403,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.third as Option)}
-                      className="w-full h-full flex items-center justify-center bg-teal-100 rounded-lg cursor-move p-2"
+                      className="w-full h-full flex items-center justify-center bg-teal-100 rounded-lg cursor-move p-2 md:p-1"
                     >
                       <p className="text-xs sm:text-sm text-center">{rankings.third.text}</p>
                     </div>
@@ -418,7 +418,7 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'leastLikeMe')}
-                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full md:w-[70%] md:mx-auto flex items-center justify-center transition-colors ${
                     rankings.leastLikeMe 
                       ? 'border-transparent bg-rose-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
