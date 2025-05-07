@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -46,6 +47,90 @@ export const starCards = pgTable("star_cards", {
   createdAt: text("created_at"),
 });
 
+export const flowAttributes = pgTable("flow_attributes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  attributes: jsonb("attributes").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const visualizations = pgTable("visualizations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  wellbeingLevel: integer("wellbeing_level"),
+  wellbeingFactors: text("wellbeing_factors"),
+  oneYearVision: text("one_year_vision"),
+  specificChanges: text("specific_changes"),
+  quarterlyProgress: text("quarterly_progress"),
+  quarterlyActions: text("quarterly_actions"),
+  potentialImageUrls: jsonb("potential_image_urls"),
+  imageMeaning: text("image_meaning"),
+  futureVision: text("future_vision"),
+  optimizedFlow: text("optimized_flow"),
+  happyLifeAchievements: text("happy_life_achievements"),
+  futureStatement: text("future_statement"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Define relations between tables
+export const usersRelations = relations(users, ({ one, many }) => ({
+  starCard: one(starCards, {
+    fields: [users.id],
+    references: [starCards.userId],
+  }),
+  assessments: many(assessments),
+  answers: many(answers),
+  flowAttributes: one(flowAttributes, {
+    fields: [users.id],
+    references: [flowAttributes.userId],
+  }),
+  visualization: one(visualizations, {
+    fields: [users.id],
+    references: [visualizations.userId],
+  }),
+}));
+
+export const assessmentsRelations = relations(assessments, ({ one }) => ({
+  user: one(users, {
+    fields: [assessments.userId],
+    references: [users.id],
+  }),
+}));
+
+export const answersRelations = relations(answers, ({ one }) => ({
+  user: one(users, {
+    fields: [answers.userId],
+    references: [users.id],
+  }),
+  question: one(questions, {
+    fields: [answers.questionId],
+    references: [questions.id],
+  }),
+}));
+
+export const starCardsRelations = relations(starCards, ({ one }) => ({
+  user: one(users, {
+    fields: [starCards.userId],
+    references: [users.id],
+  }),
+}));
+
+export const flowAttributesRelations = relations(flowAttributes, ({ one }) => ({
+  user: one(users, {
+    fields: [flowAttributes.userId],
+    references: [users.id],
+  }),
+}));
+
+export const visualizationsRelations = relations(visualizations, ({ one }) => ({
+  user: one(users, {
+    fields: [visualizations.userId],
+    references: [users.id],
+  }),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -86,6 +171,27 @@ export const insertStarCardSchema = createInsertSchema(starCards).pick({
   createdAt: true,
 });
 
+export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({
+  userId: true,
+  attributes: true,
+});
+
+export const insertVisualizationSchema = createInsertSchema(visualizations).pick({
+  userId: true,
+  wellbeingLevel: true,
+  wellbeingFactors: true,
+  oneYearVision: true,
+  specificChanges: true,
+  quarterlyProgress: true,
+  quarterlyActions: true,
+  potentialImageUrls: true,
+  imageMeaning: true,
+  futureVision: true,
+  optimizedFlow: true,
+  happyLifeAchievements: true,
+  futureStatement: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -101,6 +207,12 @@ export type Answer = typeof answers.$inferSelect;
 
 export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
 export type StarCard = typeof starCards.$inferSelect;
+
+export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
+export type FlowAttributes = typeof flowAttributes.$inferSelect;
+
+export type InsertVisualization = z.infer<typeof insertVisualizationSchema>;
+export type Visualization = typeof visualizations.$inferSelect;
 
 // Additional types for the frontend
 export type QuadrantData = {
