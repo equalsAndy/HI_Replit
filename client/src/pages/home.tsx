@@ -63,9 +63,9 @@ export default function Home() {
           </div>
           
           <div className="mt-10">
-            <Link href="/assessment">
+            <Link href="/foundations">
               <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded">
-                NEXT
+                BEGIN WORKSHOP
               </Button>
             </Link>
           </div>

@@ -9,10 +9,11 @@ import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import AppHeader from "@/components/layout/AppHeader";
 
-// Lazy load additional pages
+// Import pages
 import CoreStrengths from "./pages/core-strengths";
 import FlowAssessment from "./pages/flow-assessment";
 import RoundingOut from "./pages/rounding-out";
+import Foundations from "./pages/foundations";
 
 function Router() {
   return (
@@ -20,6 +21,7 @@ function Router() {
       <AppHeader />
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/foundations" component={Foundations} />
         <Route path="/assessment" component={Assessment} />
         <Route path="/report" component={Report} />
         <Route path="/core-strengths" component={CoreStrengths} />
