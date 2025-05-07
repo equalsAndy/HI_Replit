@@ -165,7 +165,7 @@ export default function FlowAssessment() {
         <div className="mb-8">
           <p className="font-medium mb-4">{question.text}</p>
           
-          <div className="mb-6">
+          <div className="mb-6 relative">
             <Slider
               value={[currentValue]}
               min={1}
@@ -182,16 +182,30 @@ export default function FlowAssessment() {
               <span>4 - Often</span>
               <span>5 - Always</span>
             </div>
-          </div>
-          
-          <div className="flex justify-center mb-4">
-            <button 
-              onClick={() => handleQuickSelect(question.id)}
-              className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-indigo-400 text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              title="Click to select default answer (3 - Sometimes)"
-            >
-              <span className="text-sm font-semibold">3</span>
-            </button>
+            
+            <div className="absolute top-[-18px] left-[calc(50%-20px)]">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button 
+                      onClick={() => handleQuickSelect(question.id)}
+                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 
+                        ${autoAdvance 
+                          ? "border-indigo-500 text-indigo-600 bg-white hover:bg-indigo-50" 
+                          : "border-indigo-400 bg-indigo-100 text-indigo-700"} 
+                        focus:outline-none focus:ring-2 focus:ring-indigo-500`}
+                    >
+                      <span className="text-sm font-semibold">{autoAdvance ? "3" : currentValue}</span>
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>{autoAdvance 
+                      ? "Click to select '3 - Sometimes' and automatically advance" 
+                      : `Your current selection: ${currentValue} - ${valueToLabel(currentValue)}`}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
           
           <p className="text-center font-semibold mt-4">
@@ -289,7 +303,7 @@ export default function FlowAssessment() {
             <div className="mb-6">
               <h4 className="font-semibold mb-3">Your Answers Summary</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Review your answers below. Click "Edit" next to any question to change your response.
+                Review your answers below. Adjust the sliders directly to modify any of your responses.
               </p>
               
               <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
@@ -314,24 +328,27 @@ export default function FlowAssessment() {
                           {q.text}
                         </td>
                         <td className="px-3 py-2 text-center">
-                          <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800">
-                            {answers[q.id] ? `${answers[q.id]} - ${valueToLabel(answers[q.id])}` : 'Not answered'}
-                          </span>
+                          <div className="flex items-center justify-center">
+                            <Slider
+                              value={[answers[q.id] || 3]}
+                              min={1}
+                              max={5}
+                              step={1}
+                              onValueChange={(value) => {
+                                setAnswers(prev => ({
+                                  ...prev,
+                                  [q.id]: value[0]
+                                }));
+                              }}
+                              className="w-24 mx-2"
+                            />
+                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[70px] text-center">
+                              {answers[q.id] || 3} - {valueToLabel(answers[q.id] || 3)}
+                            </span>
+                          </div>
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-xs text-blue-600 hover:text-blue-800"
-                            onClick={() => {
-                              setShowResult(false);
-                              setTimeout(() => {
-                                setCurrentQuestion(flowQuestions.findIndex(fq => fq.id === q.id));
-                              }, 300);
-                            }}
-                          >
-                            Edit
-                          </Button>
+                        <td className="px-3 py-2 text-right text-xs text-gray-500">
+                          Slide to change
                         </td>
                       </tr>
                     ))}
