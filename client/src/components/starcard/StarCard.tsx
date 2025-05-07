@@ -132,13 +132,13 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label positioned right above Flow 1 box and 2px above it - fixed visibility */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '5px', right: '42px', zIndex: 30 }}>
+          {/* Flow Label - 10% smaller and centered over Flow 1 box */}
+          <div className="absolute text-[0.7rem] font-medium text-gray-700" style={{ top: '5px', right: '45px', width: '59px', textAlign: 'center', zIndex: 30 }}>
             Flow
           </div>
           
-          {/* Core Label positioned right above Strength 1 box (highest strength) - fixed visibility */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '65px', right: '110px', zIndex: 30 }}>
+          {/* Core Label - 10% smaller and centered over Strength 1 box (highest strength) */}
+          <div className="absolute text-[0.7rem] font-medium text-gray-700" style={{ top: '65px', right: '88px', width: '59px', textAlign: 'center', zIndex: 30 }}>
             Core
           </div>
           
@@ -213,9 +213,9 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Arrow 2 - Left arrow on bottom - fixed alignment */}
-          <div className="absolute" style={{ top: '234px', left: '74px', width: '110px' }}>
-            <div className="absolute left-0 top-0 w-[110px] h-[1px] bg-gray-400"></div>
+          {/* Arrow 2 - Made 70% of original width and horizontally centered */}
+          <div className="absolute" style={{ top: '234px', left: '88px', width: '77px' }}>
+            <div className="absolute left-0 top-0 w-[77px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M0 5 L5 0 L5 10 Z" fill="#9CA3AF" />
@@ -223,8 +223,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Arrow 3 - Up arrow - fixed alignment */}
-          <div className="absolute" style={{ left: '44px', top: '85px', height: '84px' }}>
+          {/* Arrow 3 - Made 70% of original height and vertically centered */}
+          <div className="absolute" style={{ left: '44px', top: '105px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
