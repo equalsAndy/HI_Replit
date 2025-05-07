@@ -212,6 +212,24 @@ export default function FindYourFlow() {
                 Now that you've completed the flow assessment, take some time to round out your understanding of flow
                 and how you can create more opportunities for flow in your work and life.
               </p>
+              
+              <div className="my-6">
+                <h3 className="text-lg font-semibold mb-3">Watch: Understanding Flow States</h3>
+                <div className="aspect-video w-full max-w-3xl mx-auto border border-gray-200 rounded-lg overflow-hidden">
+                  <iframe 
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/srLM8lHPj40" 
+                    title="Understanding Flow States" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                  ></iframe>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  This video explores the concept of flow states and provides practical tips for entering flow more consistently in your work and life.
+                </p>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
