@@ -113,17 +113,17 @@ export default function StarCard({
         
         {/* Cloud graphic with Apex Strength - Using the provided cloud image */}
         <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
-          {/* Cloud Image */}
+          {/* Cloud Image - cropped 1px from each side */}
           <div className="relative w-full" style={{ height: '110px' }}>
             <img 
               src={cloudImage} 
               alt="Cloud" 
-              className="w-full object-contain absolute top-0 left-0"
+              className="w-[98%] object-contain absolute top-0 left-[1%]"
               style={{ height: '80px' }}
             />
             
-            {/* Text positioned below cloud image */}
-            <div className="absolute w-full" style={{ top: '60px' }}>
+            {/* Text positioned below cloud image - moved up 5px */}
+            <div className="absolute w-full" style={{ top: '55px' }}>
               <p className="text-xl font-bold text-gray-500">Imagination</p>
               <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
             </div>
@@ -203,9 +203,9 @@ export default function StarCard({
                style={{ top: '25px', left: '15px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side - fixed alignment */}
-          <div className="absolute" style={{ right: '44px', top: '85px', height: '84px' }}>
-            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
+          {/* Arrow 1 - Vertically centered between Flow 1 and Flow 2 */}
+          <div className="absolute" style={{ right: '44px', top: '84px', height: '120px' }}>
+            <div className="absolute left-0 top-0 h-[120px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M5 10 L0 5 L10 5 Z" fill="#9CA3AF" />
@@ -213,7 +213,7 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom - fixed alignment */}
+          {/* Arrow 2 - Left arrow on bottom - fixed alignment */}
           <div className="absolute" style={{ top: '234px', left: '74px', width: '110px' }}>
             <div className="absolute left-0 top-0 w-[110px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
@@ -223,7 +223,7 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow - fixed alignment */}
+          {/* Arrow 3 - Up arrow - fixed alignment */}
           <div className="absolute" style={{ left: '44px', top: '85px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
