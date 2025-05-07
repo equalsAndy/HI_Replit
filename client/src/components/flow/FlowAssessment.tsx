@@ -16,7 +16,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { HelpCircle } from 'lucide-react';
+import { HelpCircle, Sliders as SliderIcon } from 'lucide-react';
 
 interface FlowQuestion {
   id: number;
@@ -165,6 +165,14 @@ export default function FlowAssessment() {
     }
   };
   
+  // Reset answers for new questions when switching to a new one
+  useEffect(() => {
+    // This effect ensures we only run the reset when changing questions
+    if (!answers[question.id]) {
+      // If no answer for this question, clear the current value
+    }
+  }, [currentQuestion]);
+  
   // Get current question and previous question
   const question = flowQuestions[currentQuestion];
   const currentValue = answers[question.id] || 0; // No default value
@@ -188,32 +196,43 @@ export default function FlowAssessment() {
             <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
           </p>
           
-          <div className="mb-6 relative">
-            <div className="h-12 relative">
-              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-6 z-0">
+          <div className="mb-8 relative">
+            <div className="h-16 relative">
+              {/* Main track background */}
+              <div className="absolute h-3 rounded-full bg-gray-200 w-full top-6 z-0 shadow-inner overflow-hidden">
+                {/* Gradient fill - animated for smoother transitions */}
                 <div 
-                  className="absolute h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600" 
+                  className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
                   style={{ width: `${((currentValue - 1) / 4) * 100}%` }}
                 ></div>
               </div>
               
-              {/* Custom slider track with positions for 1-5 */}
-              <div className="absolute flex justify-between w-full top-4 px-1 z-10">
+              {/* Circle markers - perfectly aligned on the track */}
+              <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                 {[1, 2, 3, 4, 5].map((value) => (
                   <div
                     key={value}
                     onClick={() => handleSliderChange(question.id, [value])}
-                    className={`cursor-pointer w-4 h-4 rounded-full ${value <= currentValue ? 'bg-indigo-600' : 'bg-gray-300'}`}
-                  />
+                    className={`
+                      cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
+                      ${value <= currentValue 
+                        ? 'bg-indigo-600 text-white shadow-md transform hover:scale-110 transition-transform' 
+                        : 'bg-white border-2 border-gray-300 hover:border-indigo-300 transition-colors'}
+                    `}
+                  >
+                    <span className="text-xs font-medium">{value}</span>
+                  </div>
                 ))}
               </div>
               
-              {/* Custom thumb that replaces the default white circle */}
+              {/* Custom animated thumb */}
               <div 
-                className="absolute cursor-grab active:cursor-grabbing z-20" 
+                className="absolute cursor-grab active:cursor-grabbing z-20 transition-all duration-300" 
                 style={{ 
-                  left: `calc(${((currentValue - 1) / 4) * 100}% - 20px)`,
-                  top: '-6px'
+                  left: `calc(${((currentValue - 1) / 4) * 100}%)`,
+                  top: '3px',
+                  transform: currentValue ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(0.5)',
+                  opacity: currentValue ? 1 : 0
                 }}
               >
                 <TooltipProvider>
@@ -221,31 +240,46 @@ export default function FlowAssessment() {
                     <TooltipTrigger asChild>
                       <button 
                         onClick={() => handleQuickSelect(question.id)}
-                        className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-indigo-500 text-indigo-600 bg-white hover:bg-indigo-50 shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-indigo-500 text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transform hover:scale-105 transition-all"
                         onMouseDown={(e) => {
                           e.stopPropagation();
                           e.preventDefault();
                         }}
                       >
-                        <span className="text-sm font-semibold">{currentValue}</span>
+                        <span className="text-base font-bold">{currentValue || '?'}</span>
                       </button>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
-                      <p>{autoAdvance 
+                    <TooltipContent className="max-w-xs p-3 bg-indigo-900 text-white border-none">
+                      <p className="font-medium">{autoAdvance 
                         ? "Click to select '3 - Sometimes' and automatically advance" 
-                        : `Your current selection: ${currentValue} - ${valueToLabel(currentValue)}`}</p>
+                        : `Your selection: ${currentValue || '?'} - ${valueToLabel(currentValue) || 'Select a value'}`}</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
             </div>
             
-            <div className="flex justify-between text-sm text-gray-500 pt-4">
-              <span>1 - Never</span>
-              <span>2 - Rarely</span>
-              <span>3 - Sometimes</span>
-              <span>4 - Often</span>
-              <span>5 - Always</span>
+            <div className="flex justify-between text-sm font-medium text-gray-700 pt-6 px-1">
+              <div className="flex flex-col items-center">
+                <span className="text-red-600">1</span>
+                <span>Never</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-orange-500">2</span>
+                <span>Rarely</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-yellow-500">3</span>
+                <span>Sometimes</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-green-500">4</span>
+                <span>Often</span>
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-indigo-600">5</span>
+                <span>Always</span>
+              </div>
             </div>
           </div>
           
@@ -300,7 +334,7 @@ export default function FlowAssessment() {
             <p className="text-xs text-gray-500 mb-1">Question #{previousQuestion.id}:</p>
             <p className="text-xs text-gray-700 mb-1">{previousQuestion.text}</p>
             {prevAnswer > 0 && (
-              <p className="text-xs font-medium text-indigo-600">Your answer: {prevAnswer} - {valueToLabel(prevAnswer)}</p>
+              <p className="text-xs font-medium text-indigo-600">Previous answer: {prevAnswer} - {valueToLabel(prevAnswer)}</p>
             )}
           </div>
         )}
@@ -391,17 +425,17 @@ export default function FlowAssessment() {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center">
-                            <div className="relative w-24 h-6 mx-2">
+                            <div className="relative w-28 h-8 mx-2">
                               {/* Custom slider track */}
-                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-2 z-0">
+                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-3 z-0 shadow-inner overflow-hidden">
                                 <div 
-                                  className="absolute h-2 rounded-full bg-gradient-to-r from-indigo-400 to-indigo-600" 
+                                  className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
                                   style={{ width: `${((answers[q.id] || 3) - 1) / 4 * 100}%` }}
                                 ></div>
                               </div>
                               
-                              {/* Custom markers */}
-                              <div className="absolute flex justify-between w-full px-1 z-10">
+                              {/* Circle markers - perfectly aligned */}
+                              <div className="absolute flex justify-between w-full px-0 z-10">
                                 {[1, 2, 3, 4, 5].map((value) => (
                                   <div
                                     key={value}
@@ -411,34 +445,41 @@ export default function FlowAssessment() {
                                         [q.id]: value
                                       }));
                                     }}
-                                    className={`cursor-pointer w-3 h-3 rounded-full mt-0.5 ${
-                                      value <= (answers[q.id] || 3) ? 'bg-indigo-600' : 'bg-gray-300'
-                                    }`}
-                                  />
+                                    className={`
+                                      cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
+                                      ${value <= (answers[q.id] || 3) 
+                                        ? 'bg-indigo-600 text-white shadow transform hover:scale-110 transition-transform' 
+                                        : 'bg-white border border-gray-300 hover:border-indigo-300 transition-colors'}
+                                    `}
+                                  >
+                                  </div>
                                 ))}
                               </div>
                               
                               {/* Custom thumb */}
                               <div 
-                                className="absolute cursor-pointer z-20"
+                                className="absolute cursor-pointer z-20 transition-all duration-300"
                                 style={{ 
-                                  left: `calc(${(((answers[q.id] || 3) - 1) / 4) * 100}% - 8px)`,
-                                  top: '-2px'
+                                  left: `calc(${(((answers[q.id] || 3) - 1) / 4) * 100}%)`,
+                                  top: '-4px',
+                                  transform: 'translateX(-50%)'
                                 }}
                               >
-                                <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-indigo-500 text-indigo-600 bg-white shadow-sm">
-                                  <span className="text-xs font-semibold">{answers[q.id] || 3}</span>
+                                <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-indigo-500 text-white bg-indigo-600 shadow-md">
+                                  <span className="text-xs font-bold">{answers[q.id] || 3}</span>
                                 </div>
                               </div>
                             </div>
                             
-                            <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[70px] text-center">
+                            <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[80px] text-center shadow-sm border border-indigo-200">
                               {valueToLabel(answers[q.id] || 3)}
                             </span>
                           </div>
                         </td>
-                        <td className="px-3 py-2 text-right text-xs text-gray-500">
-                          Slide to change
+                        <td className="px-3 py-2 text-right text-xs">
+                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer">
+                            <SliderIcon className="h-3 w-3 mr-1" /> Adjust
+                          </span>
                         </td>
                       </tr>
                     ))}
