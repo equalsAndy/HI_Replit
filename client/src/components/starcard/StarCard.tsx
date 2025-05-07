@@ -132,13 +132,13 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label - 10% smaller and centered over Flow 1 box */}
-          <div className="absolute text-[0.7rem] font-medium text-gray-700" style={{ top: '5px', right: '45px', width: '59px', textAlign: 'center', zIndex: 30 }}>
+          {/* Flow Label - smaller and precisely centered over Flow 1 box */}
+          <div className="absolute text-[0.65rem] font-medium text-gray-700" style={{ top: '5px', right: '15px', width: '59px', textAlign: 'center', zIndex: 30 }}>
             Flow
           </div>
           
-          {/* Core Label - 10% smaller and centered over Strength 1 box (highest strength) */}
-          <div className="absolute text-[0.7rem] font-medium text-gray-700" style={{ top: '65px', right: '88px', width: '59px', textAlign: 'center', zIndex: 30 }}>
+          {/* Core Label - smaller and precisely centered over Strength 1 box (highest strength) */}
+          <div className="absolute text-[0.65rem] font-medium text-gray-700" style={{ top: '65px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30 }}>
             Core
           </div>
           
@@ -213,9 +213,9 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Arrow 2 - Made 70% of original width and horizontally centered */}
-          <div className="absolute" style={{ top: '234px', left: '88px', width: '77px' }}>
-            <div className="absolute left-0 top-0 w-[77px] h-[1px] bg-gray-400"></div>
+          {/* Arrow 2 - Equidistant between Flow 2 and Flow 3 */}
+          <div className="absolute" style={{ top: '234px', left: '90px', width: '73px' }}>
+            <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M0 5 L5 0 L5 10 Z" fill="#9CA3AF" />
