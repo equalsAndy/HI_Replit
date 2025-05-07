@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -46,6 +46,16 @@ export default function FlowAssessment() {
   const [showResult, setShowResult] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Using refs to access the latest state in timeouts
+  const answersRef = useRef<Record<number, number>>({});
+  const currentQuestionRef = useRef<number>(0);
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    answersRef.current = answers;
+    currentQuestionRef.current = currentQuestion;
+  }, [answers, currentQuestion]);
   
   // Calculate total score
   const calculateScore = () => {
@@ -226,35 +236,47 @@ export default function FlowAssessment() {
               {/* Circle markers - perfectly aligned on the track */}
               <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                 {[1, 2, 3, 4, 5].map((value) => {
-                  // Direct click handler to always set exactly the value clicked
-                  const handleClick = () => {
-                    const wasUnselected = !answers[question.id];
-                    
-                    // Always set to exactly the value clicked, no matter what
-                    setAnswers(prev => ({
-                      ...prev,
-                      [question.id]: value
-                    }));
-                    
-                    // Clear any error message
-                    setError(null);
-                    
-                    // Auto advance on new selections or first selection
-                    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-                      // Only advance if this was a new selection 
-                      // or the first selection for this question
-                      if (wasUnselected || answers[question.id] !== value) {
-                        setTimeout(() => {
-                          nextQuestion();
-                        }, 700); // Delay to see selection
-                      }
-                    }
-                  };
-                  
                   return (
                     <div
                       key={value}
-                      onClick={handleClick}
+                      onClick={() => {
+                        // Get current question ID (from the current question, not state closure)
+                        const questionId = question.id;
+                        
+                        // Always set to the clicked value
+                        setAnswers(prev => {
+                          // Update the ref immediately for use in timeout
+                          answersRef.current = {
+                            ...prev,
+                            [questionId]: value
+                          };
+                          
+                          // Return the new state
+                          return answersRef.current;
+                        });
+                        
+                        // Clear error
+                        setError(null);
+                        
+                        // Auto advance if enabled (using a separate function for clarity)
+                        if (autoAdvance) {
+                          // Create a dedicated function for auto-advancing
+                          const handleAutoAdvance = () => {
+                            // Check latest state via ref
+                            const currQuestion = currentQuestionRef.current;
+                            
+                            if (currQuestion < flowQuestions.length - 1) {
+                              // This will advance only once the answer is saved
+                              if (answersRef.current[questionId]) {
+                                nextQuestion();
+                              }
+                            }
+                          };
+                          
+                          // Set timeout to allow state to update
+                          setTimeout(handleAutoAdvance, 700);
+                        }
+                      }}
                       className={`
                         cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
                         ${value <= currentValue 
@@ -480,25 +502,19 @@ export default function FlowAssessment() {
                               {/* Circle markers - perfectly aligned */}
                               <div className="absolute flex justify-between w-full px-0 z-10">
                                 {[1, 2, 3, 4, 5].map((value) => {
-                                  // Create a direct click handler for each value
-                                  const handleMarkerClick = () => {
-                                    // Always set exactly to the clicked value, no fallbacks
-                                    setAnswers(prev => ({
-                                      ...prev,
-                                      [q.id]: value
-                                    }));
-                                  };
-                                  
-                                  // Get the actual value without any fallback
-                                  const actualValue = answers[q.id];
-                                  
                                   return (
                                     <div
                                       key={value}
-                                      onClick={handleMarkerClick}
+                                      onClick={() => {
+                                        // SAME SIMPLIFIED APPROACH FOR SUMMARY VIEW
+                                        setAnswers(prev => ({
+                                          ...prev,
+                                          [q.id]: value
+                                        }));
+                                      }}
                                       className={`
                                         cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
-                                        ${value <= actualValue 
+                                        ${answers[q.id] && value <= answers[q.id]
                                           ? 'bg-indigo-600 text-white shadow transform hover:scale-110 transition-transform' 
                                           : 'bg-white border border-gray-300 hover:border-indigo-300 transition-colors'}
                                       `}
