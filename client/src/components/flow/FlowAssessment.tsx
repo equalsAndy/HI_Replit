@@ -166,45 +166,58 @@ export default function FlowAssessment() {
           <p className="font-medium mb-4">{question.text}</p>
           
           <div className="mb-6 relative">
-            <Slider
-              value={[currentValue]}
-              min={1}
-              max={5}
-              step={1}
-              onValueChange={(value) => handleSliderChange(question.id, value)}
-              className="mb-2"
-            />
+            <div className="h-12 relative">
+              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-6 z-0"></div>
+              
+              {/* Custom slider track with positions for 1-5 */}
+              <div className="absolute flex justify-between w-full top-4 px-1 z-10">
+                {[1, 2, 3, 4, 5].map((value) => (
+                  <div
+                    key={value}
+                    onClick={() => handleSliderChange(question.id, [value])}
+                    className={`cursor-pointer w-4 h-4 rounded-full ${value <= currentValue ? 'bg-indigo-600' : 'bg-gray-300'}`}
+                  />
+                ))}
+              </div>
+              
+              {/* Custom thumb that replaces the default white circle */}
+              <div 
+                className="absolute cursor-grab active:cursor-grabbing z-20" 
+                style={{ 
+                  left: `calc(${((currentValue - 1) / 4) * 100}% - 20px)`,
+                  top: '-6px'
+                }}
+              >
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button 
+                        onClick={() => handleQuickSelect(question.id)}
+                        className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-indigo-500 text-indigo-600 bg-white hover:bg-indigo-50 shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                        }}
+                      >
+                        <span className="text-sm font-semibold">{currentValue}</span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>{autoAdvance 
+                        ? "Click to select '3 - Sometimes' and automatically advance" 
+                        : `Your current selection: ${currentValue} - ${valueToLabel(currentValue)}`}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
             
-            <div className="flex justify-between text-sm text-gray-500">
+            <div className="flex justify-between text-sm text-gray-500 pt-4">
               <span>1 - Never</span>
               <span>2 - Rarely</span>
               <span>3 - Sometimes</span>
               <span>4 - Often</span>
               <span>5 - Always</span>
-            </div>
-            
-            <div className="absolute top-[-18px] left-[calc(50%-20px)]">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button 
-                      onClick={() => handleQuickSelect(question.id)}
-                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 
-                        ${autoAdvance 
-                          ? "border-indigo-500 text-indigo-600 bg-white hover:bg-indigo-50" 
-                          : "border-indigo-400 bg-indigo-100 text-indigo-700"} 
-                        focus:outline-none focus:ring-2 focus:ring-indigo-500`}
-                    >
-                      <span className="text-sm font-semibold">{autoAdvance ? "3" : currentValue}</span>
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>{autoAdvance 
-                      ? "Click to select '3 - Sometimes' and automatically advance" 
-                      : `Your current selection: ${currentValue} - ${valueToLabel(currentValue)}`}</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
           </div>
           
@@ -329,21 +342,44 @@ export default function FlowAssessment() {
                         </td>
                         <td className="px-3 py-2 text-center">
                           <div className="flex items-center justify-center">
-                            <Slider
-                              value={[answers[q.id] || 3]}
-                              min={1}
-                              max={5}
-                              step={1}
-                              onValueChange={(value) => {
-                                setAnswers(prev => ({
-                                  ...prev,
-                                  [q.id]: value[0]
-                                }));
-                              }}
-                              className="w-24 mx-2"
-                            />
+                            <div className="relative w-24 h-6 mx-2">
+                              {/* Custom slider track */}
+                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-2 z-0"></div>
+                              
+                              {/* Custom markers */}
+                              <div className="absolute flex justify-between w-full px-1 z-10">
+                                {[1, 2, 3, 4, 5].map((value) => (
+                                  <div
+                                    key={value}
+                                    onClick={() => {
+                                      setAnswers(prev => ({
+                                        ...prev,
+                                        [q.id]: value
+                                      }));
+                                    }}
+                                    className={`cursor-pointer w-3 h-3 rounded-full mt-0.5 ${
+                                      value <= (answers[q.id] || 3) ? 'bg-indigo-600' : 'bg-gray-300'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                              
+                              {/* Custom thumb */}
+                              <div 
+                                className="absolute cursor-pointer z-20"
+                                style={{ 
+                                  left: `calc(${(((answers[q.id] || 3) - 1) / 4) * 100}% - 8px)`,
+                                  top: '-2px'
+                                }}
+                              >
+                                <div className="flex items-center justify-center w-6 h-6 rounded-full border-2 border-indigo-500 text-indigo-600 bg-white shadow-sm">
+                                  <span className="text-xs font-semibold">{answers[q.id] || 3}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
                             <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[70px] text-center">
-                              {answers[q.id] || 3} - {valueToLabel(answers[q.id] || 3)}
+                              {valueToLabel(answers[q.id] || 3)}
                             </span>
                           </div>
                         </td>
