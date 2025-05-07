@@ -26,6 +26,8 @@ export default function Assessment() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<{[key: number]: RankedOption[]}>({});
   const [progress, setProgress] = useState<number>(0);
+  const [showResultsPopup, setShowResultsPopup] = useState<boolean>(false);
+  const [assessmentResults, setAssessmentResults] = useState<QuadrantData | null>(null);
   
   // Drag and drop state
   const [draggedOption, setDraggedOption] = useState<Option | null>(null);
@@ -253,18 +255,21 @@ export default function Assessment() {
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      // Complete assessment - calculate results and go to report page
+      // Complete assessment - calculate results and show popup
       const results = getQuadrantScores();
       console.log("Assessment Results:", results);
       
       // In a real app, we would submit these results to the server
       // completeAssessment.mutate();
       
+      // Set the results and show the popup
+      setAssessmentResults(results);
+      setShowResultsPopup(true);
+      
       toast({
         title: "Assessment Complete!",
         description: "Your results are ready to view."
       });
-      navigate('/report');
     }
   };
   
@@ -274,8 +279,96 @@ export default function Assessment() {
     100
   );
   
+  // Function to close the popup and navigate to the report page
+  const handleCloseResultsPopup = () => {
+    setShowResultsPopup(false);
+    navigate('/report');
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Results Popup */}
+      {showResultsPopup && assessmentResults && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 mx-auto">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Strength Assessment Results</h2>
+            
+            <div className="space-y-4 mb-6">
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Thinking:</span>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-indigo-600 h-2.5 rounded-full" 
+                      style={{ width: `${assessmentResults.thinking}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <span className="font-bold text-indigo-600">{assessmentResults.thinking}%</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Acting:</span>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-purple-600 h-2.5 rounded-full" 
+                      style={{ width: `${assessmentResults.acting}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <span className="font-bold text-purple-600">{assessmentResults.acting}%</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Feeling:</span>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-teal-600 h-2.5 rounded-full" 
+                      style={{ width: `${assessmentResults.feeling}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <span className="font-bold text-teal-600">{assessmentResults.feeling}%</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-gray-700">Planning:</span>
+                <div className="flex-1 mx-4">
+                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                      className="bg-rose-600 h-2.5 rounded-full" 
+                      style={{ width: `${assessmentResults.planning}%` }}
+                    ></div>
+                  </div>
+                </div>
+                <span className="font-bold text-rose-600">{assessmentResults.planning}%</span>
+              </div>
+            </div>
+            
+            <div className="bg-indigo-50 p-4 rounded-lg mb-6">
+              <h3 className="font-semibold text-indigo-800 mb-2">Your Top Strength: {assessmentResults.apexStrength}</h3>
+              <p className="text-gray-700 text-sm">
+                {assessmentResults.apexStrength === 'Thinking' && 'You excel at analytical thinking and problem-solving. Your ability to process complex information and make logical decisions is your standout strength.'}
+                {assessmentResults.apexStrength === 'Acting' && 'You are action-oriented and decisive. Your ability to implement ideas and make things happen is your standout strength.'}
+                {assessmentResults.apexStrength === 'Feeling' && 'You have strong emotional intelligence and empathy. Your ability to understand and connect with others is your standout strength.'}
+                {assessmentResults.apexStrength === 'Planning' && 'You are organized and strategic. Your ability to plan ahead and create structure is your standout strength.'}
+              </p>
+            </div>
+            
+            <div className="flex justify-center">
+              <Button 
+                onClick={handleCloseResultsPopup}
+                className="px-8 bg-indigo-600 hover:bg-indigo-700"
+              >
+                Continue to Star Card
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Header */}
       <header className="bg-white border-b border-gray-200 py-2">
         <div className="container mx-auto px-3 flex justify-between items-center">
