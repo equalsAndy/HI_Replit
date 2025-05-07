@@ -216,6 +216,34 @@ export default function AssessmentQuestion({
           ))}
         </div>
         
+        <div className="flex items-center justify-center mb-4">
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="auto-advance" 
+              checked={autoAdvance}
+              onCheckedChange={(checked) => setAutoAdvance(!!checked)}
+            />
+            <label
+              htmlFor="auto-advance"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Auto Advance
+            </label>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Check the box to advance to the next question after you have ranked each one. You can always go back and adjust your answers.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
+        </div>
+
         <div className="flex justify-between mt-6 items-center">
           <div className="flex space-x-16">
             <div className="text-sm">Most like me</div>
