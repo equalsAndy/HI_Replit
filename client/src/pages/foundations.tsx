@@ -2,6 +2,7 @@ import React from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import StarCard from "@/components/starcard/StarCard";
 
 export default function Foundations() {
   const [location, navigate] = useLocation();
@@ -38,7 +39,7 @@ export default function Foundations() {
           <Tabs defaultValue="intro" className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
               <TabsTrigger value="intro">Strengths</TabsTrigger>
-              <TabsTrigger value="flow">Scenarios</TabsTrigger>
+              <TabsTrigger value="starcard">Your StarCard</TabsTrigger>
               <TabsTrigger value="reflect">Reflect</TabsTrigger>
               <TabsTrigger value="rounding">Rounding Out</TabsTrigger>
             </TabsList>
@@ -93,52 +94,78 @@ export default function Foundations() {
               </div>
               
               <div className="flex justify-end mt-6">
-                <Button 
-                  onClick={() => document.querySelector('[data-value="flow"]')?.click()}
-                  className="bg-indigo-700 hover:bg-indigo-800"
-                >
-                  Next: Assessment Scenarios
-                </Button>
+                <Link href="/assessment">
+                  <Button 
+                    className="bg-indigo-700 hover:bg-indigo-800"
+                  >
+                    Next: AllStarTeams Assessment
+                  </Button>
+                </Link>
               </div>
             </TabsContent>
             
-            <TabsContent value="flow" className="space-y-6">
+            <TabsContent value="starcard" className="space-y-6">
               <div className="prose max-w-none">
-                <h2>Assessment Scenarios</h2>
+                <h2>Your Star Profile + Star Card</h2>
                 <p>
-                  You're about to begin the AllStarTeams assessment, which consists of 22 different scenarios. For each scenario, you'll rank four options from "most like me" to "least like me".
+                  Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in your development journey.
                 </p>
                 
-                <div className="my-8 bg-indigo-50 p-6 rounded-lg border border-indigo-100">
-                  <h3 className="text-indigo-700">Instructions</h3>
+                <div className="aspect-w-16 aspect-h-9 mb-6 mt-6">
+                  <iframe 
+                    src="https://www.youtube.com/embed/x6h7LDtdnJw" 
+                    title="Star Profile Review" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="w-full h-80 rounded border border-gray-200"
+                  ></iframe>
+                </div>
+                
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
+                  <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
                   <ul>
-                    <li>Read each scenario carefully</li>
-                    <li>Rank the four options in order of how well they describe your natural tendencies</li>
-                    <li>Be honest - there are no right or wrong answers</li>
-                    <li>Go with your first instinct rather than overthinking</li>
-                    <li>The assessment takes approximately 10-15 minutes to complete</li>
+                    <li>Reflect on your apex strength and how it shows up</li>
+                    <li>Consider how your profile shifts over time and in different roles</li>
+                    <li>Use your Star Card as a personal development compass</li>
                   </ul>
                 </div>
                 
-                <p className="font-medium text-indigo-700">
-                  Click the button below to begin your assessment journey!
+                <p>
+                  Watch the short video, then explore your profile with fresh eyes.
                 </p>
               </div>
               
-              <div className="flex flex-col items-center mt-8">
-                <Link href="/assessment">
-                  <Button className="bg-green-600 hover:bg-green-700 text-lg py-6 px-8">
-                    Begin Assessment →
-                  </Button>
-                </Link>
-                <div className="mt-4">
-                  <Button 
-                    onClick={() => document.querySelector('[data-value="intro"]')?.click()}
-                    variant="outline"
-                    size="sm"
-                  >
-                    ← Back to Strengths
-                  </Button>
+              <div className="mt-8 flex flex-col items-center">
+                <div className="w-full max-w-md">
+                  {/* Connect to real data using the StarCard component */}
+                  <div className="mb-8">
+                    <StarCard 
+                      profile={{
+                        name: "Test User",
+                        title: "Software Engineer",
+                        organization: "AllStarTeams",
+                        avatarUrl: undefined
+                      }}
+                      quadrantData={{
+                        thinking: 25,
+                        acting: 35,
+                        feeling: 20,
+                        planning: 20,
+                        apexStrength: "Acting"
+                      }}
+                      downloadable={false}
+                      preview={false}
+                    />
+                  </div>
+                  
+                  <div className="flex justify-center mt-6">
+                    <Link href="/assessment">
+                      <Button className="bg-green-600 hover:bg-green-700">
+                        Begin Assessment
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </TabsContent>
@@ -185,10 +212,10 @@ export default function Foundations() {
               
               <div className="flex justify-between mt-6">
                 <Button 
-                  onClick={() => document.querySelector('[data-value="flow"]')?.click()}
+                  onClick={() => document.querySelector('[data-value="starcard"]')?.click()}
                   variant="outline"
                 >
-                  Previous: Scenarios
+                  Previous: Your StarCard
                 </Button>
                 <Button 
                   onClick={() => document.querySelector('[data-value="rounding"]')?.click()}
