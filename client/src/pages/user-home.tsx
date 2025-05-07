@@ -349,7 +349,41 @@ export default function UserHome() {
               )}
             </div>
             
-            {/* Step 3: Review your Star Report */}
+            {/* Step 3: Visualize Yourself */}
+            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+              <div 
+                className="flex justify-between items-center p-4 cursor-pointer"
+                onClick={() => toggleSection("visualize")}
+              >
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-indigo-700 font-medium">Visualize Yourself</span>
+                </div>
+                {expandedSection === "visualize" ? (
+                  <MinusIcon className="h-5 w-5 text-indigo-600" />
+                ) : (
+                  <PlusIcon className="h-5 w-5 text-indigo-600" />
+                )}
+              </div>
+              
+              {expandedSection === "visualize" && (
+                <div className="p-4 border-t border-gray-200">
+                  <p className="mb-4 text-sm text-gray-700">
+                    Engage your imagination to visualize your future self, explore personal growth through the Ladder of Wellbeing, and create a vision of your potential.
+                  </p>
+                  
+                  <Link href="/visualize-yourself">
+                    <Button className="bg-indigo-700 hover:bg-indigo-800">
+                      Start Visualization
+                    </Button>
+                  </Link>
+                </div>
+              )}
+            </div>
+            
+            {/* Step 4: Review your Star Report */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
               <div 
                 className="flex justify-between items-center p-4 cursor-pointer"
@@ -390,7 +424,7 @@ export default function UserHome() {
               )}
             </div>
             
-            {/* Step 4: Your Whiteboard Start Point */}
+            {/* Step 5: Your Whiteboard Start Point */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
               <div 
                 className="flex justify-between items-center p-4 cursor-pointer"
