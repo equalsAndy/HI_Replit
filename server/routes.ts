@@ -119,6 +119,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { name, title, organization, avatarUrl } = req.body;
+      
+      console.log("Updating user profile with avatar data: " + 
+        (avatarUrl ? `${avatarUrl.substring(0, 30)}... (${avatarUrl.length} chars)` : "No avatar"));
+      
+      // Validate that we have actual data
+      if (name === undefined || title === undefined || organization === undefined) {
+        return res.status(400).json({ message: "Missing required profile fields" });
+      }
+      
       const updatedUser = await storage.updateUser(userId, { name, title, organization, avatarUrl });
       
       if (!updatedUser) {
@@ -134,7 +143,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         progress: updatedUser.progress
       });
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error("Profile update error:", error);
+      res.status(500).json({ message: "Server error: " + String(error) });
     }
   });
 

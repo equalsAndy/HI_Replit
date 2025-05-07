@@ -251,7 +251,7 @@ export default function UserHome() {
               {expandedSection === "introduction" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
-                    Watch this introduction video to understand the AllStarTeams assessment process.
+                    Watch this introduction video to understand the AllStarTeams process.
                   </p>
                   
                   <div className="aspect-w-16 aspect-h-9 mb-4">

@@ -142,18 +142,41 @@ export default function AvatarUploader({
       rotate
     );
     
-    // Convert canvas to base64 image with quality parameter
-    // Reduce quality to ensure the image size is manageable
-    const base64Image = previewCanvasRef.current.toDataURL('image/jpeg', 0.8);
+    // Resize the canvas to ensure image is small enough
+    const maxSize = 300; // max size in pixels
+    const ctx = previewCanvasRef.current.getContext('2d');
     
-    // Call the prop function with the result
-    onAvatarChange(base64Image);
+    // Create a temporary canvas for resizing
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = maxSize;
+    tempCanvas.height = maxSize;
+    const tempCtx = tempCanvas.getContext('2d');
     
-    // Close dialog
-    setIsDialogOpen(false);
-    
-    // Debug to console
-    console.log("Image processed and passed to parent component", base64Image.substring(0, 50) + "...");
+    if (ctx && tempCtx) {
+      // Draw the current canvas content to the temp canvas (effectively resizing)
+      tempCtx.drawImage(
+        previewCanvasRef.current, 
+        0, 0, previewCanvasRef.current.width, previewCanvasRef.current.height,
+        0, 0, maxSize, maxSize
+      );
+      
+      // Convert temp canvas to base64 image with quality parameter
+      // Reduce quality to ensure the image size is manageable
+      const base64Image = tempCanvas.toDataURL('image/jpeg', 0.7);
+      
+      // Call the prop function with the result
+      onAvatarChange(base64Image);
+      
+      // Debug to console
+      console.log("Image processed and passed to parent component", 
+                  `Size: ${Math.round(base64Image.length / 1024)}KB, `,
+                  base64Image.substring(0, 50) + "...");
+      
+      // Close dialog
+      setIsDialogOpen(false);
+    } else {
+      console.error("Failed to get canvas context");
+    }
   }, [completedCrop, scale, rotate, onAvatarChange]);
   
   const handleRemoveAvatar = () => {
