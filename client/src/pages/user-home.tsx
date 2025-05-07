@@ -336,17 +336,6 @@ export default function UserHome() {
                     and enjoyment in the process. Discover how to recognize and create more flow experiences in your work.
                   </p>
                   
-                  <div className="aspect-w-16 aspect-h-9 mb-4">
-                    <iframe 
-                      src="https://www.youtube.com/embed/Le_HtpWziQE" 
-                      title="Introduction to Flow State" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="w-full h-64 rounded border border-gray-200"
-                    ></iframe>
-                  </div>
-                  
                   <p className="mb-4 text-sm text-gray-700">
                     Learn about flow state, take the self-assessment, and reflect on how to create more flow in your daily work.
                   </p>
