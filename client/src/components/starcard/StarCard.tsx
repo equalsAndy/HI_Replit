@@ -4,6 +4,7 @@ import { downloadElementAsImage } from "@/lib/html2canvas";
 import { UserIcon } from "lucide-react";
 import { ProfileData, QuadrantData } from "@shared/schema";
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
+import cloudImage from '@assets/starcardcloudimage.png';
 
 interface StarCardProps {
   profile: ProfileData;
@@ -110,27 +111,22 @@ export default function StarCard({
           </div>
         </div>
         
-        {/* Cloud graphic with Apex Strength - Moved up 20px */}
+        {/* Cloud graphic with Apex Strength - Using the provided cloud image */}
         <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
-          {/* Cloud SVG */}
-          <svg 
-            viewBox="0 0 400 120" 
-            className="w-full h-auto"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            {/* Top part of cloud */}
-            <path
-              d="M350 60 C350 40, 300 15, 240 15 C180 15, 70 20, 50 60 C30 100, 180 105, 240 105 C300 105, 350 80, 350 60 Z"
-              fill="white"
-              stroke="#f8f8f8"
-              strokeWidth="1"
+          {/* Cloud Image */}
+          <div className="relative w-full" style={{ height: '110px' }}>
+            <img 
+              src={cloudImage} 
+              alt="Cloud" 
+              className="w-full object-contain absolute top-0 left-0"
+              style={{ height: '80px' }}
             />
-          </svg>
-          
-          {/* Text positioned on top of cloud - smaller and bold */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <p className="text-xl font-bold text-gray-500">Imagination</p>
-            <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
+            
+            {/* Text positioned below cloud image */}
+            <div className="absolute w-full" style={{ top: '60px' }}>
+              <p className="text-xl font-bold text-gray-500">Imagination</p>
+              <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
+            </div>
           </div>
         </div>
         
