@@ -132,8 +132,8 @@ export default function StarCard({
             <p className="text-xs text-gray-500 text-center mt-1">Core</p>
           </div>
           
-          {/* The Four Strength Squares - Perfectly aligned with 2px gaps */}
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[2px] w-[104px] h-[104px] z-10">
+          {/* The Four Strength Squares - Perfectly aligned with 2px gaps - 15% bigger */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[2px] w-[120px] h-[120px] z-10">
             {/* Top Left - Thinking */}
             <div className="bg-green-500 text-white p-2 flex flex-col items-center justify-center aspect-square">
               <p className="text-[10px] font-bold">THINKING</p>
@@ -159,43 +159,43 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Flow Squares at corners */}
-          {/* Flow 1 - Top Right */}
-          <div className="absolute top-0 right-0 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow Squares positioned in relation to each strength */}
+          {/* Flow 1 - Above Acting (top right strength) */}
+          <div className="absolute top-4 right-[85px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium"></p>
             <p className="text-sm font-bold"></p>
           </div>
           
-          {/* Flow 2 - Bottom Right */}
-          <div className="absolute bottom-0 right-0 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 2 - Right of Planning (bottom right strength) */}
+          <div className="absolute bottom-[85px] right-4 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium"></p>
             <p className="text-sm font-bold"></p>
           </div>
           
-          {/* Flow 3 - Bottom Left */}
-          <div className="absolute bottom-0 left-0 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 3 - Below Feeling (bottom left strength) */}
+          <div className="absolute bottom-4 left-[85px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium"></p>
             <p className="text-sm font-bold"></p>
           </div>
           
-          {/* Flow 4 - Top Left */}
-          <div className="absolute top-0 left-0 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 4 - Left of Thinking (top left strength) */}
+          <div className="absolute top-[85px] left-4 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium"></p>
             <p className="text-sm font-bold"></p>
           </div>
           
-          {/* Arrow from Flow 1 to Flow 2 (right side, top to bottom) */}
-          <div className="absolute right-[22px] top-1/2 h-[120px] transform -translate-y-[10px]">
+          {/* Arrow from Flow 1 (top right) to Flow 2 (bottom right) */}
+          <div className="absolute right-[10px] top-[60px] h-[120px]">
             <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px] bottom-0 transform rotate-90">
+            <div className="absolute left-[-3px] bottom-0 transform rotate-90">
               <svg width="8" height="8" viewBox="0 0 8 8">
                 <path d="M0 0L8 4L0 8z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Arrow from Flow 2 to Flow 3 (bottom, right to left) */}
-          <div className="absolute bottom-[22px] left-1/2 w-[120px] transform -translate-x-[10px]">
+          {/* Arrow from Flow 2 (bottom right) to Flow 3 (bottom left) */}
+          <div className="absolute bottom-[10px] left-[60px] w-[120px]">
             <div className="absolute left-0 top-0 w-full h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-3px]">
               <svg width="8" height="8" viewBox="0 0 8 8">
@@ -204,18 +204,18 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Arrow from Flow 3 to Flow 4 (left side, bottom to top) */}
-          <div className="absolute left-[22px] top-1/2 h-[120px] transform -translate-y-[10px]">
+          {/* Arrow from Flow 3 (bottom left) to Flow 4 (top left) */}
+          <div className="absolute left-[10px] top-[60px] h-[120px]">
             <div className="absolute left-0 bottom-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-4px] top-0 transform rotate-90">
+            <div className="absolute left-[-3px] top-0 transform rotate-90">
               <svg width="8" height="8" viewBox="0 0 8 8">
                 <path d="M8 0L0 4L8 8z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Arrow from Flow 4 to Flow 1 (top, left to right) */}
-          <div className="absolute top-[22px] left-1/2 w-[120px] transform -translate-x-[10px]">
+          {/* Arrow from Flow 4 (top left) to Flow 1 (top right) */}
+          <div className="absolute top-[10px] left-[60px] w-[120px]">
             <div className="absolute right-0 top-0 w-full h-[1px] bg-gray-400"></div>
             <div className="absolute right-0 top-[-3px]">
               <svg width="8" height="8" viewBox="0 0 8 8">
