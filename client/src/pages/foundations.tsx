@@ -246,29 +246,7 @@ export default function Foundations() {
                     </div>
                   ) : (
                     <>
-                      {/* Profile Section */}
-                      <div className="flex items-center mb-6">
-                        <div className="mr-4">
-                          {user?.avatarUrl ? (
-                            <img 
-                              src={user.avatarUrl} 
-                              alt={user.name}
-                              className="h-16 w-16 rounded-full object-cover border border-gray-200" 
-                            />
-                          ) : (
-                            <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
-                              <span className="text-xl font-bold text-gray-500">
-                                {user?.name?.charAt(0) || "U"}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <div>
-                          <div className="font-bold">{user?.name || "Your Name"}</div>
-                          <div className="text-sm text-gray-600">Title: {user?.title || "Your Title"}</div>
-                          <div className="text-sm text-gray-600">Organization: {user?.organization || "Your Organization"}</div>
-                        </div>
-                      </div>
+                      {/* No duplicate profile section needed here */}
                       
                       {/* Star Card Visual */}
                       <div className="mb-6">

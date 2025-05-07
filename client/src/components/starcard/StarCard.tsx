@@ -115,80 +115,81 @@ export default function StarCard({
           <p className="text-xs text-gray-500 italic">Your Apex Strength</p>
         </div>
         
-        {/* Star and Core - Adjusted to match example */}
-        <div className="flex flex-col items-center justify-center relative mb-8">
-          <div className="mb-4">
-            <p className="text-sm text-gray-700 font-semibold mb-2">Flow</p>
-            <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
-              <span className="text-sm font-bold">1</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-center mb-4">
-            <div className="mr-4">
-              <p className="text-sm text-gray-700 font-semibold mb-2 text-center">4</p>
-              <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300"></div>
-            </div>
-            
-            <div className="h-20 w-20 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white z-10 mx-4">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
+        {/* Main Star Card Diagram */}
+        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
+          {/* Center Star */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
+            <div className="h-16 w-16 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
-            
-            <div className="ml-4">
-              <p className="text-sm text-gray-700 font-semibold mb-2 text-center">1</p>
-              <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300"></div>
-            </div>
+            <p className="text-xs text-gray-500 text-center mt-1">Core</p>
           </div>
           
-          <div className="mt-4">
-            <p className="text-sm text-gray-700 font-semibold mb-2">3</p>
-            <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
-              <span className="text-sm font-bold">2</span>
-            </div>
-          </div>
+          {/* Connecting Lines */}
+          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-200 z-10"></div>
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-200 z-10"></div>
           
-          <p className="text-xs text-gray-500 italic mt-2">Core</p>
-        </div>
-        
-        {/* Quadrants in order of strength */}
-        <div className="relative grid grid-cols-2 gap-2 mb-6 max-w-[250px] mx-auto">
-          {/* Top Right - Highest score */}
+          {/* Position 1 - Top Right - Highest score */}
           {getQuadrantAtPosition(0) && (
-            <div className={`${getQuadrantAtPosition(0)?.color} text-white p-3 flex flex-col items-center justify-center aspect-square`}>
-              <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(0)?.label}</p>
-              <p className="text-sm font-medium mt-1">{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</p>
+            <div className="absolute top-2 right-2 w-20 h-20">
+              <div className={`${getQuadrantAtPosition(0)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
+                <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(0)?.label}</p>
+                <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</p>
+              </div>
+              {/* Flow 1 */}
+              <div className="absolute -bottom-8 -left-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+                <p className="text-xs font-medium">Flow</p>
+                <p className="text-sm font-bold">1</p>
+              </div>
             </div>
           )}
           
-          {/* Bottom Right - Second highest */}
+          {/* Position 2 - Bottom Right - Second highest */}
           {getQuadrantAtPosition(1) && (
-            <div className={`${getQuadrantAtPosition(1)?.color} text-white p-3 flex flex-col items-center justify-center aspect-square`}>
-              <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(1)?.label}</p>
-              <p className="text-sm font-medium mt-1">{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</p>
+            <div className="absolute bottom-2 right-2 w-20 h-20">
+              <div className={`${getQuadrantAtPosition(1)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
+                <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(1)?.label}</p>
+                <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</p>
+              </div>
+              {/* Flow 2 */}
+              <div className="absolute -top-8 -left-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+                <p className="text-xs font-medium">Flow</p>
+                <p className="text-sm font-bold">2</p>
+              </div>
             </div>
           )}
           
-          {/* Bottom Left - Third highest */}
+          {/* Position 3 - Bottom Left - Third highest */}
           {getQuadrantAtPosition(2) && (
-            <div className={`${getQuadrantAtPosition(2)?.color} text-white p-3 flex flex-col items-center justify-center aspect-square`}>
-              <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(2)?.label}</p>
-              <p className="text-sm font-medium mt-1">{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</p>
+            <div className="absolute bottom-2 left-2 w-20 h-20">
+              <div className={`${getQuadrantAtPosition(2)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
+                <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(2)?.label}</p>
+                <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</p>
+              </div>
+              {/* Flow 3 */}
+              <div className="absolute -top-8 -right-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+                <p className="text-xs font-medium">Flow</p>
+                <p className="text-sm font-bold">3</p>
+              </div>
             </div>
           )}
           
-          {/* Top Left - Lowest score */}
+          {/* Position 4 - Top Left - Lowest score */}
           {getQuadrantAtPosition(3) && (
-            <div className={`${getQuadrantAtPosition(3)?.color} text-white p-3 flex flex-col items-center justify-center aspect-square`}>
-              <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(3)?.label}</p>
-              <p className="text-sm font-medium mt-1">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
+            <div className="absolute top-2 left-2 w-20 h-20">
+              <div className={`${getQuadrantAtPosition(3)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
+                <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(3)?.label}</p>
+                <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
+              </div>
+              {/* Flow 4 */}
+              <div className="absolute -bottom-8 -right-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+                <p className="text-xs font-medium">Flow</p>
+                <p className="text-sm font-bold">4</p>
+              </div>
             </div>
           )}
-          
-          {/* Optional: Add lines connecting squares to center */}
-          <div className="absolute left-1/2 top-1/2 w-px h-full bg-gray-200 -z-10 transform -translate-x-1/2 -translate-y-1/2"></div>
-          <div className="absolute left-0 top-1/2 w-full h-px bg-gray-200 -z-10 transform -translate-y-1/2"></div>
         </div>
         
         {/* Logo */}
