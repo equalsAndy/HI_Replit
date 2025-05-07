@@ -116,7 +116,7 @@ export default function StarCard({
         </div>
         
         {/* Main Star Card Diagram */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '300px', height: '300px' }}>
           {/* Center Star */}
           <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 z-20">
             <div className="h-16 w-16 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
@@ -133,7 +133,7 @@ export default function StarCard({
           
           {/* Position 1 - Top Right - Highest score */}
           {getQuadrantAtPosition(0) && (
-            <div className="absolute top-2 right-2 w-16 h-16">
+            <div className="absolute top-[70px] right-[70px] w-16 h-16">
               <div className={`${getQuadrantAtPosition(0)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(0)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</p>
@@ -143,7 +143,7 @@ export default function StarCard({
           
           {/* Position 2 - Bottom Right - Second highest */}
           {getQuadrantAtPosition(1) && (
-            <div className="absolute bottom-2 right-2 w-16 h-16">
+            <div className="absolute bottom-[70px] right-[70px] w-16 h-16">
               <div className={`${getQuadrantAtPosition(1)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(1)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</p>
@@ -153,7 +153,7 @@ export default function StarCard({
           
           {/* Position 3 - Bottom Left - Third highest */}
           {getQuadrantAtPosition(2) && (
-            <div className="absolute bottom-2 left-2 w-16 h-16">
+            <div className="absolute bottom-[70px] left-[70px] w-16 h-16">
               <div className={`${getQuadrantAtPosition(2)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(2)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</p>
@@ -163,7 +163,7 @@ export default function StarCard({
           
           {/* Position 4 - Top Left - Lowest score */}
           {getQuadrantAtPosition(3) && (
-            <div className="absolute top-2 left-2 w-16 h-16">
+            <div className="absolute top-[70px] left-[70px] w-16 h-16">
               <div className={`${getQuadrantAtPosition(3)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(3)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
@@ -171,26 +171,26 @@ export default function StarCard({
             </div>
           )}
           
-          {/* Flow 1 - Diagonal from Position 1 (3px from corner) */}
-          <div className="absolute top-[73px] right-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 1 - Outside Position 1 (3px from corner) */}
+          <div className="absolute top-2 right-2 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium">Flow</p>
             <p className="text-sm font-bold">1</p>
           </div>
           
-          {/* Flow 2 - Diagonal from Position 2 (3px from corner) */}
-          <div className="absolute bottom-[73px] right-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 2 - Outside Position 2 (3px from corner) */}
+          <div className="absolute bottom-2 right-2 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium">Flow</p>
             <p className="text-sm font-bold">2</p>
           </div>
           
-          {/* Flow 3 - Diagonal from Position 3 (3px from corner) */}
-          <div className="absolute bottom-[73px] left-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 3 - Outside Position 3 (3px from corner) */}
+          <div className="absolute bottom-2 left-2 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium">Flow</p>
             <p className="text-sm font-bold">3</p>
           </div>
           
-          {/* Flow 4 - Diagonal from Position 4 (3px from corner) */}
-          <div className="absolute top-[73px] left-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+          {/* Flow 4 - Outside Position 4 (3px from corner) */}
+          <div className="absolute top-2 left-2 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
             <p className="text-xs font-medium">Flow</p>
             <p className="text-sm font-bold">4</p>
           </div>
