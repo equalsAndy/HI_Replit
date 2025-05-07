@@ -16,6 +16,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { HelpCircle, Sliders as SliderIcon } from 'lucide-react';
+import { useLocation } from 'wouter';
 
 interface FlowQuestion {
   id: number;
@@ -50,6 +51,9 @@ const log = (message: string, data?: any) => {
 };
 
 export default function FlowAssessmentSimple() {
+  // Location for navigation
+  const [location, navigate] = useLocation();
+  
   // Basic state
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -445,8 +449,21 @@ export default function FlowAssessmentSimple() {
             >
               Restart Assessment
             </Button>
-            <Button onClick={() => setShowResults(false)} className="bg-indigo-700 hover:bg-indigo-800">
-              Continue
+            <Button 
+              onClick={() => {
+                // Close the results dialog
+                setShowResults(false);
+                
+                // Save progress to server (in a real app)
+                // Here we're just navigating to the rounding-out page
+                log("Flow assessment completed, navigating to rounding-out page");
+                
+                // Navigate to the rounding-out page
+                navigate("/rounding-out");
+              }} 
+              className="bg-indigo-700 hover:bg-indigo-800"
+            >
+              Continue to Rounding Out
             </Button>
           </DialogFooter>
         </DialogContent>
