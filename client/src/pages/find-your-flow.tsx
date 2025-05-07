@@ -317,7 +317,18 @@ export default function FindYourFlow() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="intro" className="space-y-6">            
+          <TabsContent value="intro" className="space-y-6">
+            <div className="aspect-w-16 aspect-h-9 mb-4">
+              <iframe 
+                src="https://www.youtube.com/embed/JxdhWd8agmE" 
+                title="Introduction to Flow State" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+                className="w-full h-80 rounded border border-gray-200"
+              ></iframe>
+            </div>
+            
             <div className="prose max-w-none">
               <h2>Understanding Flow State</h2>
               <p>
@@ -400,17 +411,6 @@ export default function FindYourFlow() {
           </TabsContent>
           
           <TabsContent value="roundingout" className="space-y-6">
-            <div className="aspect-w-16 aspect-h-9 mb-4">
-              <iframe 
-                src="https://www.youtube.com/embed/srLM8lHPj40" 
-                title="Understanding Flow States" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="w-full h-80 rounded border border-gray-200"
-              ></iframe>
-            </div>
-
             <div className="prose max-w-none">
               <h2>Rounding Out Your Flow Understanding</h2>
               <p>
