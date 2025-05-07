@@ -84,8 +84,8 @@ export default function StarCard({
     <div className="flex flex-col items-center">
       <div 
         ref={cardRef}
-        className={`bg-white border border-gray-200 rounded-lg p-5 ${preview ? 'max-w-[300px]' : 'max-w-[400px]'}`}
-        style={{ aspectRatio: '1/1.4' }}
+        className="bg-white border border-gray-200 rounded-lg p-5"
+        style={{ width: '400px', height: '555px' }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
         
