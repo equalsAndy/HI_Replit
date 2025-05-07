@@ -131,6 +131,7 @@ export default function FlowAssessment() {
       return;
     }
     
+    // Clear error and proceed
     setError(null);
     
     if (currentQuestion < flowQuestions.length - 1) {
@@ -171,6 +172,9 @@ export default function FlowAssessment() {
     if (!answers[question.id]) {
       // If no answer for this question, clear the current value
     }
+    
+    // Clear any error messages when moving to a new question
+    setError(null);
   }, [currentQuestion]);
   
   // Get current question and previous question
