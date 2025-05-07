@@ -132,13 +132,13 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label - smaller and precisely centered over Flow 1 box */}
-          <div className="absolute text-[0.65rem] font-medium text-gray-700" style={{ top: '5px', right: '15px', width: '59px', textAlign: 'center', zIndex: 30 }}>
+          {/* Flow Label - moved down 3px and color at 80% black */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '8px', right: '15px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
           
-          {/* Core Label - smaller and precisely centered over Strength 1 box (highest strength) */}
-          <div className="absolute text-[0.65rem] font-medium text-gray-700" style={{ top: '65px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30 }}>
+          {/* Core Label - moved down 3px and color at 80% black */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '68px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
           
@@ -213,8 +213,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Arrow 2 - Equidistant between Flow 2 and Flow 3 */}
-          <div className="absolute" style={{ top: '234px', left: '90px', width: '73px' }}>
+          {/* Arrow 2 - Precisely equidistant between Flow 2 and Flow 3 */}
+          <div className="absolute" style={{ top: '234px', left: '75px', width: '73px' }}>
             <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
