@@ -184,10 +184,10 @@ export default function FindYourFlow() {
   // Get rank badge color
   const getRankBadgeColor = (rank: number): string => {
     switch (rank) {
-      case 1: return 'bg-blue-500 text-white';
-      case 2: return 'bg-purple-500 text-white';
-      case 3: return 'bg-amber-500 text-white';
-      case 4: return 'bg-green-500 text-white';
+      case 1: return 'bg-indigo-600 text-white'; // Deep purple instead of blue
+      case 2: return 'bg-teal-600 text-white';   // Teal instead of purple
+      case 3: return 'bg-rose-600 text-white';   // Rose instead of amber
+      case 4: return 'bg-violet-600 text-white'; // Violet instead of green
       default: return 'bg-gray-200 text-gray-800';
     }
   };
@@ -498,8 +498,8 @@ export default function FindYourFlow() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Your StarCard</h3>
                 {user && starCard && (
-                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex justify-center">
-                    <div className="transform scale-110">
+                  <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 flex justify-center items-center min-h-[480px]">
+                    <div className="transform scale-125">
                       <StarCard 
                         profile={{
                           name: user.name || '',
