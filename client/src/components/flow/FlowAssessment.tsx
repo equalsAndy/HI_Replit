@@ -46,16 +46,10 @@ export default function FlowAssessment() {
   const [showResult, setShowResult] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoAdvancePending, setAutoAdvancePending] = useState(false);
   
-  // Using refs to access the latest state in timeouts
-  const answersRef = useRef<Record<number, number>>({});
-  const currentQuestionRef = useRef<number>(0);
-  
-  // Keep refs in sync with state
-  useEffect(() => {
-    answersRef.current = answers;
-    currentQuestionRef.current = currentQuestion;
-  }, [answers, currentQuestion]);
+  // Using a ref for auto advance timeout to be able to clear it
+  const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   // Calculate total score
   const calculateScore = () => {
@@ -87,52 +81,54 @@ export default function FlowAssessment() {
     }
   };
   
-  // Handle slider change
-  const handleSliderChange = (questionId: number, value: number[]) => {
-    // If the user clicks the same value that's already selected, don't change it
-    // This prevents the "reset to 3" behavior when clicking the same option
-    if (answers[questionId] === value[0]) {
+  // Common function to handle all value selections
+  const handleValueSelection = (questionId: number, value: number) => {
+    // Skip if already selected this value
+    if (answers[questionId] === value) {
       return;
     }
     
+    // Clear any existing timeout to prevent multiple advances
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+    
+    // Update answers
     setAnswers(prev => ({
       ...prev,
-      [questionId]: value[0]
+      [questionId]: value
     }));
     
-    // Clear any error message when user selects an answer
+    // Clear error
     setError(null);
     
-    // Auto advance to next question after a short delay if enabled
+    // Handle auto-advance if enabled
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-      setTimeout(() => {
+      // Set pending state to show message to user
+      setAutoAdvancePending(true);
+      
+      // Create a new timeout
+      autoAdvanceTimeoutRef.current = setTimeout(() => {
+        setAutoAdvancePending(false);
         nextQuestion();
-      }, 700); // delay to give user time to see their selection
+      }, 700);
     }
   };
   
-  // Handle quick selection of default (3 - Sometimes)
+  // Handle slider change - pass to common handler
+  const handleSliderChange = (questionId: number, value: number[]) => {
+    handleValueSelection(questionId, value[0]);
+  };
+  
+  // Handle quick selection (the "3" button) - pass to common handler
   const handleQuickSelect = (questionId: number) => {
-    // If the user clicks the same value, don't change it
-    if (answers[questionId] === 3) {
-      return;
-    }
-    
-    // Set the answer to 3 (Sometimes)
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: 3
-    }));
-    
-    // Clear any error message when user selects an answer
-    setError(null);
-    
-    // Auto advance to next question after a short delay if enabled
-    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-      setTimeout(() => {
-        nextQuestion();
-      }, 700); // delay to give user time to see their selection
-    }
+    handleValueSelection(questionId, 3);
+  };
+  
+  // Handle direct number click - pass to common handler
+  const handleNumberClick = (questionId: number, value: number) => {
+    handleValueSelection(questionId, value);
   };
   
   // Handle submit
@@ -239,44 +235,7 @@ export default function FlowAssessment() {
                   return (
                     <div
                       key={value}
-                      onClick={() => {
-                        // Get current question ID (from the current question, not state closure)
-                        const questionId = question.id;
-                        
-                        // Always set to the clicked value
-                        setAnswers(prev => {
-                          // Update the ref immediately for use in timeout
-                          answersRef.current = {
-                            ...prev,
-                            [questionId]: value
-                          };
-                          
-                          // Return the new state
-                          return answersRef.current;
-                        });
-                        
-                        // Clear error
-                        setError(null);
-                        
-                        // Auto advance if enabled (using a separate function for clarity)
-                        if (autoAdvance) {
-                          // Create a dedicated function for auto-advancing
-                          const handleAutoAdvance = () => {
-                            // Check latest state via ref
-                            const currQuestion = currentQuestionRef.current;
-                            
-                            if (currQuestion < flowQuestions.length - 1) {
-                              // This will advance only once the answer is saved
-                              if (answersRef.current[questionId]) {
-                                nextQuestion();
-                              }
-                            }
-                          };
-                          
-                          // Set timeout to allow state to update
-                          setTimeout(handleAutoAdvance, 700);
-                        }
-                      }}
+                      onClick={() => handleNumberClick(question.id, value)}
                       className={`
                         cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
                         ${value <= currentValue 
@@ -361,12 +320,19 @@ export default function FlowAssessment() {
           </div>
         )}
         
-        <div className="flex items-center justify-center mb-4">
+        <div className="flex flex-col items-center justify-center mb-4 space-y-2">
           <div className="flex items-center space-x-2">
             <Checkbox 
               id="auto-advance" 
               checked={autoAdvance}
-              onCheckedChange={(checked) => setAutoAdvance(!!checked)}
+              onCheckedChange={(checked) => {
+                setAutoAdvance(!!checked);
+                // Display informational message when turning on auto-advance
+                if (!!checked && currentValue) {
+                  setAutoAdvancePending(true);
+                  setTimeout(() => setAutoAdvancePending(false), 5000);
+                }
+              }}
             />
             <label
               htmlFor="auto-advance"
@@ -387,6 +353,13 @@ export default function FlowAssessment() {
               </Tooltip>
             </TooltipProvider>
           </div>
+          
+          {/* Auto-advance notification - display when auto-advance is enabled and there's already an answer */}
+          {autoAdvance && currentValue > 0 && (
+            <div className="text-sm text-indigo-600 font-medium animate-pulse">
+              Click your selection again to advance to the next question
+            </div>
+          )}
         </div>
 
         {previousQuestion && (
@@ -505,13 +478,7 @@ export default function FlowAssessment() {
                                   return (
                                     <div
                                       key={value}
-                                      onClick={() => {
-                                        // SAME SIMPLIFIED APPROACH FOR SUMMARY VIEW
-                                        setAnswers(prev => ({
-                                          ...prev,
-                                          [q.id]: value
-                                        }));
-                                      }}
+                                      onClick={() => handleNumberClick(q.id, value)}
                                       className={`
                                         cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
                                         ${answers[q.id] && value <= answers[q.id]
