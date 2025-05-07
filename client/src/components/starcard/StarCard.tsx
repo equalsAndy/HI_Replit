@@ -134,7 +134,7 @@ export default function StarCard({
         </div>
         
         {/* Main Star Card Diagram - Precisely matches example image */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '10px' }}>
           {/* Flow Label at right side */}
           <div className="absolute top-1/3 right-4 text-sm font-medium text-gray-700">
             Flow
@@ -177,36 +177,40 @@ export default function StarCard({
             </div>
           </div>
           
-            {/* Flow Squares positioned exactly as in the example image */}
-          {/* Top Right Flow Square */}
-          <div className="absolute top-[30px] right-[30px] w-[60px] h-[60px] bg-gray-100 border border-gray-300">
+          {/* Flow Squares positioned with exactly 2px from strength box corners */}
+          {/* Top Right Flow Square - 2px from strength corner */}
+          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300" 
+               style={{ top: '30px', right: '30px' }}>
           </div>
           
-          {/* Bottom Right Flow Square */}
-          <div className="absolute bottom-[30px] right-[30px] w-[60px] h-[60px] bg-gray-100 border border-gray-300">
+          {/* Bottom Right Flow Square - 2px from strength corner */}
+          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
+               style={{ bottom: '30px', right: '30px' }}>
           </div>
           
-          {/* Bottom Left Flow Square */}
-          <div className="absolute bottom-[30px] left-[30px] w-[60px] h-[60px] bg-gray-100 border border-gray-300">
+          {/* Bottom Left Flow Square - 2px from strength corner */}
+          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
+               style={{ bottom: '30px', left: '30px' }}>
           </div>
           
-          {/* Top Left Flow Square */}
-          <div className="absolute top-[30px] left-[30px] w-[60px] h-[60px] bg-gray-100 border border-gray-300">
+          {/* Top Left Flow Square - 2px from strength corner */}
+          <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
+               style={{ top: '30px', left: '30px' }}>
           </div>
           
-          {/* Right Arrow - Down arrow on right side */}
-          <div className="absolute right-[60px] top-[85px] h-[110px]">
-            <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute bottom-0 left-[-4px]">
+          {/* Right Arrow - 75% of distance between flow boxes */}
+          <div className="absolute" style={{ right: '60px', top: '65px', height: '150px' }}>
+            <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px]" style={{ bottom: '25%' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
                 <path d="M5 14 L0 7 L10 7 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Bottom Arrow - Left arrow on bottom */}
-          <div className="absolute bottom-[60px] left-[85px] w-[110px]">
-            <div className="absolute left-0 top-0 w-full h-[1px] bg-gray-400"></div>
+          {/* Bottom Arrow - 75% of distance between flow boxes */}
+          <div className="absolute" style={{ bottom: '60px', left: '65px', width: '150px' }}>
+            <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
                 <path d="M0 5 L7 0 L7 10 Z" fill="#9CA3AF" />
@@ -214,14 +218,14 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Left Arrow - Up arrow (no arrowhead visible in example) */}
-          <div className="absolute left-[60px] top-[85px] h-[110px]">
-            <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
+          {/* Left Arrow - 75% of distance between flow boxes */}
+          <div className="absolute" style={{ left: '60px', top: '65px', height: '150px' }}>
+            <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
           </div>
           
-          {/* Top Arrow - (no arrowhead visible in example) */}
-          <div className="absolute top-[60px] left-[85px] w-[110px]">
-            <div className="absolute right-0 top-0 w-full h-[1px] bg-gray-400"></div>
+          {/* Top Arrow - 75% of distance between flow boxes */}
+          <div className="absolute" style={{ top: '60px', left: '65px', width: '150px' }}>
+            <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
           </div>
         </div>
         
