@@ -498,23 +498,25 @@ export default function FindYourFlow() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Your StarCard</h3>
                 {user && starCard && (
-                  <div className="bg-white p-4 rounded shadow-sm border border-gray-200">
-                    <StarCard 
-                      profile={{
-                        name: user.name || '',
-                        title: user.title || '',
-                        organization: user.organization || ''
-                      }}
-                      quadrantData={{
-                        thinking: starCard.thinking || 0,
-                        acting: starCard.acting || 0,
-                        feeling: starCard.feeling || 0,
-                        planning: starCard.planning || 0,
-                        apexStrength: starCard.apexStrength || ''
-                      }}
-                      downloadable={false}
-                      preview={true}
-                    />
+                  <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 flex justify-center">
+                    <div className="transform scale-110">
+                      <StarCard 
+                        profile={{
+                          name: user.name || '',
+                          title: user.title || '',
+                          organization: user.organization || ''
+                        }}
+                        quadrantData={{
+                          thinking: starCard.thinking || 0,
+                          acting: starCard.acting || 0,
+                          feeling: starCard.feeling || 0,
+                          planning: starCard.planning || 0,
+                          apexStrength: starCard.apexStrength || ''
+                        }}
+                        downloadable={false}
+                        preview={true}
+                      />
+                    </div>
                   </div>
                 )}
                 {(userLoading || starCardLoading) && (
