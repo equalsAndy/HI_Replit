@@ -110,7 +110,7 @@ export default function StarCard({
         </div>
         
         {/* Cloud graphic with Apex Strength - Matches example exactly */}
-        <div className="relative text-center mb-8 pt-4">
+        <div className="relative text-center mb-2 pt-4">
           {/* Cloud SVG */}
           <svg 
             viewBox="0 0 400 120" 
@@ -133,10 +133,10 @@ export default function StarCard({
           </div>
         </div>
         
-        {/* Main Star Card Diagram - Precisely matches example image */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '10px' }}>
+        {/* Main Star Card Diagram - The "cluster" of strength and flow boxes */}
+        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
           {/* Flow Label at right side */}
-          <div className="absolute top-1/3 right-4 text-sm font-medium text-gray-700">
+          <div className="absolute top-1/4 right-4 text-sm font-medium text-gray-700">
             Flow
           </div>
           
@@ -150,8 +150,8 @@ export default function StarCard({
             <p className="text-xs text-gray-500 text-center mt-1">Core</p>
           </div>
           
-          {/* The Four Strength Squares - Exactly as in example image */}
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[1px] w-[120px] h-[120px] z-10">
+          {/* The Four Strength Squares - Part of the cluster */}
+          <div className="absolute left-1/2 top-[calc(50%-10px)] transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[2px] w-[120px] h-[120px] z-10">
             {/* Top Left - Thinking */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
               <p className="text-xs font-bold">THINKING</p>
@@ -177,29 +177,29 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Flow Squares positioned with exactly 2px from strength box corners */}
-          {/* Top Right Flow Square - 2px from strength corner */}
+          {/* Flow Squares - properly spaced within the cluster */}
+          {/* Top Right Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300" 
-               style={{ top: '30px', right: '30px' }}>
+               style={{ top: '8px', right: '25px' }}>
           </div>
           
-          {/* Bottom Right Flow Square - 2px from strength corner */}
+          {/* Bottom Right Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '30px', right: '30px' }}>
+               style={{ bottom: '38px', right: '25px' }}>
           </div>
           
-          {/* Bottom Left Flow Square - 2px from strength corner */}
+          {/* Bottom Left Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ bottom: '30px', left: '30px' }}>
+               style={{ bottom: '38px', left: '25px' }}>
           </div>
           
-          {/* Top Left Flow Square - 2px from strength corner */}
+          {/* Top Left Flow Square */}
           <div className="absolute w-[60px] h-[60px] bg-gray-100 border border-gray-300"
-               style={{ top: '30px', left: '30px' }}>
+               style={{ top: '8px', left: '25px' }}>
           </div>
           
-          {/* Right Arrow - 75% of distance between flow boxes */}
-          <div className="absolute" style={{ right: '60px', top: '65px', height: '150px' }}>
+          {/* Right Arrow - Down arrow on right side */}
+          <div className="absolute" style={{ right: '55px', top: '70px', height: '120px' }}>
             <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4px]" style={{ bottom: '25%' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
@@ -208,8 +208,8 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Bottom Arrow - 75% of distance between flow boxes */}
-          <div className="absolute" style={{ bottom: '60px', left: '65px', width: '150px' }}>
+          {/* Bottom Arrow - Left arrow on bottom */}
+          <div className="absolute" style={{ bottom: '65px', left: '86px', width: '110px' }}>
             <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
@@ -218,15 +218,17 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* Left Arrow - 75% of distance between flow boxes */}
-          <div className="absolute" style={{ left: '60px', top: '65px', height: '150px' }}>
+          {/* Left Arrow - Up arrow */}
+          <div className="absolute" style={{ left: '55px', top: '70px', height: '120px' }}>
             <div className="absolute left-0 top-0 h-[75%] w-[1px] bg-gray-400"></div>
+            <div className="absolute left-[-4px]" style={{ top: '0' }}>
+              <svg width="10" height="14" viewBox="0 0 10 14">
+                <path d="M5 0 L0 7 L10 7 Z" fill="#9CA3AF" />
+              </svg>
+            </div>
           </div>
           
-          {/* Top Arrow - 75% of distance between flow boxes */}
-          <div className="absolute" style={{ top: '60px', left: '65px', width: '150px' }}>
-            <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
-          </div>
+          {/* Removed the Top Arrow line between flow 1 and flow 4 as requested */}
         </div>
         
         {/* Logo - Positioned at bottom right like in example */}
