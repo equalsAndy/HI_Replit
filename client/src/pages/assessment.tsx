@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -169,16 +169,40 @@ export default function Assessment() {
     option !== rankings.leastLikeMe
   );
   
-  // Handle option selection
-  const handleOptionSelect = (option: Option, position: 'mostLikeMe' | 'second' | 'third' | 'leastLikeMe') => {
-    // If the position already has an option, make it available again
-    const currentOption = rankings[position];
+  // Drag and drop functionality
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, option: Option) => {
+    e.dataTransfer.setData('optionId', option.id);
+    setDraggedOption(option);
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+  
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, position: keyof typeof rankings) => {
+    e.preventDefault();
+    const optionId = e.dataTransfer.getData('optionId');
+    const option = currentQuestion.options.find(opt => opt.id === optionId);
     
-    // Update rankings
-    setRankings(prev => ({
-      ...prev,
-      [position]: option
-    }));
+    if (option) {
+      // Check if the option is already ranked
+      Object.entries(rankings).forEach(([pos, currentOption]) => {
+        if (currentOption?.id === option.id) {
+          setRankings(prev => ({
+            ...prev,
+            [pos]: null
+          }));
+        }
+      });
+      
+      // Set the option in the dropped position
+      setRankings(prev => ({
+        ...prev,
+        [position]: option
+      }));
+    }
+    
+    setDraggedOption(null);
   };
   
   // Handle continue button
@@ -258,7 +282,7 @@ export default function Assessment() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <h3 className="text-xl font-medium text-indigo-700 mb-6">{currentQuestion.text}</h3>
           
-          {/* Options to rank */}
+          {/* Options to rank - displayed as draggable squares */}
           <div className="mb-10">
             <div className="bg-amber-50 p-6 rounded-lg mb-8">
               {availableOptions.length > 0 ? (
@@ -266,34 +290,41 @@ export default function Assessment() {
                   {availableOptions.map(option => (
                     <div 
                       key={option.id}
-                      className="bg-gray-200 p-4 rounded text-center flex items-center justify-center h-28 cursor-pointer hover:bg-gray-300 transition-colors"
-                      onClick={() => {
-                        if (!rankings.mostLikeMe) handleOptionSelect(option, 'mostLikeMe');
-                        else if (!rankings.second) handleOptionSelect(option, 'second');
-                        else if (!rankings.third) handleOptionSelect(option, 'third');
-                        else if (!rankings.leastLikeMe) handleOptionSelect(option, 'leastLikeMe');
-                      }}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, option)}
+                      className="bg-gray-200 p-4 rounded-lg text-center flex items-center justify-center aspect-square cursor-move hover:bg-gray-300 transition-colors shadow"
                     >
                       <p className="text-sm">{option.text}</p>
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-center text-gray-500">All options have been ranked. You can click on the ranked items to change their position.</p>
+                <p className="text-center text-gray-500">All options have been ranked. You can drag them to reorder.</p>
               )}
             </div>
             
-            {/* Ranking Slots */}
+            {/* Ranking Slots as drop zones */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="flex flex-col items-center">
                 <div 
-                  className={`border-2 border-dashed rounded p-4 w-full h-28 flex items-center justify-center ${rankings.mostLikeMe ? 'border-gray-200 bg-gray-200' : 'border-gray-300'}`}
-                  onClick={() => rankings.mostLikeMe && setRankings(prev => ({ ...prev, mostLikeMe: null }))}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'mostLikeMe')}
+                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                    rankings.mostLikeMe 
+                      ? 'border-transparent bg-gray-200' 
+                      : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
+                  }`}
                 >
                   {rankings.mostLikeMe ? (
-                    <p className="text-sm text-center">{rankings.mostLikeMe.text}</p>
+                    <div 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, rankings.mostLikeMe)}
+                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                    >
+                      <p className="text-sm text-center p-2">{rankings.mostLikeMe.text}</p>
+                    </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop option here</p>
+                    <p className="text-gray-400 text-center">Drop here</p>
                   )}
                 </div>
                 <p className="mt-2 text-gray-700 font-medium">Most like me</p>
@@ -301,13 +332,24 @@ export default function Assessment() {
               
               <div className="flex flex-col items-center">
                 <div 
-                  className={`border-2 border-dashed rounded p-4 w-full h-28 flex items-center justify-center ${rankings.second ? 'border-gray-200 bg-gray-200' : 'border-gray-300'}`}
-                  onClick={() => rankings.second && setRankings(prev => ({ ...prev, second: null }))}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'second')}
+                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                    rankings.second 
+                      ? 'border-transparent bg-gray-200' 
+                      : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
+                  }`}
                 >
                   {rankings.second ? (
-                    <p className="text-sm text-center">{rankings.second.text}</p>
+                    <div 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, rankings.second)}
+                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                    >
+                      <p className="text-sm text-center p-2">{rankings.second.text}</p>
+                    </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop option here</p>
+                    <p className="text-gray-400 text-center">Drop here</p>
                   )}
                 </div>
                 <p className="mt-2 text-gray-700 font-medium">Second</p>
@@ -315,13 +357,24 @@ export default function Assessment() {
               
               <div className="flex flex-col items-center">
                 <div 
-                  className={`border-2 border-dashed rounded p-4 w-full h-28 flex items-center justify-center ${rankings.third ? 'border-gray-200 bg-gray-200' : 'border-gray-300'}`}
-                  onClick={() => rankings.third && setRankings(prev => ({ ...prev, third: null }))}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'third')}
+                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                    rankings.third 
+                      ? 'border-transparent bg-gray-200' 
+                      : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
+                  }`}
                 >
                   {rankings.third ? (
-                    <p className="text-sm text-center">{rankings.third.text}</p>
+                    <div 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, rankings.third)}
+                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                    >
+                      <p className="text-sm text-center p-2">{rankings.third.text}</p>
+                    </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop option here</p>
+                    <p className="text-gray-400 text-center">Drop here</p>
                   )}
                 </div>
                 <p className="mt-2 text-gray-700 font-medium">Third</p>
@@ -329,13 +382,24 @@ export default function Assessment() {
               
               <div className="flex flex-col items-center">
                 <div 
-                  className={`border-2 border-dashed rounded p-4 w-full h-28 flex items-center justify-center ${rankings.leastLikeMe ? 'border-gray-200 bg-gray-200' : 'border-gray-300'}`}
-                  onClick={() => rankings.leastLikeMe && setRankings(prev => ({ ...prev, leastLikeMe: null }))}
+                  onDragOver={handleDragOver}
+                  onDrop={(e) => handleDrop(e, 'leastLikeMe')}
+                  className={`border-2 border-dashed rounded-lg p-4 aspect-square w-full flex items-center justify-center transition-colors ${
+                    rankings.leastLikeMe 
+                      ? 'border-transparent bg-gray-200' 
+                      : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
+                  }`}
                 >
                   {rankings.leastLikeMe ? (
-                    <p className="text-sm text-center">{rankings.leastLikeMe.text}</p>
+                    <div 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe)}
+                      className="w-full h-full flex items-center justify-center bg-gray-200 rounded-md cursor-move"
+                    >
+                      <p className="text-sm text-center p-2">{rankings.leastLikeMe.text}</p>
+                    </div>
                   ) : (
-                    <p className="text-gray-400 text-center">Drop option here</p>
+                    <p className="text-gray-400 text-center">Drop here</p>
                   )}
                 </div>
                 <p className="mt-2 text-gray-700 font-medium">Least like me</p>
