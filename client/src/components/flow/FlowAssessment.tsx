@@ -45,6 +45,7 @@ export default function FlowAssessment() {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
   const [autoAdvance, setAutoAdvance] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Calculate total score
   const calculateScore = () => {
@@ -118,9 +119,23 @@ export default function FlowAssessment() {
   
   // Move to next question
   const nextQuestion = () => {
+    // Check if current question has been answered
+    if (!answers[question.id]) {
+      setError("Please select an answer before proceeding.");
+      return;
+    }
+    
+    setError(null);
+    
     if (currentQuestion < flowQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
+      // Check if all questions have been answered
+      const allQuestionsAnswered = flowQuestions.every(q => !!answers[q.id]);
+      if (!allQuestionsAnswered) {
+        setError("Please answer all questions before submitting.");
+        return;
+      }
       handleSubmit();
     }
   };
@@ -146,7 +161,7 @@ export default function FlowAssessment() {
   
   // Get current question and previous question
   const question = flowQuestions[currentQuestion];
-  const currentValue = answers[question.id] || 3;
+  const currentValue = answers[question.id] || 0; // No default value
   
   // Get previous question for display
   const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
@@ -226,10 +241,23 @@ export default function FlowAssessment() {
             </div>
           </div>
           
-          <p className="text-center font-semibold mt-4">
-            Your answer: {valueToLabel(currentValue)}
-          </p>
+          {currentValue > 0 ? (
+            <p className="text-center font-semibold mt-4">
+              Your answer: {currentValue} - {valueToLabel(currentValue)}
+            </p>
+          ) : (
+            <p className="text-center text-orange-600 font-medium mt-4">
+              Please select your answer
+            </p>
+          )}
         </div>
+        
+        {/* Error message display */}
+        {error && (
+          <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 text-red-600">
+            {error}
+          </div>
+        )}
         
         <div className="flex items-center justify-center mb-4">
           <div className="flex items-center space-x-2">
@@ -252,7 +280,7 @@ export default function FlowAssessment() {
                   </div>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
-                  <p>Check the box to advance to the next question after you have ranked each one. You can always go back and adjust your answers.</p>
+                  <p>Check the box to advance to the next question after you select an answer. You can always go back and adjust your answers.</p>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -261,10 +289,10 @@ export default function FlowAssessment() {
 
         {previousQuestion && (
           <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
-            <p className="text-xs text-gray-500 mb-1">Previous Question:</p>
+            <p className="text-xs text-gray-500 mb-1">Question #{previousQuestion.id}:</p>
             <p className="text-xs text-gray-700 mb-1">{previousQuestion.text}</p>
             {prevAnswer > 0 && (
-              <p className="text-xs font-medium text-indigo-600">Your answer: {valueToLabel(prevAnswer)}</p>
+              <p className="text-xs font-medium text-indigo-600">Your answer: {prevAnswer} - {valueToLabel(prevAnswer)}</p>
             )}
           </div>
         )}
@@ -279,9 +307,17 @@ export default function FlowAssessment() {
           </Button>
           
           <div className="text-center">
-            <span className="text-sm text-gray-500">
-              Question {currentQuestion + 1} of {flowQuestions.length}
-            </span>
+            <div className="flex flex-col items-center">
+              <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
+                <div 
+                  className="h-full bg-indigo-600 rounded-full" 
+                  style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
+                ></div>
+              </div>
+              <span className="text-sm text-gray-500">
+                Question {currentQuestion + 1} of {flowQuestions.length}
+              </span>
+            </div>
           </div>
           
           <Button 
