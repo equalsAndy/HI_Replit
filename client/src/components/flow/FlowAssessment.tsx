@@ -226,14 +226,11 @@ export default function FlowAssessment() {
               {/* Circle markers - perfectly aligned on the track */}
               <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                 {[1, 2, 3, 4, 5].map((value) => {
-                  // Only trigger auto-advance if selecting a new value
+                  // Direct click handler to always set exactly the value clicked
                   const handleClick = () => {
-                    if (answers[question.id] === value) {
-                      // If clicking the same value, don't do anything
-                      return;
-                    }
+                    const wasUnselected = !answers[question.id];
                     
-                    // Update the answer
+                    // Always set to exactly the value clicked, no matter what
                     setAnswers(prev => ({
                       ...prev,
                       [question.id]: value
@@ -242,11 +239,15 @@ export default function FlowAssessment() {
                     // Clear any error message
                     setError(null);
                     
-                    // Auto advance if enabled
+                    // Auto advance on new selections or first selection
                     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-                      setTimeout(() => {
-                        nextQuestion();
-                      }, 700); // Delay to see selection
+                      // Only advance if this was a new selection 
+                      // or the first selection for this question
+                      if (wasUnselected || answers[question.id] !== value) {
+                        setTimeout(() => {
+                          nextQuestion();
+                        }, 700); // Delay to see selection
+                      }
                     }
                   };
                   
@@ -469,49 +470,62 @@ export default function FlowAssessment() {
                               <div className="absolute h-2 rounded-full bg-gray-200 w-full top-3 z-0 shadow-inner overflow-hidden">
                                 <div 
                                   className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
-                                  style={{ width: `${((answers[q.id] || 3) - 1) / 4 * 100}%` }}
+                                  style={{ 
+                                    width: answers[q.id] ? `${(answers[q.id] - 1) / 4 * 100}%` : '0%',
+                                    display: answers[q.id] ? 'block' : 'none'
+                                  }}
                                 ></div>
                               </div>
                               
                               {/* Circle markers - perfectly aligned */}
                               <div className="absolute flex justify-between w-full px-0 z-10">
-                                {[1, 2, 3, 4, 5].map((value) => (
-                                  <div
-                                    key={value}
-                                    onClick={() => {
-                                      setAnswers(prev => ({
-                                        ...prev,
-                                        [q.id]: value
-                                      }));
-                                    }}
-                                    className={`
-                                      cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
-                                      ${value <= (answers[q.id] || 3) 
-                                        ? 'bg-indigo-600 text-white shadow transform hover:scale-110 transition-transform' 
-                                        : 'bg-white border border-gray-300 hover:border-indigo-300 transition-colors'}
-                                    `}
-                                  >
-                                  </div>
-                                ))}
+                                {[1, 2, 3, 4, 5].map((value) => {
+                                  // Create a direct click handler for each value
+                                  const handleMarkerClick = () => {
+                                    // Always set exactly to the clicked value, no fallbacks
+                                    setAnswers(prev => ({
+                                      ...prev,
+                                      [q.id]: value
+                                    }));
+                                  };
+                                  
+                                  // Get the actual value without any fallback
+                                  const actualValue = answers[q.id];
+                                  
+                                  return (
+                                    <div
+                                      key={value}
+                                      onClick={handleMarkerClick}
+                                      className={`
+                                        cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
+                                        ${value <= actualValue 
+                                          ? 'bg-indigo-600 text-white shadow transform hover:scale-110 transition-transform' 
+                                          : 'bg-white border border-gray-300 hover:border-indigo-300 transition-colors'}
+                                      `}
+                                    >
+                                    </div>
+                                  );
+                                })}
                               </div>
                               
                               {/* Custom thumb */}
                               <div 
                                 className="absolute cursor-pointer z-20 transition-all duration-300"
                                 style={{ 
-                                  left: `calc(${(((answers[q.id] || 3) - 1) / 4) * 100}%)`,
+                                  left: `calc(${((answers[q.id] - 1) / 4) * 100}%)`,
                                   top: '-4px',
-                                  transform: 'translateX(-50%)'
+                                  transform: 'translateX(-50%)',
+                                  display: answers[q.id] ? 'block' : 'none' // Hide if no answer
                                 }}
                               >
                                 <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-indigo-500 text-white bg-indigo-600 shadow-md">
-                                  <span className="text-xs font-bold">{answers[q.id] || 3}</span>
+                                  <span className="text-xs font-bold">{answers[q.id]}</span>
                                 </div>
                               </div>
                             </div>
                             
                             <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[80px] text-center shadow-sm border border-indigo-200">
-                              {valueToLabel(answers[q.id] || 3)}
+                              {answers[q.id] ? valueToLabel(answers[q.id]) : 'Not answered'}
                             </span>
                           </div>
                         </td>
