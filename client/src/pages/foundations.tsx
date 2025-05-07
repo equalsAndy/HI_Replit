@@ -27,6 +27,7 @@ interface UserType {
   title: string;
   organization: string;
   progress: number;
+  avatarUrl?: string;
 }
 
 export default function Foundations() {
@@ -58,7 +59,7 @@ export default function Foundations() {
     }
     
     // For sequential progression
-    const tabSequence = ["intro", "starcard", "reflect", "rounding"];
+    const tabSequence = ["intro", "starcard", "reflect"];
     const currentIndex = tabSequence.indexOf(activeTab);
     const targetIndex = tabSequence.indexOf(tabId);
     
@@ -109,7 +110,7 @@ export default function Foundations() {
         
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-4 mb-6">
+            <TabsList className="grid grid-cols-3 mb-6">
               <TabsTrigger value="intro" data-value="intro">Strengths</TabsTrigger>
               <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
                 {isTabDisabled("starcard") ? (
@@ -130,16 +131,6 @@ export default function Foundations() {
                     Reflect
                   </span>
                 ) : "Reflect"}
-              </TabsTrigger>
-              <TabsTrigger value="rounding" data-value="rounding" disabled={isTabDisabled("rounding")}>
-                {isTabDisabled("rounding") ? (
-                  <span className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
-                    </svg>
-                    Rounding Out
-                  </span>
-                ) : "Rounding Out"}
               </TabsTrigger>
             </TabsList>
             
@@ -235,36 +226,88 @@ export default function Foundations() {
                 </p>
               </div>
               
-              <div className="mt-8 flex flex-col items-center">
-                <div className="w-full max-w-md">
-                  {/* Connect to real data using the StarCard component */}
-                  <div className="mb-8">
-                    <StarCard 
-                      profile={{
-                        name: "Test User",
-                        title: "Software Engineer",
-                        organization: "AllStarTeams",
-                        avatarUrl: undefined
-                      }}
-                      quadrantData={{
-                        thinking: 25,
-                        acting: 35,
-                        feeling: 20,
-                        planning: 20,
-                        apexStrength: "Acting"
-                      }}
-                      downloadable={false}
-                      preview={false}
-                    />
-                  </div>
-                  
-                  <div className="flex justify-center mt-6">
-                    <Link href="/assessment">
-                      <Button className="bg-green-600 hover:bg-green-700">
-                        Begin Assessment
-                      </Button>
-                    </Link>
-                  </div>
+              <div className="my-8 border border-gray-200 rounded-md overflow-hidden bg-white">
+                <div className="p-4 border-b border-gray-200 bg-gray-50">
+                  <h3 className="text-xl font-bold text-center text-gray-800">STAR CARD</h3>
+                </div>
+                
+                <div className="p-6">
+                  {!starCard ? (
+                    <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
+                      <p className="text-sm text-gray-500 mb-4">
+                        To view your StarCard, you need to complete the AllStarTeams assessment first.
+                      </p>
+                      <Link href="/assessment">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700">
+                          Take the Assessment
+                        </Button>
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Profile Section */}
+                      <div className="flex items-center mb-6">
+                        <div className="mr-4">
+                          {user?.avatarUrl ? (
+                            <img 
+                              src={user.avatarUrl} 
+                              alt={user.name}
+                              className="h-16 w-16 rounded-full object-cover border border-gray-200" 
+                            />
+                          ) : (
+                            <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center">
+                              <span className="text-xl font-bold text-gray-500">
+                                {user?.name?.charAt(0) || "U"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <div className="font-bold">{user?.name || "Your Name"}</div>
+                          <div className="text-sm text-gray-600">Title: {user?.title || "Your Title"}</div>
+                          <div className="text-sm text-gray-600">Organization: {user?.organization || "Your Organization"}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Star Card Visual */}
+                      <div className="mb-6">
+                        <StarCard 
+                          profile={{
+                            name: user?.name || "",
+                            title: user?.title || "",
+                            organization: user?.organization || "",
+                            avatarUrl: user?.avatarUrl
+                          }}
+                          quadrantData={{
+                            thinking: starCard.thinking,
+                            acting: starCard.acting,
+                            feeling: starCard.feeling,
+                            planning: starCard.planning,
+                            apexStrength: starCard.apexStrength
+                          }}
+                          downloadable={true}
+                          preview={false}
+                        />
+                      </div>
+                      
+                      <div className="flex justify-between mt-6">
+                        <Button 
+                          onClick={() => !isTabDisabled("intro") && handleTabChange("intro")}
+                          variant="outline"
+                        >
+                          Previous: Strengths
+                        </Button>
+                        <Button 
+                          onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
+                          className="bg-indigo-700 hover:bg-indigo-800"
+                          disabled={isTabDisabled("reflect")}
+                        >
+                          Next: Reflect
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </TabsContent>
@@ -455,68 +498,9 @@ export default function Foundations() {
                 >
                   Previous: Your StarCard
                 </Button>
-                <Button 
-                  onClick={() => !isTabDisabled("rounding") && handleTabChange("rounding")}
-                  className="bg-indigo-700 hover:bg-indigo-800"
-                  disabled={isTabDisabled("rounding")}
-                >
-                  Next: Rounding Out
-                </Button>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="rounding" className="space-y-6">
-              <div className="prose max-w-none">
-                <h2>Rounding Out Your Profile</h2>
-                <p>
-                  While focusing on your strengths is powerful, it's also important to understand how to balance your profile and work effectively with others who have different strength patterns.
-                </p>
-                
-                <div className="my-8 bg-indigo-50 p-6 rounded-lg border border-indigo-100">
-                  <h3 className="text-indigo-700">Strategies for Balance</h3>
-                  <ol>
-                    <li><strong>Partner with complements:</strong> Collaborate with people whose strengths fill your gaps</li>
-                    <li><strong>Develop compensating systems:</strong> Create processes that help manage areas where you're not naturally strong</li>
-                    <li><strong>Targeted development:</strong> Strategically improve specific skills in less dominant quadrants</li>
-                    <li><strong>Leverage technology:</strong> Use tools and apps to support areas outside your strengths</li>
-                  </ol>
-                </div>
-                
-                <h3>The Team Perspective</h3>
-                <p>
-                  In a team setting, understanding everyone's strengths creates powerful opportunities:
-                </p>
-                <ul>
-                  <li>Better role alignment</li>
-                  <li>More effective delegation</li>
-                  <li>Improved conflict resolution</li>
-                  <li>Enhanced innovation through diverse thinking styles</li>
-                  <li>Greater appreciation for different approaches</li>
-                </ul>
-                
-                <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 my-6">
-                  <h4 className="text-amber-700 font-medium">Remember</h4>
-                  <p className="text-sm">
-                    The goal isn't to be equally strong in all quadrants (which is nearly impossible), but to understand your natural patterns and make intentional choices about how to apply them.
-                  </p>
-                </div>
-                
-                <p className="font-medium text-indigo-700">
-                  You're now ready to take the assessment and discover your unique strengths profile!
-                </p>
-              </div>
-              
-              <div className="flex justify-between mt-6">
-                <Button 
-                  onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
-                  variant="outline"
-                  disabled={isTabDisabled("reflect")}
-                >
-                  Previous: Reflect
-                </Button>
                 <Link href="/assessment">
                   <Button className="bg-green-600 hover:bg-green-700">
-                    Begin Assessment
+                    Begin New Assessment
                   </Button>
                 </Link>
               </div>
