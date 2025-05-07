@@ -188,14 +188,14 @@ export default function StarCard({
                style={{ top: '25px', right: '15px' }}>
           </div>
           
-          {/* Flow 2 - Bottom Right Flow Square */}
+          {/* Flow 2 - Bottom Right Flow Square - top aligned with bottom of strength 2 */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ top: '144px', right: '15px' }}>
+               style={{ top: '204px', right: '15px' }}>
           </div>
           
-          {/* Flow 3 - Bottom Left Flow Square */}
+          {/* Flow 3 - Bottom Left Flow Square - top aligned with bottom of strength 3 */}
           <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ top: '144px', left: '15px' }}>
+               style={{ top: '204px', left: '15px' }}>
           </div>
           
           {/* Flow 4 - Top Left Flow Square */}
@@ -204,7 +204,7 @@ export default function StarCard({
           </div>
           
           {/* Right Arrow - Down arrow on right side - readjusted for new box positions */}
-          <div className="absolute" style={{ right: '55px', top: '85px', height: '60px' }}>
+          <div className="absolute" style={{ right: '55px', top: '85px', height: '120px' }}>
             <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4px]" style={{ bottom: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
@@ -214,7 +214,7 @@ export default function StarCard({
           </div>
           
           {/* Bottom Arrow - Left arrow on bottom - readjusted for new box positions */}
-          <div className="absolute" style={{ top: '174px', left: '85px', width: '95px' }}>
+          <div className="absolute" style={{ top: '234px', left: '85px', width: '95px' }}>
             <div className="absolute left-0 top-0 w-[75%] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4px]">
               <svg width="14" height="10" viewBox="0 0 14 10">
@@ -224,7 +224,7 @@ export default function StarCard({
           </div>
           
           {/* Left Arrow - Up arrow - readjusted for new box positions */}
-          <div className="absolute" style={{ left: '55px', top: '85px', height: '60px' }}>
+          <div className="absolute" style={{ left: '55px', top: '85px', height: '120px' }}>
             <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4px]" style={{ top: '0' }}>
               <svg width="10" height="14" viewBox="0 0 10 14">
