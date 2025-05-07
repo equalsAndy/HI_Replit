@@ -322,6 +322,49 @@ export default function FindYourFlow() {
       }
     }
   };
+  
+  // Auto-complete function for demo mode
+  const autoCompleteFlowAttributes = () => {
+    // Clear any existing selections
+    setSelectedAttributes([]);
+    
+    // Get random attributes from each category (one from each category)
+    const categories = ['green', 'blue', 'yellow', 'red'];
+    const selectedAttrs: RankedAttribute[] = [];
+    
+    categories.forEach((category, index) => {
+      // Find attributes for this category
+      const matchingAttrs = flowAttributes.filter(attr => 
+        getAttributeCategory(attr) === category
+      );
+      
+      // Select a random attribute from this category
+      if (matchingAttrs.length > 0) {
+        const randomIndex = Math.floor(Math.random() * matchingAttrs.length);
+        const randomAttr = matchingAttrs[randomIndex];
+        selectedAttrs.push({
+          text: randomAttr, 
+          rank: index + 1
+        });
+      }
+    });
+    
+    // Set the selected attributes
+    setSelectedAttributes(selectedAttrs);
+    
+    // Update the flow attributes in the StarCard
+    const coloredAttributes = selectedAttrs.map(attr => ({
+      text: attr.text,
+      color: getAttributeColor(attr.text)
+    }));
+    
+    setStarCardFlowAttributes(coloredAttributes);
+    
+    toast({
+      title: "Flow attributes auto-selected",
+      description: "Random attributes have been selected and added to your StarCard."
+    });
+  };
 
   // Show loading state
   if (userLoading) {
@@ -616,9 +659,23 @@ export default function FindYourFlow() {
                 <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <div className="mb-4">
-                    <p className="text-sm text-gray-600 mb-4">
-                      Choose 4 words that best describe your flow state. Drag badges to reorder.
-                    </p>
+                    <div className="flex justify-between items-center mb-4">
+                      <p className="text-sm text-gray-600">
+                        Choose 4 words that best describe your flow state. Drag badges to reorder.
+                      </p>
+                      
+                      {/* Auto-complete button (visible only in demo mode) */}
+                      {isDemoMode && (
+                        <Button 
+                          onClick={autoCompleteFlowAttributes}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
+                        >
+                          Auto-Complete
+                        </Button>
+                      )}
+                    </div>
                     
                     {/* Selected attributes with drag and drop */}
                     <div className="mb-4">
