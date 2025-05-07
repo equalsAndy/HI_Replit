@@ -136,13 +136,13 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label centered above Flow 1 box and 2px above it - fixed visibility */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '22px', right: '35px', zIndex: 30 }}>
+          {/* Flow Label positioned right above Flow 1 box and 2px above it - fixed visibility */}
+          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '5px', right: '42px', zIndex: 30 }}>
             Flow
           </div>
           
-          {/* Core Label moved above Strength 1 box (acting) and 2px above it - fixed visibility */}
-          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '82px', left: '80px', zIndex: 30 }}>
+          {/* Core Label positioned right above Strength 1 box (highest strength) - fixed visibility */}
+          <div className="absolute text-xs font-medium text-gray-700" style={{ top: '65px', right: '110px', zIndex: 30 }}>
             Core
           </div>
           
@@ -155,30 +155,34 @@ export default function StarCard({
             </div>
           </div>
           
-          {/* The Four Strength Squares - Moved down 10px */}
+          {/* The Four Strength Squares - Ordered by score (highest in top right, clockwise) */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
-            {/* Top Left - Thinking - Improved text fitting */}
-            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
-              <p className="text-[10px] font-bold">THINKING</p>
-              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.thinking || 0)}%</p>
+            {/* Top Left - Position 3 (lowest score) */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
+                 style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(1, 162, 82)' }}>
+              <p className="text-[10px] font-bold">{getQuadrantAtPosition(3)?.label || 'THINKING'}</p>
+              <p className="text-[10px] font-medium">{getQuadrantAtPosition(3)?.score ? normalizeScore(getQuadrantAtPosition(3)?.score || 0) : 0}%</p>
             </div>
             
-            {/* Top Right - Acting - Improved text fitting */}
-            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(241, 64, 64)' }}>
-              <p className="text-[10px] font-bold">ACTING</p>
-              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.acting || 0)}%</p>
+            {/* Top Right - Position 0 (highest score) */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
+                 style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(241, 64, 64)' }}>
+              <p className="text-[10px] font-bold">{getQuadrantAtPosition(0)?.label || 'ACTING'}</p>
+              <p className="text-[10px] font-medium">{getQuadrantAtPosition(0)?.score ? normalizeScore(getQuadrantAtPosition(0)?.score || 0) : 0}%</p>
             </div>
             
-            {/* Bottom Left - Feeling - Improved text fitting */}
-            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(22, 126, 253)' }}>
-              <p className="text-[10px] font-bold">FEELING</p>
-              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.feeling || 0)}%</p>
+            {/* Bottom Left - Position 2 (third highest score) */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
+                 style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(22, 126, 253)' }}>
+              <p className="text-[10px] font-bold">{getQuadrantAtPosition(2)?.label || 'FEELING'}</p>
+              <p className="text-[10px] font-medium">{getQuadrantAtPosition(2)?.score ? normalizeScore(getQuadrantAtPosition(2)?.score || 0) : 0}%</p>
             </div>
             
-            {/* Bottom Right - Planning - Improved text fitting */}
-            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(255, 203, 47)' }}>
-              <p className="text-[10px] font-bold">PLANNING</p>
-              <p className="text-[10px] font-medium">{normalizeScore(quadrantData?.planning || 0)}%</p>
+            {/* Bottom Right - Position 1 (second highest score) */}
+            <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
+                 style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(255, 203, 47)' }}>
+              <p className="text-[10px] font-bold">{getQuadrantAtPosition(1)?.label || 'PLANNING'}</p>
+              <p className="text-[10px] font-medium">{getQuadrantAtPosition(1)?.score ? normalizeScore(getQuadrantAtPosition(1)?.score || 0) : 0}%</p>
             </div>
           </div>
           
@@ -236,8 +240,8 @@ export default function StarCard({
           {/* No Top Arrow between flow 1 and flow 4 as requested */}
         </div>
         
-        {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 16px */}
-        <div className="flex justify-end mt-[-10px] pr-4">
+        {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 24px */}
+        <div className="flex justify-end mt-[-18px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
