@@ -12,6 +12,8 @@ interface StarCardProps {
   downloadable?: boolean;
   preview?: boolean;
   flowAttributes?: {text: string; color: string}[];
+  imageUrl?: string | null;
+  enableImageUpload?: boolean;
 }
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
@@ -28,7 +30,9 @@ export default function StarCard({
   quadrantData, 
   downloadable = true,
   preview = false,
-  flowAttributes = [] 
+  flowAttributes = [],
+  imageUrl = null,
+  enableImageUpload = false
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -94,9 +98,9 @@ export default function StarCard({
         {/* User Profile */}
         <div className="flex items-center mb-6">
           <div className="rounded-full h-16 w-16 overflow-hidden mr-4 border border-gray-300">
-            {profile.avatarUrl ? (
+            {imageUrl || profile.avatarUrl ? (
               <img 
-                src={profile.avatarUrl} 
+                src={imageUrl || profile.avatarUrl} 
                 alt={profile.name} 
                 className="h-full w-full object-cover"
               />
