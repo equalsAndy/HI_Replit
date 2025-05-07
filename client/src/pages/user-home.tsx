@@ -580,14 +580,14 @@ export default function UserHome() {
                         organization: user.organization || ""
                       }}
                       quadrantData={{
-                        thinking: 0,
-                        acting: 0,
-                        feeling: 0,
-                        planning: 0,
-                        apexStrength: ""
+                        thinking: (user.progress >= 67 && starCard?.thinking) || 0,
+                        acting: (user.progress >= 67 && starCard?.acting) || 0,
+                        feeling: (user.progress >= 67 && starCard?.feeling) || 0,
+                        planning: (user.progress >= 67 && starCard?.planning) || 0,
+                        apexStrength: (user.progress >= 67 && starCard?.apexStrength) || ""
                       }}
                       imageUrl={starCard?.imageUrl || null}
-                      downloadable={true}
+                      downloadable={user.progress >= 67}
                       preview={false}
                     />
                   </div>
