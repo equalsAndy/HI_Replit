@@ -452,14 +452,6 @@ export default function UserHome() {
                     preview={true}
                   />
                 )}
-                
-                <div className="mt-4">
-                  <img 
-                    src="/src/assets/all-star-teams-logo-250px.png" 
-                    alt="AllStarTeams" 
-                    className="h-6 w-auto opacity-75"
-                  />
-                </div>
               </div>
             </div>
           </div>
