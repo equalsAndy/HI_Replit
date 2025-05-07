@@ -309,7 +309,7 @@ export default function UserHome() {
                   
                   <Link href="/assessment">
                     <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Start Assessment
+                      Start your AllStarTeams Experience
                     </Button>
                   </Link>
                 </div>
