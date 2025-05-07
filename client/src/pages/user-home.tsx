@@ -302,14 +302,8 @@ export default function UserHome() {
                   </p>
                   
                   <Link href="/foundations">
-                    <Button className="bg-indigo-700 hover:bg-indigo-800 mr-2">
-                      Learn about Strengths
-                    </Button>
-                  </Link>
-                  
-                  <Link href="/assessment">
                     <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Start your AllStarTeams Experience
+                      Let's Go!
                     </Button>
                   </Link>
                 </div>
