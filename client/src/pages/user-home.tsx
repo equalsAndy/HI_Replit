@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon } from "lucide-react";
-import StarCard from "@/components/starcard/StarCard";
+import { EditableStarCard } from "@/components/starcard/EditableStarCard";
 
 export default function UserHome() {
   const [location, navigate] = useLocation();
@@ -469,7 +469,7 @@ export default function UserHome() {
               
               <div className="flex flex-col items-center">
                 {user && (
-                  <StarCard 
+                  <EditableStarCard 
                     profile={{
                       name: user.name || '',
                       title: user.title || '',
@@ -482,8 +482,16 @@ export default function UserHome() {
                       planning: starCard?.planning || 0,
                       apexStrength: starCard?.apexStrength || 'Imagination'
                     }}
-                    downloadable={false}
-                    preview={true}
+                    imageUrl={starCard?.imageUrl || null}
+                    downloadable={true}
+                    preview={false}
+                    onImageUrlChange={(url) => {
+                      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+                      toast({
+                        title: "Image updated",
+                        description: "Your Star Card image has been updated successfully.",
+                      });
+                    }}
                   />
                 )}
               </div>
