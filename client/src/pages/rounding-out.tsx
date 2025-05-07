@@ -1,9 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Form, FormField, FormItem, FormLabel, FormControl } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
+import MainContainer from "@/components/layout/MainContainer";
 
 export default function RoundingOut() {
   // Get user profile
@@ -12,51 +12,65 @@ export default function RoundingOut() {
     staleTime: Infinity,
   });
   
-  // Form for reflection questions
-  const form = useForm({
-    defaultValues: {
-      stressTriggers: "",
-      strengthsBalance: "",
-      flowMaintenance: ""
-    },
+  // Form state
+  const [formValues, setFormValues] = useState({
+    stressTriggers: "",
+    strengthsAttention: "",
+    flowStrategies: ""
   });
   
-  const onSubmit = (data: any) => {
-    console.log("Submitted reflection:", data);
-    // In a real app, this would save the reflection to the server
+  const handleInputChange = (field: string, value: string) => {
+    setFormValues(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Rounding Out reflection submitted:", formValues);
+    // In a real app, this would save the data to the server
   };
   
   // Show loading state
   if (userLoading) {
     return (
-      <div className="container mx-auto py-8 max-w-4xl">
+      <MainContainer stepId="C" className="bg-white">
         <div className="text-center">
-          <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Rounding Out</h1>
           <p className="text-lg">Loading your profile information...</p>
         </div>
-      </div>
+      </MainContainer>
     );
   }
   
   return (
-    <div className="container mx-auto py-8 max-w-4xl">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Rounding Out</h1>
+    <MainContainer stepId="C" className="bg-white">
+      <div className="flex items-center mb-4">
+        <h1 className="text-2xl font-bold text-gray-800">Rounding Out</h1>
       </div>
       
-      <div className="mb-8">
-        <div className="text-left mb-6">
-          <h2 className="text-xl font-semibold mb-2">Purpose</h2>
-          <p className="mb-4">
-            Before you complete our Star Card, let's take one final look. What may need more 
-            attention — strengths you underuse, patterns under pressure, and how to stay in flow 
-            more often.
-          </p>
-        </div>
+      <div className="mb-4">
+        <p className="text-gray-700 uppercase font-bold text-sm mb-1">PURPOSE</p>
+        <p className="text-gray-700">
+          This exercise asks you to consider what areas need extra attention to achieve your envisioned professional growth.
+        </p>
+        
+        <p className="text-gray-700 uppercase font-bold text-sm mt-4 mb-1">DIRECTIONS</p>
+        <p className="text-gray-700">
+          Answer the following question in the space below: Given the strengths you draw on in your daily work, when coping with stress, and when in flow, 
+          what particular strengths and attributes may need special attention moving ahead to achieve your goals? <span className="font-medium">The Stress Inducers and Possible 
+          Behaviors Under Stress</span> in your Star Report may help answer this question.
+        </p>
+        
+        <p className="text-gray-700 mt-4 font-medium">EXAMPLE</p>
+        <p className="text-gray-700 text-sm">
+          To lead cross-functional teams more effectively, you plan to improve your empathy and active listening by taking a course on advanced
+          communication techniques and volunteering in the community soup kitchen.
+        </p>
       </div>
       
-      <div className="grid md:grid-cols-2 gap-8 mb-12">
-        <div>
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="w-full md:w-1/2">
           <div className="aspect-video mb-6">
             <iframe 
               className="w-full h-full"
@@ -66,102 +80,79 @@ export default function RoundingOut() {
               allowFullScreen>
             </iframe>
           </div>
-          
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h3 className="font-bold mb-4">Reflection</h3>
-            <p className="mb-4">Before completing your Star Card, take a moment to step back, reflect, and round out your self-awareness.</p>
-            
-            <div className="space-y-4">
-              <div className="p-3 bg-blue-100 rounded-md text-center">
-                <p>When stress or distraction tends to show up</p>
-              </div>
-              
-              <div className="p-3 bg-blue-100 rounded-md text-center">
-                <p>Which strengths need more care or balance</p>
-              </div>
-              
-              <div className="p-3 bg-blue-100 rounded-md text-center">
-                <p>How to stay in flow more often</p>
-              </div>
-            </div>
-          </div>
         </div>
         
-        <div className="bg-purple-100 rounded-lg p-6">
-          <h3 className="text-xl font-bold mb-4">Rounding Out</h3>
-          <p className="mb-4 text-sm">
-            Before completing your <strong>Star Card</strong>, take a moment to pause and 
-            reflect. Please respond to each of the following prompts:
-          </p>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="stressTriggers"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>When does stress or distraction tend to show up for you? <em>What patterns, triggers, or situations knock you off balance</em></FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Your answer" 
-                        className="min-h-[100px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="strengthsBalance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Which strengths or qualities do you need to nurture – and why? <em>Consider what parts of you need extra care, attention, or encouragement to thrive.</em></FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Your answer" 
-                        className="min-h-[100px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="flowMaintenance"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>How will you harness your strengths to create forward momentum – especially when things feel uncertain or stuck? <em>Consider how your natural abilities could help you move through challenges or take meaningful next steps.</em></FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="Your answer" 
-                        className="min-h-[100px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              
-              <div className="flex justify-center mt-6">
-                <Button type="submit" className="bg-purple-600 hover:bg-purple-700 text-white">Save Reflection</Button>
+        <div className="w-full md:w-1/2">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="relative">
+              <div className="cloud-bubble rounded-[40px] p-6 bg-white border border-gray-200 shadow-sm relative">
+                <div className="absolute -top-4 -left-4 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+                  1
+                </div>
+                <p className="text-indigo-800 font-medium mb-2 text-center">
+                  When can I expect to have stress, anxiety, or boredom triggered, and what can I do to mitigate it?
+                </p>
+                <Textarea 
+                  value={formValues.stressTriggers}
+                  onChange={(e) => handleInputChange('stressTriggers', e.target.value)}
+                  placeholder="Type your paragraph..."
+                  className="w-full min-h-[100px] border border-gray-300 mt-2"
+                />
               </div>
-            </form>
-          </Form>
+            </div>
+            
+            <div className="relative mt-12">
+              <div className="cloud-bubble rounded-[40px] p-6 bg-white border border-gray-200 shadow-sm relative">
+                <div className="absolute -top-4 -left-4 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+                  2
+                </div>
+                <p className="text-indigo-800 font-medium mb-2 text-center">
+                  What strengths and attributes need special attention moving forward?
+                </p>
+                <Textarea 
+                  value={formValues.strengthsAttention}
+                  onChange={(e) => handleInputChange('strengthsAttention', e.target.value)}
+                  placeholder="Type your paragraph..."
+                  className="w-full min-h-[100px] border border-gray-300 mt-2"
+                />
+              </div>
+            </div>
+            
+            <div className="relative mt-12">
+              <div className="cloud-bubble rounded-[40px] p-6 bg-white border border-gray-200 shadow-sm relative">
+                <div className="absolute -top-4 -left-4 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold">
+                  3
+                </div>
+                <p className="text-indigo-800 font-medium mb-2 text-center">
+                  How can I use my strengths to overcome my constraints and help me achieve more flow?
+                </p>
+                <Textarea 
+                  value={formValues.flowStrategies}
+                  onChange={(e) => handleInputChange('flowStrategies', e.target.value)}
+                  placeholder="Type your paragraph..."
+                  className="w-full min-h-[100px] border border-gray-300 mt-2"
+                />
+              </div>
+            </div>
+            
+            <div className="flex justify-between mt-8">
+              <Link href="/flow-assessment">
+                <Button type="button" variant="outline" className="px-8">
+                  Return
+                </Button>
+              </Link>
+              <div className="flex space-x-3">
+                <Button type="reset" variant="outline" className="px-8" onClick={() => setFormValues({stressTriggers: "", strengthsAttention: "", flowStrategies: ""})}>
+                  Reset
+                </Button>
+                <Button type="submit" className="bg-indigo-600 hover:bg-indigo-700 text-white px-8">
+                  Save
+                </Button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-      
-      <div className="text-center mt-8">
-        <Link href="/complete-star-card">
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded">
-            NEXT
-          </Button>
-        </Link>
-      </div>
-    </div>
+    </MainContainer>
   );
 }

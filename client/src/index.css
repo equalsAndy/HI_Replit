@@ -105,3 +105,35 @@
 .star-card {
   @apply bg-white border border-neutral-200 rounded-lg p-6 mb-6;
 }
+
+/* Custom styles for cloud speech bubbles */
+.cloud-bubble {
+  position: relative;
+  border-radius: 40px;
+}
+
+.cloud-bubble::before,
+.cloud-bubble::after {
+  content: '';
+  position: absolute;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+}
+
+.cloud-bubble::before {
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  bottom: -10px;
+  left: 15px;
+  z-index: -1;
+}
+
+.cloud-bubble::after {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  bottom: -20px;
+  left: 5px;
+  z-index: -1;
+}
