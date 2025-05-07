@@ -11,6 +11,23 @@ import FlowAssessment from '@/components/flow/FlowAssessment';
 import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  arrayMove,
+  horizontalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Define the user type based on the app's data structure
 interface UserType {
@@ -124,6 +141,39 @@ export default function FindYourFlow() {
     }
   };
   
+  // Setup drag and drop
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setSelectedAttributes((items) => {
+        const oldIndex = items.findIndex(item => item.text === active.id);
+        const newIndex = items.findIndex(item => item.text === over.id);
+        
+        // Create a new array with items in new order
+        const reordered = arrayMove(items, oldIndex, newIndex);
+        
+        // Update ranks based on new order (only for items with ranks)
+        return reordered.map((item, index) => {
+          const rankedItems = reordered.filter(i => i.rank !== null);
+          const rankedIndex = rankedItems.findIndex(i => i.text === item.text);
+          
+          if (item.rank !== null && rankedIndex !== -1) {
+            return { ...item, rank: rankedIndex + 1 };
+          }
+          return item;
+        });
+      });
+    }
+  };
+
   // Get user profile to determine progress
   const { data: user, isLoading: userLoading } = useQuery<UserType>({
     queryKey: ['/api/user/profile'],
@@ -211,18 +261,7 @@ export default function FindYourFlow() {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="intro" className="space-y-6">
-            <div className="aspect-w-16 aspect-h-9 mb-4">
-              <iframe 
-                src="https://www.youtube.com/embed/JxdhWd8agmE" 
-                title="Introduction to Flow State" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="w-full h-80 rounded border border-gray-200"
-              ></iframe>
-            </div>
-            
+          <TabsContent value="intro" className="space-y-6">            
             <div className="prose max-w-none">
               <h2>Understanding Flow State</h2>
               <p>
