@@ -16,6 +16,7 @@ import FlowAssessment from "./pages/flow-assessment";
 import FindYourFlow from "./pages/find-your-flow";
 import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
+import VisualizeYourself from "./pages/visualize-yourself";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function Router() {
         <Route path="/flow-assessment" component={FlowAssessment} />
         <Route path="/find-your-flow" component={FindYourFlow} />
         <Route path="/rounding-out" component={RoundingOut} />
+        <Route path="/visualize-yourself" component={VisualizeYourself} />
         <Route component={NotFound} />
       </Switch>
     </div>
