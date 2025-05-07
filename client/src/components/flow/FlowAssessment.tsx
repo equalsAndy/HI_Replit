@@ -94,7 +94,7 @@ export default function FlowAssessment() {
       autoAdvanceTimeoutRef.current = null;
     }
     
-    // Update answers
+    // Update answers immediately
     setAnswers(prev => ({
       ...prev,
       [questionId]: value
@@ -105,12 +105,8 @@ export default function FlowAssessment() {
     
     // Handle auto-advance if enabled
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-      // Set pending state to show message to user
-      setAutoAdvancePending(true);
-      
       // Create a new timeout
       autoAdvanceTimeoutRef.current = setTimeout(() => {
-        setAutoAdvancePending(false);
         nextQuestion();
       }, 700);
     }
@@ -326,11 +322,16 @@ export default function FlowAssessment() {
               id="auto-advance" 
               checked={autoAdvance}
               onCheckedChange={(checked) => {
-                setAutoAdvance(!!checked);
-                // Display informational message when turning on auto-advance
-                if (!!checked && currentValue) {
+                const isEnabling = !!checked;
+                setAutoAdvance(isEnabling);
+                
+                // Only show notification when enabling auto-advance and there's already an answer
+                if (isEnabling && currentValue > 0) {
                   setAutoAdvancePending(true);
                   setTimeout(() => setAutoAdvancePending(false), 5000);
+                } else {
+                  // Make sure it's off when disabling
+                  setAutoAdvancePending(false);
                 }
               }}
             />
@@ -354,8 +355,8 @@ export default function FlowAssessment() {
             </TooltipProvider>
           </div>
           
-          {/* Auto-advance notification - display when auto-advance is enabled and there's already an answer */}
-          {autoAdvance && currentValue > 0 && (
+          {/* Auto-advance notification - only show when the autoAdvancePending flag is true */}
+          {autoAdvancePending && (
             <div className="text-sm text-indigo-600 font-medium animate-pulse">
               Click your selection again to advance to the next question
             </div>
