@@ -332,12 +332,13 @@ export default function UserHome() {
               {expandedSection === "flow" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
-                    This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
+                    Flow is a state of complete immersion in an activity, characterized by energized focus, full involvement, 
+                    and enjoyment in the process. Discover how to recognize and create more flow experiences in your work.
                   </p>
                   
                   <div className="aspect-w-16 aspect-h-9 mb-4">
                     <iframe 
-                      src="https://www.youtube.com/embed/JxdhWd8agmE" 
+                      src="https://www.youtube.com/embed/Le_HtpWziQE" 
                       title="Introduction to Flow State" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -347,12 +348,12 @@ export default function UserHome() {
                   </div>
                   
                   <p className="mb-4 text-sm text-gray-700">
-                    Complete your Flow State Self-Assessment to identify how you experience flow and understand your current flow state.
+                    Learn about flow state, take the self-assessment, and reflect on how to create more flow in your daily work.
                   </p>
                   
-                  <Link href="/flow-assessment">
+                  <Link href="/find-your-flow">
                     <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Take Flow Assessment
+                      Find my Flow!
                     </Button>
                   </Link>
                 </div>

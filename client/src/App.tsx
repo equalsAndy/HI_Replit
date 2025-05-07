@@ -13,6 +13,7 @@ import UserHome from "@/pages/user-home";
 // Import module pages
 import CoreStrengths from "./pages/core-strengths";
 import FlowAssessment from "./pages/flow-assessment";
+import FindYourFlow from "./pages/find-your-flow";
 import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 
