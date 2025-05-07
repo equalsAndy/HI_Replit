@@ -53,7 +53,7 @@ export default function Foundations() {
             <TabsContent value="intro" className="space-y-6">
               <div className="aspect-w-16 aspect-h-9 mb-4">
                 <iframe 
-                  src="https://www.youtube.com/embed/ao04eaeDIFQ" 
+                  src="https://www.youtube.com/embed/NzDxPRpBvUM" 
                   title="Introduction to AllStarTeams" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

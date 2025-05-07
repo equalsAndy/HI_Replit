@@ -103,20 +103,7 @@ export default function StarCard({
           </div>
         </div>
         
-        <div className="text-center mb-2">
-          <p className="text-xs text-gray-600">FLOW</p>
-        </div>
-        
-        {/* Flow Areas */}
-        <div className="grid grid-cols-3 gap-1 mb-3">
-          <div className="aspect-square bg-gray-100"></div>
-          <div className="aspect-square bg-white flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-5 w-5 text-gray-400">
-              <path d="M5 12h14M5 12l7 7M5 12l7-7" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <div className="aspect-square bg-gray-100"></div>
-        </div>
+
         
         {/* Logo */}
         <div className="text-right mt-1">
