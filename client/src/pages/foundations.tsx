@@ -1,11 +1,83 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useQuery } from "@tanstack/react-query";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import StarCard from "@/components/starcard/StarCard";
+
+// Define the starCard type based on the app's data structure
+interface StarCardType {
+  userId: number;
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+  apexStrength: string;
+  id: number;
+}
+
+// Define the user type based on the app's data structure
+interface UserType {
+  id: number;
+  name: string;
+  title: string;
+  organization: string;
+  progress: number;
+}
 
 export default function Foundations() {
   const [location, navigate] = useLocation();
+  const [activeTab, setActiveTab] = useState("intro");
+  const [completedTabs, setCompletedTabs] = useState<string[]>([]);
+  
+  // Get user profile and star card data to determine progress
+  const { data: user } = useQuery<UserType>({
+    queryKey: ['/api/user/profile'],
+    staleTime: Infinity,
+  });
+  
+  const { data: starCard } = useQuery<StarCardType>({
+    queryKey: ['/api/starcard'],
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+  
+  // Check if a tab should be disabled
+  const isTabDisabled = (tabId: string): boolean => {
+    // The first tab is always accessible
+    if (tabId === "intro") return false;
+    
+    // Check assessment completion status for StarCard tab
+    if (tabId === "starcard") {
+      // Disable if no starCard data exists yet (assessment not completed)
+      if (!starCard || !starCard.apexStrength) return true;
+    }
+    
+    // For sequential progression
+    const tabSequence = ["intro", "starcard", "reflect", "rounding"];
+    const currentIndex = tabSequence.indexOf(activeTab);
+    const targetIndex = tabSequence.indexOf(tabId);
+    
+    // Can only access tabs that are:
+    // 1. The current tab
+    // 2. Already completed tabs
+    // 3. The next tab in sequence
+    return !completedTabs.includes(tabId) && tabId !== activeTab && targetIndex > currentIndex + 1;
+  };
+  
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    if (!isTabDisabled(tabId)) {
+      setActiveTab(tabId);
+      if (!completedTabs.includes(activeTab)) {
+        setCompletedTabs(prev => [...prev, activeTab]);
+      }
+    }
+  };
   
   return (
     <div className="min-h-screen bg-gray-50">
@@ -36,12 +108,39 @@ export default function Foundations() {
         </div>
         
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <Tabs defaultValue="intro" className="w-full">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
-              <TabsTrigger value="intro">Strengths</TabsTrigger>
-              <TabsTrigger value="starcard">Your StarCard</TabsTrigger>
-              <TabsTrigger value="reflect">Reflect</TabsTrigger>
-              <TabsTrigger value="rounding">Rounding Out</TabsTrigger>
+              <TabsTrigger value="intro" data-value="intro">Strengths</TabsTrigger>
+              <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
+                {isTabDisabled("starcard") ? (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    Your StarCard
+                  </span>
+                ) : "Your StarCard"}
+              </TabsTrigger>
+              <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
+                {isTabDisabled("reflect") ? (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    Reflect
+                  </span>
+                ) : "Reflect"}
+              </TabsTrigger>
+              <TabsTrigger value="rounding" data-value="rounding" disabled={isTabDisabled("rounding")}>
+                {isTabDisabled("rounding") ? (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    Rounding Out
+                  </span>
+                ) : "Rounding Out"}
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="intro" className="space-y-6">
@@ -172,54 +271,194 @@ export default function Foundations() {
             
             <TabsContent value="reflect" className="space-y-6">
               <div className="prose max-w-none">
-                <h2>Reflecting on Your Strengths</h2>
+                <h2>Your Core Strengths</h2>
                 <p>
-                  Self-reflection is a crucial part of the strengths discovery process. As you go through the assessment, take time to consider how the scenarios relate to your real-life experiences.
+                  This exercise helps you reflect on how your core strengths show up in real situations. It builds clarity and confidence by grounding your strengths in lived experience — so you can recognize, trust, and apply them more intentionally.
                 </p>
                 
-                <div className="my-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                  <h3>Reflection Questions</h3>
-                  <p>Consider these questions as you complete the assessment:</p>
-                  <ul>
-                    <li>When have you lost track of time because you were so engaged in an activity?</li>
-                    <li>What types of problems do others typically come to you for help with?</li>
-                    <li>What activities give you energy rather than drain you?</li>
-                    <li>When do you feel most confident and capable?</li>
-                    <li>What aspects of your work do you look forward to the most?</li>
-                  </ul>
+                <div className="aspect-w-16 aspect-h-9 mb-6 mt-6">
+                  <iframe 
+                    src="https://www.youtube.com/embed/Le_HtpWziQE" 
+                    title="Your Core Strengths" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="w-full h-80 rounded border border-gray-200"
+                  ></iframe>
                 </div>
-                
-                <h3>The Power of Awareness</h3>
-                <p>
-                  Simply being aware of your strengths can dramatically improve your performance and satisfaction. Research shows that people who use their strengths daily are:
+              </div>
+              
+              <div className="bg-purple-50 rounded-lg border border-purple-100 p-6 mb-8">
+                <h3 className="text-lg font-semibold text-purple-800 mb-4">Your Core Strengths Reflection</h3>
+                <p className="mb-6 text-sm text-gray-700">
+                  Express in your own words on how you see yourself, your strengths, values, what you uniquely bring to the team, what you value in others, and what you're passionate about professionally. Click into each box below and type your response. Just a few short sentences for each.
                 </p>
                 
-                <div className="grid grid-cols-2 gap-4 my-6">
-                  <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                    <span className="text-2xl font-bold text-indigo-600">6x</span>
-                    <p className="text-sm mt-2">More likely to be engaged at work</p>
+                {!starCard ? (
+                  <div className="text-center p-8 bg-white rounded-lg border border-gray-200">
+                    <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
+                    <p className="text-sm text-gray-500 mb-4">
+                      To access this reflection, you need to complete the AllStarTeams assessment first.
+                    </p>
+                    <Link href="/assessment">
+                      <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        Take the Assessment
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="bg-white p-4 rounded-lg border border-gray-200 text-center">
-                    <span className="text-2xl font-bold text-indigo-600">3x</span>
-                    <p className="text-sm mt-2">More likely to report excellent quality of life</p>
+                ) : (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        How and when I see my 1st strength ({starCard.apexStrength})
+                      </label>
+                      <Textarea 
+                        placeholder="Describe how this strength shows up in your life..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        How and when I see my 2nd strength (
+                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [1][0].charAt(0).toUpperCase() + 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [1][0].slice(1)
+                            : "Second Strength"
+                          }
+                        )
+                      </label>
+                      <Textarea 
+                        placeholder="Describe how this strength shows up in your life..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        How and when I see my 3rd strength (
+                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [2][0].charAt(0).toUpperCase() + 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [2][0].slice(1)
+                            : "Third Strength"
+                          }
+                        )
+                      </label>
+                      <Textarea 
+                        placeholder="Describe how this strength shows up in your life..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        How and when I see my 4th strength (
+                          {starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning ? 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [3][0].charAt(0).toUpperCase() + 
+                            Object.entries({
+                              thinking: starCard.thinking,
+                              acting: starCard.acting,
+                              feeling: starCard.feeling,
+                              planning: starCard.planning
+                            })
+                            .sort((a, b) => b[1] - a[1])
+                            [3][0].slice(1)
+                            : "Fourth Strength"
+                          }
+                        )
+                      </label>
+                      <Textarea 
+                        placeholder="Describe how this strength shows up in your life..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        Three complementary strengths I value in others
+                      </label>
+                      <Textarea 
+                        placeholder="Describe strengths you appreciate in colleagues and teammates..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        What I uniquely bring to the team
+                      </label>
+                      <Textarea 
+                        placeholder="Describe your unique contribution to your team or organization..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-gray-200 p-4">
+                      <label className="block font-medium text-purple-700 mb-2">
+                        Current or future projects I'm really enthused about
+                      </label>
+                      <Textarea 
+                        placeholder="Describe projects that excite or inspire you..."
+                        className="w-full min-h-[100px]"
+                      />
+                    </div>
+                    
+                    <div className="flex justify-center mt-6">
+                      <Button className="bg-purple-600 hover:bg-purple-700">
+                        Save My Reflections
+                      </Button>
+                    </div>
                   </div>
-                </div>
-                
-                <p>
-                  Your Star Card will serve as a visual reminder of your unique strengths profile, helping you make better decisions about how to invest your time and energy.
-                </p>
+                )}
               </div>
               
               <div className="flex justify-between mt-6">
                 <Button 
-                  onClick={() => document.querySelector('[data-value="starcard"]')?.click()}
+                  onClick={() => !isTabDisabled("starcard") && handleTabChange("starcard")}
                   variant="outline"
+                  disabled={isTabDisabled("starcard")}
                 >
                   Previous: Your StarCard
                 </Button>
                 <Button 
-                  onClick={() => document.querySelector('[data-value="rounding"]')?.click()}
+                  onClick={() => !isTabDisabled("rounding") && handleTabChange("rounding")}
                   className="bg-indigo-700 hover:bg-indigo-800"
+                  disabled={isTabDisabled("rounding")}
                 >
                   Next: Rounding Out
                 </Button>
@@ -269,8 +508,9 @@ export default function Foundations() {
               
               <div className="flex justify-between mt-6">
                 <Button 
-                  onClick={() => document.querySelector('[data-value="reflect"]')?.click()}
+                  onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
                   variant="outline"
+                  disabled={isTabDisabled("reflect")}
                 >
                   Previous: Reflect
                 </Button>
