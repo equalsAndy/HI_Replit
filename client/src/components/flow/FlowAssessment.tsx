@@ -293,8 +293,8 @@ export default function FlowAssessment() {
           )}
         </div>
         
-        {/* Error message display */}
-        {error && (
+        {/* Error message display - hide when auto advance is on */}
+        {error && !autoAdvance && (
           <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200 text-red-600">
             {error}
           </div>
@@ -363,7 +363,9 @@ export default function FlowAssessment() {
           
           <Button 
             onClick={nextQuestion}
-            className="bg-indigo-700 hover:bg-indigo-800"
+            className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance ? 'opacity-50' : ''}`}
+            disabled={autoAdvance && currentValue > 0}
+            title={autoAdvance && currentValue > 0 ? "Next question will advance automatically" : ""}
           >
             {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
           </Button>
