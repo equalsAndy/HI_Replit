@@ -174,6 +174,48 @@ export default function Assessment() {
     option !== rankings.leastLikeMe
   );
   
+  // Function to place option in the next available slot
+  const placeOptionInNextAvailableSlot = (option: Option) => {
+    // Create a new rankings object to modify
+    const newRankings = { ...rankings };
+    
+    // Find if the option is already in a position
+    let optionPreviousPosition: keyof typeof rankings | null = null;
+    
+    Object.entries(rankings).forEach(([pos, rankedOption]) => {
+      if (rankedOption?.id === option.id) {
+        optionPreviousPosition = pos as keyof typeof rankings;
+      }
+    });
+    
+    // If option is already placed somewhere, remove it first
+    if (optionPreviousPosition) {
+      (newRankings as any)[optionPreviousPosition] = null;
+    }
+    
+    // Find the next available position
+    if (!newRankings.mostLikeMe) {
+      newRankings.mostLikeMe = option;
+    } else if (!newRankings.second) {
+      newRankings.second = option;
+    } else if (!newRankings.third) {
+      newRankings.third = option;
+    } else if (!newRankings.leastLikeMe) {
+      newRankings.leastLikeMe = option;
+    }
+    
+    // Update the state with all changes at once
+    setRankings(newRankings);
+  };
+  
+  // Handle click on an option
+  const handleOptionClick = (option: Option) => {
+    // Only handle click if there's an empty slot
+    if (!rankings.mostLikeMe || !rankings.second || !rankings.third || !rankings.leastLikeMe) {
+      placeOptionInNextAvailableSlot(option);
+    }
+  };
+  
   // Drag and drop functionality
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, option: Option) => {
     e.dataTransfer.setData('optionId', option.id);
@@ -419,7 +461,8 @@ export default function Assessment() {
                       key={option.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, option)}
-                      className="bg-gray-100 rounded-lg flex items-center justify-center aspect-square w-full md:w-[70%] md:mx-auto cursor-move hover:bg-gray-200 transition-colors shadow p-2"
+                      onClick={() => handleOptionClick(option)}
+                      className="bg-gray-100 rounded-lg flex items-center justify-center aspect-square w-full md:w-[70%] md:mx-auto cursor-pointer hover:bg-gray-200 transition-colors shadow p-2"
                     >
                       <p className="text-xs sm:text-sm text-center">{option.text}</p>
                     </div>
