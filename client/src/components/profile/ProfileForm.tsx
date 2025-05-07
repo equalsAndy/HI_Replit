@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ProfileData } from "@shared/schema";
+import AvatarUploader from "./AvatarUploader";
 
 interface ProfileFormProps {
   onCompleted: () => void;
@@ -16,13 +16,20 @@ interface ProfileFormProps {
 export default function ProfileForm({ onCompleted }: ProfileFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity
   });
 
-  const { register, handleSubmit, formState: { errors } } = useForm<ProfileData>({
+  useEffect(() => {
+    if (user?.avatarUrl) {
+      setAvatarUrl(user.avatarUrl);
+    }
+  }, [user]);
+
+  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ProfileData>({
     defaultValues: {
       name: user?.name || "",
       title: user?.title || "",
@@ -30,6 +37,11 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
       avatarUrl: user?.avatarUrl || ""
     }
   });
+
+  // Update the avatarUrl field when it changes
+  useEffect(() => {
+    setValue('avatarUrl', avatarUrl);
+  }, [avatarUrl, setValue]);
 
   const updateProfile = useMutation({
     mutationFn: async (data: ProfileData) => {
@@ -58,6 +70,10 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
     updateProfile.mutate(data);
   };
 
+  const handleAvatarChange = (base64Image: string) => {
+    setAvatarUrl(base64Image);
+  };
+
   if (isLoading) {
     return <div>Loading profile information...</div>;
   }
@@ -66,14 +82,12 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
     <div className="mb-4">
       <p className="text-sm mb-4">This information builds your Star Badge.</p>
       
-      <div className="flex items-center mb-4">
-        <div className="mr-4">
-          <p className="text-sm mb-1">Your Avatar:</p>
-          <Avatar className="h-16 w-16">
-            <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-            <AvatarFallback>{user?.name?.charAt(0) || "U"}</AvatarFallback>
-          </Avatar>
-        </div>
+      <div className="flex flex-col items-center mb-8">
+        <AvatarUploader 
+          currentAvatar={avatarUrl} 
+          onAvatarChange={handleAvatarChange} 
+        />
+        <p className="text-sm text-gray-500 mt-2">Click on avatar to upload or edit</p>
       </div>
       
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -107,12 +121,18 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
           {errors.organization && <p className="text-sm text-red-500">{errors.organization.message}</p>}
         </div>
         
+        {/* Hidden input for avatarUrl */}
+        <input 
+          type="hidden" 
+          {...register('avatarUrl')}
+        />
+        
         <Button 
           type="submit" 
-          className="bg-primary hover:bg-primary-dark text-white"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white w-full"
           disabled={updateProfile.isPending}
         >
-          {updateProfile.isPending ? "Saving..." : "Edit Profile"}
+          {updateProfile.isPending ? "Saving..." : "Save Profile"}
         </Button>
       </form>
     </div>
