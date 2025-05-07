@@ -163,10 +163,16 @@ export default function StarCard({
             />
             
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
-            <div className="absolute w-full" style={{ top: '50px' }}>
-              <p className="text-[1.125rem] font-bold text-gray-500">Imagination</p>
-              <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
-            </div>
+            {hasCompletedAssessment ? (
+              <div className="absolute w-full" style={{ top: '50px' }}>
+                <p className="text-[1.125rem] font-bold text-gray-500">{quadrantData.apexStrength || "Imagination"}</p>
+                <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
+              </div>
+            ) : (
+              <div className="absolute w-full" style={{ top: '50px' }}>
+                <p className="text-[0.785rem] text-gray-500 italic">Complete the assessment to see your Apex Strength</p>
+              </div>
+            )}
           </div>
         </div>
         
@@ -196,29 +202,45 @@ export default function StarCard({
             {/* Top Left - Position 3 (lowest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(1, 162, 82)' }}>
-              <p className="text-[10px] font-bold">{getQuadrantAtPosition(3)?.label || 'THINKING'}</p>
-              <p className="text-[10px] font-medium">{getQuadrantAtPosition(3)?.score ? normalizeScore(getQuadrantAtPosition(3)?.score || 0) : 0}%</p>
+              {hasCompletedAssessment && (
+                <>
+                  <p className="text-[10px] font-bold">{getQuadrantAtPosition(3)?.label || 'THINKING'}</p>
+                  <p className="text-[10px] font-medium">{getQuadrantAtPosition(3)?.score ? normalizeScore(getQuadrantAtPosition(3)?.score || 0) : 0}%</p>
+                </>
+              )}
             </div>
             
             {/* Top Right - Position 0 (highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(241, 64, 64)' }}>
-              <p className="text-[10px] font-bold">{getQuadrantAtPosition(0)?.label || 'ACTING'}</p>
-              <p className="text-[10px] font-medium">{getQuadrantAtPosition(0)?.score ? normalizeScore(getQuadrantAtPosition(0)?.score || 0) : 0}%</p>
+              {hasCompletedAssessment && (
+                <>
+                  <p className="text-[10px] font-bold">{getQuadrantAtPosition(0)?.label || 'ACTING'}</p>
+                  <p className="text-[10px] font-medium">{getQuadrantAtPosition(0)?.score ? normalizeScore(getQuadrantAtPosition(0)?.score || 0) : 0}%</p>
+                </>
+              )}
             </div>
             
             {/* Bottom Left - Position 2 (third highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(22, 126, 253)' }}>
-              <p className="text-[10px] font-bold">{getQuadrantAtPosition(2)?.label || 'FEELING'}</p>
-              <p className="text-[10px] font-medium">{getQuadrantAtPosition(2)?.score ? normalizeScore(getQuadrantAtPosition(2)?.score || 0) : 0}%</p>
+              {hasCompletedAssessment && (
+                <>
+                  <p className="text-[10px] font-bold">{getQuadrantAtPosition(2)?.label || 'FEELING'}</p>
+                  <p className="text-[10px] font-medium">{getQuadrantAtPosition(2)?.score ? normalizeScore(getQuadrantAtPosition(2)?.score || 0) : 0}%</p>
+                </>
+              )}
             </div>
             
             {/* Bottom Right - Position 1 (second highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(255, 203, 47)' }}>
-              <p className="text-[10px] font-bold">{getQuadrantAtPosition(1)?.label || 'PLANNING'}</p>
-              <p className="text-[10px] font-medium">{getQuadrantAtPosition(1)?.score ? normalizeScore(getQuadrantAtPosition(1)?.score || 0) : 0}%</p>
+              {hasCompletedAssessment && (
+                <>
+                  <p className="text-[10px] font-bold">{getQuadrantAtPosition(1)?.label || 'PLANNING'}</p>
+                  <p className="text-[10px] font-medium">{getQuadrantAtPosition(1)?.score ? normalizeScore(getQuadrantAtPosition(1)?.score || 0) : 0}%</p>
+                </>
+              )}
             </div>
           </div>
           
