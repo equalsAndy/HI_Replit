@@ -122,10 +122,10 @@ export default function StarCard({
               style={{ height: '80px' }}
             />
             
-            {/* Text positioned below cloud image - moved up 5px */}
-            <div className="absolute w-full" style={{ top: '55px' }}>
-              <p className="text-xl font-bold text-gray-500">Imagination</p>
-              <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
+            {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
+            <div className="absolute w-full" style={{ top: '50px' }}>
+              <p className="text-[1.125rem] font-bold text-gray-500">Imagination</p>
+              <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
             </div>
           </div>
         </div>
