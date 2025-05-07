@@ -475,6 +475,9 @@ export default function UserHome() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span className="text-indigo-700 font-medium">Visualize Yourself</span>
+                  {user.progress >= 90 && (
+                    <span className="ml-2 text-green-500 font-bold">✓</span>
+                  )}
                 </div>
                 {expandedSection === "visualize" ? (
                   <MinusIcon className="h-5 w-5 text-indigo-600" />
@@ -507,6 +510,9 @@ export default function UserHome() {
                 <div className="flex items-center">
                   <ClipboardIcon className="h-5 w-5 text-indigo-600 mr-2" />
                   <span className="text-indigo-700 font-medium">Review your Star Report</span>
+                  {user.progress >= 100 && (
+                    <span className="ml-2 text-green-500 font-bold">✓</span>
+                  )}
                 </div>
                 {expandedSection === "report" ? (
                   <MinusIcon className="h-5 w-5 text-indigo-600" />

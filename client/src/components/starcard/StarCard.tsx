@@ -39,10 +39,11 @@ export default function StarCard({
   
   // Determine if assessment is completed - all scores must be greater than 0
   const hasCompletedAssessment = useMemo(() => {
+    // Check if any value is greater than 0, which indicates assessment is completed
     return (
-      (quadrantData?.thinking || 0) > 0 &&
-      (quadrantData?.acting || 0) > 0 &&
-      (quadrantData?.feeling || 0) > 0 &&
+      (quadrantData?.thinking || 0) > 0 ||
+      (quadrantData?.acting || 0) > 0 ||
+      (quadrantData?.feeling || 0) > 0 ||
       (quadrantData?.planning || 0) > 0
     );
   }, [quadrantData]);
