@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon } from "lucide-react";
+import StarCard from "@/components/starcard/StarCard";
 
 export default function UserHome() {
   const [location, navigate] = useLocation();
@@ -393,56 +394,27 @@ export default function UserHome() {
                 Star Card for use in the whiteboard activities.
               </p>
               
-              <div className="border border-gray-200 rounded-md p-4">
-                <h3 className="text-center font-bold text-lg mb-4">Star Card</h3>
+              <div className="flex flex-col items-center">
+                {user && (
+                  <StarCard 
+                    profile={{
+                      name: user.name || '',
+                      title: user.title || '',
+                      organization: user.organization || ''
+                    }}
+                    quadrantData={{
+                      thinking: starCard?.thinking || 0,
+                      acting: starCard?.acting || 0,
+                      feeling: starCard?.feeling || 0,
+                      planning: starCard?.planning || 0,
+                      apexStrength: starCard?.apexStrength || 'Imagination'
+                    }}
+                    downloadable={false}
+                    preview={true}
+                  />
+                )}
                 
-                <div className="flex items-center mb-4">
-                  <div className="bg-gray-200 rounded-full h-12 w-12 flex items-center justify-center mr-3">
-                    <UserIcon className="h-6 w-6 text-gray-400" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Name: {user?.name || 'Your Name'}</p>
-                    <p className="text-sm text-gray-600">Title: {user?.title || 'title'}</p>
-                    <p className="text-sm text-gray-600">Organization: {user?.organization || 'company'}</p>
-                  </div>
-                </div>
-                
-                <div className="flex flex-col items-center mb-4">
-                  <p className="text-sm text-gray-600 text-center mb-1">Imagination</p>
-                  <p className="text-xs text-gray-500 text-center mb-3">Your Apex Strength</p>
-                  
-                  <div className="relative w-16 h-16">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="rounded-full border-2 border-gray-300 w-14 h-14 flex items-center justify-center">
-                        <StarIcon className="h-8 w-8 text-gray-300" />
-                      </div>
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="text-xs text-gray-500">Core</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-1 mb-6">
-                  <div className="bg-gray-200 p-2 text-center">
-                    <p className="text-xs font-bold">THINKING</p>
-                    <p className="text-xs">{starCard?.thinking || 0}%</p>
-                  </div>
-                  <div className="bg-gray-200 p-2 text-center">
-                    <p className="text-xs font-bold">ACTING</p>
-                    <p className="text-xs">{starCard?.acting || 0}%</p>
-                  </div>
-                  <div className="bg-gray-200 p-2 text-center">
-                    <p className="text-xs font-bold">PLANNING</p>
-                    <p className="text-xs">{starCard?.planning || 0}%</p>
-                  </div>
-                  <div className="bg-gray-200 p-2 text-center">
-                    <p className="text-xs font-bold">FEELING</p>
-                    <p className="text-xs">{starCard?.feeling || 0}%</p>
-                  </div>
-                </div>
-                
-                <div className="flex justify-center">
+                <div className="mt-4">
                   <img 
                     src="/src/assets/all-star-teams-logo-250px.png" 
                     alt="AllStarTeams" 
