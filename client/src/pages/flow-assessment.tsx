@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import MainContainer from "@/components/layout/MainContainer";
-import FlowAssessment from "@/components/flow/FlowAssessment";
+import FlowAssessmentSimple from "@/components/flow/FlowAssessmentSimple";
 
 export default function FlowAssessmentPage() {
   // Get user profile
@@ -38,7 +38,7 @@ export default function FlowAssessmentPage() {
       </div>
       
       <div className="flex flex-col gap-6">
-        <FlowAssessment />
+        <FlowAssessmentSimple />
         
         <div className="flex space-x-3 mt-6">
           <Link href="/user-home">
