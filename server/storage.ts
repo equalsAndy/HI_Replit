@@ -4,11 +4,23 @@ import {
   Question, InsertQuestion,
   Answer, InsertAnswer,
   StarCard, InsertStarCard,
-  AssessmentResult, QuadrantData
+  AssessmentResult, QuadrantData,
+  FlowAttributes, InsertFlowAttributes,
+  Visualization, InsertVisualization
 } from "@shared/schema";
 import { nanoid } from 'nanoid';
+import { db } from './db';
+import { eq, and } from 'drizzle-orm';
+import * as schema from '@shared/schema';
+import connectPg from 'connect-pg-simple';
+import session from 'express-session';
+import { Pool } from '@neondatabase/serverless';
+import createMemoryStore from 'memorystore';
 
 export interface IStorage {
+  // For authentication
+  sessionStore: any; // session.Store type
+  
   // User operations
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -29,6 +41,16 @@ export interface IStorage {
   getStarCard(userId: number): Promise<StarCard | undefined>;
   createStarCard(starCard: InsertStarCard): Promise<StarCard>;
   updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined>;
+  
+  // Flow Attributes operations
+  getFlowAttributes(userId: number): Promise<FlowAttributes | undefined>;
+  createFlowAttributes(flowAttributes: InsertFlowAttributes): Promise<FlowAttributes>;
+  updateFlowAttributes(id: number, flowAttributesData: Partial<FlowAttributes>): Promise<FlowAttributes | undefined>;
+  
+  // Visualization operations
+  getVisualization(userId: number): Promise<Visualization | undefined>;
+  createVisualization(visualization: InsertVisualization): Promise<Visualization>;
+  updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -37,23 +59,38 @@ export class MemStorage implements IStorage {
   private questions: Map<number, Question>;
   private answers: Map<number, Answer>;
   private starCards: Map<number, StarCard>;
+  private flowAttributes: Map<number, FlowAttributes>;
+  private visualizations: Map<number, Visualization>;
   private currentUserId: number;
   private currentAssessmentId: number;
   private currentQuestionId: number;
   private currentAnswerId: number;
   private currentStarCardId: number;
-
+  private currentFlowAttributesId: number;
+  private currentVisualizationId: number;
+  public sessionStore: any;
+  
   constructor() {
     this.users = new Map();
     this.assessments = new Map();
     this.questions = new Map();
     this.answers = new Map();
     this.starCards = new Map();
+    this.flowAttributes = new Map();
+    this.visualizations = new Map();
     this.currentUserId = 1;
     this.currentAssessmentId = 1;
     this.currentQuestionId = 1;
     this.currentAnswerId = 1;
     this.currentStarCardId = 1;
+    this.currentFlowAttributesId = 1;
+    this.currentVisualizationId = 1;
+    
+    // Session store for in-memory storage
+    const MemoryStore = createMemoryStore(session);
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // Prune expired entries every 24h
+    });
     
     // Initialize with demo questions
     this.initializeQuestions();
@@ -144,6 +181,68 @@ export class MemStorage implements IStorage {
     const updatedStarCard = { ...starCard, ...starCardData };
     this.starCards.set(id, updatedStarCard);
     return updatedStarCard;
+  }
+  
+  async getFlowAttributes(userId: number): Promise<FlowAttributes | undefined> {
+    return Array.from(this.flowAttributes.values()).find(
+      (flowAttribute) => flowAttribute.userId === userId
+    );
+  }
+
+  async createFlowAttributes(insertFlowAttributes: InsertFlowAttributes): Promise<FlowAttributes> {
+    const id = this.currentFlowAttributesId++;
+    const flowAttributes: FlowAttributes = { 
+      ...insertFlowAttributes, 
+      id, 
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.flowAttributes.set(id, flowAttributes);
+    return flowAttributes;
+  }
+
+  async updateFlowAttributes(id: number, flowAttributesData: Partial<FlowAttributes>): Promise<FlowAttributes | undefined> {
+    const flowAttributes = this.flowAttributes.get(id);
+    if (!flowAttributes) return undefined;
+    
+    const updatedFlowAttributes = { 
+      ...flowAttributes, 
+      ...flowAttributesData,
+      updatedAt: new Date()
+    };
+    this.flowAttributes.set(id, updatedFlowAttributes);
+    return updatedFlowAttributes;
+  }
+  
+  async getVisualization(userId: number): Promise<Visualization | undefined> {
+    return Array.from(this.visualizations.values()).find(
+      (visualization) => visualization.userId === userId
+    );
+  }
+
+  async createVisualization(insertVisualization: InsertVisualization): Promise<Visualization> {
+    const id = this.currentVisualizationId++;
+    const visualization: Visualization = { 
+      ...insertVisualization, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.visualizations.set(id, visualization);
+    return visualization;
+  }
+
+  async updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined> {
+    const visualization = this.visualizations.get(id);
+    if (!visualization) return undefined;
+    
+    const updatedVisualization = { 
+      ...visualization, 
+      ...visualizationData,
+      updatedAt: new Date()
+    };
+    this.visualizations.set(id, updatedVisualization);
+    return updatedVisualization;
   }
 
   private initializeQuestions() {

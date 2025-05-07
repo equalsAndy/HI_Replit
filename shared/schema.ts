@@ -45,6 +45,7 @@ export const starCards = pgTable("star_cards", {
   feeling: integer("feeling").default(0),
   planning: integer("planning").default(0),
   createdAt: text("created_at"),
+  imageUrl: text("image_url"),
 });
 
 export const flowAttributes = pgTable("flow_attributes", {
@@ -169,6 +170,7 @@ export const insertStarCardSchema = createInsertSchema(starCards).pick({
   feeling: true,
   planning: true,
   createdAt: true,
+  imageUrl: true,
 });
 
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({

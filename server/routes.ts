@@ -1,4 +1,5 @@
 import type { Express, Request, Response } from "express";
+import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -10,8 +11,103 @@ import {
   QuadrantData
 } from "@shared/schema";
 import { z } from "zod";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
+import { nanoid } from "nanoid";
+
+// Set up uploads directory
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Configure multer for file uploads
+const storage2 = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir);
+  },
+  filename: (req, file, cb) => {
+    const fileExt = path.extname(file.originalname);
+    const uniqueId = nanoid(10);
+    cb(null, `${uniqueId}${fileExt}`);
+  }
+});
+
+const upload = multer({
+  storage: storage2,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed') as any);
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Serve static files from the uploads directory
+  app.use('/uploads', express.static(uploadsDir));
+  
+  // File upload endpoint for star card image
+  app.post('/api/upload/starcard', upload.single('image'), async (req: Request, res: Response) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+      
+      // Get user ID
+      let userId: number;
+      try {
+        userId = parseInt(req.cookies.userId || req.query.userId as string);
+      } catch (e) {
+        userId = 1; // Default for development
+      }
+      
+      if (!userId) {
+        userId = 1; // Default for development
+      }
+      
+      // Generate the URL for the uploaded image
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+      
+      // Check if the user has a star card
+      const starCard = await storage.getStarCard(userId);
+      
+      if (starCard) {
+        // Update the existing star card with the new image URL
+        await storage.updateStarCard(starCard.id, { imageUrl });
+      } else {
+        // Create a new star card with default values and the image URL
+        await storage.createStarCard({
+          userId,
+          thinking: 25,
+          acting: 25,
+          feeling: 25, 
+          planning: 25,
+          apexStrength: "Balanced",
+          imageUrl,
+          createdAt: new Date().toISOString()
+        });
+      }
+      
+      res.status(200).json({ 
+        success: true, 
+        imageUrl,
+        message: 'Image uploaded successfully'
+      });
+    } catch (error) {
+      console.error('Error uploading image:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to upload image' 
+      });
+    }
+  });
   // Auth endpoints
   app.post("/api/auth/register", async (req: Request, res: Response) => {
     try {
