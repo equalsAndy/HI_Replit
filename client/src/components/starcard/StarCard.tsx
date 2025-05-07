@@ -33,10 +33,10 @@ export default function StarCard({
   const sortedQuadrants = useMemo(() => {
     // Create array of quadrant objects with initial properties
     const quadrants: QuadrantInfo[] = [
-      { key: 'thinking', label: 'THINKING', color: 'bg-green-500', score: quadrantData?.thinking || 0, position: 0 },
-      { key: 'acting', label: 'ACTING', color: 'bg-red-500', score: quadrantData?.acting || 0, position: 0 },
-      { key: 'feeling', label: 'FEELING', color: 'bg-blue-500', score: quadrantData?.feeling || 0, position: 0 },
-      { key: 'planning', label: 'PLANNING', color: 'bg-yellow-500', score: quadrantData?.planning || 0, position: 0 }
+      { key: 'thinking', label: 'THINKING', color: 'bg-blue-500', score: quadrantData?.thinking || 0, position: 0 },
+      { key: 'acting', label: 'ACTING', color: 'bg-orange-500', score: quadrantData?.acting || 0, position: 0 },
+      { key: 'feeling', label: 'FEELING', color: 'bg-yellow-500', score: quadrantData?.feeling || 0, position: 0 },
+      { key: 'planning', label: 'PLANNING', color: 'bg-green-500', score: quadrantData?.planning || 0, position: 0 }
     ];
     
     // Sort by score in descending order
@@ -103,9 +103,9 @@ export default function StarCard({
             )}
           </div>
           <div>
-            <p className="font-medium text-gray-800">Name: {profile.name || 'User'}</p>
-            <p className="text-sm text-gray-600">Title: {profile.title || 'Title'}</p>
-            <p className="text-sm text-gray-600">Organization: {profile.organization || 'Company'}</p>
+            <p className="font-medium text-gray-800">{profile.name || 'Your Name'}</p>
+            <p className="text-sm text-gray-600">Title: {profile.title || 'Your Title'}</p>
+            <p className="text-sm text-gray-600">Organization: {profile.organization || 'Your Organization'}</p>
           </div>
         </div>
         
@@ -115,18 +115,45 @@ export default function StarCard({
           <p className="text-xs text-gray-500 italic">Your Apex Strength</p>
         </div>
         
-        {/* Star and Core */}
-        <div className="flex items-center justify-center relative mb-8">
-          <div className="h-20 w-20 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white z-10">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+        {/* Star and Core - Adjusted to match example */}
+        <div className="flex flex-col items-center justify-center relative mb-8">
+          <div className="mb-4">
+            <p className="text-sm text-gray-700 font-semibold mb-2">Flow</p>
+            <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+              <span className="text-sm font-bold">1</span>
+            </div>
           </div>
-          <p className="absolute text-xs text-gray-500 mt-24">Core</p>
+          
+          <div className="flex items-center justify-center mb-4">
+            <div className="mr-4">
+              <p className="text-sm text-gray-700 font-semibold mb-2 text-center">4</p>
+              <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300"></div>
+            </div>
+            
+            <div className="h-20 w-20 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white z-10 mx-4">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            
+            <div className="ml-4">
+              <p className="text-sm text-gray-700 font-semibold mb-2 text-center">1</p>
+              <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300"></div>
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-700 font-semibold mb-2">3</p>
+            <div className="h-8 w-8 bg-gray-200 rounded border border-gray-300 flex items-center justify-center">
+              <span className="text-sm font-bold">2</span>
+            </div>
+          </div>
+          
+          <p className="text-xs text-gray-500 italic mt-2">Core</p>
         </div>
         
         {/* Quadrants in order of strength */}
-        <div className="grid grid-cols-2 gap-2 mb-6">
+        <div className="relative grid grid-cols-2 gap-2 mb-6 max-w-[250px] mx-auto">
           {/* Top Right - Highest score */}
           {getQuadrantAtPosition(0) && (
             <div className={`${getQuadrantAtPosition(0)?.color} text-white p-3 flex flex-col items-center justify-center aspect-square`}>
@@ -158,6 +185,10 @@ export default function StarCard({
               <p className="text-sm font-medium mt-1">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
             </div>
           )}
+          
+          {/* Optional: Add lines connecting squares to center */}
+          <div className="absolute left-1/2 top-1/2 w-px h-full bg-gray-200 -z-10 transform -translate-x-1/2 -translate-y-1/2"></div>
+          <div className="absolute left-0 top-1/2 w-full h-px bg-gray-200 -z-10 transform -translate-y-1/2"></div>
         </div>
         
         {/* Logo */}
