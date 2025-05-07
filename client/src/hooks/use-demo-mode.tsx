@@ -1,17 +1,17 @@
-import { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 type DemoModeContextType = {
   isDemoMode: boolean;
   toggleDemoMode: () => void;
 };
 
-const DemoModeContext = createContext<DemoModeContextType | null>(null);
+const DemoModeContext = createContext<DemoModeContextType | undefined>(undefined);
 
 export function DemoModeProvider({ children }: { children: ReactNode }) {
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
 
   const toggleDemoMode = () => {
-    setIsDemoMode(prev => !prev);
+    setIsDemoMode((prev) => !prev);
   };
 
   return (
@@ -21,10 +21,12 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useDemoMode() {
+export function useDemoMode(): DemoModeContextType {
   const context = useContext(DemoModeContext);
-  if (!context) {
+  
+  if (context === undefined) {
     throw new Error('useDemoMode must be used within a DemoModeProvider');
   }
+  
   return context;
 }

@@ -8,6 +8,7 @@ import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } fro
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import MainContainer from '@/components/layout/MainContainer';
+import { useDemoMode } from '@/hooks/use-demo-mode';
 
 // Define question types - match the types from data file
 type Option = AssessmentOption;
@@ -22,6 +23,7 @@ export default function Assessment() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isDemoMode } = useDemoMode();
   
   // Current question state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -327,6 +329,44 @@ export default function Assessment() {
     setShowResultsPopup(false);
     navigate('/report');
   };
+  
+  // Auto-complete the assessment with random answers for demo purposes
+  const autoCompleteAssessment = () => {
+    const newAnswers: {[key: number]: RankedOption[]} = {};
+    
+    // Generate random answers for all questions
+    assessmentQuestions.forEach(question => {
+      // Create a copy of the options array
+      const options = [...question.options];
+      
+      // Shuffle the options randomly
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      
+      // Create ranking data
+      const rankingData: RankedOption[] = [
+        { optionId: options[0].id, rank: 1 },
+        { optionId: options[1].id, rank: 2 },
+        { optionId: options[2].id, rank: 3 },
+        { optionId: options[3].id, rank: 4 }
+      ];
+      
+      newAnswers[question.id] = rankingData;
+    });
+    
+    // Set all answers at once
+    setAnswers(newAnswers);
+    
+    // Complete the assessment
+    completeAssessment.mutate();
+    
+    toast({
+      title: "Assessment Auto-Completed",
+      description: "Demo mode has auto-completed the assessment with random answers."
+    });
+  };
 
   return (
     <MainContainer showStepNavigation={false} className="bg-gray-50">
@@ -428,6 +468,18 @@ export default function Assessment() {
               ></div>
             </div>
           </div>
+          
+          {/* Auto-complete button (visible only in demo mode) */}
+          {isDemoMode && (
+            <Button 
+              onClick={autoCompleteAssessment}
+              variant="outline"
+              size="sm"
+              className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
+            >
+              Auto-Complete
+            </Button>
+          )}
         </div>
         
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3">
