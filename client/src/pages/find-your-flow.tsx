@@ -557,23 +557,42 @@ export default function FindYourFlow() {
                 <h3 className="text-lg font-semibold mb-4">Your StarCard</h3>
                 {user && starCard && (
                   <div className="pb-10 flex justify-center">
-                    <StarCard 
-                      profile={{
-                        name: user.name || '',
-                        title: user.title || '',
-                        organization: user.organization || ''
-                      }}
-                      quadrantData={{
-                        thinking: starCard.thinking || 0,
-                        acting: starCard.acting || 0,
-                        feeling: starCard.feeling || 0,
-                        planning: starCard.planning || 0,
-                        apexStrength: starCard.apexStrength || ''
-                      }}
-                      flowAttributes={starCardFlowAttributes}
-                      downloadable={false}
-                      preview={true}
-                    />
+                    <div className="flex flex-col items-center">
+                      <StarCard 
+                        profile={{
+                          name: user.name || '',
+                          title: user.title || '',
+                          organization: user.organization || ''
+                        }}
+                        quadrantData={{
+                          thinking: starCard.thinking || 0,
+                          acting: starCard.acting || 0,
+                          feeling: starCard.feeling || 0,
+                          planning: starCard.planning || 0,
+                          apexStrength: starCard.apexStrength || ''
+                        }}
+                        flowAttributes={starCardFlowAttributes}
+                        downloadable={false}
+                        preview={true}
+                      />
+                      
+                      {starCardFlowAttributes.length > 0 && (
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="mt-3 text-xs text-gray-500 hover:text-red-600"
+                          onClick={() => {
+                            setStarCardFlowAttributes([]);
+                            toast({
+                              title: "Flow attributes cleared",
+                              description: "All flow attributes have been removed from your StarCard."
+                            });
+                          }}
+                        >
+                          Clear Flow Attributes
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 )}
                 {(userLoading || starCardLoading) && (
@@ -601,7 +620,19 @@ export default function FindYourFlow() {
                     
                     {/* Selected attributes with drag and drop */}
                     <div className="mb-4">
-                      <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
+                      <div className="flex justify-between items-center mb-2">
+                        <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
+                        {selectedAttributes.filter(attr => attr.rank !== null).length > 0 && (
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="h-7 text-xs text-gray-500 hover:text-red-600"
+                            onClick={() => setSelectedAttributes([])}
+                          >
+                            Clear All
+                          </Button>
+                        )}
+                      </div>
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext 
                           sensors={sensors}
