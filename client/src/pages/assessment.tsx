@@ -314,7 +314,7 @@ export default function Assessment() {
                       key={option.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, option)}
-                      className="bg-gray-200 p-2 rounded-lg text-center flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-300 transition-colors shadow"
+                      className="bg-gray-100 p-2 rounded-lg text-center flex items-center justify-center aspect-square w-full cursor-move hover:bg-gray-200 transition-colors shadow"
                     >
                       <p className="text-xs sm:text-sm">{option.text}</p>
                     </div>
@@ -366,7 +366,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.second as Option)}
-                      className="w-full h-full flex items-center justify-center bg-blue-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-purple-100 rounded-md cursor-move"
                     >
                       <p className="text-xs sm:text-sm text-center p-1">{rankings.second.text}</p>
                     </div>
@@ -381,9 +381,9 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'third')}
-                  className={`border-2 border-dashed rounded-lg p-2 h-16 sm:h-20 w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.third 
-                      ? 'border-transparent bg-yellow-100' 
+                      ? 'border-transparent bg-teal-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
@@ -391,7 +391,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.third as Option)}
-                      className="w-full h-full flex items-center justify-center bg-yellow-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-teal-100 rounded-md cursor-move"
                     >
                       <p className="text-xs sm:text-sm text-center p-1">{rankings.third.text}</p>
                     </div>
@@ -406,9 +406,9 @@ export default function Assessment() {
                 <div 
                   onDragOver={handleDragOver}
                   onDrop={(e) => handleDrop(e, 'leastLikeMe')}
-                  className={`border-2 border-dashed rounded-lg p-2 h-16 sm:h-20 w-full flex items-center justify-center transition-colors ${
+                  className={`border-2 border-dashed rounded-lg p-2 aspect-square w-full flex items-center justify-center transition-colors ${
                     rankings.leastLikeMe 
-                      ? 'border-transparent bg-red-100' 
+                      ? 'border-transparent bg-rose-100' 
                       : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
                   }`}
                 >
@@ -416,7 +416,7 @@ export default function Assessment() {
                     <div 
                       draggable
                       onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
-                      className="w-full h-full flex items-center justify-center bg-red-100 rounded-md cursor-move"
+                      className="w-full h-full flex items-center justify-center bg-rose-100 rounded-md cursor-move"
                     >
                       <p className="text-xs sm:text-sm text-center p-1">{rankings.leastLikeMe.text}</p>
                     </div>
@@ -432,7 +432,7 @@ export default function Assessment() {
           <div className="flex justify-end">
             <Button 
               onClick={handleContinue}
-              className={`px-8 ${currentQuestionIndex === totalQuestions - 1 ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
+              className={`px-8 ${currentQuestionIndex === totalQuestions - 1 ? 'bg-teal-600 hover:bg-teal-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
               disabled={!rankings.mostLikeMe || !rankings.second || !rankings.third || !rankings.leastLikeMe}
             >
               {currentQuestionIndex === totalQuestions - 1 ? 'Complete' : 'Continue'}
