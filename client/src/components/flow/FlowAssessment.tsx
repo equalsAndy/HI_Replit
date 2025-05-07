@@ -79,6 +79,12 @@ export default function FlowAssessment() {
   
   // Handle slider change
   const handleSliderChange = (questionId: number, value: number[]) => {
+    // If the user clicks the same value that's already selected, don't change it
+    // This prevents the "reset to 3" behavior when clicking the same option
+    if (answers[questionId] === value[0]) {
+      return;
+    }
+    
     setAnswers(prev => ({
       ...prev,
       [questionId]: value[0]
@@ -97,6 +103,12 @@ export default function FlowAssessment() {
   
   // Handle quick selection of default (3 - Sometimes)
   const handleQuickSelect = (questionId: number) => {
+    // If the user clicks the same value, don't change it
+    if (answers[questionId] === 3) {
+      return;
+    }
+    
+    // Set the answer to 3 (Sometimes)
     setAnswers(prev => ({
       ...prev,
       [questionId]: 3
@@ -213,20 +225,46 @@ export default function FlowAssessment() {
               
               {/* Circle markers - perfectly aligned on the track */}
               <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <div
-                    key={value}
-                    onClick={() => handleSliderChange(question.id, [value])}
-                    className={`
-                      cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
-                      ${value <= currentValue 
-                        ? 'bg-indigo-600 text-white shadow-md transform hover:scale-110 transition-transform' 
-                        : 'bg-white border-2 border-gray-300 hover:border-indigo-300 transition-colors'}
-                    `}
-                  >
-                    <span className="text-xs font-medium">{value}</span>
-                  </div>
-                ))}
+                {[1, 2, 3, 4, 5].map((value) => {
+                  // Only trigger auto-advance if selecting a new value
+                  const handleClick = () => {
+                    if (answers[question.id] === value) {
+                      // If clicking the same value, don't do anything
+                      return;
+                    }
+                    
+                    // Update the answer
+                    setAnswers(prev => ({
+                      ...prev,
+                      [question.id]: value
+                    }));
+                    
+                    // Clear any error message
+                    setError(null);
+                    
+                    // Auto advance if enabled
+                    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
+                      setTimeout(() => {
+                        nextQuestion();
+                      }, 700); // Delay to see selection
+                    }
+                  };
+                  
+                  return (
+                    <div
+                      key={value}
+                      onClick={handleClick}
+                      className={`
+                        cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
+                        ${value <= currentValue 
+                          ? 'bg-indigo-600 text-white shadow-md transform hover:scale-110 transition-transform' 
+                          : 'bg-white border-2 border-gray-300 hover:border-indigo-300 transition-colors'}
+                      `}
+                    >
+                      <span className="text-xs font-medium">{value}</span>
+                    </div>
+                  );
+                })}
               </div>
               
               {/* Custom animated thumb */}
