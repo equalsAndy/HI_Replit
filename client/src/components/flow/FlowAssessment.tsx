@@ -91,6 +91,21 @@ export default function FlowAssessment() {
     }
   };
   
+  // Handle quick selection of default (3 - Sometimes)
+  const handleQuickSelect = (questionId: number) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: 3
+    }));
+    
+    // Auto advance to next question after a short delay if enabled
+    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
+      setTimeout(() => {
+        nextQuestion();
+      }, 700); // delay to give user time to see their selection
+    }
+  };
+  
   // Handle submit
   const handleSubmit = () => {
     setShowResult(true);
@@ -111,7 +126,7 @@ export default function FlowAssessment() {
   };
   
   // Move to previous question
-  const prevQuestion = () => {
+  const goToPrevQuestion = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(prev => prev - 1);
     }
@@ -129,9 +144,13 @@ export default function FlowAssessment() {
     }
   };
   
-  // Get current question
+  // Get current question and previous question
   const question = flowQuestions[currentQuestion];
   const currentValue = answers[question.id] || 3;
+  
+  // Get previous question for display
+  const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
+  const prevAnswer = previousQuestion ? answers[previousQuestion.id] || 0 : 0;
   
   return (
     <div className="space-y-6">
@@ -163,6 +182,16 @@ export default function FlowAssessment() {
               <span>4 - Often</span>
               <span>5 - Always</span>
             </div>
+          </div>
+          
+          <div className="flex justify-center mb-4">
+            <button 
+              onClick={() => handleQuickSelect(question.id)}
+              className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-indigo-400 text-indigo-600 hover:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              title="Click to select default answer (3 - Sometimes)"
+            >
+              <span className="text-sm font-semibold">3</span>
+            </button>
           </div>
           
           <p className="text-center font-semibold mt-4">
@@ -198,10 +227,20 @@ export default function FlowAssessment() {
           </div>
         </div>
 
+        {previousQuestion && (
+          <div className="mb-4 bg-gray-50 p-3 rounded-md border border-gray-200">
+            <p className="text-xs text-gray-500 mb-1">Previous Question:</p>
+            <p className="text-xs text-gray-700 mb-1">{previousQuestion.text}</p>
+            {prevAnswer > 0 && (
+              <p className="text-xs font-medium text-indigo-600">Your answer: {valueToLabel(prevAnswer)}</p>
+            )}
+          </div>
+        )}
+
         <div className="flex justify-between">
           <Button 
             variant="outline" 
-            onClick={prevQuestion}
+            onClick={goToPrevQuestion}
             disabled={currentQuestion === 0}
           >
             Previous
