@@ -557,6 +557,7 @@ export default function FindYourFlow() {
                         planning: starCard.planning || 0,
                         apexStrength: starCard.apexStrength || ''
                       }}
+                      flowAttributes={starCardFlowAttributes}
                       downloadable={false}
                       preview={true}
                     />
