@@ -188,21 +188,33 @@ export default function Assessment() {
     const option = currentQuestion.options.find(opt => opt.id === optionId);
     
     if (option) {
-      // Check if the option is already ranked
-      Object.entries(rankings).forEach(([pos, currentOption]) => {
-        if (currentOption?.id === option.id) {
-          setRankings(prev => ({
-            ...prev,
-            [pos]: null
-          }));
+      // First, save what was previously in the dropped position
+      const previousOption = rankings[position];
+      
+      // Create a new rankings object to modify
+      const newRankings = { ...rankings };
+      
+      // Find if the dropped option was already in any position
+      let optionPreviousPosition: keyof typeof rankings | null = null;
+      
+      Object.entries(rankings).forEach(([pos, rankedOption]) => {
+        if (rankedOption?.id === option.id) {
+          optionPreviousPosition = pos as keyof typeof rankings;
         }
       });
       
-      // Set the option in the dropped position
-      setRankings(prev => ({
-        ...prev,
-        [position]: option
-      }));
+      // If the option is already ranked somewhere, swap positions
+      if (optionPreviousPosition) {
+        // Put the previous option from the drop target into the spot where the dragged option came from
+        // Need to cast to avoid type errors
+        newRankings[optionPreviousPosition] = previousOption as (Option | null);
+      }
+      
+      // Place the dragged option in the drop target
+      newRankings[position] = option;
+      
+      // Update the state with all changes at once
+      setRankings(newRankings);
     }
     
     setDraggedOption(null);
@@ -418,7 +430,7 @@ export default function Assessment() {
                       onDragStart={(e) => handleDragStart(e, rankings.leastLikeMe as Option)}
                       className="w-full h-full flex items-center justify-center bg-rose-100 rounded-lg cursor-move p-2"
                     >
-                      <p className="text-xs sm:text-sm text-center p-1">{rankings.leastLikeMe.text}</p>
+                      <p className="text-xs sm:text-sm text-center">{rankings.leastLikeMe.text}</p>
                     </div>
                   ) : (
                     <p className="text-gray-400 text-xs text-center">Drop here</p>
