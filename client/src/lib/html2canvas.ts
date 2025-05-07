@@ -1,33 +1,38 @@
 import html2canvas from 'html2canvas';
 
+/**
+ * Converts an HTML element to an image and triggers a download
+ * @param element The HTML element to capture
+ * @param filename The filename to save the image as
+ */
 export async function downloadElementAsImage(
-  elementId: string,
+  element: HTMLElement,
   filename: string = 'download.png'
 ): Promise<void> {
   try {
-    const element = document.getElementById(elementId);
-    if (!element) {
-      throw new Error(`Element with ID '${elementId}' not found`);
-    }
-
-    // Create a canvas from the element
+    // Create canvas from the element
     const canvas = await html2canvas(element, {
-      backgroundColor: '#ffffff',
+      backgroundColor: null,
       scale: 2, // Higher scale for better quality
       logging: false,
-      useCORS: true
+      useCORS: true,
+      allowTaint: true,
     });
 
     // Convert canvas to data URL
     const dataUrl = canvas.toDataURL('image/png');
     
-    // Create a link element and trigger download
+    // Create download link
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataUrl;
+    
+    // Trigger download
+    document.body.appendChild(link);
     link.click();
+    document.body.removeChild(link);
   } catch (error) {
-    console.error('Error downloading image:', error);
+    console.error('Error creating image:', error);
     throw error;
   }
 }
