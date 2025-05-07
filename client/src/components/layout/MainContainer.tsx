@@ -2,11 +2,13 @@ import { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import StepNavigation from "./StepNavigation";
+import Header from "./Header";
 
 interface MainContainerProps {
   children: ReactNode;
   stepId?: string;
   showStepNavigation?: boolean;
+  showHeader?: boolean;
   className?: string;
 }
 
@@ -22,6 +24,7 @@ export default function MainContainer({
   children, 
   stepId, 
   showStepNavigation = true,
+  showHeader = true,
   className = ""
 }: MainContainerProps) {
   const [location] = useLocation();
@@ -33,19 +36,23 @@ export default function MainContainer({
   });
   
   return (
-    <main className={`flex-1 ${className}`}>
-      {showStepNavigation && stepId && (
-        <div className="bg-gray-50 border-b border-gray-200">
-          <div className="container mx-auto px-4">
-            <StepNavigation steps={steps} currentStepId={stepId} />
-          </div>
-        </div>
-      )}
+    <div className="flex flex-col min-h-screen">
+      {showHeader && <Header />}
       
-      <div className="container mx-auto px-4 py-6">
-        {children}
-      </div>
-    </main>
+      <main className={`flex-1 ${className}`}>
+        {showStepNavigation && stepId && (
+          <div className="bg-gray-50 border-b border-gray-200">
+            <div className="container mx-auto px-4">
+              <StepNavigation steps={steps} currentStepId={stepId} />
+            </div>
+          </div>
+        )}
+        
+        <div className="container mx-auto px-4 py-6">
+          {children}
+        </div>
+      </main>
+    </div>
   );
 }
 
