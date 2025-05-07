@@ -133,63 +133,67 @@ export default function StarCard({
           
           {/* Position 1 - Top Right - Highest score */}
           {getQuadrantAtPosition(0) && (
-            <div className="absolute top-2 right-2 w-20 h-20">
+            <div className="absolute top-2 right-2 w-16 h-16">
               <div className={`${getQuadrantAtPosition(0)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(0)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</p>
-              </div>
-              {/* Flow 1 */}
-              <div className="absolute -bottom-8 -left-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-                <p className="text-xs font-medium">Flow</p>
-                <p className="text-sm font-bold">1</p>
               </div>
             </div>
           )}
           
           {/* Position 2 - Bottom Right - Second highest */}
           {getQuadrantAtPosition(1) && (
-            <div className="absolute bottom-2 right-2 w-20 h-20">
+            <div className="absolute bottom-2 right-2 w-16 h-16">
               <div className={`${getQuadrantAtPosition(1)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(1)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</p>
-              </div>
-              {/* Flow 2 */}
-              <div className="absolute -top-8 -left-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-                <p className="text-xs font-medium">Flow</p>
-                <p className="text-sm font-bold">2</p>
               </div>
             </div>
           )}
           
           {/* Position 3 - Bottom Left - Third highest */}
           {getQuadrantAtPosition(2) && (
-            <div className="absolute bottom-2 left-2 w-20 h-20">
+            <div className="absolute bottom-2 left-2 w-16 h-16">
               <div className={`${getQuadrantAtPosition(2)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(2)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</p>
-              </div>
-              {/* Flow 3 */}
-              <div className="absolute -top-8 -right-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-                <p className="text-xs font-medium">Flow</p>
-                <p className="text-sm font-bold">3</p>
               </div>
             </div>
           )}
           
           {/* Position 4 - Top Left - Lowest score */}
           {getQuadrantAtPosition(3) && (
-            <div className="absolute top-2 left-2 w-20 h-20">
+            <div className="absolute top-2 left-2 w-16 h-16">
               <div className={`${getQuadrantAtPosition(3)?.color} text-white p-2 flex flex-col items-center justify-center aspect-square w-full h-full`}>
                 <p className="text-xs font-bold uppercase">{getQuadrantAtPosition(3)?.label}</p>
                 <p className="text-sm font-medium">{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</p>
               </div>
-              {/* Flow 4 */}
-              <div className="absolute -bottom-8 -right-8 w-14 h-14 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-                <p className="text-xs font-medium">Flow</p>
-                <p className="text-sm font-bold">4</p>
-              </div>
             </div>
           )}
+          
+          {/* Flow 1 - Diagonal from Position 1 (3px from corner) */}
+          <div className="absolute top-[73px] right-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+            <p className="text-xs font-medium">Flow</p>
+            <p className="text-sm font-bold">1</p>
+          </div>
+          
+          {/* Flow 2 - Diagonal from Position 2 (3px from corner) */}
+          <div className="absolute bottom-[73px] right-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+            <p className="text-xs font-medium">Flow</p>
+            <p className="text-sm font-bold">2</p>
+          </div>
+          
+          {/* Flow 3 - Diagonal from Position 3 (3px from corner) */}
+          <div className="absolute bottom-[73px] left-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+            <p className="text-xs font-medium">Flow</p>
+            <p className="text-sm font-bold">3</p>
+          </div>
+          
+          {/* Flow 4 - Diagonal from Position 4 (3px from corner) */}
+          <div className="absolute top-[73px] left-[73px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
+            <p className="text-xs font-medium">Flow</p>
+            <p className="text-sm font-bold">4</p>
+          </div>
         </div>
         
         {/* Logo */}
