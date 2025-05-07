@@ -109,16 +109,40 @@ export default function StarCard({
           </div>
         </div>
         
-        {/* Apex Strength */}
-        <div className="text-center mb-6">
-          <p className="text-lg font-medium text-gray-700">{quadrantData?.apexStrength || 'Imagination'}</p>
-          <p className="text-xs text-gray-500 italic">Your Apex Strength</p>
+        {/* Cloud graphic with Apex Strength */}
+        <div className="relative text-center mb-8 pt-4">
+          {/* Cloud SVG */}
+          <svg
+            viewBox="0 0 300 80"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="w-full h-auto"
+          >
+            <path
+              d="M280 50c0 16.6-59.7 30-133.3 30C73 80 13.3 66.6 13.3 50c0-16.5 59.7-30 133.4-30 73.6 0 133.3 13.5 133.3 30z"
+              fill="#fff"
+            />
+            <ellipse
+              cx="146.7"
+              cy="50"
+              rx="133.3"
+              ry="30"
+              stroke="#f5f5f5"
+              strokeWidth="2"
+            />
+          </svg>
+          
+          {/* Text positioned on top of cloud */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <p className="text-xl font-medium text-gray-600">{quadrantData?.apexStrength || 'Imagination'}</p>
+            <p className="text-sm text-gray-500 italic">Your Apex Strength</p>
+          </div>
         </div>
         
-        {/* Main Star Card Diagram - Precisely matches reference image */}
+        {/* Main Star Card Diagram - Precisely matches example image */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px' }}>
-          {/* Flow Label at top */}
-          <div className="absolute top-0 right-1/3 text-sm font-medium text-gray-700">
+          {/* Flow Label at right side */}
+          <div className="absolute top-1/3 right-4 text-sm font-medium text-gray-700">
             Flow
           </div>
           
@@ -132,96 +156,78 @@ export default function StarCard({
             <p className="text-xs text-gray-500 text-center mt-1">Core</p>
           </div>
           
-          {/* The Four Strength Squares - Perfectly aligned with 2px gaps - 15% bigger */}
-          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[2px] w-[120px] h-[120px] z-10">
+          {/* The Four Strength Squares - Exactly as in example image */}
+          <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 grid grid-cols-2 gap-[1px] w-[120px] h-[120px] z-10">
             {/* Top Left - Thinking */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(1, 162, 82)' }}>
-              <p className="text-[10px] font-bold">THINKING</p>
+              <p className="text-xs font-bold">THINKING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.thinking || 0)}%</p>
             </div>
             
             {/* Top Right - Acting */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(241, 64, 64)' }}>
-              <p className="text-[10px] font-bold">ACTING</p>
+              <p className="text-xs font-bold">ACTING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.acting || 0)}%</p>
             </div>
             
             {/* Bottom Left - Feeling */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(22, 126, 253)' }}>
-              <p className="text-[10px] font-bold">FEELING</p>
+              <p className="text-xs font-bold">FEELING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.feeling || 0)}%</p>
             </div>
             
             {/* Bottom Right - Planning */}
             <div className="text-white p-2 flex flex-col items-center justify-center aspect-square" style={{ backgroundColor: 'rgb(255, 203, 47)' }}>
-              <p className="text-[10px] font-bold">PLANNING</p>
+              <p className="text-xs font-bold">PLANNING</p>
               <p className="text-xs font-medium">{normalizeScore(quadrantData?.planning || 0)}%</p>
             </div>
           </div>
           
-          {/* Flow Squares positioned in relation to each strength */}
-          {/* Flow 1 - Above Acting (top right strength) */}
-          <div className="absolute top-4 right-[85px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-            <p className="text-xs font-medium"></p>
-            <p className="text-sm font-bold"></p>
+          {/* Flow Squares positioned exactly like in example */}
+          {/* Flow 1 - Top Right Flow Square */}
+          <div className="absolute top-1/4 right-0 w-14 h-14 bg-gray-100 border border-gray-300">
           </div>
           
-          {/* Flow 2 - Right of Planning (bottom right strength) */}
-          <div className="absolute bottom-[85px] right-4 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-            <p className="text-xs font-medium"></p>
-            <p className="text-sm font-bold"></p>
+          {/* Flow 2 - Bottom Right Flow Square */}
+          <div className="absolute bottom-1/4 right-0 w-14 h-14 bg-gray-100 border border-gray-300">
           </div>
           
-          {/* Flow 3 - Below Feeling (bottom left strength) */}
-          <div className="absolute bottom-4 left-[85px] w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-            <p className="text-xs font-medium"></p>
-            <p className="text-sm font-bold"></p>
+          {/* Flow 3 - Bottom Left Flow Square */}
+          <div className="absolute bottom-1/4 left-0 w-14 h-14 bg-gray-100 border border-gray-300">
           </div>
           
-          {/* Flow 4 - Left of Thinking (top left strength) */}
-          <div className="absolute top-[85px] left-4 w-12 h-12 bg-gray-100 border border-gray-300 flex flex-col items-center justify-center">
-            <p className="text-xs font-medium"></p>
-            <p className="text-sm font-bold"></p>
+          {/* Flow 4 - Top Left Flow Square */}
+          <div className="absolute top-1/4 left-0 w-14 h-14 bg-gray-100 border border-gray-300">
           </div>
           
-          {/* Arrow from Flow 1 (top right) to Flow 2 (bottom right) */}
-          <div className="absolute right-[10px] top-[60px] h-[120px]">
+          {/* Vertical Right Arrow - Matches example exactly */}
+          <div className="absolute right-[50px] top-1/2 h-[80px] transform -translate-y-1/2">
             <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-3px] bottom-0 transform rotate-90">
-              <svg width="8" height="8" viewBox="0 0 8 8">
-                <path d="M0 0L8 4L0 8z" fill="#9CA3AF" />
+            <div className="absolute right-[-4px] bottom-0">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M5 10 L0 5 L10 5 Z" fill="#9CA3AF" />
               </svg>
             </div>
           </div>
           
-          {/* Arrow from Flow 2 (bottom right) to Flow 3 (bottom left) */}
-          <div className="absolute bottom-[10px] left-[60px] w-[120px]">
-            <div className="absolute left-0 top-0 w-full h-[1px] bg-gray-400"></div>
-            <div className="absolute left-0 top-[-3px]">
-              <svg width="8" height="8" viewBox="0 0 8 8">
-                <path d="M8 0L0 4L8 8z" fill="#9CA3AF" />
-              </svg>
-            </div>
-          </div>
-          
-          {/* Arrow from Flow 3 (bottom left) to Flow 4 (top left) */}
-          <div className="absolute left-[10px] top-[60px] h-[120px]">
-            <div className="absolute left-0 bottom-0 h-full w-[1px] bg-gray-400"></div>
-            <div className="absolute left-[-3px] top-0 transform rotate-90">
-              <svg width="8" height="8" viewBox="0 0 8 8">
-                <path d="M8 0L0 4L8 8z" fill="#9CA3AF" />
-              </svg>
-            </div>
-          </div>
-          
-          {/* Arrow from Flow 4 (top left) to Flow 1 (top right) */}
-          <div className="absolute top-[10px] left-[60px] w-[120px]">
+          {/* Horizontal Bottom Arrow - Matches example exactly */}
+          <div className="absolute bottom-[50px] left-1/2 w-[80px] transform -translate-x-1/2">
             <div className="absolute right-0 top-0 w-full h-[1px] bg-gray-400"></div>
-            <div className="absolute right-0 top-[-3px]">
-              <svg width="8" height="8" viewBox="0 0 8 8">
-                <path d="M0 0L8 4L0 8z" fill="#9CA3AF" />
+            <div className="absolute left-0 top-[-4px]">
+              <svg width="10" height="10" viewBox="0 0 10 10">
+                <path d="M0 5 L5 0 L5 10 Z" fill="#9CA3AF" />
               </svg>
             </div>
+          </div>
+          
+          {/* Vertical Left Arrow - Matches example exactly */}
+          <div className="absolute left-[50px] top-1/2 h-[80px] transform -translate-y-1/2">
+            <div className="absolute left-0 top-0 h-full w-[1px] bg-gray-400"></div>
+          </div>
+          
+          {/* Horizontal Top Arrow - Matches example exactly - No arrowhead in example */}
+          <div className="absolute top-[50px] left-1/2 w-[80px] transform -translate-x-1/2">
+            <div className="absolute right-0 top-0 w-full h-[1px] bg-gray-400"></div>
           </div>
         </div>
         
