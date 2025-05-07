@@ -207,7 +207,7 @@ export default function FlowAssessment() {
                 {/* Gradient fill - animated for smoother transitions */}
                 <div 
                   className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
-                  style={{ width: `${((currentValue - 1) / 4) * 100}%` }}
+                  style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
                 ></div>
               </div>
               
@@ -233,7 +233,7 @@ export default function FlowAssessment() {
               <div 
                 className="absolute cursor-grab active:cursor-grabbing z-20 transition-all duration-300" 
                 style={{ 
-                  left: `calc(${((currentValue - 1) / 4) * 100}%)`,
+                  left: currentValue ? `calc(${((currentValue - 1) / 4) * 100}%)` : '0%',
                   top: '3px',
                   transform: currentValue ? 'translateX(-50%) scale(1)' : 'translateX(-50%) scale(0.5)',
                   opacity: currentValue ? 1 : 0
@@ -263,26 +263,21 @@ export default function FlowAssessment() {
               </div>
             </div>
             
-            <div className="flex justify-between text-sm font-medium text-gray-700 pt-6 px-1">
+            <div className="flex justify-between text-sm font-medium text-gray-700 pt-2 px-1">
               <div className="flex flex-col items-center">
-                <span className="text-red-600">1</span>
-                <span>Never</span>
+                <span className="text-red-600">Never</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-orange-500">2</span>
-                <span>Rarely</span>
+                <span className="text-orange-500">Rarely</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-yellow-500">3</span>
-                <span>Sometimes</span>
+                <span className="text-yellow-500">Sometimes</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-green-500">4</span>
-                <span>Often</span>
+                <span className="text-green-500">Often</span>
               </div>
               <div className="flex flex-col items-center">
-                <span className="text-indigo-600">5</span>
-                <span>Always</span>
+                <span className="text-indigo-600">Always</span>
               </div>
             </div>
           </div>
@@ -349,7 +344,7 @@ export default function FlowAssessment() {
             onClick={goToPrevQuestion}
             disabled={currentQuestion === 0}
           >
-            Previous
+            Go Back
           </Button>
           
           <div className="text-center">
