@@ -175,7 +175,55 @@ export default function FindYourFlow() {
     return flowAttributes;
   };
   
-  // Get rank badge color
+  // Map to determine attribute category and color
+  const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 'red' | 'default' => {
+    const greenAttributes = [
+      'Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 
+      'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
+      'Sensible', 'Strategic', 'Thoughtful'
+    ].map(a => a.toLowerCase());
+    
+    const blueAttributes = [
+      'Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Expressive', 
+      'Empathic', 'Intuitive', 'Inspiring', 'Objective', 'Passionate', 
+      'Positive', 'Receptive', 'Supportive'
+    ].map(a => a.toLowerCase());
+    
+    const yellowAttributes = [
+      'Detail-Oriented', 'Diligent', 'Immersed', 'Industrious', 'Methodical', 
+      'Organized', 'Precise', 'Punctual', 'Reliable', 'Responsible', 
+      'Straightforward', 'Tidy', 'Systematic', 'Thorough'
+    ].map(a => a.toLowerCase());
+    
+    const redAttributes = [
+      'Adventuresome', 'Competitive', 'Dynamic', 'Effortless', 'Energetic', 
+      'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 
+      'Practical', 'Resilient', 'Spontaneous', 'Vigorous'
+    ].map(a => a.toLowerCase());
+    
+    const lowerAttribute = attribute.toLowerCase();
+    
+    if (greenAttributes.includes(lowerAttribute)) return 'green';
+    if (blueAttributes.includes(lowerAttribute)) return 'blue';
+    if (yellowAttributes.includes(lowerAttribute)) return 'yellow';
+    if (redAttributes.includes(lowerAttribute)) return 'red';
+    
+    return 'default';
+  };
+  
+  // Get color for attribute based on category
+  const getAttributeColor = (attribute: string): string => {
+    const category = getAttributeCategory(attribute);
+    switch (category) {
+      case 'green': return 'rgb(1, 162, 82)';      // Green - Thinking
+      case 'blue': return 'rgb(22, 126, 253)';     // Blue - Feeling
+      case 'yellow': return 'rgb(255, 203, 47)';   // Yellow - Planning
+      case 'red': return 'rgb(241, 64, 64)';       // Red - Acting
+      default: return 'rgb(156, 163, 175)';        // Gray default
+    }
+  };
+  
+  // Get rank badge color (for selection UI)
   const getRankBadgeColor = (rank: number): string => {
     switch (rank) {
       case 1: return 'bg-purple-600 text-white';   // Purple
@@ -229,6 +277,9 @@ export default function FindYourFlow() {
     queryKey: ['/api/starcard'],
     staleTime: Infinity,
   });
+  
+  // State for flow attributes added to StarCard
+  const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<Array<{text: string; color: string}>>([]);
   
   // Check if a tab should be disabled
   const isTabDisabled = (tabId: string): boolean => {
@@ -602,6 +653,28 @@ export default function FindYourFlow() {
                   <Button
                     className="w-full bg-indigo-700 hover:bg-indigo-800"
                     disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4}
+                    onClick={() => {
+                      // Create a new version of the StarCard component with the flow attributes
+                      const rankedAttributes = selectedAttributes
+                        .filter(attr => attr.rank !== null)
+                        .sort((a, b) => (a.rank || 0) - (b.rank || 0));
+                      
+                      if (rankedAttributes.length === 4) {
+                        // Get properly colored attributes
+                        const coloredAttributes = rankedAttributes.map(attr => ({
+                          text: attr.text,
+                          color: getAttributeColor(attr.text)
+                        }));
+                        
+                        // Update the StarCard flow attributes
+                        setStarCardFlowAttributes(coloredAttributes);
+                        toast({
+                          title: "Flow attributes added!",
+                          description: "Your flow attributes have been added to your StarCard.",
+                          duration: 5000
+                        });
+                      }
+                    }}
                   >
                     Add Flow Attributes to StarCard
                   </Button>

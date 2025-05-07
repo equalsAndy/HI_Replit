@@ -11,6 +11,7 @@ interface StarCardProps {
   quadrantData: QuadrantData;
   downloadable?: boolean;
   preview?: boolean;
+  flowAttributes?: {text: string; color: string}[];
 }
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
@@ -26,7 +27,8 @@ export default function StarCard({
   profile, 
   quadrantData, 
   downloadable = true,
-  preview = false 
+  preview = false,
+  flowAttributes = [] 
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -184,23 +186,51 @@ export default function StarCard({
           
           {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
           {/* Flow 1 - Top Right Flow Square */}
-          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
-               style={{ top: '25px', right: '15px' }}>
+          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
+               style={{ 
+                 top: '25px', 
+                 right: '15px',
+                 backgroundColor: flowAttributes[0]?.color || 'rgb(156, 163, 175)'
+               }}>
+            <p className="text-[9px] font-medium text-center leading-tight">
+              {flowAttributes[0]?.text || ''}
+            </p>
           </div>
           
           {/* Flow 2 - Bottom Right Flow Square - top aligned with bottom of strength 2 */}
-          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ top: '204px', right: '15px' }}>
+          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
+               style={{ 
+                 top: '204px', 
+                 right: '15px',
+                 backgroundColor: flowAttributes[1]?.color || 'rgb(156, 163, 175)'
+               }}>
+            <p className="text-[9px] font-medium text-center leading-tight">
+              {flowAttributes[1]?.text || ''}
+            </p>
           </div>
           
           {/* Flow 3 - Bottom Left Flow Square - top aligned with bottom of strength 3 */}
-          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300"
-               style={{ top: '204px', left: '15px' }}>
+          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
+               style={{ 
+                 top: '204px', 
+                 left: '15px', 
+                 backgroundColor: flowAttributes[2]?.color || 'rgb(156, 163, 175)'
+               }}>
+            <p className="text-[9px] font-medium text-center leading-tight">
+              {flowAttributes[2]?.text || ''}
+            </p>
           </div>
           
           {/* Flow 4 - Top Left Flow Square */}
-          <div className="absolute w-[59px] h-[59px] bg-gray-100 border border-gray-300" 
-               style={{ top: '25px', left: '15px' }}>
+          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
+               style={{ 
+                 top: '25px', 
+                 left: '15px',
+                 backgroundColor: flowAttributes[3]?.color || 'rgb(156, 163, 175)'
+               }}>
+            <p className="text-[9px] font-medium text-center leading-tight">
+              {flowAttributes[3]?.text || ''}
+            </p>
           </div>
           
           {/* Arrow 1 - 70% of original size and equidistant from Flow 1 and Flow 2 */}
