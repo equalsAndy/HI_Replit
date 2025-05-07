@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { downloadElementAsImage } from "@/lib/html2canvas";
 import { UserIcon } from "lucide-react";
 import { ProfileData, QuadrantData } from "@shared/schema";
+import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 
 interface StarCardProps {
   profile: ProfileData;
@@ -135,18 +136,18 @@ export default function StarCard({
         
         {/* Main Star Card Diagram - The "cluster" moved up 35px */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-35px' }}>
-          {/* Flow Label above Flow 1 (top right flow box) */}
-          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '10px', right: '60px' }}>
+          {/* Flow Label above Flow 1 (top right flow box) - moved higher to avoid overlap */}
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '-5px', right: '40px' }}>
             Flow
           </div>
           
-          {/* Core Label above Strength 1 (top left strength box) */}
-          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '70px', left: '56px' }}>
+          {/* Core Label above Strength 1 (top left strength box) - repositioned */}
+          <div className="absolute text-sm font-medium text-gray-700" style={{ top: '55px', left: '56px' }}>
             Core
           </div>
           
-          {/* Center Star - centered between Flow 4 and Flow 1, not touching any boxes */}
-          <div className="absolute z-20" style={{ left: '120px', top: '30px' }}>
+          {/* Center Star - centered between Flow 4 and Flow 1, not touching any boxes, moved up */}
+          <div className="absolute z-20" style={{ left: '115px', top: '15px' }}>
             <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-8 w-8 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -235,14 +236,13 @@ export default function StarCard({
           {/* No Top Arrow between flow 1 and flow 4 as requested */}
         </div>
         
-        {/* Logo - Positioned at bottom right like in example */}
-        <div className="flex justify-end mt-6 pr-4">
-          <div className="text-indigo-700 flex items-center">
-            <div className="border-2 border-indigo-700 rounded h-6 w-6 flex items-center justify-center mr-1">
-              <span className="text-indigo-700 text-sm">✱</span>
-            </div>
-            <span className="text-indigo-700 text-sm font-medium">allstarteams</span>
-          </div>
+        {/* Logo - Actual AllStarTeams logo, moved up 8px */}
+        <div className="flex justify-end mt-[-2px] pr-4">
+          <img 
+            src={allStarTeamsLogo} 
+            alt="allstarteams" 
+            className="h-8" 
+          />
         </div>
       </div>
       
