@@ -7,6 +7,7 @@ import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { insertUserSchema } from "@shared/schema";
+import TestUsersModal from "@/components/test-users/TestUsersModal";
 
 import {
   Form,
@@ -48,6 +49,7 @@ type RegisterValues = z.infer<typeof registerSchema>;
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
+  const [showTestUsers, setShowTestUsers] = useState(false);
   const [, navigate] = useLocation();
   const { toast } = useToast();
 
@@ -285,7 +287,24 @@ export default function AuthPage() {
               {isLogin ? "Create one" : "Sign in"}
             </button>
           </p>
+          
+          <div className="mt-4 pt-4 border-t">
+            <Button 
+              variant="outline" 
+              type="button"
+              onClick={() => setShowTestUsers(true)}
+              className="text-sm"
+            >
+              Select Test User
+            </Button>
+          </div>
         </div>
+        
+        {/* Test Users Modal */}
+        <TestUsersModal 
+          isOpen={showTestUsers} 
+          onClose={() => setShowTestUsers(false)} 
+        />
       </div>
       
       {/* Right side - Hero */}

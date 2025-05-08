@@ -536,6 +536,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Test User Routes
+  app.get("/api/test-users", async (req: Request, res: Response) => {
+    try {
+      // Create test users if they don't exist yet
+      await storage.createTestUsers();
+      
+      // Get all test users
+      const testUsers = await storage.getTestUsers();
+      
+      // Return users with their current progress
+      res.status(200).json(testUsers.map(user => ({
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        title: user.title,
+        organization: user.organization,
+        progress: user.progress || 0,
+      })));
+    } catch (error) {
+      console.error("Error fetching test users:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  app.post("/api/test-users/reset/:userId", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Reset all user data
+      await storage.resetUserData(userId);
+      
+      // Return updated user
+      const updatedUser = await storage.getUser(userId);
+      res.status(200).json({
+        id: updatedUser?.id,
+        username: updatedUser?.username,
+        name: updatedUser?.name,
+        progress: updatedUser?.progress || 0,
+        message: "User data has been reset successfully"
+      });
+    } catch (error) {
+      console.error("Error resetting user data:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
