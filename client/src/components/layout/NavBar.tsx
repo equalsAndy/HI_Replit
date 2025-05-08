@@ -1,6 +1,10 @@
 import { useDemoMode } from "@/hooks/use-demo-mode";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();

@@ -122,7 +122,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
-            {testUsers?.map((user: TestUser) => (
+            {Array.isArray(testUsers) && testUsers.map((user: TestUser) => (
               <Card key={user.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <div className="flex justify-between items-start">

@@ -81,7 +81,8 @@ export default function AuthPage() {
     defaultValues: {
       name: "",
       username: "",
-      email: "",
+      title: "",
+      organization: "",
       password: "",
       confirmPassword: "",
     },
@@ -229,12 +230,25 @@ export default function AuthPage() {
               />
               <FormField
                 control={registerForm.control}
-                name="email"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel>Job Title</FormLabel>
                     <FormControl>
-                      <Input type="email" placeholder="Enter your email" {...field} />
+                      <Input placeholder="Enter your job title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={registerForm.control}
+                name="organization"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Organization</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your organization" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
