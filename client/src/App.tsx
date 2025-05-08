@@ -49,6 +49,30 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
+          <Route path="/logout" component={() => {
+            const handleLogout = async () => {
+              try {
+                await apiRequest('POST', '/api/auth/logout');
+                queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+                window.location.href = '/auth';
+              } catch (error) {
+                console.error("Logout failed:", error);
+                window.location.href = '/auth';
+              }
+            };
+            
+            // Execute logout immediately
+            useEffect(() => {
+              handleLogout();
+            }, []);
+            
+            return <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <h2 className="text-xl mb-4">Logging out...</h2>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto"></div>
+              </div>
+            </div>;
+          }} />
           <Route path="/foundations" component={Foundations} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/report" component={Report} />

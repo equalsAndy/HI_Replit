@@ -36,9 +36,13 @@ export function NavBar() {
           checked={isDemoMode}
           onCheckedChange={toggleDemoMode}
         />
-        {user && (
+        {user ? (
           <Button variant="outline" size="sm" onClick={handleLogout}>
             Logout
+          </Button>
+        ) : (
+          <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
+            Login
           </Button>
         )}
       </div>
