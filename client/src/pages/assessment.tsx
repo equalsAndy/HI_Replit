@@ -356,11 +356,10 @@ export default function Assessment() {
       // First, start the assessment
       await startAssessment.mutateAsync();
       
-      // Generate random answers for all questions
       const newAnswers: {[key: number]: RankedOption[]} = {};
       
-      // Generate random answers for all questions
-      assessmentQuestions.forEach(question => {
+      // Process each question sequentially
+      for (const question of assessmentQuestions) {
         // Create a copy of the options array
         const options = [...question.options];
         
@@ -378,13 +377,20 @@ export default function Assessment() {
           { optionId: options[3].id, rank: 4 }
         ];
         
+        // Save answer to server first
+        await apiRequest('POST', '/api/assessment/answer', {
+          questionId: question.id,
+          rankings: rankingData
+        });
+        
+        // Then store locally
         newAnswers[question.id] = rankingData;
-      });
+      }
       
-      // Set all answers at once
+      // Set answers locally
       setAnswers(newAnswers);
       
-      // Calculate results
+      // Calculate and validate results
       const results = calculateQuadrantScores(
         Object.entries(newAnswers).map(([questionId, rankings]) => ({
           questionId: parseInt(questionId),
@@ -393,33 +399,26 @@ export default function Assessment() {
         optionCategoryMapping
       );
       
-      // Set results to display in popup and then navigate
-      setAssessmentResults(results);
-      
-      // Save each answer first (optional but helps with debugging)
-      for (const [questionId, rankings] of Object.entries(newAnswers)) {
-        try {
-          await apiRequest('POST', '/api/assessment/answer', {
-            questionId: parseInt(questionId),
-            rankings
-          });
-        } catch (error) {
-          console.error(`Error saving answer for question ${questionId}:`, error);
-        }
+      // Validate results
+      if (!results || Object.values(results).some(val => val === null)) {
+        throw new Error("Invalid results calculated");
       }
       
-      // Complete the assessment by calling the mutation with all required data
+      // Complete the assessment
       await completeAssessment.mutateAsync();
+      
+      // Navigate to report page
+      navigate('/report');
       
       toast({
         title: "Assessment Auto-Completed",
-        description: "Demo mode has auto-completed the assessment with random answers."
+        description: "Navigating to your Star Card..."
       });
     } catch (error) {
       console.error("Error in auto-complete:", error);
       toast({
         title: "Auto-Complete Failed",
-        description: "There was an error auto-completing the assessment.",
+        description: String(error),
         variant: "destructive"
       });
     }
