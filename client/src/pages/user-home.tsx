@@ -626,27 +626,25 @@ export default function UserHome() {
               </p>
               
               <div className="flex flex-col items-center">
-                {user && (
-                  <div className="flex justify-center" style={{ width: '400px', height: '555px' }}>
-                    <StarCard 
-                      profile={{
-                        name: user?.name || "",
-                        title: user?.title || "",
-                        organization: user?.organization || ""
-                      }}
-                      quadrantData={{
-                        thinking: (user?.progress >= 67 && starCard?.thinking) || 0,
-                        acting: (user?.progress >= 67 && starCard?.acting) || 0,
-                        feeling: (user?.progress >= 67 && starCard?.feeling) || 0,
-                        planning: (user?.progress >= 67 && starCard?.planning) || 0,
-                        apexStrength: (user?.progress >= 67 && starCard?.apexStrength) || ""
-                      }}
-                      imageUrl={starCard?.imageUrl || null}
-                      downloadable={user?.progress >= 67 || false}
-                      preview={false}
-                    />
-                  </div>
-                )}
+                <div className="flex justify-center" style={{ width: '400px', height: '555px' }}>
+                  <StarCard 
+                    profile={{
+                      name: user?.name || "",
+                      title: user?.title || "",
+                      organization: user?.organization || ""
+                    }}
+                    quadrantData={{
+                      thinking: (user?.progress >= 67 && starCard?.thinking) || 0,
+                      acting: (user?.progress >= 67 && starCard?.acting) || 0,
+                      feeling: (user?.progress >= 67 && starCard?.feeling) || 0,
+                      planning: (user?.progress >= 67 && starCard?.planning) || 0,
+                      apexStrength: (user?.progress >= 67 && starCard?.apexStrength) || "Imagination"
+                    }}
+                    imageUrl={starCard?.imageUrl || null}
+                    downloadable={user?.progress >= 67 || false}
+                    preview={false}
+                  />
+                </div>
               </div>
             </div>
           </div>
