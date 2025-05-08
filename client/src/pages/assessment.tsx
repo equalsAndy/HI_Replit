@@ -359,8 +359,9 @@ export default function Assessment() {
       // Generate random answers for all questions
       const newAnswers: {[key: number]: RankedOption[]} = {};
       
-      // Process all questions sequentially to build up valid results
-      for (const question of assessmentQuestions) {
+      // Generate random answers for all questions
+      assessmentQuestions.forEach(question => {
+        // Create a copy of the options array
         const options = [...question.options];
         
         // Shuffle the options randomly
@@ -377,19 +378,13 @@ export default function Assessment() {
           { optionId: options[3].id, rank: 4 }
         ];
         
-        // Save answer
-        await apiRequest('POST', '/api/assessment/answer', {
-          questionId: question.id,
-          rankings: rankingData
-        });
-        
         newAnswers[question.id] = rankingData;
-      }
+      });
       
-      // Set to last question for visual feedback
-      setCurrentQuestionIndex(assessmentQuestions.length - 1);
+      // Set all answers at once
+      setAnswers(newAnswers);
       
-      // Calculate final results
+      // Calculate results
       const results = calculateQuadrantScores(
         Object.entries(newAnswers).map(([questionId, rankings]) => ({
           questionId: parseInt(questionId),
@@ -398,19 +393,33 @@ export default function Assessment() {
         optionCategoryMapping
       );
       
-      // Complete assessment and navigate to report
+      // Set results to display in popup and then navigate
+      setAssessmentResults(results);
+      
+      // Save each answer first (optional but helps with debugging)
+      for (const [questionId, rankings] of Object.entries(newAnswers)) {
+        try {
+          await apiRequest('POST', '/api/assessment/answer', {
+            questionId: parseInt(questionId),
+            rankings
+          });
+        } catch (error) {
+          console.error(`Error saving answer for question ${questionId}:`, error);
+        }
+      }
+      
+      // Complete the assessment by calling the mutation with all required data
       await completeAssessment.mutateAsync();
-      navigate('/report');
       
       toast({
         title: "Assessment Auto-Completed",
-        description: "Navigating to your Star Card..."
+        description: "Demo mode has auto-completed the assessment with random answers."
       });
     } catch (error) {
       console.error("Error in auto-complete:", error);
       toast({
         title: "Auto-Complete Failed",
-        description: String(error),
+        description: "There was an error auto-completing the assessment.",
         variant: "destructive"
       });
     }

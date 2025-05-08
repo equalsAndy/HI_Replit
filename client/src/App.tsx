@@ -18,15 +18,11 @@ import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
 
-// Import Providers
+// Import DemoModeProvider
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
-import { AuthProvider } from "@/hooks/use-auth-provider";
 
 // Import NavBar
 import { NavBar } from "./components/layout/NavBar";
-
-// Import ProtectedRoute
-import { ProtectedRoute } from "./lib/protected-route";
 
 function Router() {
   return (
@@ -36,18 +32,15 @@ function Router() {
         <Switch>
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
-          
-          {/* Protected Routes */}
-          <ProtectedRoute path="/user-home" component={UserHome} />
-          <ProtectedRoute path="/foundations" component={Foundations} />
-          <ProtectedRoute path="/assessment" component={Assessment} />
-          <ProtectedRoute path="/report" component={Report} />
-          <ProtectedRoute path="/core-strengths" component={CoreStrengths} />
-          <ProtectedRoute path="/flow-assessment" component={FlowAssessment} />
-          <ProtectedRoute path="/find-your-flow" component={FindYourFlow} />
-          <ProtectedRoute path="/rounding-out" component={RoundingOut} />
-          <ProtectedRoute path="/visualize-yourself" component={VisualizeYourself} />
-          
+          <Route path="/user-home" component={UserHome} />
+          <Route path="/foundations" component={Foundations} />
+          <Route path="/assessment" component={Assessment} />
+          <Route path="/report" component={Report} />
+          <Route path="/core-strengths" component={CoreStrengths} />
+          <Route path="/flow-assessment" component={FlowAssessment} />
+          <Route path="/find-your-flow" component={FindYourFlow} />
+          <Route path="/rounding-out" component={RoundingOut} />
+          <Route path="/visualize-yourself" component={VisualizeYourself} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -59,12 +52,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
-          <DemoModeProvider>
-            <Toaster />
-            <Router />
-          </DemoModeProvider>
-        </AuthProvider>
+        <DemoModeProvider>
+          <Toaster />
+          <Router />
+        </DemoModeProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
