@@ -29,19 +29,19 @@ export default function VisualizeYourself() {
   const isTabDisabled = (tabId: string): boolean => {
     // The first tab is always accessible
     if (tabId === "ladder") return false;
-    
+
     // For sequential progression
     const tabSequence = ["ladder", "potential", "future"];
     const currentIndex = tabSequence.indexOf(activeTab);
     const targetIndex = tabSequence.indexOf(tabId);
-    
+
     // Can only access tabs that are:
     // 1. The current tab
     // 2. Already completed tabs
     // 3. The next tab in sequence
     return !completedTabs.includes(tabId) && tabId !== activeTab && targetIndex > currentIndex + 1;
   };
-  
+
   // Handle tab change
   const handleTabChange = (tabId: string) => {
     if (!isTabDisabled(tabId)) {
@@ -56,7 +56,7 @@ export default function VisualizeYourself() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const newFiles = Array.from(e.target.files);
-      
+
       // Check file size (max 10MB each)
       const validFiles = newFiles.filter(file => file.size <= 10 * 1024 * 1024);
       if (validFiles.length !== newFiles.length) {
@@ -66,22 +66,22 @@ export default function VisualizeYourself() {
           variant: "destructive"
         });
       }
-      
+
       // Limit to 5 images total
       const filesToAdd = validFiles.slice(0, 5 - uploadedImages.length);
       setUploadedImages(prev => [...prev, ...filesToAdd]);
-      
+
       // Create object URLs for preview
       const urls = filesToAdd.map(file => URL.createObjectURL(file));
       setImageUrls(prev => [...prev, ...urls]);
     }
   };
-  
+
   // Remove uploaded image
   const removeImage = (index: number) => {
     // Revoke the object URL to prevent memory leaks
     URL.revokeObjectURL(imageUrls[index]);
-    
+
     setUploadedImages(prev => prev.filter((_, i) => i !== index));
     setImageUrls(prev => prev.filter((_, i) => i !== index));
   };
@@ -96,14 +96,14 @@ export default function VisualizeYourself() {
       </MainContainer>
     );
   }
-  
+
   return (
     <MainContainer showStepNavigation={false} className="bg-white">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-indigo-700">Visualize Yourself</h1>
         <p className="text-gray-600">Engage your imagination to envision your growth and potential</p>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-3 mb-6">
@@ -129,7 +129,7 @@ export default function VisualizeYourself() {
               ) : "Your Future Self"}
             </TabsTrigger>
           </TabsList>
-          
+
           {/* Ladder of Wellbeing Tab */}
           <TabsContent value="ladder" className="space-y-6">
             <div className="aspect-w-16 aspect-h-9 mb-4">
@@ -142,7 +142,7 @@ export default function VisualizeYourself() {
                 className="w-full h-80 rounded border border-gray-200"
               ></iframe>
             </div>
-            
+
             <div className="prose max-w-none">
               <h2>The Cantril Ladder of Wellbeing</h2>
               <p>
@@ -150,14 +150,12 @@ export default function VisualizeYourself() {
                 Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim to be in one year, and 
                 the steps you'll take each quarter to climb toward that vision.
               </p>
-              
+
               <p>
-                The Cantril Ladder offers profound insights across all age groups and life stages. For younger participants, it helps establish positive
-                growth trajectories. For mid-career individuals, it provides clarity during transitions. For experienced participants, it reveals new
-                possibilities for contribution and legacy.
+                The Cantril Ladder is simple but offers profound insights across all age groups and life stages. For younger participants, it helps establish positive growth trajectories. For mid-career individuals, it provides clarity during transitions. For experienced participants, it reveals new possibilities for contribution and legacy. Just thinking about the relationship between where we are and where we want to be helps set a foundation for self-actualization.
               </p>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <Card className="bg-gray-50">
@@ -180,7 +178,7 @@ export default function VisualizeYourself() {
                             feeling purposeful, and overall thriving
                           </p>
                         </div>
-                        
+
                         <div>
                           <p className="text-xs text-gray-500 mb-1">Worst possible life</p>
                           <p className="text-sm text-gray-700">
@@ -193,7 +191,7 @@ export default function VisualizeYourself() {
                   </CardContent>
                 </Card>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <Label htmlFor="current-position" className="text-base font-medium">
@@ -216,7 +214,7 @@ export default function VisualizeYourself() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="mt-6">
                   <Label htmlFor="factors" className="text-base font-medium">
                     2. What key factors have shaped this rating?
@@ -230,7 +228,7 @@ export default function VisualizeYourself() {
                     className="min-h-[100px] mt-2"
                   />
                 </div>
-                
+
                 <div className="mt-6">
                   <Label htmlFor="one-year-vision" className="text-base font-medium">
                     3. Where do you realistically see yourself in one year? (0-10)
@@ -246,7 +244,7 @@ export default function VisualizeYourself() {
                 </div>
               </div>
             </div>
-            
+
             <div className="space-y-4">
               <div>
                 <Label htmlFor="changes" className="text-base font-medium">
@@ -261,7 +259,7 @@ export default function VisualizeYourself() {
                   className="min-h-[100px] mt-2"
                 />
               </div>
-              
+
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-3">QUARTERLY MILESTONES</h3>
                 <div>
@@ -278,7 +276,7 @@ export default function VisualizeYourself() {
                   />
                 </div>
               </div>
-              
+
               <div className="mt-6">
                 <Label htmlFor="actions" className="text-base font-medium">
                   6. What actions will you commit to this quarter to begin climbing?
@@ -293,7 +291,7 @@ export default function VisualizeYourself() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-end mt-6">
               <Button 
                 onClick={() => handleTabChange("potential")}
@@ -303,7 +301,7 @@ export default function VisualizeYourself() {
               </Button>
             </div>
           </TabsContent>
-          
+
           {/* Visualizing Potential Tab */}
           <TabsContent value="potential" className="space-y-6">
             <div className="prose max-w-none">
@@ -312,7 +310,7 @@ export default function VisualizeYourself() {
                 This exercise helps you turn your one-year vision into something visible. By choosing or creating images that represent your future self,
                 you engage your imagination — and activate your growth. Your imagery ought to be positive and aspirational.
               </p>
-              
+
               <h3 className="mt-6">Instructions:</h3>
               <ul>
                 <li>Upload 1-5 images that represent your future self.</li>
@@ -320,14 +318,14 @@ export default function VisualizeYourself() {
                 <li>Supported image types: JPG, PNG, or GIF. Max 10MB per file.</li>
               </ul>
             </div>
-            
+
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
               <h3 className="text-lg font-semibold mb-4">Upload Your Potential Images</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Upload 1-5 images that represent the version of you you're growing into. These can be photos, symbols, art, or anything meaningful to you.
                 This activity has proven benefits, both short and longer term.
               </p>
-              
+
               <div className="mt-6">
                 <Label htmlFor="image-upload" className="block">
                   <Button variant="outline" className="mr-4">Choose Files</Button>
@@ -347,7 +345,7 @@ export default function VisualizeYourself() {
                   onChange={handleImageUpload}
                 />
               </div>
-              
+
               {imageUrls.length > 0 && (
                 <div className="mt-6">
                   <h4 className="text-sm font-medium mb-2">Selected Images:</h4>
@@ -372,7 +370,7 @@ export default function VisualizeYourself() {
                   </div>
                 </div>
               )}
-              
+
               <div className="mt-8">
                 <Label htmlFor="image-meaning" className="text-base font-medium">
                   What do these images represent about your future self?
@@ -384,7 +382,7 @@ export default function VisualizeYourself() {
                 />
               </div>
             </div>
-            
+
             <div className="flex justify-between mt-8">
               <Button 
                 onClick={() => handleTabChange("ladder")}
@@ -400,7 +398,7 @@ export default function VisualizeYourself() {
               </Button>
             </div>
           </TabsContent>
-          
+
           {/* Your Future Self Tab */}
           <TabsContent value="future" className="space-y-6">
             <div className="aspect-w-16 aspect-h-9 mb-4">
@@ -413,19 +411,19 @@ export default function VisualizeYourself() {
                 className="w-full h-80 rounded border border-gray-200"
               ></iframe>
             </div>
-            
+
             <div className="prose max-w-none">
               <h2>Your Future Self: Longer Term</h2>
               <p>
                 This exercise honors every participant's infinite capacity for growth. Whether someone is 22 or 82, the focus remains on 
                 continuing evolution, discovering wisdom, and creating legacy.
               </p>
-              
+
               <blockquote className="border-l-4 border-gray-300 pl-4 italic">
                 "Remember Hokusai's wisdom - every decade brings new insight, broader vision, and deeper connection to one's life's work. 
                 The stories of your future self have no boundaries."
               </blockquote>
-              
+
               <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 not-prose">
                 <h3 className="text-yellow-800 font-medium">Katsushika Hokusai: Artist Until 90</h3>
                 <p className="text-sm">
@@ -440,7 +438,7 @@ export default function VisualizeYourself() {
                 </p>
               </div>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
               <div>
                 <Card className="h-full">
@@ -461,7 +459,7 @@ export default function VisualizeYourself() {
                   </CardContent>
                 </Card>
               </div>
-              
+
               <div className="space-y-6">
                 <div>
                   <Label htmlFor="future-vision" className="text-base font-medium">
@@ -473,7 +471,7 @@ export default function VisualizeYourself() {
                     className="min-h-[100px] mt-2"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="future-look" className="text-base font-medium">
                     What does your life look like when optimized for flow?
@@ -484,7 +482,7 @@ export default function VisualizeYourself() {
                     className="min-h-[100px] mt-2"
                   />
                 </div>
-                
+
                 <div>
                   <Label htmlFor="happy-life" className="text-base font-medium">
                     When pursuing a happy, filled stage of life, what will you have achieved and still want to achieve?
@@ -497,27 +495,27 @@ export default function VisualizeYourself() {
                 </div>
               </div>
             </div>
-            
+
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-6">
               <h3 className="text-lg font-semibold mb-4">Your Future Self Statement</h3>
               <p className="text-sm text-gray-600 mb-4">
                 Look back at your answers. Now write a short paragraph (3-5 sentences) that brings these together. Your vision statement should describe your future self in a way that inspires you — who you are, what you value, and how you want to be embodied.
               </p>
-              
+
               <p className="text-sm text-gray-500 mb-2">You can start with:</p>
               <ul className="text-sm text-gray-500 mb-4 list-disc pl-5">
                 <li>"In the future, I see myself..."</li>
                 <li>"My purpose is to..."</li>
                 <li>"I am becoming someone who..."</li>
               </ul>
-              
+
               <Textarea
                 id="future-statement"
                 placeholder="Your future self statement..."
                 className="min-h-[150px]"
               />
             </div>
-            
+
             <div className="flex justify-between mt-8">
               <Button 
                 onClick={() => handleTabChange("potential")}
