@@ -18,8 +18,9 @@ import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
 
-// Import DemoModeProvider
+// Import Providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
+import { AuthProvider } from "@/hooks/use-auth-provider";
 
 // Import NavBar
 import { NavBar } from "./components/layout/NavBar";
@@ -58,10 +59,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <DemoModeProvider>
-          <Toaster />
-          <Router />
-        </DemoModeProvider>
+        <AuthProvider>
+          <DemoModeProvider>
+            <Toaster />
+            <Router />
+          </DemoModeProvider>
+        </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
   );
