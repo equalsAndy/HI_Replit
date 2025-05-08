@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -57,11 +57,12 @@ export default function AuthPage() {
     staleTime: Infinity,
   });
 
-  // Redirect to dashboard if already logged in
-  if (!isLoading && user) {
-    navigate('/user-home');
-    return null;
-  }
+  // Use useEffect for navigation to avoid React hook violations
+  useEffect(() => {
+    if (!isLoading && user) {
+      navigate('/user-home');
+    }
+  }, [isLoading, user, navigate]);
 
   // Login form
   const loginForm = useForm<LoginValues>({
