@@ -4,6 +4,14 @@ import { Label } from "@/components/ui/label";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
+  const [, navigate] = useLocation();
+  const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
+
+  const handleLogout = async () => {
+    await apiRequest('POST', '/api/auth/logout');
+    queryClient.invalidateQueries();
+    navigate('/auth');
+  };
 
   return (
     <div className="bg-gray-800 text-white p-2 sticky top-0 z-50 flex justify-between items-center">
@@ -11,7 +19,7 @@ export function NavBar() {
         <h1 className="text-xl font-semibold">AllStarTeams</h1>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Label htmlFor="demo-mode" className="text-sm cursor-pointer">
           Demo Mode
         </Label>
@@ -20,6 +28,11 @@ export function NavBar() {
           checked={isDemoMode}
           onCheckedChange={toggleDemoMode}
         />
+        {user && (
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            Logout
+          </Button>
+        )}
       </div>
     </div>
   );

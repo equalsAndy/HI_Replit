@@ -25,6 +25,21 @@ import { DemoModeProvider } from "@/hooks/use-demo-mode";
 import { NavBar } from "./components/layout/NavBar";
 
 function Router() {
+  const { data: user, isLoading } = useQuery({ queryKey: ['/api/user/profile'] });
+  const [, navigate] = useLocation();
+
+  useEffect(() => {
+    if (!isLoading) {
+      const path = window.location.pathname;
+      if (!user && path !== '/auth' && path !== '/') {
+        navigate('/auth');
+      }
+      if (user && (path === '/auth' || path === '/')) {
+        navigate('/user-home');
+      }
+    }
+  }, [user, isLoading, navigate]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <NavBar />
