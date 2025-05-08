@@ -35,15 +35,18 @@ function Router() {
         <Switch>
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
-          <Route path="/user-home" component={UserHome} />
-          <Route path="/foundations" component={Foundations} />
-          <Route path="/assessment" component={Assessment} />
-          <Route path="/report" component={Report} />
-          <Route path="/core-strengths" component={CoreStrengths} />
-          <Route path="/flow-assessment" component={FlowAssessment} />
-          <Route path="/find-your-flow" component={FindYourFlow} />
-          <Route path="/rounding-out" component={RoundingOut} />
-          <Route path="/visualize-yourself" component={VisualizeYourself} />
+          
+          {/* Protected Routes */}
+          <ProtectedRoute path="/user-home" component={UserHome} />
+          <ProtectedRoute path="/foundations" component={Foundations} />
+          <ProtectedRoute path="/assessment" component={Assessment} />
+          <ProtectedRoute path="/report" component={Report} />
+          <ProtectedRoute path="/core-strengths" component={CoreStrengths} />
+          <ProtectedRoute path="/flow-assessment" component={FlowAssessment} />
+          <ProtectedRoute path="/find-your-flow" component={FindYourFlow} />
+          <ProtectedRoute path="/rounding-out" component={RoundingOut} />
+          <ProtectedRoute path="/visualize-yourself" component={VisualizeYourself} />
+          
           <Route component={NotFound} />
         </Switch>
       </div>

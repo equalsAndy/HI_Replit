@@ -125,7 +125,13 @@ export class MemStorage implements IStorage {
       firstName: null,
       lastName: null,
       bio: null,
-      profileImageUrl: null
+      profileImageUrl: null,
+      name: insertUser.name ?? null,
+      password: insertUser.password ?? null,
+      title: insertUser.title ?? null,
+      organization: insertUser.organization ?? null,
+      avatarUrl: insertUser.avatarUrl ?? null,
+      progress: insertUser.progress ?? 0
     };
     this.users.set(id, user);
     return user;
