@@ -359,36 +359,36 @@ export default function Assessment() {
       // Generate random answers for all questions
       const newAnswers: {[key: number]: RankedOption[]} = {};
       
-      // Process questions sequentially
-      for (const question of assessmentQuestions) {
-        // Create a copy of the options array
-        const options = [...question.options];
-        
-        // Shuffle the options randomly
-        for (let i = options.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [options[i], options[j]] = [options[j], options[i]];
-        }
-        
-        // Create ranking data
-        const rankingData: RankedOption[] = [
-          { optionId: options[0].id, rank: 1 },
-          { optionId: options[1].id, rank: 2 },
-          { optionId: options[2].id, rank: 3 },
-          { optionId: options[3].id, rank: 4 }
-        ];
-        
-        // Save answer before moving to next question
-        try {
-          await apiRequest('POST', '/api/assessment/answer', {
-            questionId: question.id,
-            rankings: rankingData
-          });
-          newAnswers[question.id] = rankingData;
-          setCurrentQuestionIndex(prev => prev + 1);
-        } catch (error) {
-          throw new Error(`Failed to save answer for question ${question.id}`);
-        }
+      // Jump to last question
+      const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
+      setCurrentQuestionIndex(assessmentQuestions.length - 1);
+      
+      // Generate random answers for the last question
+      const options = [...lastQuestion.options];
+      
+      // Shuffle the options randomly
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+      
+      // Create ranking data
+      const rankingData: RankedOption[] = [
+        { optionId: options[0].id, rank: 1 },
+        { optionId: options[1].id, rank: 2 },
+        { optionId: options[2].id, rank: 3 },
+        { optionId: options[3].id, rank: 4 }
+      ];
+      
+      // Save answer for last question
+      try {
+        await apiRequest('POST', '/api/assessment/answer', {
+          questionId: lastQuestion.id,
+          rankings: rankingData
+        });
+        newAnswers[lastQuestion.id] = rankingData;
+      } catch (error) {
+        throw new Error(`Failed to save answer for question ${lastQuestion.id}`);
       }
       
       // Calculate final results
@@ -400,14 +400,13 @@ export default function Assessment() {
         optionCategoryMapping
       );
       
-      // Complete assessment and show results
+      // Complete assessment and navigate to report
       await completeAssessment.mutateAsync();
-      setAssessmentResults(results);
-      setShowResultsPopup(true);
+      navigate('/report');
       
       toast({
         title: "Assessment Auto-Completed",
-        description: "Demo mode has auto-completed the assessment with random answers."
+        description: "Navigating to your Star Card..."
       });
     } catch (error) {
       console.error("Error in auto-complete:", error);
