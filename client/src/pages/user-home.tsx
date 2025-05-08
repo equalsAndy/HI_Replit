@@ -7,6 +7,29 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon } from "lucide-react";
 import StarCard from "@/components/starcard/StarCard";
+import { QuadrantData, ProfileData } from "@shared/schema";
+
+// Define the user type based on the app's data structure
+interface UserType {
+  id: number;
+  name: string;
+  title: string;
+  organization: string;
+  progress: number;
+  avatarUrl?: string;
+}
+
+// Define the StarCard type
+interface StarCardType {
+  userId: number;
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+  apexStrength: string;
+  imageUrl?: string;
+  id: number;
+}
 
 export default function UserHome() {
   const [location, navigate] = useLocation();
@@ -23,13 +46,13 @@ export default function UserHome() {
   });
   
   // Get user profile
-  const { data: user, isLoading: userLoading } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery<UserType | undefined>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
   
   // Get star card data
-  const { data: starCard, isLoading: starCardLoading } = useQuery({
+  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType | undefined>({
     queryKey: ['/api/starcard'],
     enabled: !!user,
     staleTime: Infinity,
@@ -131,7 +154,21 @@ export default function UserHome() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-            <Button variant="destructive" size="sm" className="rounded-md">Logout</Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="rounded-md"
+              onClick={async () => {
+                try {
+                  await apiRequest('POST', '/api/auth/logout', {});
+                  window.location.href = '/auth';
+                } catch (error) {
+                  console.error("Logout failed:", error);
+                }
+              }}
+            >
+              Logout
+            </Button>
           </div>
         </div>
       </header>
@@ -593,19 +630,19 @@ export default function UserHome() {
                   <div className="flex justify-center" style={{ width: '400px', height: '555px' }}>
                     <StarCard 
                       profile={{
-                        name: user.name || "",
-                        title: user.title || "",
-                        organization: user.organization || ""
+                        name: user?.name || "",
+                        title: user?.title || "",
+                        organization: user?.organization || ""
                       }}
                       quadrantData={{
-                        thinking: (user.progress >= 67 && starCard?.thinking) || 0,
-                        acting: (user.progress >= 67 && starCard?.acting) || 0,
-                        feeling: (user.progress >= 67 && starCard?.feeling) || 0,
-                        planning: (user.progress >= 67 && starCard?.planning) || 0,
-                        apexStrength: (user.progress >= 67 && starCard?.apexStrength) || ""
+                        thinking: (user?.progress >= 67 && starCard?.thinking) || 0,
+                        acting: (user?.progress >= 67 && starCard?.acting) || 0,
+                        feeling: (user?.progress >= 67 && starCard?.feeling) || 0,
+                        planning: (user?.progress >= 67 && starCard?.planning) || 0,
+                        apexStrength: (user?.progress >= 67 && starCard?.apexStrength) || ""
                       }}
                       imageUrl={starCard?.imageUrl || null}
-                      downloadable={user.progress >= 67}
+                      downloadable={user?.progress >= 67 || false}
                       preview={false}
                     />
                   </div>
