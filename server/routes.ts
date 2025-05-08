@@ -200,7 +200,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Mock session by setting user info in a cookie
       // In a real app, use actual session management
-      res.cookie("userId", user.id, { httpOnly: true });
+      res.cookie("userId", user.id.toString(), { 
+        httpOnly: true,
+        path: '/',
+        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
+      });
+      
+      console.log(`Login successful for user ${user.id} (${username}), setting cookie userId=${user.id}`);
+      
       res.status(200).json({ 
         id: user.id, 
         username: user.username, 
@@ -267,22 +274,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put("/api/user/profile", async (req: Request, res: Response) => {
     try {
-      // Try to get userId from cookie or query param
-      let userId: number;
+      // Get userId from cookie
+      let userId: number | undefined;
+      
       try {
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
+        // Try to get userId from cookie
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
-        userId = 1; // Default to user ID 1 for development
+        userId = undefined; // Invalid user ID
       }
       
+      // If no cookie set, user is not logged in
       if (!userId) {
-        userId = 1; // Default to user ID 1 for development
+        // Return 401 to indicate user is not authenticated
+        return res.status(401).json({ message: "Not authenticated" });
       }
       
       const { name, title, organization, avatarUrl } = req.body;
       
-      console.log("Updating user profile with avatar data: " + 
-        (avatarUrl ? `${avatarUrl.substring(0, 30)}... (${avatarUrl.length} chars)` : "No avatar"));
+      console.log(`Updating profile for user ${userId} with name=${name}, title=${title}, org=${organization}`);
+      console.log("Avatar data: " + (avatarUrl ? `${avatarUrl.substring(0, 30)}... (${avatarUrl.length} chars)` : "No avatar"));
       
       // Validate that we have actual data
       if (name === undefined || title === undefined || organization === undefined) {
