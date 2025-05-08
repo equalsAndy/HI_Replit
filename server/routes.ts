@@ -15,6 +15,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
+import cookieParser from "cookie-parser";
 
 // Set up uploads directory
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -49,6 +50,20 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up middleware for JSON parsing
+  app.use(express.json());
+  
+  // Add cookie parser middleware to parse cookies from requests
+  app.use(cookieParser());
+  
+  // Define cookie options for consistent use across endpoints
+  const COOKIE_OPTIONS = {
+    httpOnly: true,
+    path: '/',
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    sameSite: 'lax' as const
+  };
+  
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(uploadsDir));
   
@@ -59,16 +74,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'No file uploaded' });
       }
       
-      // Get user ID
-      let userId: number;
+      // Get userId from cookie
+      let userId: number | undefined;
+      
       try {
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
+        // Try to get userId from cookie
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
-        userId = 1; // Default for development
+        userId = undefined; // Invalid user ID
       }
       
+      // If no cookie set, user is not logged in
       if (!userId) {
-        userId = 1; // Default for development
+        // Return 401 to indicate user is not authenticated
+        return res.status(401).json({ message: "Not authenticated" });
       }
       
       // Generate the URL for the uploaded image
@@ -124,16 +143,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete image endpoint for star card
   app.delete('/api/upload/starcard', async (req: Request, res: Response) => {
     try {
-      // Get user ID
-      let userId: number;
+      // Get userId from cookie
+      let userId: number | undefined;
+      
       try {
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
+        // Try to get userId from cookie
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
-        userId = 1; // Default for development
+        userId = undefined; // Invalid user ID
       }
       
+      // If no cookie set, user is not logged in
       if (!userId) {
-        userId = 1; // Default for development
+        // Return 401 to indicate user is not authenticated
+        return res.status(401).json({ message: "Not authenticated" });
       }
       
       // Check if the user has a star card
@@ -200,11 +223,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Mock session by setting user info in a cookie
       // In a real app, use actual session management
-      res.cookie("userId", user.id.toString(), { 
-        httpOnly: true,
-        path: '/',
-        maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-      });
+      res.cookie("userId", user.id.toString(), COOKIE_OPTIONS);
       
       console.log(`Login successful for user ${user.id} (${username}), setting cookie userId=${user.id}`);
       
@@ -224,8 +243,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
     try {
-      // Clear the cookie
-      res.clearCookie("userId");
+      // Clear the cookie with same path option
+      res.clearCookie("userId", { path: '/' });
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
