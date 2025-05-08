@@ -26,15 +26,18 @@ import { DemoModeProvider } from "@/hooks/use-demo-mode";
 import { NavBar } from "./components/layout/NavBar";
 
 function Router() {
-  const { data: user, isLoading } = useQuery({ queryKey: ['/api/user/profile'] });
   const [, navigate] = useLocation();
+  // Query user profile with proper error handling
+  const { data: user, isLoading } = useQuery({ queryKey: ['/api/user/profile'] });
 
   useEffect(() => {
     if (!isLoading) {
       const path = window.location.pathname;
+      // If not logged in, redirect to auth page
       if (!user && path !== '/auth' && path !== '/' && path !== '/logout') {
         navigate('/auth');
       }
+      // If logged in and on auth page or root, go to user home
       if (user && (path === '/auth' || path === '/')) {
         navigate('/user-home');
       }

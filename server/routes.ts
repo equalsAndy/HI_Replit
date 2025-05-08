@@ -227,37 +227,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/user/profile", async (req: Request, res: Response) => {
     try {
-      // For development purposes, create a default user if none exists
+      // Get userId from cookie
       let userId: number | undefined;
       
       try {
-        // Try to get userId from cookie or query param
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
+        // Try to get userId from cookie
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
-        // If parsing fails, use the default userId of 1
-        userId = 1;
+        userId = undefined; // Invalid user ID
       }
       
+      // If no cookie set, user is not logged in
       if (!userId) {
-        // Use a default user ID for development purposes
-        userId = 1;
+        // Return 401 to indicate user is not authenticated
+        return res.status(401).json({ message: "Not authenticated" });
       }
       
-      // Try to get user, create a test user if not found
-      let user = await storage.getUser(userId);
+      // Try to get user
+      const user = await storage.getUser(userId);
       
+      // If user not found, return 401
       if (!user) {
-        // Create a sample user for demo purposes
-        user = await storage.createUser({
-          username: "testuser",
-          password: "password",
-          name: "Test User",
-          title: "Software Developer",
-          organization: "ACME Inc.",
-          progress: 0
-        });
+        return res.status(401).json({ message: "User not found" });
       }
       
+      // Return user data
       res.status(200).json({
         id: user.id,
         name: user.name,
