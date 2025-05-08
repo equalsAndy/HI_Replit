@@ -104,7 +104,11 @@ export default function Assessment() {
   // Save answer mutation
   const saveAnswer = useMutation({
     mutationFn: async (data: { questionId: number, rankings: RankedOption[] }) => {
-      const res = await apiRequest('POST', '/api/assessment/answer', data);
+      // Convert to the format expected by the server
+      const res = await apiRequest('POST', '/api/assessment/answer', {
+        questionId: data.questionId,
+        ranking: data.rankings  // Changed from 'rankings' to 'ranking' to match the server schema
+      });
       return await res.json();
     },
     onSuccess: () => {
@@ -380,7 +384,7 @@ export default function Assessment() {
         // Save answer to server first
         await apiRequest('POST', '/api/assessment/answer', {
           questionId: question.id,
-          rankings: rankingData
+          ranking: rankingData  // Changed from 'rankings' to 'ranking' to match the server schema
         });
         
         // Then store locally
