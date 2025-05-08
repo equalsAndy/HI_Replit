@@ -125,6 +125,26 @@ export default function Assessment() {
     }
   });
   
+  // Start assessment mutation
+  const startAssessment = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/assessment/start', {});
+      return await res.json();
+    },
+    onError: (error) => {
+      // Ignore "Assessment already exists" errors (409)
+      if (error.message.includes("409")) {
+        return;
+      }
+      
+      toast({
+        title: "Error starting assessment",
+        description: String(error),
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Complete assessment mutation
   const completeAssessment = useMutation({
     mutationFn: async () => {
@@ -331,35 +351,39 @@ export default function Assessment() {
   };
   
   // Auto-complete the assessment with random answers for demo purposes
-  const autoCompleteAssessment = () => {
-    const newAnswers: {[key: number]: RankedOption[]} = {};
-    
-    // Generate random answers for all questions
-    assessmentQuestions.forEach(question => {
-      // Create a copy of the options array
-      const options = [...question.options];
-      
-      // Shuffle the options randomly
-      for (let i = options.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [options[i], options[j]] = [options[j], options[i]];
-      }
-      
-      // Create ranking data
-      const rankingData: RankedOption[] = [
-        { optionId: options[0].id, rank: 1 },
-        { optionId: options[1].id, rank: 2 },
-        { optionId: options[2].id, rank: 3 },
-        { optionId: options[3].id, rank: 4 }
-      ];
-      
-      newAnswers[question.id] = rankingData;
-    });
-    
-    // Set all answers at once
-    setAnswers(newAnswers);
-    
+  const autoCompleteAssessment = async () => {
     try {
+      // First, start the assessment
+      await startAssessment.mutateAsync();
+      
+      // Generate random answers for all questions
+      const newAnswers: {[key: number]: RankedOption[]} = {};
+      
+      // Generate random answers for all questions
+      assessmentQuestions.forEach(question => {
+        // Create a copy of the options array
+        const options = [...question.options];
+        
+        // Shuffle the options randomly
+        for (let i = options.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [options[i], options[j]] = [options[j], options[i]];
+        }
+        
+        // Create ranking data
+        const rankingData: RankedOption[] = [
+          { optionId: options[0].id, rank: 1 },
+          { optionId: options[1].id, rank: 2 },
+          { optionId: options[2].id, rank: 3 },
+          { optionId: options[3].id, rank: 4 }
+        ];
+        
+        newAnswers[question.id] = rankingData;
+      });
+      
+      // Set all answers at once
+      setAnswers(newAnswers);
+      
       // Calculate results
       const results = calculateQuadrantScores(
         Object.entries(newAnswers).map(([questionId, rankings]) => ({
@@ -372,8 +396,20 @@ export default function Assessment() {
       // Set results to display in popup and then navigate
       setAssessmentResults(results);
       
+      // Save each answer first (optional but helps with debugging)
+      for (const [questionId, rankings] of Object.entries(newAnswers)) {
+        try {
+          await apiRequest('POST', '/api/assessment/answer', {
+            questionId: parseInt(questionId),
+            rankings
+          });
+        } catch (error) {
+          console.error(`Error saving answer for question ${questionId}:`, error);
+        }
+      }
+      
       // Complete the assessment by calling the mutation with all required data
-      completeAssessment.mutate();
+      await completeAssessment.mutateAsync();
       
       toast({
         title: "Assessment Auto-Completed",
@@ -383,7 +419,7 @@ export default function Assessment() {
       console.error("Error in auto-complete:", error);
       toast({
         title: "Auto-Complete Failed",
-        description: "There was an error generating random answers.",
+        description: "There was an error auto-completing the assessment.",
         variant: "destructive"
       });
     }
