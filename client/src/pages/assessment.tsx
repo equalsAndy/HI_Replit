@@ -359,13 +359,34 @@ export default function Assessment() {
     // Set all answers at once
     setAnswers(newAnswers);
     
-    // Complete the assessment
-    completeAssessment.mutate();
-    
-    toast({
-      title: "Assessment Auto-Completed",
-      description: "Demo mode has auto-completed the assessment with random answers."
-    });
+    try {
+      // Calculate results
+      const results = calculateQuadrantScores(
+        Object.entries(newAnswers).map(([questionId, rankings]) => ({
+          questionId: parseInt(questionId),
+          rankings
+        })), 
+        optionCategoryMapping
+      );
+      
+      // Set results to display in popup and then navigate
+      setAssessmentResults(results);
+      
+      // Complete the assessment by calling the mutation with all required data
+      completeAssessment.mutate();
+      
+      toast({
+        title: "Assessment Auto-Completed",
+        description: "Demo mode has auto-completed the assessment with random answers."
+      });
+    } catch (error) {
+      console.error("Error in auto-complete:", error);
+      toast({
+        title: "Auto-Complete Failed",
+        description: "There was an error generating random answers.",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

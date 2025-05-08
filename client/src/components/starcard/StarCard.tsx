@@ -164,16 +164,10 @@ export default function StarCard({
             />
             
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
-            {hasCompletedAssessment ? (
-              <div className="absolute w-full" style={{ top: '50px' }}>
-                <p className="text-[1.125rem] font-bold text-gray-500">{quadrantData.apexStrength || "Imagination"}</p>
-                <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
-              </div>
-            ) : (
-              <div className="absolute w-full" style={{ top: '50px' }}>
-                <p className="text-[0.785rem] text-gray-500 italic">Complete the assessment to see your Apex Strength</p>
-              </div>
-            )}
+            <div className="absolute w-full" style={{ top: '50px' }}>
+              <p className="text-[1.125rem] font-bold text-gray-500">{quadrantData.apexStrength || "Imagination"}</p>
+              <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
+            </div>
           </div>
         </div>
         
