@@ -359,8 +359,8 @@ export default function Assessment() {
       // Generate random answers for all questions
       const newAnswers: {[key: number]: RankedOption[]} = {};
       
-      // Generate random answers for all questions
-      assessmentQuestions.forEach(question => {
+      // Process questions sequentially
+      for (const question of assessmentQuestions) {
         // Create a copy of the options array
         const options = [...question.options];
         
@@ -378,13 +378,20 @@ export default function Assessment() {
           { optionId: options[3].id, rank: 4 }
         ];
         
-        newAnswers[question.id] = rankingData;
-      });
+        // Save answer before moving to next question
+        try {
+          await apiRequest('POST', '/api/assessment/answer', {
+            questionId: question.id,
+            rankings: rankingData
+          });
+          newAnswers[question.id] = rankingData;
+          setCurrentQuestionIndex(prev => prev + 1);
+        } catch (error) {
+          throw new Error(`Failed to save answer for question ${question.id}`);
+        }
+      }
       
-      // Set all answers at once
-      setAnswers(newAnswers);
-      
-      // Calculate results
+      // Calculate final results
       const results = calculateQuadrantScores(
         Object.entries(newAnswers).map(([questionId, rankings]) => ({
           questionId: parseInt(questionId),
@@ -393,23 +400,10 @@ export default function Assessment() {
         optionCategoryMapping
       );
       
-      // Set results to display in popup and then navigate
-      setAssessmentResults(results);
-      
-      // Save each answer first (optional but helps with debugging)
-      for (const [questionId, rankings] of Object.entries(newAnswers)) {
-        try {
-          await apiRequest('POST', '/api/assessment/answer', {
-            questionId: parseInt(questionId),
-            rankings
-          });
-        } catch (error) {
-          console.error(`Error saving answer for question ${questionId}:`, error);
-        }
-      }
-      
-      // Complete the assessment by calling the mutation with all required data
+      // Complete assessment and show results
       await completeAssessment.mutateAsync();
+      setAssessmentResults(results);
+      setShowResultsPopup(true);
       
       toast({
         title: "Assessment Auto-Completed",
@@ -419,7 +413,7 @@ export default function Assessment() {
       console.error("Error in auto-complete:", error);
       toast({
         title: "Auto-Complete Failed",
-        description: "There was an error auto-completing the assessment.",
+        description: String(error),
         variant: "destructive"
       });
     }
