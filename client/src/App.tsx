@@ -50,20 +50,24 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/logout" component={() => {
-            const handleLogout = async () => {
-              try {
-                await apiRequest('POST', '/api/auth/logout');
-                queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-                window.location.href = '/auth';
-              } catch (error) {
-                console.error("Logout failed:", error);
-                window.location.href = '/auth';
-              }
-            };
-            
-            // Execute logout immediately
+            // Simplified logout page
             useEffect(() => {
-              handleLogout();
+              const logout = async () => {
+                try {
+                  // Make a fetch request directly instead of using apiRequest
+                  await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                } catch (error) {
+                  console.error("Logout failed:", error);
+                } finally {
+                  // Always redirect to auth page
+                  window.location.href = '/auth';
+                }
+              };
+              
+              logout();
             }, []);
             
             return <div className="flex items-center justify-center min-h-screen">

@@ -11,14 +11,9 @@ export function NavBar() {
   const [, navigate] = useLocation();
   const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
 
-  const handleLogout = async () => {
-    try {
-      await apiRequest('POST', '/api/auth/logout');
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      navigate('/auth');
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+  const handleLogout = () => {
+    // Use direct URL navigation for reliability
+    window.location.href = '/logout';
   };
 
   return (
