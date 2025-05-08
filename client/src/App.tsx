@@ -24,6 +24,9 @@ import { DemoModeProvider } from "@/hooks/use-demo-mode";
 // Import NavBar
 import { NavBar } from "./components/layout/NavBar";
 
+// Import ProtectedRoute
+import { ProtectedRoute } from "./lib/protected-route";
+
 function Router() {
   return (
     <div className="flex flex-col min-h-screen">

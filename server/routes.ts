@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -15,6 +15,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 // Set up uploads directory
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -49,8 +50,23 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup Replit Auth
+  await setupAuth(app);
+  
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(uploadsDir));
+  
+  // Auth routes with Replit Auth
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res: Response) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   
   // File upload endpoint for star card image
   app.post('/api/upload/starcard', upload.single('image'), async (req: Request, res: Response) => {

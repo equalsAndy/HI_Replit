@@ -118,7 +118,15 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id: id.toString() };
+    const user: User = { 
+      ...insertUser, 
+      id: id.toString(),
+      email: null,
+      firstName: null,
+      lastName: null,
+      bio: null,
+      profileImageUrl: null
+    };
     this.users.set(id, user);
     return user;
   }
@@ -149,11 +157,11 @@ export class MemStorage implements IStorage {
       const updatedUser = { 
         ...existingUser,
         username: userData.username,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        bio: userData.bio,
-        profileImageUrl: userData.profileImageUrl,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        bio: userData.bio || null,
+        profileImageUrl: userData.profileImageUrl || null,
       };
       this.users.set(numId, updatedUser);
       return updatedUser;
@@ -162,12 +170,17 @@ export class MemStorage implements IStorage {
       const newUser: User = {
         id: userData.id,
         username: userData.username,
-        email: userData.email,
-        firstName: userData.firstName,
-        lastName: userData.lastName,
-        bio: userData.bio,
-        profileImageUrl: userData.profileImageUrl,
+        email: userData.email || null,
+        firstName: userData.firstName || null,
+        lastName: userData.lastName || null,
+        bio: userData.bio || null,
+        profileImageUrl: userData.profileImageUrl || null,
         // Default values for other required fields
+        name: null,
+        title: null,
+        organization: null,
+        avatarUrl: null,
+        password: null,
         progress: 0
       };
       this.users.set(numId, newUser);
