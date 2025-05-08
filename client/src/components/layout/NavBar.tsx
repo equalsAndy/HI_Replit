@@ -5,15 +5,38 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
+import { useState } from "react";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
   const [, navigate] = useLocation();
   const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    // Use direct URL navigation for reliability
-    window.location.href = '/logout';
+  const handleLogout = async () => {
+    if (isLoggingOut) return; // Prevent multiple clicks
+    
+    setIsLoggingOut(true);
+    try {
+      // Directly make a fetch request to the logout endpoint
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (response.ok) {
+        // Clear cached user data
+        queryClient.setQueryData(['/api/user/profile'], null);
+        // Redirect to auth page
+        window.location.href = '/auth';
+      } else {
+        console.error("Logout failed");
+        setIsLoggingOut(false);
+      }
+    } catch (error) {
+      console.error("Logout error:", error);
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -32,8 +55,13 @@ export function NavBar() {
           onCheckedChange={toggleDemoMode}
         />
         {user ? (
-          <Button variant="outline" size="sm" onClick={handleLogout}>
-            Logout
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleLogout} 
+            disabled={isLoggingOut}
+          >
+            {isLoggingOut ? 'Logging out...' : 'Logout'}
           </Button>
         ) : (
           <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
