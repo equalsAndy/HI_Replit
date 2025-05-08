@@ -26,26 +26,36 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  
+  // Test user operations
+  createTestUsers(): Promise<void>;
+  getTestUsers(): Promise<User[]>;
+  resetUserData(userId: number): Promise<void>;
   
   // Assessment operations
   getQuestions(): Promise<Question[]>;
   getAssessment(userId: number): Promise<Assessment | undefined>;
   createAssessment(assessment: InsertAssessment): Promise<Assessment>;
   updateAssessment(id: number, assessmentData: Partial<Assessment>): Promise<Assessment | undefined>;
+  deleteAssessment(userId: number): Promise<void>;
   
   // Answer operations
   saveAnswer(answer: InsertAnswer): Promise<Answer>;
   getAnswers(userId: number): Promise<Answer[]>;
+  deleteAnswers(userId: number): Promise<void>;
   
   // Star Card operations
   getStarCard(userId: number): Promise<StarCard | undefined>;
   createStarCard(starCard: InsertStarCard): Promise<StarCard>;
   updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined>;
+  deleteStarCard(userId: number): Promise<void>;
   
   // Flow Attributes operations
   getFlowAttributes(userId: number): Promise<FlowAttributes | undefined>;
   createFlowAttributes(flowAttributes: InsertFlowAttributes): Promise<FlowAttributes>;
   updateFlowAttributes(id: number, flowAttributesData: Partial<FlowAttributes>): Promise<FlowAttributes | undefined>;
+  deleteFlowAttributes(userId: number): Promise<void>;
   
   // Visualization operations
   getVisualization(userId: number): Promise<Visualization | undefined>;
@@ -121,6 +131,71 @@ export class MemStorage implements IStorage {
     this.users.set(id, updatedUser);
     return updatedUser;
   }
+  
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+  
+  async createTestUsers(): Promise<void> {
+    // Create 5 test users with different profiles
+    const testUsers = [
+      {
+        username: 'user1',
+        password: 'password', // In a real app, this would be hashed
+        name: 'Test User 1',
+        title: 'Software Engineer',
+        organization: 'Tech Company',
+        progress: 0
+      },
+      {
+        username: 'user2',
+        password: 'password',
+        name: 'Test User 2',
+        title: 'Product Manager',
+        organization: 'Innovation Inc',
+        progress: 0
+      },
+      {
+        username: 'user3',
+        password: 'password',
+        name: 'Test User 3',
+        title: 'Data Scientist',
+        organization: 'Analytics Co',
+        progress: 0
+      },
+      {
+        username: 'user4',
+        password: 'password',
+        name: 'Test User 4',
+        title: 'UX Designer',
+        organization: 'Design Studio',
+        progress: 0
+      },
+      {
+        username: 'user5',
+        password: 'password',
+        name: 'Test User 5',
+        title: 'Marketing Director',
+        organization: 'Brand Agency',
+        progress: 0
+      }
+    ];
+    
+    // First, check if these users already exist
+    for (const userData of testUsers) {
+      const existingUser = await this.getUserByUsername(userData.username);
+      if (!existingUser) {
+        await this.createUser(userData);
+      }
+    }
+  }
+  
+  async getTestUsers(): Promise<User[]> {
+    // Get all users with usernames beginning with 'user'
+    return Array.from(this.users.values()).filter(
+      (user) => user.username.startsWith('user')
+    );
+  }
 
   async getQuestions(): Promise<Question[]> {
     return Array.from(this.questions.values());
@@ -147,6 +222,13 @@ export class MemStorage implements IStorage {
     this.assessments.set(id, updatedAssessment);
     return updatedAssessment;
   }
+  
+  async deleteAssessment(userId: number): Promise<void> {
+    const assessment = await this.getAssessment(userId);
+    if (assessment) {
+      this.assessments.delete(assessment.id);
+    }
+  }
 
   async saveAnswer(insertAnswer: InsertAnswer): Promise<Answer> {
     const id = this.currentAnswerId++;
@@ -159,6 +241,14 @@ export class MemStorage implements IStorage {
     return Array.from(this.answers.values()).filter(
       (answer) => answer.userId === userId,
     );
+  }
+  
+  async deleteAnswers(userId: number): Promise<void> {
+    // Find all answer ids for the user and delete them
+    const userAnswers = await this.getAnswers(userId);
+    userAnswers.forEach(answer => {
+      this.answers.delete(answer.id);
+    });
   }
 
   async getStarCard(userId: number): Promise<StarCard | undefined> {
@@ -181,6 +271,13 @@ export class MemStorage implements IStorage {
     const updatedStarCard = { ...starCard, ...starCardData };
     this.starCards.set(id, updatedStarCard);
     return updatedStarCard;
+  }
+  
+  async deleteStarCard(userId: number): Promise<void> {
+    const starCard = await this.getStarCard(userId);
+    if (starCard) {
+      this.starCards.delete(starCard.id);
+    }
   }
   
   async getFlowAttributes(userId: number): Promise<FlowAttributes | undefined> {
@@ -214,6 +311,13 @@ export class MemStorage implements IStorage {
     return updatedFlowAttributes;
   }
   
+  async deleteFlowAttributes(userId: number): Promise<void> {
+    const flowAttributes = await this.getFlowAttributes(userId);
+    if (flowAttributes) {
+      this.flowAttributes.delete(flowAttributes.id);
+    }
+  }
+  
   async getVisualization(userId: number): Promise<Visualization | undefined> {
     return Array.from(this.visualizations.values()).find(
       (visualization) => visualization.userId === userId
@@ -243,6 +347,29 @@ export class MemStorage implements IStorage {
     };
     this.visualizations.set(id, updatedVisualization);
     return updatedVisualization;
+  }
+  
+  async deleteVisualization(userId: number): Promise<void> {
+    const visualization = await this.getVisualization(userId);
+    if (visualization) {
+      this.visualizations.delete(visualization.id);
+    }
+  }
+  
+  async resetUserData(userId: number): Promise<void> {
+    // Get the user to keep basic info
+    const user = await this.getUser(userId);
+    if (!user) return;
+    
+    // Reset progress to 0
+    await this.updateUser(userId, { progress: 0 });
+    
+    // Delete all user data
+    await this.deleteAssessment(userId);
+    await this.deleteAnswers(userId);
+    await this.deleteStarCard(userId);
+    await this.deleteFlowAttributes(userId);
+    await this.deleteVisualization(userId);
   }
 
   private initializeQuestions() {
