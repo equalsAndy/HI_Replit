@@ -214,6 +214,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   });
+  
+  app.post("/api/auth/logout", async (req: Request, res: Response) => {
+    try {
+      // Clear the cookie
+      res.clearCookie("userId");
+      res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+      res.status(500).json({ message: "Server error" });
+    }
+  });
 
   app.get("/api/user/profile", async (req: Request, res: Response) => {
     try {

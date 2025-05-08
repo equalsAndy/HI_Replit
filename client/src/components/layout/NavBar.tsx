@@ -12,9 +12,13 @@ export function NavBar() {
   const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
 
   const handleLogout = async () => {
-    await apiRequest('POST', '/api/auth/logout');
-    queryClient.invalidateQueries();
-    navigate('/auth');
+    try {
+      await apiRequest('POST', '/api/auth/logout');
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      navigate('/auth');
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
   };
 
   return (

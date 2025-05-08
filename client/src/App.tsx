@@ -32,7 +32,7 @@ function Router() {
   useEffect(() => {
     if (!isLoading) {
       const path = window.location.pathname;
-      if (!user && path !== '/auth' && path !== '/') {
+      if (!user && path !== '/auth' && path !== '/' && path !== '/logout') {
         navigate('/auth');
       }
       if (user && (path === '/auth' || path === '/')) {
