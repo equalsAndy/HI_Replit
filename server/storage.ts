@@ -22,10 +22,19 @@ export interface IStorage {
   sessionStore: any; // session.Store type
   
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
+  updateUser(id: string, userData: Partial<User>): Promise<User | undefined>;
+  upsertUser(userData: { 
+    id: string;
+    username: string;
+    email?: string; 
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    profileImageUrl?: string;
+  }): Promise<User>;
   
   // Assessment operations
   getQuestions(): Promise<Question[]>;
@@ -96,8 +105,9 @@ export class MemStorage implements IStorage {
     this.initializeQuestions();
   }
 
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+  async getUser(id: string): Promise<User | undefined> {
+    const numId = parseInt(id, 10);
+    return this.users.get(numId);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -108,18 +118,61 @@ export class MemStorage implements IStorage {
 
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
+    const user: User = { ...insertUser, id: id.toString() };
     this.users.set(id, user);
     return user;
   }
 
-  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
-    const user = this.users.get(id);
+  async updateUser(id: string, userData: Partial<User>): Promise<User | undefined> {
+    const numId = parseInt(id, 10);
+    const user = this.users.get(numId);
     if (!user) return undefined;
     
     const updatedUser = { ...user, ...userData };
-    this.users.set(id, updatedUser);
+    this.users.set(numId, updatedUser);
     return updatedUser;
+  }
+  
+  async upsertUser(userData: { 
+    id: string;
+    username: string;
+    email?: string; 
+    firstName?: string;
+    lastName?: string;
+    bio?: string;
+    profileImageUrl?: string;
+  }): Promise<User> {
+    const numId = parseInt(userData.id, 10);
+    const existingUser = this.users.get(numId);
+    
+    if (existingUser) {
+      const updatedUser = { 
+        ...existingUser,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        bio: userData.bio,
+        profileImageUrl: userData.profileImageUrl,
+      };
+      this.users.set(numId, updatedUser);
+      return updatedUser;
+    } else {
+      // Create a new user
+      const newUser: User = {
+        id: userData.id,
+        username: userData.username,
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        bio: userData.bio,
+        profileImageUrl: userData.profileImageUrl,
+        // Default values for other required fields
+        progress: 0
+      };
+      this.users.set(numId, newUser);
+      return newUser;
+    }
   }
 
   async getQuestions(): Promise<Question[]> {
