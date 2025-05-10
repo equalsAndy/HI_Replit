@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useApplication } from "@/hooks/use-application";
 import { insertUserSchema } from "@shared/schema";
 import TestUsersModal from "@/components/test-users/TestUsersModal";
 
@@ -52,6 +53,7 @@ export default function AuthPage() {
   const [showTestUsers, setShowTestUsers] = useState(false);
   const [, navigate] = useLocation();
   const { toast } = useToast();
+  const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
 
   // Check if user is already logged in
   const { data: user, isLoading } = useQuery({
@@ -142,8 +144,8 @@ export default function AuthPage() {
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16">
         <div className="mb-8">
           <img 
-            src="/src/assets/all-star-teams-logo-250px.png" 
-            alt="AllStarTeams" 
+            src={appLogo}
+            alt={appName}
             className="h-10 w-auto mb-8"
           />
           <h1 className="text-3xl font-bold mb-2">
@@ -152,7 +154,9 @@ export default function AuthPage() {
           <p className="text-gray-600">
             {isLogin 
               ? "Sign in to continue your journey" 
-              : "Start discovering your strengths today"
+              : currentApp === 'allstarteams'
+                ? "Start discovering your strengths today"
+                : "Begin your Imaginal Agility journey"
             }
           </p>
         </div>
@@ -189,7 +193,7 @@ export default function AuthPage() {
               />
               <Button 
                 type="submit" 
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                className={`w-full ${currentApp === 'allstarteams' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'}`}
                 disabled={loginMutation.isPending}
               >
                 {loginMutation.isPending ? "Signing in..." : "Sign In"}
@@ -282,7 +286,7 @@ export default function AuthPage() {
               />
               <Button 
                 type="submit" 
-                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                className={`w-full ${currentApp === 'allstarteams' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'}`}
                 disabled={registerMutation.isPending}
               >
                 {registerMutation.isPending ? "Creating account..." : "Create Account"}
