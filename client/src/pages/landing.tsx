@@ -135,12 +135,12 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto">
               <div className="relative aspect-video rounded-lg shadow-lg overflow-hidden">
                 <iframe 
-                  src="https://player.vimeo.com/video/1083175559?title=0&byline=0&portrait=0" 
+                  src="https://player.vimeo.com/video/1083175559?title=0&byline=0&portrait=0&badge=0&autopause=0&player_id=0&app_id=58479" 
                   className="absolute inset-0 w-full h-full" 
                   frameBorder="0" 
-                  allow="autoplay; fullscreen; picture-in-picture" 
+                  allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media" 
                   allowFullScreen
-                  title="Heliotrope Imaginal Platform Introduction"
+                  title="HELIOTROPE IMAGINAL_workshops"
                 ></iframe>
               </div>
             </div>
