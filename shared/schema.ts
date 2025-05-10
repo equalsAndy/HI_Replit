@@ -151,6 +151,7 @@ export const insertUserSchema = createInsertSchema(users).pick({
   organization: true,
   avatarUrl: true,
   progress: true,
+  applicationId: true,
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).pick({

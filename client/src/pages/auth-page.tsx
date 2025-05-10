@@ -85,6 +85,7 @@ export default function AuthPage() {
       username: "",
       title: "",
       organization: "",
+      applicationId: currentApp === 'allstarteams' ? 1 : 2, // Set application ID based on current app
       password: "",
       confirmPassword: "",
     },
@@ -113,6 +114,8 @@ export default function AuthPage() {
   const registerMutation = useMutation({
     mutationFn: async (data: RegisterValues) => {
       const { confirmPassword, ...userData } = data;
+      // Ensure applicationId is set based on current selection
+      userData.applicationId = currentApp === 'allstarteams' ? 1 : 2;
       const res = await apiRequest('POST', '/api/auth/register', userData);
       return res.json();
     },
@@ -300,7 +303,7 @@ export default function AuthPage() {
             {isLogin ? "Don't have an account? " : "Already have an account? "}
             <button 
               onClick={() => setIsLogin(!isLogin)} 
-              className="text-indigo-600 hover:text-indigo-800 font-medium"
+              className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium`}
             >
               {isLogin ? "Create one" : "Sign in"}
             </button>
@@ -326,33 +329,65 @@ export default function AuthPage() {
       </div>
       
       {/* Right side - Hero */}
-      <div className="hidden lg:block lg:w-1/2 bg-indigo-600">
+      <div className={`hidden lg:block lg:w-1/2 ${currentApp === 'allstarteams' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
         <div className="h-full flex flex-col justify-center p-16 text-white">
-          <h2 className="text-4xl font-bold mb-6">Discover your strengths and transform your team</h2>
-          <p className="text-lg mb-8">
-            The AllStarTeams platform helps you identify your natural talents and how they 
-            combine with others to create high-performing teams.
-          </p>
-          <ul className="space-y-4">
-            <li className="flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Personalized strengths assessment</span>
-            </li>
-            <li className="flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Interactive team dynamics visualization</span>
-            </li>
-            <li className="flex items-start">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <span>Action-oriented development plans</span>
-            </li>
-          </ul>
+          {currentApp === 'allstarteams' ? (
+            <>
+              <h2 className="text-4xl font-bold mb-6">Discover your strengths and transform your team</h2>
+              <p className="text-lg mb-8">
+                The AllStarTeams platform helps you identify your natural talents and how they 
+                combine with others to create high-performing teams.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Personalized strengths assessment</span>
+                </li>
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Interactive team dynamics visualization</span>
+                </li>
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Action-oriented development plans</span>
+                </li>
+              </ul>
+            </>
+          ) : (
+            <>
+              <h2 className="text-4xl font-bold mb-6">Develop your imagination and transform your work</h2>
+              <p className="text-lg mb-8">
+                Imaginal Agility helps you cultivate essential human capabilities to navigate 
+                complexity and create innovative solutions to challenging problems.
+              </p>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Interactive 5Cs capability assessment</span>
+                </li>
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Detailed data visualizations and insights</span>
+                </li>
+                <li className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span>Collaborative team workshop materials</span>
+                </li>
+              </ul>
+            </>
+          )}
         </div>
       </div>
     </div>
