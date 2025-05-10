@@ -1,15 +1,7 @@
 
 import { useEffect } from 'react';
 
-// Add YouTube API
-useEffect(() => {
-  const tag = document.createElement('script');
-  tag.src = "https://www.youtube.com/iframe_api";
-  const firstScriptTag = document.getElementsByTagName('script')[0];
-  firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-}, []);
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -44,6 +36,14 @@ interface StarCardType {
 }
 
 export default function UserHome() {
+  // Add YouTube API
+  useEffect(() => {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+  }, []);
+
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp } = useApplication();
