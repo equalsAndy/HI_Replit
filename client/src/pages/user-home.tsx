@@ -518,39 +518,138 @@ export default function UserHome() {
             ) : (
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
                 <h2 className="text-2xl font-bold mb-4 text-purple-800">Imaginal Agility</h2>
-                <p className="text-gray-700 mb-4">
-                  Welcome to your Imaginal Agility journey. Through a series of assessments and activities, 
-                  you'll learn how to enhance your capabilities in the 5Cs:
-                </p>
-                <ul className="space-y-2 mb-4">
-                  <li className="flex items-center">
-                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">1</span>
-                    <span className="text-gray-700">Imagination - The ability to conceive what doesn't yet exist</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">2</span>
-                    <span className="text-gray-700">Curiosity - An openness to new perspectives and knowledge</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">3</span>
-                    <span className="text-gray-700">Empathy - Understanding others' experiences and emotions</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">4</span>
-                    <span className="text-gray-700">Creativity - Bringing new ideas into existence</span>
-                  </li>
-                  <li className="flex items-center">
-                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">5</span>
-                    <span className="text-gray-700">Courage - Taking action despite uncertainty</span>
-                  </li>
-                </ul>
-                <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-                  <h3 className="font-semibold text-purple-800 mb-2">Why It Matters</h3>
-                  <p className="text-gray-700 text-sm">
-                    In an age of rapid technological change, these uniquely human capabilities 
-                    are essential for navigating complexity and creating innovative solutions to 
-                    challenging problems.
-                  </p>
+                
+                {/* Section 1: Introduction */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">Introduction to Imaginal Agility</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Introduction to Imaginal Agility"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        Welcome to your Imaginal Agility journey. This program will help you cultivate 
+                        essential human capabilities that AI cannot replicate.
+                      </p>
+                      <p className="text-gray-700">
+                        Through the 5Cs framework - Imagination, Curiosity, Empathy, Creativity, and Courage - 
+                        you'll develop the skills needed to navigate complex challenges and create innovative solutions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Section 2: The Triple Challenge */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">The Triple Challenge</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 1: The Triple Challenge"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        We face three interconnected challenges today: technological disruption, 
+                        organizational complexity, and environmental pressures.
+                      </p>
+                      <p className="text-gray-700">
+                        Understanding these challenges is the first step to developing the 
+                        agility needed to navigate them effectively.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Section 3: The Imaginal Agility Solution */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">The Imaginal Agility Solution</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 2: The Imaginal Agility Solution"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        Imaginal Agility is the ability to perceive complex situations clearly and 
+                        respond effectively through intentional awareness and purposeful action.
+                      </p>
+                      <p className="text-gray-700">
+                        This module explores how developing these capabilities can help you thrive 
+                        in rapidly changing environments and create innovative solutions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Section 4: Your 5Cs */}
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">Your 5Cs</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 3: Your 5Cs"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        The 5Cs framework consists of five interconnected capabilities:
+                      </p>
+                      <ul className="space-y-1 mb-3">
+                        <li className="flex items-center">
+                          <span className="mr-2 h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold text-xs">1</span>
+                          <span className="text-gray-700 text-sm">Imagination - Conceiving what doesn't yet exist</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="mr-2 h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold text-xs">2</span>
+                          <span className="text-gray-700 text-sm">Curiosity - Openness to new perspectives</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="mr-2 h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold text-xs">3</span>
+                          <span className="text-gray-700 text-sm">Empathy - Understanding others' experiences</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="mr-2 h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold text-xs">4</span>
+                          <span className="text-gray-700 text-sm">Creativity - Bringing new ideas into existence</span>
+                        </li>
+                        <li className="flex items-center">
+                          <span className="mr-2 h-5 w-5 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold text-xs">5</span>
+                          <span className="text-gray-700 text-sm">Courage - Taking action despite uncertainty</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
