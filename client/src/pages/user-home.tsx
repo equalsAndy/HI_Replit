@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon } from "lucide-react";
+import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles } from "lucide-react";
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
+import { useApplication } from "@/hooks/use-application";
 
 // Define the user type based on the app's data structure
 interface UserType {
@@ -34,6 +35,7 @@ interface StarCardType {
 export default function UserHome() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
+  const { currentApp } = useApplication();
   
   // Expandable sections state
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
