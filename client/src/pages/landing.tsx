@@ -7,7 +7,11 @@ export default function Landing() {
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="logo flex items-center">
-            <h1 className="text-xl font-bold">Personal Growth Platform</h1>
+            <img 
+              src="/src/assets/HI_Logo_horizontal.png" 
+              alt="Heliotrope Imaginal" 
+              className="h-10 w-auto"
+            />
           </div>
           
           <div className="flex items-center space-x-3">
@@ -37,7 +41,7 @@ export default function Landing() {
                   <img 
                     src="/src/assets/all-star-teams-logo-250px.png" 
                     alt="AllStarTeams" 
-                    className="h-20 w-auto"
+                    className="h-15 w-auto"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">AllStarTeams</h3>
@@ -77,9 +81,9 @@ export default function Landing() {
               <div className="p-8">
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="/assets/imaginal_agility_logo_nobkgrd.png" 
+                    src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
                     alt="Imaginal Agility" 
-                    className="h-20 w-auto object-contain"
+                    className="h-15 w-auto"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
@@ -116,7 +120,7 @@ export default function Landing() {
           </div>
           
           <div className="text-center">
-            <h3 className="text-2xl font-bold text-gray-800 mb-4">Why Choose Our Platform?</h3>
+            <h3 className="text-2xl font-bold text-gray-800 mb-4">Why Choose Heliotrope Imaginal's Platform?</h3>
             <p className="text-gray-600 max-w-3xl mx-auto mb-8">
               Our science-backed assessments and workshops have helped thousands of professionals 
               and teams unlock their full potential through personalized insights and guided growth.
@@ -127,7 +131,7 @@ export default function Landing() {
       
       <footer className="bg-gray-50 border-t border-gray-200 py-8">
         <div className="container mx-auto px-4 text-center text-gray-500">
-          <p>&copy; 2025 Personal Growth Platform. All rights reserved.</p>
+          <p>&copy; 2025 Heliotrope Imaginal. All rights reserved.</p>
         </div>
       </footer>
     </div>
