@@ -1,5 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import HiLogo from '@/assets/HI_Logo_horizontal.png';
+import AllStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
+import ImaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
 
 export default function Landing() {
   return (
@@ -8,7 +11,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="logo flex items-center">
             <img 
-              src="/src/assets/HI_Logo_horizontal.png" 
+              src={HiLogo} 
               alt="Heliotrope Imaginal" 
               className="h-10 w-auto"
             />
@@ -39,9 +42,9 @@ export default function Landing() {
               <div className="p-8">
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="/src/assets/all-star-teams-logo-250px.png" 
+                    src={AllStarTeamsLogo} 
                     alt="AllStarTeams" 
-                    className="h-15 w-auto"
+                    className="h-16 w-auto"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">AllStarTeams</h3>
@@ -81,9 +84,9 @@ export default function Landing() {
               <div className="p-8">
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+                    src={ImaginalAgilityLogo} 
                     alt="Imaginal Agility" 
-                    className="h-15 w-auto"
+                    className="h-16 w-auto"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
