@@ -230,109 +230,113 @@ export default function UserHome() {
               {expandedSection === "profile" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
-                    This information builds your Star Badge.
+                    {currentApp === 'allstarteams' 
+                      ? 'This information builds your Star Badge.'
+                      : 'This information will be used throughout your Imaginal Agility journey.'}
                   </p>
                   
-                  <div className="mb-6">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Your Star Card Image:</p>
-                    <div className="flex items-start space-x-4">
-                      <div className="w-24 h-24 overflow-hidden rounded-md border border-gray-300">
-                        {starCard?.imageUrl ? (
-                          <div className="relative w-full h-full">
-                            <img 
-                              src={starCard.imageUrl} 
-                              alt="Star Card Image" 
-                              className="w-full h-full object-cover"
-                            />
-                            <button
-                              onClick={() => {
-                                // Remove image
-                                apiRequest('DELETE', '/api/upload/starcard', {})
-                                  .then(() => {
-                                    queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-                                    toast({
-                                      title: "Image removed",
-                                      description: "Your Star Card image has been removed.",
+                  {currentApp === 'allstarteams' && (
+                    <div className="mb-6">
+                      <p className="text-sm font-medium text-gray-700 mb-2">Your Star Card Image:</p>
+                      <div className="flex items-start space-x-4">
+                        <div className="w-24 h-24 overflow-hidden rounded-md border border-gray-300">
+                          {starCard?.imageUrl ? (
+                            <div className="relative w-full h-full">
+                              <img 
+                                src={starCard.imageUrl} 
+                                alt="Star Card Image" 
+                                className="w-full h-full object-cover"
+                              />
+                              <button
+                                onClick={() => {
+                                  // Remove image
+                                  apiRequest('DELETE', '/api/upload/starcard', {})
+                                    .then(() => {
+                                      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+                                      toast({
+                                        title: "Image removed",
+                                        description: "Your Star Card image has been removed.",
+                                      });
+                                    })
+                                    .catch(error => {
+                                      toast({
+                                        title: "Failed to remove image",
+                                        description: String(error),
+                                        variant: "destructive",
+                                      });
                                     });
-                                  })
-                                  .catch(error => {
-                                    toast({
-                                      title: "Failed to remove image",
-                                      description: String(error),
-                                      variant: "destructive",
-                                    });
-                                  });
-                              }}
-                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
-                              type="button"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                }}
+                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                                type="button"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                </svg>
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                               </svg>
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex flex-col gap-2">
-                          <div className="flex items-center">
-                            <label htmlFor="profile-image-upload" className="cursor-pointer inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                              {starCard?.imageUrl ? 'Change Image' : 'Upload Image'}
-                            </label>
-                            <input 
-                              id="profile-image-upload" 
-                              type="file" 
-                              accept="image/*" 
-                              className="sr-only"
-                              onChange={(e) => {
-                                if (!e.target.files || !e.target.files[0]) return;
-                                
-                                const file = e.target.files[0];
-                                const formData = new FormData();
-                                formData.append('image', file);
-                                
-                                toast({
-                                  title: "Uploading image...",
-                                  description: "Please wait while your image is being uploaded.",
-                                });
-                                
-                                fetch('/api/upload/starcard', {
-                                  method: 'POST',
-                                  body: formData,
-                                })
-                                  .then(response => response.json())
-                                  .then(data => {
-                                    queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-                                    toast({
-                                      title: "Image uploaded",
-                                      description: "Your Star Card image has been updated successfully.",
-                                    });
-                                    // Reset the input
-                                    e.target.value = '';
-                                  })
-                                  .catch(error => {
-                                    toast({
-                                      title: "Failed to upload image",
-                                      description: String(error),
-                                      variant: "destructive",
-                                    });
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex flex-col gap-2">
+                            <div className="flex items-center">
+                              <label htmlFor="profile-image-upload" className={`cursor-pointer inline-flex items-center rounded-md ${appStyles.primaryBgColor} px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600`}>
+                                {starCard?.imageUrl ? 'Change Image' : 'Upload Image'}
+                              </label>
+                              <input 
+                                id="profile-image-upload" 
+                                type="file" 
+                                accept="image/*" 
+                                className="sr-only"
+                                onChange={(e) => {
+                                  if (!e.target.files || !e.target.files[0]) return;
+                                  
+                                  const file = e.target.files[0];
+                                  const formData = new FormData();
+                                  formData.append('image', file);
+                                  
+                                  toast({
+                                    title: "Uploading image...",
+                                    description: "Please wait while your image is being uploaded.",
                                   });
-                              }}
-                            />
+                                  
+                                  fetch('/api/upload/starcard', {
+                                    method: 'POST',
+                                    body: formData,
+                                  })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+                                      toast({
+                                        title: "Image uploaded",
+                                        description: "Your Star Card image has been updated successfully.",
+                                      });
+                                      // Reset the input
+                                      e.target.value = '';
+                                    })
+                                    .catch(error => {
+                                      toast({
+                                        title: "Failed to upload image",
+                                        description: String(error),
+                                        variant: "destructive",
+                                      });
+                                    });
+                                }}
+                              />
+                            </div>
+                            <p className="text-xs text-gray-500">
+                              Upload a photo to personalize your Star Card. JPG, PNG, or GIF, max 5MB.
+                            </p>
                           </div>
-                          <p className="text-xs text-gray-500">
-                            Upload a photo to personalize your Star Card. JPG, PNG, or GIF, max 5MB.
-                          </p>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
                   <form onSubmit={handleSaveProfile}>
                     <p className="text-red-500 mb-3 text-sm">
@@ -375,7 +379,7 @@ export default function UserHome() {
                       
                       <Button 
                         type="submit" 
-                        className="bg-indigo-700 hover:bg-indigo-800"
+                        className={`${appStyles.primaryBgColor} hover:${currentApp === 'allstarteams' ? 'bg-indigo-800' : 'bg-purple-800'}`}
                         disabled={updateProfile.isPending}
                       >
                         {updateProfile.isPending ? "Updating..." : "Update Profile"}
@@ -386,281 +390,139 @@ export default function UserHome() {
               )}
             </div>
             
-            {/* Introduction Section */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("introduction")}
-              >
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z" />
-                  </svg>
-                  <span className="text-indigo-700 font-medium">Introduction</span>
-                  {user && user.progress >= 20 && (
-                    <span className="ml-2 text-green-500 font-bold">✓</span>
-                  )}
-                </div>
-                {expandedSection === "introduction" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "introduction" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Watch this introduction video to understand the AllStarTeams process.
-                  </p>
-                  
-                  <div className="aspect-w-16 aspect-h-9 mb-4">
-                    <iframe 
-                      src="https://www.youtube.com/embed/NzDxPRpBvUM" 
-                      title="Introduction to AllStarTeams" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="w-full h-64 rounded border border-gray-200"
-                    ></iframe>
-                  </div>
-                  
-                  <div className="mt-4">
-                    <p className="text-sm text-gray-700 font-medium">Key points to remember:</p>
-                    <ul className="list-disc list-inside text-sm text-gray-700 mt-2 space-y-1">
-                      <li>The assessment helps identify your natural strengths</li>
-                      <li>There are no right or wrong answers</li>
-                      <li>Be authentic in your responses for the most accurate results</li>
-                      <li>Your Star Card will help guide your personal development</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* Step 2: Learn about your Strengths */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("assessment")}
-              >
-                <div className="flex items-center">
-                  <StarIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  <span className="text-indigo-700 font-medium">Learn about your Strengths</span>
-                  {user && user.progress >= 67 && (
-                    <span className="ml-2 text-green-500 font-bold">✓</span>
-                  )}
-                </div>
-                {expandedSection === "assessment" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "assessment" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Take the assessment to discover your unique strengths. You'll rank options from 'most like me' to 'least like me' for a series of scenarios.
-                  </p>
-                  
-                  <Link href="/foundations">
-                    <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Let's Go!
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-
-            {/* Step 2B: Find your Flow State */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("flow")}
-              >
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                  <span className="text-indigo-700 font-medium">Find your Flow State</span>
-                  {user && user.progress >= 80 && (
-                    <span className="ml-2 text-green-500 font-bold">✓</span>
-                  )}
-                </div>
-                {expandedSection === "flow" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "flow" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Flow is a state of complete immersion in an activity, characterized by energized focus, full involvement, 
-                    and enjoyment in the process. Discover how to recognize and create more flow experiences in your work.
-                  </p>
-                  
-                  <p className="mb-4 text-sm text-gray-700">
-                    Learn about flow state, take the self-assessment, and reflect on how to create more flow in your daily work.
-                  </p>
-                  
-                  <Link href="/find-your-flow">
-                    <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Find my Flow!
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-            
-            {/* Step 3: Visualize Yourself */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("visualize")}
-              >
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-indigo-700 font-medium">Visualize Yourself</span>
-                  {user && user.progress >= 90 && (
-                    <span className="ml-2 text-green-500 font-bold">✓</span>
-                  )}
-                </div>
-                {expandedSection === "visualize" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "visualize" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Engage your imagination to visualize your future self, explore personal growth through the Ladder of Wellbeing, and create a vision of your potential.
-                  </p>
-                  
-                  <Link href="/visualize-yourself">
-                    <Button className="bg-indigo-700 hover:bg-indigo-800">
-                      Start Visualization
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </div>
-            
-            {/* Step 4: Review your Star Report */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("report")}
-              >
-                <div className="flex items-center">
-                  <ClipboardIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  <span className="text-indigo-700 font-medium">Review your Star Report</span>
-                  {user && user.progress >= 100 && (
-                    <span className="ml-2 text-green-500 font-bold">✓</span>
-                  )}
-                </div>
-                {expandedSection === "report" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "report" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Review your personalized Star Report to understand your strengths and growth areas.
-                  </p>
-                  
-                  <Link href="/report">
-                    <Button 
-                      className="bg-indigo-700 hover:bg-indigo-800"
-                      disabled={!user || user.progress < 67}
-                    >
-                      View Report
-                    </Button>
-                  </Link>
-                  
-                  {(!user || user.progress < 67) && (
-                    <p className="mt-2 text-sm text-red-500">
-                      Please complete the assessment first to access your report.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-            
-            {/* Step 5: Your Whiteboard Start Point */}
-            <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-              <div 
-                className="flex justify-between items-center p-4 cursor-pointer"
-                onClick={() => toggleSection("whiteboard")}
-              >
-                <div className="flex items-center">
-                  <LayoutPanelLeftIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  <span className="text-indigo-700 font-medium">Your Whiteboard Start Point</span>
-                </div>
-                {expandedSection === "whiteboard" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
-                ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
-                )}
-              </div>
-              
-              {expandedSection === "whiteboard" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Access your team whiteboard exercises once you've completed your individual assessment.
-                  </p>
-                  
-                  <Button 
-                    className="bg-indigo-700 hover:bg-indigo-800"
-                    disabled={true}
+            {/* App-Specific Content */}
+            {currentApp === 'imaginal-agility' ? (
+              /* Imaginal Agility Steps */
+              <>
+                {/* Imagination Assessment */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/imagination-assessment')}
                   >
-                    Coming Soon
-                  </Button>
+                    <div className="flex items-center">
+                      <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Take the Imagination Assessment</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
                 </div>
-              )}
-            </div>
+                
+                {/* 5Cs Assessment */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/5cs-assessment')}
+                  >
+                    <div className="flex items-center">
+                      <ClipboardIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Complete the 5Cs Assessment</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Insights Dashboard */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/insights-dashboard')}
+                  >
+                    <div className="flex items-center">
+                      <LayoutPanelLeftIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Review Your Insights</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </>
+            ) : (
+              /* AllStarTeams Steps */
+              <>
+                {/* Learn about your Strengths */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/assessment')}
+                  >
+                    <div className="flex items-center">
+                      <StarIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                      <span className="text-indigo-700 font-medium">Take the Star Assessment</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+                
+                {/* Find your Flow State */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/flow-assessment')}
+                  >
+                    <div className="flex items-center">
+                      <ClipboardIcon className="h-5 w-5 text-indigo-600 mr-2" />
+                      <span className="text-indigo-700 font-medium">Find your Flow State</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           
-          {/* Right Column - Star Card */}
+          {/* Right Column */}
           <div>
-            <div className="bg-white rounded-md border border-gray-200 p-6">
-              <h2 className="text-indigo-700 text-xl font-bold mb-2">Your Star Card</h2>
-              <p className="text-gray-600 mb-4">
-                Complete the activities on this page to build your Star Card. Once you've finished, download your 
-                Star Card for use in the whiteboard activities.
-              </p>
-              
-              <div className="flex flex-col items-center">
-                <div className="flex justify-center" style={{ width: '400px', height: '555px' }}>
-                  <StarCard 
-                    profile={{
-                      name: user?.name || "",
-                      title: user?.title || "",
-                      organization: user?.organization || ""
-                    }}
-                    quadrantData={{
-                      thinking: ((user?.progress || 0) >= 67 && starCard?.thinking) || 0,
-                      acting: ((user?.progress || 0) >= 67 && starCard?.acting) || 0,
-                      feeling: ((user?.progress || 0) >= 67 && starCard?.feeling) || 0,
-                      planning: ((user?.progress || 0) >= 67 && starCard?.planning) || 0,
-                      apexStrength: ((user?.progress || 0) >= 67 && starCard?.apexStrength) || "Imagination"
-                    }}
-                    imageUrl={starCard?.imageUrl || null}
-                    downloadable={(user?.progress || 0) >= 67}
-                    preview={false}
-                  />
+            {currentApp === 'allstarteams' ? (
+              <StarCard starCard={starCard} isLoading={starCardLoading} />
+            ) : (
+              <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                <h2 className="text-2xl font-bold mb-4 text-purple-800">Imaginal Agility</h2>
+                <p className="text-gray-700 mb-4">
+                  Welcome to your Imaginal Agility journey. Through a series of assessments and activities, 
+                  you'll learn how to enhance your capabilities in the 5Cs:
+                </p>
+                <ul className="space-y-2 mb-4">
+                  <li className="flex items-center">
+                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">1</span>
+                    <span className="text-gray-700">Imagination - The ability to conceive what doesn't yet exist</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">2</span>
+                    <span className="text-gray-700">Curiosity - An openness to new perspectives and knowledge</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">3</span>
+                    <span className="text-gray-700">Empathy - Understanding others' experiences and emotions</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">4</span>
+                    <span className="text-gray-700">Creativity - Bringing new ideas into existence</span>
+                  </li>
+                  <li className="flex items-center">
+                    <span className="mr-2 h-6 w-6 bg-purple-100 rounded-full flex items-center justify-center text-purple-800 font-semibold">5</span>
+                    <span className="text-gray-700">Courage - Taking action despite uncertainty</span>
+                  </li>
+                </ul>
+                <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
+                  <h3 className="font-semibold text-purple-800 mb-2">Why It Matters</h3>
+                  <p className="text-gray-700 text-sm">
+                    In an age of rapid technological change, these uniquely human capabilities 
+                    are essential for navigating complexity and creating innovative solutions to 
+                    challenging problems.
+                  </p>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </main>
