@@ -36,30 +36,30 @@ export default function UserHome() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp } = useApplication();
-  
+
   // Expandable sections state
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  
+
   // Profile form state
   const [profileData, setProfileData] = useState({
     name: "",
     title: "",
     organization: ""
   });
-  
+
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery<UserType | undefined>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
-  
+
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType | undefined>({
     queryKey: ['/api/starcard'],
     enabled: !!user,
     staleTime: Infinity,
   });
-  
+
   // Save profile mutation
   const updateProfile = useMutation({
     mutationFn: async (data: typeof profileData) => {
@@ -82,14 +82,14 @@ export default function UserHome() {
       });
     }
   });
-  
+
   // Toggle expanded section
   const toggleSection = (sectionId: string | null) => {
     if (expandedSection === sectionId) {
       setExpandedSection(null);
     } else {
       setExpandedSection(sectionId);
-      
+
       // Initialize form data if opening profile section
       if (sectionId === "profile" && user) {
         setProfileData({
@@ -100,7 +100,7 @@ export default function UserHome() {
       }
     }
   };
-  
+
   // Handle profile form changes
   const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -109,21 +109,21 @@ export default function UserHome() {
       [name]: value
     }));
   };
-  
+
   // Save profile
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
     updateProfile.mutate(profileData);
   };
-  
+
   // Calculate progress
   const calculateProgress = () => {
     if (!user) return 0;
     return user.progress || 0;
   };
-  
+
   const progress = calculateProgress();
-  
+
   // Determine app-specific styles and content
   const appStyles = {
     primaryColor: currentApp === 'allstarteams' ? 'indigo' : 'purple',
@@ -135,7 +135,7 @@ export default function UserHome() {
       : '/src/assets/imaginal_agility_logo_nobkgrd.png',
     appName: currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'
   };
-  
+
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -145,7 +145,7 @@ export default function UserHome() {
       </div>
     );
   }
-  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -158,7 +158,7 @@ export default function UserHome() {
               className="h-10 w-auto"
             />
           </Link>
-          
+
           <div className="flex items-center space-x-3">
             <span className="text-gray-700 font-medium">{user?.name}</span>
             <div className="flex items-center space-x-1 text-gray-600 border-l border-gray-300 pl-3">
@@ -186,7 +186,7 @@ export default function UserHome() {
           </div>
         </div>
       </header>
-      
+
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Left Column - Steps */}
@@ -195,7 +195,7 @@ export default function UserHome() {
               <h2 className={`${appStyles.primaryTextColor} text-xl font-bold`}>Hi, {user?.name}!</h2>
               <p className="text-gray-600">Use these steps to track progress.</p>
             </div>
-            
+
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="bg-gray-200 rounded-full h-4 mb-2">
@@ -206,7 +206,7 @@ export default function UserHome() {
               </div>
               <div className="text-right text-sm text-gray-500">{progress}%</div>
             </div>
-            
+
             {/* Step 1: Complete your Profile */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
               <div 
@@ -226,7 +226,7 @@ export default function UserHome() {
                   <PlusIcon className={`h-5 w-5 ${appStyles.primaryTextColor}`} />
                 )}
               </div>
-              
+
               {expandedSection === "profile" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
@@ -234,7 +234,7 @@ export default function UserHome() {
                       ? 'This information builds your Star Badge.'
                       : 'This information will be used throughout your Imaginal Agility journey.'}
                   </p>
-                  
+
                   {currentApp === 'allstarteams' && (
                     <div className="mb-6">
                       <p className="text-sm font-medium text-gray-700 mb-2">Your Star Card Image:</p>
@@ -295,16 +295,16 @@ export default function UserHome() {
                                 className="sr-only"
                                 onChange={(e) => {
                                   if (!e.target.files || !e.target.files[0]) return;
-                                  
+
                                   const file = e.target.files[0];
                                   const formData = new FormData();
                                   formData.append('image', file);
-                                  
+
                                   toast({
                                     title: "Uploading image...",
                                     description: "Please wait while your image is being uploaded.",
                                   });
-                                  
+
                                   fetch('/api/upload/starcard', {
                                     method: 'POST',
                                     body: formData,
@@ -337,12 +337,12 @@ export default function UserHome() {
                       </div>
                     </div>
                   )}
-                  
+
                   <form onSubmit={handleSaveProfile}>
                     <p className="text-red-500 mb-3 text-sm">
                       Enter your information to complete your profile
                     </p>
-                    
+
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm text-gray-700 mb-1">Name:</label>
@@ -365,7 +365,7 @@ export default function UserHome() {
                           className="w-full"
                         />
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm text-gray-700 mb-1">Company:</label>
                         <Input 
@@ -376,7 +376,7 @@ export default function UserHome() {
                           className="w-full"
                         />
                       </div>
-                      
+
                       <Button 
                         type="submit" 
                         className={`${appStyles.primaryBgColor} hover:${currentApp === 'allstarteams' ? 'bg-indigo-800' : 'bg-purple-800'}`}
@@ -389,11 +389,127 @@ export default function UserHome() {
                 </div>
               )}
             </div>
-            
+
             {/* App-Specific Content */}
             {currentApp === 'imaginal-agility' ? (
               /* Imaginal Agility Steps */
               <>
+                {/* The Triple Challenge */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">The Triple Challenge</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 1: The Triple Challenge"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        We face three interconnected challenges today: technological disruption, 
+                        organizational complexity, and environmental pressures.
+                      </p>
+                      <p className="text-gray-700">
+                        Understanding these challenges is the first step to developing the 
+                        agility needed to navigate them effectively.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* The Imaginal Agility Solution */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">The Imaginal Agility Solution</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 2: The Imaginal Agility Solution"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        Imaginal Agility is the ability to perceive complex situations clearly and 
+                        respond effectively through intentional awareness and purposeful action.
+                      </p>
+                      <p className="text-gray-700">
+                        This module explores how developing these capabilities can help you thrive 
+                        in rapidly changing environments and create innovative solutions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Your 5Cs */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">Your 5Cs</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 3: Your 5Cs"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        The 5Cs framework consists of five interconnected capabilities that form 
+                        the foundation of Imaginal Agility.
+                      </p>
+                      <p className="text-gray-700">
+                        Understanding and developing these capabilities will help you navigate 
+                        complexity and create meaningful change.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Getting Started */}
+                <div className="mb-8">
+                  <h3 className="text-lg font-semibold text-purple-700 mb-3">Getting Started</h3>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="lg:w-1/2">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                        <iframe 
+                          src="https://www.youtube.com/embed/1Belekdly70" 
+                          className="w-full h-full" 
+                          title="Module 4: Getting Started"
+                          frameBorder="0" 
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                    <div className="lg:w-1/2">
+                      <p className="text-gray-700 mb-3">
+                        Ready to begin your Imaginal Agility journey? This introduction will guide you 
+                        through the assessment process and what to expect.
+                      </p>
+                      <p className="text-gray-700">
+                        The assessment will help you understand your current capabilities and 
+                        identify areas for growth and development.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Imagination Assessment */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
@@ -409,7 +525,7 @@ export default function UserHome() {
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* 5Cs Assessment */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
@@ -425,7 +541,7 @@ export default function UserHome() {
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* Insights Dashboard */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
@@ -441,7 +557,7 @@ export default function UserHome() {
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* Team Workshop */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
@@ -476,7 +592,7 @@ export default function UserHome() {
                     </svg>
                   </div>
                 </div>
-                
+
                 {/* Find your Flow State */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
@@ -495,7 +611,7 @@ export default function UserHome() {
               </>
             )}
           </div>
-          
+
           {/* Right Column */}
           <div>
             {currentApp === 'allstarteams' ? (
@@ -518,7 +634,7 @@ export default function UserHome() {
             ) : (
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
                 <h2 className="text-2xl font-bold mb-4 text-purple-800">Imaginal Agility</h2>
-                
+
                 {/* Section 1: Introduction */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-purple-700 mb-3">Introduction to Imaginal Agility</h3>
@@ -547,8 +663,8 @@ export default function UserHome() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Section 2: The Triple Challenge */}
+
+                {/* The Triple Challenge */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-purple-700 mb-3">The Triple Challenge</h3>
                   <div className="flex flex-col lg:flex-row gap-6">
@@ -576,8 +692,8 @@ export default function UserHome() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Section 3: The Imaginal Agility Solution */}
+
+                {/* The Imaginal Agility Solution */}
                 <div className="mb-8">
                   <h3 className="text-lg font-semibold text-purple-700 mb-3">The Imaginal Agility Solution</h3>
                   <div className="flex flex-col lg:flex-row gap-6">
@@ -605,13 +721,13 @@ export default function UserHome() {
                     </div>
                   </div>
                 </div>
-                
-                {/* Section 4: Your 5Cs */}
+
+                {/* Your 5Cs */}
                 <div className="mb-4">
                   <h3 className="text-lg font-semibold text-purple-700 mb-3">Your 5Cs</h3>
                   <div className="flex flex-col lg:flex-row gap-6">
                     <div className="lg:w-1/2">
-                      <div className="aspect-video rounded-lg overflow-hidden shadow-md">
+                      <div className="aspect-video rounded-lg overflow-hidden shadow-md```text
                         <iframe 
                           src="https://www.youtube.com/embed/1Belekdly70" 
                           className="w-full h-full" 
