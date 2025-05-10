@@ -132,15 +132,17 @@ export default function Landing() {
               </p>
             </div>
             
-            <div className="aspect-w-16 aspect-h-9 max-w-4xl mx-auto shadow-lg rounded-lg overflow-hidden">
-              <iframe 
-                src="https://player.vimeo.com/video/1083175559" 
-                className="w-full h-full" 
-                frameBorder="0" 
-                allow="autoplay; fullscreen; picture-in-picture" 
-                allowFullScreen
-                title="Heliotrope Imaginal Platform Introduction"
-              ></iframe>
+            <div className="max-w-4xl mx-auto">
+              <div className="relative aspect-video rounded-lg shadow-lg overflow-hidden">
+                <iframe 
+                  src="https://player.vimeo.com/video/1083175559?title=0&byline=0&portrait=0" 
+                  className="absolute inset-0 w-full h-full" 
+                  frameBorder="0" 
+                  allow="autoplay; fullscreen; picture-in-picture" 
+                  allowFullScreen
+                  title="Heliotrope Imaginal Platform Introduction"
+                ></iframe>
+              </div>
             </div>
           </div>
           
