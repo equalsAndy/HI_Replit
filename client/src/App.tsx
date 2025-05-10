@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -19,8 +19,9 @@ import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
 
-// Import DemoModeProvider
+// Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
+import { ApplicationProvider } from "@/hooks/use-application";
 
 // Import NavBar
 import { NavBar } from "./components/layout/NavBar";
@@ -88,6 +89,11 @@ function Router() {
           <Route path="/find-your-flow" component={FindYourFlow} />
           <Route path="/rounding-out" component={RoundingOut} />
           <Route path="/visualize-yourself" component={VisualizeYourself} />
+          
+          {/* Imaginal Agility Routes */}
+          <Route path="/imagination-assessment" component={lazy(() => import("./pages/imagination-assessment"))} />
+          <Route path="/5cs-assessment" component={lazy(() => import("./pages/5cs-assessment"))} />
+          <Route path="/insights-dashboard" component={lazy(() => import("./pages/insights-dashboard"))} />
           <Route component={NotFound} />
         </Switch>
       </div>
@@ -100,8 +106,10 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <DemoModeProvider>
-          <Toaster />
-          <Router />
+          <ApplicationProvider>
+            <Toaster />
+            <Router />
+          </ApplicationProvider>
         </DemoModeProvider>
       </TooltipProvider>
     </QueryClientProvider>
