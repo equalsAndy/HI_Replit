@@ -122,6 +122,28 @@ export default function Landing() {
             </div>
           </div>
           
+          {/* Video Introduction Section */}
+          <div className="mb-16">
+            <div className="text-center mb-8">
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">Watch the Introduction Video</h3>
+              <p className="text-gray-600 max-w-3xl mx-auto">
+                Learn more about both experiences in this overview video. The first half introduces AllStarTeams, 
+                and the second half showcases Imaginal Agility.
+              </p>
+            </div>
+            
+            <div className="aspect-w-16 aspect-h-9 max-w-4xl mx-auto shadow-lg rounded-lg overflow-hidden">
+              <iframe 
+                src="https://player.vimeo.com/video/1083175559" 
+                className="w-full h-full" 
+                frameBorder="0" 
+                allow="autoplay; fullscreen; picture-in-picture" 
+                allowFullScreen
+                title="Heliotrope Imaginal Platform Introduction"
+              ></iframe>
+            </div>
+          </div>
+          
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Why Choose Heliotrope Imaginal's Platform?</h3>
             <p className="text-gray-600 max-w-3xl mx-auto mb-8">
