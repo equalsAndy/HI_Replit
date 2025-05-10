@@ -7,6 +7,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
+import HiLogo from '@/assets/HI_Logo_horizontal.png';
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
@@ -41,21 +42,18 @@ export function NavBar() {
     }
   };
 
-  // Generate dynamic bg color based on app
-  const bgColorClass = currentApp === 'allstarteams' 
-    ? 'bg-indigo-800' 
-    : 'bg-purple-800';
+  // Use yellow color for the header to match Heliotrope logo
+  const bgColorClass = 'bg-yellow-500';
     
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
         <div className="flex items-center">
           <img 
-            src={appLogo} 
-            alt={appName} 
-            className="h-8 w-auto mr-2" 
+            src={HiLogo}
+            alt="Heliotrope Imaginal" 
+            className="h-8 w-auto" 
           />
-          <h1 className="text-xl font-semibold">{appName}</h1>
         </div>
       </div>
 
