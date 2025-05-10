@@ -1,4 +1,4 @@
-import { useEffect, lazy } from "react";
+import { useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -18,6 +18,11 @@ import FindYourFlow from "./pages/find-your-flow";
 import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
+
+// Import Imaginal Agility pages
+import ImaginationAssessment from "./pages/imagination-assessment";
+import FiveCsAssessment from "./pages/5cs-assessment";
+import InsightsDashboard from "./pages/insights-dashboard";
 
 // Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
@@ -91,9 +96,9 @@ function Router() {
           <Route path="/visualize-yourself" component={VisualizeYourself} />
           
           {/* Imaginal Agility Routes */}
-          <Route path="/imagination-assessment" component={lazy(() => import("./pages/imagination-assessment"))} />
-          <Route path="/5cs-assessment" component={lazy(() => import("./pages/5cs-assessment"))} />
-          <Route path="/insights-dashboard" component={lazy(() => import("./pages/insights-dashboard"))} />
+          <Route path="/imagination-assessment" component={ImaginationAssessment} />
+          <Route path="/5cs-assessment" component={FiveCsAssessment} />
+          <Route path="/insights-dashboard" component={InsightsDashboard} />
           <Route component={NotFound} />
         </Switch>
       </div>

@@ -1,4 +1,5 @@
 import { useDemoMode } from "@/hooks/use-demo-mode";
+import { useApplication } from "@/hooks/use-application";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { useState } from "react";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
+  const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
   const [, navigate] = useLocation();
   const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
   const [isLoggingOut, setIsLoggingOut] = useState(false);
@@ -39,10 +41,22 @@ export function NavBar() {
     }
   };
 
+  // Generate dynamic bg color based on app
+  const bgColorClass = currentApp === 'allstarteams' 
+    ? 'bg-indigo-800' 
+    : 'bg-purple-800';
+    
   return (
-    <div className="bg-gray-800 text-white p-2 sticky top-0 z-50 flex justify-between items-center">
+    <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
-        <h1 className="text-xl font-semibold">AllStarTeams</h1>
+        <div className="flex items-center">
+          <img 
+            src={appLogo} 
+            alt={appName} 
+            className="h-8 w-auto mr-2" 
+          />
+          <h1 className="text-xl font-semibold">{appName}</h1>
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
