@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -48,7 +47,7 @@ export default function UserHome() {
 
   // Expandable sections state
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-  
+
   // Selected imaginal content
   const [selectedContent, setSelectedContent] = useState<string>("introduction");
 
@@ -691,9 +690,9 @@ export default function UserHome() {
                 {selectedContent === 'challenge' && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Triple Challenge</h3>
-                    <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
+                    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70" 
+                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1" 
                         className="w-full h-full" 
                         title="Module 1: The Triple Challenge"
                         frameBorder="0" 
@@ -715,9 +714,9 @@ export default function UserHome() {
                 {selectedContent === 'solution' && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Imaginal Agility Solution</h3>
-                    <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
+                    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70" 
+                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 2: The Imaginal Agility Solution"
                         frameBorder="0" 
@@ -739,9 +738,9 @@ export default function UserHome() {
                 {selectedContent === '5cs' && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Your 5 Capabilities (5Cs)</h3>
-                    <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
+                    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70" 
+                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 3: Your 5Cs"
                         frameBorder="0" 
