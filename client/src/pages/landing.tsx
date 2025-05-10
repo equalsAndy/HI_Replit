@@ -79,7 +79,7 @@ export default function Landing() {
                   <img 
                     src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
                     alt="Imaginal Agility" 
-                    className="h-20 w-auto"
+                    className="h-20 w-auto object-contain"
                   />
                 </div>
                 <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
