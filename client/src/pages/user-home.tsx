@@ -649,7 +649,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Introduction to Imaginal Agility</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70?autoplay=1&enablejsapi=1" 
+                        src="https://www.youtube.com/embed/JxdhWd8agmE?autoplay=1&enablejsapi=1" 
                         className="w-full h-full" 
                         title="Introduction to Imaginal Agility"
                         frameBorder="0" 
@@ -692,7 +692,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Triple Challenge</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1" 
+                        src="https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1" 
                         className="w-full h-full" 
                         title="Module 1: The Triple Challenge"
                         frameBorder="0" 
@@ -716,7 +716,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Imaginal Agility Solution</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+                        src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 2: The Imaginal Agility Solution"
                         frameBorder="0" 
@@ -740,7 +740,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Your 5 Capabilities (5Cs)</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+                        src="https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 3: Your 5Cs"
                         frameBorder="0" 
