@@ -77,7 +77,7 @@ export default function Landing() {
               <div className="p-8">
                 <div className="flex justify-center mb-6">
                   <img 
-                    src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+                    src="/assets/imaginal_agility_logo_nobkgrd.png" 
                     alt="Imaginal Agility" 
                     className="h-20 w-auto object-contain"
                   />
