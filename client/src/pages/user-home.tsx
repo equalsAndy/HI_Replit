@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles } from "lucide-react";
+import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles, Users } from "lucide-react";
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 import { useApplication } from "@/hooks/use-application";
@@ -441,6 +441,22 @@ export default function UserHome() {
                     </svg>
                   </div>
                 </div>
+                
+                {/* Team Workshop */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/team-workshop')}
+                  >
+                    <div className="flex items-center">
+                      <Users className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Team Workshop</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
               </>
             ) : (
               /* AllStarTeams Steps */
@@ -483,7 +499,22 @@ export default function UserHome() {
           {/* Right Column */}
           <div>
             {currentApp === 'allstarteams' ? (
-              <StarCard starCard={starCard} isLoading={starCardLoading} />
+              <StarCard 
+                profile={{
+                  name: user?.name || '',
+                  title: user?.title || '',
+                  organization: user?.organization || '',
+                  avatarUrl: user?.avatarUrl
+                }}
+                quadrantData={{
+                  thinking: starCard?.thinking || 0,
+                  acting: starCard?.acting || 0, 
+                  feeling: starCard?.feeling || 0,
+                  planning: starCard?.planning || 0,
+                  apexStrength: starCard?.apexStrength || '',
+                }}
+                imageUrl={starCard?.imageUrl}
+              />
             ) : (
               <div className="bg-white p-6 rounded-lg shadow-md border border-gray-200">
                 <h2 className="text-2xl font-bold mb-4 text-purple-800">Imaginal Agility</h2>

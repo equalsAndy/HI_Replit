@@ -23,6 +23,7 @@ import VisualizeYourself from "./pages/visualize-yourself";
 import ImaginationAssessment from "./pages/imagination-assessment";
 import FiveCsAssessment from "./pages/5cs-assessment";
 import InsightsDashboard from "./pages/insights-dashboard";
+import TeamWorkshop from "./pages/team-workshop";
 
 // Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
@@ -99,6 +100,7 @@ function Router() {
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />
+          <Route path="/team-workshop" component={TeamWorkshop} />
           <Route component={NotFound} />
         </Switch>
       </div>
