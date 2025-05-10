@@ -1,3 +1,14 @@
+
+import { useEffect } from 'react';
+
+// Add YouTube API
+useEffect(() => {
+  const tag = document.createElement('script');
+  tag.src = "https://www.youtube.com/iframe_api";
+  const firstScriptTag = document.getElementsByTagName('script')[0];
+  firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+}, []);
+
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -404,6 +415,7 @@ export default function UserHome() {
                 <div 
                   className={`border border-gray-200 rounded-md mb-4 bg-white overflow-hidden cursor-pointer ${selectedContent === 'introduction' ? 'ring-2 ring-purple-500' : ''}`}
                   onClick={() => setSelectedContent('introduction')}
+                  data-content="introduction"
                 >
                   <div className="flex justify-between items-center p-4">
                     <div className="flex items-center">
@@ -638,14 +650,33 @@ export default function UserHome() {
                 {selectedContent === 'introduction' && (
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Introduction to Imaginal Agility</h3>
-                    <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
+                    <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70" 
+                        src="https://www.youtube.com/embed/1Belekdly70?autoplay=1&enablejsapi=1" 
                         className="w-full h-full" 
                         title="Introduction to Imaginal Agility"
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowFullScreen
+                        onLoad={(e) => {
+                          // @ts-ignore
+                          const player = new YT.Player(e.target, {
+                            events: {
+                              onStateChange: (event) => {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                  // Update the corresponding nav item to show completion
+                                  const navItem = document.querySelector(`[data-content="introduction"]`);
+                                  if (navItem) {
+                                    const checkmark = document.createElement('span');
+                                    checkmark.className = 'ml-2 text-green-500';
+                                    checkmark.textContent = '✓';
+                                    navItem.appendChild(checkmark);
+                                  }
+                                }
+                              }
+                            }
+                          });
+                        }}
                       ></iframe>
                     </div>
                     <p className="text-gray-700 mb-3">
