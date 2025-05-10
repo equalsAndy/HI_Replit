@@ -124,6 +124,18 @@ export default function UserHome() {
   
   const progress = calculateProgress();
   
+  // Determine app-specific styles and content
+  const appStyles = {
+    primaryColor: currentApp === 'allstarteams' ? 'indigo' : 'purple',
+    primaryBgColor: currentApp === 'allstarteams' ? 'bg-indigo-600' : 'bg-purple-600',
+    primaryTextColor: currentApp === 'allstarteams' ? 'text-indigo-700' : 'text-purple-700',
+    primaryLightBgColor: currentApp === 'allstarteams' ? 'bg-indigo-100' : 'bg-purple-100',
+    logo: currentApp === 'allstarteams' 
+      ? '/src/assets/all-star-teams-logo-250px.png' 
+      : '/src/assets/imaginal_agility_logo_nobkgrd.png',
+    appName: currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'
+  };
+  
   if (userLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -141,8 +153,8 @@ export default function UserHome() {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <Link href="/" className="logo flex items-center cursor-pointer">
             <img 
-              src="/src/assets/all-star-teams-logo-250px.png" 
-              alt="AllStarTeams" 
+              src={appStyles.logo}
+              alt={appStyles.appName}
               className="h-10 w-auto"
             />
           </Link>
@@ -180,7 +192,7 @@ export default function UserHome() {
           {/* Left Column - Steps */}
           <div>
             <div className="mb-6">
-              <h2 className="text-indigo-700 text-xl font-bold">Hi, {user?.name}!</h2>
+              <h2 className={`${appStyles.primaryTextColor} text-xl font-bold`}>Hi, {user?.name}!</h2>
               <p className="text-gray-600">Use these steps to track progress.</p>
             </div>
             
@@ -188,7 +200,7 @@ export default function UserHome() {
             <div className="mb-8">
               <div className="bg-gray-200 rounded-full h-4 mb-2">
                 <div 
-                  className="bg-indigo-600 h-4 rounded-full" 
+                  className={`${appStyles.primaryBgColor} h-4 rounded-full`} 
                   style={{ width: `${progress}%` }}
                 ></div>
               </div>
@@ -202,16 +214,16 @@ export default function UserHome() {
                 onClick={() => toggleSection("profile")}
               >
                 <div className="flex items-center">
-                  <UserIcon className="h-5 w-5 text-indigo-600 mr-2" />
-                  <span className="text-indigo-700 font-medium">Complete your Profile</span>
+                  <UserIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                  <span className={`${appStyles.primaryTextColor} font-medium`}>Complete your Profile</span>
                   {user && user.name && user.title && user.organization && (
                     <span className="ml-2 text-green-500 font-bold">✓</span>
                   )}
                 </div>
                 {expandedSection === "profile" ? (
-                  <MinusIcon className="h-5 w-5 text-indigo-600" />
+                  <MinusIcon className={`h-5 w-5 ${appStyles.primaryTextColor}`} />
                 ) : (
-                  <PlusIcon className="h-5 w-5 text-indigo-600" />
+                  <PlusIcon className={`h-5 w-5 ${appStyles.primaryTextColor}`} />
                 )}
               </div>
               
