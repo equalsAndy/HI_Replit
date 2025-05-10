@@ -39,6 +39,9 @@ export default function UserHome() {
 
   // Expandable sections state
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  
+  // Selected imaginal content
+  const [selectedContent, setSelectedContent] = useState<string>("introduction");
 
   // Profile form state
   const [profileData, setProfileData] = useState({
