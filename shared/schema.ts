@@ -3,6 +3,15 @@ import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import { relations } from "drizzle-orm";
 
+export const applications = pgTable("applications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),  // "AllStarTeams" or "Imaginal Agility"
+  slug: text("slug").notNull(),  // "allstarteams" or "imaginal-agility"
+  description: text("description"),
+  logoUrl: text("logo_url"),
+  primaryColor: text("primary_color").default("indigo"),
+});
+
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
@@ -12,6 +21,7 @@ export const users = pgTable("users", {
   organization: text("organization"),
   avatarUrl: text("avatar_url"),
   progress: integer("progress").default(0),
+  applicationId: integer("application_id").references(() => applications.id),
 });
 
 export const assessments = pgTable("assessments", {
