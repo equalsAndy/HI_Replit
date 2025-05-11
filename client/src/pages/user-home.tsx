@@ -748,14 +748,35 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      We face three interconnected challenges today: technological disruption, 
-                      organizational complexity, and environmental pressures.
-                    </p>
-                    <p className="text-gray-700">
-                      Understanding these challenges is the first step to developing the 
-                      agility needed to navigate them effectively.
-                    </p>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Understanding the Challenge</h4>
+                        <p className="text-gray-700">
+                          The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Beyond Efficiency</h4>
+                        <p className="text-gray-700">
+                          While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing the capabilities that AI cannot replicate—beginning with imagination.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">The Hidden Costs</h4>
+                        <p className="text-gray-700">
+                          Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement. These are symptoms of Psychological Debt—a deficit that grows when efficiency is prioritized over imagination.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Challenge as Opportunity</h4>
+                        <p className="text-gray-700">
+                          These challenges aren't reasons to reject technology, but invitations to develop the distinctly human capabilities that give technology meaning and direction. The most successful individuals and organizations will be those who balance both.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -788,14 +809,35 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      Imaginal Agility is the ability to perceive complex situations clearly and 
-                      respond effectively through intentional awareness and purposeful action.
-                    </p>
-                    <p className="text-gray-700">
-                      This module explores how developing these capabilities can help you thrive 
-                      in rapidly changing environments and create innovative solutions.
-                    </p>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">The Core Approach</h4>
+                        <p className="text-gray-700">
+                          Imaginal Agility is the ability to perceive complex situations clearly and respond effectively through intentional awareness. Unlike temporary skills that quickly become obsolete, this capacity becomes more valuable as change accelerates.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Beyond Technical Training</h4>
+                        <p className="text-gray-700">
+                          While most AI training focuses on technical adoption, Imaginal Agility addresses the deeper adaptive challenge: developing the human capabilities that complement—rather than compete with—artificial intelligence.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Research Foundation</h4>
+                        <p className="text-gray-700">
+                          Research confirms that organizations that cultivate imagination and intentional thinking experience greater innovation, resilience, and employee engagement. This isn't just good for humans—it's good for business.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">From Challenge to Capability</h4>
+                        <p className="text-gray-700">
+                          By transforming potential AI-related disruptions into developmental opportunities, you'll build enduring human capacities that fuel innovation, resilience, and meaningful work—regardless of technological changes.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
@@ -828,20 +870,42 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      The 5Cs framework consists of five interconnected capabilities:
-                    </p>
-                    <ul className="list-disc pl-5 mb-3 text-gray-700">
-                      <li><strong>Imagination</strong>: The ability to envision new possibilities</li>
-                      <li><strong>Curiosity</strong>: An openness to exploring and questioning</li>
-                      <li><strong>Empathy</strong>: Understanding perspectives beyond your own</li>
-                      <li><strong>Creativity</strong>: Finding novel solutions to complex problems</li>
-                      <li><strong>Courage</strong>: Taking bold action in the face of uncertainty</li>
-                    </ul>
-                    <p className="text-gray-700">
-                      By developing these capabilities, you'll enhance your ability to navigate complexity 
-                      and create meaningful change in your organization and beyond.
-                    </p>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">The 5Cs Framework</h4>
+                        <p className="text-gray-700">
+                          These five capabilities form the foundation of Imaginal Agility. While each is powerful independently, they create exponential impact when developed together. Think of them as different facets of the same diamond—each reflecting and amplifying the others.
+                        </p>
+                        <ul className="list-disc pl-5 mt-3 mb-3 text-gray-700 space-y-2">
+                          <li><strong>Imagination</strong>: The ability to envision new possibilities</li>
+                          <li><strong>Curiosity</strong>: An openness to exploring and questioning</li>
+                          <li><strong>Empathy</strong>: Understanding perspectives beyond your own</li>
+                          <li><strong>Creativity</strong>: Finding novel solutions to complex problems</li>
+                          <li><strong>Courage</strong>: Taking bold action in the face of uncertainty</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Capabilities in Context</h4>
+                        <p className="text-gray-700">
+                          Unlike technical skills that may become obsolete, these capabilities grow more valuable over time. They enhance your ability to learn, adapt, and create meaning in any context—especially in collaboration with AI and other technologies.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">The Imagination Advantage</h4>
+                        <p className="text-gray-700">
+                          Organizations with high Imaginal Agility don't just adapt to change—they envision and create preferred futures. By developing these capabilities, you become an architect of possibility rather than simply responding to circumstances.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">From Individual to Collective</h4>
+                        <p className="text-gray-700">
+                          As you strengthen these capabilities, you'll notice their impact extends beyond your individual work. Teams with high collective Imaginal Agility solve problems more creatively, navigate complexity more effectively, and find greater meaning in their shared purpose.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </>
