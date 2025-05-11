@@ -418,6 +418,7 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Introduction to Imaginal Agility</span>
+                      <span id="introduction-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -429,11 +430,13 @@ export default function UserHome() {
                 <div 
                   className={`border border-gray-200 rounded-md mb-4 bg-white overflow-hidden cursor-pointer ${selectedContent === 'challenge' ? 'ring-2 ring-purple-500' : ''}`}
                   onClick={() => setSelectedContent('challenge')}
+                  data-content="challenge"
                 >
                   <div className="flex justify-between items-center p-4">
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>The Triple Challenge</span>
+                      <span id="challenge-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -445,11 +448,13 @@ export default function UserHome() {
                 <div 
                   className={`border border-gray-200 rounded-md mb-4 bg-white overflow-hidden cursor-pointer ${selectedContent === 'solution' ? 'ring-2 ring-purple-500' : ''}`}
                   onClick={() => setSelectedContent('solution')}
+                  data-content="solution"
                 >
                   <div className="flex justify-between items-center p-4">
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>The Imaginal Agility Solution</span>
+                      <span id="solution-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -461,11 +466,13 @@ export default function UserHome() {
                 <div 
                   className={`border border-gray-200 rounded-md mb-4 bg-white overflow-hidden cursor-pointer ${selectedContent === '5cs' ? 'ring-2 ring-purple-500' : ''}`}
                   onClick={() => setSelectedContent('5cs')}
+                  data-content="5cs"
                 >
                   <div className="flex justify-between items-center p-4">
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Your 5 Capabilities (5Cs)</span>
+                      <span id="5cs-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -664,10 +671,11 @@ export default function UserHome() {
                                   // Update the corresponding nav item to show completion
                                   const navItem = document.querySelector(`[data-content="introduction"]`);
                                   if (navItem) {
-                                    const checkmark = document.createElement('span');
-                                    checkmark.className = 'ml-2 text-green-500';
-                                    checkmark.textContent = '✓';
-                                    navItem.appendChild(checkmark);
+                                    const checkmark = document.getElementById('introduction-checkmark');
+                                    if (checkmark) {
+                                      checkmark.classList.remove('opacity-0');
+                                      checkmark.classList.add('text-green-500');
+                                    }
                                   }
                                 }
                               }
@@ -692,12 +700,28 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Triple Challenge</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1" 
+                        src="https://www.youtube.com/embed/zIFGKPMN9t8?autoplay=1&enablejsapi=1" 
                         className="w-full h-full" 
                         title="Module 1: The Triple Challenge"
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowFullScreen
+                        onLoad={(e) => {
+                          // @ts-ignore
+                          const player = new YT.Player(e.target, {
+                            events: {
+                              onStateChange: (event) => {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                  const checkmark = document.getElementById('challenge-checkmark');
+                                  if (checkmark) {
+                                    checkmark.classList.remove('opacity-0');
+                                    checkmark.classList.add('text-green-500');
+                                  }
+                                }
+                              }
+                            }
+                          });
+                        }}
                       ></iframe>
                     </div>
                     <p className="text-gray-700 mb-3">
@@ -716,12 +740,28 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Imaginal Agility Solution</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1"
+                        src="https://www.youtube.com/embed/BLh502BlZLE?autoplay=1&enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 2: The Imaginal Agility Solution"
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowFullScreen
+                        onLoad={(e) => {
+                          // @ts-ignore
+                          const player = new YT.Player(e.target, {
+                            events: {
+                              onStateChange: (event) => {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                  const checkmark = document.getElementById('solution-checkmark');
+                                  if (checkmark) {
+                                    checkmark.classList.remove('opacity-0');
+                                    checkmark.classList.add('text-green-500');
+                                  }
+                                }
+                              }
+                            }
+                          });
+                        }}
                       ></iframe>
                     </div>
                     <p className="text-gray-700 mb-3">
@@ -740,12 +780,28 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Your 5 Capabilities (5Cs)</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/8wXSL3om6Ig?enablejsapi=1"
+                        src="https://www.youtube.com/embed/8wXSL3om6Ig?autoplay=1&enablejsapi=1"
                         className="w-full h-full" 
                         title="Module 3: Your 5Cs"
                         frameBorder="0" 
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowFullScreen
+                        onLoad={(e) => {
+                          // @ts-ignore
+                          const player = new YT.Player(e.target, {
+                            events: {
+                              onStateChange: (event) => {
+                                if (event.data === YT.PlayerState.ENDED) {
+                                  const checkmark = document.getElementById('5cs-checkmark');
+                                  if (checkmark) {
+                                    checkmark.classList.remove('opacity-0');
+                                    checkmark.classList.add('text-green-500');
+                                  }
+                                }
+                              }
+                            }
+                          });
+                        }}
                       ></iframe>
                     </div>
                     <p className="text-gray-700 mb-3">
