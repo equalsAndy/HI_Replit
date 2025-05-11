@@ -1,3 +1,4 @@
+typescript
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link, useLocation } from "wouter";
@@ -684,6 +685,46 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
+                    {selectedContent === 'introduction' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('challenge')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Triple Challenge
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'challenge' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('solution')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Imaginal Agility Solution
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'solution' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('5cs')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Your 5 Capabilities (5Cs)
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === '5cs' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => navigate('/imagination-assessment')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Take the Imagination Assessment
+                        </Button>
+                      </div>
+                    )}
                     <div className="space-y-6">
                       <div>
                         <h4 className="text-lg font-semibold text-purple-700 mb-2">Workshop Philosophy</h4>
@@ -748,6 +789,46 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
+                    {selectedContent === 'introduction' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('challenge')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Triple Challenge
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'challenge' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('solution')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Imaginal Agility Solution
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'solution' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('5cs')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Your 5 Capabilities (5Cs)
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === '5cs' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => navigate('/imagination-assessment')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Take the Imagination Assessment
+                        </Button>
+                      </div>
+                    )}
                     <div className="space-y-6">
                       <div>
                         <h4 className="text-lg font-semibold text-purple-700 mb-2">Understanding the Challenge</h4>
@@ -809,6 +890,46 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
+                    {selectedContent === 'introduction' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('challenge')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Triple Challenge
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'challenge' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('solution')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Imaginal Agility Solution
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'solution' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('5cs')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Your 5 Capabilities (5Cs)
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === '5cs' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => navigate('/imagination-assessment')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Take the Imagination Assessment
+                        </Button>
+                      </div>
+                    )}
                     <div className="space-y-6">
                       <div>
                         <h4 className="text-lg font-semibold text-purple-700 mb-2">The Core Approach</h4>
@@ -870,6 +991,46 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
+                    {selectedContent === 'introduction' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('challenge')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Triple Challenge
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'challenge' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('solution')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: The Imaginal Agility Solution
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === 'solution' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => setSelectedContent('5cs')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Your 5 Capabilities (5Cs)
+                        </Button>
+                      </div>
+                    )}
+                    {selectedContent === '5cs' && (
+                      <div className="flex justify-end mb-4">
+                        <Button 
+                          onClick={() => navigate('/imagination-assessment')}
+                          className="bg-purple-600 hover:bg-purple-700"
+                        >
+                          Next: Take the Imagination Assessment
+                        </Button>
+                      </div>
+                    )}
                     <div className="space-y-6">
                       <div>
                         <h4 className="text-lg font-semibold text-purple-700 mb-2">The 5Cs Framework</h4>
