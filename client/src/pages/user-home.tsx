@@ -684,14 +684,38 @@ export default function UserHome() {
                         }}
                       ></iframe>
                     </div>
-                    <p className="text-gray-700 mb-3">
-                      Welcome to the Imaginal Agility workshop! This program is designed to help you 
-                      develop the capabilities needed to thrive in today's complex, rapidly changing world.
-                    </p>
-                    <p className="text-gray-700">
-                      Throughout this journey, you'll explore how to enhance your capacity for imagination, 
-                      cultivate greater awareness, and take purposeful action in your professional and personal life.
-                    </p>
+                    <div className="space-y-6">
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Workshop Philosophy</h4>
+                        <p className="text-gray-700">
+                          Imaginal Agility is founded on the principle that human imagination becomes more critical—not less—in the age of artificial intelligence. This workshop will help you develop the capacity to envision possibilities beyond what technology alone can generate.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Learning Journey Overview</h4>
+                        <p className="text-gray-700">
+                          Your journey begins with understanding imagination as an innate human capability that can be systematically strengthened. Throughout this program, you'll progress through awareness, practice, and application of the five core capabilities that fuel Imaginal Agility.
+                        </p>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Workshop Principles</h4>
+                        <ul className="list-disc pl-5 text-gray-700 space-y-1">
+                          <li>Everyone possesses natural imaginative capacities</li>
+                          <li>These capabilities grow stronger with deliberate practice</li>
+                          <li>The integration of all capabilities creates maximum impact</li>
+                          <li>The goal is flourishing alongside technology, not competing with it</li>
+                        </ul>
+                      </div>
+
+                      <div>
+                        <h4 className="text-lg font-semibold text-purple-700 mb-2">Imagination in Practice</h4>
+                        <p className="text-gray-700">
+                          The most innovative organizations today don't just implement AI—they reimagine what's possible when human creativity works in concert with technological efficiency. This workshop prepares you to lead with that vision.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 )}
 
