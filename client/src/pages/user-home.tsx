@@ -418,7 +418,7 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Introduction to Imaginal Agility</span>
-                      <span id="introduction-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
+                      <span id="introduction-checkmark" className="ml-2 text-green-500 opacity-0 font-bold">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -436,7 +436,7 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>The Triple Challenge</span>
-                      <span id="challenge-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
+                      <span id="challenge-checkmark" className="ml-2 text-green-500 opacity-0 font-bold">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -454,7 +454,7 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>The Imaginal Agility Solution</span>
-                      <span id="solution-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
+                      <span id="solution-checkmark" className="ml-2 text-green-500 opacity-0 font-bold">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -472,7 +472,7 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Your 5 Capabilities (5Cs)</span>
-                      <span id="5cs-checkmark" className="ml-2 text-green-500 opacity-0">✓</span>
+                      <span id="5cs-checkmark" className="ml-2 text-green-500 opacity-0 font-bold">✓</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -656,7 +656,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">Introduction to Imaginal Agility</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70?autoplay=1&enablejsapi=1" 
+                        src={`https://www.youtube.com/embed/1Belekdly70?enablejsapi=1${selectedContent === 'introduction' ? '&autoplay=1' : ''}`} 
                         className="w-full h-full" 
                         title="Introduction to Imaginal Agility"
                         frameBorder="0" 
