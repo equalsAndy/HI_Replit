@@ -43,14 +43,14 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     console.log('updateAppFromUrl - App param:', appParam, 'Location:', location);
     
     // If app param is present in URL, use it and save to localStorage
-    if (appParam === 'imaginal-agility' || appParam === 'allstarteams') {
-      console.log('Setting app to:', appParam);
-      setCurrentApp(appParam);
-      localStorage.setItem('selectedApp', appParam);
+    if (appParam === 'imaginal-agility') {
+      console.log('Setting app to imaginal-agility');
+      setCurrentApp('imaginal-agility');
+      localStorage.setItem('selectedApp', 'imaginal-agility');
       return true;
-    } else if (appParam === 'ast') {
-      // Handle the 'ast' shorthand for AllStarTeams
-      console.log('Detected ast param, setting to allstarteams');
+    } else if (appParam === 'allstarteams' || appParam === 'ast') {
+      // Handle both 'allstarteams' and the 'ast' shorthand
+      console.log('Setting app to allstarteams');
       setCurrentApp('allstarteams');
       localStorage.setItem('selectedApp', 'allstarteams');
       return true;

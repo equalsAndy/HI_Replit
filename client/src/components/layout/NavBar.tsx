@@ -24,8 +24,8 @@ export function NavBar() {
     e.preventDefault();
     // Clear the application selection from localStorage
     localStorage.removeItem('selectedApp');
-    // Navigate to the landing page
-    navigate('/');
+    // Use window.location for a full page reload to ensure state is reset
+    window.location.href = '/';
   };
 
   return (

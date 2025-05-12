@@ -13,7 +13,7 @@ export default function Landing() {
             <a href="/" onClick={(e) => {
               e.preventDefault();
               localStorage.removeItem('selectedApp');
-              window.location.href = '/';
+              window.location.reload();
             }}>
               <img 
                 src={HiLogo} 
@@ -59,11 +59,15 @@ export default function Landing() {
                   leverage them for personal growth and team success.
                 </p>
                 <div className="flex justify-center">
-                  <Link href="/auth?app=ast">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md">
-                      Start AllStarTeams
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
+                    onClick={() => {
+                      localStorage.removeItem('selectedApp');
+                      window.location.href = '/auth?app=ast';
+                    }}
+                  >
+                    Start AllStarTeams
+                  </Button>
                 </div>
               </div>
               
@@ -101,11 +105,15 @@ export default function Landing() {
                   Creativity, and Courage) can transform your approach to challenges.
                 </p>
                 <div className="flex justify-center">
-                  <Link href="/auth?app=imaginal-agility">
-                    <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md">
-                      Start Imaginal Agility
-                    </Button>
-                  </Link>
+                  <Button 
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md"
+                    onClick={() => {
+                      localStorage.removeItem('selectedApp');
+                      window.location.href = '/auth?app=imaginal-agility';
+                    }}
+                  >
+                    Start Imaginal Agility
+                  </Button>
                 </div>
               </div>
               
