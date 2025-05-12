@@ -53,7 +53,7 @@ export default function Landing() {
                   leverage them for personal growth and team success.
                 </p>
                 <div className="flex justify-center">
-                  <Link href="/auth?app=ast">
+                  <Link href="/auth?app=allstarteams">
                     <Button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md">
                       Start AllStarTeams
                     </Button>
