@@ -133,12 +133,15 @@ export default function Landing() {
             
             <div className="max-w-4xl mx-auto">
               <div className="relative aspect-video rounded-lg shadow-lg overflow-hidden">
+                {/* Using the correct Vimeo video ID */}
                 <iframe 
-                  src="https://player.vimeo.com/video/108317559?h=d5dd5b1ce4" 
-                  className="absolute inset-0 w-full h-full" 
+                  src="https://player.vimeo.com/video/1083175559" 
+                  width="100%" 
+                  height="100%" 
                   frameBorder="0" 
                   allow="autoplay; fullscreen; picture-in-picture" 
                   allowFullScreen
+                  className="absolute inset-0 w-full h-full"
                   title="HELIOTROPE IMAGINAL_workshops"
                 ></iframe>
               </div>
