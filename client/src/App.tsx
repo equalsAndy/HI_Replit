@@ -40,12 +40,12 @@ function Router() {
   useEffect(() => {
     if (!isLoading) {
       const path = window.location.pathname;
-      // If not logged in, redirect to auth page
+      // If not logged in and not on allowed public pages, redirect to auth
       if (!user && path !== '/auth' && path !== '/' && path !== '/logout') {
         navigate('/auth');
       }
-      // If logged in and on auth page or root, go to user home
-      if (user && (path === '/auth' || path === '/')) {
+      // If logged in and on auth page, go to user home
+      if (user && path === '/auth') {
         navigate('/user-home');
       }
     }
