@@ -173,10 +173,10 @@ export default function StarCard({
         {/* User Profile */}
         <div className="flex items-center mb-6">
           <div className="rounded-full h-16 w-16 overflow-hidden mr-4 border border-gray-300">
-            {imageUrl || profile.avatarUrl ? (
+            {imageUrl || derivedProfile.avatarUrl ? (
               <img 
-                src={imageUrl || profile.avatarUrl} 
-                alt={profile.name} 
+                src={imageUrl || derivedProfile.avatarUrl} 
+                alt={derivedProfile.name} 
                 className="h-full w-full object-cover"
               />
             ) : (
@@ -186,9 +186,9 @@ export default function StarCard({
             )}
           </div>
           <div>
-            <p className="font-medium text-gray-800">Name: {profile.name || 'Your Name'}</p>
-            <p className="text-sm text-gray-600">Title: {profile.title || 'Your Title'}</p>
-            <p className="text-sm text-gray-600">Organization: {profile.organization || 'Your Organization'}</p>
+            <p className="font-medium text-gray-800">Name: {derivedProfile.name || 'Your Name'}</p>
+            <p className="text-sm text-gray-600">Title: {derivedProfile.title || 'Your Title'}</p>
+            <p className="text-sm text-gray-600">Organization: {derivedProfile.organization || 'Your Organization'}</p>
           </div>
         </div>
         
@@ -205,7 +205,7 @@ export default function StarCard({
             
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
             <div className="absolute w-full" style={{ top: '50px' }}>
-              <p className="text-[1.125rem] font-bold text-gray-500">{quadrantData.apexStrength || "Imagination"}</p>
+              <p className="text-[1.125rem] font-bold text-gray-500">{derivedQuadrantData.apexStrength || "Imagination"}</p>
               <p className="text-[0.785rem] text-gray-500 italic">Your Apex Strength</p>
             </div>
           </div>
