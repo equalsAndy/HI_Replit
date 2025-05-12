@@ -8,6 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
+import { Link } from 'wouter';
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
@@ -22,11 +23,13 @@ export function NavBar() {
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
         <div className="flex items-center">
-          <img 
-            src={HiLogo}
-            alt="Heliotrope Imaginal" 
-            className="h-8 w-auto" 
-          />
+          <Link href="/">
+            <img 
+              src={HiLogo}
+              alt="Heliotrope Imaginal" 
+              className="h-8 w-auto" 
+            />
+          </Link>
         </div>
       </div>
 
