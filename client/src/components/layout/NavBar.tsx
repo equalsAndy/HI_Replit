@@ -11,40 +11,13 @@ import HiLogo from '@/assets/HI_Logo_horizontal.png';
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
-  const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
+  const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
   const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    if (isLoggingOut) return; // Prevent multiple clicks
-    
-    setIsLoggingOut(true);
-    try {
-      // Directly make a fetch request to the logout endpoint
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
-      });
-      
-      if (response.ok) {
-        // Clear cached user data
-        queryClient.setQueryData(['/api/user/profile'], null);
-        // Redirect to auth page
-        window.location.href = '/auth';
-      } else {
-        console.error("Logout failed");
-        setIsLoggingOut(false);
-      }
-    } catch (error) {
-      console.error("Logout error:", error);
-      setIsLoggingOut(false);
-    }
-  };
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
-    
+
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
@@ -58,28 +31,14 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-4">
-        <Label htmlFor="demo-mode" className="text-sm cursor-pointer">
-          Demo Mode
-        </Label>
-        <Switch
-          id="demo-mode"
-          checked={isDemoMode}
-          onCheckedChange={toggleDemoMode}
-        />
-        {user ? (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleLogout} 
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? 'Logging out...' : 'Logout'}
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => navigate('/auth')}>
-            Login
-          </Button>
-        )}
+        <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
+              onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
+            >
+              Contact Us
+            </Button>
       </div>
     </div>
   );
