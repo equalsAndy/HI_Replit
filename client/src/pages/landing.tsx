@@ -134,7 +134,7 @@ export default function Landing() {
             <div className="max-w-4xl mx-auto">
               <div className="relative aspect-video rounded-lg shadow-lg overflow-hidden">
                 <iframe 
-                  src="https://player.vimeo.com/video/1083175559?h=d5dd5b1ce4" 
+                  src="https://player.vimeo.com/video/108317559?h=d5dd5b1ce4" 
                   className="absolute inset-0 w-full h-full" 
                   frameBorder="0" 
                   allow="autoplay; fullscreen; picture-in-picture" 
