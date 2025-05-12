@@ -125,10 +125,9 @@ export default function Landing() {
           {/* Video Introduction Section */}
           <div className="mb-16">
             <div className="text-center mb-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">Watch the Introduction Video</h3>
+              <h3 className="text-2xl font-bold text-gray-800 mb-4">See what our workshops are all about!</h3>
               <p className="text-gray-600 max-w-3xl mx-auto">
-                Learn more about both experiences in this overview video. The first half introduces AllStarTeams, 
-                and the second half showcases Imaginal Agility.
+                Experience the transformative power of our workshops and discover how they can help unlock your team's full potential.
               </p>
             </div>
             
