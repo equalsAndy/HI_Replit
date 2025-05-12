@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import MainContainer from "@/components/layout/MainContainer";
 
 export default function RoundingOut() {
+  const [, navigate] = useLocation();
+  
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
