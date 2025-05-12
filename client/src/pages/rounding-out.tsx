@@ -32,7 +32,7 @@ export default function RoundingOut() {
     e.preventDefault();
     console.log("Rounding Out reflection submitted:", formValues);
     // Save the data then navigate to star card completion
-    navigate('/visualize-yourself');
+    navigate('/visualize-yourself?tab=future');
   };
   
   // Show loading state
