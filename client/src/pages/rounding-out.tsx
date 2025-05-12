@@ -31,8 +31,8 @@ export default function RoundingOut() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Rounding Out reflection submitted:", formValues);
-    // Save the data then navigate to user home to complete star card
-    navigate('/user-home');
+    // Save the data then navigate to the report page (Complete your Star Card - Step D)
+    navigate('/report');
   };
   
   // Show loading state
