@@ -18,18 +18,27 @@ export function NavBar() {
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
+  
+  // Function to reset application state when logo is clicked
+  const handleLogoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Clear the application selection from localStorage
+    localStorage.removeItem('selectedApp');
+    // Navigate to the landing page
+    navigate('/');
+  };
 
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
         <div className="flex items-center">
-          <Link href="/">
+          <a href="/" onClick={handleLogoClick}>
             <img 
               src={HiLogo}
               alt="Heliotrope Imaginal" 
               className="h-8 w-auto" 
             />
-          </Link>
+          </a>
         </div>
       </div>
 

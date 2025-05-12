@@ -10,11 +10,17 @@ export default function Landing() {
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="logo flex items-center">
-            <img 
-              src={HiLogo} 
-              alt="Heliotrope Imaginal" 
-              className="h-10 w-auto"
-            />
+            <a href="/" onClick={(e) => {
+              e.preventDefault();
+              localStorage.removeItem('selectedApp');
+              window.location.href = '/';
+            }}>
+              <img 
+                src={HiLogo} 
+                alt="Heliotrope Imaginal" 
+                className="h-10 w-auto"
+              />
+            </a>
           </div>
           
           <div className="flex items-center space-x-3">
