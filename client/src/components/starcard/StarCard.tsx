@@ -6,14 +6,25 @@ import { ProfileData, QuadrantData } from "@shared/schema";
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
 
+// Original interface
 interface StarCardProps {
-  profile: ProfileData;
-  quadrantData: QuadrantData;
+  profile?: ProfileData;
+  quadrantData?: QuadrantData;
   downloadable?: boolean;
   preview?: boolean;
   flowAttributes?: {text: string; color: string}[];
   imageUrl?: string | null;
   enableImageUpload?: boolean;
+  
+  // Additional direct props for legacy support
+  thinking?: number;
+  acting?: number;
+  feeling?: number;
+  planning?: number;
+  apexStrength?: string;
+  userName?: string;
+  userTitle?: string;
+  userOrg?: string;
 }
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
@@ -26,8 +37,17 @@ type QuadrantInfo = {
 };
 
 export default function StarCard({ 
+  // Support both object-based and direct props
   profile, 
-  quadrantData, 
+  quadrantData,
+  thinking,
+  acting,
+  feeling,
+  planning,
+  apexStrength,
+  userName,
+  userTitle,
+  userOrg,
   downloadable = true,
   preview = false,
   flowAttributes = [],
@@ -37,16 +57,36 @@ export default function StarCard({
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   
+  // Create derived profile and quadrantData for backward compatibility
+  const derivedProfile: ProfileData = useMemo(() => {
+    return profile || {
+      name: userName || '',
+      title: userTitle || '',
+      organization: userOrg || '',
+      avatarUrl: undefined
+    };
+  }, [profile, userName, userTitle, userOrg]);
+  
+  const derivedQuadrantData: QuadrantData = useMemo(() => {
+    return quadrantData || {
+      thinking: thinking || 0,
+      acting: acting || 0,
+      feeling: feeling || 0,
+      planning: planning || 0,
+      apexStrength: apexStrength || ''
+    };
+  }, [quadrantData, thinking, acting, feeling, planning, apexStrength]);
+  
   // Determine if assessment is completed - all scores must be greater than 0
   const hasCompletedAssessment = useMemo(() => {
     // Check if any value is greater than 0, which indicates assessment is completed
     return (
-      (quadrantData?.thinking || 0) > 0 ||
-      (quadrantData?.acting || 0) > 0 ||
-      (quadrantData?.feeling || 0) > 0 ||
-      (quadrantData?.planning || 0) > 0
+      (derivedQuadrantData.thinking || 0) > 0 ||
+      (derivedQuadrantData.acting || 0) > 0 ||
+      (derivedQuadrantData.feeling || 0) > 0 ||
+      (derivedQuadrantData.planning || 0) > 0
     );
-  }, [quadrantData]);
+  }, [derivedQuadrantData]);
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
@@ -56,28 +96,28 @@ export default function StarCard({
         key: 'thinking', 
         label: 'THINKING', 
         color: hasCompletedAssessment ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (quadrantData?.thinking || 0) : 0, 
+        score: hasCompletedAssessment ? (derivedQuadrantData.thinking || 0) : 0, 
         position: 0 
       },
       { 
         key: 'acting', 
         label: 'ACTING', 
         color: hasCompletedAssessment ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (quadrantData?.acting || 0) : 0, 
+        score: hasCompletedAssessment ? (derivedQuadrantData.acting || 0) : 0, 
         position: 0 
       },
       { 
         key: 'feeling', 
         label: 'FEELING', 
         color: hasCompletedAssessment ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (quadrantData?.feeling || 0) : 0, 
+        score: hasCompletedAssessment ? (derivedQuadrantData.feeling || 0) : 0, 
         position: 0 
       },
       { 
         key: 'planning', 
         label: 'PLANNING', 
         color: hasCompletedAssessment ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (quadrantData?.planning || 0) : 0, 
+        score: hasCompletedAssessment ? (derivedQuadrantData.planning || 0) : 0, 
         position: 0 
       }
     ];
@@ -105,7 +145,7 @@ export default function StarCard({
     
     setDownloading(true);
     try {
-      await downloadElementAsImage(cardRef.current, `${profile.name || 'User'}_Star_Card.png`);
+      await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
     } catch (error) {
       console.error("Error downloading star card:", error);
     } finally {
@@ -114,7 +154,7 @@ export default function StarCard({
   };
   
   // Calculate total score
-  const totalScore = quadrantData?.thinking + quadrantData?.acting + quadrantData?.feeling + quadrantData?.planning || 100;
+  const totalScore = derivedQuadrantData.thinking + derivedQuadrantData.acting + derivedQuadrantData.feeling + derivedQuadrantData.planning || 100;
   
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
