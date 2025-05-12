@@ -54,6 +54,9 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
+  
+  // Debug current application state
+  console.log('Auth page - currentApp:', currentApp, 'appName:', appName);
 
   // Check if user is already logged in
   const { data: user, isLoading } = useQuery({
