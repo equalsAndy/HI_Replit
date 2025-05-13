@@ -232,19 +232,39 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* The Four Empty Squares */}
+          {/* The Four Quadrant Squares */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left */}
-            <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)' }}>
+              <div className="text-white text-xs font-medium text-center">
+                <div>{getQuadrantAtPosition(3)?.label}</div>
+                <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+              </div>
+            </div>
 
             {/* Top Right */}
-            <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)' }}>
+              <div className="text-white text-xs font-medium text-center">
+                <div>{getQuadrantAtPosition(0)?.label}</div>
+                <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+              </div>
+            </div>
 
             {/* Bottom Left */}
-            <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)' }}>
+              <div className="text-white text-xs font-medium text-center">
+                <div>{getQuadrantAtPosition(2)?.label}</div>
+                <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+              </div>
+            </div>
 
             {/* Bottom Right */}
-            <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)' }}>
+              <div className="text-white text-xs font-medium text-center">
+                <div>{getQuadrantAtPosition(1)?.label}</div>
+                <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+              </div>
+            </div>
           </div>
 
           {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
