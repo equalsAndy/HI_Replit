@@ -571,13 +571,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.updateUser(userId, { progress: 67 }); // Profile + Assessment = 67%
       
       // Return a successful response with the updated StarCard data
-      res.status(200).json({
-        success: true,
-        message: "Assessment completed successfully",
-        starCard: updatedStarCard,
-        scores: scores,
-        completed: true
-      });
+      res.status(200).json(scores);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }

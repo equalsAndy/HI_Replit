@@ -51,39 +51,60 @@ export default function Assessment() {
   const [showResultsPopup, setShowResultsPopup] = useState<boolean>(false);
   const [assessmentResults, setAssessmentResults] = useState<QuadrantData | null>(null);
   
-  // Handle already completed assessment
+  // Check assessment status when page loads
   React.useEffect(() => {
-    if (!loadingStarCard && starCard) {
-      // If the star card is not pending OR any quadrant score is greater than 0, consider it completed
-      const isCompleted = (starCard.pending === false) || hasCompletedAssessment(starCard);
-      
-      if (isCompleted) {
-        // Set the assessment results from the star card data
-        setAssessmentResults({
-          thinking: starCard.thinking,
-          acting: starCard.acting,
-          feeling: starCard.feeling,
-          planning: starCard.planning
+    // Function to check if assessment is already completed
+    const checkAssessmentStatus = async () => {
+      try {
+        // Try to start an assessment to check if it's allowed
+        const res = await fetch('/api/assessment/start', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include'
         });
         
-        // Show the results popup
-        setShowResultsPopup(true);
+        const data = await res.json();
         
-        // Add prevention message with timeout
-        toast({
-          title: "Assessment Already Completed",
-          description: "You've already completed the assessment. Results are shown below. Please use the reset function if you need to retake the assessment.",
-          variant: "destructive",
-          duration: 5000
-        });
-        
-        // Redirect to foundations after a delay to prevent retaking
-        setTimeout(() => {
-          navigate('/foundations?tab=starcard');
-        }, 5000);
+        // If we get a 409 status, the assessment is already completed
+        if (res.status === 409) {
+          console.log("Assessment is already completed, showing results");
+          
+          if (!loadingStarCard && starCard) {
+            // Set the assessment results from the star card data
+            setAssessmentResults({
+              thinking: starCard.thinking || 0,
+              acting: starCard.acting || 0,
+              feeling: starCard.feeling || 0,
+              planning: starCard.planning || 0
+            });
+            
+            // Show the results popup
+            setShowResultsPopup(true);
+            
+            // Add prevention message with timeout
+            toast({
+              title: "Assessment Already Completed",
+              description: "You've already completed the assessment. Results are shown below. Please use the reset function if you need to retake the assessment.",
+              variant: "destructive",
+              duration: 5000
+            });
+            
+            // Redirect to foundations after a delay to prevent retaking
+            setTimeout(() => {
+              navigate('/foundations?tab=starcard');
+            }, 5000);
+          }
+        } else {
+          console.log("Assessment can be taken");
+        }
+      } catch (error) {
+        console.error("Error checking assessment status:", error);
       }
-    }
-  }, [starCard, loadingStarCard, navigate, toast]);
+    };
+    
+    // Run the check
+    checkAssessmentStatus();
+  }, [loadingStarCard, starCard, navigate, toast]);
   
   // Helper function to check if starCard has valid scores
   const hasCompletedAssessment = (card: StarCardType): boolean => {
