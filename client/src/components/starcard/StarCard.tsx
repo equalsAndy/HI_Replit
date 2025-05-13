@@ -26,9 +26,11 @@ interface StarCardProps {
   acting?: number;
   feeling?: number;
   planning?: number;
+  apexStrength?: string;
   userName?: string;
   userTitle?: string;
   userOrg?: string;
+  pending?: boolean;
 }
 
 const QUADRANT_COLORS = {
