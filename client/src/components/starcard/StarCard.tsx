@@ -239,22 +239,22 @@ export default function StarCard({
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left - Position 3 (lowest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
-                 style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(1, 162, 82)' }}>
+                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(3)?.color : 'rgb(229, 231, 235)' }}>
             </div>
 
             {/* Top Right - Position 0 (highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
-                 style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(241, 64, 64)' }}>
+                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(0)?.color : 'rgb(229, 231, 235)' }}>
             </div>
 
             {/* Bottom Left - Position 2 (third highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
-                 style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(22, 126, 253)' }}>
+                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(2)?.color : 'rgb(229, 231, 235)' }}>
             </div>
 
             {/* Bottom Right - Position 1 (second highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
-                 style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(255, 203, 47)' }}>
+                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(1)?.color : 'rgb(229, 231, 235)' }}>
             </div>
           </div>
 
