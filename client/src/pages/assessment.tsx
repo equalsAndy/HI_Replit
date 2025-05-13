@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
 import { QuadrantData } from '@shared/schema';
@@ -24,6 +24,12 @@ export default function Assessment() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { isDemoMode } = useDemoMode();
+  
+  // Get star card data to check if assessment is already completed
+  const { data: starCard, isLoading: loadingStarCard } = useQuery({
+    queryKey: ['/api/starcard'],
+    staleTime: Infinity,
+  });
 
   // Current question state
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -31,6 +37,31 @@ export default function Assessment() {
   const [progress, setProgress] = useState<number>(0);
   const [showResultsPopup, setShowResultsPopup] = useState<boolean>(false);
   const [assessmentResults, setAssessmentResults] = useState<QuadrantData | null>(null);
+  
+  // Check if assessment is already completed
+  React.useEffect(() => {
+    if (!loadingStarCard && starCard && !starCard.pending && hasCompletedAssessment(starCard)) {
+      toast({
+        title: "Assessment already completed",
+        description: "You've already completed the assessment. View your results on the Foundation page.",
+        variant: "destructive"
+      });
+      navigate("/foundations?tab=starcard");
+    }
+  }, [starCard, loadingStarCard, navigate, toast]);
+  
+  // Helper function to check if starCard has valid scores
+  const hasCompletedAssessment = (card: any): boolean => {
+    if (!card || card.pending) return false;
+    
+    // Check if any quadrant score is greater than 0
+    return (
+      (typeof card.thinking === 'number' && card.thinking > 0) ||
+      (typeof card.acting === 'number' && card.acting > 0) ||
+      (typeof card.feeling === 'number' && card.feeling > 0) ||
+      (typeof card.planning === 'number' && card.planning > 0)
+    );
+  };
 
   // Drag and drop state
   const [draggedOption, setDraggedOption] = useState<Option | null>(null);
