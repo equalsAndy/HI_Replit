@@ -776,6 +776,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 function calculateQuadrantScores(answers: Answer[]): QuadrantData {
+  console.log("Processing answers:", JSON.stringify(answers));
+  
   // Initialize category counters
   let thinkingPoints = 0;
   let actingPoints = 0;
@@ -783,46 +785,106 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   let planningPoints = 0;
   
   // Process each answer
-  answers.forEach(answer => {
-    const rankings = answer.ranking as any[];
-    
-    // Assign points based on rankings (1=most like me, 4=least like me)
-    rankings.forEach(rank => {
-      // Match the client-side scoring:
-      // First choice (most like me): 3 points
-      // Second choice: 2 points
-      // Third choice: 1 point
-      // Last choice (least like me): 0 points
-      const points = 4 - rank.rank; // Convert rank to points: rank 1 = 3 points, rank 4 = 0 point
+  for (const answer of answers) {
+    try {
+      // Get the ranking data and ensure it's properly structured
+      const rankings = answer.ranking as any[];
       
-      // Only add points for top 3 choices (ranks 1-3)
-      if (points > 0) {
-        switch (rank.category) {
-          case 'thinking':
-            thinkingPoints += points;
-            break;
-          case 'acting':
-            actingPoints += points;
-            break;
-          case 'feeling':
-            feelingPoints += points;
-            break;
-          case 'planning':
-            planningPoints += points;
-            break;
+      if (!Array.isArray(rankings)) {
+        console.error("Invalid ranking format, expected array:", rankings);
+        continue;
+      }
+      
+      // Log rankings to help diagnose issues
+      console.log("Processing answer rankings:", JSON.stringify(rankings));
+      
+      // Assign points based on rankings (1=most like me, 4=least like me)
+      for (const rank of rankings) {
+        if (!rank || !rank.optionId) {
+          console.error("Invalid ranking item:", rank);
+          continue;
+        }
+        
+        // Extract category information - we need to check for both formats:
+        // 1. Format from client might be "thinking_1" (category_number)
+        // 2. The ranking might already have the category field
+        let category;
+        if (rank.category) {
+          category = rank.category;
+        } else if (typeof rank.optionId === 'string' && rank.optionId.includes('_')) {
+          const optionIdParts = rank.optionId.split('_');
+          category = optionIdParts[0];
+        } else {
+          console.error("Cannot determine category from ranking:", rank);
+          continue;
+        }
+        
+        // Match the client-side scoring:
+        // First choice (most like me): 3 points
+        // Second choice: 2 points
+        // Third choice: 1 point
+        // Last choice (least like me): 0 points
+        const points = 4 - rank.rank; // Convert rank to points: rank 1 = 3 points, rank 4 = 0 point
+        
+        // Only add points for top 3 choices (ranks 1-3)
+        if (points > 0) {
+          switch (category) {
+            case 'thinking':
+              thinkingPoints += points;
+              break;
+            case 'acting':
+              actingPoints += points;
+              break;
+            case 'feeling':
+              feelingPoints += points;
+              break;
+            case 'planning':
+              planningPoints += points;
+              break;
+            default:
+              console.error("Unknown category:", category, "from ranking:", JSON.stringify(rank));
+          }
         }
       }
-    });
+    } catch (error) {
+      console.error("Error processing answer:", error, "Raw answer:", JSON.stringify(answer));
+    }
+  }
+  
+  // Log points before conversion for debugging
+  console.log("Points before percentage conversion:", {
+    thinkingPoints,
+    actingPoints,
+    feelingPoints, 
+    planningPoints
   });
   
   // Calculate total points
   const totalPoints = thinkingPoints + actingPoints + feelingPoints + planningPoints;
+  
+  // Prevent division by zero
+  if (totalPoints === 0) {
+    return {
+      thinking: 0,
+      acting: 0,
+      feeling: 0,
+      planning: 0
+    };
+  }
   
   // Convert to percentages
   const thinking = Math.round((thinkingPoints / totalPoints) * 100);
   const acting = Math.round((actingPoints / totalPoints) * 100);
   const feeling = Math.round((feelingPoints / totalPoints) * 100);
   const planning = Math.round((planningPoints / totalPoints) * 100);
+  
+  // Log final percentages
+  console.log("Final calculated percentages:", {
+    thinking,
+    acting,
+    feeling,
+    planning
+  });
   
   return {
     thinking,
