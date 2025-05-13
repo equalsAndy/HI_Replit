@@ -706,18 +706,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           existingFlowAttributes.id, 
           { 
             flowScore, 
-            attributes: JSON.stringify(attributes) 
+            attributes: attributes 
           }
         );
+        console.log("Updated flow attributes:", updatedFlowAttributes);
         return res.status(200).json(updatedFlowAttributes);
       } else {
         // Create new flow attributes
         const newFlowAttributes = await storage.createFlowAttributes({
           userId: user.id,
           flowScore,
-          attributes: JSON.stringify(attributes),
+          attributes: attributes,
           createdAt: new Date(),
         });
+        console.log("Created new flow attributes:", newFlowAttributes);
         return res.status(201).json(newFlowAttributes);
       }
     } catch (error) {
