@@ -1106,6 +1106,37 @@ export default function UserHome() {
             ) : (
               /* AllStarTeams Content */
               <>
+                {/* Introduction & Workshop Overview Section */}
+                <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+                  <h3 className="text-lg font-bold text-indigo-700 mb-3">All-Star Teams Workshop Introduction</h3>
+                  <p className="text-gray-700 mb-4">
+                    Welcome to the All-Star Teams workshop! Through this journey, you'll discover your 
+                    unique strengths profile and learn how to leverage it in your professional life.
+                  </p>
+                  <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
+                    <iframe 
+                      src="https://www.youtube.com/embed/1Belekdly70" 
+                      className="w-full h-full" 
+                      title="Introduction to All-Star Teams Workshop"
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  <p className="text-gray-700 mb-4">
+                    The workshop has these main components:
+                  </p>
+                  <ul className="list-disc pl-5 mb-4 space-y-2">
+                    <li>Complete your profile information</li>
+                    <li>Take the Star Strengths Assessment (10-15 minutes)</li>
+                    <li>Review your Star Profile and strengths</li>
+                    <li>Explore your flow attributes</li>
+                    <li>Visualize your future potential</li>
+                    <li>Integrate insights into your professional life</li>
+                  </ul>
+                </div>
+                
+                {/* Star Card Section */}
                 {starCard ? (
                   <>
                     <div className="mb-6">
@@ -1150,6 +1181,7 @@ export default function UserHome() {
                               userTitle={user?.title || ""}
                               userOrg={user?.organization || ""}
                               imageUrl={starCard.imageUrl}
+                              pending={false}
                             />
                           </div>
                         </>
@@ -1158,25 +1190,11 @@ export default function UserHome() {
                   </>
                 ) : (
                   <div className="bg-white p-6 rounded-lg border border-gray-200">
-                    <h3 className="text-lg font-bold text-indigo-700 mb-3">Discover Your Star Profile</h3>
+                    <h3 className="text-lg font-bold text-indigo-700 mb-3">Create Your Star Card</h3>
                     <p className="text-gray-700 mb-4">
-                      Welcome to the All-Star Teams workshop! Through this journey, you'll discover your 
-                      unique strengths profile and learn how to leverage it in your professional life.
+                      Your Star Card is waiting to be created. Complete your profile, then take the Star 
+                      Strengths Assessment to generate your personal Star Card. 
                     </p>
-                    <p className="text-gray-700 mb-4">
-                      Start by completing your profile, then take the Star Strengths Assessment to 
-                      uncover your natural aptitudes across four dimensions: Thinking, Feeling, Acting, and Planning.
-                    </p>
-                    <div className="aspect-video rounded-lg overflow-hidden shadow-md mb-4">
-                      <iframe 
-                        src="https://www.youtube.com/embed/1Belekdly70" 
-                        className="w-full h-full" 
-                        title="Introduction to All-Star Teams Workshop"
-                        frameBorder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowFullScreen
-                      ></iframe>
-                    </div>
                     <p className="text-gray-700">
                       The assessment takes about 10-15 minutes to complete. Your results will help you 
                       understand your unique combination of strengths and how to leverage them effectively.
