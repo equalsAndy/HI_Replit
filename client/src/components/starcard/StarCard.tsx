@@ -7,12 +7,17 @@ import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
 
 // Original interface
+interface FlowAttribute {
+  text: string;
+  color: string;
+}
+
 interface StarCardProps {
   profile?: ProfileData;
   quadrantData?: QuadrantData;
   downloadable?: boolean;
   preview?: boolean;
-  flowAttributes?: {text: string; color: string}[];
+  flowAttributes?: FlowAttribute[];
   imageUrl?: string | null;
   enableImageUpload?: boolean;
 
@@ -25,6 +30,15 @@ interface StarCardProps {
   userTitle?: string;
   userOrg?: string;
 }
+
+const QUADRANT_COLORS = {
+  thinking: 'rgb(1, 162, 82)',    // Green
+  acting: 'rgb(241, 64, 64)',     // Red
+  feeling: 'rgb(22, 126, 253)',   // Blue
+  planning: 'rgb(255, 203, 47)'   // Yellow
+} as const;
+
+const DEFAULT_COLOR = 'rgb(229, 231, 235)'; // Gray
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
 type QuadrantInfo = {
@@ -253,52 +267,30 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
-          {/* Determine if flow attributes exist */}
-          {/* Flow 1 - Top Right Flow Square */}
-          <div className={`absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center top-[25px] right-[15px] ${
-              flowAttributes[0]?.text ? 'bg-[' + (flowAttributes[0]?.color || '#9CA3AF') + ']' : 'bg-gray-200'
-            }`}>
-            <p className="text-[9px] font-medium text-center leading-tight">
-              {flowAttributes[0]?.text || ''}
-            </p>
-          </div>
-
-          {/* Flow 2 - Bottom Right Flow Square - top aligned with bottom of strength 2 */}
-          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
-               style={{ 
-                 top: '204px', 
-                 right: '15px',
-                 backgroundColor: flowAttributes[1]?.text ? (flowAttributes[1]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
-               }}>
-            <p className="text-[9px] font-medium text-center leading-tight">
-              {flowAttributes[1]?.text || ''}
-            </p>
-          </div>
-
-          {/* Flow 3 - Bottom Left Flow Square - top aligned with bottom of strength 3 */}
-          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
-               style={{ 
-                 top: '204px', 
-                 left: '15px', 
-                 backgroundColor: flowAttributes[2]?.text ? (flowAttributes[2]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
-               }}>
-            <p className="text-[9px] font-medium text-center leading-tight">
-              {flowAttributes[2]?.text || ''}
-            </p>
-          </div>
-
-          {/* Flow 4 - Top Left Flow Square */}
-          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
-               style={{ 
-                 top: '25px', 
-                 left: '15px',
-                 backgroundColor: flowAttributes[3]?.text ? (flowAttributes[3]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
-               }}>
-            <p className="text-[9px] font-medium text-center leading-tight">
-              {flowAttributes[3]?.text || ''}
-            </p>
-          </div>
+          {/* Flow Squares */}
+          {[
+            { top: '25px', right: '15px', index: 0 },  // Top Right
+            { top: '204px', right: '15px', index: 1 }, // Bottom Right  
+            { top: '204px', left: '15px', index: 2 },  // Bottom Left
+            { top: '25px', left: '15px', index: 3 }    // Top Left
+          ].map(({top, right, left, index}) => (
+            <div 
+              key={index}
+              className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
+              style={{
+                top,
+                right,
+                left,
+                backgroundColor: flowAttributes[index]?.text 
+                  ? (flowAttributes[index]?.color || 'rgb(156, 163, 175)') 
+                  : 'rgb(229, 231, 235)'
+              }}
+            >
+              <p className="text-[9px] font-medium text-center leading-tight">
+                {flowAttributes[index]?.text || ''}
+              </p>
+            </div>
+          ))}
 
           {/* Arrow 1 - 70% of original size and equidistant from Flow 1 and Flow 2 */}
           <div className="absolute" style={{ right: '44px', top: '105px', height: '84px' }}>
