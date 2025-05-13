@@ -30,6 +30,9 @@ type TestUser = {
   title: string;
   organization: string;
   progress: number;
+  hasAssessment?: boolean;
+  hasStarCard?: boolean;
+  hasFlowAttributes?: boolean;
 };
 
 interface TestUsersModalProps {
@@ -146,6 +149,19 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                         className={`h-2 flex-grow ${getProgressColor(user.progress)}`} 
                       />
                       <span className="text-sm font-medium">{user.progress}%</span>
+                    </div>
+                    
+                    {/* User data status indicators */}
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <div className={`text-xs px-2 py-0.5 rounded-full ${user.hasAssessment ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {user.hasAssessment ? '✓ Assessment' : 'No Assessment'}
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded-full ${user.hasStarCard ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {user.hasStarCard ? '✓ Star Card' : 'No Star Card'}
+                      </div>
+                      <div className={`text-xs px-2 py-0.5 rounded-full ${user.hasFlowAttributes ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-500'}`}>
+                        {user.hasFlowAttributes ? '✓ Flow Data' : 'No Flow Data'}
+                      </div>
                     </div>
                   </div>
                 </CardContent>

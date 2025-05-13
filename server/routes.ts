@@ -564,15 +564,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get all test users
       const testUsers = await storage.getTestUsers();
       
-      // Return users with their current progress
-      res.status(200).json(testUsers.map(user => ({
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        title: user.title,
-        organization: user.organization,
-        progress: user.progress || 0,
-      })));
+      // Prepare response array
+      const enhancedUsers = [];
+      
+      // Add data status for each user
+      for (const user of testUsers) {
+        // Check if user has assessment data
+        const assessment = await storage.getAssessment(user.id);
+        
+        // Check if user has star card
+        const starCard = await storage.getStarCard(user.id);
+        
+        // Check if user has flow attributes
+        const flowAttributes = await storage.getFlowAttributes(user.id);
+        
+        // Add enhanced user data
+        enhancedUsers.push({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          title: user.title,
+          organization: user.organization,
+          progress: user.progress || 0,
+          hasAssessment: assessment ? true : false,
+          hasStarCard: starCard ? true : false,
+          hasFlowAttributes: flowAttributes ? true : false
+        });
+      }
+      
+      res.status(200).json(enhancedUsers);
     } catch (error) {
       console.error("Error fetching test users:", error);
       res.status(500).json({ message: "Server error" });
@@ -594,13 +614,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Reset all user data
       await storage.resetUserData(userId);
       
-      // Return updated user
+      // Return updated user with data status
       const updatedUser = await storage.getUser(userId);
+      
+      // All statuses should be false after reset, but verify anyway
+      const assessment = await storage.getAssessment(userId);
+      const starCard = await storage.getStarCard(userId);
+      const flowAttributes = await storage.getFlowAttributes(userId);
+      
       res.status(200).json({
         id: updatedUser?.id,
         username: updatedUser?.username,
         name: updatedUser?.name,
+        title: updatedUser?.title,
+        organization: updatedUser?.organization,
         progress: updatedUser?.progress || 0,
+        hasAssessment: assessment ? true : false,
+        hasStarCard: starCard ? true : false,
+        hasFlowAttributes: flowAttributes ? true : false,
         message: "User data has been reset successfully"
       });
     } catch (error) {
