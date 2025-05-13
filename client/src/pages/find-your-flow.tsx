@@ -185,9 +185,26 @@ export default function FindYourFlow() {
     setSelectedAttributes(updatedAttrs);
   };
   
+  // Define all flow attributes
+  const allFlowAttributes = [
+    'Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 
+    'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
+    'Sensible', 'Strategic', 'Thoughtful',
+    'Adaptable', 'Adventurous', 'Assertive', 'Brave', 'Capable', 'Challenging',
+    'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Energetic', 'Fearless',
+    'Physical', 'Resolute', 'Resourceful', 'Strong',
+    'Accepting', 'Authentic', 'Calm', 'Caring', 'Compassionate', 'Connected',
+    'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Friendly', 'Generous',
+    'Gentle', 'Grateful', 'Harmonious', 'Helpful', 'Kind', 'Open', 'Sociable', 'Vulnerable',
+    'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detailed', 'Diligent',
+    'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
+    'Reliable', 'Responsible', 'Thorough', 'Trustworthy'
+  ];
+  
   // Get all flow attributes
   const getFilteredAttributes = (): string[] => {
-    return flowAttributes;
+    // Return the predefined list of flow attributes
+    return allFlowAttributes;
   };
   
   // Map to determine attribute category and color
@@ -288,13 +305,13 @@ export default function FindYourFlow() {
     staleTime: Infinity,
   });
   
-  const { data: starCard, isLoading: starCardLoading } = useQuery({
+  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCard>({
     queryKey: ['/api/starcard'],
     staleTime: Infinity,
   });
   
   // Check if user has completed flow assessment
-  const { data: flowAttributes, isLoading: flowLoading } = useQuery({
+  const { data: flowAttributesData, isLoading: flowLoading } = useQuery<FlowAttributes>({
     queryKey: ['/api/flow-attributes'],
     staleTime: Infinity,
     // This is a "safe" query that won't block rendering if it 404s
@@ -302,7 +319,7 @@ export default function FindYourFlow() {
   });
   
   // Determine if flow assessment is already completed
-  const hasCompletedFlowAssessment = Boolean(flowAttributes);
+  const hasCompletedFlowAssessment = Boolean(flowAttributesData);
   
   // State for flow attributes added to StarCard
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<Array<{text: string; color: string}>>([]);
