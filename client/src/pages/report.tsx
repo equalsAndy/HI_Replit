@@ -160,10 +160,55 @@ export default function Report() {
         
         <div className="flex justify-center items-start">
           <StarCard 
-            profile={profileData}
-            quadrantData={starCard}
+            profile={{
+              name: user?.name || "",
+              title: user?.title || "",
+              organization: user?.organization || ""
+            }}
+            quadrantData={{
+              thinking: starCard?.thinking || 0,
+              acting: starCard?.acting || 0,
+              feeling: starCard?.feeling || 0,
+              planning: starCard?.planning || 0
+            }}
+            imageUrl={starCard?.imageUrl}
             downloadable={true}
             pending={starCard?.pending === true}
+            flowAttributes={flowAttributes ? [
+              // Convert flow attributes data into the format expected by StarCard
+              // Map position 0 attributes (for the top right flow box)
+              ...flowAttributes.filter(attr => attr.position === 0).map(attr => ({
+                text: attr.text,
+                color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                       attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                       attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                       QUADRANT_COLORS.planning
+              })),
+              // Map position 1 attributes (for the bottom right flow box)
+              ...flowAttributes.filter(attr => attr.position === 1).map(attr => ({
+                text: attr.text,
+                color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                       attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                       attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                       QUADRANT_COLORS.planning
+              })),
+              // Map position 2 attributes (for the bottom left flow box)
+              ...flowAttributes.filter(attr => attr.position === 2).map(attr => ({
+                text: attr.text,
+                color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                       attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                       attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                       QUADRANT_COLORS.planning
+              })),
+              // Map position 3 attributes (for the top left flow box)
+              ...flowAttributes.filter(attr => attr.position === 3).map(attr => ({
+                text: attr.text,
+                color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                       attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                       attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                       QUADRANT_COLORS.planning
+              }))
+            ] : []}
           />
         </div>
       </div>
