@@ -175,7 +175,6 @@ export const insertAnswerSchema = createInsertSchema(answers).pick({
 
 export const insertStarCardSchema = createInsertSchema(starCards).pick({
   userId: true,
-  apexStrength: true,
   thinking: true,
   acting: true,
   feeling: true,
@@ -271,6 +270,5 @@ export type AssessmentResult = {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength: string;
   answers: QuestionAnswer[];
 };

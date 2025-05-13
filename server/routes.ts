@@ -120,7 +120,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acting: 25,
           feeling: 25, 
           planning: 25,
-          apexStrength: "Balanced",
           imageUrl,
           createdAt: new Date().toISOString()
         });
