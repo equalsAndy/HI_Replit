@@ -58,7 +58,7 @@ export default function Foundations() {
     // Check assessment completion status for StarCard tab
     if (tabId === "starcard") {
       // Disable if no starCard data exists yet (assessment not completed)
-      if (!starCard || !starCard.apexStrength) return true;
+      if (!starCard || starCard.pending === true) return true;
     }
 
     // For sequential progression

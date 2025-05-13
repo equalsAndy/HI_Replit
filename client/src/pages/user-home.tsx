@@ -27,7 +27,6 @@ interface StarCardType {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength?: string;
   imageUrl?: string;
   id?: number;
   pending?: boolean;
@@ -1176,7 +1175,6 @@ export default function UserHome() {
                               acting={starCard.acting}
                               feeling={starCard.feeling}
                               planning={starCard.planning}
-                              apexStrength={starCard.apexStrength}
                               userName={user?.name || ""}
                               userTitle={user?.title || ""}
                               userOrg={user?.organization || ""}

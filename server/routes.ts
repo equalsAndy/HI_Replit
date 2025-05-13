@@ -482,7 +482,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acting: scores.acting, 
           feeling: scores.feeling,
           planning: scores.planning,
-          apexStrength: scores.apexStrength, // Explicitly set the apex strength
           pending: false // Explicitly set to false after assessment
         });
       } else {
@@ -492,7 +491,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acting: scores.acting, 
           feeling: scores.feeling,
           planning: scores.planning,
-          apexStrength: scores.apexStrength, // Explicitly set the apex strength
           pending: false, // Explicitly set to false after assessment
           createdAt: new Date().toISOString()
         });
@@ -557,7 +555,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         acting: 0,
         feeling: 0,
         planning: 0,
-        apexStrength: null,
         pending: true, // Flag to indicate this is a placeholder
         createdAt: new Date().toISOString()
       };
@@ -731,24 +728,10 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   const feeling = Math.round((feelingPoints / totalPoints) * 100);
   const planning = Math.round((planningPoints / totalPoints) * 100);
   
-  // Determine apex strength
-  const scores = [
-    { name: 'thinking', value: thinking },
-    { name: 'acting', value: acting },
-    { name: 'feeling', value: feeling },
-    { name: 'planning', value: planning }
-  ];
-  
-  // Sort by score descending
-  scores.sort((a, b) => b.value - a.value);
-  
-  const apexStrength = scores[0].name;
-  
   return {
     thinking,
     acting,
     feeling,
-    planning,
-    apexStrength
+    planning
   };
 }
