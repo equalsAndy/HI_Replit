@@ -589,6 +589,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Flow attributes endpoints
+  app.get("/api/flow-attributes", async (req: Request, res: Response) => {
+    try {
+      // Get user ID from session/auth
+      const userId = req.cookies.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // Get user
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Get flow attributes for user
+      const flowAttributes = await storage.getFlowAttributes(user.id);
+      
+      if (!flowAttributes) {
+        return res.status(404).json({ message: "Flow attributes not found" });
+      }
+      
+      res.status(200).json(flowAttributes);
+    } catch (error) {
+      console.error("Error getting flow attributes:", error);
+      res.status(500).json({ message: "Failed to get flow attributes" });
+    }
+  });
+  
+  // Save flow attributes for user
+  app.post("/api/flow-attributes", async (req: Request, res: Response) => {
+    try {
+      // Get user ID from session/auth
+      const userId = req.cookies.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Not authenticated" });
+      }
+      
+      // Get user
+      const user = await storage.getUser(parseInt(userId));
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      const { flowScore, attributes } = req.body;
+      
+      // Check if user already has flow attributes
+      const existingFlowAttributes = await storage.getFlowAttributes(user.id);
+      
+      if (existingFlowAttributes) {
+        // Update existing flow attributes
+        const updatedFlowAttributes = await storage.updateFlowAttributes(
+          existingFlowAttributes.id, 
+          { 
+            flowScore, 
+            attributes: JSON.stringify(attributes) 
+          }
+        );
+        return res.status(200).json(updatedFlowAttributes);
+      } else {
+        // Create new flow attributes
+        const newFlowAttributes = await storage.createFlowAttributes({
+          userId: user.id,
+          flowScore,
+          attributes: JSON.stringify(attributes),
+          createdAt: new Date(),
+        });
+        return res.status(201).json(newFlowAttributes);
+      }
+    } catch (error) {
+      console.error("Error saving flow attributes:", error);
+      res.status(500).json({ message: "Failed to save flow attributes" });
+    }
+  });
+  
   // Test User Routes
   app.get("/api/test-users", async (req: Request, res: Response) => {
     try {
