@@ -59,6 +59,7 @@ export default function StarCard({
   acting,
   feeling,
   planning,
+  apexStrength,
   userName,
   userTitle,
   userOrg,
@@ -66,7 +67,8 @@ export default function StarCard({
   preview = false,
   flowAttributes = [],
   imageUrl = null,
-  enableImageUpload = false
+  enableImageUpload = false,
+  pending = false
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -116,8 +118,8 @@ export default function StarCard({
     const quadrants: QuadrantInfo[] = Object.entries(derivedQuadrantData).map(([key, score]) => ({
       key: key as QuadrantType,
       label: key.toUpperCase(),
-      color: score > 0 ? quadrantColors[key as QuadrantType] : defaultColor,
-      score: score || 0,
+      color: (typeof score === 'number' && score > 0) ? quadrantColors[key as QuadrantType] : defaultColor,
+      score: typeof score === 'number' ? score : 0,
       position: 0
     }));
 
@@ -239,32 +241,48 @@ export default function StarCard({
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <div>{getQuadrantAtPosition(3)?.label}</div>
-                <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+                {!pending && (
+                  <>
+                    <div>{getQuadrantAtPosition(3)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <div>{getQuadrantAtPosition(0)?.label}</div>
-                <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+                {!pending && (
+                  <>
+                    <div>{getQuadrantAtPosition(0)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <div>{getQuadrantAtPosition(2)?.label}</div>
-                <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+                {!pending && (
+                  <>
+                    <div>{getQuadrantAtPosition(2)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+                  </>
+                )}
               </div>
             </div>
 
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <div>{getQuadrantAtPosition(1)?.label}</div>
-                <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+                {!pending && (
+                  <>
+                    <div>{getQuadrantAtPosition(1)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+                  </>
+                )}
               </div>
             </div>
           </div>
