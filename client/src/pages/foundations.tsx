@@ -60,7 +60,7 @@ export default function Foundations() {
   });
   
   // Get flow attributes data
-  const { data: flowAttributes } = useQuery<any[]>({
+  const { data: flowAttributes } = useQuery<{ attributes: any[] }>({
     queryKey: ['/api/flow-attributes'],
     enabled: !!user,
     staleTime: Infinity,
@@ -298,41 +298,7 @@ export default function Foundations() {
                           downloadable={true}
                           preview={false}
                           pending={starCard.pending === true && !(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
-                          flowAttributes={flowAttributes ? [
-                            // Convert flow attributes data into the format expected by StarCard
-                            // Map position 0 attributes (for the top right flow box)
-                            ...flowAttributes.filter(attr => attr.position === 0).map(attr => ({
-                              text: attr.text,
-                              color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
-                                    attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
-                                    attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
-                                    QUADRANT_COLORS.planning
-                            })),
-                            // Map position 1 attributes (for the bottom right flow box)
-                            ...flowAttributes.filter(attr => attr.position === 1).map(attr => ({
-                              text: attr.text,
-                              color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
-                                    attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
-                                    attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
-                                    QUADRANT_COLORS.planning
-                            })),
-                            // Map position 2 attributes (for the bottom left flow box)
-                            ...flowAttributes.filter(attr => attr.position === 2).map(attr => ({
-                              text: attr.text,
-                              color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
-                                    attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
-                                    attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
-                                    QUADRANT_COLORS.planning
-                            })),
-                            // Map position 3 attributes (for the top left flow box)
-                            ...flowAttributes.filter(attr => attr.position === 3).map(attr => ({
-                              text: attr.text,
-                              color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
-                                    attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
-                                    attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
-                                    QUADRANT_COLORS.planning
-                            }))
-                          ] : []}
+                          flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
                         />
                       </div>
 
