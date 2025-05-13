@@ -110,8 +110,9 @@ export default function Foundations() {
         
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-            <TabsList className="grid grid-cols-3 mb-6">
+            <TabsList className="grid grid-cols-4 mb-6">
               <TabsTrigger value="intro" data-value="intro">Strengths</TabsTrigger>
+              <TabsTrigger value="assessment" data-value="assessment">Strengths Assessment</TabsTrigger>
               <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
                 {isTabDisabled("starcard") ? (
                   <span className="flex items-center">
@@ -134,6 +135,18 @@ export default function Foundations() {
               </TabsTrigger>
             </TabsList>
             
+            <TabsContent value="assessment" className="space-y-6">
+              <div className="prose max-w-none">
+                <h2>Strengths Assessment</h2>
+                <p>Take the assessment to discover your unique strengths profile across the four quadrants: Thinking, Acting, Feeling, and Planning.</p>
+                <div className="flex justify-end mt-6">
+                  <Button onClick={() => navigate('/assessment')} className="bg-indigo-700 hover:bg-indigo-800">
+                    Take Assessment
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="intro" className="space-y-6">
               <div className="aspect-w-16 aspect-h-9 mb-4">
                 <iframe 
