@@ -611,11 +611,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get flow attributes for user
       const flowAttributes = await storage.getFlowAttributes(user.id);
       
-      if (!flowAttributes) {
-        return res.status(404).json({ message: "Flow attributes not found" });
+      if (flowAttributes) {
+        // Return existing flow attributes
+        return res.status(200).json(flowAttributes);
       }
       
-      res.status(200).json(flowAttributes);
+      // If no flow attributes exist, create default ones
+      // This ensures flow attributes are always available for all cards
+      const defaultAttributes = [
+        { text: "Focused", color: "#4CAF50" },  // Green
+        { text: "Creative", color: "#2196F3" }, // Blue
+        { text: "Energized", color: "#FFC107" }, // Yellow
+        { text: "Confident", color: "#F44336" }  // Red
+      ];
+      
+      // Create flow attributes with default values
+      const newFlowAttributes = await storage.createFlowAttributes({
+        userId: user.id,
+        flowScore: 0,
+        attributes: defaultAttributes,
+        // Let timestamp default value handle createdAt
+      });
+      
+      res.status(200).json(newFlowAttributes);
     } catch (error) {
       console.error("Error getting flow attributes:", error);
       res.status(500).json({ message: "Failed to get flow attributes" });

@@ -1150,15 +1150,23 @@ export default function UserHome() {
                           </p>
                           <div className="bg-white p-6 rounded-lg border border-gray-200">
                             <StarCard 
-                              thinking={0}
-                              acting={0}
-                              feeling={0}
-                              planning={0}
-                              userName={user?.name || ""}
-                              userTitle={user?.title || ""}
-                              userOrg={user?.organization || ""}
+                              profile={{
+                                name: user?.name || "",
+                                title: user?.title || "",
+                                organization: user?.organization || ""
+                              }}
+                              quadrantData={{
+                                thinking: 0,
+                                acting: 0,
+                                feeling: 0,
+                                planning: 0
+                              }}
                               imageUrl={starCard.imageUrl}
                               pending={true}
+                              flowAttributes={flowAttributes ? flowAttributes.map(attr => ({
+                                text: attr.text,
+                                color: attr.color
+                              })) : []}
                             />
 
                           </div>
