@@ -641,21 +641,29 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
     
     // Assign points based on rankings (1=most like me, 4=least like me)
     rankings.forEach(rank => {
-      const points = 5 - rank.rank; // Convert rank to points: rank 1 = 4 points, rank 4 = 1 point
+      // Match the client-side scoring:
+      // First choice (most like me): 3 points
+      // Second choice: 2 points
+      // Third choice: 1 point
+      // Last choice (least like me): 0 points
+      const points = 4 - rank.rank; // Convert rank to points: rank 1 = 3 points, rank 4 = 0 point
       
-      switch (rank.category) {
-        case 'thinking':
-          thinkingPoints += points;
-          break;
-        case 'acting':
-          actingPoints += points;
-          break;
-        case 'feeling':
-          feelingPoints += points;
-          break;
-        case 'planning':
-          planningPoints += points;
-          break;
+      // Only add points for top 3 choices (ranks 1-3)
+      if (points > 0) {
+        switch (rank.category) {
+          case 'thinking':
+            thinkingPoints += points;
+            break;
+          case 'acting':
+            actingPoints += points;
+            break;
+          case 'feeling':
+            feelingPoints += points;
+            break;
+          case 'planning':
+            planningPoints += points;
+            break;
+        }
       }
     });
   });
@@ -680,10 +688,13 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   // Sort by score descending
   scores.sort((a, b) => b.value - a.value);
   
+  const apexStrength = scores[0].name;
+  
   return {
     thinking,
     acting,
     feeling,
-    planning
+    planning,
+    apexStrength
   };
 }
