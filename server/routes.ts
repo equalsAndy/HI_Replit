@@ -392,10 +392,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already has an assessment
       const existingAssessment = await storage.getAssessment(userId);
       
-      if (existingAssessment && existingAssessment.completed) {
+      // Also check if the user has a completed star card
+      const existingStarCard = await storage.getStarCard(userId);
+      const hasCompletedStarCard = existingStarCard && 
+                                   !existingStarCard.pending && 
+                                   (existingStarCard.thinking > 0 || 
+                                    existingStarCard.acting > 0 || 
+                                    existingStarCard.feeling > 0 || 
+                                    existingStarCard.planning > 0);
+      
+      // Prevent retaking assessment if either assessment is marked completed or star card has values
+      if ((existingAssessment && existingAssessment.completed) || hasCompletedStarCard) {
+        console.log(`Preventing assessment restart for user ${userId} - already completed`);
         return res.status(409).json({ message: "Assessment already completed" });
       }
       
+      console.log(`Starting assessment for user ${userId}`);
       const assessment = existingAssessment || await storage.createAssessment({
         userId,
         completed: false,
@@ -449,6 +461,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = 1; // Default to user ID 1 for development
       }
       
+      console.log(`Processing assessment completion for user ${userId}...`);
+      
       // Get user's assessment
       const assessment = await storage.getAssessment(userId);
       
@@ -456,47 +470,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Assessment not found" });
       }
       
-      // Get all answers
-      const answers = await storage.getAnswers(userId);
+      console.log(`Found assessment for user ${userId}: `, assessment);
       
-      if (answers.length === 0) {
-        return res.status(400).json({ message: "No answers found" });
-      }
+      // Use the request data directly if provided, which is more reliable
+      let scores: QuadrantData;
       
-      // Calculate quadrant scores
-      const scores = calculateQuadrantScores(answers);
-      
-      // Log the scores for debugging
-      console.log("Calculated scores from answers:", JSON.stringify(scores));
-      
-      // Make sure scores has valid values
-      if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
-        console.error("Error: All scores are zero, using demo values to avoid invalid data");
+      if (req.body.quadrantData && 
+          typeof req.body.quadrantData === 'object' &&
+          Object.values(req.body.quadrantData).some(val => (val as number) > 0)) {
+        // Use the client-calculated scores - these are already validated and reliable
+        scores = req.body.quadrantData;
+        console.log("Using client-provided quadrant data:", scores);
+      } else {
+        // Fall back to server-side calculation
+        // Get all answers
+        const answers = await storage.getAnswers(userId);
         
-        // Use the scores from the request body if available
-        const requestScores = req.body.quadrantData;
-        if (requestScores && 
-            typeof requestScores === 'object' && 
-            Object.values(requestScores).some(val => (val as number) > 0)) {
-          console.log("Using scores from request:", requestScores);
-          scores.thinking = requestScores.thinking || 25;
-          scores.acting = requestScores.acting || 25;
-          scores.feeling = requestScores.feeling || 25;
-          scores.planning = requestScores.planning || 25;
-        } else {
-          // Fallback - use even distribution
-          scores.thinking = 25;
-          scores.acting = 25;
-          scores.feeling = 25;
-          scores.planning = 25;
+        if (answers.length === 0) {
+          return res.status(400).json({ message: "No answers found" });
+        }
+        
+        // Calculate quadrant scores
+        scores = calculateQuadrantScores(answers);
+        console.log("Server calculated scores from answers:", scores);
+        
+        // Make sure scores has valid values
+        if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
+          console.error("Error: All scores are zero, using even distribution to avoid invalid data");
+          scores = {
+            thinking: 25,
+            acting: 25,
+            feeling: 25,
+            planning: 25
+          };
         }
       }
+      
+      // Ensure total is 100%
+      let total = scores.thinking + scores.acting + scores.feeling + scores.planning;
+      if (total !== 100) {
+        const adjustmentFactor = 100 / total;
+        scores = {
+          thinking: Math.round(scores.thinking * adjustmentFactor),
+          acting: Math.round(scores.acting * adjustmentFactor),
+          feeling: Math.round(scores.feeling * adjustmentFactor),
+          planning: Math.round(scores.planning * adjustmentFactor)
+        };
+        
+        // Handle rounding errors
+        total = scores.thinking + scores.acting + scores.feeling + scores.planning;
+        if (total !== 100) {
+          const diff = 100 - total;
+          // Add difference to the highest value
+          let highest = Math.max(scores.thinking, scores.acting, scores.feeling, scores.planning);
+          if (highest === scores.thinking) scores.thinking += diff;
+          else if (highest === scores.acting) scores.acting += diff;
+          else if (highest === scores.feeling) scores.feeling += diff;
+          else scores.planning += diff;
+        }
+      }
+      
+      console.log(`Final normalized quadrant scores: `, scores);
       
       // Update assessment with results
       const updatedAssessment = await storage.updateAssessment(assessment.id, {
         completed: true,
         results: scores
       });
+      console.log("Updated assessment:", updatedAssessment);
       
       // Create or update star card
       const existingStarCard = await storage.getStarCard(userId);

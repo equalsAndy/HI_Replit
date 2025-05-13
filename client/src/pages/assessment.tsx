@@ -73,7 +73,7 @@ export default function Assessment() {
         toast({
           title: "Assessment Already Completed",
           description: "You've already completed the assessment. Results are shown below. Please use the reset function if you need to retake the assessment.",
-          variant: "warning",
+          variant: "destructive",
           duration: 5000
         });
         
