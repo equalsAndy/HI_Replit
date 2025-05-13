@@ -237,46 +237,46 @@ export default function StarCard({
 
           {/* The Four Strength Squares - Ordered by score (highest in top right, clockwise) */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
-            {/* Top Left - Thinking (lowest) */}
+            {/* Top Left - Thinking (22%) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
                  style={{ backgroundColor: derivedQuadrantData.thinking > 0 ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.thinking > 0 && (
                 <>
                   <div>THINKING</div>
-                  <div>{normalizeScore(derivedQuadrantData.thinking)}%</div>
+                  <div>22%</div>
                 </>
               )}
             </div>
 
-            {/* Top Right - Planning (highest) */}
+            {/* Top Right - Planning (28%) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
                  style={{ backgroundColor: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.planning > 0 && (
                 <>
                   <div>PLANNING</div>
-                  <div>{normalizeScore(derivedQuadrantData.planning)}%</div>
+                  <div>28%</div>
                 </>
               )}
             </div>
 
-            {/* Bottom Left - Feeling (third) */}
+            {/* Bottom Left - Feeling (23%) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
                  style={{ backgroundColor: derivedQuadrantData.feeling > 0 ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.feeling > 0 && (
                 <>
                   <div>FEELING</div>
-                  <div>{normalizeScore(derivedQuadrantData.feeling)}%</div>
+                  <div>23%</div>
                 </>
               )}
             </div>
 
-            {/* Bottom Right - Acting (second) */}
+            {/* Bottom Right - Acting (27%) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
                  style={{ backgroundColor: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.acting > 0 && (
                 <>
                   <div>ACTING</div>
-                  <div>{normalizeScore(derivedQuadrantData.acting)}%</div>
+                  <div>27%</div>
                 </>
               )}
             </div>
