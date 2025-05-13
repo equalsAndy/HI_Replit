@@ -101,15 +101,11 @@ export function calculateQuadrantScores(
     highestPercentage = percentages.planning;
   }
   
-  // Format the apex strength for display (capitalize first letter)
-  const formattedApexStrength = apexStrength.charAt(0).toUpperCase() + apexStrength.slice(1);
-  
   return {
     thinking: percentages.thinking,
     feeling: percentages.feeling,
     acting: percentages.acting,
-    planning: percentages.planning,
-    apexStrength: formattedApexStrength
+    planning: percentages.planning
   };
 }
 

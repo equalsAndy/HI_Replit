@@ -680,14 +680,10 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   // Sort by score descending
   scores.sort((a, b) => b.value - a.value);
   
-  // Get the highest scoring category
-  const apexStrength = scores[0].name.charAt(0).toUpperCase() + scores[0].name.slice(1);
-  
   return {
     thinking,
     acting,
     feeling,
-    planning,
-    apexStrength
+    planning
   };
 }

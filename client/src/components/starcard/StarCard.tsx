@@ -21,7 +21,6 @@ interface StarCardProps {
   acting?: number;
   feeling?: number;
   planning?: number;
-  apexStrength?: string;
   userName?: string;
   userTitle?: string;
   userOrg?: string;
@@ -44,7 +43,6 @@ export default function StarCard({
   acting,
   feeling,
   planning,
-  apexStrength,
   userName,
   userTitle,
   userOrg,
@@ -72,10 +70,9 @@ export default function StarCard({
       thinking: thinking || 0,
       acting: acting || 0,
       feeling: feeling || 0,
-      planning: planning || 0,
-      apexStrength: apexStrength || ''
+      planning: planning || 0
     };
-  }, [quadrantData, thinking, acting, feeling, planning, apexStrength]);
+  }, [quadrantData, thinking, acting, feeling, planning]);
 
   // Determine if assessment is completed - all scores must be greater than 0
   const hasCompletedAssessment = useMemo(() => {
@@ -239,13 +236,13 @@ export default function StarCard({
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left */}
             <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
-            
+
             {/* Top Right */}
             <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
-            
+
             {/* Bottom Left */}
             <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
-            
+
             {/* Bottom Right */}
             <div className="aspect-square" style={{ backgroundColor: 'rgb(229, 231, 235)' }}></div>
           </div>
