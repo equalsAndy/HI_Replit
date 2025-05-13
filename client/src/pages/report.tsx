@@ -6,6 +6,15 @@ import { Link } from "wouter";
 import StarCard from "@/components/starcard/StarCard";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { QuadrantData, ProfileData } from "@shared/schema";
+
+// Define quadrant colors
+const QUADRANT_COLORS = {
+  thinking: 'rgb(1, 162, 82)',    // Green
+  acting: 'rgb(241, 64, 64)',     // Red
+  feeling: 'rgb(22, 126, 253)',   // Blue
+  planning: 'rgb(255, 203, 47)'   // Yellow
+} as const;
 
 export default function Report() {
   const [location, navigate] = useLocation();
@@ -20,6 +29,13 @@ export default function Report() {
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery({
     queryKey: ['/api/starcard'],
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+  
+  // Get flow attributes data
+  const { data: flowAttributes } = useQuery<any[]>({
+    queryKey: ['/api/flow-attributes'],
     enabled: !!user,
     staleTime: Infinity,
   });

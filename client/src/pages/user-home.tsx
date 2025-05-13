@@ -10,6 +10,14 @@ import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 import { useApplication } from "@/hooks/use-application";
 
+// Define quadrant colors
+const QUADRANT_COLORS = {
+  thinking: 'rgb(1, 162, 82)',    // Green
+  acting: 'rgb(241, 64, 64)',     // Red
+  feeling: 'rgb(22, 126, 253)',   // Blue
+  planning: 'rgb(255, 203, 47)'   // Yellow
+} as const;
+
 // Define the user type based on the app's data structure
 interface UserType {
   id: number;
@@ -67,6 +75,13 @@ export default function UserHome() {
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType | undefined>({
     queryKey: ['/api/starcard'],
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+
+  // Get flow attributes data
+  const { data: flowAttributes } = useQuery<any[]>({
+    queryKey: ['/api/flow-attributes'],
     enabled: !!user,
     staleTime: Infinity,
   });
@@ -1184,6 +1199,41 @@ export default function UserHome() {
                               }}
                               imageUrl={starCard.imageUrl}
                               pending={false}
+                              flowAttributes={flowAttributes ? [
+                                // Convert flow attributes data into the format expected by StarCard
+                                // Map position 0 attributes (for the top right flow box)
+                                ...flowAttributes.filter(attr => attr.position === 0).map(attr => ({
+                                  text: attr.text,
+                                  color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                                         attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                                         attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                                         QUADRANT_COLORS.planning
+                                })),
+                                // Map position 1 attributes (for the bottom right flow box)
+                                ...flowAttributes.filter(attr => attr.position === 1).map(attr => ({
+                                  text: attr.text,
+                                  color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                                         attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                                         attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                                         QUADRANT_COLORS.planning
+                                })),
+                                // Map position 2 attributes (for the bottom left flow box)
+                                ...flowAttributes.filter(attr => attr.position === 2).map(attr => ({
+                                  text: attr.text,
+                                  color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                                         attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                                         attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                                         QUADRANT_COLORS.planning
+                                })),
+                                // Map position 3 attributes (for the top left flow box)
+                                ...flowAttributes.filter(attr => attr.position === 3).map(attr => ({
+                                  text: attr.text,
+                                  color: attr.category === 'acting' ? QUADRANT_COLORS.acting : 
+                                         attr.category === 'thinking' ? QUADRANT_COLORS.thinking :
+                                         attr.category === 'feeling' ? QUADRANT_COLORS.feeling :
+                                         QUADRANT_COLORS.planning
+                                }))
+                              ] : []}
                             />
                           </div>
                         </>
