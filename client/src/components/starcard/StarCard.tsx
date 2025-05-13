@@ -95,8 +95,8 @@ export default function StarCard({
       { 
         key: 'thinking', 
         label: 'THINKING', 
-        color: hasCompletedAssessment ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (derivedQuadrantData.thinking || 0) : 0, 
+        color: derivedQuadrantData.thinking > 0 ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
+        score: derivedQuadrantData.thinking || 0, 
         position: 0 
       },
       { 
