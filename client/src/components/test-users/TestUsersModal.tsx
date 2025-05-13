@@ -96,12 +96,10 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
 
   const handleResetUser = async (userId: number) => {
     await resetMutation.mutateAsync(userId);
-    // Invalidate specific queries
-    queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/assessment/questions'] });
-    queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-    queryClient.removeQueries({ queryKey: ['/api/assessment/answer'] });
-    queryClient.removeQueries({ queryKey: ['/api/assessment/complete'] });
+    // Remove all cached data
+    queryClient.clear();
+    // Refetch test users list
+    refetch();
   };
 
   // Progress color based on completion
@@ -153,7 +151,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                 </CardContent>
                 <CardFooter className="flex gap-2 pt-2">
                   <Button 
-                    variant="outline" 
+                    variant="destructive" 
                     size="sm" 
                     onClick={() => handleResetUser(user.id)}
                     disabled={resetMutation.isPending}
@@ -166,7 +164,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                     Clear Data
                   </Button>
                   <Button 
-                    variant="outline"
+                    variant="default"
                     size="sm" 
                     onClick={() => handleLoginAsUser(user.username)}
                     disabled={loginMutation.isPending}
@@ -175,16 +173,6 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Login
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={() => {
-                      handleResetUser(user.id);
-                      handleLoginAsUser(user.username);
-                    }}
-                    disabled={resetMutation.isPending || loginMutation.isPending}
-                  >
-                    Clear & Login
                   </Button>
                 </CardFooter>
               </Card>
