@@ -239,44 +239,44 @@ export default function StarCard({
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left - Position 3 (lowest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(3)?.color : 'rgb(229, 231, 235)' }}>
-              {hasCompletedAssessment && (
+                 style={{ backgroundColor: 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.thinking > 0 && (
                 <>
-                  <div>{getQuadrantAtPosition(3)?.label}</div>
-                  <div>{getQuadrantAtPosition(3)?.score}%</div>
+                  <div>THINKING</div>
+                  <div>{normalizeScore(derivedQuadrantData.thinking)}%</div>
                 </>
               )}
             </div>
 
             {/* Top Right - Position 0 (highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(0)?.color : 'rgb(229, 231, 235)' }}>
-              {hasCompletedAssessment && (
+                 style={{ backgroundColor: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.acting > 0 && (
                 <>
-                  <div>{getQuadrantAtPosition(0)?.label}</div>
-                  <div>{getQuadrantAtPosition(0)?.score}%</div>
+                  <div>ACTING</div>
+                  <div>{normalizeScore(derivedQuadrantData.acting)}%</div>
                 </>
               )}
             </div>
 
             {/* Bottom Left - Position 2 (third highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(2)?.color : 'rgb(229, 231, 235)' }}>
-              {hasCompletedAssessment && (
+                 style={{ backgroundColor: derivedQuadrantData.feeling > 0 ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.feeling > 0 && (
                 <>
-                  <div>{getQuadrantAtPosition(2)?.label}</div>
-                  <div>{getQuadrantAtPosition(2)?.score}%</div>
+                  <div>FEELING</div>
+                  <div>{normalizeScore(derivedQuadrantData.feeling)}%</div>
                 </>
               )}
             </div>
 
             {/* Bottom Right - Position 1 (second highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: hasCompletedAssessment ? getQuadrantAtPosition(1)?.color : 'rgb(229, 231, 235)' }}>
-              {hasCompletedAssessment && (
+                 style={{ backgroundColor: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.planning > 0 && (
                 <>
-                  <div>{getQuadrantAtPosition(1)?.label}</div>
-                  <div>{getQuadrantAtPosition(1)?.score}%</div>
+                  <div>PLANNING</div>
+                  <div>{normalizeScore(derivedQuadrantData.planning)}%</div>
                 </>
               )}
             </div>
