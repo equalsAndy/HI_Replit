@@ -551,7 +551,7 @@ export default function UserHome() {
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-4 cursor-pointer"
-                    onClick={() => navigate('/core-strengths')}
+                    onClick={() => navigate('/foundations')}
                   >
                     <div className="flex items-center">
                       <StarIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
