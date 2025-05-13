@@ -1,4 +1,3 @@
-typescript
 import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { downloadElementAsImage } from "@/lib/html2canvas";
