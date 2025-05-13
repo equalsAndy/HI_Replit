@@ -274,15 +274,13 @@ export default function Foundations() {
                             avatarUrl: user?.avatarUrl
                           }}
                           quadrantData={{
-                            thinking: starCard.thinking,
-                            acting: starCard.acting,
-                            feeling: starCard.feeling,
-                            planning: starCard.planning,
-                            pending: starCard.pending
+                            thinking: starCard.thinking || 0,
+                            acting: starCard.acting || 0,
+                            feeling: starCard.feeling || 0,
+                            planning: starCard.planning || 0
                           }}
                           downloadable={true}
                           preview={false}
-                          // Explicitly pass pending as false if the card has scores
                           pending={starCard.pending === true && !(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
                         />
                       </div>

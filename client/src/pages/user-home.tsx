@@ -1171,13 +1171,17 @@ export default function UserHome() {
                           </p>
                           <div className="bg-white p-6 rounded-lg border border-gray-200">
                             <StarCard 
-                              thinking={starCard.thinking}
-                              acting={starCard.acting}
-                              feeling={starCard.feeling}
-                              planning={starCard.planning}
-                              userName={user?.name || ""}
-                              userTitle={user?.title || ""}
-                              userOrg={user?.organization || ""}
+                              profile={{
+                                name: user?.name || "",
+                                title: user?.title || "",
+                                organization: user?.organization || ""
+                              }}
+                              quadrantData={{
+                                thinking: starCard.thinking || 0,
+                                acting: starCard.acting || 0,
+                                feeling: starCard.feeling || 0,
+                                planning: starCard.planning || 0
+                              }}
                               imageUrl={starCard.imageUrl}
                               pending={false}
                             />
