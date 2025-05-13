@@ -182,7 +182,7 @@ export default function Assessment() {
         title: "Assessment Complete!",
         description: "Your Star Card is ready to view."
       });
-      navigate('/foundations?tab=Your Star Card');
+      navigate('/foundations?tab=starcard');
     },
     onError: (error) => {
       toast({
