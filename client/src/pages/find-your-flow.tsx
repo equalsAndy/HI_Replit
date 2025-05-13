@@ -12,6 +12,7 @@ import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDemoMode } from '@/hooks/use-demo-mode';
+import type { User, StarCard as StarCardType, FlowAttributes } from "@shared/schema";
 import {
   DndContext, 
   closestCenter,
@@ -305,7 +306,7 @@ export default function FindYourFlow() {
     staleTime: Infinity,
   });
   
-  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCard>({
+  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType>({
     queryKey: ['/api/starcard'],
     staleTime: Infinity,
   });
