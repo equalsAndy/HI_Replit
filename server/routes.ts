@@ -395,11 +395,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also check if the user has a completed star card
       const existingStarCard = await storage.getStarCard(userId);
       const hasCompletedStarCard = existingStarCard && 
-                                   !existingStarCard.pending && 
-                                   (existingStarCard.thinking > 0 || 
-                                    existingStarCard.acting > 0 || 
-                                    existingStarCard.feeling > 0 || 
-                                    existingStarCard.planning > 0);
+                                   existingStarCard.pending === false && 
+                                   ((existingStarCard.thinking ?? 0) > 0 || 
+                                    (existingStarCard.acting ?? 0) > 0 || 
+                                    (existingStarCard.feeling ?? 0) > 0 || 
+                                    (existingStarCard.planning ?? 0) > 0);
       
       // Prevent retaking assessment if either assessment is marked completed or star card has values
       if ((existingAssessment && existingAssessment.completed) || hasCompletedStarCard) {
@@ -570,7 +570,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Update user progress
       await storage.updateUser(userId, { progress: 67 }); // Profile + Assessment = 67%
       
-      res.status(200).json({ ...scores, completed: true });
+      // Return a successful response with the updated StarCard data
+      res.status(200).json({
+        success: true,
+        message: "Assessment completed successfully",
+        starCard: updatedStarCard,
+        scores: scores,
+        completed: true
+      });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }
