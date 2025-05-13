@@ -103,6 +103,17 @@ export default function StarCard({
     // Force to true if we have any scores at all, regardless of pending flag
     return hasScores;
   }, [derivedQuadrantData]);
+  
+  // Boolean flag to determine if StarCard has actual data to display
+  const hasStarCardData = useMemo(() => {
+    return hasCompletedAssessment && 
+      (
+        (derivedQuadrantData.thinking || 0) > 0 ||
+        (derivedQuadrantData.acting || 0) > 0 ||
+        (derivedQuadrantData.feeling || 0) > 0 ||
+        (derivedQuadrantData.planning || 0) > 0
+      );
+  }, [hasCompletedAssessment, derivedQuadrantData]);
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
@@ -248,42 +259,58 @@ export default function StarCard({
           {/* The Four Quadrant Squares */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)' }}>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <>
-                  <div>{getQuadrantAtPosition(3)?.label}</div>
-                  <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
-                </>
+                {hasStarCardData ? (
+                  <>
+                    <div>{getQuadrantAtPosition(3)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+                  </>
+                ) : (
+                  <div className="text-xs italic">Awaiting data</div>
+                )}
               </div>
             </div>
 
             {/* Top Right */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)' }}>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <>
-                  <div>{getQuadrantAtPosition(0)?.label}</div>
-                  <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
-                </>
+                {hasStarCardData ? (
+                  <>
+                    <div>{getQuadrantAtPosition(0)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+                  </>
+                ) : (
+                  <div className="text-xs italic">Awaiting data</div>
+                )}
               </div>
             </div>
 
             {/* Bottom Left */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)' }}>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <>
-                  <div>{getQuadrantAtPosition(2)?.label}</div>
-                  <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
-                </>
+                {hasStarCardData ? (
+                  <>
+                    <div>{getQuadrantAtPosition(2)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+                  </>
+                ) : (
+                  <div className="text-xs italic">Awaiting data</div>
+                )}
               </div>
             </div>
 
             {/* Bottom Right */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)' }}>
+            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                <>
-                  <div>{getQuadrantAtPosition(1)?.label}</div>
-                  <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
-                </>
+                {hasStarCardData ? (
+                  <>
+                    <div>{getQuadrantAtPosition(1)?.label}</div>
+                    <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+                  </>
+                ) : (
+                  <div className="text-xs italic">Awaiting data</div>
+                )}
               </div>
             </div>
           </div>
@@ -308,7 +335,9 @@ export default function StarCard({
               }}
             >
               <p className="text-[9px] font-medium text-center leading-tight">
-                {flowAttributes[index]?.text || ''}
+                {hasFlowData ? flowAttributes[index]?.text : (
+                  <span className="text-gray-500 italic text-[8px]">Awaiting data</span>
+                )}
               </p>
             </div>
           ))}
