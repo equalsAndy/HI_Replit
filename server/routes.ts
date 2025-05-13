@@ -550,21 +550,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // If no star card exists, create a placeholder one with a reasonable distribution
-      // This allows the UI to show a meaningful star card before assessment
-      const placeholderCard = {
+      // If no star card exists, return one with all zeros (no placeholders)
+      const emptyCard = {
         id: null,
         userId,
-        thinking: 28,
-        acting: 23,
-        feeling: 20,
-        planning: 29,
-        pending: true, // Flag to indicate this is a placeholder
+        thinking: 0,
+        acting: 0,
+        feeling: 0,
+        planning: 0,
+        pending: true, // Flag to indicate this is empty/pending
         createdAt: new Date().toISOString()
       };
       
-      // Return the placeholder card
-      res.status(200).json(placeholderCard);
+      // Return the empty card
+      res.status(200).json(emptyCard);
     } catch (error) {
       console.error("Error fetching star card:", error);
       res.status(500).json({ message: "Server error" });

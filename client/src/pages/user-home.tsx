@@ -142,13 +142,7 @@ export default function UserHome() {
     updateProfile.mutate(profileData);
   };
 
-  // Calculate progress
-  const calculateProgress = () => {
-    if (!user) return 0;
-    return user.progress || 0;
-  };
-
-  const progress = calculateProgress();
+  // Progress calculation removed as requested
 
   // Determine app-specific styles and content
   const appStyles = {
@@ -271,16 +265,7 @@ export default function UserHome() {
               )}
             </div>
 
-            {/* Progress Bar */}
-            <div className="mb-8">
-              <div className="bg-gray-200 rounded-full h-4 mb-2">
-                <div 
-                  className={`${appStyles.primaryBgColor} h-4 rounded-full`} 
-                  style={{ width: `${progress}%` }}
-                ></div>
-              </div>
-              <div className="text-right text-sm text-gray-500">{progress}%</div>
-            </div>
+            {/* Removed progress bar as requested */}
 
             {/* Step 1: Complete your Profile */}
             <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
