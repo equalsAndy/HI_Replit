@@ -1128,14 +1128,9 @@ export default function UserHome() {
                               userTitle={user?.title || ""}
                               userOrg={user?.organization || ""}
                               imageUrl={starCard.imageUrl}
+                              pending={true}
                             />
-                            <div className="mt-6 text-center">
-                              <Link to="/assessment">
-                                <Button className={appStyles.primaryBgColor}>
-                                  Take Star Strengths Assessment
-                                </Button>
-                              </Link>
-                            </div>
+
                           </div>
                         </>
                       ) : (
