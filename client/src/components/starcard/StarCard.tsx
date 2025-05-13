@@ -95,28 +95,28 @@ export default function StarCard({
       { 
         key: 'thinking', 
         label: 'THINKING', 
-        color: 'rgb(229, 231, 235)', 
+        color: hasCompletedAssessment ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
         score: hasCompletedAssessment ? (derivedQuadrantData.thinking || 0) : 0, 
         position: 0 
       },
       { 
         key: 'acting', 
         label: 'ACTING', 
-        color: 'rgb(229, 231, 235)', 
+        color: hasCompletedAssessment ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
         score: hasCompletedAssessment ? (derivedQuadrantData.acting || 0) : 0, 
         position: 0 
       },
       { 
         key: 'feeling', 
         label: 'FEELING', 
-        color: 'rgb(229, 231, 235)', 
+        color: hasCompletedAssessment ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
         score: hasCompletedAssessment ? (derivedQuadrantData.feeling || 0) : 0, 
         position: 0 
       },
       { 
         key: 'planning', 
         label: 'PLANNING', 
-        color: 'rgb(229, 231, 235)', 
+        color: hasCompletedAssessment ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
         score: hasCompletedAssessment ? (derivedQuadrantData.planning || 0) : 0, 
         position: 0 
       }
