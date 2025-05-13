@@ -80,7 +80,7 @@ export default function UserHome() {
   });
 
   // Get flow attributes data
-  const { data: flowAttributes } = useQuery<any[]>({
+  const { data: flowAttributes } = useQuery<{ attributes: any[] }>({
     queryKey: ['/api/flow-attributes'],
     enabled: !!user,
     staleTime: Infinity,
@@ -1163,10 +1163,7 @@ export default function UserHome() {
                               }}
                               imageUrl={starCard.imageUrl}
                               pending={true}
-                              flowAttributes={flowAttributes ? flowAttributes.map(attr => ({
-                                text: attr.text,
-                                color: attr.color
-                              })) : []}
+                              flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
                             />
 
                           </div>
