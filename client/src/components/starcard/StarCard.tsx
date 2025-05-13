@@ -244,48 +244,40 @@ export default function StarCard({
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {(hasCompletedAssessment || !pending) && (
-                  <>
-                    <div>{getQuadrantAtPosition(3)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
-                  </>
-                )}
+                <>
+                  <div>{getQuadrantAtPosition(3)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+                </>
               </div>
             </div>
 
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {(hasCompletedAssessment || !pending) && (
-                  <>
-                    <div>{getQuadrantAtPosition(0)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
-                  </>
-                )}
+                <>
+                  <div>{getQuadrantAtPosition(0)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+                </>
               </div>
             </div>
 
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {(hasCompletedAssessment || !pending) && (
-                  <>
-                    <div>{getQuadrantAtPosition(2)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
-                  </>
-                )}
+                <>
+                  <div>{getQuadrantAtPosition(2)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+                </>
               </div>
             </div>
 
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {(hasCompletedAssessment || !pending) && (
-                  <>
-                    <div>{getQuadrantAtPosition(1)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
-                  </>
-                )}
+                <>
+                  <div>{getQuadrantAtPosition(1)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+                </>
               </div>
             </div>
           </div>
