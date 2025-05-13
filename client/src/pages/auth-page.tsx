@@ -22,11 +22,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const loginSchema = z.object({
-  username: z.string().min(3, {
-    message: "Username must be at least 3 characters.",
+  username: z.string().min(1, {
+    message: "Username is required.",
   }),
-  password: z.string().min(6, {
-    message: "Password must be at least 6 characters.",
+  password: z.string().min(1, {
+    message: "Password is required.",
   }),
 });
 
@@ -75,8 +75,8 @@ export default function AuthPage() {
   const loginForm = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: "",
-      password: "",
+      username: "user1", // Set default username to first test user
+      password: "password", // Set default password for test accounts
     },
   });
 
@@ -97,8 +97,20 @@ export default function AuthPage() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (data: LoginValues) => {
-      const res = await apiRequest('POST', '/api/auth/login', data);
-      return res.json();
+      try {
+        const res = await apiRequest('POST', '/api/auth/login', data);
+        
+        // Check if the response is OK
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Invalid credentials");
+        }
+        
+        return await res.json();
+      } catch (err) {
+        // Rethrow the error with a clear message
+        throw new Error(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
