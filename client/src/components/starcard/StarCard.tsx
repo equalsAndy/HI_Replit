@@ -26,7 +26,6 @@ interface StarCardProps {
   acting?: number;
   feeling?: number;
   planning?: number;
-  apexStrength?: string;
   userName?: string;
   userTitle?: string;
   userOrg?: string;
@@ -59,7 +58,6 @@ export default function StarCard({
   acting,
   feeling,
   planning,
-  apexStrength,
   userName,
   userTitle,
   userOrg,

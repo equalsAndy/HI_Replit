@@ -49,7 +49,6 @@ export const answers = pgTable("answers", {
 export const starCards = pgTable("star_cards", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  apexStrength: text("apex_strength"),
   thinking: integer("thinking").default(0),
   acting: integer("acting").default(0),
   feeling: integer("feeling").default(0),
@@ -235,7 +234,6 @@ export type QuadrantData = {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength?: string;
   pending?: boolean;
 };
 

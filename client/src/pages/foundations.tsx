@@ -16,7 +16,6 @@ interface StarCardType {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength: string;
   id: number;
   pending?: boolean;
 }
@@ -278,8 +277,7 @@ export default function Foundations() {
                             thinking: starCard.thinking,
                             acting: starCard.acting,
                             feeling: starCard.feeling,
-                            planning: starCard.planning,
-                            apexStrength: starCard.apexStrength
+                            planning: starCard.planning
                           }}
                           downloadable={true}
                           preview={false}
