@@ -351,7 +351,7 @@ export default function Assessment() {
   // Function to close the popup and navigate to the report page
   const handleCloseResultsPopup = () => {
     setShowResultsPopup(false);
-    navigate('/report');
+    navigate('/foundations?tab=starcard');
   };
 
   // Auto-complete the assessment with random answers for demo purposes
@@ -412,7 +412,7 @@ export default function Assessment() {
       await completeAssessment.mutateAsync();
 
       // Navigate to report page
-      navigate('/report');
+      navigate('/foundations?tab=starcard');
 
       toast({
         title: "Assessment Auto-Completed",
@@ -534,7 +534,7 @@ export default function Assessment() {
             onClick={() => {
               // Fill answers with random data
               const newAnswers: {[key: number]: RankedOption[]} = {};
-              
+
               assessmentQuestions.forEach((question) => {
                 // Create a shuffled copy of options
                 const shuffledOptions = [...question.options]
@@ -543,25 +543,25 @@ export default function Assessment() {
                     optionId: option.id,
                     rank: index + 1
                   }));
-                
+
                 newAnswers[question.id] = shuffledOptions;
               });
-              
+
               // Set all answers and move to last question
               setAnswers(newAnswers);
               setCurrentQuestionIndex(assessmentQuestions.length - 1);
-              
+
               // Set rankings for last question display
               const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
               const lastAnswers = newAnswers[lastQuestion.id];
-              
+
               const newRankings = {
                 mostLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[0].optionId) || null,
                 second: lastQuestion.options.find(opt => opt.id === lastAnswers[1].optionId) || null,
                 third: lastQuestion.options.find(opt => opt.id === lastAnswers[2].optionId) || null,
                 leastLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[3].optionId) || null
               };
-              
+
               setRankings(newRankings);
             }}
             variant="outline"
