@@ -167,23 +167,23 @@ export default function Assessment() {
       return await res.json();
     },
     onSuccess: () => {
-      // Update user progress
-      const updateProgress = async () => {
-        try {
-          await apiRequest('PUT', '/api/user/progress', { progress: 100 });
-          queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-        } catch (error) {
-          console.error("Failed to update progress:", error);
-        }
-      };
-      updateProgress();
+        // Update user progress
+        const updateProgress = async () => {
+          try {
+            await apiRequest('PUT', '/api/user/progress', { progress: 100 });
+            queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+          } catch (error) {
+            console.error("Failed to update progress:", error);
+          }
+        };
+        updateProgress();
 
-      toast({
-        title: "Assessment Complete!",
-        description: "Your Star Card is ready to view."
-      });
-      navigate('/foundations?tab=starcard');
-    },
+        toast({
+          title: "Assessment Complete!",
+          description: "Your Star Card is ready to view."
+        });
+        navigate('/foundations', { state: { tab: 'starcard', showStarCard: true } });
+      },
     onError: (error) => {
       toast({
         title: "Error completing assessment",

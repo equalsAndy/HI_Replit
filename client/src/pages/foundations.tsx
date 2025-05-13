@@ -31,8 +31,9 @@ interface UserType {
 }
 
 export default function Foundations() {
+  const { state } = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
-  const defaultTab = searchParams.get('tab') || 'intro';
+  const defaultTab = state?.tab || searchParams.get('tab') || 'intro';
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [location, navigate] = useLocation();
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
