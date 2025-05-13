@@ -39,7 +39,12 @@ const flowQuestions: FlowQuestion[] = [
   { id: 12, text: "I want to recapture this experience again—it's deeply rewarding." },
 ];
 
-export default function FlowAssessment() {
+interface FlowAssessmentProps {
+  isCompleted?: boolean;
+  onTabChange?: (tabId: string) => void;
+}
+
+export default function FlowAssessment({ isCompleted = false, onTabChange }: FlowAssessmentProps) {
   // State for tracking answers
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
@@ -53,6 +58,11 @@ export default function FlowAssessment() {
   
   // Demo answers feature
   const fillDemoAnswers = () => {
+    // Check if the assessment is already completed
+    if (isCompleted) {
+      return;
+    }
+    
     // Create demo answers for all questions (mostly 4s and 5s with some 3s)
     const demoAnswers: Record<number, number> = {};
     flowQuestions.forEach(q => {
@@ -217,6 +227,35 @@ export default function FlowAssessment() {
   const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
   const prevAnswer = previousQuestion ? answers[previousQuestion.id] || 0 : 0;
   
+  // If the assessment is already completed, show a completion message
+  if (isCompleted) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-center text-center flex-col">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Flow Assessment Completed</h3>
+            <p className="text-gray-600 mb-4">
+              You've already completed the flow assessment. Your results have been saved to your profile.
+              Continue to the next sections to add flow attributes to your Star Card.
+            </p>
+            
+            <Button 
+              onClick={() => onTabChange ? onTabChange("roundingout") : null}
+              className="bg-indigo-700 hover:bg-indigo-800"
+            >
+              Continue to Rounding Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
