@@ -27,7 +27,7 @@ interface StarCardType {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength: string;
+
   imageUrl?: string;
   id: number;
 }
@@ -754,7 +754,7 @@ export default function UserHome() {
                           acting={starCard.acting}
                           feeling={starCard.feeling}
                           planning={starCard.planning}
-                          apexStrength={starCard.apexStrength}
+
                           userName={user?.name || ""}
                           userTitle={user?.title || ""}
                           userOrg={user?.organization || ""}
@@ -763,48 +763,50 @@ export default function UserHome() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Apex Strength: {starCard.apexStrength}</h3>
+                      <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Apex Strength</h3>
                       <div className="bg-white p-6 rounded-lg border border-gray-200">
                         <p className="text-gray-700 mb-4">
-                          Your apex strength is in the <strong>{starCard.apexStrength}</strong> quadrant. 
-                          This means you naturally excel at:
+                          Your Star Card reveals your unique strength profile.
+                          These are areas where you naturally excel:
                         </p>
 
-                        {starCard.apexStrength === "Thinking" && (
-                          <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>Analyzing complex information</li>
-                            <li>Strategic thinking and problem-solving</li>
-                            <li>Developing innovative insights</li>
-                            <li>Conceptual reasoning and systems thinking</li>
-                          </ul>
-                        )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="bg-green-50 p-3 rounded-md">
+                            <h4 className="font-semibold text-green-700 mb-2">Thinking</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                              <li>Analyzing complex information</li>
+                              <li>Strategic problem-solving</li>
+                              <li>Developing innovative insights</li>
+                            </ul>
+                          </div>
 
-                        {starCard.apexStrength === "Acting" && (
-                          <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>Taking decisive action</li>
-                            <li>Leading initiatives and driving results</li>
-                            <li>Adapting quickly to changing circumstances</li>
-                            <li>Being resourceful and pragmatic</li>
-                          </ul>
-                        )}
+                          <div className="bg-red-50 p-3 rounded-md">
+                            <h4 className="font-semibold text-red-700 mb-2">Acting</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                              <li>Taking decisive action</li>
+                              <li>Leading initiatives and driving results</li>
+                              <li>Adapting to changing circumstances</li>
+                            </ul>
+                          </div>
 
-                        {starCard.apexStrength === "Feeling" && (
-                          <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>Building strong relationships</li>
-                            <li>Empathizing with others</li>
-                            <li>Creating harmonious team environments</li>
-                            <li>Understanding and managing emotions effectively</li>
-                          </ul>
-                        )}
+                          <div className="bg-blue-50 p-3 rounded-md">
+                            <h4 className="font-semibold text-blue-700 mb-2">Feeling</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                              <li>Building strong relationships</li>
+                              <li>Empathizing with others</li>
+                              <li>Creating harmonious environments</li>
+                            </ul>
+                          </div>
 
-                        {starCard.apexStrength === "Planning" && (
-                          <ul className="list-disc pl-5 space-y-2 text-gray-700">
-                            <li>Creating organized systems and processes</li>
-                            <li>Maintaining attention to detail</li>
-                            <li>Developing clear plans and following through</li>
-                            <li>Ensuring reliability and consistency</li>
-                          </ul>
-                        )}
+                          <div className="bg-yellow-50 p-3 rounded-md">
+                            <h4 className="font-semibold text-yellow-700 mb-2">Planning</h4>
+                            <ul className="list-disc pl-5 space-y-1 text-sm text-gray-700">
+                              <li>Creating organized systems</li>
+                              <li>Maintaining attention to detail</li>
+                              <li>Developing and following through on plans</li>
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </>
