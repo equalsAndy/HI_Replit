@@ -87,37 +87,23 @@ export default function StarCard({
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    // Get the actual scores from the user's assessment data
-    const quadrants: QuadrantInfo[] = [
-      { 
-        key: 'thinking', 
-        label: 'THINKING', 
-        color: derivedQuadrantData.thinking > 0 ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
-        score: derivedQuadrantData.thinking, 
-        position: 0 
-      },
-      { 
-        key: 'acting', 
-        label: 'ACTING', 
-        color: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
-        score: derivedQuadrantData.acting, 
-        position: 0 
-      },
-      { 
-        key: 'feeling', 
-        label: 'FEELING', 
-        color: derivedQuadrantData.feeling > 0 ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
-        score: derivedQuadrantData.feeling, 
-        position: 0 
-      },
-      { 
-        key: 'planning', 
-        label: 'PLANNING', 
-        color: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
-        score: derivedQuadrantData.planning, 
-        position: 0 
-      }
-    ];
+    const quadrantColors = {
+      thinking: 'rgb(1, 162, 82)',
+      acting: 'rgb(241, 64, 64)',
+      feeling: 'rgb(22, 126, 253)',
+      planning: 'rgb(255, 203, 47)'
+    };
+
+    const defaultColor = 'rgb(229, 231, 235)';
+
+    // Create quadrants from quadrantData dynamically
+    const quadrants: QuadrantInfo[] = Object.entries(derivedQuadrantData).map(([key, score]) => ({
+      key: key as QuadrantType,
+      label: key.toUpperCase(),
+      color: score > 0 ? quadrantColors[key as QuadrantType] : defaultColor,
+      score: score || 0,
+      position: 0
+    }));
 
     // Sort by score in descending order
     const sorted = [...quadrants].sort((a, b) => b.score - a.score);
