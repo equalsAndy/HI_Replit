@@ -237,9 +237,9 @@ export default function StarCard({
 
           {/* The Four Strength Squares - Ordered by score (highest in top right, clockwise) */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
-            {/* Top Left - Position 3 (lowest score) */}
+            {/* Top Left - Thinking (lowest) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: 'rgb(229, 231, 235)' }}>
+                 style={{ backgroundColor: derivedQuadrantData.thinking > 0 ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.thinking > 0 && (
                 <>
                   <div>THINKING</div>
@@ -248,18 +248,18 @@ export default function StarCard({
               )}
             </div>
 
-            {/* Top Right - Position 0 (highest score) */}
+            {/* Top Right - Planning (highest) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)' }}>
-              {derivedQuadrantData.acting > 0 && (
+                 style={{ backgroundColor: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.planning > 0 && (
                 <>
-                  <div>ACTING</div>
-                  <div>{normalizeScore(derivedQuadrantData.acting)}%</div>
+                  <div>PLANNING</div>
+                  <div>{normalizeScore(derivedQuadrantData.planning)}%</div>
                 </>
               )}
             </div>
 
-            {/* Bottom Left - Position 2 (third highest score) */}
+            {/* Bottom Left - Feeling (third) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
                  style={{ backgroundColor: derivedQuadrantData.feeling > 0 ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)' }}>
               {derivedQuadrantData.feeling > 0 && (
@@ -270,13 +270,13 @@ export default function StarCard({
               )}
             </div>
 
-            {/* Bottom Right - Position 1 (second highest score) */}
+            {/* Bottom Right - Acting (second) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square text-xs" 
-                 style={{ backgroundColor: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)' }}>
-              {derivedQuadrantData.planning > 0 && (
+                 style={{ backgroundColor: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)' }}>
+              {derivedQuadrantData.acting > 0 && (
                 <>
-                  <div>PLANNING</div>
-                  <div>{normalizeScore(derivedQuadrantData.planning)}%</div>
+                  <div>ACTING</div>
+                  <div>{normalizeScore(derivedQuadrantData.acting)}%</div>
                 </>
               )}
             </div>
