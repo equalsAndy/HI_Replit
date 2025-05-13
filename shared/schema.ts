@@ -62,6 +62,7 @@ export const flowAttributes = pgTable("flow_attributes", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   attributes: jsonb("attributes").notNull(),
+  flowScore: integer("flow_score").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -187,6 +188,8 @@ export const insertStarCardSchema = createInsertSchema(starCards).pick({
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({
   userId: true,
   attributes: true,
+  flowScore: true,
+  createdAt: true,
 });
 
 export const insertVisualizationSchema = createInsertSchema(visualizations).pick({

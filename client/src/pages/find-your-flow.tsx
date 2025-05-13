@@ -293,6 +293,21 @@ export default function FindYourFlow() {
     staleTime: Infinity,
   });
   
+  // Check if user has completed flow assessment
+  const { data: flowAttributes, isLoading: flowLoading } = useQuery({
+    queryKey: ['/api/flow-attributes'],
+    staleTime: Infinity,
+    // This is a "safe" query that won't block rendering if it 404s
+    retry: false,
+    // Don't show an error toast for 404s
+    onError: () => {
+      return;
+    }
+  });
+  
+  // Determine if flow assessment is already completed
+  const hasCompletedFlowAssessment = Boolean(flowAttributes);
+  
   // State for flow attributes added to StarCard
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<Array<{text: string; color: string}>>([]);
   
@@ -301,12 +316,20 @@ export default function FindYourFlow() {
     // The first tab is always accessible
     if (tabId === "intro") return false;
     
+    // The second tab (assessment) is always accessible
+    if (tabId === "assessment") return false;
+    
     // For sequential progression
     const tabSequence = ["intro", "assessment", "roundingout", "starcard"];
     const currentIndex = tabSequence.indexOf(activeTab);
     const targetIndex = tabSequence.indexOf(tabId);
     
-    // Can only access tabs that are:
+    // If flow assessment is completed, allow access to all tabs
+    if (hasCompletedFlowAssessment) {
+      return false;
+    }
+    
+    // Otherwise, can only access tabs that are:
     // 1. The current tab
     // 2. Already completed tabs
     // 3. The next tab in sequence
