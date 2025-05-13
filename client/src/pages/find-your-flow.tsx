@@ -298,11 +298,7 @@ export default function FindYourFlow() {
     queryKey: ['/api/flow-attributes'],
     staleTime: Infinity,
     // This is a "safe" query that won't block rendering if it 404s
-    retry: false,
-    // Don't show an error toast for 404s
-    onError: () => {
-      return;
-    }
+    retry: false
   });
   
   // Determine if flow assessment is already completed
@@ -524,16 +520,21 @@ export default function FindYourFlow() {
               </p>
             </div>
             
-            <FlowAssessment />
+            <FlowAssessment 
+              isCompleted={hasCompletedFlowAssessment}
+              onTabChange={handleTabChange}
+            />
             
-            <div className="flex justify-end mt-6">
-              <Button 
-                onClick={() => handleTabChange("roundingout")}
-                className="bg-indigo-700 hover:bg-indigo-800"
-              >
-                Next: Rounding Out
-              </Button>
-            </div>
+            {!hasCompletedFlowAssessment && (
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={() => handleTabChange("roundingout")}
+                  className="bg-indigo-700 hover:bg-indigo-800"
+                >
+                  Next: Rounding Out
+                </Button>
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="roundingout" className="space-y-6">
