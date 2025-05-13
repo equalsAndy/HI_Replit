@@ -224,7 +224,10 @@ export default function Assessment() {
         const updateProgress = async () => {
           try {
             await apiRequest('PUT', '/api/user/progress', { progress: 100 });
+            // Invalidate all relevant queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/assessment'] });
           } catch (error) {
             console.error("Failed to update progress:", error);
           }

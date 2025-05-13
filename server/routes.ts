@@ -475,16 +475,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create or update star card
       const existingStarCard = await storage.getStarCard(userId);
       
-      if (existingStarCard) {
-        await storage.updateStarCard(existingStarCard.id, {
+      console.log(`Updating Star Card for user ${userId} with scores:`, scores);
+      
+      let updatedStarCard;
+      if (existingStarCard && existingStarCard.id) {
+        updatedStarCard = await storage.updateStarCard(existingStarCard.id, {
           thinking: scores.thinking,
           acting: scores.acting, 
           feeling: scores.feeling,
           planning: scores.planning,
           pending: false // Explicitly set to false after assessment
         });
+        console.log("Updated existing Star Card:", updatedStarCard);
       } else {
-        await storage.createStarCard({
+        updatedStarCard = await storage.createStarCard({
           userId,
           thinking: scores.thinking,
           acting: scores.acting, 
@@ -493,6 +497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           pending: false, // Explicitly set to false after assessment
           createdAt: new Date().toISOString()
         });
+        console.log("Created new Star Card:", updatedStarCard);
       }
       
       // Update user progress
