@@ -207,6 +207,55 @@ export default function UserHome() {
               <p className="text-gray-600">Use these steps to track progress.</p>
             </div>
 
+            {/* Introduction Section */}
+            <div className="border border-gray-200 rounded-md mb-6 bg-white overflow-hidden">
+              <div 
+                className="flex justify-between items-center p-4 cursor-pointer"
+                onClick={() => toggleSection("introduction")}
+              >
+                <div className="flex items-center">
+                  <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                  <span className={`${appStyles.primaryTextColor} font-medium`}>
+                    {currentApp === 'allstarteams' ? 'Welcome to AllStarTeams' : 'Welcome to Imaginal Agility'}
+                  </span>
+                </div>
+                {expandedSection === "introduction" ? (
+                  <MinusIcon className={`h-5 w-5 ${appStyles.primaryTextColor}`} />
+                ) : (
+                  <PlusIcon className={`h-5 w-5 ${appStyles.primaryTextColor}`} />
+                )}
+              </div>
+
+              {expandedSection === "introduction" && (
+                <div className="p-4 border-t border-gray-200">
+                  <p className="mb-4 text-sm text-gray-700">
+                    {currentApp === 'allstarteams' 
+                      ? 'Watch this orientation video to learn more about the AllStarTeams experience and what to expect.'
+                      : 'Watch this orientation video to learn more about your Imaginal Agility journey and what to expect.'}
+                  </p>
+                  
+                  <div className="aspect-w-16 aspect-h-9 mb-4 bg-gray-100 rounded-md overflow-hidden">
+                    <iframe 
+                      src={currentApp === 'allstarteams' 
+                        ? "https://www.youtube.com/embed/jNQXAC9IVRw?enablejsapi=1" // Replace with actual video ID
+                        : "https://www.youtube.com/embed/jNQXAC9IVRw?enablejsapi=1"} // Replace with actual video ID
+                      title="Orientation Video"
+                      className="w-full h-full" 
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  
+                  <Button
+                    variant="default"
+                    className={appStyles.primaryBgColor}
+                    onClick={() => setExpandedSection(null)}
+                  >
+                    Continue
+                  </Button>
+                </div>
+              )}
+            </div>
+
             {/* Progress Bar */}
             <div className="mb-8">
               <div className="bg-gray-200 rounded-full h-4 mb-2">

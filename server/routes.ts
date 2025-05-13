@@ -513,19 +513,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "User not authenticated" });
       }
       
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       // Get the star card for this user
       const starCard = await storage.getStarCard(userId);
       
-      // If no star card exists, return 404
-      if (!starCard) {
-        return res.status(404).json({ 
-          message: "Star Card not found", 
-          details: "The user has not completed the assessment yet" 
+      // If a star card exists, return it
+      if (starCard) {
+        return res.status(200).json(starCard);
+      }
+      
+      // If no star card exists but user has completed assessment, this is an error
+      const assessment = await storage.getAssessment(userId);
+      if (assessment && assessment.completed) {
+        return res.status(500).json({ 
+          message: "Star Card creation error", 
+          details: "Assessment is complete but no star card was created" 
         });
       }
       
-      // Return the star card
-      res.status(200).json(starCard);
+      // If no star card exists, create a placeholder one with empty data
+      // This allows the UI to show an empty star card before assessment
+      const placeholderCard = {
+        id: null,
+        userId,
+        thinking: 0,
+        acting: 0,
+        feeling: 0,
+        planning: 0,
+        apexStrength: null,
+        pending: true, // Flag to indicate this is a placeholder
+        createdAt: new Date().toISOString()
+      };
+      
+      // Return the placeholder card
+      res.status(200).json(placeholderCard);
     } catch (error) {
       console.error("Error fetching star card:", error);
       res.status(500).json({ message: "Server error" });
