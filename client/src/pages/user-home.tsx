@@ -27,9 +27,10 @@ interface StarCardType {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength: string;
+  apexStrength?: string;
   imageUrl?: string;
-  id: number;
+  id?: number;
+  pending?: boolean;
 }
 
 export default function UserHome() {
@@ -1109,23 +1110,55 @@ export default function UserHome() {
                   <>
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Star Card</h3>
-                      <p className="text-gray-600 mb-4">
-                        This visualization shows your unique combination of strengths across four dimensions:
-                        Thinking, Feeling, Acting, and Planning.
-                      </p>
-                      <div className="bg-white p-6 rounded-lg border border-gray-200">
-                        <StarCard 
-                          thinking={starCard.thinking}
-                          acting={starCard.acting}
-                          feeling={starCard.feeling}
-                          planning={starCard.planning}
-                          apexStrength={starCard.apexStrength}
-                          userName={user?.name || ""}
-                          userTitle={user?.title || ""}
-                          userOrg={user?.organization || ""}
-                          imageUrl={starCard.imageUrl}
-                        />
-                      </div>
+                      
+                      {/* Different content for placeholder vs completed star card */}
+                      {starCard.pending ? (
+                        <>
+                          <p className="text-gray-600 mb-4">
+                            Your Star Card is waiting for you to complete the assessment. Take the Star Strengths Assessment 
+                            to see your unique combination of strengths across four dimensions.
+                          </p>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200">
+                            <StarCard 
+                              thinking={0}
+                              acting={0}
+                              feeling={0}
+                              planning={0}
+                              userName={user?.name || ""}
+                              userTitle={user?.title || ""}
+                              userOrg={user?.organization || ""}
+                              imageUrl={starCard.imageUrl}
+                            />
+                            <div className="mt-6 text-center">
+                              <Link to="/assessment">
+                                <Button className={appStyles.primaryBgColor}>
+                                  Take Star Strengths Assessment
+                                </Button>
+                              </Link>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-gray-600 mb-4">
+                            This visualization shows your unique combination of strengths across four dimensions:
+                            Thinking, Feeling, Acting, and Planning.
+                          </p>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200">
+                            <StarCard 
+                              thinking={starCard.thinking}
+                              acting={starCard.acting}
+                              feeling={starCard.feeling}
+                              planning={starCard.planning}
+                              apexStrength={starCard.apexStrength}
+                              userName={user?.name || ""}
+                              userTitle={user?.title || ""}
+                              userOrg={user?.organization || ""}
+                              imageUrl={starCard.imageUrl}
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   </>
                 ) : (
