@@ -51,22 +51,26 @@ export default function Assessment() {
   const [showResultsPopup, setShowResultsPopup] = useState<boolean>(false);
   const [assessmentResults, setAssessmentResults] = useState<QuadrantData | null>(null);
   
-  // Check if assessment is already completed
+  // Set the assessment results from starCard if already completed
   React.useEffect(() => {
     if (!loadingStarCard && starCard) {
       // If the star card is not pending OR any quadrant score is greater than 0, consider it completed
       const isCompleted = (starCard.pending === false) || hasCompletedAssessment(starCard);
       
       if (isCompleted) {
-        toast({
-          title: "Assessment already completed",
-          description: "You've already completed the assessment. View your results on the Foundation page.",
-          variant: "destructive"
+        // Set the assessment results from the star card data
+        setAssessmentResults({
+          thinking: starCard.thinking,
+          acting: starCard.acting,
+          feeling: starCard.feeling,
+          planning: starCard.planning
         });
-        navigate("/foundations?tab=starcard");
+        
+        // Show the results popup
+        setShowResultsPopup(true);
       }
     }
-  }, [starCard, loadingStarCard, navigate, toast]);
+  }, [starCard, loadingStarCard]);
   
   // Helper function to check if starCard has valid scores
   const hasCompletedAssessment = (card: StarCardType): boolean => {

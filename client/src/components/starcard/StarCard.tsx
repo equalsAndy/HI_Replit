@@ -239,7 +239,7 @@ export default function StarCard({
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {!pending && (
+                {(hasCompletedAssessment || !pending) && (
                   <>
                     <div>{getQuadrantAtPosition(3)?.label}</div>
                     <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
@@ -251,7 +251,7 @@ export default function StarCard({
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {!pending && (
+                {(hasCompletedAssessment || !pending) && (
                   <>
                     <div>{getQuadrantAtPosition(0)?.label}</div>
                     <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
@@ -263,7 +263,7 @@ export default function StarCard({
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {!pending && (
+                {(hasCompletedAssessment || !pending) && (
                   <>
                     <div>{getQuadrantAtPosition(2)?.label}</div>
                     <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
@@ -275,7 +275,7 @@ export default function StarCard({
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)' }}>
               <div className="text-white text-xs font-medium text-center">
-                {!pending && (
+                {(hasCompletedAssessment || !pending) && (
                   <>
                     <div>{getQuadrantAtPosition(1)?.label}</div>
                     <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
