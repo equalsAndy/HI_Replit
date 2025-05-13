@@ -595,11 +595,27 @@ export default function UserHome() {
                   </div>
                 </div>
 
-                {/* Step 5: Integrate Your Insights */}
+                {/* Step 5: Visualize Your Potential */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-4 cursor-pointer"
-                    onClick={() => navigate('/rounding-out')}
+                    onClick={() => navigate('/visualize-yourself')}
+                  >
+                    <div className="flex items-center">
+                      <ClipboardIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Visualize Your Potential</span>
+                    </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </div>
+
+                {/* Step 6: Integrate Your Insights */}
+                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
+                  <div 
+                    className="flex justify-between items-center p-4 cursor-pointer"
+                    onClick={() => navigate('/integrate-insights')}
                   >
                     <div className="flex items-center">
                       <StarIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
@@ -611,7 +627,7 @@ export default function UserHome() {
                   </div>
                 </div>
 
-                {/* Step 6: Team Fusion Workshop */}
+                {/* Step 7: Team Fusion Workshop */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-4 cursor-pointer"
@@ -620,20 +636,6 @@ export default function UserHome() {
                     <div className="flex items-center">
                       <Users className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Team Fusion Workshop</span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-                  <div 
-                    className="flex justify-between items-center p-4 cursor-pointer"
-                    onClick={() => navigate('/team-workshop')}
-                  >
-                    <div className="flex items-center">
-                      <Users className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
-                      <span className={`${appStyles.primaryTextColor} font-medium`}>Team Workshop</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
