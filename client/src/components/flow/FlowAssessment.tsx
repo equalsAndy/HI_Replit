@@ -51,6 +51,24 @@ export default function FlowAssessment() {
   // Using a ref for auto advance timeout to be able to clear it
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
+  // Demo answers feature
+  const fillDemoAnswers = () => {
+    // Create demo answers for all questions (mostly 4s and 5s with some 3s)
+    const demoAnswers: Record<number, number> = {};
+    flowQuestions.forEach(q => {
+      // Generate a random value between 3 and 5
+      demoAnswers[q.id] = Math.floor(Math.random() * 3) + 3;
+    });
+    
+    setAnswers(demoAnswers);
+    
+    // Go to the last question to show the Finish button
+    setCurrentQuestion(flowQuestions.length - 1);
+    
+    // Clear any errors
+    setError(null);
+  };
+  
   // Calculate total score
   const calculateScore = () => {
     return Object.values(answers).reduce((sum, score) => sum + score, 0);
@@ -151,14 +169,14 @@ export default function FlowAssessment() {
     if (currentQuestion < flowQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Check if all questions have been answered
-      const allQuestionsAnswered = flowQuestions.every(q => !!answers[q.id]);
-      if (!allQuestionsAnswered) {
-        setError("Please answer all questions before submitting.");
-        return;
-      }
+      // If we're on the last question, allow submission regardless
       handleSubmit();
     }
+  };
+  
+  // Check if all questions have been answered
+  const allQuestionsAnswered = () => {
+    return flowQuestions.every(q => !!answers[q.id]);
   };
   
   // Move to previous question
@@ -202,7 +220,17 @@ export default function FlowAssessment() {
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-        <h3 className="text-lg font-semibold mb-4">Flow State Self-Assessment</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Flow State Self-Assessment</h3>
+          
+          <Button 
+            variant="outline" 
+            onClick={fillDemoAnswers}
+            className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
+          >
+            Fill Demo Answers
+          </Button>
+        </div>
         
         <p className="text-gray-600 mb-6">
           Rate your agreement with each statement on a scale from 1 (Never) to 5 (Always).
@@ -399,8 +427,14 @@ export default function FlowAssessment() {
           <Button 
             onClick={nextQuestion}
             className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance ? 'opacity-50' : ''}`}
-            disabled={autoAdvance && currentValue > 0}
-            title={autoAdvance && currentValue > 0 ? "Next question will advance automatically" : ""}
+            disabled={(autoAdvance && currentValue > 0) || (!currentValue && currentQuestion === flowQuestions.length - 1)}
+            title={
+              autoAdvance && currentValue > 0 
+                ? "Next question will advance automatically" 
+                : currentQuestion === flowQuestions.length - 1 && !currentValue
+                  ? "Please answer this question" 
+                  : ""
+            }
           >
             {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
           </Button>

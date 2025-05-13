@@ -93,12 +93,15 @@ export default function StarCard({
   // Determine if assessment is completed - all scores must be greater than 0
   const hasCompletedAssessment = useMemo(() => {
     // Check if any value is greater than 0, which indicates assessment is completed
-    return (
+    const hasScores = (
       (derivedQuadrantData.thinking || 0) > 0 ||
       (derivedQuadrantData.acting || 0) > 0 ||
       (derivedQuadrantData.feeling || 0) > 0 ||
       (derivedQuadrantData.planning || 0) > 0
     );
+    
+    // Force to true if we have any scores at all, regardless of pending flag
+    return hasScores;
   }, [derivedQuadrantData]);
 
   // Sort quadrants by score and assign positions
