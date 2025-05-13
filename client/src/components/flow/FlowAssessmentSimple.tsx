@@ -458,8 +458,8 @@ export default function FlowAssessmentSimple() {
                 // Here we're just navigating to the rounding-out page
                 log("Flow assessment completed, navigating to rounding-out page");
                 
-                // Navigate to the rounding-out page
-                navigate("/rounding-out");
+                // Navigate to find your flow page
+                navigate("/find-your-flow");
               }} 
               className="bg-indigo-700 hover:bg-indigo-800"
             >

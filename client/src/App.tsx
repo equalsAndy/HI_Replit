@@ -12,10 +12,7 @@ import Report from "@/pages/report";
 import UserHome from "@/pages/user-home";
 
 // Import module pages
-import CoreStrengths from "./pages/core-strengths";
-import FlowAssessment from "./pages/flow-assessment";
 import FindYourFlow from "./pages/find-your-flow";
-import RoundingOut from "./pages/rounding-out";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
 
@@ -90,10 +87,7 @@ function Router() {
           <Route path="/foundations" component={Foundations} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/report" component={Report} />
-          <Route path="/core-strengths" component={CoreStrengths} />
-          <Route path="/flow-assessment" component={FlowAssessment} />
           <Route path="/find-your-flow" component={FindYourFlow} />
-          <Route path="/rounding-out" component={RoundingOut} />
           <Route path="/visualize-yourself" component={VisualizeYourself} />
           
           {/* Imaginal Agility Routes */}
