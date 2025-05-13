@@ -217,21 +217,21 @@ export default function FindYourFlow() {
     ].map(a => a.toLowerCase());
     
     const blueAttributes = [
-      'Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Expressive', 
-      'Empathic', 'Intuitive', 'Inspiring', 'Objective', 'Passionate', 
-      'Positive', 'Receptive', 'Supportive'
+      'Accepting', 'Authentic', 'Calm', 'Caring', 'Compassionate', 'Connected',
+      'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Friendly', 'Generous',
+      'Gentle', 'Grateful', 'Harmonious', 'Helpful', 'Kind', 'Open', 'Sociable', 'Vulnerable'
     ].map(a => a.toLowerCase());
     
     const yellowAttributes = [
-      'Detail-Oriented', 'Diligent', 'Immersed', 'Industrious', 'Methodical', 
-      'Organized', 'Precise', 'Punctual', 'Reliable', 'Responsible', 
-      'Straightforward', 'Tidy', 'Systematic', 'Thorough'
+      'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detailed', 'Diligent',
+      'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
+      'Reliable', 'Responsible', 'Thorough', 'Trustworthy'
     ].map(a => a.toLowerCase());
     
     const redAttributes = [
-      'Adventuresome', 'Competitive', 'Dynamic', 'Effortless', 'Energetic', 
-      'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 
-      'Practical', 'Resilient', 'Spontaneous', 'Vigorous'
+      'Adaptable', 'Adventurous', 'Assertive', 'Brave', 'Capable', 'Challenging',
+      'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Energetic', 'Fearless',
+      'Physical', 'Resolute', 'Resourceful', 'Strong'
     ].map(a => a.toLowerCase());
     
     const lowerAttribute = attribute.toLowerCase();
