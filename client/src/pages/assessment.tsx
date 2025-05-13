@@ -530,16 +530,46 @@ export default function Assessment() {
           </div>
 
           {/* Auto-complete button (visible only in demo mode) */}
-          {isDemoMode && (
-            <Button 
-              onClick={autoCompleteAssessment}
-              variant="outline"
-              size="sm"
-              className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
-            >
-              Auto-Complete
-            </Button>
-          )}
+          <Button 
+            onClick={() => {
+              // Fill answers with random data
+              const newAnswers: {[key: number]: RankedOption[]} = {};
+              
+              assessmentQuestions.forEach((question) => {
+                // Create a shuffled copy of options
+                const shuffledOptions = [...question.options]
+                  .sort(() => Math.random() - 0.5)
+                  .map((option, index) => ({
+                    optionId: option.id,
+                    rank: index + 1
+                  }));
+                
+                newAnswers[question.id] = shuffledOptions;
+              });
+              
+              // Set all answers and move to last question
+              setAnswers(newAnswers);
+              setCurrentQuestionIndex(assessmentQuestions.length - 1);
+              
+              // Set rankings for last question display
+              const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
+              const lastAnswers = newAnswers[lastQuestion.id];
+              
+              const newRankings = {
+                mostLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[0].optionId) || null,
+                second: lastQuestion.options.find(opt => opt.id === lastAnswers[1].optionId) || null,
+                third: lastQuestion.options.find(opt => opt.id === lastAnswers[2].optionId) || null,
+                leastLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[3].optionId) || null
+              };
+              
+              setRankings(newRankings);
+            }}
+            variant="outline"
+            size="sm"
+            className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
+          >
+            Demo Answers
+          </Button>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3">
