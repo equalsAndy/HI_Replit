@@ -56,6 +56,7 @@ export const starCards = pgTable("star_cards", {
   planning: integer("planning").default(0),
   createdAt: text("created_at"),
   imageUrl: text("image_url"),
+  pending: boolean("pending").default(true),
 });
 
 export const flowAttributes = pgTable("flow_attributes", {
@@ -182,6 +183,7 @@ export const insertStarCardSchema = createInsertSchema(starCards).pick({
   planning: true,
   createdAt: true,
   imageUrl: true,
+  pending: true,
 });
 
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({
@@ -234,6 +236,7 @@ export type QuadrantData = {
   feeling: number;
   planning: number;
   apexStrength?: string;
+  pending?: boolean;
 };
 
 export type ProfileData = {

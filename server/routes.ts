@@ -477,11 +477,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingStarCard = await storage.getStarCard(userId);
       
       if (existingStarCard) {
-        await storage.updateStarCard(existingStarCard.id, scores);
+        await storage.updateStarCard(existingStarCard.id, {
+          ...scores,
+          pending: false // Explicitly set to false after assessment
+        });
       } else {
         await storage.createStarCard({
           userId,
           ...scores,
+          pending: false, // Explicitly set to false after assessment
           createdAt: new Date().toISOString()
         });
       }
