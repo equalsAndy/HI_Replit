@@ -15,7 +15,7 @@ interface StarCardProps {
   flowAttributes?: {text: string; color: string}[];
   imageUrl?: string | null;
   enableImageUpload?: boolean;
-  
+
   // Additional direct props for legacy support
   thinking?: number;
   acting?: number;
@@ -56,7 +56,7 @@ export default function StarCard({
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
-  
+
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
     return profile || {
@@ -66,7 +66,7 @@ export default function StarCard({
       avatarUrl: undefined
     };
   }, [profile, userName, userTitle, userOrg]);
-  
+
   const derivedQuadrantData: QuadrantData = useMemo(() => {
     return quadrantData || {
       thinking: thinking || 0,
@@ -76,7 +76,7 @@ export default function StarCard({
       apexStrength: apexStrength || ''
     };
   }, [quadrantData, thinking, acting, feeling, planning, apexStrength]);
-  
+
   // Determine if assessment is completed - all scores must be greater than 0
   const hasCompletedAssessment = useMemo(() => {
     // Check if any value is greater than 0, which indicates assessment is completed
@@ -121,28 +121,31 @@ export default function StarCard({
         position: 0 
       }
     ];
-    
+
     // Sort by score in descending order
     const sorted = [...quadrants].sort((a, b) => b.score - a.score);
-    
+
     // Assign positions (0 = top right, 1 = bottom right, 2 = bottom left, 3 = top left)
     // Following clockwise order
     sorted.forEach((quadrant, index) => {
       quadrant.position = index;
     });
-    
+
     return sorted;
-  }, [quadrantData]);
-  
+  }, [quadrantData, hasCompletedAssessment]);
+
   // Get quadrant at specific position
   const getQuadrantAtPosition = (position: number): QuadrantInfo | undefined => {
     return sortedQuadrants.find(q => q.position === position);
   };
-  
+
+  // Determine if flow attributes are complete
+  const hasFlowData = flowAttributes?.length > 0 && flowAttributes.every(attr => attr.text);
+
   // Handle download
   const handleDownload = async () => {
     if (!cardRef.current) return;
-    
+
     setDownloading(true);
     try {
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
@@ -152,15 +155,15 @@ export default function StarCard({
       setDownloading(false);
     }
   };
-  
+
   // Calculate total score
   const totalScore = derivedQuadrantData.thinking + derivedQuadrantData.acting + derivedQuadrantData.feeling + derivedQuadrantData.planning || 100;
-  
+
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
     return Math.round((score / totalScore) * 100);
   };
-  
+
   return (
     <div className="flex flex-col items-center">
       <div 
@@ -169,7 +172,7 @@ export default function StarCard({
         style={{ width: '400px', height: '555px' }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
-        
+
         {/* User Profile */}
         <div className="flex items-center mb-6">
           <div className="rounded-full h-16 w-16 overflow-hidden mr-4 border border-gray-300">
@@ -191,7 +194,7 @@ export default function StarCard({
             <p className="text-sm text-gray-600">Organization: {derivedProfile.organization || 'Your Organization'}</p>
           </div>
         </div>
-        
+
         {/* Cloud graphic with Apex Strength - Using the provided cloud image */}
         <div className="relative text-center mb-2" style={{ marginTop: '-20px' }}>
           {/* Cloud Image - cropped 1px from each side */}
@@ -202,7 +205,7 @@ export default function StarCard({
               className="w-[98%] object-contain absolute top-0 left-[1%]"
               style={{ height: '80px' }}
             />
-            
+
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
             <div className="absolute w-full" style={{ top: '50px' }}>
               <p className="text-[1.125rem] font-bold text-gray-500">{derivedQuadrantData.apexStrength || "Imagination"}</p>
@@ -210,19 +213,19 @@ export default function StarCard({
             </div>
           </div>
         </div>
-        
+
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
           {/* Flow Label - moved down 3px and color at 80% black */}
           <div className="absolute text-[0.65rem] font-medium" style={{ top: '8px', right: '15px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
-          
+
           {/* Core Label - moved down 3px and color at 80% black */}
           <div className="absolute text-[0.65rem] font-medium" style={{ top: '68px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
-          
+
           {/* Center Star - position kept the same but star made bigger */}
           <div className="absolute z-20" style={{ left: '115px', top: '15px' }}>
             <div className="h-14 w-14 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
@@ -231,7 +234,7 @@ export default function StarCard({
               </svg>
             </div>
           </div>
-          
+
           {/* The Four Strength Squares - Ordered by score (highest in top right, clockwise) */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left - Position 3 (lowest score) */}
@@ -244,7 +247,7 @@ export default function StarCard({
                 </>
               )}
             </div>
-            
+
             {/* Top Right - Position 0 (highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(0)?.color || 'rgb(241, 64, 64)' }}>
@@ -255,7 +258,7 @@ export default function StarCard({
                 </>
               )}
             </div>
-            
+
             {/* Bottom Left - Position 2 (third highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(2)?.color || 'rgb(22, 126, 253)' }}>
@@ -266,7 +269,7 @@ export default function StarCard({
                 </>
               )}
             </div>
-            
+
             {/* Bottom Right - Position 1 (second highest score) */}
             <div className="text-white py-1 px-1 flex flex-col items-center justify-center aspect-square" 
                  style={{ backgroundColor: getQuadrantAtPosition(1)?.color || 'rgb(255, 203, 47)' }}>
@@ -278,7 +281,7 @@ export default function StarCard({
               )}
             </div>
           </div>
-          
+
           {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
           {/* Determine if flow attributes exist */}
           {/* Flow 1 - Top Right Flow Square */}
@@ -292,7 +295,7 @@ export default function StarCard({
               {flowAttributes[0]?.text || ''}
             </p>
           </div>
-          
+
           {/* Flow 2 - Bottom Right Flow Square - top aligned with bottom of strength 2 */}
           <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
                style={{ 
@@ -304,7 +307,7 @@ export default function StarCard({
               {flowAttributes[1]?.text || ''}
             </p>
           </div>
-          
+
           {/* Flow 3 - Bottom Left Flow Square - top aligned with bottom of strength 3 */}
           <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
                style={{ 
@@ -316,7 +319,7 @@ export default function StarCard({
               {flowAttributes[2]?.text || ''}
             </p>
           </div>
-          
+
           {/* Flow 4 - Top Left Flow Square */}
           <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
                style={{ 
@@ -328,7 +331,7 @@ export default function StarCard({
               {flowAttributes[3]?.text || ''}
             </p>
           </div>
-          
+
           {/* Arrow 1 - 70% of original size and equidistant from Flow 1 and Flow 2 */}
           <div className="absolute" style={{ right: '44px', top: '105px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
@@ -338,7 +341,7 @@ export default function StarCard({
               </svg>
             </div>
           </div>
-          
+
           {/* Arrow 2 - Precisely equidistant between Flow 2 and Flow 3 */}
           <div className="absolute" style={{ top: '234px', left: '89px', width: '73px' }}>
             <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
@@ -348,7 +351,7 @@ export default function StarCard({
               </svg>
             </div>
           </div>
-          
+
           {/* Arrow 3 - Made 70% of original height and vertically centered */}
           <div className="absolute" style={{ left: '44px', top: '105px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
@@ -358,10 +361,10 @@ export default function StarCard({
               </svg>
             </div>
           </div>
-          
+
           {/* No Top Arrow between flow 1 and flow 4 as requested */}
         </div>
-        
+
         {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 24px */}
         <div className="flex justify-end mt-[-18px] pr-4">
           <img 
@@ -371,8 +374,8 @@ export default function StarCard({
           />
         </div>
       </div>
-      
-      {downloadable && !preview && (
+
+      {downloadable && !preview && hasCompletedAssessment && hasFlowData && (
         <Button
           onClick={handleDownload}
           className="mt-4 bg-blue-600 hover:bg-blue-700"
