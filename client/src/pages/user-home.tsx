@@ -547,23 +547,7 @@ export default function UserHome() {
             ) : (
               /* AllStarTeams Steps */
               <>
-                {/* Step 2: Complete the Star Strengths Assessment */}
-                <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
-                  <div 
-                    className="flex justify-between items-center p-4 cursor-pointer"
-                    onClick={() => navigate('/assessment')}
-                  >
-                    <div className="flex items-center">
-                      <StarIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
-                      <span className={`${appStyles.primaryTextColor} font-medium`}>Take the Star Strengths Assessment</span>
-                    </div>
-                    <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Step 3: Core Strengths */}
+                {/* Step 2: Discover Your Strengths */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-4 cursor-pointer"
@@ -571,7 +555,7 @@ export default function UserHome() {
                   >
                     <div className="flex items-center">
                       <StarIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
-                      <span className={`${appStyles.primaryTextColor} font-medium`}>Identify Your Core Strengths</span>
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Discover Your Strengths</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -579,15 +563,15 @@ export default function UserHome() {
                   </div>
                 </div>
 
-                {/* Step 4: Flow State Assessment */}
+                {/* Step 3: Find Your Flow */}
                 <div className="border border-gray-200 rounded-md mb-4 bg-white overflow-hidden">
                   <div 
                     className="flex justify-between items-center p-4 cursor-pointer"
-                    onClick={() => navigate('/flow-assessment')}
+                    onClick={() => navigate('/find-your-flow')}
                   >
                     <div className="flex items-center">
                       <ClipboardIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
-                      <span className={`${appStyles.primaryTextColor} font-medium`}>Complete Flow Assessment</span>
+                      <span className={`${appStyles.primaryTextColor} font-medium`}>Find Your Flow</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
