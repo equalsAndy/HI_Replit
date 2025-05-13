@@ -1,3 +1,4 @@
+typescript
 import { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { downloadElementAsImage } from "@/lib/html2canvas";
@@ -256,12 +257,9 @@ export default function StarCard({
           {/* Flow Squares - exactly 3px from strength corners, all at same distance */}
           {/* Determine if flow attributes exist */}
           {/* Flow 1 - Top Right Flow Square */}
-          <div className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center" 
-               style={{ 
-                 top: '25px', 
-                 right: '15px',
-                 backgroundColor: flowAttributes[0]?.text ? (flowAttributes[0]?.color || 'rgb(156, 163, 175)') : 'rgb(229, 231, 235)'
-               }}>
+          <div className={`absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center top-[25px] right-[15px] ${
+              flowAttributes[0]?.text ? 'bg-[' + (flowAttributes[0]?.color || '#9CA3AF') + ']' : 'bg-gray-200'
+            }`}>
             <p className="text-[9px] font-medium text-center leading-tight">
               {flowAttributes[0]?.text || ''}
             </p>
