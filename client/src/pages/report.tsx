@@ -147,6 +147,7 @@ export default function Report() {
             profile={profileData}
             quadrantData={starCard}
             downloadable={true}
+            pending={false}
           />
         </div>
       </div>

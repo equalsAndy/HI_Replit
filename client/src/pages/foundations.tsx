@@ -282,6 +282,7 @@ export default function Foundations() {
                           }}
                           downloadable={true}
                           preview={false}
+                          pending={false}
                         />
                       </div>
 
