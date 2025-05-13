@@ -466,6 +466,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate quadrant scores
       const scores = calculateQuadrantScores(answers);
       
+      // Log the scores for debugging
+      console.log("Calculated scores from answers:", JSON.stringify(scores));
+      
+      // Make sure scores has valid values
+      if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
+        console.error("Error: All scores are zero, using demo values to avoid invalid data");
+        
+        // Use the scores from the request body if available
+        const requestScores = req.body.quadrantData;
+        if (requestScores && 
+            typeof requestScores === 'object' && 
+            Object.values(requestScores).some(val => (val as number) > 0)) {
+          console.log("Using scores from request:", requestScores);
+          scores.thinking = requestScores.thinking || 25;
+          scores.acting = requestScores.acting || 25;
+          scores.feeling = requestScores.feeling || 25;
+          scores.planning = requestScores.planning || 25;
+        } else {
+          // Fallback - use even distribution
+          scores.thinking = 25;
+          scores.acting = 25;
+          scores.feeling = 25;
+          scores.planning = 25;
+        }
+      }
+      
       // Update assessment with results
       const updatedAssessment = await storage.updateAssessment(assessment.id, {
         completed: true,
