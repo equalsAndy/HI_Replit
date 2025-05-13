@@ -497,52 +497,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/starcard", async (req: Request, res: Response) => {
     try {
-      // Try to get userId from cookie or query param
-      let userId: number;
+      // Get userId from cookie or query param
+      let userId: number | undefined;
       try {
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
-      } catch (e) {
-        userId = 1; // Default to user ID 1 for development
-      }
-      
-      if (!userId) {
-        userId = 1; // Default to user ID 1 for development
-      }
-      
-      try {
-        let starCard = await storage.getStarCard(userId);
-        
-        // If no star card exists, create a sample one for development
-        if (!starCard) {
-          starCard = await storage.createStarCard({
-            userId,
-            thinking: 25,
-            acting: 35,
-            feeling: 20,
-            planning: 20,
-            apexStrength: "Acting",
-            createdAt: new Date().toISOString()
-          });
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
+        if (req.query.userId) {
+          userId = parseInt(req.query.userId as string);
         }
-        
-        res.status(200).json(starCard);
-      } catch (err) {
-        console.error("Error creating or fetching star card:", err);
-        // Send back a fallback star card as a last resort
-        res.status(200).json({
-          id: 999,
-          userId,
-          thinking: 25,
-          acting: 35,
-          feeling: 20,
-          planning: 20,
-          apexStrength: "Acting",
-          createdAt: new Date().toISOString()
+      } catch (e) {
+        return res.status(400).json({ message: "Invalid user ID format" });
+      }
+      
+      // Ensure we have a valid userId
+      if (!userId) {
+        return res.status(401).json({ message: "User not authenticated" });
+      }
+      
+      // Get the star card for this user
+      const starCard = await storage.getStarCard(userId);
+      
+      // If no star card exists, return 404
+      if (!starCard) {
+        return res.status(404).json({ 
+          message: "Star Card not found", 
+          details: "The user has not completed the assessment yet" 
         });
       }
       
-      return;
+      // Return the star card
+      res.status(200).json(starCard);
     } catch (error) {
+      console.error("Error fetching star card:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
