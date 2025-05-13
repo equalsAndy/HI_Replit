@@ -112,17 +112,19 @@ export default function StarCard({
 
     const defaultColor = 'rgb(229, 231, 235)';
 
-    // Create quadrants from quadrantData dynamically
-    const quadrants: QuadrantInfo[] = Object.entries(derivedQuadrantData).map(([key, score]) => ({
-      key: key as QuadrantType,
-      label: key.toUpperCase(),
-      color: (typeof score === 'number' && score > 0) ? quadrantColors[key as QuadrantType] : defaultColor,
-      score: typeof score === 'number' ? score : 0,
-      position: 0
-    }));
+    // Filter our 'pending' from quadrantData
+    const filtered = Object.entries(derivedQuadrantData)
+      .filter(([key]) => key !== 'pending')
+      .map(([key, score]) => ({
+        key: key as QuadrantType,
+        label: key.toUpperCase(),
+        color: (typeof score === 'number' && score > 0) ? quadrantColors[key as QuadrantType] : defaultColor,
+        score: typeof score === 'number' ? score : 0,
+        position: 0
+      }));
 
     // Sort by score in descending order
-    const sorted = [...quadrants].sort((a, b) => b.score - a.score);
+    const sorted = [...filtered].sort((a, b) => b.score - a.score);
 
     // Assign positions (0 = top right, 1 = bottom right, 2 = bottom left, 3 = top left)
     // Following clockwise order
@@ -131,7 +133,7 @@ export default function StarCard({
     });
 
     return sorted;
-  }, [quadrantData, hasCompletedAssessment]);
+  }, [derivedQuadrantData]);
 
   // Get quadrant at specific position
   const getQuadrantAtPosition = (position: number): QuadrantInfo | undefined => {
