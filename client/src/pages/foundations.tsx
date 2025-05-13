@@ -277,11 +277,13 @@ export default function Foundations() {
                             thinking: starCard.thinking,
                             acting: starCard.acting,
                             feeling: starCard.feeling,
-                            planning: starCard.planning
+                            planning: starCard.planning,
+                            pending: starCard.pending
                           }}
                           downloadable={true}
                           preview={false}
-                          pending={starCard.pending === true}
+                          // Explicitly pass pending as false if the card has scores
+                          pending={starCard.pending === true && !(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
                         />
                       </div>
 

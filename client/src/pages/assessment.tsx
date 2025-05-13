@@ -19,6 +19,19 @@ type Question = {
   options: Option[];
 };
 
+// Define the StarCard type to match server response
+interface StarCardType {
+  id: number | null;
+  userId: number;
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+  pending?: boolean;
+  createdAt: string;
+  imageUrl?: string | null;
+}
+
 export default function Assessment() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
@@ -26,7 +39,7 @@ export default function Assessment() {
   const { isDemoMode } = useDemoMode();
   
   // Get star card data to check if assessment is already completed
-  const { data: starCard, isLoading: loadingStarCard } = useQuery({
+  const { data: starCard, isLoading: loadingStarCard } = useQuery<StarCardType>({
     queryKey: ['/api/starcard'],
     staleTime: Infinity,
   });
@@ -40,26 +53,31 @@ export default function Assessment() {
   
   // Check if assessment is already completed
   React.useEffect(() => {
-    if (!loadingStarCard && starCard && !starCard.pending && hasCompletedAssessment(starCard)) {
-      toast({
-        title: "Assessment already completed",
-        description: "You've already completed the assessment. View your results on the Foundation page.",
-        variant: "destructive"
-      });
-      navigate("/foundations?tab=starcard");
+    if (!loadingStarCard && starCard) {
+      // If the star card is not pending OR any quadrant score is greater than 0, consider it completed
+      const isCompleted = (starCard.pending === false) || hasCompletedAssessment(starCard);
+      
+      if (isCompleted) {
+        toast({
+          title: "Assessment already completed",
+          description: "You've already completed the assessment. View your results on the Foundation page.",
+          variant: "destructive"
+        });
+        navigate("/foundations?tab=starcard");
+      }
     }
   }, [starCard, loadingStarCard, navigate, toast]);
   
   // Helper function to check if starCard has valid scores
-  const hasCompletedAssessment = (card: any): boolean => {
-    if (!card || card.pending) return false;
+  const hasCompletedAssessment = (card: StarCardType): boolean => {
+    if (!card) return false;
     
     // Check if any quadrant score is greater than 0
     return (
-      (typeof card.thinking === 'number' && card.thinking > 0) ||
-      (typeof card.acting === 'number' && card.acting > 0) ||
-      (typeof card.feeling === 'number' && card.feeling > 0) ||
-      (typeof card.planning === 'number' && card.planning > 0)
+      card.thinking > 0 ||
+      card.acting > 0 ||
+      card.feeling > 0 ||
+      card.planning > 0
     );
   };
 
