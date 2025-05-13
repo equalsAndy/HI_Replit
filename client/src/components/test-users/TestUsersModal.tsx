@@ -40,14 +40,14 @@ interface TestUsersModalProps {
 export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps) {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  
+
   // Fetch test users when the modal is opened
   const { data: testUsers, isLoading, refetch } = useQuery({
     queryKey: ['/api/test-users'],
     enabled: isOpen,
     staleTime: 10000, // 10 seconds
   });
-  
+
   // Reset user data mutation
   const resetMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -69,7 +69,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
       });
     }
   });
-  
+
   // Login as test user mutation
   const loginMutation = useMutation({
     mutationFn: async (user: { username: string, password: string }) => {
@@ -89,17 +89,21 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
       });
     }
   });
-  
+
   const handleLoginAsUser = (username: string) => {
     loginMutation.mutate({ username, password: 'password' });
   };
-  
+
   const handleResetUser = async (userId: number) => {
     await resetMutation.mutateAsync(userId);
-    // Invalidate all queries to force fresh data fetch
-    queryClient.invalidateQueries();
+    // Invalidate specific queries
+    queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/assessment/questions'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+    queryClient.removeQueries({ queryKey: ['/api/assessment/answer'] });
+    queryClient.removeQueries({ queryKey: ['/api/assessment/complete'] });
   };
-  
+
   // Progress color based on completion
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return "bg-green-500";
@@ -117,7 +121,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
             Each user shows their current progress through the experience.
           </DialogDescription>
         </DialogHeader>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />

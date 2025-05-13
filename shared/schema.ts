@@ -233,7 +233,6 @@ export type QuadrantData = {
   acting: number;
   feeling: number;
   planning: number;
-  apexStrength: string;
 };
 
 export type ProfileData = {
