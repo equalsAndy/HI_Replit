@@ -614,7 +614,7 @@ export default function FindYourFlow() {
                           acting: starCard.acting || 0,
                           feeling: starCard.feeling || 0,
                           planning: starCard.planning || 0,
-                          apexStrength: starCard.apexStrength || ''
+
                         }}
                         flowAttributes={starCardFlowAttributes}
                         downloadable={false}

@@ -522,12 +522,9 @@ export default function Assessment() {
             </div>
 
             <div className="bg-indigo-50 p-4 rounded-lg mb-6">
-              <h3 className="font-semibold text-indigo-800 mb-2">Your Top Strength: {assessmentResults.apexStrength}</h3>
+              <h3 className="font-semibold text-indigo-800 mb-2">Your Unique Strength Profile</h3>
               <p className="text-gray-700 text-sm">
-                {assessmentResults.apexStrength === 'Thinking' && 'You excel at analytical thinking and problem-solving. Your ability to process complex information and make logical decisions is your standout strength.'}
-                {assessmentResults.apexStrength === 'Acting' && 'You are action-oriented and decisive. Your ability to implement ideas and make things happen is your standout strength.'}
-                {assessmentResults.apexStrength === 'Feeling' && 'You have strong emotional intelligence and empathy. Your ability to understand and connect with others is your standout strength.'}
-                {assessmentResults.apexStrength === 'Planning' && 'You are organized and strategic. Your ability to plan ahead and create structure is your standout strength.'}
+                Your assessment reveals how these four key dimensions combine to create your unique strength profile. This personalized insight will help you identify your natural talents and potential growth areas.
               </p>
             </div>
 

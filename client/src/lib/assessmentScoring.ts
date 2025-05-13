@@ -82,25 +82,6 @@ export function calculateQuadrantScores(
     }
   }
   
-  // Determine the apex strength (highest percentage)
-  let apexStrength = 'thinking';
-  let highestPercentage = percentages.thinking;
-  
-  if (percentages.feeling > highestPercentage) {
-    apexStrength = 'feeling';
-    highestPercentage = percentages.feeling;
-  }
-  
-  if (percentages.acting > highestPercentage) {
-    apexStrength = 'acting';
-    highestPercentage = percentages.acting;
-  }
-  
-  if (percentages.planning > highestPercentage) {
-    apexStrength = 'planning';
-    highestPercentage = percentages.planning;
-  }
-  
   return {
     thinking: percentages.thinking,
     feeling: percentages.feeling,
