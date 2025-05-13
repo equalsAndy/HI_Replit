@@ -550,15 +550,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // If no star card exists, create a placeholder one with empty data
-      // This allows the UI to show an empty star card before assessment
+      // If no star card exists, create a placeholder one with a reasonable distribution
+      // This allows the UI to show a meaningful star card before assessment
       const placeholderCard = {
         id: null,
         userId,
-        thinking: 0,
-        acting: 0,
-        feeling: 0,
-        planning: 0,
+        thinking: 28,
+        acting: 23,
+        feeling: 20,
+        planning: 29,
         pending: true, // Flag to indicate this is a placeholder
         createdAt: new Date().toISOString()
       };

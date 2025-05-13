@@ -115,14 +115,27 @@ export default function StarCard({
 
     const defaultColor = 'rgb(229, 231, 235)';
 
-    // Filter our 'pending' from quadrantData
+    // Check if all scores are 0
+    const allZeros = derivedQuadrantData.thinking === 0 && 
+                    derivedQuadrantData.acting === 0 && 
+                    derivedQuadrantData.feeling === 0 && 
+                    derivedQuadrantData.planning === 0;
+
+    // Filter out 'pending' from quadrantData
     const filtered = Object.entries(derivedQuadrantData)
       .filter(([key]) => key !== 'pending')
       .map(([key, score]) => ({
         key: key as QuadrantType,
         label: key.toUpperCase(),
-        color: (typeof score === 'number' && score > 0) ? quadrantColors[key as QuadrantType] : defaultColor,
-        score: typeof score === 'number' ? score : 0,
+        // Use proper colors even with placeholder data
+        color: quadrantColors[key as QuadrantType],
+        // If all scores are 0, use a placeholder distribution
+        score: allZeros ? (
+          key === 'thinking' ? 28 : 
+          key === 'acting' ? 23 : 
+          key === 'feeling' ? 20 : 
+          key === 'planning' ? 29 : 0
+        ) : (typeof score === 'number' ? score : 0),
         position: 0
       }));
 
@@ -161,10 +174,14 @@ export default function StarCard({
   };
 
   // Calculate total score
-  const totalScore = derivedQuadrantData.thinking + derivedQuadrantData.acting + derivedQuadrantData.feeling + derivedQuadrantData.planning || 100;
+  const totalScore = derivedQuadrantData.thinking + derivedQuadrantData.acting + derivedQuadrantData.feeling + derivedQuadrantData.planning;
 
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
+    // If total score is 0, assign 25% to each quadrant
+    if (totalScore === 0) {
+      return 25; // Equal 25% for each when no data
+    }
     return Math.round((score / totalScore) * 100);
   };
 
