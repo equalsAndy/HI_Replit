@@ -478,13 +478,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (existingStarCard) {
         await storage.updateStarCard(existingStarCard.id, {
-          ...scores,
+          thinking: scores.thinking,
+          acting: scores.acting, 
+          feeling: scores.feeling,
+          planning: scores.planning,
+          apexStrength: scores.apexStrength, // Explicitly set the apex strength
           pending: false // Explicitly set to false after assessment
         });
       } else {
         await storage.createStarCard({
           userId,
-          ...scores,
+          thinking: scores.thinking,
+          acting: scores.acting, 
+          feeling: scores.feeling,
+          planning: scores.planning,
+          apexStrength: scores.apexStrength, // Explicitly set the apex strength
           pending: false, // Explicitly set to false after assessment
           createdAt: new Date().toISOString()
         });

@@ -18,6 +18,7 @@ interface StarCardType {
   planning: number;
   apexStrength: string;
   id: number;
+  pending?: boolean;
 }
 
 // Define the user type based on the app's data structure
@@ -282,7 +283,7 @@ export default function Foundations() {
                           }}
                           downloadable={true}
                           preview={false}
-                          pending={false}
+                          pending={starCard.pending === true}
                         />
                       </div>
 
