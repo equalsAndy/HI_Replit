@@ -94,8 +94,10 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
     loginMutation.mutate({ username, password: 'password' });
   };
   
-  const handleResetUser = (userId: number) => {
-    resetMutation.mutate(userId);
+  const handleResetUser = async (userId: number) => {
+    await resetMutation.mutateAsync(userId);
+    // Invalidate all queries to force fresh data fetch
+    queryClient.invalidateQueries();
   };
   
   // Progress color based on completion
