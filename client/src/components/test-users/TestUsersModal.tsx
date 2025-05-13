@@ -145,7 +145,7 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-between pt-2">
+                <CardFooter className="flex gap-2 pt-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -157,9 +157,10 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                     ) : (
                       <RefreshCw className="mr-2 h-4 w-4" />
                     )}
-                    Reset
+                    Clear Data
                   </Button>
                   <Button 
+                    variant="outline"
                     size="sm" 
                     onClick={() => handleLoginAsUser(user.username)}
                     disabled={loginMutation.isPending}
@@ -168,6 +169,16 @@ export default function TestUsersModal({ isOpen, onClose }: TestUsersModalProps)
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     )}
                     Login
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    onClick={() => {
+                      handleResetUser(user.id);
+                      handleLoginAsUser(user.username);
+                    }}
+                    disabled={resetMutation.isPending || loginMutation.isPending}
+                  >
+                    Clear & Login
                   </Button>
                 </CardFooter>
               </Card>
