@@ -87,34 +87,34 @@ export default function StarCard({
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    // Create array of quadrant objects with exact RGB colors matching the reference image
+    // Get the actual scores from the user's assessment data
     const quadrants: QuadrantInfo[] = [
       { 
         key: 'thinking', 
         label: 'THINKING', 
         color: derivedQuadrantData.thinking > 0 ? 'rgb(1, 162, 82)' : 'rgb(229, 231, 235)', 
-        score: derivedQuadrantData.thinking || 0, 
+        score: derivedQuadrantData.thinking, 
         position: 0 
       },
       { 
         key: 'acting', 
         label: 'ACTING', 
-        color: hasCompletedAssessment ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (derivedQuadrantData.acting || 0) : 0, 
+        color: derivedQuadrantData.acting > 0 ? 'rgb(241, 64, 64)' : 'rgb(229, 231, 235)', 
+        score: derivedQuadrantData.acting, 
         position: 0 
       },
       { 
         key: 'feeling', 
         label: 'FEELING', 
-        color: hasCompletedAssessment ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (derivedQuadrantData.feeling || 0) : 0, 
+        color: derivedQuadrantData.feeling > 0 ? 'rgb(22, 126, 253)' : 'rgb(229, 231, 235)', 
+        score: derivedQuadrantData.feeling, 
         position: 0 
       },
       { 
         key: 'planning', 
         label: 'PLANNING', 
-        color: hasCompletedAssessment ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
-        score: hasCompletedAssessment ? (derivedQuadrantData.planning || 0) : 0, 
+        color: derivedQuadrantData.planning > 0 ? 'rgb(255, 203, 47)' : 'rgb(229, 231, 235)', 
+        score: derivedQuadrantData.planning, 
         position: 0 
       }
     ];
