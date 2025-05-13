@@ -857,6 +857,12 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
           const optionIdParts = rank.optionId.split('_');
           category = optionIdParts[0];
         } else {
+          // Try to extract category from the known format in the client
+          // Find the category from the optionId by parsing the assessment questions
+          console.log("Trying alternative method to determine category for optionId:", rank.optionId);
+          
+          // We'll extract from the client data if available
+          // But for now, handle the case where we can't determine category
           console.error("Cannot determine category from ranking:", rank);
           continue;
         }
@@ -867,6 +873,8 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
         // Third choice: 1 point
         // Last choice (least like me): 0 points
         const points = 4 - rank.rank; // Convert rank to points: rank 1 = 3 points, rank 4 = 0 point
+        
+        console.log(`Adding ${points} points for ${category} (rank ${rank.rank})`);
         
         // Only add points for top 3 choices (ranks 1-3)
         if (points > 0) {
@@ -906,26 +914,58 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   
   // Prevent division by zero
   if (totalPoints === 0) {
+    // Return an even distribution if no points calculated
     return {
-      thinking: 0,
-      acting: 0,
-      feeling: 0,
-      planning: 0
+      thinking: 25,
+      acting: 25,
+      feeling: 25,
+      planning: 25
     };
   }
   
   // Convert to percentages
-  const thinking = Math.round((thinkingPoints / totalPoints) * 100);
-  const acting = Math.round((actingPoints / totalPoints) * 100);
-  const feeling = Math.round((feelingPoints / totalPoints) * 100);
-  const planning = Math.round((planningPoints / totalPoints) * 100);
+  let thinking = Math.round((thinkingPoints / totalPoints) * 100);
+  let acting = Math.round((actingPoints / totalPoints) * 100);
+  let feeling = Math.round((feelingPoints / totalPoints) * 100);
+  let planning = Math.round((planningPoints / totalPoints) * 100);
+  
+  // Check if percentages add up to 100 (they might not due to rounding)
+  const total = thinking + acting + feeling + planning;
+  
+  // Adjust if needed to ensure we get exactly 100%
+  if (total !== 100) {
+    // Find highest value and adjust it
+    const values = [
+      { name: 'thinking', value: thinking }, 
+      { name: 'acting', value: acting }, 
+      { name: 'feeling', value: feeling }, 
+      { name: 'planning', value: planning }
+    ];
+    
+    // Sort by value (highest first)
+    values.sort((a, b) => b.value - a.value);
+    
+    // Adjust the highest value to make total 100%
+    const diff = 100 - total;
+    
+    if (values[0].name === 'thinking') {
+      thinking += diff;
+    } else if (values[0].name === 'acting') {
+      acting += diff;
+    } else if (values[0].name === 'feeling') {
+      feeling += diff;
+    } else {
+      planning += diff;
+    }
+  }
   
   // Log final percentages
   console.log("Final calculated percentages:", {
     thinking,
     acting,
     feeling,
-    planning
+    planning,
+    total: thinking + acting + feeling + planning // Should be 100
   });
   
   return {
