@@ -656,7 +656,7 @@ export default function FindYourFlow() {
                           acting: starCard.acting || 0,
                           feeling: starCard.feeling || 0,
                           planning: starCard.planning || 0,
-
+                          state: starCard.state || 'empty'
                         }}
                         flowAttributes={starCardFlowAttributes}
                         downloadable={false}

@@ -244,7 +244,7 @@ export type QuadrantData = {
   acting: number;
   feeling: number;
   planning: number;
-  pending?: boolean;
+  state?: string; // 'empty', 'partial', or 'complete'
 };
 
 export type ProfileData = {
