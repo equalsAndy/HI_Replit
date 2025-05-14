@@ -140,14 +140,32 @@ export default function StarCard({
       position: 0 // Will be assigned based on sort order
     }));
 
-    // Sort by score in descending order
-    const sorted = [...quadrants].sort((a, b) => b.score - a.score);
+    console.log("StarCard Raw quadrant data:", derivedQuadrantData);
+    console.log("StarCard Quadrants before sorting:", quadrants);
+
+    // If all scores are equal, maintain consistent ordering
+    const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score && q.score > 0);
+    
+    let sorted;
+    if (allScoresEqual) {
+      // Use a fixed order for equal scores
+      const defaultOrder = ['thinking', 'acting', 'feeling', 'planning'];
+      sorted = [...defaultOrder.map(key => 
+        quadrants.find(q => q.key === key)!
+      )];
+      console.log("StarCard: All scores equal, using fixed order:", sorted);
+    } else {
+      // Sort by score in descending order
+      sorted = [...quadrants].sort((a, b) => b.score - a.score);
+      console.log("StarCard: Sorted by score:", sorted);
+    }
 
     // Assign positions (0 = top right, 1 = bottom right, 2 = bottom left, 3 = top left)
     sorted.forEach((quadrant, index) => {
       quadrant.position = index;
     });
 
+    console.log("StarCard: Final sorted quadrants with positions:", sorted);
     return sorted;
   }, [derivedQuadrantData]);
 
@@ -181,6 +199,11 @@ export default function StarCard({
 
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
+    // If the score is already a percentage (0-100), just return it directly
+    if (score >= 0 && score <= 100 && totalScore >= 99 && totalScore <= 101) {
+      return score;  
+    }
+    // Otherwise normalize it
     if (totalScore === 0) return 0;
     return Math.round((score / totalScore) * 100);
   };
