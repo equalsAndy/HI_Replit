@@ -6,7 +6,7 @@ import { ProfileData, QuadrantData } from "@shared/schema";
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
 
-// Original interface
+// Flow attribute structure
 interface FlowAttribute {
   text: string;
   color: string;
@@ -33,6 +33,7 @@ interface StarCardProps {
   state?: string;     // 'empty', 'partial', or 'complete'
 }
 
+// Define quadrant colors
 const QUADRANT_COLORS = {
   thinking: 'rgb(1, 162, 82)',    // Green
   acting: 'rgb(241, 64, 64)',     // Red
@@ -40,7 +41,7 @@ const QUADRANT_COLORS = {
   planning: 'rgb(255, 203, 47)'   // Yellow
 } as const;
 
-const DEFAULT_COLOR = 'rgb(229, 231, 235)'; // Gray
+const DEFAULT_COLOR = 'rgb(229, 231, 235)'; // Gray for empty state
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
 type QuadrantInfo = {
@@ -92,88 +93,57 @@ export default function StarCard({
     };
   }, [quadrantData, thinking, acting, feeling, planning]);
 
-  // Determine if assessment is completed - check if any score is greater than 0
-  const hasCompletedAssessment = useMemo(() => {
-    // Check if any value is greater than 0, which indicates assessment is completed
-    const hasScores = (
-      (derivedQuadrantData.thinking || 0) > 0 ||
-      (derivedQuadrantData.acting || 0) > 0 ||
-      (derivedQuadrantData.feeling || 0) > 0 ||
+  // Check if assessment has been completed (at least one score > 0)
+  const hasScores = useMemo(() => {
+    return (
+      (derivedQuadrantData.thinking || 0) > 0 || 
+      (derivedQuadrantData.acting || 0) > 0 || 
+      (derivedQuadrantData.feeling || 0) > 0 || 
       (derivedQuadrantData.planning || 0) > 0
     );
-    
-    // If any score is > 0, the assessment is completed regardless of the pending flag
-    // This ensures we always show data when it exists
-    return hasScores;
   }, [derivedQuadrantData]);
-  
-  // Determine the card state from props or quadrant data
+
+  // Check if flow attributes are provided and valid
+  const hasFlowAttributes = useMemo(() => {
+    return flowAttributes && 
+           flowAttributes.length > 0 && 
+           flowAttributes.every(attr => !!attr.text);
+  }, [flowAttributes]);
+
+  // Determine the card state based on props or data
   const cardState = useMemo(() => {
     // First check if state is explicitly provided in props
-    if (state !== undefined) return state;
+    if (state) return state;
     
     // Then check if it's in the quadrant data
     if ((derivedQuadrantData as any).state) return (derivedQuadrantData as any).state;
     
-    // Fall back to the pending flag (true = empty, false = partial/complete)
-    if (pending !== undefined) return pending ? 'empty' : 'partial';
-    
-    // If none of the above, use score-based detection
-    const hasNonZeroScores = (
-      (derivedQuadrantData.thinking || 0) > 0 ||
-      (derivedQuadrantData.acting || 0) > 0 ||
-      (derivedQuadrantData.feeling || 0) > 0 ||
-      (derivedQuadrantData.planning || 0) > 0
-    );
-    
-    return hasNonZeroScores ? 'partial' : 'empty';
-  }, [derivedQuadrantData, pending, state]);
-  
-  // Boolean flag to determine if StarCard has actual data to display
-  const hasStarCardData = useMemo(() => {
-    // Log data to help with debugging
-    console.log("StarCard data state:", {
-      hasCompletedAssessment,
-      cardState,
-      thinking: derivedQuadrantData.thinking,
-      acting: derivedQuadrantData.acting,
-      feeling: derivedQuadrantData.feeling,
-      planning: derivedQuadrantData.planning
-    });
-    
-    // Return true if the card has any data (not empty)
-    return cardState !== 'empty';
-  }, [derivedQuadrantData, hasCompletedAssessment, cardState]);
+    // Otherwise determine based on data presence:
+    if (hasFlowAttributes && hasScores) return 'complete';
+    if (hasScores) return 'partial';
+    return 'empty';
+  }, [derivedQuadrantData, state, hasScores, hasFlowAttributes]);
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    const quadrantColors = {
-      thinking: 'rgb(1, 162, 82)',
-      acting: 'rgb(241, 64, 64)',
-      feeling: 'rgb(22, 126, 253)',
-      planning: 'rgb(255, 203, 47)'
-    };
-
-    const defaultColor = 'rgb(229, 231, 235)';
-
-    // Filter out non-quadrant fields from quadrantData
-    const filtered = Object.entries(derivedQuadrantData)
-      .filter(([key]) => key !== 'pending' && key !== 'state')
-      .map(([key, score]) => ({
-        key: key as QuadrantType,
-        label: key.toUpperCase(),
-        // Use proper colors for quadrants
-        color: quadrantColors[key as QuadrantType],
-        // Use actual scores only, no placeholders
-        score: typeof score === 'number' ? score : 0,
-        position: 0
-      }));
+    // Filter out non-quadrant fields
+    const quadrants = [
+      { key: 'thinking' as const, score: derivedQuadrantData.thinking || 0 },
+      { key: 'acting' as const, score: derivedQuadrantData.acting || 0 },
+      { key: 'feeling' as const, score: derivedQuadrantData.feeling || 0 },
+      { key: 'planning' as const, score: derivedQuadrantData.planning || 0 }
+    ].map(q => ({
+      key: q.key,
+      label: q.key.toUpperCase(),
+      color: QUADRANT_COLORS[q.key],
+      score: q.score,
+      position: 0 // Will be assigned based on sort order
+    }));
 
     // Sort by score in descending order
-    const sorted = [...filtered].sort((a, b) => b.score - a.score);
+    const sorted = [...quadrants].sort((a, b) => b.score - a.score);
 
     // Assign positions (0 = top right, 1 = bottom right, 2 = bottom left, 3 = top left)
-    // Following clockwise order
     sorted.forEach((quadrant, index) => {
       quadrant.position = index;
     });
@@ -181,21 +151,14 @@ export default function StarCard({
     return sorted;
   }, [derivedQuadrantData]);
 
-  // Get quadrant at specific position
+  // Get a quadrant by position
   const getQuadrantAtPosition = (position: number): QuadrantInfo | undefined => {
     return sortedQuadrants.find(q => q.position === position);
   };
 
-  // Determine if flow attributes are complete
-  const hasFlowData = flowAttributes?.length > 0 && flowAttributes.every(attr => attr.text);
-
-  // Determine if the card is complete (has both assessment data and flow attributes)
-  const isCardComplete = cardState === 'complete' || (hasFlowData && hasCompletedAssessment);
-
-  // Handle download
+  // Handle card download
   const handleDownload = async () => {
     if (!cardRef.current) return;
-
     setDownloading(true);
     try {
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
@@ -206,15 +169,19 @@ export default function StarCard({
     }
   };
 
-  // Calculate total score
-  const totalScore = derivedQuadrantData.thinking + derivedQuadrantData.acting + derivedQuadrantData.feeling + derivedQuadrantData.planning;
+  // Calculate total score for normalization
+  const totalScore = useMemo(() => {
+    return (
+      (derivedQuadrantData.thinking || 0) + 
+      (derivedQuadrantData.acting || 0) + 
+      (derivedQuadrantData.feeling || 0) + 
+      (derivedQuadrantData.planning || 0)
+    );
+  }, [derivedQuadrantData]);
 
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
-    // If total score is 0, return 0 for all values
-    if (totalScore === 0) {
-      return 0; // Show 0% if no data available
-    }
+    if (totalScore === 0) return 0;
     return Math.round((score / totalScore) * 100);
   };
 
@@ -351,7 +318,7 @@ export default function StarCard({
                   : 'rgb(229, 231, 235)'
               }}
             >
-              {hasFlowData && (
+              {flowAttributes[index]?.text && cardState === 'complete' && (
                 <p className="text-[9px] font-medium text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
