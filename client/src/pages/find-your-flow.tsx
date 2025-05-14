@@ -702,18 +702,41 @@ export default function FindYourFlow() {
                           planning: starCard.planning || 0,
                           state: starCard.state || 'empty'
                         }}
-                        flowAttributes={starCardFlowAttributes}
+                        flowAttributes={
+                          // First check if there are local attributes (being edited)
+                          starCardFlowAttributes.length > 0 ? starCardFlowAttributes :
+                          // Otherwise, check if there are server attributes
+                          (flowAttributesData?.attributes && Array.isArray(flowAttributesData.attributes) && flowAttributesData.attributes.length > 0) ? 
+                            // Map server data to expected format
+                            flowAttributesData.attributes.map((attr: { name: string }) => ({
+                              text: attr.name,
+                              color: getAttributeColor(attr.name)
+                            })) : 
+                            // Default to empty array
+                            []
+                        }
                         downloadable={false}
                         preview={true}
                       />
                       
-                      {starCardFlowAttributes.length > 0 && (
+                      {(starCardFlowAttributes.length > 0 || 
+                        (flowAttributesData?.attributes && 
+                         Array.isArray(flowAttributesData.attributes) && 
+                         flowAttributesData.attributes.length > 0)) && (
                         <Button 
                           variant="outline"
                           size="sm"
                           className="mt-3 text-xs text-gray-500 hover:text-red-600"
                           onClick={() => {
+                            // Clear local state
                             setStarCardFlowAttributes([]);
+                            
+                            // Clear server data by posting empty flow attributes
+                            flowAttributesMutation.mutate({
+                              flowScore: 0,
+                              attributes: []
+                            });
+                            
                             toast({
                               title: "Flow attributes cleared",
                               description: "All flow attributes have been removed from your StarCard."
