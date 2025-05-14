@@ -67,7 +67,8 @@ export default function StarCard({
   flowAttributes = [],
   imageUrl = null,
   enableImageUpload = false,
-  pending = false
+  pending = false,
+  state = undefined
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
@@ -106,9 +107,18 @@ export default function StarCard({
     return hasScores;
   }, [derivedQuadrantData]);
   
-  // Boolean flag to determine if StarCard has actual data to display
-  const hasStarCardData = useMemo(() => {
-    // Check directly if any score is greater than 0
+  // Determine the card state from props or quadrant data
+  const cardState = useMemo(() => {
+    // First check if state is explicitly provided in props
+    if (state !== undefined) return state;
+    
+    // Then check if it's in the quadrant data
+    if ((derivedQuadrantData as any).state) return (derivedQuadrantData as any).state;
+    
+    // Fall back to the pending flag (true = empty, false = partial/complete)
+    if (pending !== undefined) return pending ? 'empty' : 'partial';
+    
+    // If none of the above, use score-based detection
     const hasNonZeroScores = (
       (derivedQuadrantData.thinking || 0) > 0 ||
       (derivedQuadrantData.acting || 0) > 0 ||
@@ -116,23 +126,24 @@ export default function StarCard({
       (derivedQuadrantData.planning || 0) > 0
     );
     
+    return hasNonZeroScores ? 'partial' : 'empty';
+  }, [derivedQuadrantData, pending, state]);
+  
+  // Boolean flag to determine if StarCard has actual data to display
+  const hasStarCardData = useMemo(() => {
     // Log data to help with debugging
     console.log("StarCard data state:", {
       hasCompletedAssessment,
-      hasNonZeroScores,
-      pending,
-      state: (derivedQuadrantData as any).state,
+      cardState,
       thinking: derivedQuadrantData.thinking,
       acting: derivedQuadrantData.acting,
       feeling: derivedQuadrantData.feeling,
       planning: derivedQuadrantData.planning
     });
     
-    // Check for non-zero scores so we don't display placeholder data
-    // The pending flag is a legacy approach, now we should rely on the server-side 'state' 
-    // field which will be 'empty', 'partial', or 'complete'
-    return hasNonZeroScores;
-  }, [derivedQuadrantData, hasCompletedAssessment, pending]);
+    // Return true if the card has any data (not empty)
+    return cardState !== 'empty';
+  }, [derivedQuadrantData, hasCompletedAssessment, cardState]);
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
@@ -145,9 +156,9 @@ export default function StarCard({
 
     const defaultColor = 'rgb(229, 231, 235)';
 
-    // Filter out 'pending' from quadrantData
+    // Filter out non-quadrant fields from quadrantData
     const filtered = Object.entries(derivedQuadrantData)
-      .filter(([key]) => key !== 'pending')
+      .filter(([key]) => key !== 'pending' && key !== 'state')
       .map(([key, score]) => ({
         key: key as QuadrantType,
         label: key.toUpperCase(),
