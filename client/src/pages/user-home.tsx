@@ -177,6 +177,36 @@ export default function UserHome() {
       });
     }
   });
+  
+  // Logout mutation
+  const logout = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/auth/logout');
+      return res.ok;
+    },
+    onSuccess: () => {
+      // Clear all cached data
+      queryClient.clear();
+      
+      // Show success message
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of the application.",
+      });
+      
+      // Redirect to auth page after a short delay
+      setTimeout(() => {
+        window.location.href = '/auth';
+      }, 1000);
+    },
+    onError: (error) => {
+      toast({
+        title: "Logout failed",
+        description: "There was a problem logging out. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // Toggle expanded section
   const toggleSection = (sectionId: string | null) => {
@@ -240,13 +270,57 @@ export default function UserHome() {
       {/* Header */}
       <header className="bg-white border-b border-gray-200">
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/" className="logo flex items-center cursor-pointer">
-            <img 
-              src={appStyles.logo}
-              alt={appStyles.appName}
-              className="h-10 w-auto"
-            />
-          </Link>
+          <div className="flex items-center space-x-6">
+            <Link href="/" className="logo flex items-center cursor-pointer">
+              <img 
+                src={appStyles.logo}
+                alt={appStyles.appName}
+                className="h-10 w-auto"
+              />
+            </Link>
+            
+            {/* Test User Indicator & Controls */}
+            <div className="flex items-center space-x-3">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className="flex items-center cursor-pointer" 
+                      onClick={() => randomizeStarCard.mutate()}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <Badge variant="outline" className="py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200">
+                          <span className="text-xs font-bold">TEST USER</span>
+                        </Badge>
+                        <span 
+                          className="font-medium truncate max-w-[140px] text-sm hover:underline"
+                        >
+                          {user?.name}
+                        </span>
+                        <RefreshCw 
+                          size={14}
+                          className={`text-blue-600 ${randomizeStarCard.isPending ? 'animate-spin' : ''}`}
+                        />
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Click to randomize your Star Card values</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              
+              {/* Data Status Indicators */}
+              <div className="hidden md:flex space-x-1">
+                <Badge variant={starCard?.state !== 'empty' ? "success" : "outline"} className="text-xs">
+                  {starCard?.state !== 'empty' ? "Star Card" : "No Star Card"}
+                </Badge>
+                <Badge variant={flowAttributes?.attributes.some(a => a.value > 0) ? "success" : "outline"} className="text-xs">
+                  {flowAttributes?.attributes.some(a => a.value > 0) ? "Flow Data" : "No Flow Data"}
+                </Badge>
+              </div>
+            </div>
+          </div>
 
           <div className="flex items-center space-x-3">
             <span className="text-gray-700 font-medium">{user?.name}</span>
@@ -261,16 +335,10 @@ export default function UserHome() {
               variant="destructive" 
               size="sm" 
               className="rounded-md"
-              onClick={async () => {
-                try {
-                  await apiRequest('POST', '/api/auth/logout', {});
-                  window.location.href = '/auth';
-                } catch (error) {
-                  console.error("Logout failed:", error);
-                }
-              }}
+              onClick={() => logout.mutate()}
+              disabled={logout.isPending}
             >
-              Logout
+              {logout.isPending ? "Logging out..." : "Logout"}
             </Button>
           </div>
         </div>
