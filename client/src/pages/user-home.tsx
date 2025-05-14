@@ -37,7 +37,7 @@ interface StarCardType {
   planning: number;
   imageUrl?: string;
   id?: number;
-  pending?: boolean;
+  state?: string; // 'empty', 'partial', or 'complete'
 }
 
 export default function UserHome() {

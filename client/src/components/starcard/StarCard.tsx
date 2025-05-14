@@ -29,7 +29,8 @@ interface StarCardProps {
   userName?: string;
   userTitle?: string;
   userOrg?: string;
-  pending?: boolean;
+  pending?: boolean;  // For backward compatibility (true if state is 'empty')
+  state?: string;     // 'empty', 'partial', or 'complete'
 }
 
 const QUADRANT_COLORS = {
