@@ -312,7 +312,7 @@ export default function Foundations() {
                 </div>
 
                 <div className="p-6">
-                  {(!starCard || (starCard && !starCard.thinking && !starCard.acting && !starCard.feeling && !starCard.planning)) ? (
+                  {(!starCard || (starCard && starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) ? (
                     <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
                       <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
                       <p className="text-sm text-gray-500 mb-4">
