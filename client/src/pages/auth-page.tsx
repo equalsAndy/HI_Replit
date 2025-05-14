@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useApplication } from "@/hooks/use-application";
 import { insertUserSchema } from "@shared/schema";
-import TestUsersModal from "@/components/test-users/TestUsersModal";
+import { TestUsersModal } from "@/components/test-users/TestUsersModal";
 
 import {
   Form,
@@ -54,6 +54,12 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
+  
+  // Query for test users
+  const { data: testUsers } = useQuery<any[]>({ 
+    queryKey: ['/api/test-users'],
+    enabled: showTestUsers // Only fetch when modal is opened
+  });
   
   // Debug current application state
   console.log('Auth page - currentApp:', currentApp, 'appName:', appName);
@@ -387,11 +393,17 @@ export default function AuthPage() {
           </div>
         </div>
         
-        {/* Test Users Modal */}
-        <TestUsersModal 
-          isOpen={showTestUsers} 
-          onClose={() => setShowTestUsers(false)} 
-        />
+        {/* Test Users Modal - only shown when needed */}
+        {showTestUsers && (
+          <TestUsersModal 
+            open={showTestUsers} 
+            onClose={() => setShowTestUsers(false)}
+            userId={1} // Default to user 1 for the auth page
+            userData={testUsers?.length > 0 ? testUsers[0] : {}}
+            starCardData={{}}
+            flowAttributesData={{}}
+          />
+        )}
       </div>
       
       {/* Right side - Hero */}

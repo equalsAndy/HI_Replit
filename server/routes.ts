@@ -948,6 +948,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint to get detailed user data for test modal
+  app.get("/api/test-users/data/:userId", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      console.log(`Fetching detailed data for test user ${userId}`);
+      
+      // Get detailed data for this user
+      const user = await storage.getUser(userId);
+      const starCard = await storage.getStarCard(userId);
+      const flowAttributes = await storage.getFlowAttributes(userId);
+      
+      res.status(200).json({
+        user,
+        starCard,
+        flowAttributes
+      });
+    } catch (error) {
+      console.error("Error fetching test user data:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
   // Test User Routes
   app.get("/api/test-users", async (req: Request, res: Response) => {
     try {

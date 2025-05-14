@@ -10,6 +10,7 @@ import AuthPage from "@/pages/auth-page";
 import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import UserHome from "@/pages/user-home";
+import { TestUserBanner } from "@/components/test-users/TestUserBanner";
 
 // Import module pages
 import FindYourFlow from "./pages/find-your-flow";
@@ -32,7 +33,14 @@ import { NavBar } from "./components/layout/NavBar";
 function Router() {
   const [, navigate] = useLocation();
   // Query user profile with proper error handling
-  const { data: user, isLoading } = useQuery({ queryKey: ['/api/user/profile'] });
+  const { data: user, isLoading } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    title?: string;
+    organization?: string;
+    progress?: number;
+  }>({ queryKey: ['/api/user/profile'] });
 
   useEffect(() => {
     if (!isLoading) {
@@ -48,8 +56,21 @@ function Router() {
     }
   }, [user, isLoading, navigate]);
 
+  // Show the test user banner when logged in 
+  // and not on public pages (landing or auth)
+  const showTestBanner = user && 
+    window.location.pathname !== '/' && 
+    window.location.pathname !== '/auth';
+
   return (
     <div className="flex flex-col min-h-screen">
+      {/* Only show banner when user data is available and properly typed */}
+      {showTestBanner && user?.id && user?.name && (
+        <TestUserBanner 
+          userId={user.id} 
+          userName={user.name} 
+        />
+      )}
       <NavBar />
       <div className="flex-1">
         <Switch>
