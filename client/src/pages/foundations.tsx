@@ -18,17 +18,6 @@ const QUADRANT_COLORS = {
   planning: 'rgb(255, 203, 47)'   // Yellow
 } as const;
 
-// Define the starCard type based on the app's data structure
-interface StarCardType {
-  userId: number;
-  thinking: number;
-  acting: number;
-  feeling: number;
-  planning: number;
-  id: number;
-  pending?: boolean;
-}
-
 // Define the user type based on the app's data structure
 interface UserType {
   id: number;
@@ -39,12 +28,27 @@ interface UserType {
   avatarUrl?: string;
 }
 
+// StarCard type definition
+interface StarCardType {
+  id?: number;
+  userId: number;
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+  pending?: boolean;
+  createdAt?: string;
+  imageUrl?: string | null;
+}
+
 export default function Foundations() {
-  const { state } = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
-  const defaultTab = state?.tab || searchParams.get('tab') || 'intro';
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  // Location hook for navigation
   const [location, navigate] = useLocation();
+  // Get URL parameters to determine the default tab
+  const searchParams = new URLSearchParams(window.location.search);
+  // Use URL parameter tab as the default tab
+  const defaultTab = searchParams.get('tab') || 'intro';
+  const [activeTab, setActiveTab] = useState(defaultTab);
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
 
   // Get user profile and star card data to determine progress
