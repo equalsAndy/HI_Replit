@@ -7,7 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 
@@ -79,20 +78,21 @@ interface StarCardType {
 }
 
 export default function Foundations() {
+  // Location hook for navigation
   const [location, navigate] = useLocation();
+  // Get URL parameters to determine the default tab
   const searchParams = new URLSearchParams(window.location.search);
+  // Use URL parameter tab as the default tab
   const defaultTab = searchParams.get('tab') || 'intro';
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
-  const { toast } = useToast();
 
-  // Get user profile data
+  // Get user profile and star card data to determine progress
   const { data: user } = useQuery<UserType>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
 
-  // Get star card data
   const { data: starCard } = useQuery<StarCardType>({
     queryKey: ['/api/starcard'],
     enabled: !!user,
@@ -126,6 +126,19 @@ export default function Foundations() {
     if (tabValue === 'rounding') return !completedTabs.includes('reflect');
     return false;
   };
+
+  // Handle form submissions
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Logic for saving form data would go here
+    // For now, just advance to the next tab
+    if (activeTab === 'intro') handleTabChange('starcard');
+    else if (activeTab === 'starcard') handleTabChange('reflect');
+    else if (activeTab === 'reflect') handleTabChange('rounding');
+  };
+
+  // Check if there's data for the star card
+  const hasStarCardData = starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -228,14 +241,18 @@ export default function Foundations() {
                         title: user?.title || "Your Title",
                         organization: user?.organization || "Your Organization"
                       }}
-                      quadrantData={{
-                        thinking: starCard?.thinking || 0,
-                        acting: starCard?.acting || 0,
-                        feeling: starCard?.feeling || 0,
-                        planning: starCard?.planning || 0
+                      quadrantData={starCard ? {
+                        thinking: starCard.thinking || 0,
+                        acting: starCard.acting || 0,
+                        feeling: starCard.feeling || 0,
+                        planning: starCard.planning || 0
+                      } : {
+                        thinking: 0,
+                        acting: 0,
+                        feeling: 0,
+                        planning: 0
                       }}
-                      imageUrl={starCard?.imageUrl || null}
-                      pending={false}
+                      imageUrl={starCard?.imageUrl || undefined}
                       flowAttributes={
                         flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
                           ? flowAttributes.attributes.map((attr: any) => ({
@@ -293,14 +310,14 @@ export default function Foundations() {
 
                 <div className="flex justify-between mt-6">
                   <Button 
-                    onClick={() => handleTabChange("intro")}
+                    onClick={() => !isTabDisabled("intro") && handleTabChange("intro")}
                     variant="outline"
                     disabled={isTabDisabled("intro")}
                   >
                     Previous: Introduction
                   </Button>
                   <Button 
-                    onClick={() => handleTabChange("reflect")}
+                    onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
                     className="bg-indigo-600 hover:bg-indigo-700"
                     disabled={isTabDisabled("reflect")}
                   >
@@ -314,7 +331,7 @@ export default function Foundations() {
             <TabsContent value="reflect">
               <div className="bg-white rounded-lg p-6 mb-8">
                 <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center justify-center bg-blue-600 text-white h-8 w-8 rounded-full font-bold">3</div>
+                  <div className="flex items-center justify-center bg-blue-600 text-white h-8 w-8 rounded-full font-bold">A</div>
                   <h3 className="text-xl font-bold text-gray-800">Reflect On Your Strengths</h3>
                 </div>
 
@@ -407,14 +424,14 @@ export default function Foundations() {
 
               <div className="flex justify-between mt-6">
                 <Button 
-                  onClick={() => handleTabChange("starcard")}
+                  onClick={() => !isTabDisabled("starcard") && handleTabChange("starcard")}
                   variant="outline"
                   disabled={isTabDisabled("starcard")}
                 >
                   Previous: Your Star Card
                 </Button>
                 <Button 
-                  onClick={() => handleTabChange("rounding")}
+                  onClick={() => !isTabDisabled("rounding") && handleTabChange("rounding")}
                   className="bg-indigo-600 hover:bg-indigo-700"
                   disabled={isTabDisabled("rounding")}
                 >
@@ -427,7 +444,7 @@ export default function Foundations() {
             <TabsContent value="rounding">
               <div className="bg-white rounded-lg p-6 mb-8">
                 <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center justify-center bg-green-600 text-white h-8 w-8 rounded-full font-bold">4</div>
+                  <div className="flex items-center justify-center bg-green-600 text-white h-8 w-8 rounded-full font-bold">B</div>
                   <h3 className="text-xl font-bold text-gray-800">Rounding Out Your Profile</h3>
                 </div>
 
@@ -498,7 +515,7 @@ export default function Foundations() {
 
               <div className="flex justify-between mt-6">
                 <Button 
-                  onClick={() => handleTabChange("reflect")}
+                  onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
                   variant="outline"
                   disabled={isTabDisabled("reflect")}
                 >
