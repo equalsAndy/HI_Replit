@@ -320,6 +320,39 @@ export default function FindYourFlow() {
     retry: false
   });
   
+  // Flow attributes save mutation
+  const flowAttributesMutation = useMutation({
+    mutationFn: async (attributes: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
+      const response = await apiRequest('POST', '/api/flow-attributes', attributes);
+      return await response.json();
+    },
+    onSuccess: () => {
+      // Invalidate flow attributes query to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      // Update star card to complete state
+      fetch('/api/starcard/reviewed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: user?.id }),
+      });
+      // Invalidate star card data
+      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      
+      toast({
+        title: "Flow attributes saved!",
+        description: "Your flow attributes have been saved and your Star Card is now complete.",
+        duration: 5000
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save flow attributes",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+  
   // Determine if flow assessment is already completed
   const hasCompletedFlowAssessment = Boolean(flowAttributesData);
   
@@ -815,10 +848,20 @@ export default function FindYourFlow() {
                         
                         // Update the StarCard flow attributes
                         setStarCardFlowAttributes(coloredAttributes);
-                        toast({
-                          title: "Flow attributes added!",
-                          description: "Your flow attributes have been added to your StarCard.",
-                          duration: 5000
+                        
+                        // Convert to server format and save to server
+                        const serverAttributes = rankedAttributes.map((attr, index) => ({
+                          name: attr.text,
+                          score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
+                        }));
+                        
+                        // Random flow score between 70 and 95
+                        const randomFlowScore = Math.floor(Math.random() * 26) + 70;
+                        
+                        // Save flow attributes to server
+                        flowAttributesMutation.mutate({
+                          flowScore: randomFlowScore,
+                          attributes: serverAttributes
                         });
                       }
                     }}
