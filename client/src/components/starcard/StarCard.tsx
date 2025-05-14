@@ -90,7 +90,7 @@ export default function StarCard({
     };
   }, [quadrantData, thinking, acting, feeling, planning]);
 
-  // Determine if assessment is completed - all scores must be greater than 0
+  // Determine if assessment is completed - check if any score is greater than 0
   const hasCompletedAssessment = useMemo(() => {
     // Check if any value is greater than 0, which indicates assessment is completed
     const hasScores = (
@@ -100,15 +100,25 @@ export default function StarCard({
       (derivedQuadrantData.planning || 0) > 0
     );
     
-    // Assessment is completed if we have scores AND pending is explicitly NOT true
-    return hasScores && pending !== true;
-  }, [derivedQuadrantData, pending]);
+    // If any score is > 0, the assessment is completed regardless of the pending flag
+    // This ensures we always show data when it exists
+    return hasScores;
+  }, [derivedQuadrantData]);
   
   // Boolean flag to determine if StarCard has actual data to display
   const hasStarCardData = useMemo(() => {
+    // Check directly if any score is greater than 0
+    const hasNonZeroScores = (
+      (derivedQuadrantData.thinking || 0) > 0 ||
+      (derivedQuadrantData.acting || 0) > 0 ||
+      (derivedQuadrantData.feeling || 0) > 0 ||
+      (derivedQuadrantData.planning || 0) > 0
+    );
+    
     // Log data to help with debugging
     console.log("StarCard data state:", {
       hasCompletedAssessment,
+      hasNonZeroScores,
       pending,
       thinking: derivedQuadrantData.thinking,
       acting: derivedQuadrantData.acting,
@@ -116,15 +126,9 @@ export default function StarCard({
       planning: derivedQuadrantData.planning
     });
     
-    // We have card data if assessment is completed and has non-zero scores
-    return hasCompletedAssessment && 
-      (
-        (derivedQuadrantData.thinking || 0) > 0 ||
-        (derivedQuadrantData.acting || 0) > 0 ||
-        (derivedQuadrantData.feeling || 0) > 0 ||
-        (derivedQuadrantData.planning || 0) > 0
-      );
-  }, [hasCompletedAssessment, derivedQuadrantData]);
+    // We have card data if any score is greater than 0, regardless of pending flag
+    return hasNonZeroScores;
+  }, [derivedQuadrantData, hasCompletedAssessment, pending]);
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
