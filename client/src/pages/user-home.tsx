@@ -5,10 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles, Users } from "lucide-react";
+import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles, Users, RefreshCw } from "lucide-react";
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 import { useApplication } from "@/hooks/use-application";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -143,6 +150,28 @@ export default function UserHome() {
     onError: (error) => {
       toast({
         title: "Failed to update profile",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Randomize star card mutation
+  const randomizeStarCard = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/test/randomize-star-card');
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      toast({
+        title: "Star Card Randomized",
+        description: "The Star Card has been updated with random values.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to randomize Star Card",
         description: String(error),
         variant: "destructive",
       });
