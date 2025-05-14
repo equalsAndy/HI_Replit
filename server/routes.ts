@@ -44,7 +44,7 @@ const upload = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed') as any);
+      cb(new Error('Only image files are allowed') as any;
     }
   }
 });
@@ -52,10 +52,10 @@ const upload = multer({
 export async function registerRoutes(app: Express): Promise<Server> {
   // Set up middleware for JSON parsing
   app.use(express.json());
-  
+
   // Add cookie parser middleware to parse cookies from requests
   app.use(cookieParser());
-  
+
   // Define cookie options for consistent use across endpoints
   const COOKIE_OPTIONS = {
     httpOnly: true,
@@ -64,40 +64,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     sameSite: 'lax' as const,
     secure: false // Allow cookies on non-HTTPS connections for development
   };
-  
+
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(uploadsDir));
-  
+
   // File upload endpoint for star card image
   app.post('/api/upload/starcard', upload.single('image'), async (req: Request, res: Response) => {
     try {
       if (!req.file) {
         return res.status(400).json({ message: 'No file uploaded' });
       }
-      
+
       // Get userId from cookie
       let userId: number | undefined;
-      
+
       try {
         // Try to get userId from cookie
         userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
         userId = undefined; // Invalid user ID
       }
-      
+
       // If no cookie set, user is not logged in
       if (!userId) {
         // Return 401 to indicate user is not authenticated
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Generate the URL for the uploaded image
       const baseUrl = `${req.protocol}://${req.get('host')}`;
       const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-      
+
       // Check if the user has a star card
       const starCard = await storage.getStarCard(userId);
-      
+
       // If there's an existing image, delete it
       if (starCard && starCard.imageUrl) {
         const oldImagePath = starCard.imageUrl.split('/uploads/')[1];
@@ -109,7 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
       }
-      
+
       if (starCard) {
         // Update the existing star card with the new image URL
         await storage.updateStarCard(starCard.id, { imageUrl });
@@ -125,7 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date().toISOString()
         });
       }
-      
+
       res.status(200).json({ 
         success: true, 
         imageUrl,
@@ -139,47 +139,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     }
   });
-  
+
   // Delete image endpoint for star card
   app.delete('/api/upload/starcard', async (req: Request, res: Response) => {
     try {
       // Get userId from cookie
       let userId: number | undefined;
-      
+
       try {
         // Try to get userId from cookie
         userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
         userId = undefined; // Invalid user ID
       }
-      
+
       // If no cookie set, user is not logged in
       if (!userId) {
         // Return 401 to indicate user is not authenticated
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Check if the user has a star card
       const starCard = await storage.getStarCard(userId);
-      
+
       if (!starCard || !starCard.imageUrl) {
         return res.status(404).json({ message: 'No image found to delete' });
       }
-      
+
       // Extract the filename from the URL
       const imageFilename = starCard.imageUrl.split('/uploads/')[1];
       if (imageFilename) {
         const imageFullPath = path.join(uploadsDir, imageFilename);
-        
+
         // Delete the file if it exists
         if (fs.existsSync(imageFullPath)) {
           fs.unlinkSync(imageFullPath);
         }
       }
-      
+
       // Update the star card to remove the image URL
       await storage.updateStarCard(starCard.id, { imageUrl: null });
-      
+
       res.status(200).json({
         success: true,
         message: 'Image removed successfully'
@@ -197,11 +197,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const data = insertUserSchema.parse(req.body);
       const existingUser = await storage.getUserByUsername(data.username);
-      
+
       if (existingUser) {
         return res.status(409).json({ message: "Username already exists" });
       }
-      
+
       const user = await storage.createUser(data);
       res.status(201).json({ id: user.id, username: user.username, name: user.name });
     } catch (error) {
@@ -216,20 +216,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { username, password } = req.body;
       console.log(`Login attempt for username: ${username}`);
-      
+
       // For test accounts, use the test-users endpoint
       if (username.startsWith('user') && username.length <= 6) {
         // This is a test user, so let's get their data
         await storage.createTestUsers(); // Make sure test users exist
         const testUsers = await storage.getTestUsers();
         const testUser = testUsers.find(u => u.username === username);
-        
+
         if (testUser) {
           // Found a matching test user, set their cookie
           res.cookie("userId", testUser.id.toString(), COOKIE_OPTIONS);
           console.log(`Test user login success: ${testUser.id} (${username}), cookie: userId=${testUser.id}`);
           console.log(`Cookie options:`, COOKIE_OPTIONS);
-          
+
           // Return test user data
           return res.status(200).json({ 
             id: testUser.id, 
@@ -242,21 +242,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       // For regular users, check credentials
       const user = await storage.getUserByUsername(username);
-      
+
       if (!user || user.password !== password) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
-      
+
       // Mock session by setting user info in a cookie
       // In a real app, use actual session management
       res.cookie("userId", user.id.toString(), COOKIE_OPTIONS);
-      
+
       console.log(`Login successful for user ${user.id} (${username}), setting cookie userId=${user.id}`);
       console.log(`Cookie options:`, COOKIE_OPTIONS);
-      
+
       res.status(200).json({ 
         id: user.id, 
         username: user.username, 
@@ -271,7 +271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   });
-  
+
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
     try {
       // Clear the cookie with same path option
@@ -286,11 +286,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get userId from cookie
       let userId: number | undefined;
-      
+
       try {
         // Try to get userId from cookie or query parameter
         userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
-        
+
         // Also check query parameter (useful for development)
         if (req.query.userId) {
           userId = parseInt(req.query.userId as string);
@@ -298,10 +298,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         userId = undefined; // Invalid user ID
       }
-      
+
       console.log(`GET /api/user/profile - checking for userId from cookies/query:`, userId);
       console.log(`Cookies:`, req.cookies);
-      
+
       // For development, allow falling back to a test user
       if (!userId && process.env.NODE_ENV === 'development') {
         // Create test users if needed and use user1
@@ -309,21 +309,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId = 1; // Default to the first test user
         console.log(`No userId in cookies, defaulting to test user 1 for development`);
       }
-      
+
       // If still no userId (in production), return auth error
       if (!userId) {
         // Return 401 to indicate user is not authenticated
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Try to get user
       const user = await storage.getUser(userId);
-      
+
       // If user not found, return 401
       if (!user) {
         return res.status(401).json({ message: "User not found" });
       }
-      
+
       // Return user data
       res.status(200).json({
         id: user.id,
@@ -343,36 +343,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Get userId from cookie
       let userId: number | undefined;
-      
+
       try {
         // Try to get userId from cookie
         userId = req.cookies.userId ? parseInt(req.cookies.userId) : undefined;
       } catch (e) {
         userId = undefined; // Invalid user ID
       }
-      
+
       // If no cookie set, user is not logged in
       if (!userId) {
         // Return 401 to indicate user is not authenticated
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       const { name, title, organization, avatarUrl } = req.body;
-      
+
       console.log(`Updating profile for user ${userId} with name=${name}, title=${title}, org=${organization}`);
       console.log("Avatar data: " + (avatarUrl ? `${avatarUrl.substring(0, 30)}... (${avatarUrl.length} chars)` : "No avatar"));
-      
+
       // Validate that we have actual data
       if (name === undefined || title === undefined || organization === undefined) {
         return res.status(400).json({ message: "Missing required profile fields" });
       }
-      
+
       const updatedUser = await storage.updateUser(userId, { name, title, organization, avatarUrl });
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.status(200).json({
         id: updatedUser.id,
         name: updatedUser.name,
@@ -396,18 +396,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       if (!userId) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       const { progress } = req.body;
       const updatedUser = await storage.updateUser(userId, { progress });
-      
+
       if (!updatedUser) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       res.status(200).json({ progress: updatedUser.progress });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
@@ -426,21 +426,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/assessment/start", async (req: Request, res: Response) => {
     try {
-      // Try to get userId from cookie or query param
-      let userId: number;
-      try {
-        userId = parseInt(req.cookies.userId || req.query.userId as string);
-      } catch (e) {
-        userId = 1; // Default to user ID 1 for development
-      }
-      
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : 
+                    (process.env.NODE_ENV === 'development' ? 1 : null);
+
       if (!userId) {
-        userId = 1; // Default to user ID 1 for development
+        return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Check if user already has an assessment
       const existingAssessment = await storage.getAssessment(userId);
-      
+
       // Also check if the user has a completed star card
       const existingStarCard = await storage.getStarCard(userId);
       const hasCompletedStarCard = existingStarCard && 
@@ -449,11 +444,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                     (existingStarCard.acting ?? 0) > 0 || 
                                     (existingStarCard.feeling ?? 0) > 0 || 
                                     (existingStarCard.planning ?? 0) > 0);
-      
+
       // Check if user has any existing answers (partial assessment)
       const existingAnswers = await storage.getAnswers(userId);
       const hasAnswers = existingAnswers && existingAnswers.length > 0;
-      
+
       // Prevent retaking assessment if:
       // 1. Assessment is marked as completed, OR
       // 2. Star card has values (completed assessment), OR
@@ -462,7 +457,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Preventing assessment restart for user ${userId} - assessment completed or in progress`);
         return res.status(409).json({ message: "Assessment already completed or in progress" });
       }
-      
+
       console.log(`Starting assessment for user ${userId}`);
       const assessment = existingAssessment || await storage.createAssessment({
         userId,
@@ -470,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         results: null,
         createdAt: new Date().toISOString()
       });
-      
+
       res.status(200).json(assessment);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
@@ -486,14 +481,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       if (!userId) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       const answerData = insertAnswerSchema.parse({ ...req.body, userId });
       const answer = await storage.saveAnswer(answerData);
-      
+
       res.status(201).json(answer);
     } catch (error) {
       if (error instanceof z.ZodError) {
@@ -512,24 +507,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       if (!userId) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       console.log(`Processing assessment completion for user ${userId}...`);
       console.log(`Cookies:`, req.cookies);
-      
+
       // Verify user exists first
       const user = await storage.getUser(userId);
       if (!user) {
         console.log(`User ${userId} not found in database`);
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Get user's assessment
       let assessment = await storage.getAssessment(userId);
-      
+
       // If no assessment exists, create one now to avoid errors
       if (!assessment) {
         console.log(`No assessment found for user ${userId}, creating one now`);
@@ -539,12 +534,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           createdAt: new Date().toISOString()
         });
       }
-      
+
       console.log(`Assessment for user ${userId}: `, assessment);
-      
+
       // Use the request data directly if provided, which is more reliable
       let scores: QuadrantData;
-      
+
       if (req.body.quadrantData && 
           typeof req.body.quadrantData === 'object' &&
           Object.values(req.body.quadrantData).some(val => (val as number) > 0)) {
@@ -553,25 +548,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Using client-provided quadrant data:", scores);
       } else {
         console.log("No valid quadrant data in request, checking for answers");
-        
+
         // Fall back to server-side calculation
         // Get all answers
         const answers = await storage.getAnswers(userId);
-        
+
         if (answers.length === 0) {
           console.log("No answers found in database");
-          
+
           // If no answers and no scores provided, return specific error
           return res.status(400).json({ 
             message: "No assessment data found", 
             details: "No answers or quadrant data provided to complete assessment" 
           });
         }
-        
+
         // Calculate quadrant scores
         scores = calculateQuadrantScores(answers);
         console.log("Server calculated scores from answers:", scores);
-        
+
         // Make sure scores has valid values
         if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
           console.error("Error: All scores are zero, using even distribution to avoid invalid data");
@@ -583,7 +578,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           };
         }
       }
-      
+
       // Ensure total is 100%
       let total = scores.thinking + scores.acting + scores.feeling + scores.planning;
       if (total !== 100) {
@@ -594,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           feeling: Math.round(scores.feeling * adjustmentFactor),
           planning: Math.round(scores.planning * adjustmentFactor)
         };
-        
+
         // Handle rounding errors
         total = scores.thinking + scores.acting + scores.feeling + scores.planning;
         if (total !== 100) {
@@ -607,21 +602,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           else scores.planning += diff;
         }
       }
-      
+
       console.log(`Final normalized quadrant scores: `, scores);
-      
+
       // Step 1: ALWAYS update assessment with results, make sure completed=true
       const updatedAssessment = await storage.updateAssessment(assessment.id, {
         completed: true,
         results: scores
       });
       console.log("Updated assessment:", updatedAssessment);
-      
+
       // Step 2: ALWAYS create or update star card with the SAME scores
       const existingStarCard = await storage.getStarCard(userId);
-      
+
       console.log(`Updating Star Card for user ${userId} with scores:`, scores);
-      
+
       let updatedStarCard;
       // If star card exists, update it
       if (existingStarCard && existingStarCard.id) {
@@ -646,10 +641,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log("Created new Star Card:", updatedStarCard);
       }
-      
+
       // Step 3: Update user progress
       await storage.updateUser(userId, { progress: 67 }); // Profile + Assessment = 67%
-      
+
       // Step 4: Return the COMPLETE STAR CARD OBJECT, not just scores
       // This ensures the client has all the data needed immediately
       res.status(200).json(updatedStarCard);
@@ -671,7 +666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         return res.status(400).json({ message: "Invalid user ID format" });
       }
-      
+
       // For testing, use a default user ID if none found
       if (!userId) {
         // In development mode, allow default to user 1
@@ -682,34 +677,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(401).json({ message: "User not authenticated" });
         }
       }
-      
+
       console.log(`Getting star card for user ${userId}, cookies:`, req.cookies);
-      
+
       // Get the user
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Get the star card for this user
       const starCard = await storage.getStarCard(userId);
-      
+
       // If a star card exists, return it
       if (starCard) {
         console.log(`Returning existing star card for user ${userId}:`, starCard);
         return res.status(200).json(starCard);
       }
-      
+
       // Get any assessment data
       const assessment = await storage.getAssessment(userId);
       console.log(`Assessment for user ${userId}:`, assessment);
-      
+
       // If the assessment is completed but no star card exists, create one from assessment data
       if (assessment && assessment.completed && assessment.results) {
         try {
           console.log(`Creating star card from completed assessment for user ${userId}`);
           const scores = assessment.results as QuadrantData;
-          
+
           // Create a new star card with the scores from assessment
           const newStarCard = await storage.createStarCard({
             userId,
@@ -720,14 +715,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             pending: false,
             createdAt: new Date().toISOString()
           });
-          
+
           console.log(`Created new star card from assessment:`, newStarCard);
           return res.status(200).json(newStarCard);
         } catch (err) {
           console.error("Error creating star card from assessment:", err);
         }
       }
-      
+
       // If no star card exists, return one with all zeros (no placeholders)
       const emptyCard = {
         id: null,
@@ -739,7 +734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pending: true,
         createdAt: new Date().toISOString()
       };
-      
+
       console.log(`Returning empty card for user ${userId}`);
       // Return the empty card
       res.status(200).json(emptyCard);
@@ -758,14 +753,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } catch (e) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       if (!userId) {
         userId = 1; // Default to user ID 1 for development
       }
-      
+
       // Update user progress
       await storage.updateUser(userId, { progress: 100 }); // Set to 100% when star card is reviewed
-      
+
       res.status(200).json({ success: true });
     } catch (error) {
       res.status(500).json({ message: "Server error" });
@@ -780,25 +775,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Get user
       const user = await storage.getUser(parseInt(userId));
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Get flow attributes for user
       const flowAttributes = await storage.getFlowAttributes(user.id);
-      
+
       // Check if user has completed the assessment
       const starCard = await storage.getStarCard(user.id);
       const hasCompletedAssessment = starCard && !starCard.pending;
-      
+
       if (flowAttributes) {
         // Return existing flow attributes
         return res.status(200).json(flowAttributes);
       }
-      
+
       // Only create default flow attributes if user has completed assessment
       // This prevents auto-creating default attributes after a reset
       if (hasCompletedAssessment) {
@@ -809,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           { text: "Energized", color: "#FFC107" }, // Yellow
           { text: "Confident", color: "#F44336" }  // Red
         ];
-        
+
         // Create flow attributes with default values
         const newFlowAttributes = await storage.createFlowAttributes({
           userId: user.id,
@@ -817,10 +812,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attributes: defaultAttributes,
           // Let timestamp default value handle createdAt
         });
-        
+
         return res.status(200).json(newFlowAttributes);
       }
-      
+
       // Otherwise, return empty flow attributes
       return res.status(200).json({ 
         userId: user.id, 
@@ -832,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to get flow attributes" });
     }
   });
-  
+
   // Save flow attributes for user
   app.post("/api/flow-attributes", async (req: Request, res: Response) => {
     try {
@@ -841,18 +836,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         return res.status(401).json({ message: "Not authenticated" });
       }
-      
+
       // Get user
       const user = await storage.getUser(parseInt(userId));
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       const { flowScore, attributes } = req.body;
-      
+
       // Check if user already has flow attributes
       const existingFlowAttributes = await storage.getFlowAttributes(user.id);
-      
+
       if (existingFlowAttributes) {
         // Update existing flow attributes
         const updatedFlowAttributes = await storage.updateFlowAttributes(
@@ -880,76 +875,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to save flow attributes" });
     }
   });
-  
+
   // Debug helper route
   app.get("/api/debug", async (req: Request, res: Response) => {
     try {
       console.log("Debug route - cookies:", req.cookies);
-      
+
       let userId = null;
       try {
-        userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+        userId = req.cookies.userId ? parseInt(This change consolidates user ID checking logic across multiple endpoints.
+req.cookies.userId) : null;
       } catch (e) {
         userId = null;
       }
-      
+
       console.log("Debug route - extracted userId:", userId);
-      
+
       // Set a test cookie to verify cookie functionality
       res.cookie("testDebugCookie", "working", COOKIE_OPTIONS);
-      
-      // Get all users
-      await storage.createTestUsers(); // Make sure test users exist
-      const allUsers = await storage.getAllUsers();
-      
-      // Count test users
-      const testUsers = await storage.getTestUsers();
-      
+
       res.status(200).json({
         cookies: req.cookies,
         parsedUserId: userId,
         cookieOptions: COOKIE_OPTIONS,
-        users: allUsers.map(u => ({ id: u.id, username: u.username })),
-        testUsersCount: testUsers.length,
         message: "Debug info returned, check server logs"
       });
     } catch (error) {
       console.error("Error in debug route:", error);
-      res.status(500).json({ message: "Server error" });
-    }
-  });
-  
-  // Special debug route - direct login with a specific user ID
-  app.get("/api/debug-login/:userId", async (req: Request, res: Response) => {
-    try {
-      const userId = parseInt(req.params.userId);
-      if (isNaN(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-      
-      // Make sure test users exist
-      await storage.createTestUsers();
-      
-      // Get the user
-      const user = await storage.getUser(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-      
-      // Set the user ID cookie
-      res.cookie("userId", userId.toString(), COOKIE_OPTIONS);
-      
-      // Return user info
-      res.status(200).json({
-        message: `Debug login successful for user ${userId} (${user.username})`,
-        user: {
-          id: user.id,
-          username: user.username,
-          name: user.name
-        }
-      });
-    } catch (error) {
-      console.error("Error in debug login:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -959,24 +911,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Create test users if they don't exist yet
       await storage.createTestUsers();
-      
+
       // Get all test users
       const testUsers = await storage.getTestUsers();
-      
+
       // Prepare response array
       const enhancedUsers = [];
-      
+
       // Add data status for each user
       for (const user of testUsers) {
         // Check if user has assessment data
         const assessment = await storage.getAssessment(user.id);
-        
+
         // Check if user has star card
         const starCard = await storage.getStarCard(user.id);
-        
+
         // Check if user has flow attributes
         const flowAttributes = await storage.getFlowAttributes(user.id);
-        
+
         // Add enhanced user data
         enhancedUsers.push({
           id: user.id,
@@ -990,37 +942,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           hasFlowAttributes: flowAttributes ? true : false
         });
       }
-      
+
       res.status(200).json(enhancedUsers);
     } catch (error) {
       console.error("Error fetching test users:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
-  
+
   app.post("/api/test-users/reset/:userId", async (req: Request, res: Response) => {
     try {
       const userId = parseInt(req.params.userId);
       if (isNaN(userId)) {
         return res.status(400).json({ message: "Invalid user ID" });
       }
-      
+
       const user = await storage.getUser(userId);
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
-      
+
       // Reset all user data
       await storage.resetUserData(userId);
-      
+
       // Return updated user with data status
       const updatedUser = await storage.getUser(userId);
-      
+
       // All statuses should be false after reset, but verify anyway
       const assessment = await storage.getAssessment(userId);
       const starCard = await storage.getStarCard(userId);
       const flowAttributes = await storage.getFlowAttributes(userId);
-      
+
       res.status(200).json({
         id: updatedUser?.id,
         username: updatedUser?.username,
@@ -1045,34 +997,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 function calculateQuadrantScores(answers: Answer[]): QuadrantData {
   console.log("Processing answers:", JSON.stringify(answers));
-  
+
   // Initialize category counters
   let thinkingPoints = 0;
   let actingPoints = 0;
   let feelingPoints = 0;
   let planningPoints = 0;
-  
+
   // Process each answer
   for (const answer of answers) {
     try {
       // Get the ranking data and ensure it's properly structured
       const rankings = answer.ranking as any[];
-      
+
       if (!Array.isArray(rankings)) {
         console.error("Invalid ranking format, expected array:", rankings);
         continue;
       }
-      
+
       // Log rankings to help diagnose issues
       console.log("Processing answer rankings:", JSON.stringify(rankings));
-      
+
       // Assign points based on rankings (1=most like me, 4=least like me)
       for (const rank of rankings) {
         if (!rank || !rank.optionId) {
           console.error("Invalid ranking item:", rank);
           continue;
         }
-        
+
         // Extract category information - we need to check for both formats:
         // 1. Format from client might be "thinking_1" (category_number)
         // 2. The ranking might already have the category field
@@ -1086,22 +1038,22 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
           // Try to extract category from the known format in the client
           // Find the category from the optionId by parsing the assessment questions
           console.log("Trying alternative method to determine category for optionId:", rank.optionId);
-          
+
           // We'll extract from the client data if available
           // But for now, handle the case where we can't determine category
           console.error("Cannot determine category from ranking:", rank);
           continue;
         }
-        
+
         // Match the client-side scoring:
         // First choice (most like me): 3 points
         // Second choice: 2 points
         // Third choice: 1 point
         // Last choice (least like me): 0 points
         const points = 4 - rank.rank; // Convert rank to points: rank 1 = 3 points, rank 4 = 0 point
-        
+
         console.log(`Adding ${points} points for ${category} (rank ${rank.rank})`);
-        
+
         // Only add points for top 3 choices (ranks 1-3)
         if (points > 0) {
           switch (category) {
@@ -1126,7 +1078,7 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
       console.error("Error processing answer:", error, "Raw answer:", JSON.stringify(answer));
     }
   }
-  
+
   // Log points before conversion for debugging
   console.log("Points before percentage conversion:", {
     thinkingPoints,
@@ -1134,10 +1086,10 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
     feelingPoints, 
     planningPoints
   });
-  
+
   // Calculate total points
   const totalPoints = thinkingPoints + actingPoints + feelingPoints + planningPoints;
-  
+
   // Prevent division by zero
   if (totalPoints === 0) {
     // Return an even distribution if no points calculated
@@ -1148,16 +1100,16 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
       planning: 25
     };
   }
-  
+
   // Convert to percentages
   let thinking = Math.round((thinkingPoints / totalPoints) * 100);
   let acting = Math.round((actingPoints / totalPoints) * 100);
   let feeling = Math.round((feelingPoints / totalPoints) * 100);
   let planning = Math.round((planningPoints / totalPoints) * 100);
-  
+
   // Check if percentages add up to 100 (they might not due to rounding)
   const total = thinking + acting + feeling + planning;
-  
+
   // Adjust if needed to ensure we get exactly 100%
   if (total !== 100) {
     // Find highest value and adjust it
@@ -1167,13 +1119,13 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
       { name: 'feeling', value: feeling }, 
       { name: 'planning', value: planning }
     ];
-    
+
     // Sort by value (highest first)
     values.sort((a, b) => b.value - a.value);
-    
+
     // Adjust the highest value to make total 100%
     const diff = 100 - total;
-    
+
     if (values[0].name === 'thinking') {
       thinking += diff;
     } else if (values[0].name === 'acting') {
@@ -1184,7 +1136,7 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
       planning += diff;
     }
   }
-  
+
   // Log final percentages
   console.log("Final calculated percentages:", {
     thinking,
@@ -1193,7 +1145,7 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
     planning,
     total: thinking + acting + feeling + planning // Should be 100
   });
-  
+
   return {
     thinking,
     acting,

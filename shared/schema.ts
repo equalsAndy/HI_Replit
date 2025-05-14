@@ -55,7 +55,7 @@ export const starCards = pgTable("star_cards", {
   planning: integer("planning").default(0),
   createdAt: text("created_at"),
   imageUrl: text("image_url"),
-  pending: boolean("pending").default(true),
+  state: text("state").default('empty'),
 });
 
 export const flowAttributes = pgTable("flow_attributes", {
