@@ -847,12 +847,26 @@ export default function FindYourFlow() {
                     <p>Loading your StarCard data...</p>
                   </div>
                 )}
+                {/* Always show the StarCard, even if it's empty. This replaces the previous message about completing the assessment */}
                 {user && !starCard && !(userLoading || starCardLoading) && (
-                  <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
-                    <p className="text-amber-700 font-medium">StarCard not available</p>
-                    <p className="text-sm text-gray-600 mt-2">
-                      You need to complete the strengths assessment first.
-                    </p>
+                  <div className="pb-10 flex justify-center">
+                    <StarCard 
+                      profile={{
+                        name: user?.name || "",
+                        title: user?.title || "",
+                        organization: user?.organization || ""
+                      }}
+                      quadrantData={{
+                        thinking: 0,
+                        acting: 0,
+                        feeling: 0,
+                        planning: 0
+                      }}
+                      pending={false}
+                      flowAttributes={[]}
+                      downloadable={false}
+                      preview={true}
+                    />
                   </div>
                 )}
               </div>
