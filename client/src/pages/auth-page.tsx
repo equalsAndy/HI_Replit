@@ -179,6 +179,14 @@ export default function AuthPage() {
           </p>
         </div>
         
+        {/* Information Message */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+          <h3 className="font-medium text-blue-800 mb-1">Test Environment</h3>
+          <p className="text-sm text-blue-600">
+            This is a test environment. Please use the "Select Test User" button below to log in.
+          </p>
+        </div>
+        
         {/* Login Form */}
         {isLogin && (
           <Form {...loginForm}>
@@ -190,7 +198,12 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your username" {...field} />
+                      <Input 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -203,18 +216,24 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button 
-                type="submit" 
-                className={`w-full ${currentApp === 'allstarteams' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'}`}
-                disabled={loginMutation.isPending}
+                type="button" // Changed from submit to button
+                className="w-full bg-gray-400 hover:bg-gray-500 cursor-not-allowed"
+                disabled={true}
               >
-                {loginMutation.isPending ? "Signing in..." : "Sign In"}
+                Sign In Disabled
               </Button>
             </form>
           </Form>
@@ -231,7 +250,12 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Full Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your full name" {...field} />
+                      <Input 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -244,7 +268,12 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Username</FormLabel>
                     <FormControl>
-                      <Input placeholder="Choose a username" {...field} />
+                      <Input 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -257,7 +286,12 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Job Title</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your job title" {...field} />
+                      <Input 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -270,7 +304,12 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Organization</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter your organization" {...field} />
+                      <Input 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -283,7 +322,13 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Create a password" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -296,18 +341,24 @@ export default function AuthPage() {
                   <FormItem>
                     <FormLabel>Confirm Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Confirm your password" {...field} />
+                      <Input 
+                        type="password" 
+                        placeholder="Select a test user instead" 
+                        {...field} 
+                        disabled={true}
+                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
               <Button 
-                type="submit" 
-                className={`w-full ${currentApp === 'allstarteams' ? 'bg-indigo-600 hover:bg-indigo-700' : 'bg-purple-600 hover:bg-purple-700'}`}
-                disabled={registerMutation.isPending}
+                type="button"
+                className="w-full bg-gray-400 hover:bg-gray-500 cursor-not-allowed"
+                disabled={true}
               >
-                {registerMutation.isPending ? "Creating account..." : "Create Account"}
+                Registration Disabled
               </Button>
             </form>
           </Form>

@@ -1019,9 +1019,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Server error" });
     }
   });
+  
+  // Endpoint to generate random star card data for testing
+  app.post("/api/test/randomize-star-card", async (req: Request, res: Response) => {
+    try {
+      // Try to get userId from cookie or query param
+      let userId: number;
+      try {
+        userId = parseInt(req.cookies.userId || req.query.userId as string);
+      } catch (e) {
+        userId = 1; // Default to user ID 1 for development
+      }
+      
+      if (!userId) {
+        userId = 1; // Default to test user 1
+      }
+      
+      console.log(`Randomizing star card for user ${userId}`);
+      
+      // Generate random values that sum to 100
+      const randomScores = generateRandomScoresThatSumTo100();
+      console.log(`Generated random scores:`, randomScores);
+      
+      // Get existing star card or create one
+      const existingCard = await storage.getStarCard(userId);
+      
+      if (existingCard) {
+        // Update existing star card with random scores
+        const updatedCard = await storage.updateStarCard(existingCard.id, {
+          thinking: randomScores.thinking,
+          acting: randomScores.acting, 
+          feeling: randomScores.feeling,
+          planning: randomScores.planning,
+          state: 'partial'
+        });
+        console.log(`Updated star card with random scores:`, updatedCard);
+        return res.json(updatedCard);
+      } else {
+        // Create a new star card with random scores
+        const newCard = await storage.createStarCard({
+          userId,
+          thinking: randomScores.thinking,
+          acting: randomScores.acting,
+          feeling: randomScores.feeling,
+          planning: randomScores.planning,
+          state: 'partial',
+          createdAt: new Date().toISOString()
+        });
+        console.log(`Created new star card with random scores:`, newCard);
+        return res.json(newCard);
+      }
+    } catch (error) {
+      console.error("Error randomizing star card:", error);
+      res.status(500).json({ error: "Failed to randomize star card" });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
+}
+
+// Helper function to generate random scores that sum to 100
+function generateRandomScoresThatSumTo100(): QuadrantData {
+  // Generate 4 random numbers
+  const r1 = Math.random();
+  const r2 = Math.random();
+  const r3 = Math.random();
+  const r4 = Math.random();
+  
+  // Sum of the random numbers
+  const sum = r1 + r2 + r3 + r4;
+  
+  // Normalize to sum to 100 and round to integers
+  const thinking = Math.round((r1 / sum) * 100);
+  const acting = Math.round((r2 / sum) * 100);
+  const feeling = Math.round((r3 / sum) * 100);
+  let planning = Math.round((r4 / sum) * 100);
+  
+  // Ensure they sum to exactly 100 (adjust the last value if needed)
+  const currentSum = thinking + acting + feeling + planning;
+  planning += (100 - currentSum);
+  
+  return { thinking, acting, feeling, planning };
 }
 
 function calculateQuadrantScores(answers: Answer[]): QuadrantData {
