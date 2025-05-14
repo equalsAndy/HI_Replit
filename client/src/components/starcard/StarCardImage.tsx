@@ -21,7 +21,7 @@ export function StarCardImage({ imageUrl, className = "", onUploadComplete }: St
   const handleUploadComplete = (url: string) => {
     // Invalidate the star card cache to refresh the data
     queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-    
+
     // Call the parent component's onUploadComplete callback if provided
     if (onUploadComplete) {
       onUploadComplete(url);
