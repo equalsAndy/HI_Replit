@@ -8,7 +8,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useApplication } from "@/hooks/use-application";
 import { insertUserSchema } from "@shared/schema";
-import { TestUsersModal } from "@/components/test-users/TestUsersModal";
+import { TestUserPicker } from "@/components/test-users/TestUserPicker";
 
 import {
   Form,
@@ -55,11 +55,7 @@ export default function AuthPage() {
   const { toast } = useToast();
   const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
   
-  // Query for test users
-  const { data: testUsers } = useQuery<any[]>({ 
-    queryKey: ['/api/test-users'],
-    enabled: showTestUsers // Only fetch when modal is opened
-  });
+  // We don't need to fetch test users here anymore, that's done in the TestUserPicker component
   
   // Debug current application state
   console.log('Auth page - currentApp:', currentApp, 'appName:', appName);
@@ -393,15 +389,11 @@ export default function AuthPage() {
           </div>
         </div>
         
-        {/* Test Users Modal - only shown when needed */}
+        {/* Test User Picker - only shown when needed */}
         {showTestUsers && (
-          <TestUsersModal 
-            open={showTestUsers} 
+          <TestUserPicker
+            open={showTestUsers}
             onClose={() => setShowTestUsers(false)}
-            userId={1} // Default to user 1 for the auth page
-            userData={testUsers?.length > 0 ? testUsers[0] : {}}
-            starCardData={{}}
-            flowAttributesData={{}}
           />
         )}
       </div>
