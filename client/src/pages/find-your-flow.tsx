@@ -431,9 +431,19 @@ export default function FindYourFlow() {
     
     setStarCardFlowAttributes(coloredAttributes);
     
-    toast({
-      title: "Flow attributes auto-selected",
-      description: "Random attributes have been selected and added to your StarCard."
+    // Convert to server format and save to server
+    const serverAttributes = selectedAttrs.map((attr, index) => ({
+      name: attr.text,
+      score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
+    }));
+    
+    // Random flow score between 70 and 95
+    const randomFlowScore = Math.floor(Math.random() * 26) + 70;
+    
+    // Save flow attributes to server
+    flowAttributesMutation.mutate({
+      flowScore: randomFlowScore,
+      attributes: serverAttributes
     });
   };
 

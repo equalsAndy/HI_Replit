@@ -190,7 +190,7 @@ export default function StarCard({
   const hasFlowData = flowAttributes?.length > 0 && flowAttributes.every(attr => attr.text);
 
   // Determine if the card is complete (has both assessment data and flow attributes)
-  const isCardComplete = cardState === 'complete' && hasFlowData;
+  const isCardComplete = cardState === 'complete' || (hasFlowData && hasCompletedAssessment);
 
   // Handle download
   const handleDownload = async () => {
