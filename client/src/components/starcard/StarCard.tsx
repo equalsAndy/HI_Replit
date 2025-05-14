@@ -120,13 +120,16 @@ export default function StarCard({
       hasCompletedAssessment,
       hasNonZeroScores,
       pending,
+      state: (derivedQuadrantData as any).state,
       thinking: derivedQuadrantData.thinking,
       acting: derivedQuadrantData.acting,
       feeling: derivedQuadrantData.feeling,
       planning: derivedQuadrantData.planning
     });
     
-    // We have card data if any score is greater than 0, regardless of pending flag
+    // Check for non-zero scores so we don't display placeholder data
+    // The pending flag is a legacy approach, now we should rely on the server-side 'state' 
+    // field which will be 'empty', 'partial', or 'complete'
     return hasNonZeroScores;
   }, [derivedQuadrantData, hasCompletedAssessment, pending]);
 

@@ -1142,7 +1142,7 @@ export default function UserHome() {
                       <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Star Card</h3>
                       
                       {/* Different content for placeholder vs completed star card */}
-                      {starCard.pending ? (
+                      {starCard.state === 'empty' ? (
                         <>
                           <p className="text-gray-600 mb-4">
                             Your Star Card is waiting for you to complete the assessment. Take the Star Strengths Assessment 
@@ -1188,8 +1188,8 @@ export default function UserHome() {
                                 planning: starCard.planning || 0
                               }}
                               imageUrl={starCard.imageUrl}
-                              // If any score is > 0, the card is NOT pending
-                              pending={!(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
+                              // Pass the state field from the server so the component knows whether it's empty, partial, or complete
+                              pending={starCard.state === 'empty'}
                               flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
                             />
                           </div>

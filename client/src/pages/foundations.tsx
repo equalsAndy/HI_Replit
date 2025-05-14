@@ -309,8 +309,8 @@ export default function Foundations() {
                           }}
                           downloadable={true}
                           preview={false}
-                          // If any score is > 0, the card is NOT pending regardless of the pending flag
-                          pending={!(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
+                          // Pass the state field from the server so the component knows whether it's empty, partial, or complete
+                          pending={starCard.state === 'empty'}
                           imageUrl={starCard.imageUrl}
                           flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
                         />
