@@ -625,7 +625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acting: scores.acting, 
           feeling: scores.feeling,
           planning: scores.planning,
-          pending: false // Explicitly set to false after assessment
+          state: 'partial' // Set to partial after assessment
         });
         console.log("Updated existing Star Card:", updatedStarCard);
       } else {
@@ -636,7 +636,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           acting: scores.acting, 
           feeling: scores.feeling,
           planning: scores.planning,
-          pending: false, // Explicitly set to false after assessment
+          state: 'partial', // Set to partial after assessment
           createdAt: new Date().toISOString()
         });
         console.log("Created new Star Card:", updatedStarCard);
@@ -712,7 +712,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             acting: scores.acting || 0,
             feeling: scores.feeling || 0,
             planning: scores.planning || 0,
-            pending: false,
+            state: 'partial',
             createdAt: new Date().toISOString()
           });
 
@@ -731,7 +731,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         acting: 0,
         feeling: 0,
         planning: 0,
-        pending: true,
+        state: 'empty',
         createdAt: new Date().toISOString()
       };
 
@@ -787,7 +787,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check if user has completed the assessment
       const starCard = await storage.getStarCard(user.id);
-      const hasCompletedAssessment = starCard && !starCard.pending;
+      const hasCompletedAssessment = starCard && starCard.state !== 'empty';
 
       if (flowAttributes) {
         // Return existing flow attributes
@@ -848,6 +848,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already has flow attributes
       const existingFlowAttributes = await storage.getFlowAttributes(user.id);
 
+      // Get the user's star card
+      const starCard = await storage.getStarCard(user.id);
+
       if (existingFlowAttributes) {
         // Update existing flow attributes
         const updatedFlowAttributes = await storage.updateFlowAttributes(
@@ -857,6 +860,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             attributes: attributes 
           }
         );
+        
+        // Update star card state to 'complete' if it exists
+        if (starCard && starCard.id) {
+          await storage.updateStarCard(starCard.id, { state: 'complete' });
+        }
+        
         console.log("Updated flow attributes:", updatedFlowAttributes);
         return res.status(200).json(updatedFlowAttributes);
       } else {
@@ -867,6 +876,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           attributes: attributes,
           createdAt: new Date(),
         });
+        
+        // Update star card state to 'complete' if it exists
+        if (starCard && starCard.id) {
+          await storage.updateStarCard(starCard.id, { state: 'complete' });
+        }
+        
         console.log("Created new flow attributes:", newFlowAttributes);
         return res.status(201).json(newFlowAttributes);
       }
