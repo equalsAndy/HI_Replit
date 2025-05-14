@@ -274,11 +274,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
     try {
-      // Clear the cookie with same path option
+      console.log('Logging out - Before clearing cookies:', req.cookies);
+      
+      // Clear all cookies that might be related to authentication
       res.clearCookie("userId", { path: '/' });
+      res.clearCookie("connect.sid", { path: '/' });
+      
+      // Turn off auto-login for development
+      if (process.env.NODE_ENV === 'development') {
+        res.cookie('noAutoLogin', 'true', { path: '/' });
+      }
+      
+      console.log('Cookies cleared');
+      
+      // Send success response
       res.status(200).json({ message: "Logged out successfully" });
     } catch (error) {
-      res.status(500).json({ message: "Server error" });
+      console.error("Error during logout:", error);
+      res.status(500).json({ message: "Server error during logout" });
     }
   });
 
@@ -302,8 +315,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`GET /api/user/profile - checking for userId from cookies/query:`, userId);
       console.log(`Cookies:`, req.cookies);
 
-      // For development, allow falling back to a test user
-      if (!userId && process.env.NODE_ENV === 'development') {
+      // For development, allow falling back to a test user unless noAutoLogin is set
+      if (!userId && process.env.NODE_ENV === 'development' && !req.cookies.noAutoLogin) {
         // Create test users if needed and use user1
         await storage.createTestUsers();
         userId = 1; // Default to the first test user
