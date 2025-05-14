@@ -100,12 +100,23 @@ export default function StarCard({
       (derivedQuadrantData.planning || 0) > 0
     );
     
-    // Force to true if we have any scores at all, regardless of pending flag
-    return hasScores;
-  }, [derivedQuadrantData]);
+    // Assessment is completed if we have scores AND pending is explicitly NOT true
+    return hasScores && pending !== true;
+  }, [derivedQuadrantData, pending]);
   
   // Boolean flag to determine if StarCard has actual data to display
   const hasStarCardData = useMemo(() => {
+    // Log data to help with debugging
+    console.log("StarCard data state:", {
+      hasCompletedAssessment,
+      pending,
+      thinking: derivedQuadrantData.thinking,
+      acting: derivedQuadrantData.acting,
+      feeling: derivedQuadrantData.feeling,
+      planning: derivedQuadrantData.planning
+    });
+    
+    // We have card data if assessment is completed and has non-zero scores
     return hasCompletedAssessment && 
       (
         (derivedQuadrantData.thinking || 0) > 0 ||

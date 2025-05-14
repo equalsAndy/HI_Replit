@@ -297,7 +297,9 @@ export default function Foundations() {
                           }}
                           downloadable={true}
                           preview={false}
-                          pending={starCard.pending === true && !(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
+                          // If any score is > 0, the card is NOT pending regardless of the pending flag
+                          pending={!(starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)}
+                          imageUrl={starCard.imageUrl}
                           flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
                         />
                       </div>
