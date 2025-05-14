@@ -210,10 +210,7 @@ export default function FindYourFlow() {
   };
   
   // Map to determine attribute category and color
-  const getAttributeCategory = (attribute?: string | null): 'green' | 'blue' | 'yellow' | 'red' | 'default' => {
-    // Return default if attribute is null, undefined or empty
-    if (!attribute) return 'default';
-    
+  const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 'red' | 'default' => {
     const greenAttributes = [
       'Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 
       'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
@@ -238,7 +235,6 @@ export default function FindYourFlow() {
       'Physical', 'Resolute', 'Resourceful', 'Strong'
     ].map(a => a.toLowerCase());
     
-    // Safely lowercase the attribute
     const lowerAttribute = attribute.toLowerCase();
     
     if (greenAttributes.includes(lowerAttribute)) return 'green';
@@ -250,10 +246,7 @@ export default function FindYourFlow() {
   };
   
   // Get color for attribute based on category
-  const getAttributeColor = (attribute?: string | null): string => {
-    // Return default color if attribute is null, undefined or empty
-    if (!attribute) return 'rgb(156, 163, 175)';  // Gray default
-    
+  const getAttributeColor = (attribute: string): string => {
     const category = getAttributeCategory(attribute);
     switch (category) {
       case 'green': return 'rgb(1, 162, 82)';      // Green - Thinking
@@ -726,12 +719,10 @@ export default function FindYourFlow() {
                         preview={true}
                       />
                       
-                      {/* Only show clear button if we have attributes */}
                       {(starCardFlowAttributes.length > 0 || 
-                       (flowAttributesData && 
-                        flowAttributesData.attributes && 
-                        Array.isArray(flowAttributesData.attributes) && 
-                        flowAttributesData.attributes.length > 0)) && (
+                        (flowAttributesData?.attributes && 
+                         Array.isArray(flowAttributesData.attributes) && 
+                         flowAttributesData.attributes.length > 0)) && (
                         <Button 
                           variant="outline"
                           size="sm"
