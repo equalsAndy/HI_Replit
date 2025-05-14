@@ -271,7 +271,7 @@ export default function Report() {
             }}
             imageUrl={starCard?.imageUrl}
             downloadable={true}
-            pending={starCard?.state === 'empty'}
+            pending={false} {/* Never show "Assessment Required" */}
             flowAttributes={flowAttributes ? [
               // Convert flow attributes data into the format expected by StarCard
               // Map position 0 attributes (for the top right flow box)
