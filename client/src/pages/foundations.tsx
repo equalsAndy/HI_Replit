@@ -77,8 +77,16 @@ export default function Foundations() {
 
     // Check assessment completion status for StarCard tab
     if (tabId === "starcard") {
-      // Disable if no starCard data exists yet (assessment not completed)
-      if (!starCard || starCard.pending === true) return true;
+      // If no starCard exists, disable the tab
+      if (!starCard) return true;
+      
+      // Enable tab if any quadrant has a score greater than 0 (regardless of pending status)
+      if (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0) {
+        return false;
+      }
+      
+      // Otherwise disable the tab
+      return true;
     }
 
     // For sequential progression

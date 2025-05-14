@@ -637,7 +637,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         feeling: 0,
         planning: 0,
         pending: true,
-        assessmentState: AssessmentState.Empty,
         createdAt: new Date().toISOString()
       };
       
