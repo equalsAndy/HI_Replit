@@ -898,14 +898,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set a test cookie to verify cookie functionality
       res.cookie("testDebugCookie", "working", COOKIE_OPTIONS);
       
+      // Get all users
+      await storage.createTestUsers(); // Make sure test users exist
+      const allUsers = await storage.getAllUsers();
+      
+      // Count test users
+      const testUsers = await storage.getTestUsers();
+      
       res.status(200).json({
         cookies: req.cookies,
         parsedUserId: userId,
         cookieOptions: COOKIE_OPTIONS,
+        users: allUsers.map(u => ({ id: u.id, username: u.username })),
+        testUsersCount: testUsers.length,
         message: "Debug info returned, check server logs"
       });
     } catch (error) {
       console.error("Error in debug route:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+  
+  // Special debug route - direct login with a specific user ID
+  app.get("/api/debug-login/:userId", async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: "Invalid user ID" });
+      }
+      
+      // Make sure test users exist
+      await storage.createTestUsers();
+      
+      // Get the user
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
+      // Set the user ID cookie
+      res.cookie("userId", userId.toString(), COOKIE_OPTIONS);
+      
+      // Return user info
+      res.status(200).json({
+        message: `Debug login successful for user ${userId} (${user.username})`,
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name
+        }
+      });
+    } catch (error) {
+      console.error("Error in debug login:", error);
       res.status(500).json({ message: "Server error" });
     }
   });

@@ -104,6 +104,11 @@ export class MemStorage implements IStorage {
     
     // Initialize with demo questions
     this.initializeQuestions();
+    
+    // Create test users immediately to ensure they're available
+    this.createTestUsers()
+      .then(() => console.log("Test users created successfully on startup"))
+      .catch(err => console.error("Error creating test users on startup:", err));
   }
 
   async getUser(id: number): Promise<User | undefined> {
