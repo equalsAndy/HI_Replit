@@ -61,7 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     httpOnly: true,
     path: '/',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    sameSite: 'lax' as const
+    sameSite: 'lax' as const,
+    secure: false // Allow cookies on non-HTTPS connections for development
   };
   
   // Serve static files from the uploads directory
@@ -214,6 +215,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/auth/login", async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
+      console.log(`Login attempt for username: ${username}`);
+      
+      // For test accounts, use the test-users endpoint
+      if (username.startsWith('user') && username.length <= 6) {
+        // This is a test user, so let's get their data
+        await storage.createTestUsers(); // Make sure test users exist
+        const testUsers = await storage.getTestUsers();
+        const testUser = testUsers.find(u => u.username === username);
+        
+        if (testUser) {
+          // Found a matching test user, set their cookie
+          res.cookie("userId", testUser.id.toString(), COOKIE_OPTIONS);
+          console.log(`Test user login success: ${testUser.id} (${username}), cookie: userId=${testUser.id}`);
+          console.log(`Cookie options:`, COOKIE_OPTIONS);
+          
+          // Return test user data
+          return res.status(200).json({ 
+            id: testUser.id, 
+            username: testUser.username, 
+            name: testUser.name,
+            title: testUser.title,
+            organization: testUser.organization,
+            avatarUrl: testUser.avatarUrl,
+            progress: testUser.progress || 0
+          });
+        }
+      }
+      
+      // For regular users, check credentials
       const user = await storage.getUserByUsername(username);
       
       if (!user || user.password !== password) {
@@ -225,6 +255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.cookie("userId", user.id.toString(), COOKIE_OPTIONS);
       
       console.log(`Login successful for user ${user.id} (${username}), setting cookie userId=${user.id}`);
+      console.log(`Cookie options:`, COOKIE_OPTIONS);
       
       res.status(200).json({ 
         id: user.id, 
@@ -236,6 +267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         progress: user.progress
       });
     } catch (error) {
+      console.error("Login error:", error);
       res.status(500).json({ message: "Server error" });
     }
   });
@@ -780,6 +812,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Debug helper route
+  app.get("/api/debug", async (req: Request, res: Response) => {
+    try {
+      console.log("Debug route - cookies:", req.cookies);
+      
+      let userId = null;
+      try {
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      } catch (e) {
+        userId = null;
+      }
+      
+      console.log("Debug route - extracted userId:", userId);
+      
+      // Set a test cookie to verify cookie functionality
+      res.cookie("testDebugCookie", "working", COOKIE_OPTIONS);
+      
+      res.status(200).json({
+        cookies: req.cookies,
+        parsedUserId: userId,
+        cookieOptions: COOKIE_OPTIONS,
+        message: "Debug info returned, check server logs"
+      });
+    } catch (error) {
+      console.error("Error in debug route:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  });
+
   // Test User Routes
   app.get("/api/test-users", async (req: Request, res: Response) => {
     try {
