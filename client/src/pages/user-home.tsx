@@ -312,10 +312,16 @@ export default function UserHome() {
               
               {/* Data Status Indicators */}
               <div className="hidden md:flex space-x-1">
-                <Badge variant={starCard?.state !== 'empty' ? "success" : "outline"} className="text-xs">
+                <Badge 
+                  variant={starCard?.state !== 'empty' ? "secondary" : "outline"} 
+                  className={`text-xs ${starCard?.state !== 'empty' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}`}
+                >
                   {starCard?.state !== 'empty' ? "Star Card" : "No Star Card"}
                 </Badge>
-                <Badge variant={flowAttributes?.attributes.some(a => a.value > 0) ? "success" : "outline"} className="text-xs">
+                <Badge 
+                  variant={flowAttributes?.attributes.some(a => a.value > 0) ? "secondary" : "outline"} 
+                  className={`text-xs ${flowAttributes?.attributes.some(a => a.value > 0) ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : ''}`}
+                >
                   {flowAttributes?.attributes.some(a => a.value > 0) ? "Flow Data" : "No Flow Data"}
                 </Badge>
               </div>
