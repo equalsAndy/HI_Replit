@@ -1203,7 +1203,14 @@ export default function UserHome() {
                               }}
                               imageUrl={starCard.imageUrl}
                               pending={true}
-                              flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
+                              flowAttributes={
+                                flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
+                                  ? flowAttributes.attributes.map((attr: any) => ({
+                                      text: attr.name,
+                                      color: getAttributeColor(attr.name)
+                                    })) 
+                                  : []
+                              }
                             />
 
                           </div>
@@ -1230,7 +1237,14 @@ export default function UserHome() {
                               imageUrl={starCard.imageUrl}
                               // Pass the state field from the server so the component knows whether it's empty, partial, or complete
                               pending={starCard.state === 'empty'}
-                              flowAttributes={flowAttributes?.attributes ? flowAttributes.attributes : []}
+                              flowAttributes={
+                                flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
+                                  ? flowAttributes.attributes.map((attr: any) => ({
+                                      text: attr.name,
+                                      color: getAttributeColor(attr.name)
+                                    })) 
+                                  : []
+                              }
                             />
                           </div>
                         </>
