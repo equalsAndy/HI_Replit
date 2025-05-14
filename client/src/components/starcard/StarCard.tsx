@@ -353,7 +353,7 @@ export default function StarCard({
             </div>
           ))}
 
-          {/* Arrow 1 - 70% of original size and equidistant from Flow 1 and Flow 2 */}
+          {/* Right vertical arrow connecting top-right and bottom-right flow boxes */}
           <div className="absolute" style={{ right: '44px', top: '105px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
@@ -363,7 +363,7 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Arrow 2 - Precisely equidistant between Flow 2 and Flow 3 */}
+          {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes */}
           <div className="absolute" style={{ top: '234px', left: '89px', width: '73px' }}>
             <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
@@ -373,7 +373,7 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Arrow 3 - Made 70% of original height and vertically centered */}
+          {/* Left vertical arrow connecting top-left and bottom-left flow boxes */}
           <div className="absolute" style={{ left: '44px', top: '105px', height: '84px' }}>
             <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
@@ -383,7 +383,7 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* No Top Arrow between flow 1 and flow 4 as requested */}
+          {/* No horizontal arrow at top - intentionally omitted */}
         </div>
 
         {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 24px */}
