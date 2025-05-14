@@ -65,9 +65,9 @@ export default function Assessment() {
         
         const data = await res.json();
         
-        // If we get a 409 status, the assessment is already completed
+        // If we get a 409 status, the assessment is already completed or in progress
         if (res.status === 409) {
-          console.log("Assessment is already completed, showing results");
+          console.log("Assessment is already completed or in progress, showing results");
           
           if (!loadingStarCard && starCard) {
             // Set the assessment results from the star card data
@@ -81,18 +81,25 @@ export default function Assessment() {
             // Show the results popup
             setShowResultsPopup(true);
             
+            // Determine exact message based on whether it's complete or in progress
+            const statusMessage = hasCompletedAssessment(starCard) 
+              ? "You've already completed the assessment. Results are shown below."
+              : "You have an assessment in progress but haven't completed it.";
+              
+            const actionMessage = "Please use the reset function on your profile if you need to start over.";
+            
             // Add prevention message with timeout
             toast({
-              title: "Assessment Already Completed",
-              description: "You've already completed the assessment. Results are shown below. Please use the reset function if you need to retake the assessment.",
+              title: "Assessment In Progress",
+              description: `${statusMessage} ${actionMessage}`,
               variant: "destructive",
-              duration: 5000
+              duration: 6000
             });
             
             // Redirect to foundations after a delay to prevent retaking
             setTimeout(() => {
               navigate('/foundations?tab=starcard');
-            }, 5000);
+            }, 6000);
           }
         } else {
           console.log("Assessment can be taken");

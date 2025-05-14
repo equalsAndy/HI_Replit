@@ -401,10 +401,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                                     (existingStarCard.feeling ?? 0) > 0 || 
                                     (existingStarCard.planning ?? 0) > 0);
       
-      // Prevent retaking assessment if either assessment is marked completed or star card has values
-      if ((existingAssessment && existingAssessment.completed) || hasCompletedStarCard) {
-        console.log(`Preventing assessment restart for user ${userId} - already completed`);
-        return res.status(409).json({ message: "Assessment already completed" });
+      // Check if user has any existing answers (partial assessment)
+      const existingAnswers = await storage.getAnswers(userId);
+      const hasAnswers = existingAnswers && existingAnswers.length > 0;
+      
+      // Prevent retaking assessment if:
+      // 1. Assessment is marked as completed, OR
+      // 2. Star card has values (completed assessment), OR
+      // 3. User has already answered some questions (partial assessment)
+      if ((existingAssessment && existingAssessment.completed) || hasCompletedStarCard || hasAnswers) {
+        console.log(`Preventing assessment restart for user ${userId} - assessment completed or in progress`);
+        return res.status(409).json({ message: "Assessment already completed or in progress" });
       }
       
       console.log(`Starting assessment for user ${userId}`);
