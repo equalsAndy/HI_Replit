@@ -249,7 +249,10 @@ export default function Assessment() {
       // Calculate final results
       const results = getQuadrantScores();
 
-      // Save to server
+      // Log the scores we're sending to verify they're correct
+      console.log("Assessment Results:", results);
+
+      // Save to server - now returns the complete StarCard object
       const res = await apiRequest('POST', '/api/assessment/complete', {
         quadrantData: results,
         answers: Object.entries(answers).map(([questionId, rankings]) => ({
@@ -260,15 +263,19 @@ export default function Assessment() {
 
       return await res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+        // The server now returns the updated StarCard data
+        console.log("Assessment completed successfully. StarCard data:", data);
+        
+        // Store the StarCard data directly in the query cache for immediate use
+        queryClient.setQueryData(['/api/starcard'], data);
+        
         // Update user progress
         const updateProgress = async () => {
           try {
             await apiRequest('PUT', '/api/user/progress', { progress: 100 });
-            // Invalidate all relevant queries to refresh data
+            // Invalidate user profile query to refresh progress data
             queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-            queryClient.invalidateQueries({ queryKey: ['/api/assessment'] });
           } catch (error) {
             console.error("Failed to update progress:", error);
           }
@@ -277,8 +284,10 @@ export default function Assessment() {
 
         toast({
           title: "Assessment Complete!",
-          description: "Your Star Card is ready to view."
+          description: "Your Star Card is ready to view with your results."
         });
+        
+        // Navigate to foundations page with starcard tab active
         navigate('/foundations', { state: { tab: 'starcard', showStarCard: true } });
       },
     onError: (error) => {

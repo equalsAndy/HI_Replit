@@ -539,19 +539,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`Final normalized quadrant scores: `, scores);
       
-      // Update assessment with results
+      // Step 1: ALWAYS update assessment with results, make sure completed=true
       const updatedAssessment = await storage.updateAssessment(assessment.id, {
         completed: true,
         results: scores
       });
       console.log("Updated assessment:", updatedAssessment);
       
-      // Create or update star card
+      // Step 2: ALWAYS create or update star card with the SAME scores
       const existingStarCard = await storage.getStarCard(userId);
       
       console.log(`Updating Star Card for user ${userId} with scores:`, scores);
       
       let updatedStarCard;
+      // If star card exists, update it
       if (existingStarCard && existingStarCard.id) {
         updatedStarCard = await storage.updateStarCard(existingStarCard.id, {
           thinking: scores.thinking,
@@ -562,6 +563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         console.log("Updated existing Star Card:", updatedStarCard);
       } else {
+        // Create a new star card with the scores
         updatedStarCard = await storage.createStarCard({
           userId,
           thinking: scores.thinking,
@@ -574,11 +576,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("Created new Star Card:", updatedStarCard);
       }
       
-      // Update user progress
+      // Step 3: Update user progress
       await storage.updateUser(userId, { progress: 67 }); // Profile + Assessment = 67%
       
-      // Return a successful response with the updated StarCard data
-      res.status(200).json(scores);
+      // Step 4: Return the COMPLETE STAR CARD OBJECT, not just scores
+      // This ensures the client has all the data needed immediately
+      res.status(200).json(updatedStarCard);
     } catch (error) {
       res.status(500).json({ message: "Server error" });
     }
