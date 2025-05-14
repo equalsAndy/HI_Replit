@@ -221,8 +221,16 @@ export type Question = typeof questions.$inferSelect;
 export type InsertAnswer = z.infer<typeof insertAnswerSchema>;
 export type Answer = typeof answers.$inferSelect;
 
+export enum AssessmentState {
+  Empty = 'empty',        // No assessment data exists
+  Partial = 'partial',    // Has assessment data (quadrant scores)
+  Complete = 'complete'   // Has both assessment and flow attributes
+}
+
 export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
-export type StarCard = typeof starCards.$inferSelect;
+export type StarCard = typeof starCards.$inferSelect & {
+  assessmentState?: AssessmentState;
+};
 
 export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
 export type FlowAttributes = typeof flowAttributes.$inferSelect;
