@@ -1182,7 +1182,7 @@ export default function UserHome() {
                       <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Star Card</h3>
                       
                       {/* Different content for placeholder vs completed star card */}
-                      {starCard.state === 'empty' ? (
+                      {(starCard.state === 'empty' || (starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) ? (
                         <>
                           <p className="text-gray-600 mb-4">
                             Your Star Card is waiting for you to complete the assessment. Take the Star Strengths Assessment 
