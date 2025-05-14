@@ -44,7 +44,7 @@ const upload = multer({
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed') as any;
+      cb(new Error('Only image files are allowed') as any);
     }
   }
 });
@@ -439,7 +439,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Also check if the user has a completed star card
       const existingStarCard = await storage.getStarCard(userId);
       const hasCompletedStarCard = existingStarCard && 
-                                   existingStarCard.pending === false && 
+                                   existingStarCard.state !== 'empty' && 
                                    ((existingStarCard.thinking ?? 0) > 0 || 
                                     (existingStarCard.acting ?? 0) > 0 || 
                                     (existingStarCard.feeling ?? 0) > 0 || 
@@ -883,8 +883,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let userId = null;
       try {
-        userId = req.cookies.userId ? parseInt(This change consolidates user ID checking logic across multiple endpoints.
-req.cookies.userId) : null;
+        // This change consolidates user ID checking logic across multiple endpoints
+        userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
       } catch (e) {
         userId = null;
       }

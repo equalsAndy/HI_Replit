@@ -182,7 +182,7 @@ export const insertStarCardSchema = createInsertSchema(starCards).pick({
   planning: true,
   createdAt: true,
   imageUrl: true,
-  pending: true,
+  state: true,
 });
 
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({
