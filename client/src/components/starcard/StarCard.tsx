@@ -189,6 +189,9 @@ export default function StarCard({
   // Determine if flow attributes are complete
   const hasFlowData = flowAttributes?.length > 0 && flowAttributes.every(attr => attr.text);
 
+  // Determine if the card is complete (has both assessment data and flow attributes)
+  const isCardComplete = cardState === 'complete' && hasFlowData;
+
   // Handle download
   const handleDownload = async () => {
     if (!cardRef.current) return;
@@ -290,44 +293,32 @@ export default function StarCard({
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              <div className="text-white text-xs font-medium text-center">
-                {hasStarCardData ? (
-                  <>
-                    <div>{getQuadrantAtPosition(3)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
-                  </>
-                ) : (
-                  <div className="text-xs italic">Awaiting data</div>
-                )}
-              </div>
+              {hasStarCardData && (
+                <div className="text-white text-xs font-medium text-center">
+                  <div>{getQuadrantAtPosition(3)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
+                </div>
+              )}
             </div>
 
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              <div className="text-white text-xs font-medium text-center">
-                {hasStarCardData ? (
-                  <>
-                    <div>{getQuadrantAtPosition(0)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
-                  </>
-                ) : (
-                  <div className="text-xs italic">Awaiting data</div>
-                )}
-              </div>
+              {hasStarCardData && (
+                <div className="text-white text-xs font-medium text-center">
+                  <div>{getQuadrantAtPosition(0)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
+                </div>
+              )}
             </div>
 
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              <div className="text-white text-xs font-medium text-center">
-                {hasStarCardData ? (
-                  <>
-                    <div>{getQuadrantAtPosition(2)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
-                  </>
-                ) : (
-                  <div className="text-xs italic">Awaiting data</div>
-                )}
-              </div>
+              {hasStarCardData && (
+                <div className="text-white text-xs font-medium text-center">
+                  <div>{getQuadrantAtPosition(2)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
+                </div>
+              )}
             </div>
 
             {/* Bottom Right */}
@@ -415,7 +406,7 @@ export default function StarCard({
         </div>
       </div>
 
-      {downloadable && !preview && hasCompletedAssessment && hasFlowData && (
+      {downloadable && !preview && isCardComplete && (
         <Button
           onClick={handleDownload}
           className="mt-4 bg-blue-600 hover:bg-blue-700"
