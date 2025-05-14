@@ -259,8 +259,9 @@ export default function StarCard({
           {/* The Four Quadrant Squares */}
           <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
             {/* Top Left */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              {hasStarCardData && (
+            <div className="aspect-square relative flex items-center justify-center" 
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+              {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(3)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
@@ -269,8 +270,9 @@ export default function StarCard({
             </div>
 
             {/* Top Right */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              {hasStarCardData && (
+            <div className="aspect-square relative flex items-center justify-center" 
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+              {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
@@ -279,8 +281,9 @@ export default function StarCard({
             </div>
 
             {/* Bottom Left */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              {hasStarCardData && (
+            <div className="aspect-square relative flex items-center justify-center" 
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+              {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
@@ -289,8 +292,9 @@ export default function StarCard({
             </div>
 
             {/* Bottom Right */}
-            <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              {hasStarCardData && (
+            <div className="aspect-square relative flex items-center justify-center" 
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+              {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
@@ -313,12 +317,14 @@ export default function StarCard({
                 top,
                 right,
                 left,
-                backgroundColor: flowAttributes[index]?.text 
+                // Only show colored flow squares in complete state
+                backgroundColor: cardState === 'complete' && flowAttributes[index]?.text 
                   ? (flowAttributes[index]?.color || 'rgb(156, 163, 175)') 
-                  : 'rgb(229, 231, 235)'
+                  : 'rgb(229, 231, 235)' // Default gray for empty and partial states
               }}
             >
-              {flowAttributes[index]?.text && cardState === 'complete' && (
+              {/* Only show text in complete state */}
+              {cardState === 'complete' && flowAttributes[index]?.text && (
                 <p className="text-[9px] font-medium text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
@@ -369,11 +375,11 @@ export default function StarCard({
         </div>
       </div>
 
-      {downloadable && !preview && isCardComplete && (
+      {downloadable && !preview && (
         <Button
           onClick={handleDownload}
           className="mt-4 bg-blue-600 hover:bg-blue-700"
-          disabled={downloading}
+          disabled={downloading || cardState === 'empty'}
         >
           {downloading ? "Downloading..." : "Download Star Card"}
         </Button>
