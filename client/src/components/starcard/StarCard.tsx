@@ -323,16 +323,12 @@ export default function StarCard({
 
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" style={{ backgroundColor: hasStarCardData ? (getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
-              <div className="text-white text-xs font-medium text-center">
-                {hasStarCardData ? (
-                  <>
-                    <div>{getQuadrantAtPosition(1)?.label}</div>
-                    <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
-                  </>
-                ) : (
-                  <div className="text-xs italic">Awaiting data</div>
-                )}
-              </div>
+              {hasStarCardData && (
+                <div className="text-white text-xs font-medium text-center">
+                  <div>{getQuadrantAtPosition(1)?.label}</div>
+                  <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -355,11 +351,11 @@ export default function StarCard({
                   : 'rgb(229, 231, 235)'
               }}
             >
-              <p className="text-[9px] font-medium text-center leading-tight">
-                {hasFlowData ? flowAttributes[index]?.text : (
-                  <span className="text-gray-500 italic text-[8px]">Awaiting data</span>
-                )}
-              </p>
+              {hasFlowData && (
+                <p className="text-[9px] font-medium text-center leading-tight">
+                  {flowAttributes[index]?.text}
+                </p>
+              )}
             </div>
           ))}
 
