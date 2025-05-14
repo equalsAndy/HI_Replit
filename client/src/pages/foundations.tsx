@@ -98,237 +98,307 @@ export default function Foundations() {
     enabled: !!user,
     staleTime: Infinity,
   });
-
-  // Get flow attributes data for the star card
+  
+  // Get flow attributes data
   const { data: flowAttributes } = useQuery<{ attributes: any[] }>({
     queryKey: ['/api/flow-attributes'],
     enabled: !!user,
     staleTime: Infinity,
   });
 
-  // Tab management
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    // Update URL with tab parameter
-    window.history.replaceState(null, '', `?tab=${value}`);
-    // Mark tab as completed when navigating to it
-    if (!completedTabs.includes(value)) {
-      setCompletedTabs([...completedTabs, value]);
+  // Check if a tab should be disabled
+  const isTabDisabled = (tabId: string): boolean => {
+    // The first tab is always accessible
+    if (tabId === "intro") return false;
+
+    // Check assessment completion status for StarCard tab
+    if (tabId === "starcard") {
+      // If no starCard exists, disable the tab
+      if (!starCard) return true;
+      
+      // Enable tab if any quadrant has a score greater than 0 (regardless of pending status)
+      if (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0) {
+        return false;
+      }
+      
+      // Otherwise disable the tab
+      return true;
+    }
+
+    // For sequential progression
+    const tabSequence = ["intro", "starcard", "reflect"];
+    const currentIndex = tabSequence.indexOf(activeTab);
+    const targetIndex = tabSequence.indexOf(tabId);
+
+    // Can only access tabs that are:
+    // 1. The current tab
+    // 2. Already completed tabs
+    // 3. The next tab in sequence
+    return !completedTabs.includes(tabId) && tabId !== activeTab && targetIndex > currentIndex + 1;
+  };
+
+  // Handle tab change
+  const handleTabChange = (tabId: string) => {
+    if (!isTabDisabled(tabId)) {
+      setActiveTab(tabId);
+      if (!completedTabs.includes(activeTab)) {
+        setCompletedTabs(prev => [...prev, activeTab]);
+      }
     }
   };
 
-  // Determine if a tab should be disabled
-  const isTabDisabled = (tabValue: string) => {
-    // Logic for tab progression
-    if (tabValue === 'intro') return false; // Intro always enabled
-    if (tabValue === 'starcard') return !completedTabs.includes('intro');
-    if (tabValue === 'reflect') return !completedTabs.includes('starcard');
-    if (tabValue === 'rounding') return !completedTabs.includes('reflect');
-    return false;
-  };
-
-  // Handle form submissions
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Logic for saving form data would go here
-    // For now, just advance to the next tab
-    if (activeTab === 'intro') handleTabChange('starcard');
-    else if (activeTab === 'starcard') handleTabChange('reflect');
-    else if (activeTab === 'reflect') handleTabChange('rounding');
-  };
-
-  // Check if there's data for the star card
-  const hasStarCardData = starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0);
-
   return (
     <div className="min-h-screen bg-gray-50">
-      <main className="container max-w-5xl mx-auto py-6 px-4">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <Link href="/" className="logo flex items-center cursor-pointer">
+            <img 
+              src="/src/assets/all-star-teams-logo-250px.png" 
+              alt="AllStarTeams" 
+              className="h-10 w-auto"
+            />
+          </Link>
+
+          <div className="flex items-center space-x-4">
+            <Button variant="outline" size="sm" className="rounded-md" asChild>
+              <Link href="/user-home">Dashboard</Link>
+            </Button>
+            <Button variant="destructive" size="sm" className="rounded-md">Logout</Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Individual Foundations</h1>
-          <p className="text-gray-600">
-            Explore and reflect on your unique strengths and flow attributes to maximize your potential.
-          </p>
+          <h1 className="text-2xl font-bold text-indigo-700">Understanding Your Star Card</h1>
+          <p className="text-gray-600">Learn about the four quadrants of your strengths profile</p>
         </div>
 
-        <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-          <Tabs value={activeTab} onValueChange={handleTabChange}>
-            <TabsList className="bg-gray-100 p-0 grid grid-cols-4">
-              <TabsTrigger 
-                value="intro" 
-                className="data-[state=active]:bg-white py-3"
-                disabled={isTabDisabled('intro')}
-              >
-                Introduction
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+            <TabsList className="grid grid-cols-4 mb-6">
+              <TabsTrigger value="intro" data-value="intro">Strengths</TabsTrigger>
+              <TabsTrigger value="assessment" data-value="assessment">Strengths Assessment</TabsTrigger>
+              <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
+                {isTabDisabled("starcard") ? (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    Your StarCard
+                  </span>
+                ) : "Your StarCard"}
               </TabsTrigger>
-              <TabsTrigger 
-                value="starcard" 
-                className="data-[state=active]:bg-white py-3"
-                disabled={isTabDisabled('starcard')}
-              >
-                Your Star Card
-              </TabsTrigger>
-              <TabsTrigger 
-                value="reflect" 
-                className="data-[state=active]:bg-white py-3"
-                disabled={isTabDisabled('reflect')}
-              >
-                Reflect on Strengths
-              </TabsTrigger>
-              <TabsTrigger 
-                value="rounding" 
-                className="data-[state=active]:bg-white py-3"
-                disabled={isTabDisabled('rounding')}
-              >
-                Rounding Out
+              <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
+                {isTabDisabled("reflect") ? (
+                  <span className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
+                    </svg>
+                    Reflect
+                  </span>
+                ) : "Reflect"}
               </TabsTrigger>
             </TabsList>
 
-            {/* Introduction tab */}
-            <TabsContent value="intro">
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center justify-center bg-indigo-600 text-white h-8 w-8 rounded-full font-bold">1</div>
-                  <h3 className="text-xl font-bold text-gray-800">Introduction</h3>
-                </div>
-
-                <p className="text-gray-700 mb-4">
-                  Welcome to the Individual Foundations module! This is your personal space to explore your unique strengths, identify your flow state attributes, and develop strategies to maximize your potential.
-                </p>
-
-                <p className="text-gray-700 mb-4">
-                  Through a series of reflective exercises, you'll gain deeper insights into:
-                </p>
-
-                <ul className="list-disc pl-5 mb-4 text-gray-700 space-y-2">
-                  <li>Your unique pattern of strengths across four dimensions</li>
-                  <li>How to leverage these strengths in different contexts</li>
-                  <li>The conditions that help you achieve flow state</li>
-                  <li>Strategies for rounding out your capabilities</li>
-                </ul>
-
-                <p className="text-gray-700 mb-6">
-                  This module builds upon your Star Strengths Assessment results and is designed to be completed at your own pace. Your responses are saved automatically.
-                </p>
-
-                <div className="flex space-x-2 mt-6">
-                  <Button 
-                    onClick={() => handleTabChange('starcard')}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                    disabled={isTabDisabled('starcard')}
-                  >
-                    Next: Your Star Card
+            <TabsContent value="assessment" className="space-y-6">
+              <div className="prose max-w-none">
+                <h2>Strengths Assessment</h2>
+                <p>Take the assessment to discover your unique strengths profile across the four quadrants: Thinking, Acting, Feeling, and Planning.</p>
+                <div className="flex justify-end mt-6">
+                  <Button onClick={() => navigate('/assessment')} className="bg-indigo-700 hover:bg-indigo-800">
+                    Take Assessment
                   </Button>
                 </div>
               </div>
             </TabsContent>
 
-            {/* Star Card tab */}
-            <TabsContent value="starcard">
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center justify-center bg-indigo-600 text-white h-8 w-8 rounded-full font-bold">2</div>
+            <TabsContent value="intro" className="space-y-6">
+              <div className="aspect-w-16 aspect-h-9 mb-4">
+                <iframe 
+                  src="https://www.youtube.com/embed/ao04eaeDIFQ" 
+                  title="Introduction to AllStarTeams" 
+                  frameBorder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                  className="w-full h-80 rounded border border-gray-200"
+                ></iframe>
+              </div>
+
+              <div className="prose max-w-none">
+                <h2>The Four Quadrants of Strengths</h2>
+                <p>
+                  The AllStarTeams framework identifies four key quadrants of strengths that every person possesses in different proportions:
+                </p>
+
+                <div className="grid grid-cols-2 gap-6 my-8">
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 className="text-blue-700 font-medium mb-2">Thinking</h3>
+                    <p className="text-sm">The ability to analyze, strategize, and process information logically. People strong in this quadrant excel at problem-solving and critical thinking.</p>
+                  </div>
+
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h3 className="text-green-700 font-medium mb-2">Acting</h3>
+                    <p className="text-sm">The ability to take decisive action, implement plans, and get things done. People strong in this quadrant are proactive and results-oriented.</p>
+                  </div>
+
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <h3 className="text-yellow-700 font-medium mb-2">Feeling</h3>
+                    <p className="text-sm">The ability to connect with others, empathize, and build relationships. People strong in this quadrant excel in team environments and social settings.</p>
+                  </div>
+
+                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                    <h3 className="text-purple-700 font-medium mb-2">Planning</h3>
+                    <p className="text-sm">The ability to organize, structure, and create systems. People strong in this quadrant excel at creating order and maintaining processes.</p>
+                  </div>
+                </div>
+
+                <h3>Your Assessment Journey</h3>
+                <p>
+                  In the upcoming assessment, you'll answer a series of questions designed to identify your natural strengths across these four quadrants. For each scenario, you'll rank options from "most like me" to "least like me."
+                </p>
+                <p>
+                  Remember: There are no right or wrong answers. The goal is to identify your authentic strengths so you can leverage them more effectively.
+                </p>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <Link href="/assessment">
+                  <Button 
+                    className="bg-indigo-700 hover:bg-indigo-800"
+                  >
+                    Next: AllStarTeams Assessment
+                  </Button>
+                </Link>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="starcard" className="space-y-6">
+              <div className="prose max-w-none">
+                <h2>Your Star Profile + Star Card</h2>
+                <p>
+                  Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in your development journey.
+                </p>
+
+                <div className="aspect-w-16 aspect-h-9 mb-6 mt-6">
+                  <iframe 
+                    src="https://www.youtube.com/embed/x6h7LDtdnJw" 
+                    title="Star Profile Review" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="w-full h-80 rounded border border-gray-200"
+                  ></iframe>
+                </div>
+
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
+                  <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
+                  <ul>
+                    <li>Reflect on your apex strength and how it shows up</li>
+                    <li>Consider how your profile shifts over time and in different roles</li>
+                    <li>Use your Star Card as a personal development compass</li>
+                  </ul>
+                </div>
+
+                <p>
+                  Watch the short video, then explore your profile with fresh eyes.
+                </p>
+              </div>
+
+              <div className="my-8 border border-gray-200 rounded-md overflow-hidden bg-white">
+                <div className="p-4 border-b border-gray-200 bg-gray-50">
                   <h3 className="text-xl font-bold text-center text-gray-800">STAR CARD</h3>
                 </div>
 
                 <div className="p-6">
-                  <div className="flex flex-col items-center mb-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-4">Your Star Profile</h4>
-                    
-                    {/* Always show the Star Card */}
-                    <StarCard 
-                      profile={{
-                        name: user?.name || "Your Name",
-                        title: user?.title || "Your Title",
-                        organization: user?.organization || "Your Organization"
-                      }}
-                      quadrantData={starCard ? {
-                        thinking: starCard.thinking || 0,
-                        acting: starCard.acting || 0,
-                        feeling: starCard.feeling || 0,
-                        planning: starCard.planning || 0
-                      } : {
-                        thinking: 0,
-                        acting: 0,
-                        feeling: 0,
-                        planning: 0
-                      }}
-                      imageUrl={starCard?.imageUrl || undefined}
-                      flowAttributes={
-                        flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
-                          ? flowAttributes.attributes.map((attr: any) => ({
-                              text: attr.name,
-                              color: getAttributeColor(attr.name)
-                            })) 
-                          : []
-                      }
-                    />
-                  </div>
-
-                  <div className="mt-6">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Understanding Your Star Card</h4>
-                    <p className="text-gray-700 mb-4">
-                      Your Star Card represents your unique combination of strengths across four dimensions: Thinking, Feeling, Acting, and Planning. Each person has a distinctive pattern - there's no right or wrong profile!
-                    </p>
-
-                    <div className="bg-gray-50 p-4 rounded-md mb-6">
-                      <h5 className="font-medium text-gray-800 mb-2">Four Core Dimensions</h5>
-                      <ul className="space-y-2">
-                        <li className="flex items-start">
-                          <div className="h-5 w-5 mr-2 mt-0.5" style={{ backgroundColor: QUADRANT_COLORS.thinking }}></div>
-                          <div>
-                            <span className="font-medium">Thinking:</span> Analytical, strategic, conceptual, innovative
-                          </div>
-                        </li>
-                        <li className="flex items-start">
-                          <div className="h-5 w-5 mr-2 mt-0.5" style={{ backgroundColor: QUADRANT_COLORS.feeling }}></div>
-                          <div>
-                            <span className="font-medium">Feeling:</span> Empathetic, intuitive, collaborative, supportive
-                          </div>
-                        </li>
-                        <li className="flex items-start">
-                          <div className="h-5 w-5 mr-2 mt-0.5" style={{ backgroundColor: QUADRANT_COLORS.acting }}></div>
-                          <div>
-                            <span className="font-medium">Acting:</span> Decisive, energetic, driven, bold
-                          </div>
-                        </li>
-                        <li className="flex items-start">
-                          <div className="h-5 w-5 mr-2 mt-0.5" style={{ backgroundColor: QUADRANT_COLORS.planning }}></div>
-                          <div>
-                            <span className="font-medium">Planning:</span> Organized, detail-oriented, consistent, reliable
-                          </div>
-                        </li>
-                      </ul>
+                  {(!starCard || (starCard && !starCard.thinking && !starCard.acting && !starCard.feeling && !starCard.planning)) ? (
+                    <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
+                      <p className="text-sm text-gray-500 mb-4">
+                        To view your StarCard, you need to complete the AllStarTeams assessment first.
+                      </p>
+                      <Link href="/assessment">
+                        <Button className="bg-indigo-600 hover:bg-indigo-700">
+                          Take the Assessment
+                        </Button>
+                      </Link>
                     </div>
-                    
-                    <Link href="/assessment">
-                      <Button variant="outline" className="mb-4">
-                        Retake Assessment
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                  ) : (
+                    <>
+                      {/* No duplicate profile section needed here */}
 
-                <div className="flex justify-between mt-6">
-                  <Button 
-                    onClick={() => !isTabDisabled("intro") && handleTabChange("intro")}
-                    variant="outline"
-                    disabled={isTabDisabled("intro")}
-                  >
-                    Previous: Introduction
-                  </Button>
-                  <Button 
-                    onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
-                    className="bg-indigo-600 hover:bg-indigo-700"
-                    disabled={isTabDisabled("reflect")}
-                  >
-                    Next: Reflect on Strengths
-                  </Button>
+                      {/* Star Card Visual */}
+                      <div className="mb-6">
+                        <StarCard 
+                          profile={{
+                            name: user?.name || "",
+                            title: user?.title || "",
+                            organization: user?.organization || "",
+                            avatarUrl: user?.avatarUrl
+                          }}
+                          quadrantData={{
+                            thinking: starCard.thinking || 0,
+                            acting: starCard.acting || 0,
+                            feeling: starCard.feeling || 0,
+                            planning: starCard.planning || 0
+                          }}
+                          downloadable={true}
+                          preview={false}
+                          // Pass the state field from the server so the component knows whether it's empty, partial, or complete
+                          pending={starCard.state === 'empty'}
+                          imageUrl={starCard.imageUrl}
+                          flowAttributes={
+                            flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) ? 
+                              flowAttributes.attributes.map((attr: any) => ({
+                                text: attr.name,
+                                color: getAttributeColor(attr.name)
+                              })) : 
+                              []
+                          }
+                        />
+                      </div>
+
+                      <div className="flex justify-between mt-6">
+                        <Button 
+                          onClick={() => !isTabDisabled("intro") && handleTabChange("intro")}
+                          variant="outline"
+                        >
+                          Previous: Strengths
+                        </Button>
+                        <Button 
+                          onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
+                          className="bg-indigo-700 hover:bg-indigo-800"
+                          disabled={isTabDisabled("reflect")}
+                        >
+                          Next: Reflect
+                        </Button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </TabsContent>
 
-            {/* Reflect on Strengths tab */}
-            <TabsContent value="reflect">
+            <TabsContent value="reflect" className="space-y-6">
+              <div className="prose max-w-none">
+                <h2>Your Core Strengths</h2>
+                <p>
+                  This exercise helps you reflect on how your core strengths show up in real situations. It builds clarity and confidence by grounding your strengths in lived experience — so you can recognize, trust, and apply them more intentionally.
+                </p>
+
+                <div className="aspect-w-16 aspect-h-9 mb-6 mt-6">
+                  <iframe 
+                    src="https://www.youtube.com/embed/Le_HtpWziQE" 
+                    title="Your Core Strengths" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="w-full h-80 rounded border border-gray-200"
+                  ></iframe>
+                </div>
+              </div>
+
               <div className="bg-white rounded-lg p-6 mb-8">
                 <div className="flex items-center space-x-2 mb-6">
                   <div className="flex items-center justify-center bg-blue-600 text-white h-8 w-8 rounded-full font-bold">A</div>
@@ -344,82 +414,118 @@ export default function Foundations() {
                   </p>
                 </div>
 
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        How and when I use my 1st strength
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
+                {(!starCard || (starCard && starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) ? (
+                  <div className="text-center p-8 bg-gray-50 rounded-lg border border-gray-200">
+                    <h4 className="font-medium text-red-600 mb-2">Assessment Required</h4>
+                    <p className="text-sm text-gray-500 mb-4">
+                      To access this reflection, you need to complete the AllStarTeams assessment first.
+                    </p>
+                    <Link href="/assessment">
+                      <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        Take the Assessment
+                      </Button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 1st strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 2nd strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
                     </div>
 
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        How and when I use my 2nd strength
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Reflect on your Stress Coping Strengths
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how you use your strengths under stress..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 3rd strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Three complementary strengths I value in others
+                        </label>
+                        <Textarea 
+                          placeholder="Describe strengths you appreciate in colleagues and teammates..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          Current or future projects I'm really enthused about
+                        </label>
+                        <Textarea 
+                          placeholder="Describe projects that excite or inspire you..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          What I uniquely bring to the team
+                        </label>
+                        <Textarea 
+                          placeholder="Describe your unique contribution to your team or organization..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-2">
+                          How and when I use my 4th strength
+                        </label>
+                        <Textarea 
+                          placeholder="Describe how this strength shows up in your life..."
+                          className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex space-x-2 mt-6">
+                      <Button className="bg-indigo-600 hover:bg-indigo-700">
+                        Save
+                      </Button>
+                      <Button variant="outline">
+                        Return
+                      </Button>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        How and when I use my 3rd strength
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how this strength shows up in your life..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        What I uniquely bring to the team
-                      </label>
-                      <Textarea 
-                        placeholder="Describe your unique contribution to your team or organization..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        What I value in others
-                      </label>
-                      <Textarea 
-                        placeholder="Describe what you appreciate most in your colleagues..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        What I'm professionally enthusiastic about
-                      </label>
-                      <Textarea 
-                        placeholder="Describe what excites you most about your professional work..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2 mt-6">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700">
-                      Save
-                    </Button>
-                    <Button variant="outline">
-                      Return
-                    </Button>
-                  </div>
-                </div>
+                )}
               </div>
 
               <div className="flex justify-between mt-6">
@@ -428,98 +534,7 @@ export default function Foundations() {
                   variant="outline"
                   disabled={isTabDisabled("starcard")}
                 >
-                  Previous: Your Star Card
-                </Button>
-                <Button 
-                  onClick={() => !isTabDisabled("rounding") && handleTabChange("rounding")}
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                  disabled={isTabDisabled("rounding")}
-                >
-                  Next: Rounding Out
-                </Button>
-              </div>
-            </TabsContent>
-
-            {/* Rounding Out tab */}
-            <TabsContent value="rounding">
-              <div className="bg-white rounded-lg p-6 mb-8">
-                <div className="flex items-center space-x-2 mb-6">
-                  <div className="flex items-center justify-center bg-green-600 text-white h-8 w-8 rounded-full font-bold">B</div>
-                  <h3 className="text-xl font-bold text-gray-800">Rounding Out Your Profile</h3>
-                </div>
-
-                <div className="mb-6">
-                  <p className="text-gray-700 mb-2">
-                    <span className="font-medium">Purpose:</span> Identify areas for your continued development and growth.
-                  </p>
-                  <p className="text-gray-700">
-                    <span className="font-medium">Directions:</span> Respond to the prompts below.
-                  </p>
-                </div>
-
-                <div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        Areas where I'd like to grow
-                      </label>
-                      <Textarea 
-                        placeholder="Describe areas where you'd like to develop new capabilities..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        How I can leverage my strengths to support growth
-                      </label>
-                      <Textarea 
-                        placeholder="Describe how your current strengths can help you develop in new areas..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        Specific actions I can take
-                      </label>
-                      <Textarea 
-                        placeholder="List concrete steps you can take to develop in your target areas..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-2">
-                        Resources or support I need
-                      </label>
-                      <Textarea 
-                        placeholder="Describe what resources, mentoring, or support would help you..."
-                        className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex space-x-2 mt-6">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700">
-                      Save
-                    </Button>
-                    <Button variant="outline">
-                      Return
-                    </Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex justify-between mt-6">
-                <Button 
-                  onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
-                  variant="outline"
-                  disabled={isTabDisabled("reflect")}
-                >
-                  Previous: Reflect on Strengths
+                  Previous: Your StarCard
                 </Button>
                 <Link href="/find-your-flow">
                   <Button className="bg-indigo-600 hover:bg-indigo-700">

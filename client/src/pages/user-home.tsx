@@ -1181,37 +1181,74 @@ export default function UserHome() {
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Star Card</h3>
                       
-                      {/* Always show the Star Card regardless of state */}
-                      <p className="text-gray-600 mb-4">
-                        This visualization shows your unique combination of strengths across four dimensions:
-                        Thinking, Feeling, Acting, and Planning.
-                      </p>
-                      <div className="bg-white p-6 rounded-lg border border-gray-200">
-                        <StarCard 
-                          profile={{
-                            name: user?.name || "",
-                            title: user?.title || "",
-                            organization: user?.organization || ""
-                          }}
-                          quadrantData={{
-                            thinking: starCard.thinking || 0,
-                            acting: starCard.acting || 0,
-                            feeling: starCard.feeling || 0,
-                            planning: starCard.planning || 0
-                          }}
-                          imageUrl={starCard.imageUrl}
-                          // We're no longer using the pending prop to show the "Assessment Required" message
-                          pending={false}
-                          flowAttributes={
-                            flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
-                              ? flowAttributes.attributes.map((attr: any) => ({
-                                  text: attr.name,
-                                  color: getAttributeColor(attr.name)
-                                })) 
-                              : []
-                          }
-                        />
-                      </div>
+                      {/* Different content for placeholder vs completed star card */}
+                      {starCard.state === 'empty' ? (
+                        <>
+                          <p className="text-gray-600 mb-4">
+                            Your Star Card is waiting for you to complete the assessment. Take the Star Strengths Assessment 
+                            to see your unique combination of strengths across four dimensions.
+                          </p>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200">
+                            <StarCard 
+                              profile={{
+                                name: user?.name || "",
+                                title: user?.title || "",
+                                organization: user?.organization || ""
+                              }}
+                              quadrantData={{
+                                thinking: 0,
+                                acting: 0,
+                                feeling: 0,
+                                planning: 0
+                              }}
+                              imageUrl={starCard.imageUrl}
+                              pending={true}
+                              flowAttributes={
+                                flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
+                                  ? flowAttributes.attributes.map((attr: any) => ({
+                                      text: attr.name,
+                                      color: getAttributeColor(attr.name)
+                                    })) 
+                                  : []
+                              }
+                            />
+
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-gray-600 mb-4">
+                            This visualization shows your unique combination of strengths across four dimensions:
+                            Thinking, Feeling, Acting, and Planning.
+                          </p>
+                          <div className="bg-white p-6 rounded-lg border border-gray-200">
+                            <StarCard 
+                              profile={{
+                                name: user?.name || "",
+                                title: user?.title || "",
+                                organization: user?.organization || ""
+                              }}
+                              quadrantData={{
+                                thinking: starCard.thinking || 0,
+                                acting: starCard.acting || 0,
+                                feeling: starCard.feeling || 0,
+                                planning: starCard.planning || 0
+                              }}
+                              imageUrl={starCard.imageUrl}
+                              // Pass the state field from the server so the component knows whether it's empty, partial, or complete
+                              pending={starCard.state === 'empty'}
+                              flowAttributes={
+                                flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) 
+                                  ? flowAttributes.attributes.map((attr: any) => ({
+                                      text: attr.name,
+                                      color: getAttributeColor(attr.name)
+                                    })) 
+                                  : []
+                              }
+                            />
+                          </div>
+                        </>
+                      )}
                     </div>
                   </>
                 ) : (
