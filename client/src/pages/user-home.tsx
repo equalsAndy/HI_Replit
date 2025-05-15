@@ -1266,8 +1266,8 @@ export default function UserHome() {
                       {starCard.state === 'empty' ? (
                         <>
                           <p className="text-gray-600 mb-4">
-                            Your Star Card is waiting for you to complete the assessment. Take the Star Strengths Assessment 
-                            to see your unique combination of strengths across four dimensions.
+                            Your Star Card will visually represent your unique strengths profile. As you progress through the workshop activities, 
+                            you'll fill out this Star Card, revealing your distinctive pattern of strengths across four dimensions.
                           </p>
                           <div className="bg-white p-6 rounded-lg border border-gray-200">
                             <StarCard 
@@ -1299,8 +1299,9 @@ export default function UserHome() {
                       ) : (
                         <>
                           <p className="text-gray-600 mb-4">
-                            This visualization shows your unique combination of strengths across four dimensions:
-                            Thinking, Feeling, Acting, and Planning.
+                            This visualization shows your unique pattern of strengths across four dimensions:
+                            Thinking, Feeling, Acting, and Planning. As you continue through the workshop activities,
+                            you'll gain deeper insights into how to leverage these strengths effectively in your professional life.
                           </p>
                           <div className="bg-white p-6 rounded-lg border border-gray-200">
                             <StarCard 
