@@ -498,16 +498,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!userId) {
         userId = 1; // Default to user ID 1 for development
       }
-
-      const answerData = insertAnswerSchema.parse({ ...req.body, userId });
+      
+      console.log("Saving answer for user:", userId, "with data:", req.body);
+      
+      // Extract the data we need from the request
+      const { questionId, rankings } = req.body;
+      
+      if (!questionId || !rankings) {
+        return res.status(400).json({ 
+          message: "Invalid input", 
+          details: "Missing required fields: questionId or rankings" 
+        });
+      }
+      
+      // Create the answer data with the correct structure
+      const answerData = {
+        userId,
+        questionId: parseInt(questionId),
+        ranking: rankings // Pass the rankings directly as a JSON object
+      };
+      
+      console.log("Processed answer data:", answerData);
+      
+      // Save to database
       const answer = await storage.saveAnswer(answerData);
+      console.log("Saved answer:", answer);
 
       res.status(201).json(answer);
     } catch (error) {
+      console.error("Error saving answer:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid input", errors: error.errors });
       }
-      res.status(500).json({ message: "Server error" });
+      res.status(500).json({ message: "Server error: " + String(error) });
     }
   });
 

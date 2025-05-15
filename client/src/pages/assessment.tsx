@@ -422,6 +422,12 @@ export default function Assessment() {
       ...prev,
       [currentQuestion.id]: rankingData
     }));
+    
+    // Save the answer to the server
+    saveAnswer.mutate({
+      questionId: currentQuestion.id,
+      rankings: rankingData
+    });
 
     // Update progress based on local state
     const newProgress = Math.floor(((Object.keys(answers).length + 1) / totalQuestions) * 100);
@@ -434,8 +440,8 @@ export default function Assessment() {
       const results = getQuadrantScores();
       console.log("Assessment Results:", results);
 
-      // In a real app, we would submit these results to the server
-      // completeAssessment.mutate();
+      // Submit these results to the server
+      completeAssessment.mutate();
 
       // Set the results and show the popup
       setAssessmentResults(results);
