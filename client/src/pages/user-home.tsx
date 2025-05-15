@@ -138,11 +138,11 @@ export default function UserHome() {
   const { toast } = useToast();
   const { currentApp } = useApplication();
 
-  // Expandable sections state
+  // Expandable sections state - ensures sections are collapsed by default
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
-  // Selected imaginal content
-  const [selectedContent, setSelectedContent] = useState<string>("introduction");
+  // Selected imaginal content - initializing to null to prevent auto-expansion
+  const [selectedContent, setSelectedContent] = useState<string | null>(null);
 
   // Profile form state
   const [profileData, setProfileData] = useState({
