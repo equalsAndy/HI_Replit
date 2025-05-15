@@ -114,10 +114,10 @@ export default function StarCard({
   const cardState = useMemo(() => {
     // First check if state is explicitly provided in props
     if (state) return state;
-
+    
     // Then check if it's in the quadrant data
     if ((derivedQuadrantData as any).state) return (derivedQuadrantData as any).state;
-
+    
     // Otherwise determine based on data presence:
     if (hasFlowAttributes && hasScores) return 'complete';
     if (hasScores) return 'partial';
@@ -157,7 +157,7 @@ export default function StarCard({
 
     // If all scores are equal, maintain consistent ordering
     const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score && q.score > 0);
-
+    
     let sorted;
     if (allScoresEqual) {
       // Use a fixed order for equal scores
@@ -298,7 +298,7 @@ export default function StarCard({
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
-                  <div>ACTING</div>
+                  <div>{getQuadrantAtPosition(3)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
                 </div>
               )}
@@ -309,7 +309,7 @@ export default function StarCard({
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-[0.85rem] font-medium text-center">
-                  <div>ACTING</div>
+                  <div>{getQuadrantAtPosition(0)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
                 </div>
               )}
@@ -320,7 +320,7 @@ export default function StarCard({
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-[0.85rem] font-medium text-center">
-                  <div>ACTING</div>
+                  <div>{getQuadrantAtPosition(2)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
                 </div>
               )}
@@ -331,7 +331,7 @@ export default function StarCard({
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-[0.85rem] font-medium text-center">
-                  <div>ACTING</div>
+                  <div>{getQuadrantAtPosition(1)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
                 </div>
               )}
