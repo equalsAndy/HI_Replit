@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -130,7 +130,19 @@ export default function FindYourFlow() {
   const { isDemoMode } = useDemoMode();
   
   // Helper functions for attribute selection
+
+  // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
+    // Don't allow selection if card is already complete
+    if (isCardComplete) {
+      toast({
+        title: "Card already complete",
+        description: "Your Star Card is already complete with flow attributes. Reset your data to make changes.",
+        variant: "default"
+      });
+      return;
+    }
+    
     // Check if attribute is already in the list (selected)
     const existingAttr = selectedAttributes.find(attr => attr.text === text);
     
@@ -932,7 +944,7 @@ export default function FindYourFlow() {
                 <div className="mt-6">
                   <Button
                     className="w-full bg-indigo-700 hover:bg-indigo-800"
-                    disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4}
+                    disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || isCardComplete}
                     onClick={() => {
                       // Create a new version of the StarCard component with the flow attributes
                       const rankedAttributes = selectedAttributes
