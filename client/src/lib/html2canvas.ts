@@ -13,20 +13,10 @@ export async function downloadElementAsImage(
     // Create canvas from the element
     const canvas = await html2canvas(element, {
       backgroundColor: null,
-      scale: 2,
+      scale: 2, // Higher scale for better quality
       logging: false,
       useCORS: true,
       allowTaint: true,
-      foreignObjectRendering: true,
-      removeContainer: false,
-      letterRendering: true,
-      onclone: (clonedDoc) => {
-        const clonedElement = clonedDoc.getElementById(element.id);
-        if (clonedElement) {
-          clonedElement.style.transform = 'none';
-          clonedElement.style.backfaceVisibility = 'hidden';
-        }
-      }
     });
 
     // Convert canvas to data URL
