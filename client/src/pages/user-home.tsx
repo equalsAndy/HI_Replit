@@ -27,42 +27,43 @@ const QUADRANT_COLORS = {
 
 // Helper function to map attribute names to their color
 function getAttributeColor(attrName: string): string {
-  // Default to primary colors by category
-  const attrColorMap: { [key: string]: string } = {
-    // Thinking quadrant attributes (green)
-    'Analytical': 'rgb(1, 162, 82)',
-    'Strategic': 'rgb(1, 162, 82)',
-    'Thoughtful': 'rgb(1, 162, 82)',
-    'Clever': 'rgb(1, 162, 82)',
-    'Innovative': 'rgb(1, 162, 82)',
-    'Investigative': 'rgb(1, 162, 82)',
-    
-    // Acting quadrant attributes (red)
-    'Energetic': 'rgb(241, 64, 64)',
-    'Bold': 'rgb(241, 64, 64)',
-    'Decisive': 'rgb(241, 64, 64)',
-    'Proactive': 'rgb(241, 64, 64)',
-    'Persistent': 'rgb(241, 64, 64)',
-    'Physical': 'rgb(241, 64, 64)',
-    'Confident': 'rgb(241, 64, 64)',
-    
-    // Feeling quadrant attributes (blue)
-    'Empathetic': 'rgb(22, 126, 253)',
-    'Friendly': 'rgb(22, 126, 253)',
-    'Supportive': 'rgb(22, 126, 253)',
-    'Compassionate': 'rgb(22, 126, 253)',
-    'Intuitive': 'rgb(22, 126, 253)',
-    'Adaptable': 'rgb(22, 126, 253)',
-    
-    // Planning quadrant attributes (yellow)
-    'Organized': 'rgb(255, 203, 47)',
-    'Meticulous': 'rgb(255, 203, 47)',
-    'Reliable': 'rgb(255, 203, 47)',
-    'Consistent': 'rgb(255, 203, 47)',
-    'Practical': 'rgb(255, 203, 47)',
-  };
+  if (!attrName) return 'rgb(100, 100, 100)'; // Handle null/undefined
   
-  return attrColorMap[attrName] || 'rgb(100, 100, 100)'; // Default gray if not found
+  // Default to primary colors by category
+  const thinkingAttributes = [
+    'Analytical', 'Strategic', 'Thoughtful', 'Clever', 'Innovative', 'Investigative',
+    'Reflective', 'Astute', 'Insightful', 'Creative', 'Logical', 'Conceptual'
+  ];
+  
+  const actingAttributes = [
+    'Energetic', 'Bold', 'Decisive', 'Proactive', 'Persistent', 'Physical',
+    'Confident', 'Action-oriented', 'Determined', 'Dynamic', 'Resilient'
+  ];
+  
+  const feelingAttributes = [
+    'Empathetic', 'Friendly', 'Supportive', 'Compassionate', 'Intuitive', 'Adaptable',
+    'Accepting', 'Harmonious', 'Connected', 'Empowering', 'Perceptive'
+  ];
+  
+  const planningAttributes = [
+    'Organized', 'Meticulous', 'Reliable', 'Consistent', 'Practical', 'Focussed',
+    'Systematic', 'Structured', 'Methodical', 'Disciplined', 'Prepared'
+  ];
+  
+  // Convert to lowercase for case-insensitive comparison
+  const normalizedName = attrName.trim();
+  
+  if (thinkingAttributes.includes(normalizedName)) {
+    return 'rgb(1, 162, 82)'; // Green for thinking
+  } else if (actingAttributes.includes(normalizedName)) {
+    return 'rgb(241, 64, 64)'; // Red for acting
+  } else if (feelingAttributes.includes(normalizedName)) {
+    return 'rgb(22, 126, 253)'; // Blue for feeling
+  } else if (planningAttributes.includes(normalizedName)) {
+    return 'rgb(255, 203, 47)'; // Yellow for planning
+  }
+  
+  return 'rgb(100, 100, 100)'; // Default gray if not found
 }
 
 // Define the user type based on the app's data structure
