@@ -936,12 +936,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Set a test cookie to verify cookie functionality
       res.cookie("testDebugCookie", "working", COOKIE_OPTIONS);
 
-      res.status(200).json({
+      // Get assessment and star card data for debugging
+      let debugData: any = {
         cookies: req.cookies,
         parsedUserId: userId,
         cookieOptions: COOKIE_OPTIONS,
         message: "Debug info returned, check server logs"
-      });
+      };
+
+      // If we have a user ID, get more detailed data
+      if (userId) {
+        try {
+          // Get detailed data for debug
+          console.log("Debug route - getting detailed data for userId:", userId);
+          const user = await storage.getUser(userId);
+          const assessment = await storage.getAssessment(userId);
+          const starCard = await storage.getStarCard(userId);
+          
+          const answers = await storage.getAnswers(userId);
+          const answersCount = answers?.length || 0;
+          
+          const flowAttributes = await storage.getFlowAttributes(userId);
+          
+          // Log everything
+          console.log("Debug - User:", user);
+          console.log("Debug - Assessment:", assessment);
+          console.log("Debug - Star Card:", starCard);
+          console.log("Debug - Answers Count:", answersCount);
+          console.log("Debug - Flow Attributes:", flowAttributes);
+          
+          // Include all the data in the debug response
+          debugData = {
+            ...debugData,
+            user,
+            assessment,
+            starCard,
+            answers,
+            answersCount,
+            flowAttributes
+          };
+        } catch (err) {
+          console.error("Error getting debug data:", err);
+          debugData.dataError = String(err);
+        }
+      }
+
+      res.status(200).json(debugData);
     } catch (error) {
       console.error("Error in debug route:", error);
       res.status(500).json({ message: "Server error" });
