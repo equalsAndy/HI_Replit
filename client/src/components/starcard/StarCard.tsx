@@ -225,13 +225,13 @@ export default function StarCard({
       <div 
         ref={cardRef}
         className="bg-white border border-gray-200 rounded-lg p-5"
-        style={{ width: '400px', height: '555px' }}
+        style={{ width: '440px', height: '610px' }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 
         {/* User Profile */}
         <div className="flex items-center mb-6">
-          <div className="rounded-full h-16 w-16 overflow-hidden mr-4 border border-gray-300">
+          <div className="rounded-full h-[70px] w-[70px] overflow-hidden mr-5 border border-gray-300">
             {imageUrl || derivedProfile.avatarUrl ? (
               <img 
                 src={imageUrl || derivedProfile.avatarUrl} 
@@ -259,7 +259,7 @@ export default function StarCard({
               src={cloudImage} 
               alt="Cloud" 
               className="w-[98%] object-contain absolute top-0 left-[1%]"
-              style={{ height: '80px' }}
+              style={{ height: '88px' }}
             />
 
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
@@ -271,7 +271,7 @@ export default function StarCard({
         </div>
 
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
           {/* Flow Label - moved up by 3px */}
           <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '2px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
@@ -284,15 +284,15 @@ export default function StarCard({
 
           {/* Center Star - position adjusted and star made slightly smaller */}
           <div className="absolute z-20" style={{ left: '115px', top: '10px' }}>
-            <div className="h-[52px] w-[52px] rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-9 w-9 text-gray-400">
+            <div className="h-[57px] w-[57px] rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
 
           {/* The Four Quadrant Squares */}
-          <div className="absolute grid grid-cols-2 gap-[3px] w-[132px] h-[132px] z-10" style={{ left: '73px', top: '78px' }}>
+          <div className="absolute grid grid-cols-2 gap-[3px] w-[145px] h-[145px] z-10" style={{ left: '80px', top: '86px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
@@ -347,7 +347,7 @@ export default function StarCard({
           ].map(({top, right, left, index}) => (
             <div 
               key={index}
-              className="absolute w-[66px] h-[66px] text-white border border-gray-300 flex items-center justify-center"
+              className="absolute w-[73px] h-[73px] text-white border border-gray-300 flex items-center justify-center"
               style={{
                 top,
                 right,
