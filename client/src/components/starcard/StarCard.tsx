@@ -368,8 +368,8 @@ export default function StarCard({
           ))}
 
           {/* Right vertical arrow connecting top-right and bottom-right flow boxes */}
-          <div className="absolute" style={{ right: '44px', top: '105px', height: '84px' }}>
-            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
+          <div className="absolute" style={{ right: '43px', top: '95px', height: '105px' }}>
+            <div className="absolute left-0 top-0 h-[105px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M5 10 L0 5 L10 5 Z" fill="#9CA3AF" />
@@ -378,8 +378,8 @@ export default function StarCard({
           </div>
 
           {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes */}
-          <div className="absolute" style={{ top: '234px', left: '89px', width: '73px' }}>
-            <div className="absolute left-0 top-0 w-[73px] h-[1px] bg-gray-400"></div>
+          <div className="absolute" style={{ top: '233px', left: '77px', width: '102px' }}>
+            <div className="absolute left-0 top-0 w-[102px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M0 5 L5 0 L5 10 Z" fill="#9CA3AF" />
@@ -388,8 +388,8 @@ export default function StarCard({
           </div>
 
           {/* Left vertical arrow connecting top-left and bottom-left flow boxes */}
-          <div className="absolute" style={{ left: '44px', top: '105px', height: '84px' }}>
-            <div className="absolute left-0 top-0 h-[84px] w-[1px] bg-gray-400"></div>
+          <div className="absolute" style={{ left: '43px', top: '95px', height: '105px' }}>
+            <div className="absolute left-0 top-0 h-[105px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
                 <path d="M5 0 L0 5 L10 5 Z" fill="#9CA3AF" />
