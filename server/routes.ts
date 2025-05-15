@@ -114,14 +114,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update the existing star card with the new image URL
         await storage.updateStarCard(starCard.id, { imageUrl });
       } else {
-        // Create a new star card with default values and the image URL
+        // Create a new star card with zero values and the image URL
         await storage.createStarCard({
           userId,
-          thinking: 25,
-          acting: 25,
-          feeling: 25, 
-          planning: 25,
+          thinking: 0,
+          acting: 0,
+          feeling: 0, 
+          planning: 0,
           imageUrl,
+          state: 'empty',
           createdAt: new Date().toISOString()
         });
       }
