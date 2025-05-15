@@ -809,7 +809,7 @@ export default function Assessment() {
                   navigate('/foundations?tab=star-card');
                 }}
               >
-                Continue to Foundations
+                Continue to Your Star Card
               </Button>
             </div>
           </div>
