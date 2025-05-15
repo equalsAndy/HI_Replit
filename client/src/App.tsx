@@ -11,19 +11,28 @@ import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import UserHome from "@/pages/user-home";
 import { TestUserBanner } from "@/components/test-users/TestUserBanner";
+
+// Import module pages
 import FindYourFlow from "./pages/find-your-flow";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
+
+// Import Imaginal Agility pages
 import ImaginationAssessment from "./pages/imagination-assessment";
 import FiveCsAssessment from "./pages/5cs-assessment";
 import InsightsDashboard from "./pages/insights-dashboard";
 import TeamWorkshop from "./pages/team-workshop";
+
+// Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
 import { ApplicationProvider } from "@/hooks/use-application";
+
+// Import NavBar
 import { NavBar } from "./components/layout/NavBar";
 
 function Router() {
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
+  // Query user profile with proper error handling
   const { data: user, isLoading } = useQuery<{
     id: number;
     name: string;
@@ -33,10 +42,34 @@ function Router() {
     progress?: number;
   }>({ queryKey: ['/api/user/profile'] });
 
+  useEffect(() => {
+    if (!isLoading) {
+      const path = window.location.pathname;
+      // If not logged in and not on allowed public pages, redirect to auth
+      if (!user && path !== '/auth' && path !== '/' && path !== '/logout') {
+        navigate('/auth');
+      }
+      // If logged in and on auth page, go to user home
+      if (user && path === '/auth') {
+        navigate('/user-home');
+      }
+    }
+  }, [user, isLoading, navigate]);
+
+  // Show the test user banner when logged in 
+  // and not on public pages (landing or auth)
+  const showTestBanner = user && 
+    window.location.pathname !== '/' && 
+    window.location.pathname !== '/auth';
+
   return (
     <div className="flex flex-col min-h-screen">
-      {user && location !== '/' && location !== '/auth' && (
-        <TestUserBanner userId={user.id} userName={user.name} />
+      {/* Only show banner when user data is available and properly typed */}
+      {showTestBanner && user?.id && user?.name && (
+        <TestUserBanner 
+          userId={user.id} 
+          userName={user.name} 
+        />
       )}
       <NavBar />
       <div className="flex-1">
@@ -44,11 +77,41 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
+          <Route path="/logout" component={() => {
+            // Simplified logout page
+            useEffect(() => {
+              const logout = async () => {
+                try {
+                  // Make a fetch request directly instead of using apiRequest
+                  await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                  });
+                } catch (error) {
+                  console.error("Logout failed:", error);
+                } finally {
+                  // Always redirect to auth page
+                  window.location.href = '/auth';
+                }
+              };
+              
+              logout();
+            }, []);
+            
+            return <div className="flex items-center justify-center min-h-screen">
+              <div className="text-center">
+                <h2 className="text-xl mb-4">Logging out...</h2>
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 mx-auto"></div>
+              </div>
+            </div>;
+          }} />
           <Route path="/foundations" component={Foundations} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/report" component={Report} />
           <Route path="/find-your-flow" component={FindYourFlow} />
           <Route path="/visualize-yourself" component={VisualizeYourself} />
+          
+          {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />
@@ -60,7 +123,7 @@ function Router() {
   );
 }
 
-export default function App() {
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -74,3 +137,5 @@ export default function App() {
     </QueryClientProvider>
   );
 }
+
+export default App;

@@ -13,15 +13,10 @@ export async function downloadElementAsImage(
     // Create canvas from the element
     const canvas = await html2canvas(element, {
       backgroundColor: null,
-      scale: 3, // Increased scale for better quality
+      scale: 2, // Higher scale for better quality
       logging: false,
       useCORS: true,
       allowTaint: true,
-      foreignObjectRendering: true,
-      imageTimeout: 0,
-      removeContainer: true,
-      width: element.offsetWidth,
-      height: element.offsetHeight
     });
 
     // Convert canvas to data URL
