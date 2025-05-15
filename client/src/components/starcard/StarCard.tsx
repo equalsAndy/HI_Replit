@@ -297,7 +297,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(3)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
                 </div>
@@ -360,7 +360,7 @@ export default function StarCard({
             >
               {/* Show text if attribute exists */}
               {flowAttributes[index]?.text && (
-                <p className="text-[11.5px] font-bold text-center leading-tight">
+                <p className="text-[10px] font-bold text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
               )}
