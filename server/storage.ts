@@ -79,8 +79,10 @@ export class MemStorage implements IStorage {
   private currentFlowAttributesId: number;
   private currentVisualizationId: number;
   public sessionStore: any;
+  private readonly dataFile = '.data/storage.json';
   
   constructor() {
+    // Initialize maps
     this.users = new Map();
     this.assessments = new Map();
     this.questions = new Map();
@@ -88,13 +90,44 @@ export class MemStorage implements IStorage {
     this.starCards = new Map();
     this.flowAttributes = new Map();
     this.visualizations = new Map();
-    this.currentUserId = 1;
-    this.currentAssessmentId = 1;
-    this.currentQuestionId = 1;
-    this.currentAnswerId = 1;
-    this.currentStarCardId = 1;
-    this.currentFlowAttributesId = 1;
-    this.currentVisualizationId = 1;
+    
+    // Load persisted data if it exists
+    try {
+      const data = require('fs').readFileSync(this.dataFile, 'utf8');
+      const parsed = JSON.parse(data);
+      
+      // Restore maps from persisted data
+      this.users = new Map(parsed.users);
+      this.assessments = new Map(parsed.assessments);
+      this.answers = new Map(parsed.answers);
+      this.starCards = new Map(parsed.starCards);
+      this.flowAttributes = new Map(parsed.flowAttributes);
+      this.visualizations = new Map(parsed.visualizations);
+      
+      // Restore counters
+      this.currentUserId = parsed.currentUserId || 1;
+      this.currentAssessmentId = parsed.currentAssessmentId || 1;
+      this.currentAnswerId = parsed.currentAnswerId || 1;
+      this.currentStarCardId = parsed.currentStarCardId || 1;
+      this.currentFlowAttributesId = parsed.currentFlowAttributesId || 1;
+      this.currentVisualizationId = parsed.currentVisualizationId || 1;
+    } catch (e) {
+      // If file doesn't exist or is invalid, start with defaults
+      this.currentUserId = 1;
+      this.currentAssessmentId = 1;
+      this.currentQuestionId = 1;
+      this.currentAnswerId = 1;
+      this.currentStarCardId = 1;
+      this.currentFlowAttributesId = 1;
+      this.currentVisualizationId = 1;
+      
+      // Ensure data directory exists
+      const fs = require('fs');
+      const dir = '.data';
+      if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir);
+      }
+    }
     
     // Session store for in-memory storage
     const MemoryStore = createMemoryStore(session);
@@ -125,6 +158,7 @@ export class MemStorage implements IStorage {
     const id = this.currentUserId++;
     const user: User = { ...insertUser, id };
     this.users.set(id, user);
+    await this.saveData();
     return user;
   }
 
@@ -361,6 +395,25 @@ export class MemStorage implements IStorage {
     }
   }
   
+  private async saveData() {
+    const data = {
+      users: Array.from(this.users.entries()),
+      assessments: Array.from(this.assessments.entries()),
+      answers: Array.from(this.answers.entries()),
+      starCards: Array.from(this.starCards.entries()),
+      flowAttributes: Array.from(this.flowAttributes.entries()),
+      visualizations: Array.from(this.visualizations.entries()),
+      currentUserId: this.currentUserId,
+      currentAssessmentId: this.currentAssessmentId,
+      currentAnswerId: this.currentAnswerId,
+      currentStarCardId: this.currentStarCardId,
+      currentFlowAttributesId: this.currentFlowAttributesId,
+      currentVisualizationId: this.currentVisualizationId
+    };
+    
+    await require('fs').promises.writeFile(this.dataFile, JSON.stringify(data));
+  }
+
   async resetUserData(userId: number): Promise<void> {
     // Get the user to keep basic info
     const user = await this.getUser(userId);
@@ -375,6 +428,9 @@ export class MemStorage implements IStorage {
     await this.deleteStarCard(userId);
     await this.deleteFlowAttributes(userId);
     await this.deleteVisualization(userId);
+    
+    // Save changes
+    await this.saveData();
   }
 
   private initializeQuestions() {
