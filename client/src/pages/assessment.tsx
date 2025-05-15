@@ -806,10 +806,10 @@ export default function Assessment() {
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={() => {
                   setShowResultsPopup(false);
-                  navigate('/user-home');
+                  navigate('/foundations?tab=star-card');
                 }}
               >
-                View Your Star Card
+                Continue to Foundations
               </Button>
             </div>
           </div>
