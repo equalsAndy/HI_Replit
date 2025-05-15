@@ -39,13 +39,13 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={60}
+            innerRadius={0} // Changed to 0 to make it a solid pie chart
             outerRadius={100}
             fill="#8884d8"
             paddingAngle={1}
             dataKey="value"
-            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
-            labelLine={false}
+            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} // Added name to label
+            labelLine={true} // Show label lines
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
@@ -55,7 +55,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             formatter={(value) => `${value}%`}
             contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: 'none', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
           />
-          <Legend verticalAlign="bottom" height={36} />
+          {/* Removed Legend since labels are now on the chart */}
         </PieChart>
       </ResponsiveContainer>
     </div>

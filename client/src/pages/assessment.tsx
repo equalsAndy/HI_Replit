@@ -564,24 +564,7 @@ export default function Assessment() {
               />
             </div>
             
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(1, 162, 82)' }}></div>
-                <span className="font-medium">Thinking: {assessmentResults.thinking}%</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(241, 64, 64)' }}></div>
-                <span className="font-medium">Acting: {assessmentResults.acting}%</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(22, 126, 253)' }}></div>
-                <span className="font-medium">Feeling: {assessmentResults.feeling}%</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(255, 203, 47)' }}></div>
-                <span className="font-medium">Planning: {assessmentResults.planning}%</span>
-              </div>
-            </div>
+            {/* Removed strength labels as they're now shown directly on the pie chart */}
 
             <div className="bg-indigo-50 p-4 rounded-lg mb-6">
               <h3 className="font-semibold text-indigo-800 mb-2">Your Unique Strength Profile</h3>
