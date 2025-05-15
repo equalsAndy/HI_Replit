@@ -247,7 +247,8 @@ export default function FindYourFlow() {
       'Physical', 'Resolute', 'Resourceful', 'Strong'
     ].map(a => a.toLowerCase());
     
-    const lowerAttribute = attribute.toLowerCase();
+    // Check if attribute is defined before calling toLowerCase()
+    const lowerAttribute = attribute ? attribute.toLowerCase() : '';
     
     if (greenAttributes.includes(lowerAttribute)) return 'green';
     if (blueAttributes.includes(lowerAttribute)) return 'blue';
@@ -822,10 +823,16 @@ export default function FindYourFlow() {
                           // Otherwise, check if there are server attributes
                           (flowAttributesData?.attributes && Array.isArray(flowAttributesData.attributes) && flowAttributesData.attributes.length > 0) ? 
                             // Map server data to expected format
-                            flowAttributesData.attributes.map((attr: { name: string }) => ({
-                              text: attr.name,
-                              color: getAttributeColor(attr.name)
-                            })) : 
+                            flowAttributesData.attributes.map((attr: { name: string }) => {
+                              // Make sure attr and attr.name exist
+                              if (!attr || !attr.name) {
+                                return { text: "", color: "rgb(156, 163, 175)" }; // Default gray
+                              }
+                              return {
+                                text: attr.name,
+                                color: getAttributeColor(attr.name)
+                              };
+                            }) : 
                             // Default to empty array
                             []
                         }
