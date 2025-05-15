@@ -79,12 +79,7 @@ export default function Assessment() {
               planning: starCard.planning
             });
             
-            toast({
-              title: "Assessment completed",
-              description: "Here are your Star Card results"
-            });
-            
-            // Show results popup instead of redirecting
+            // Show results popup without displaying "Assessment completed" toast
             setShowResultsPopup(true);
           }
         } else {
@@ -224,10 +219,7 @@ export default function Assessment() {
     onError: (error) => {
       // If assessment already exists (409), show a friendly message
       if (error.message.includes("409")) {
-        toast({
-          title: "Assessment completed",
-          description: "Loading your Star Card results..."
-        });
+        // Skip toast notification and quietly load results
         return;
       }
 
@@ -806,8 +798,8 @@ export default function Assessment() {
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={() => {
                   setShowResultsPopup(false);
-                  // Directly navigate to the "Your StarCard" tab in foundations
-                  navigate('/foundations/starcard');
+                  // Navigate to foundations page with starcard tab selected
+                  navigate('/foundations?tab=starcard');
                 }}
               >
                 Continue to Your Star Card
