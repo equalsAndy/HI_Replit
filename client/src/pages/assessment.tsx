@@ -71,27 +71,16 @@ export default function Assessment() {
           console.log("Assessment is already completed or in progress, showing results");
           
           if (!loadingStarCard && starCard) {
-            // Set the assessment results from the star card data
-            setAssessmentResults({
-              thinking: starCard.thinking || 0,
-              acting: starCard.acting || 0,
-              feeling: starCard.feeling || 0,
-              planning: starCard.planning || 0
+            // No need to show popup, redirect to user home
+            toast({
+              title: "Assessment already completed",
+              description: "Redirecting you to view your results..."
             });
             
-            // Show the results popup
-            setShowResultsPopup(true);
-            
-            // Determine exact message based on whether it's complete or in progress
-            // No toast notification for either completed or in-progress assessments
-            // This removes the red error popup completely
-            
-            // If the assessment is completed, don't redirect automatically
-            // Automatically navigate to foundations page when assessment is complete
-            if (hasCompletedAssessment(starCard)) {
-              console.log("Assessment already completed, navigating to foundations");
-              navigate('/foundations?tab=starcard');
-            }
+            // Redirect to user home page
+            setTimeout(() => {
+              navigate('/user-home');
+            }, 1000);
           }
         } else {
           console.log("Assessment can be taken");
@@ -287,20 +276,13 @@ export default function Assessment() {
 
         toast({
           title: "Assessment Complete!",
-          description: "Your results are shown below. Please review and continue when ready."
+          description: "Redirecting to your results..."
         });
         
-        // Set the results and show the popup
-        // This causes the modal to stay on screen - user must click "Continue" to proceed
-        setAssessmentResults({
-          thinking: data.thinking || 0,
-          acting: data.acting || 0,
-          feeling: data.feeling || 0,
-          planning: data.planning || 0
-        });
-        setShowResultsPopup(true);
-        
-        // DO NOT automatically navigate - wait for user to click Continue
+        // Don't show the modal popup, instead automatically redirect to user home
+        setTimeout(() => {
+          navigate('/user-home');
+        }, 1000); // Short delay to allow the toast to be seen
       },
     onError: (error) => {
       toast({

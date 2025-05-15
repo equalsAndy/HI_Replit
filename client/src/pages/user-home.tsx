@@ -153,7 +153,13 @@ interface StarCardType {
 
 export default function UserHome() {
   // Add YouTube API
-  // YouTube API initialization removed since we no longer have videos
+  // Add YouTube API for the welcome video
+  useEffect(() => {
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+  }, []);
 
   const [location, navigate] = useLocation();
   const { toast } = useToast();
