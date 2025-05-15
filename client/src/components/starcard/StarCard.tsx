@@ -272,13 +272,13 @@ export default function StarCard({
 
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
-          {/* Flow Label - moved up by 3px */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '2px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          {/* Flow Label */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
 
-          {/* Core Label - centered directly over top right quadrant */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '58px', left: '146px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          {/* Core Label */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '68px', left: '160px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
 
@@ -367,8 +367,8 @@ export default function StarCard({
             </div>
           ))}
 
-          {/* Right vertical arrow connecting top-right and bottom-right flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ right: '38px', top: '98px', height: '98px' }}>
+          {/* Right vertical arrow connecting top-right and bottom-right flow boxes */}
+          <div className="absolute" style={{ right: '38px', top: '108px', height: '98px' }}>
             <div className="absolute left-0 top-0 h-[98px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
@@ -377,8 +377,8 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ top: '237px', left: '81px', width: '97px' }}>
+          {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes */}
+          <div className="absolute" style={{ top: '261px', left: '105px', width: '97px' }}>
             <div className="absolute left-0 top-0 w-[97px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
@@ -387,8 +387,8 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Left vertical arrow connecting top-left and bottom-left flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ left: '38px', top: '98px', height: '98px' }}>
+          {/* Left vertical arrow connecting top-left and bottom-left flow boxes */}
+          <div className="absolute" style={{ left: '38px', top: '108px', height: '98px' }}>
             <div className="absolute left-0 top-0 h-[98px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
