@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
+import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {

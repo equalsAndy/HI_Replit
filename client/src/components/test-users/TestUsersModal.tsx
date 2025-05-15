@@ -35,9 +35,34 @@ export function TestUsersModal({
 
   // Determine if user has any data that can be cleared
   const hasData = (
-    (starCardData && starCardData.state && starCardData.state !== 'empty') ||
-    (flowAttributesData && flowAttributesData.attributes && flowAttributesData.attributes.some((a: any) => a.value > 0))
+    (starCardData && (
+      starCardData.thinking > 0 || 
+      starCardData.acting > 0 || 
+      starCardData.feeling > 0 || 
+      starCardData.planning > 0 ||
+      starCardData.imageUrl
+    )) ||
+    (flowAttributesData && flowAttributesData.attributes && 
+      Array.isArray(flowAttributesData.attributes) && 
+      flowAttributesData.attributes.length > 0
+    )
   );
+  
+  // Log the hasData condition to help debug
+  console.log("Has data condition:", { 
+    hasData, 
+    starCardData: starCardData ? {
+      thinking: starCardData.thinking,
+      acting: starCardData.acting,
+      feeling: starCardData.feeling,
+      planning: starCardData.planning,
+      imageUrl: !!starCardData.imageUrl
+    } : null,
+    flowAttributes: flowAttributesData ? {
+      hasAttributes: !!flowAttributesData.attributes,
+      attributesLength: flowAttributesData.attributes ? flowAttributesData.attributes.length : 0
+    } : null
+  });
 
   // Reset user data mutation
   const resetUserData = useMutation({
