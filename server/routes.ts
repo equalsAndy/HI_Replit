@@ -515,8 +515,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the answer data with the correct structure
       const answerData = {
         userId,
-        questionId: parseInt(questionId),
-        ranking: rankings // Pass the rankings directly as a JSON object
+        questionId: parseInt(String(questionId)), // Ensure questionId is a number
+        ranking: Array.isArray(rankings) ? rankings : [] // Ensure rankings is always an array
       };
       
       console.log("Processed answer data:", answerData);

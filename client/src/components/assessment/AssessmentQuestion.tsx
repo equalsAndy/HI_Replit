@@ -40,25 +40,35 @@ export default function AssessmentQuestion({
   // Save answer to server
   const saveAnswer = useMutation({
     mutationFn: async () => {
-      const rankingsToSave = options.map(option => ({
-        optionId: option.id,
-        category: option.category,
-        rank: ranking[option.id] || 0
-      }));
+      // Filter out only the items that have been ranked
+      const rankingsToSave = options
+        .filter(option => ranking[option.id] > 0)
+        .map(option => ({
+          optionId: option.id,
+          rank: ranking[option.id]
+        }));
+      
+      // Ensure we have rankings before submitting
+      if (rankingsToSave.length === 0) {
+        throw new Error("Please rank the options before proceeding");
+      }
       
       const payload = {
         questionId: question.id,
-        ranking: rankingsToSave
+        rankings: rankingsToSave  // Use 'rankings' key as expected by the API
       };
       
       const res = await apiRequest('POST', '/api/assessment/answer', payload);
       return res.json();
     },
     onSuccess: () => {
-      const formattedRankings = options.map(option => ({
-        optionId: option.id,
-        rank: ranking[option.id] || 0
-      }));
+      // Only include options that have been ranked for consistent handling
+      const formattedRankings = options
+        .filter(option => ranking[option.id] > 0)
+        .map(option => ({
+          optionId: option.id,
+          rank: ranking[option.id]
+        }));
       onComplete(formattedRankings);
     },
     onError: (error) => {
