@@ -191,6 +191,14 @@ export default function StarCard({
     if (!cardRef.current) return;
     setDownloading(true);
     try {
+      // Force layout recalc before capture
+      cardRef.current.style.transform = 'none';
+      cardRef.current.style.opacity = '1';
+      cardRef.current.style.visibility = 'visible';
+      
+      // Wait for any animations to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
     } catch (error) {
       console.error("Error downloading star card:", error);
