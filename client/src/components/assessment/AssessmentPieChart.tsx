@@ -54,7 +54,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
 
   // Filter out any attributes with 0 value
   const filteredData = data.filter(item => item.value > 0);
-  
+
   // If all values are 0, show equal distribution
   const chartData = filteredData.length === 0 
     ? data.map(item => ({ ...item, value: 25 })) 
@@ -68,23 +68,16 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             data={chartData}
             cx="50%"
             cy="50%"
-            innerRadius={0} // Changed to 0 to make it a solid pie chart
-            outerRadius={100}
-            fill="#8884d8"
-            paddingAngle={1}
-            dataKey="value"
             labelLine={true}
-            label={renderCustomizedLabel}
+            label={({name, value}) => `${name}: ${value}%`}
+            outerRadius={80}
+            fill="#8884d8"
+            dataKey="value"
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
-          <Tooltip 
-            formatter={(value) => `${value}%`}
-            contentStyle={{ backgroundColor: 'rgba(255, 255, 255, 0.9)', borderRadius: '8px', border: 'none', boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)' }}
-          />
-          {/* Removed Legend since labels are now on the chart */}
         </PieChart>
       </ResponsiveContainer>
     </div>
