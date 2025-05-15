@@ -17,21 +17,27 @@ const COLORS = {
 
 // Custom bold label renderer
 const renderCustomizedLabel = (props: any) => {
-  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value } = props;
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
   const radius = 25 + innerRadius + (outerRadius - innerRadius);
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  // Get the color from the payload data
+  const labelColor = payload.color || 'black';
+
   return (
     <text 
       x={x} 
       y={y} 
-      fill="black" 
+      fill={labelColor} 
       textAnchor={x > cx ? 'start' : 'end'} 
       dominantBaseline="central"
       fontWeight="bold"
       fontSize="14px"
+      stroke="white" // Add a white outline
+      strokeWidth="0.5" // Make outline thin
+      paintOrder="stroke" // Draw stroke first, then fill
     >
       {`${name}: ${(percent * 100).toFixed(0)}%`}
     </text>
