@@ -33,23 +33,34 @@ function getAttributeColor(attrName: string): string {
   // Default to primary colors by category
   const thinkingAttributes = [
     'Analytical', 'Strategic', 'Thoughtful', 'Clever', 'Innovative', 'Investigative',
-    'Reflective', 'Astute', 'Insightful', 'Creative', 'Logical', 'Conceptual'
+    'Reflective', 'Astute', 'Insightful', 'Creative', 'Logical', 'Conceptual',
+    // Additional attributes from flow assessment to handle
+    'Dependable', 'Independent', 'Self-aware'
   ];
   
   const actingAttributes = [
     'Energetic', 'Bold', 'Decisive', 'Proactive', 'Persistent', 'Physical',
-    'Confident', 'Action-oriented', 'Determined', 'Dynamic', 'Resilient'
+    'Confident', 'Action-oriented', 'Determined', 'Dynamic', 'Resilient',
+    // Additional attributes from flow assessment to handle
+    'Controlled', 'Driven', 'Sociable'
   ];
   
   const feelingAttributes = [
     'Empathetic', 'Friendly', 'Supportive', 'Compassionate', 'Intuitive', 'Adaptable',
-    'Accepting', 'Harmonious', 'Connected', 'Empowering', 'Perceptive'
+    'Accepting', 'Harmonious', 'Connected', 'Empowering', 'Perceptive',
+    // Additional attributes from flow assessment to handle
+    'Vulnerable', 'Receptive', 'Emotional'
   ];
   
   const planningAttributes = [
     'Organized', 'Meticulous', 'Reliable', 'Consistent', 'Practical', 'Focussed',
-    'Systematic', 'Structured', 'Methodical', 'Disciplined', 'Prepared'
+    'Systematic', 'Structured', 'Methodical', 'Disciplined', 'Prepared',
+    // Additional attributes from flow assessment to handle
+    'Attentive', 'Detail-oriented', 'Predictable'
   ];
+  
+  // For debugging
+  console.log(`Mapping attribute: "${attrName}"`);
   
   // Convert to lowercase for case-insensitive comparison
   const normalizedName = attrName.trim();
@@ -64,6 +75,31 @@ function getAttributeColor(attrName: string): string {
     return 'rgb(255, 203, 47)'; // Yellow for planning
   }
   
+  // If no match found, assign colors based on patterns in attribute name
+  if (attrName.toLowerCase().includes('think') || 
+      attrName.toLowerCase().includes('logic') ||
+      attrName.toLowerCase().includes('anal') ||
+      attrName.toLowerCase().includes('depend')) {
+    return 'rgb(1, 162, 82)'; // Green for thinking
+  } else if (attrName.toLowerCase().includes('act') || 
+            attrName.toLowerCase().includes('do') ||
+            attrName.toLowerCase().includes('energ') ||
+            attrName.toLowerCase().includes('soci') ||
+            attrName.toLowerCase().includes('control')) {
+    return 'rgb(241, 64, 64)'; // Red for acting
+  } else if (attrName.toLowerCase().includes('feel') || 
+            attrName.toLowerCase().includes('emot') ||
+            attrName.toLowerCase().includes('sens') ||
+            attrName.toLowerCase().includes('vuln')) {
+    return 'rgb(22, 126, 253)'; // Blue for feeling
+  } else if (attrName.toLowerCase().includes('plan') || 
+            attrName.toLowerCase().includes('organ') ||
+            attrName.toLowerCase().includes('syst') ||
+            attrName.toLowerCase().includes('pred')) {
+    return 'rgb(255, 203, 47)'; // Yellow for planning
+  }
+  
+  console.log(`No color match for "${attrName}", using default gray`);
   return 'rgb(100, 100, 100)'; // Default gray if not found
 }
 
