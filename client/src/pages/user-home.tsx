@@ -282,9 +282,7 @@ export default function UserHome() {
             {/* Test User Indicator & Controls */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center">
-                <span className="font-medium truncate max-w-[140px] text-sm">
-                  {user?.name}
-                </span>
+                {/* Removed user name display as requested */}
               </div>
               
               {/* Data Status Indicators removed as requested */}
@@ -292,8 +290,7 @@ export default function UserHome() {
           </div>
 
           <div className="flex items-center space-x-3">
-            <span className="text-gray-700 font-medium">{user?.name}</span>
-            <div className="flex items-center space-x-1 text-gray-600 border-l border-gray-300 pl-3">
+            <div className="flex items-center space-x-1 text-gray-600">
               <span className="text-sm">English</span>
               <span className="text-xs">🇺🇸</span>
               <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
