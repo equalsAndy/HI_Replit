@@ -127,12 +127,7 @@ interface StarCardType {
 
 export default function UserHome() {
   // Add YouTube API
-  useEffect(() => {
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-  }, []);
+  // YouTube API initialization removed since we no longer have videos
 
   const [location, navigate] = useLocation();
   const { toast } = useToast();
@@ -349,24 +344,12 @@ export default function UserHome() {
                 )}
               </div>
 
+              {/* Welcome section content removed per user request */}
               {expandedSection === "introduction" && (
                 <div className="p-4 border-t border-gray-200">
                   <p className="mb-4 text-sm text-gray-700">
-                    {currentApp === 'allstarteams' 
-                      ? 'Watch this orientation video to learn more about the AllStarTeams experience and what to expect.'
-                      : 'Watch this orientation video to learn more about your Imaginal Agility journey and what to expect.'}
+                    Welcome to the AllStarTeams platform. This interface will guide you through your personal development journey.
                   </p>
-                  
-                  <div className="aspect-w-16 aspect-h-9 mb-4 bg-gray-100 rounded-md overflow-hidden">
-                    <iframe 
-                      src={currentApp === 'allstarteams' 
-                        ? "https://www.youtube.com/embed/jNQXAC9IVRw?enablejsapi=1" // Replace with actual video ID
-                        : "https://www.youtube.com/embed/jNQXAC9IVRw?enablejsapi=1"} // Replace with actual video ID
-                      title="Orientation Video"
-                      className="w-full h-full" 
-                      allowFullScreen
-                    ></iframe>
-                  </div>
                   
                   <Button
                     variant="default"
