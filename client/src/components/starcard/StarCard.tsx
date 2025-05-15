@@ -114,10 +114,10 @@ export default function StarCard({
   const cardState = useMemo(() => {
     // First check if state is explicitly provided in props
     if (state) return state;
-    
+
     // Then check if it's in the quadrant data
     if ((derivedQuadrantData as any).state) return (derivedQuadrantData as any).state;
-    
+
     // Otherwise determine based on data presence:
     if (hasFlowAttributes && hasScores) return 'complete';
     if (hasScores) return 'partial';
@@ -157,7 +157,7 @@ export default function StarCard({
 
     // If all scores are equal, maintain consistent ordering
     const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score && q.score > 0);
-    
+
     let sorted;
     if (allScoresEqual) {
       // Use a fixed order for equal scores
@@ -360,9 +360,18 @@ export default function StarCard({
             >
               {/* Show text if attribute exists */}
               {flowAttributes[index]?.text && (
-                <p className="text-[10px] font-bold text-center leading-tight">
+                <div className="w-full h-full flex items-center justify-center p-[2px]">
+                <div 
+                  className="font-bold text-center leading-tight"
+                  style={{
+                    fontSize: flowAttributes[index]?.text 
+                      ? `${Math.min(69 / flowAttributes[index]?.text.length, 12)}px` 
+                      : '10px'
+                  }}
+                >
                   {flowAttributes[index]?.text}
-                </p>
+                </div>
+              </div>
               )}
             </div>
           ))}
