@@ -224,27 +224,30 @@ export default function FindYourFlow() {
   // Map to determine attribute category and color
   const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 'red' | 'default' => {
     const greenAttributes = [
-      'Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 
-      'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
+      'Abstract', 'Analytic', 'Analytical', 'Astute', 'Big Picture', 'Clever', 'Curious', 'Focussed', 'Focused',
+      'Innovative', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
       'Sensible', 'Strategic', 'Thoughtful'
     ].map(a => a.toLowerCase());
     
     const blueAttributes = [
-      'Accepting', 'Authentic', 'Calm', 'Caring', 'Compassionate', 'Connected',
-      'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Friendly', 'Generous',
-      'Gentle', 'Grateful', 'Harmonious', 'Helpful', 'Kind', 'Open', 'Sociable', 'Vulnerable'
+      'Accepting', 'Authentic', 'Calm', 'Caring', 'Collaborative', 'Compassionate', 'Connected',
+      'Considerate', 'Creative', 'Diplomatic', 'Emotional', 'Empathetic', 'Empathic', 'Encouraging',
+      'Expressive', 'Friendly', 'Generous', 'Gentle', 'Grateful', 'Harmonious', 'Helpful', 
+      'Inspiring', 'Intuitive', 'Kind', 'Objective', 'Open', 'Passionate', 'Positive',
+      'Receptive', 'Sociable', 'Supportive', 'Vulnerable'
     ].map(a => a.toLowerCase());
     
     const yellowAttributes = [
-      'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detailed', 'Diligent',
-      'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
-      'Reliable', 'Responsible', 'Thorough', 'Trustworthy'
+      'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detail-Oriented', 'Detailed', 'Diligent',
+      'Immersed', 'Industrious', 'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
+      'Reliable', 'Responsible', 'Straightforward', 'Systematic', 'Thorough', 'Tidy', 'Trustworthy'
     ].map(a => a.toLowerCase());
     
     const redAttributes = [
-      'Adaptable', 'Adventurous', 'Assertive', 'Brave', 'Capable', 'Challenging',
-      'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Energetic', 'Fearless',
-      'Physical', 'Resolute', 'Resourceful', 'Strong'
+      'Adaptable', 'Adventuresome', 'Adventurous', 'Assertive', 'Bold', 'Brave', 'Capable', 'Challenging',
+      'Competitive', 'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Effortless', 'Energetic', 'Engaged',
+      'Fearless', 'Funny', 'Open-Minded', 'Optimistic', 'Persistent', 'Persuasive', 'Physical', 'Practical', 
+      'Proactive', 'Resilient', 'Resolute', 'Resourceful', 'Spontaneous', 'Strong', 'Vigorous'
     ].map(a => a.toLowerCase());
     
     // Check if attribute is defined before calling toLowerCase()
@@ -254,6 +257,22 @@ export default function FindYourFlow() {
     if (blueAttributes.includes(lowerAttribute)) return 'blue';
     if (yellowAttributes.includes(lowerAttribute)) return 'yellow';
     if (redAttributes.includes(lowerAttribute)) return 'red';
+    
+    // Look for partial matches if no exact match found
+    if (lowerAttribute) {
+      for (const attr of greenAttributes) {
+        if (attr.includes(lowerAttribute) || lowerAttribute.includes(attr)) return 'green';
+      }
+      for (const attr of blueAttributes) {
+        if (attr.includes(lowerAttribute) || lowerAttribute.includes(attr)) return 'blue';
+      }
+      for (const attr of yellowAttributes) {
+        if (attr.includes(lowerAttribute) || lowerAttribute.includes(attr)) return 'yellow';
+      }
+      for (const attr of redAttributes) {
+        if (attr.includes(lowerAttribute) || lowerAttribute.includes(attr)) return 'red';
+      }
+    }
     
     return 'default';
   };
@@ -462,7 +481,7 @@ export default function FindYourFlow() {
   const hasCompletedFlowAssessment = flowAttributesData && 
     Array.isArray(flowAttributesData.attributes) && 
     flowAttributesData.attributes.length > 0 &&
-    flowAttributesData.flowScore > 0;
+    (flowAttributesData.flowScore ?? 0) > 0;
   
   // Check if the card is complete based on data from server
   const isCardComplete = useMemo(() => {
