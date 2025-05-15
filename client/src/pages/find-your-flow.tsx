@@ -812,33 +812,7 @@ export default function FindYourFlow() {
                         preview={true}
                       />
                       
-                      {(starCardFlowAttributes.length > 0 || 
-                        (flowAttributesData?.attributes && 
-                         Array.isArray(flowAttributesData.attributes) && 
-                         flowAttributesData.attributes.length > 0)) && (
-                        <Button 
-                          variant="outline"
-                          size="sm"
-                          className="mt-3 text-xs text-gray-500 hover:text-red-600"
-                          onClick={() => {
-                            // Clear local state
-                            setStarCardFlowAttributes([]);
-                            
-                            // Clear server data by posting empty flow attributes
-                            flowAttributesMutation.mutate({
-                              flowScore: 0,
-                              attributes: []
-                            });
-                            
-                            toast({
-                              title: "Flow attributes cleared",
-                              description: "All flow attributes have been removed from your StarCard."
-                            });
-                          }}
-                        >
-                          Clear Flow Attributes
-                        </Button>
-                      )}
+                      {/* Removed Clear Flow Attributes button as requested */}
                     </div>
                   </div>
                 )}

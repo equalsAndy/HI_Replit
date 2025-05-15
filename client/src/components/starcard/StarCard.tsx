@@ -398,11 +398,11 @@ export default function StarCard({
         </div>
       </div>
 
-      {downloadable && !preview && (
+      {downloadable && !preview && cardState === 'complete' && (
         <Button
           onClick={handleDownload}
           className="mt-4 bg-blue-600 hover:bg-blue-700"
-          disabled={downloading || cardState === 'empty'}
+          disabled={downloading}
         >
           {downloading ? "Downloading..." : "Download Star Card"}
         </Button>
