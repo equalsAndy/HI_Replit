@@ -281,50 +281,13 @@ export default function UserHome() {
             
             {/* Test User Indicator & Controls */}
             <div className="flex items-center space-x-3">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div 
-                      className="flex items-center cursor-pointer" 
-                      onClick={() => randomizeStarCard.mutate()}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <Badge variant="outline" className="py-1 bg-blue-50 hover:bg-blue-100 text-blue-800 border-blue-200">
-                          <span className="text-xs font-bold">TEST USER</span>
-                        </Badge>
-                        <span 
-                          className="font-medium truncate max-w-[140px] text-sm hover:underline"
-                        >
-                          {user?.name}
-                        </span>
-                        <RefreshCw 
-                          size={14}
-                          className={`text-blue-600 ${randomizeStarCard.isPending ? 'animate-spin' : ''}`}
-                        />
-                      </div>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="text-xs">Click to randomize your Star Card values</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              
-              {/* Data Status Indicators */}
-              <div className="hidden md:flex space-x-1">
-                <Badge 
-                  variant={starCard?.state !== 'empty' ? "secondary" : "outline"} 
-                  className={`text-xs ${starCard?.state !== 'empty' ? 'bg-green-100 text-green-800 hover:bg-green-200' : ''}`}
-                >
-                  {starCard?.state !== 'empty' ? "Star Card" : "No Star Card"}
-                </Badge>
-                <Badge 
-                  variant={flowAttributes?.attributes.some(a => a.value > 0) ? "secondary" : "outline"} 
-                  className={`text-xs ${flowAttributes?.attributes.some(a => a.value > 0) ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' : ''}`}
-                >
-                  {flowAttributes?.attributes.some(a => a.value > 0) ? "Flow Data" : "No Flow Data"}
-                </Badge>
+              <div className="flex items-center">
+                <span className="font-medium truncate max-w-[140px] text-sm">
+                  {user?.name}
+                </span>
               </div>
+              
+              {/* Data Status Indicators removed as requested */}
             </div>
           </div>
 
