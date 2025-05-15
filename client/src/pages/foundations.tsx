@@ -195,10 +195,7 @@ export default function Foundations() {
                 {/* If they have completed the assessment, show results instead of the button */}
                 {(starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)) ? (
                   <div className="mt-6">
-                    <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-4">
-                      <h3 className="text-green-700 font-medium">Assessment Completed</h3>
-                      <p className="text-sm mt-2">You have already completed the assessment. Your results are shown below.</p>
-                    </div>
+                    {/* Assessment completed message removed */}
                     
                     <div className="mt-4">
                       <h3 className="font-medium text-lg text-gray-800 mb-4">Your Assessment Results</h3>

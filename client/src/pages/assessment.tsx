@@ -806,7 +806,8 @@ export default function Assessment() {
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={() => {
                   setShowResultsPopup(false);
-                  navigate('/foundations?tab=star-card');
+                  // Directly navigate to the "Your StarCard" tab in foundations
+                  navigate('/foundations/starcard');
                 }}
               >
                 Continue to Your Star Card
