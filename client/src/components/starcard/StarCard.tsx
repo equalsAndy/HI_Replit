@@ -366,7 +366,7 @@ export default function StarCard({
                   style={{
                     fontSize: flowAttributes[index]?.text 
                       ? `${Math.min(69 / flowAttributes[index]?.text.length * 1.2, 14)}px` 
-                      : '8px',
+                      : '9px',
                     margin: '0 2px'
                   }}
                 >
