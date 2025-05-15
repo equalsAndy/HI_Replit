@@ -252,13 +252,18 @@ export default function Assessment() {
       // Log the scores we're sending to verify they're correct
       console.log("Assessment Results:", results);
 
+      // Format answer data for server
+      const formattedAnswers = Object.entries(answers).map(([questionId, rankings]) => ({
+        questionId: parseInt(questionId),
+        rankings: rankings // Make sure this matches what the server expects
+      }));
+      
+      console.log("Submitting formatted answers:", formattedAnswers);
+
       // Save to server - now returns the complete StarCard object
       const res = await apiRequest('POST', '/api/assessment/complete', {
         quadrantData: results,
-        answers: Object.entries(answers).map(([questionId, rankings]) => ({
-          questionId: parseInt(questionId),
-          rankings
-        }))
+        answers: formattedAnswers
       });
 
       return await res.json();
@@ -494,9 +499,9 @@ export default function Assessment() {
         ];
 
         // Save answer to server first
-        await apiRequest('POST', '/api/assessment/answer', {
+        await saveAnswer.mutateAsync({
           questionId: question.id,
-          ranking: rankingData  // Changed from 'rankings' to 'ranking' to match the server schema
+          rankings: rankingData  // Use the same parameter name as in the saveAnswer mutation
         });
 
         // Then store locally
