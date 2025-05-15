@@ -344,22 +344,7 @@ export default function UserHome() {
                 )}
               </div>
 
-              {/* Welcome section content removed per user request */}
-              {expandedSection === "introduction" && (
-                <div className="p-4 border-t border-gray-200">
-                  <p className="mb-4 text-sm text-gray-700">
-                    Welcome to the AllStarTeams platform. This interface will guide you through your personal development journey.
-                  </p>
-                  
-                  <Button
-                    variant="default"
-                    className={appStyles.primaryBgColor}
-                    onClick={() => setExpandedSection(null)}
-                  >
-                    Continue
-                  </Button>
-                </div>
-              )}
+              {/* Welcome section content completely removed per user request */}
             </div>
 
             {/* Removed progress bar as requested */}
