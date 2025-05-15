@@ -73,11 +73,7 @@ export function useAssessment() {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       
-      toast({
-        title: "Assessment completed!",
-        description: "Your Star Card has been generated.",
-        variant: "default",
-      });
+      // Toast removed per user request
     },
     onError: (error) => {
       toast({
