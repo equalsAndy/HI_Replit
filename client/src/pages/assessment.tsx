@@ -88,7 +88,7 @@ export default function Assessment() {
               
             const actionMessage = "Please use the reset function on your profile if you need to start over.";
             
-            // Add prevention message with timeout
+            // Add prevention message
             toast({
               title: "Assessment In Progress",
               description: `${statusMessage} ${actionMessage}`,
@@ -96,10 +96,10 @@ export default function Assessment() {
               duration: 6000
             });
             
-            // Redirect to foundations after a delay to prevent retaking
-            setTimeout(() => {
+            // If the assessment is completed, immediately redirect to foundations
+            if (hasCompletedAssessment(starCard)) {
               navigate('/foundations?tab=starcard');
-            }, 6000);
+            }
           }
         } else {
           console.log("Assessment can be taken");
@@ -289,11 +289,20 @@ export default function Assessment() {
 
         toast({
           title: "Assessment Complete!",
-          description: "Your Star Card is ready to view with your results."
+          description: "Your results are shown below. Please review and continue when ready."
         });
         
-        // Navigate to foundations page with starcard tab active
-        navigate('/foundations', { state: { tab: 'starcard', showStarCard: true } });
+        // Set the results and show the popup
+        // This causes the modal to stay on screen - user must click "Continue" to proceed
+        setAssessmentResults({
+          thinking: data.thinking || 0,
+          acting: data.acting || 0,
+          feeling: data.feeling || 0,
+          planning: data.planning || 0
+        });
+        setShowResultsPopup(true);
+        
+        // DO NOT automatically navigate - wait for user to click Continue
       },
     onError: (error) => {
       toast({
