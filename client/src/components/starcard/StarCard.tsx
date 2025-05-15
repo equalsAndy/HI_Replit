@@ -400,12 +400,12 @@ export default function StarCard({
           {/* No horizontal arrow at top - intentionally omitted */}
         </div>
 
-        {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 24px */}
-        <div className="flex justify-end mt-[-18px] pr-4">
+        {/* Logo - AllStarTeams logo */}
+        <div className="flex justify-end mt-[-3px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
-            className="h-[26px]" 
+            className="h-[28.6px]" 
           />
         </div>
       </div>
