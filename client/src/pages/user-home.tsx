@@ -30,72 +30,98 @@ const QUADRANT_COLORS = {
 function getAttributeColor(attrName: string): string {
   if (!attrName) return 'rgb(100, 100, 100)'; // Handle null/undefined
   
-  // Default to primary colors by category
+  // Define more comprehensive lists of attributes for each quadrant
   const thinkingAttributes = [
-    'Analytical', 'Strategic', 'Thoughtful', 'Clever', 'Innovative', 'Investigative',
-    'Reflective', 'Astute', 'Insightful', 'Creative', 'Logical', 'Conceptual',
-    // Additional attributes from flow assessment to handle
-    'Dependable', 'Independent', 'Self-aware'
+    'Abstract', 'Analytic', 'Analytical', 'Astute', 'Big Picture', 'Clever', 'Curious', 
+    'Focussed', 'Focused', 'Innovative', 'Insightful', 'Logical', 'Investigative', 
+    'Rational', 'Reflective', 'Sensible', 'Strategic', 'Thoughtful', 'Creative', 
+    'Conceptual', 'Dependable', 'Independent', 'Self-aware'
   ];
   
   const actingAttributes = [
-    'Energetic', 'Bold', 'Decisive', 'Proactive', 'Persistent', 'Physical',
-    'Confident', 'Action-oriented', 'Determined', 'Dynamic', 'Resilient',
-    // Additional attributes from flow assessment to handle
-    'Controlled', 'Driven', 'Sociable'
+    'Adaptable', 'Adventuresome', 'Adventurous', 'Assertive', 'Bold', 'Brave', 'Capable', 
+    'Challenging', 'Competitive', 'Confident', 'Courageous', 'Decisive', 'Dynamic', 
+    'Effortless', 'Energetic', 'Engaged', 'Fearless', 'Funny', 'Open-Minded', 'Optimistic', 
+    'Persistent', 'Persuasive', 'Physical', 'Practical', 'Proactive', 'Resilient', 
+    'Resolute', 'Resourceful', 'Spontaneous', 'Strong', 'Vigorous', 'Action-oriented', 
+    'Determined', 'Controlled', 'Driven', 'Sociable'
   ];
   
   const feelingAttributes = [
-    'Empathetic', 'Friendly', 'Supportive', 'Compassionate', 'Intuitive', 'Adaptable',
-    'Accepting', 'Harmonious', 'Connected', 'Empowering', 'Perceptive',
-    // Additional attributes from flow assessment to handle
-    'Vulnerable', 'Receptive', 'Emotional'
+    'Accepting', 'Authentic', 'Calm', 'Caring', 'Collaborative', 'Compassionate', 'Connected',
+    'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Empathic', 'Encouraging',
+    'Expressive', 'Friendly', 'Generous', 'Gentle', 'Grateful', 'Harmonious', 'Helpful', 
+    'Inspiring', 'Intuitive', 'Kind', 'Objective', 'Open', 'Passionate', 'Positive',
+    'Receptive', 'Sociable', 'Supportive', 'Vulnerable', 'Empowering', 'Perceptive'
   ];
   
   const planningAttributes = [
-    'Organized', 'Meticulous', 'Reliable', 'Consistent', 'Practical', 'Focussed',
-    'Systematic', 'Structured', 'Methodical', 'Disciplined', 'Prepared',
-    // Additional attributes from flow assessment to handle
-    'Attentive', 'Detail-oriented', 'Predictable'
+    'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detail-Oriented', 'Detailed', 
+    'Diligent', 'Immersed', 'Industrious', 'Methodical', 'Meticulous', 'Orderly', 
+    'Organized', 'Precise', 'Punctual', 'Reliable', 'Responsible', 'Straightforward', 
+    'Systematic', 'Thorough', 'Tidy', 'Trustworthy', 'Structured', 'Disciplined', 
+    'Prepared', 'Attentive', 'Predictable'
   ];
   
   // For debugging
   console.log(`Mapping attribute: "${attrName}"`);
   
-  // Convert to lowercase for case-insensitive comparison
+  // Normalize to make comparison consistent
   const normalizedName = attrName.trim();
   
-  if (thinkingAttributes.includes(normalizedName)) {
+  // Direct attribute mapping for specific cases
+  const exactAttributeMapping: Record<string, string> = {
+    'Abstract': 'rgb(1, 162, 82)',    // Green - Thinking
+    'Curious': 'rgb(1, 162, 82)',     // Green - Thinking
+    'Investigative': 'rgb(1, 162, 82)', // Green - Thinking
+    'Assertive': 'rgb(241, 64, 64)'   // Red - Acting
+  };
+  
+  // Check for exact match first
+  if (exactAttributeMapping[normalizedName]) {
+    return exactAttributeMapping[normalizedName];
+  }
+  
+  // Case-insensitive check in arrays
+  const lowerName = normalizedName.toLowerCase();
+  if (thinkingAttributes.some(attr => attr.toLowerCase() === lowerName)) {
     return 'rgb(1, 162, 82)'; // Green for thinking
-  } else if (actingAttributes.includes(normalizedName)) {
+  } else if (actingAttributes.some(attr => attr.toLowerCase() === lowerName)) {
     return 'rgb(241, 64, 64)'; // Red for acting
-  } else if (feelingAttributes.includes(normalizedName)) {
+  } else if (feelingAttributes.some(attr => attr.toLowerCase() === lowerName)) {
     return 'rgb(22, 126, 253)'; // Blue for feeling
-  } else if (planningAttributes.includes(normalizedName)) {
+  } else if (planningAttributes.some(attr => attr.toLowerCase() === lowerName)) {
     return 'rgb(255, 203, 47)'; // Yellow for planning
   }
   
-  // If no match found, assign colors based on patterns in attribute name
-  if (attrName.toLowerCase().includes('think') || 
-      attrName.toLowerCase().includes('logic') ||
-      attrName.toLowerCase().includes('anal') ||
-      attrName.toLowerCase().includes('depend')) {
+  // If no exact match found, try pattern matching
+  if (lowerName.includes('think') || 
+      lowerName.includes('logic') ||
+      lowerName.includes('analy') || 
+      lowerName.includes('abstract') || 
+      lowerName.includes('curious') || 
+      lowerName.includes('investigat')) {
     return 'rgb(1, 162, 82)'; // Green for thinking
-  } else if (attrName.toLowerCase().includes('act') || 
-            attrName.toLowerCase().includes('do') ||
-            attrName.toLowerCase().includes('energ') ||
-            attrName.toLowerCase().includes('soci') ||
-            attrName.toLowerCase().includes('control')) {
+  } else if (lowerName.includes('act') || 
+            lowerName.includes('assert') || 
+            lowerName.includes('energ') || 
+            lowerName.includes('confiden') || 
+            lowerName.includes('brave') || 
+            lowerName.includes('bold')) {
     return 'rgb(241, 64, 64)'; // Red for acting
-  } else if (attrName.toLowerCase().includes('feel') || 
-            attrName.toLowerCase().includes('emot') ||
-            attrName.toLowerCase().includes('sens') ||
-            attrName.toLowerCase().includes('vuln')) {
+  } else if (lowerName.includes('feel') || 
+            lowerName.includes('emot') || 
+            lowerName.includes('empath') || 
+            lowerName.includes('compassion') || 
+            lowerName.includes('intuit') || 
+            lowerName.includes('support')) {
     return 'rgb(22, 126, 253)'; // Blue for feeling
-  } else if (attrName.toLowerCase().includes('plan') || 
-            attrName.toLowerCase().includes('organ') ||
-            attrName.toLowerCase().includes('syst') ||
-            attrName.toLowerCase().includes('pred')) {
+  } else if (lowerName.includes('plan') || 
+            lowerName.includes('organ') || 
+            lowerName.includes('system') || 
+            lowerName.includes('detail') || 
+            lowerName.includes('method') || 
+            lowerName.includes('order')) {
     return 'rgb(255, 203, 47)'; // Yellow for planning
   }
   
