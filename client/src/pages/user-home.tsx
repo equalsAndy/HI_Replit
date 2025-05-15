@@ -165,8 +165,8 @@ export default function UserHome() {
   const { toast } = useToast();
   const { currentApp } = useApplication();
 
-  // Expandable sections state - ensures sections are collapsed by default
-  const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  // Expandable sections state - set introduction to expanded by default
+  const [expandedSection, setExpandedSection] = useState<string | null>("introduction");
 
   // Selected imaginal content - initializing to null to prevent auto-expansion
   const [selectedContent, setSelectedContent] = useState<string | null>(null);
@@ -376,7 +376,43 @@ export default function UserHome() {
                 )}
               </div>
 
-              {/* Welcome section content completely removed per user request */}
+              {expandedSection === "introduction" && (
+                <div className="p-6 border-t border-gray-200">
+                  <h2 className="text-xl font-semibold mb-4 text-purple-700">All-Star Teams Workshop Introduction</h2>
+                  
+                  <p className="mb-4 text-gray-700">
+                    Welcome to the All-Star Teams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.
+                  </p>
+                  
+                  <div className="aspect-w-16 aspect-h-9 mb-6 bg-gray-100 rounded-md overflow-hidden">
+                    <iframe 
+                      src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
+                      title="AllStarTeams Workshop Introduction"
+                      className="w-full h-full" 
+                      allowFullScreen
+                    ></iframe>
+                  </div>
+                  
+                  <p className="font-medium text-gray-700 mb-4">The workshop has these main components:</p>
+                  
+                  <ul className="list-disc pl-6 space-y-2 mb-6">
+                    <li className="text-gray-700">Complete your profile information</li>
+                    <li className="text-gray-700">Take the Star Strengths Assessment (10-15 minutes)</li>
+                    <li className="text-gray-700">Review your Star Profile and strengths</li>
+                    <li className="text-gray-700">Explore your flow attributes</li>
+                    <li className="text-gray-700">Visualize your future potential</li>
+                    <li className="text-gray-700">Integrate insights into your professional life</li>
+                  </ul>
+                  
+                  <Button
+                    variant="default"
+                    className={appStyles.primaryBgColor}
+                    onClick={() => setExpandedSection(null)}
+                  >
+                    Continue
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Removed progress bar as requested */}
