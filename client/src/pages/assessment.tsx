@@ -72,14 +72,13 @@ export default function Assessment() {
           
           if (!loadingStarCard && starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning) {
             // Set assessment results and show results popup
+            // Set assessment results without showing toast messages
             setAssessmentResults({
               thinking: starCard.thinking,
               feeling: starCard.feeling,
               acting: starCard.acting,
               planning: starCard.planning
             });
-            
-            // Show results popup without displaying "Assessment completed" toast
             setShowResultsPopup(true);
           }
         } else {
