@@ -67,8 +67,20 @@ export function TestUserPicker({ open, onClose }: TestUserPickerProps) {
       user.progress > 0 || 
       user.hasStarCard === true || 
       user.hasAssessment === true || 
-      user.hasFlowAttributes === true
+      user.hasFlowAttributes === true ||
+      user.hasImage === true
     );
+  };
+  
+  // Get user data summary for tooltip
+  const getUserDataSummary = (user: any): string[] => {
+    const items: string[] = [];
+    if (user.progress > 0) items.push(`Progress: ${user.progress}%`);
+    if (user.hasStarCard) items.push('Has Star Card');
+    if (user.hasAssessment) items.push('Has Assessment');
+    if (user.hasFlowAttributes) items.push('Has Flow Attributes');
+    if (user.hasImage) items.push('Has Uploaded Image');
+    return items;
   };
 
   // Function to login as a test user
@@ -146,10 +158,9 @@ export function TestUserPicker({ open, onClose }: TestUserPickerProps) {
                                 </TooltipTrigger>
                                 <TooltipContent>
                                   <div className="text-xs">
-                                    {user.progress > 0 && <div>• Progress: {user.progress}%</div>}
-                                    {user.hasStarCard && <div>• Has Star Card</div>}
-                                    {user.hasAssessment && <div>• Has Assessment</div>}
-                                    {user.hasFlowAttributes && <div>• Has Flow Attributes</div>}
+                                    {getUserDataSummary(user).map((item, idx) => (
+                                      <div key={idx}>• {item}</div>
+                                    ))}
                                   </div>
                                 </TooltipContent>
                               </Tooltip>

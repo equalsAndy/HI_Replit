@@ -1069,7 +1069,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           progress: user.progress || 0,
           hasAssessment: assessment ? true : false,
           hasStarCard: starCard ? true : false,
-          hasFlowAttributes: flowAttributes ? true : false
+          hasFlowAttributes: flowAttributes ? true : false,
+          hasImage: starCard && starCard.imageUrl ? true : false
         });
       }
 

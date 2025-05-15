@@ -295,6 +295,17 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
               {/* Circle markers - perfectly aligned on the track */}
               <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                 {[1, 2, 3, 4, 5].map((value) => {
+                  // Define badge color for each value
+                  const badgeColors = {
+                    1: 'bg-red-600 border-red-400',
+                    2: 'bg-orange-500 border-orange-400',
+                    3: 'bg-indigo-600 border-indigo-400',
+                    4: 'bg-green-600 border-green-400',
+                    5: 'bg-purple-600 border-purple-400',
+                  };
+                  
+                  const activeColor = badgeColors[value as keyof typeof badgeColors] || 'bg-indigo-600 border-indigo-400';
+                  
                   return (
                     <div
                       key={value}
@@ -302,7 +313,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
                       className={`
                         cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
                         ${value <= currentValue 
-                          ? 'bg-indigo-600 text-white shadow-md transform hover:scale-110 transition-transform' 
+                          ? `${activeColor} text-white shadow-md transform hover:scale-110 transition-transform` 
                           : 'bg-white border-2 border-gray-300 hover:border-indigo-300 transition-colors'}
                       `}
                     >
