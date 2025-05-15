@@ -70,17 +70,22 @@ export default function Assessment() {
         if (res.status === 409) {
           console.log("Assessment is already completed or in progress, showing results");
           
-          if (!loadingStarCard && starCard) {
-            // No need to show popup, redirect to user home
-            toast({
-              title: "Assessment already completed",
-              description: "Redirecting you to view your results..."
+          if (!loadingStarCard && starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning) {
+            // Set assessment results and show results popup
+            setAssessmentResults({
+              thinking: starCard.thinking,
+              feeling: starCard.feeling,
+              acting: starCard.acting,
+              planning: starCard.planning
             });
             
-            // Redirect to user home page
-            setTimeout(() => {
-              navigate('/user-home');
-            }, 1000);
+            toast({
+              title: "Assessment already completed",
+              description: "Here are your results"
+            });
+            
+            // Show results popup instead of redirecting
+            setShowResultsPopup(true);
           }
         } else {
           console.log("Assessment can be taken");
@@ -279,10 +284,14 @@ export default function Assessment() {
           description: "Redirecting to your results..."
         });
         
-        // Don't show the modal popup, instead automatically redirect to user home
-        setTimeout(() => {
-          navigate('/user-home');
-        }, 1000); // Short delay to allow the toast to be seen
+        // Show the results popup
+        setAssessmentResults({
+          thinking: data.thinking,
+          feeling: data.feeling,
+          acting: data.acting,
+          planning: data.planning
+        });
+        setShowResultsPopup(true);
       },
     onError: (error) => {
       toast({
@@ -731,6 +740,62 @@ export default function Assessment() {
           </div>
         </div>
       </div>
+      
+      {/* Results Modal */}
+      {showResultsPopup && assessmentResults && (
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
+          <div className="bg-white rounded-lg shadow-xl p-6 mx-4 max-w-lg w-full">
+            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Star Strengths Results</h2>
+            
+            <div className="mb-6">
+              <p className="text-gray-600 mb-4">
+                Congratulations on completing the assessment! Here's your unique Star Card showing your strengths across four key dimensions.
+              </p>
+              
+              <div className="mx-auto w-64 h-64 relative mb-6">
+                <AssessmentPieChart 
+                  thinking={assessmentResults?.thinking || 0}
+                  acting={assessmentResults?.acting || 0}
+                  feeling={assessmentResults?.feeling || 0}
+                  planning={assessmentResults?.planning || 0}
+                />
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-green-600 rounded-sm mr-2"></div>
+                  <span className="text-sm font-medium">Thinking: {assessmentResults?.thinking || 0}%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-red-600 rounded-sm mr-2"></div>
+                  <span className="text-sm font-medium">Acting: {assessmentResults?.acting || 0}%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-blue-600 rounded-sm mr-2"></div>
+                  <span className="text-sm font-medium">Feeling: {assessmentResults?.feeling || 0}%</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-yellow-600 rounded-sm mr-2"></div>
+                  <span className="text-sm font-medium">Planning: {assessmentResults?.planning || 0}%</span>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-3">
+              <Button 
+                variant="default"
+                className="bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => {
+                  setShowResultsPopup(false);
+                  navigate('/user-home');
+                }}
+              >
+                View Your Star Card
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </MainContainer>
   );
 }
