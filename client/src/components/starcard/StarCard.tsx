@@ -273,7 +273,7 @@ export default function StarCard({
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
           {/* Flow Label - moved down 3px and color at 80% black */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '8px', right: '15px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '8px', right: '15px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
 
@@ -292,12 +292,12 @@ export default function StarCard({
           </div>
 
           {/* The Four Quadrant Squares */}
-          <div className="absolute grid grid-cols-2 gap-[1px] w-[118px] h-[118px] z-10" style={{ left: '80px', top: '85px' }}>
+          <div className="absolute grid grid-cols-2 gap-[1px] w-[132px] h-[132px] z-10" style={{ left: '73px', top: '78px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-xs font-medium text-center">
+                <div className="text-white text-[0.85rem] font-medium text-center">
                   <div>{getQuadrantAtPosition(3)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
                 </div>
@@ -347,7 +347,7 @@ export default function StarCard({
           ].map(({top, right, left, index}) => (
             <div 
               key={index}
-              className="absolute w-[59px] h-[59px] text-white border border-gray-300 flex items-center justify-center"
+              className="absolute w-[66px] h-[66px] text-white border border-gray-300 flex items-center justify-center"
               style={{
                 top,
                 right,
