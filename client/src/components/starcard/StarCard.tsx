@@ -340,14 +340,14 @@ export default function StarCard({
                 top,
                 right,
                 left,
-                // Only show colored flow squares in complete state
-                backgroundColor: cardState === 'complete' && flowAttributes[index]?.text 
+                // Show colors if flow attributes exist
+                backgroundColor: flowAttributes[index]?.text 
                   ? (flowAttributes[index]?.color || 'rgb(156, 163, 175)') 
-                  : 'rgb(229, 231, 235)' // Default gray for empty and partial states
+                  : 'rgb(229, 231, 235)' // Default gray when no attribute
               }}
             >
-              {/* Only show text in complete state */}
-              {cardState === 'complete' && flowAttributes[index]?.text && (
+              {/* Show text if attribute exists */}
+              {flowAttributes[index]?.text && (
                 <p className="text-[9px] font-medium text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
