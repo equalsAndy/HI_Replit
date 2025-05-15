@@ -87,10 +87,10 @@ export default function Assessment() {
             // This removes the red error popup completely
             
             // If the assessment is completed, don't redirect automatically
-            // Allow user to see results and choose when to navigate
+            // Automatically navigate to foundations page when assessment is complete
             if (hasCompletedAssessment(starCard)) {
-              // Don't navigate automatically - user must click Continue button
-              console.log("Assessment completed, showing results modal");
+              console.log("Assessment already completed, navigating to foundations");
+              navigate('/foundations?tab=starcard');
             }
           }
         } else {
@@ -466,11 +466,7 @@ export default function Assessment() {
     100
   );
 
-  // Function to close the popup and navigate to the report page
-  const handleCloseResultsPopup = () => {
-    setShowResultsPopup(false);
-    navigate('/foundations?tab=starcard');
-  };
+  // Results popup handler removed as we now auto-redirect
 
   // Auto-complete the assessment with random answers for demo purposes
   const autoCompleteAssessment = async () => {
@@ -548,42 +544,7 @@ export default function Assessment() {
 
   return (
     <MainContainer showStepNavigation={false} className="bg-gray-50">
-      {/* Results Popup */}
-      {showResultsPopup && assessmentResults && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Strength Assessment Results</h2>
-
-            <div className="mb-6">
-              {/* Use the pie chart component instead of progress bars */}
-              <AssessmentPieChart 
-                thinking={assessmentResults.thinking}
-                acting={assessmentResults.acting}
-                feeling={assessmentResults.feeling}
-                planning={assessmentResults.planning}
-              />
-            </div>
-            
-            {/* Removed strength labels as they're now shown directly on the pie chart */}
-
-            <div className="bg-indigo-50 p-4 rounded-lg mb-6">
-              <h3 className="font-semibold text-indigo-800 mb-2">Your Unique Strength Profile</h3>
-              <p className="text-gray-700 text-sm">
-                Your assessment reveals how these four key dimensions combine to create your unique strength profile. This personalized insight will help you identify your natural talents and potential growth areas.
-              </p>
-            </div>
-
-            <div className="flex justify-center">
-              <Button 
-                onClick={handleCloseResultsPopup}
-                className="px-8 bg-indigo-600 hover:bg-indigo-700"
-              >
-                Continue to Star Card
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Results popup removed to auto-redirect to foundations page */}
 
       <div className="max-w-3xl mx-auto">
         <div className="flex flex-row justify-between items-center mb-2 gap-2">
