@@ -605,13 +605,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         // Make sure scores has valid values
         if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
-          console.error("Error: All scores are zero, using even distribution to avoid invalid data");
-          scores = {
-            thinking: 25,
-            acting: 25,
-            feeling: 25,
-            planning: 25
-          };
+          console.error("Error: All scores are zero, generating varied scores to avoid invalid data");
+          scores = generateRandomScoresThatSumTo100();
         }
       }
 
@@ -1303,13 +1298,9 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
 
   // Prevent division by zero
   if (totalPoints === 0) {
-    // Return an even distribution if no points calculated
-    return {
-      thinking: 25,
-      acting: 25,
-      feeling: 25,
-      planning: 25
-    };
+    // Generate random scores instead of even distribution
+    console.log("No valid points calculated, generating varied scores");
+    return generateRandomScoresThatSumTo100();
   }
 
   // Convert to percentages
