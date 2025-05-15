@@ -64,6 +64,11 @@ export interface IStorage {
 }
 
 export class MemStorage implements IStorage {
+  static async init(): Promise<MemStorage> {
+    const instance = new MemStorage();
+    await instance.initialize();
+    return instance;
+  }
   private users: Map<number, User>;
   private assessments: Map<number, Assessment>;
   private questions: Map<number, Question>;
@@ -93,10 +98,11 @@ export class MemStorage implements IStorage {
 
     // Load persisted data if it exists
     try {
-      const data = require('fs').readFileSync(this.dataFile, 'utf8');
+      const fs = await import('fs');
+      const data = fs.readFileSync(this.dataFile, 'utf8');
       const parsed = JSON.parse(data);
 
-      // Restore maps from persisted data
+      // Restore maps from persisted data  
       this.users = new Map(parsed.users);
       this.assessments = new Map(parsed.assessments);
       this.answers = new Map(parsed.answers);
@@ -123,9 +129,8 @@ export class MemStorage implements IStorage {
 
       // Ensure data directory exists
       const fs = await import('fs');
-      const dir = '.data';
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir);
+      if (!fs.existsSync('.data')) {
+        fs.mkdirSync('.data');
       }
     }
 
@@ -497,4 +502,4 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export const storage = await MemStorage.init();
