@@ -341,8 +341,8 @@ export default function StarCard({
           {/* Flow Squares */}
           {[
             { top: '15px', right: '2px', index: 0 },  // Top Right
-            { top: '205px', right: '2px', index: 1 }, // Bottom Right  
-            { top: '205px', left: '2px', index: 2 },  // Bottom Left
+            { top: '225px', right: '2px', index: 1 }, // Bottom Right  
+            { top: '225px', left: '2px', index: 2 },  // Bottom Left
             { top: '15px', left: '2px', index: 3 }    // Top Left
           ].map(({top, right, left, index}) => (
             <div 
