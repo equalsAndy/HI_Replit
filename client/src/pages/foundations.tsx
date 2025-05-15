@@ -169,7 +169,7 @@ export default function Foundations() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-8 max-w-5xl">
+      <main id="foundations-page" className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-indigo-700">Understanding Your Star Card</h1>
           <p className="text-gray-600">Learn about the four quadrants of your strengths profile</p>
