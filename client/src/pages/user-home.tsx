@@ -4,6 +4,7 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { useLogout } from "@/hooks/use-logout";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { PlusIcon, MinusIcon, UserIcon, StarIcon, ClipboardIcon, LayoutPanelLeftIcon, Sparkles, Users, RefreshCw } from "lucide-react";
 import StarCard from "@/components/starcard/StarCard";
@@ -179,55 +180,8 @@ export default function UserHome() {
     }
   });
   
-  // Logout mutation
-  const logout = useMutation({
-    mutationFn: async () => {
-      // Create a fixed-size overlay immediately when logout starts
-      const overlay = document.createElement('div');
-      overlay.id = 'logout-overlay';
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.width = '100%';
-      overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
-      overlay.style.zIndex = '9999';
-      overlay.style.display = 'flex';
-      overlay.style.justifyContent = 'center';
-      overlay.style.alignItems = 'center';
-      overlay.style.transition = 'opacity 0.3s';
-      
-      const loadingText = document.createElement('div');
-      loadingText.textContent = 'Logging out...';
-      loadingText.style.fontSize = '1.2rem';
-      loadingText.style.fontWeight = 'bold';
-      loadingText.style.color = '#333';
-      
-      overlay.appendChild(loadingText);
-      document.body.appendChild(overlay);
-      
-      const res = await apiRequest('POST', '/api/auth/logout');
-      return res.ok;
-    },
-    onSuccess: () => {
-      // Clear all cached data
-      queryClient.clear();
-      
-      // Navigate instantly to auth page (no animation/delay)
-      window.location.href = '/auth';
-    },
-    onError: (error) => {
-      // Remove overlay in case of error
-      const overlay = document.getElementById('logout-overlay');
-      if (overlay) document.body.removeChild(overlay);
-      
-      toast({
-        title: "Logout failed",
-        description: "There was a problem logging out. Please try again.",
-        variant: "destructive",
-      });
-    }
-  });
+  // Use the shared logout hook instead
+  const logout = useLogout();
 
   // Toggle expanded section
   const toggleSection = (sectionId: string | null) => {

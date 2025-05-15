@@ -7,6 +7,13 @@ export function useLogout() {
 
   const logout = useMutation({
     mutationFn: async () => {
+      // First, set up auth page to load in background iframe
+      // to preload the page before redirecting
+      const preloadFrame = document.createElement('iframe');
+      preloadFrame.style.display = 'none';
+      preloadFrame.src = '/auth';
+      document.body.appendChild(preloadFrame);
+      
       // Create a fixed-size overlay immediately when logout starts
       const overlay = document.createElement('div');
       overlay.id = 'logout-overlay';
@@ -15,37 +22,43 @@ export function useLogout() {
       overlay.style.left = '0';
       overlay.style.width = '100%';
       overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(255, 255, 255, 0.8)';
+      overlay.style.backgroundColor = 'white';
       overlay.style.zIndex = '9999';
       overlay.style.display = 'flex';
       overlay.style.justifyContent = 'center';
       overlay.style.alignItems = 'center';
-      overlay.style.transition = 'opacity 0.3s';
       
-      const loadingText = document.createElement('div');
-      loadingText.textContent = 'Logging out...';
-      loadingText.style.fontSize = '1.2rem';
-      loadingText.style.fontWeight = 'bold';
-      loadingText.style.color = '#333';
-      
-      overlay.appendChild(loadingText);
       document.body.appendChild(overlay);
       
-      const res = await apiRequest('POST', '/api/auth/logout', {});
-      return res;
-    },
-    onSuccess: () => {
-      // Clear any cached data
-      queryClient.clear();
-      
-      // Immediately redirect to auth page without delay or toast
-      window.location.href = '/auth';
+      try {
+        // Use fetch directly for better control (avoid redirects during the request)
+        await fetch('/api/auth/logout', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
+        // Clear cache before redirecting
+        queryClient.clear();
+        
+        // Replace current page with auth page (no history entry)
+        window.location.replace('/auth');
+        
+        return { success: true };
+      } catch (error) {
+        // In case of error, remove overlay and iframe
+        if (overlay && overlay.parentNode) {
+          overlay.parentNode.removeChild(overlay);
+        }
+        if (preloadFrame && preloadFrame.parentNode) {
+          preloadFrame.parentNode.removeChild(preloadFrame);
+        }
+        throw error;
+      }
     },
     onError: (error) => {
-      // Remove overlay in case of error
-      const overlay = document.getElementById('logout-overlay');
-      if (overlay) document.body.removeChild(overlay);
-      
       toast({
         title: "Logout failed",
         description: "There was a problem logging out. Please try again.",
