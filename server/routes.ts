@@ -469,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // 3. User has already answered some questions (partial assessment)
       if ((existingAssessment && existingAssessment.completed) || hasCompletedStarCard || hasAnswers) {
         console.log(`Preventing assessment restart for user ${userId} - assessment completed or in progress`);
-        return res.status(409).json({ message: "Assessment already completed or in progress" });
+        return res.status(409).json({ message: "Assessment completed or in progress" });
       }
 
       console.log(`Starting assessment for user ${userId}`);

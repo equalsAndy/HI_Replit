@@ -80,7 +80,7 @@ export default function Assessment() {
             });
             
             toast({
-              title: "Assessment already completed",
+              title: "Assessment completed",
               description: "Here are your Star Card results"
             });
             
@@ -222,8 +222,12 @@ export default function Assessment() {
       return await res.json();
     },
     onError: (error) => {
-      // Ignore "Assessment already exists" errors (409)
+      // If assessment already exists (409), show a friendly message
       if (error.message.includes("409")) {
+        toast({
+          title: "Assessment completed",
+          description: "Loading your Star Card results..."
+        });
         return;
       }
 
