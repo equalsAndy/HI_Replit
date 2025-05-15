@@ -152,7 +152,6 @@ interface StarCardType {
 }
 
 export default function UserHome() {
-  // Add YouTube API
   // Add YouTube API for the welcome video
   useEffect(() => {
     const tag = document.createElement('script');
@@ -160,13 +159,27 @@ export default function UserHome() {
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
   }, []);
+  
+  // Record user's visit to the dashboard
+  useEffect(() => {
+    // Mark that the user has visited the dashboard
+    localStorage.setItem('hasVisitedDashboard', 'true');
+  }, []);
 
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp } = useApplication();
 
-  // Expandable sections state - set introduction to expanded by default
-  const [expandedSection, setExpandedSection] = useState<string | null>("introduction");
+  // Expandable sections state - track whether user has seen the introduction
+  const [expandedSection, setExpandedSection] = useState<string | null>(() => {
+    // Check if user has visited the dashboard before
+    const hasVisitedBefore = localStorage.getItem('hasVisitedDashboard');
+    if (hasVisitedBefore) {
+      return null; // Keep introduction closed if visited before
+    } else {
+      return "introduction"; // Show introduction on first visit
+    }
+  });
 
   // Selected imaginal content - initializing to null to prevent auto-expansion
   const [selectedContent, setSelectedContent] = useState<string | null>(null);
