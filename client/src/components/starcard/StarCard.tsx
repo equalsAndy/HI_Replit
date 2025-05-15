@@ -282,8 +282,8 @@ export default function StarCard({
             Core
           </div>
 
-          {/* Center Star - position adjusted and star made slightly smaller */}
-          <div className="absolute z-20" style={{ left: '115px', top: '10px' }}>
+          {/* Center Star - centered over quadrants */}
+          <div className="absolute z-20" style={{ left: '125px', top: '20px' }}>
             <div className="h-[57px] w-[57px] rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
