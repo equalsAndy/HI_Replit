@@ -81,7 +81,7 @@ export default function Assessment() {
             
             toast({
               title: "Assessment already completed",
-              description: "Here are your results"
+              description: "Here are your Star Card results"
             });
             
             // Show results popup instead of redirecting
@@ -281,7 +281,7 @@ export default function Assessment() {
 
         toast({
           title: "Assessment Complete!",
-          description: "Redirecting to your results..."
+          description: "Your Star Card has been created!"
         });
         
         // Show the results popup
@@ -749,7 +749,10 @@ export default function Assessment() {
             
             <div className="mb-6">
               <p className="text-gray-600 mb-4">
-                Congratulations on completing the assessment! Here's your unique Star Card showing your strengths across four key dimensions.
+                <span className="font-semibold text-indigo-700">Congratulations!</span> You've completed the assessment and created your unique Star Card showing your strengths across four key dimensions.
+              </p>
+              <p className="text-sm text-gray-500 mb-4">
+                Your Star Card will guide your personal development journey and help you identify areas where you shine and where you can grow. The workshop activities will help you explore these dimensions in depth.
               </p>
               
               <div className="mx-auto w-64 h-64 relative mb-6">
@@ -761,27 +764,39 @@ export default function Assessment() {
                 />
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-3 border rounded-md p-3 bg-gray-50">
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-green-600 rounded-sm mr-2"></div>
                   <span className="text-sm font-medium">Thinking: {assessmentResults?.thinking || 0}%</span>
+                  <span className="ml-2 text-xs text-gray-500">- Analytical & logical approach</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-red-600 rounded-sm mr-2"></div>
                   <span className="text-sm font-medium">Acting: {assessmentResults?.acting || 0}%</span>
+                  <span className="ml-2 text-xs text-gray-500">- Decisive & action-oriented</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-blue-600 rounded-sm mr-2"></div>
                   <span className="text-sm font-medium">Feeling: {assessmentResults?.feeling || 0}%</span>
+                  <span className="ml-2 text-xs text-gray-500">- Empathetic & relationship-focused</span>
                 </div>
                 <div className="flex items-center">
                   <div className="w-4 h-4 bg-yellow-600 rounded-sm mr-2"></div>
                   <span className="text-sm font-medium">Planning: {assessmentResults?.planning || 0}%</span>
+                  <span className="ml-2 text-xs text-gray-500">- Organized & methodical</span>
                 </div>
               </div>
             </div>
             
             <div className="flex justify-end space-x-3">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  setShowResultsPopup(false);
+                }}
+              >
+                Close
+              </Button>
               <Button 
                 variant="default"
                 className="bg-indigo-600 hover:bg-indigo-700"
