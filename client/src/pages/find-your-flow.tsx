@@ -50,7 +50,7 @@ const flowAttributes = [
   "Reflective", "Sensible", "Strategic", "Thoughtful",
   
   // Feeling attributes
-  "Collaborative", "Creative", "Encouraging", "Expressive",
+  "Collaborative", "Compassionate", "Creative", "Encouraging", "Expressive",
   "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
   "Positive", "Receptive", "Supportive",
   
