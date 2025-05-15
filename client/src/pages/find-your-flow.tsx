@@ -411,6 +411,18 @@ export default function FindYourFlow() {
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
+
+  // Get star card data
+  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType>({
+    queryKey: ['/api/starcard'],
+    staleTime: 30000,
+  });
+
+  // Get flow attributes data
+  const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery<FlowAttributes>({
+    queryKey: ['/api/flow-attributes'],
+    staleTime: 30000,
+  });
   
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
