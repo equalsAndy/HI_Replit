@@ -96,9 +96,11 @@ export default function Assessment() {
               duration: 6000
             });
             
-            // If the assessment is completed, immediately redirect to foundations
+            // If the assessment is completed, don't redirect automatically
+            // Allow user to see results and choose when to navigate
             if (hasCompletedAssessment(starCard)) {
-              navigate('/foundations?tab=starcard');
+              // Don't navigate automatically - user must click Continue button
+              console.log("Assessment completed, showing results modal");
             }
           }
         } else {
