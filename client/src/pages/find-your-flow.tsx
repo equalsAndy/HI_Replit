@@ -461,7 +461,8 @@ export default function FindYourFlow() {
   // Determine if flow assessment is already completed
   const hasCompletedFlowAssessment = flowAttributesData && 
     Array.isArray(flowAttributesData.attributes) && 
-    flowAttributesData.attributes.length > 0;
+    flowAttributesData.attributes.length > 0 &&
+    flowAttributesData.flowScore > 0;
   
   // Check if the card is complete based on data from server
   const isCardComplete = useMemo(() => {
