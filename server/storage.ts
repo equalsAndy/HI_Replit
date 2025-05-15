@@ -122,7 +122,7 @@ export class MemStorage implements IStorage {
       this.currentVisualizationId = 1;
       
       // Ensure data directory exists
-      const fs = require('fs');
+      const fs = await import('fs');
       const dir = '.data';
       if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir);
