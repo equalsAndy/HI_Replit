@@ -193,9 +193,22 @@ export default function Assessment() {
       // Convert to the format expected by the server
       const res = await apiRequest('POST', '/api/assessment/answer', {
         questionId: data.questionId,
-        ranking: data.rankings  // Changed from 'rankings' to 'ranking' to match the server schema
+        ranking: data.rankings  // Use 'ranking' parameter to match the server schema
       });
       return await res.json();
+    },
+    onError: (error: any) => {
+      // Don't show errors if related to an assessment that's already completed
+      console.log("Save answer error:", error);
+      
+      // Only show error toast for non-completed assessment errors
+      if (!String(error).includes("Assessment already completed")) {
+        toast({
+          title: "Error saving answer",
+          description: String(error),
+          variant: "destructive"
+        });
+      }
     },
     onSuccess: () => {
       // Move to next question or complete
@@ -205,13 +218,6 @@ export default function Assessment() {
         // Complete assessment
         completeAssessment.mutate();
       }
-    },
-    onError: (error) => {
-      toast({
-        title: "Error saving answer",
-        description: String(error),
-        variant: "destructive"
-      });
     }
   });
 
@@ -442,20 +448,17 @@ export default function Assessment() {
     if (currentQuestionIndex < totalQuestions - 1) {
       setCurrentQuestionIndex(prevIndex => prevIndex + 1);
     } else {
-      // Complete assessment - calculate results and show popup
+      // Complete assessment - calculate results
       const results = getQuadrantScores();
       console.log("Assessment Results:", results);
 
-      // Submit these results to the server
+      // Submit these results to the server and redirect to home on success
       completeAssessment.mutate();
-
-      // Set the results and show the popup
-      setAssessmentResults(results);
-      setShowResultsPopup(true);
-
+      
+      // Toast notification
       toast({
         title: "Assessment Complete!",
-        description: "Your results are ready to view."
+        description: "Redirecting you to see your results..."
       });
     }
   };
