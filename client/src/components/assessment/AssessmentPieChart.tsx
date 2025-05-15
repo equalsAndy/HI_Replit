@@ -44,7 +44,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             fill="#8884d8"
             paddingAngle={1}
             dataKey="value"
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+            label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
             labelLine={false}
           >
             {chartData.map((entry, index) => (

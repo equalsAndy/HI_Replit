@@ -83,19 +83,8 @@ export default function Assessment() {
             setShowResultsPopup(true);
             
             // Determine exact message based on whether it's complete or in progress
-            const statusMessage = hasCompletedAssessment(starCard) 
-              ? "You've already completed the assessment. Results are shown below."
-              : "You have an assessment in progress but haven't completed it.";
-              
-            const actionMessage = "Please use the reset function on your profile if you need to start over.";
-            
-            // Add prevention message
-            toast({
-              title: "Assessment In Progress",
-              description: `${statusMessage} ${actionMessage}`,
-              variant: "destructive",
-              duration: 6000
-            });
+            // No toast notification for either completed or in-progress assessments
+            // This removes the red error popup completely
             
             // If the assessment is completed, don't redirect automatically
             // Allow user to see results and choose when to navigate
