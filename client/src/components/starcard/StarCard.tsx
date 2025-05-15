@@ -186,12 +186,56 @@ export default function StarCard({
     return sortedQuadrants.find(q => q.position === position);
   };
 
-  // Handle card download
+  // Handle card download with enhanced quality preparation
   const handleDownload = async () => {
     if (!cardRef.current) return;
     setDownloading(true);
+    
     try {
-      await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
+      // Apply pre-download enhancements to card element
+      const card = cardRef.current;
+      
+      // Store original styles
+      const originalCardStyle = card.getAttribute('style') || '';
+      const originalBoxShadow = card.style.boxShadow;
+      const originalTransition = card.style.transition;
+      
+      // Apply download-specific styles for better quality
+      card.style.boxShadow = 'none'; // Remove shadows for cleaner export
+      card.style.transition = 'none'; // Disable transitions
+      
+      // Force all text to be crisp for the download
+      const tempStyle = document.createElement('style');
+      tempStyle.id = 'temp-download-style';
+      tempStyle.innerHTML = `
+        #${card.id} * {
+          text-rendering: optimizeLegibility !important;
+          -webkit-font-smoothing: antialiased !important;
+          -moz-osx-font-smoothing: grayscale !important;
+        }
+        #${card.id} svg {
+          shape-rendering: geometricPrecision !important;
+        }
+      `;
+      document.head.appendChild(tempStyle);
+      
+      // Give time for styles to apply
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Execute the download
+      await downloadElementAsImage(
+        card, 
+        `${derivedProfile.name || 'User'}_Star_Card.png`
+      );
+      
+      // Clean up temporary styles
+      document.head.removeChild(tempStyle);
+      
+      // Restore original styles
+      card.style.boxShadow = originalBoxShadow;
+      card.style.transition = originalTransition;
+      card.setAttribute('style', originalCardStyle);
+      
     } catch (error) {
       console.error("Error downloading star card:", error);
     } finally {
