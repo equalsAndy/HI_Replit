@@ -208,12 +208,12 @@ export default function StarCard({
       const tempStyle = document.createElement('style');
       tempStyle.id = 'temp-download-style';
       tempStyle.innerHTML = `
-        #${card.id} * {
+        #star-card-container * {
           text-rendering: optimizeLegibility !important;
           -webkit-font-smoothing: antialiased !important;
           -moz-osx-font-smoothing: grayscale !important;
         }
-        #${card.id} svg {
+        #star-card-container svg {
           shape-rendering: geometricPrecision !important;
         }
       `;
@@ -267,6 +267,7 @@ export default function StarCard({
   return (
     <div className="flex flex-col items-center">
       <div 
+        id="star-card-container"
         ref={cardRef}
         className="bg-white border border-gray-200 rounded-lg p-5"
         style={{ width: '440px', height: '610px' }}

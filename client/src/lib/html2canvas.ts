@@ -18,8 +18,8 @@ export async function downloadElementAsImage(
     element.style.transition = 'none';
     
     // Force better font rendering for the snapshot
-    document.body.style.webkitFontSmoothing = 'antialiased';
-    document.body.style.mozOsxFontSmoothing = 'grayscale';
+    document.body.style.setProperty('-webkit-font-smoothing', 'antialiased');
+    document.body.style.setProperty('-moz-osx-font-smoothing', 'grayscale');
     
     // Wait for styles to apply
     await new Promise(resolve => setTimeout(resolve, 100));
@@ -69,8 +69,8 @@ export async function downloadElementAsImage(
     
     // Restore original styles
     element.setAttribute('style', originalStyle);
-    document.body.style.webkitFontSmoothing = '';
-    document.body.style.mozOsxFontSmoothing = '';
+    document.body.style.removeProperty('-webkit-font-smoothing');
+    document.body.style.removeProperty('-moz-osx-font-smoothing');
     
   } catch (error) {
     console.error('Error creating image:', error);
