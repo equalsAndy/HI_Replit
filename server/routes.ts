@@ -603,16 +603,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         scores = calculateQuadrantScores(answers);
         console.log("Server calculated scores from answers:", scores);
 
-        // Make sure scores has valid values
+        // If all scores are zero, we'll leave them as zeros
         if (scores.thinking === 0 && scores.acting === 0 && scores.feeling === 0 && scores.planning === 0) {
-          console.error("Error: All scores are zero, generating varied scores to avoid invalid data");
-          scores = generateRandomScoresThatSumTo100();
+          console.log("All assessment scores are zero");
+          // Keep the zeros, don't modify them
         }
       }
 
-      // Ensure total is 100%
+      // Ensure total is 100% (only if there are non-zero scores)
       let total = scores.thinking + scores.acting + scores.feeling + scores.planning;
-      if (total !== 100) {
+      
+      // Only normalize if there are actual scores to normalize
+      if (total > 0 && total !== 100) {
         const adjustmentFactor = 100 / total;
         scores = {
           thinking: Math.round(scores.thinking * adjustmentFactor),
@@ -621,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           planning: Math.round(scores.planning * adjustmentFactor)
         };
 
-        // Handle rounding errors
+        // Handle rounding errors (only if we have non-zero scores)
         total = scores.thinking + scores.acting + scores.feeling + scores.planning;
         if (total !== 100) {
           const diff = 100 - total;
@@ -1298,9 +1300,14 @@ function calculateQuadrantScores(answers: Answer[]): QuadrantData {
 
   // Prevent division by zero
   if (totalPoints === 0) {
-    // Generate random scores instead of even distribution
-    console.log("No valid points calculated, generating varied scores");
-    return generateRandomScoresThatSumTo100();
+    // If there's no data, return all zeros
+    console.log("No valid points calculated, returning zeros");
+    return {
+      thinking: 0,
+      acting: 0,
+      feeling: 0,
+      planning: 0
+    };
   }
 
   // Convert to percentages
