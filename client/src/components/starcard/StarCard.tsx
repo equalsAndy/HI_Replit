@@ -124,6 +124,18 @@ export default function StarCard({
     return 'empty';
   }, [derivedQuadrantData, state, hasScores, hasFlowAttributes]);
 
+  // Helper function to get default color based on position
+  const getQuadrantDefaultColor = (index: number): string => {
+    // Match colors based on position: 0=top-right, 1=bottom-right, 2=bottom-left, 3=top-left
+    switch(index) {
+      case 0: return QUADRANT_COLORS.feeling;  // Top right - blue
+      case 1: return QUADRANT_COLORS.acting;   // Bottom right - red
+      case 2: return QUADRANT_COLORS.planning; // Bottom left - yellow
+      case 3: return QUADRANT_COLORS.thinking; // Top left - green
+      default: return 'rgb(156, 163, 175)';    // Medium gray fallback
+    }
+  };
+
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
     // Filter out non-quadrant fields
@@ -340,15 +352,15 @@ export default function StarCard({
                 top,
                 right,
                 left,
-                // Show colors if flow attributes exist
+                // Show colors based on quadrant if attribute exists
                 backgroundColor: flowAttributes[index]?.text 
-                  ? (flowAttributes[index]?.color || 'rgb(156, 163, 175)') 
-                  : 'rgb(229, 231, 235)' // Default gray when no attribute
+                  ? (flowAttributes[index]?.color || getQuadrantDefaultColor(index)) 
+                  : 'rgb(229, 231, 235)' // Default light gray when no attribute
               }}
             >
               {/* Show text if attribute exists */}
               {flowAttributes[index]?.text && (
-                <p className="text-[9px] font-medium text-center leading-tight">
+                <p className="text-[10px] font-bold text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
               )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, Text } from 'recharts';
 
 interface AssessmentPieChartProps {
   thinking: number;
@@ -13,6 +13,29 @@ const COLORS = {
   acting: 'rgb(241, 64, 64)',      // Red
   feeling: 'rgb(22, 126, 253)',    // Blue
   planning: 'rgb(255, 203, 47)'    // Yellow
+};
+
+// Custom bold label renderer
+const renderCustomizedLabel = (props: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = 25 + innerRadius + (outerRadius - innerRadius);
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="black" 
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      fontWeight="bold"
+      fontSize="14px"
+    >
+      {`${name}: ${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
 };
 
 export function AssessmentPieChart({ thinking, acting, feeling, planning }: AssessmentPieChartProps) {
@@ -44,8 +67,8 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             fill="#8884d8"
             paddingAngle={1}
             dataKey="value"
-            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} // Added name to label
-            labelLine={true} // Show label lines
+            labelLine={true}
+            label={renderCustomizedLabel}
           >
             {chartData.map((entry, index) => (
               <Cell key={`cell-${index}`} fill={entry.color} />
