@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
+import Header from "@/components/layout/Header";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -149,25 +150,8 @@ export default function Foundations() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-          <Link href="/" className="logo flex items-center cursor-pointer">
-            <img 
-              src="/src/assets/all-star-teams-logo-250px.png" 
-              alt="AllStarTeams" 
-              className="h-10 w-auto"
-            />
-          </Link>
-
-          <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm" className="rounded-md" asChild>
-              <Link href="/user-home">Dashboard</Link>
-            </Button>
-            <Button variant="destructive" size="sm" className="rounded-md">Logout</Button>
-          </div>
-        </div>
-      </header>
+      {/* Use the Header component that now has the logout feature */}
+      <Header showDashboardLink={true} />
 
       <main id="foundations-page" className="container mx-auto px-4 py-8 max-w-5xl">
         <div className="mb-8">
@@ -206,11 +190,89 @@ export default function Foundations() {
               <div className="prose max-w-none">
                 <h2>Strengths Assessment</h2>
                 <p>Take the assessment to discover your unique strengths profile across the four quadrants: Thinking, Acting, Feeling, and Planning.</p>
-                <div className="flex justify-end mt-6">
-                  <Button onClick={() => navigate('/assessment')} className="bg-indigo-700 hover:bg-indigo-800">
-                    Take Assessment
-                  </Button>
-                </div>
+                
+                {/* If they have completed the assessment, show results instead of the button */}
+                {(starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)) ? (
+                  <div className="mt-6">
+                    <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-4">
+                      <h3 className="text-green-700 font-medium">Assessment Completed</h3>
+                      <p className="text-sm mt-2">You have already completed the assessment. Your results are shown below.</p>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <h3 className="font-medium text-lg text-gray-800 mb-4">Your Assessment Results</h3>
+                      
+                      <div className="space-y-4 mb-6">
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-700">Thinking:</span>
+                          <div className="flex-1 mx-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div 
+                                className="bg-indigo-600 h-2.5 rounded-full" 
+                                style={{ width: `${starCard.thinking}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-indigo-600">{starCard.thinking}%</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-700">Acting:</span>
+                          <div className="flex-1 mx-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div 
+                                className="bg-indigo-600 h-2.5 rounded-full" 
+                                style={{ width: `${starCard.acting}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-indigo-600">{starCard.acting}%</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-700">Feeling:</span>
+                          <div className="flex-1 mx-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div 
+                                className="bg-indigo-600 h-2.5 rounded-full" 
+                                style={{ width: `${starCard.feeling}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-indigo-600">{starCard.feeling}%</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="font-medium text-gray-700">Planning:</span>
+                          <div className="flex-1 mx-4">
+                            <div className="w-full bg-gray-200 rounded-full h-2.5">
+                              <div 
+                                className="bg-indigo-600 h-2.5 rounded-full" 
+                                style={{ width: `${starCard.planning}%` }}
+                              ></div>
+                            </div>
+                          </div>
+                          <span className="font-bold text-indigo-600">{starCard.planning}%</span>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-end mt-4">
+                        <Button 
+                          onClick={() => handleTabChange("starcard")}
+                          className="bg-indigo-700 hover:bg-indigo-800"
+                        >
+                          Continue to StarCard
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex justify-end mt-6">
+                    <Button onClick={() => navigate('/assessment')} className="bg-indigo-700 hover:bg-indigo-800">
+                      Take Assessment
+                    </Button>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
