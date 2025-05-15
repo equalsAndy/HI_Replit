@@ -379,7 +379,7 @@ export default function UserHome() {
                 <div className="flex items-center">
                   <UserIcon className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
                   <span className={`${appStyles.primaryTextColor} font-medium`}>Complete your Profile</span>
-                  {user && user.name && user.title && user.organization && (
+                  {starCard && starCard.imageUrl && (
                     <span className="ml-2 text-green-500 font-bold">✓</span>
                   )}
                 </div>
