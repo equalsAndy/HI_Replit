@@ -225,13 +225,13 @@ export default function StarCard({
       <div 
         ref={cardRef}
         className="bg-white border border-gray-200 rounded-lg p-5"
-        style={{ width: '400px', height: '555px' }}
+        style={{ width: '440px', height: '610px' }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 
         {/* User Profile */}
         <div className="flex items-center mb-6">
-          <div className="rounded-full h-16 w-16 overflow-hidden mr-4 border border-gray-300">
+          <div className="rounded-full h-[70px] w-[70px] overflow-hidden mr-5 border border-gray-300">
             {imageUrl || derivedProfile.avatarUrl ? (
               <img 
                 src={imageUrl || derivedProfile.avatarUrl} 
@@ -259,7 +259,7 @@ export default function StarCard({
               src={cloudImage} 
               alt="Cloud" 
               className="w-[98%] object-contain absolute top-0 left-[1%]"
-              style={{ height: '80px' }}
+              style={{ height: '88px' }}
             />
 
             {/* Text positioned below cloud image - moved up 10px total and 10% smaller */}
@@ -271,33 +271,33 @@ export default function StarCard({
         </div>
 
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
-        <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
-          {/* Flow Label - moved up by 3px */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '2px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+        <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
+          {/* Flow Label */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
 
-          {/* Core Label - centered directly over top right quadrant */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '56px', left: '138px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          {/* Core Label */}
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '68px', left: '160px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
 
-          {/* Center Star - position adjusted and star made slightly smaller */}
-          <div className="absolute z-20" style={{ left: '115px', top: '10px' }}>
-            <div className="h-[52px] w-[52px] rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-9 w-9 text-gray-400">
+          {/* Center Star - centered over quadrants */}
+          <div className="absolute z-20" style={{ left: '125px', top: '20px' }}>
+            <div className="h-[57px] w-[57px] rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="h-10 w-10 text-gray-400">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </div>
           </div>
 
           {/* The Four Quadrant Squares */}
-          <div className="absolute grid grid-cols-2 gap-[3px] w-[132px] h-[132px] z-10" style={{ left: '73px', top: '78px' }}>
+          <div className="absolute grid grid-cols-2 gap-[3px] w-[145px] h-[145px] z-10" style={{ left: '80px', top: '86px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(3)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(3)?.score || 0)}%</div>
                 </div>
@@ -308,7 +308,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
                 </div>
@@ -319,7 +319,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
                 </div>
@@ -330,7 +330,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
                 </div>
@@ -341,13 +341,13 @@ export default function StarCard({
           {/* Flow Squares */}
           {[
             { top: '15px', right: '2px', index: 0 },  // Top Right
-            { top: '205px', right: '2px', index: 1 }, // Bottom Right  
-            { top: '205px', left: '2px', index: 2 },  // Bottom Left
+            { top: '225px', right: '2px', index: 1 }, // Bottom Right  
+            { top: '225px', left: '2px', index: 2 },  // Bottom Left
             { top: '15px', left: '2px', index: 3 }    // Top Left
           ].map(({top, right, left, index}) => (
             <div 
               key={index}
-              className="absolute w-[66px] h-[66px] text-white border border-gray-300 flex items-center justify-center"
+              className="absolute w-[73px] h-[73px] text-white border border-gray-300 flex items-center justify-center"
               style={{
                 top,
                 right,
@@ -360,15 +360,15 @@ export default function StarCard({
             >
               {/* Show text if attribute exists */}
               {flowAttributes[index]?.text && (
-                <p className="text-[11.5px] font-bold text-center leading-tight">
+                <p className="text-[10px] font-bold text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
               )}
             </div>
           ))}
 
-          {/* Right vertical arrow connecting top-right and bottom-right flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ right: '38px', top: '98px', height: '98px' }}>
+          {/* Right vertical arrow connecting top-right and bottom-right flow boxes */}
+          <div className="absolute" style={{ right: '38px', top: '108px', height: '98px' }}>
             <div className="absolute left-0 top-0 h-[98px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] bottom-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
@@ -377,8 +377,8 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ top: '237px', left: '81px', width: '97px' }}>
+          {/* Bottom horizontal arrow connecting bottom-right and bottom-left flow boxes */}
+          <div className="absolute" style={{ top: '261px', left: '105px', width: '97px' }}>
             <div className="absolute left-0 top-0 w-[97px] h-[1px] bg-gray-400"></div>
             <div className="absolute left-0 top-[-4.5px]">
               <svg width="10" height="10" viewBox="0 0 10 10">
@@ -387,8 +387,8 @@ export default function StarCard({
             </div>
           </div>
 
-          {/* Left vertical arrow connecting top-left and bottom-left flow boxes - shortened by 15% */}
-          <div className="absolute" style={{ left: '38px', top: '98px', height: '98px' }}>
+          {/* Left vertical arrow connecting top-left and bottom-left flow boxes */}
+          <div className="absolute" style={{ left: '38px', top: '108px', height: '98px' }}>
             <div className="absolute left-0 top-0 h-[98px] w-[1px] bg-gray-400"></div>
             <div className="absolute left-[-4.5px] top-0">
               <svg width="10" height="10" viewBox="0 0 10 10">
@@ -400,12 +400,12 @@ export default function StarCard({
           {/* No horizontal arrow at top - intentionally omitted */}
         </div>
 
-        {/* Logo - Actual AllStarTeams logo, 20% smaller and moved up 24px */}
-        <div className="flex justify-end mt-[-18px] pr-4">
+        {/* Logo - AllStarTeams logo */}
+        <div className="flex justify-end mt-[-3px] pr-4">
           <img 
             src={allStarTeamsLogo} 
             alt="allstarteams" 
-            className="h-[26px]" 
+            className="h-[28.6px]" 
           />
         </div>
       </div>
