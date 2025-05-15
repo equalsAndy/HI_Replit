@@ -9,6 +9,7 @@ import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import MainContainer from '@/components/layout/MainContainer';
 import { useDemoMode } from '@/hooks/use-demo-mode';
+import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 
 // Define question types - match the types from data file
 type Option = AssessmentOption;
@@ -564,57 +565,32 @@ export default function Assessment() {
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6 mx-auto">
             <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Strength Assessment Results</h2>
 
-            <div className="space-y-4 mb-6">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Thinking:</span>
-                <div className="flex-1 mx-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-indigo-600 h-2.5 rounded-full" 
-                      style={{ width: `${assessmentResults.thinking}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="font-bold text-indigo-600">{assessmentResults.thinking}%</span>
+            <div className="mb-6">
+              {/* Use the pie chart component instead of progress bars */}
+              <AssessmentPieChart 
+                thinking={assessmentResults.thinking}
+                acting={assessmentResults.acting}
+                feeling={assessmentResults.feeling}
+                planning={assessmentResults.planning}
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(1, 162, 82)' }}></div>
+                <span className="font-medium">Thinking: {assessmentResults.thinking}%</span>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Acting:</span>
-                <div className="flex-1 mx-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-purple-600 h-2.5 rounded-full" 
-                      style={{ width: `${assessmentResults.acting}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="font-bold text-purple-600">{assessmentResults.acting}%</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(241, 64, 64)' }}></div>
+                <span className="font-medium">Acting: {assessmentResults.acting}%</span>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Feeling:</span>
-                <div className="flex-1 mx-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-teal-600 h-2.5 rounded-full" 
-                      style={{ width: `${assessmentResults.feeling}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="font-bold text-teal-600">{assessmentResults.feeling}%</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(22, 126, 253)' }}></div>
+                <span className="font-medium">Feeling: {assessmentResults.feeling}%</span>
               </div>
-
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-gray-700">Planning:</span>
-                <div className="flex-1 mx-4">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div 
-                      className="bg-rose-600 h-2.5 rounded-full" 
-                      style={{ width: `${assessmentResults.planning}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <span className="font-bold text-rose-600">{assessmentResults.planning}%</span>
+              <div className="flex items-center space-x-2">
+                <div className="w-4 h-4 rounded-full" style={{ backgroundColor: 'rgb(255, 203, 47)' }}></div>
+                <span className="font-medium">Planning: {assessmentResults.planning}%</span>
               </div>
             </div>
 
