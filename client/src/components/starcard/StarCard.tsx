@@ -273,12 +273,12 @@ export default function StarCard({
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '280px', height: '280px', marginTop: '-25px' }}>
           {/* Flow Label - moved down 3px and color at 80% black */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '8px', right: '15px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '5px', right: '10px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
 
           {/* Core Label - moved down 3px and color at 80% black */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '68px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '61px', right: '79px', width: '59px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
 
@@ -292,7 +292,7 @@ export default function StarCard({
           </div>
 
           {/* The Four Quadrant Squares */}
-          <div className="absolute grid grid-cols-2 gap-[1px] w-[132px] h-[132px] z-10" style={{ left: '73px', top: '78px' }}>
+          <div className="absolute grid grid-cols-2 gap-[3px] w-[132px] h-[132px] z-10" style={{ left: '73px', top: '78px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
@@ -308,7 +308,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-xs font-medium text-center">
+                <div className="text-white text-[0.85rem] font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
                 </div>
@@ -319,7 +319,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-xs font-medium text-center">
+                <div className="text-white text-[0.85rem] font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
                 </div>
@@ -330,7 +330,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-xs font-medium text-center">
+                <div className="text-white text-[0.85rem] font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
                 </div>
@@ -340,10 +340,10 @@ export default function StarCard({
 
           {/* Flow Squares */}
           {[
-            { top: '25px', right: '15px', index: 0 },  // Top Right
-            { top: '204px', right: '15px', index: 1 }, // Bottom Right  
-            { top: '204px', left: '15px', index: 2 },  // Bottom Left
-            { top: '25px', left: '15px', index: 3 }    // Top Left
+            { top: '18px', right: '10px', index: 0 },  // Top Right
+            { top: '200px', right: '10px', index: 1 }, // Bottom Right  
+            { top: '200px', left: '10px', index: 2 },  // Bottom Left
+            { top: '18px', left: '10px', index: 3 }    // Top Left
           ].map(({top, right, left, index}) => (
             <div 
               key={index}
@@ -360,7 +360,7 @@ export default function StarCard({
             >
               {/* Show text if attribute exists */}
               {flowAttributes[index]?.text && (
-                <p className="text-[10px] font-bold text-center leading-tight">
+                <p className="text-[11.5px] font-bold text-center leading-tight">
                   {flowAttributes[index]?.text}
                 </p>
               )}
