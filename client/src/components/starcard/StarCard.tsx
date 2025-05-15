@@ -308,7 +308,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(0)?.score || 0)}%</div>
                 </div>
@@ -319,7 +319,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(2)?.score || 0)}%</div>
                 </div>
@@ -330,7 +330,7 @@ export default function StarCard({
             <div className="aspect-square relative flex items-center justify-center" 
                  style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
               {cardState !== 'empty' && (
-                <div className="text-white text-[0.85rem] font-medium text-center">
+                <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>
                   <div>{normalizeScore(getQuadrantAtPosition(1)?.score || 0)}%</div>
                 </div>
