@@ -278,7 +278,7 @@ export default function StarCard({
           </div>
 
           {/* Core Label - centered directly over top right quadrant */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '56px', left: '210px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '56px', left: '195px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
 
