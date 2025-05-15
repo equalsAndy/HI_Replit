@@ -202,57 +202,33 @@ export default function Foundations() {
                     <div className="mt-4">
                       <h3 className="font-medium text-lg text-gray-800 mb-4">Your Assessment Results</h3>
                       
-                      <div className="space-y-4 mb-6">
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700">Thinking:</span>
-                          <div className="flex-1 mx-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-indigo-600 h-2.5 rounded-full" 
-                                style={{ width: `${starCard.thinking}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                          <span className="font-bold text-indigo-600">{starCard.thinking}%</span>
-                        </div>
+                      <div className="mb-6">
+                        {/* Import and use the pie chart component */}
+                        <AssessmentPieChart
+                          thinking={starCard.thinking || 0}
+                          acting={starCard.acting || 0}
+                          feeling={starCard.feeling || 0}
+                          planning={starCard.planning || 0}
+                        />
                         
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700">Acting:</span>
-                          <div className="flex-1 mx-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-indigo-600 h-2.5 rounded-full" 
-                                style={{ width: `${starCard.acting}%` }}
-                              ></div>
-                            </div>
+                        {/* Text summary below chart */}
+                        <div className="mt-4 grid grid-cols-2 gap-2">
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[rgb(1,162,82)] mr-2"></div>
+                            <span className="text-sm">Thinking: {starCard.thinking}%</span>
                           </div>
-                          <span className="font-bold text-indigo-600">{starCard.acting}%</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700">Feeling:</span>
-                          <div className="flex-1 mx-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-indigo-600 h-2.5 rounded-full" 
-                                style={{ width: `${starCard.feeling}%` }}
-                              ></div>
-                            </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[rgb(241,64,64)] mr-2"></div>
+                            <span className="text-sm">Acting: {starCard.acting}%</span>
                           </div>
-                          <span className="font-bold text-indigo-600">{starCard.feeling}%</span>
-                        </div>
-                        
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium text-gray-700">Planning:</span>
-                          <div className="flex-1 mx-4">
-                            <div className="w-full bg-gray-200 rounded-full h-2.5">
-                              <div 
-                                className="bg-indigo-600 h-2.5 rounded-full" 
-                                style={{ width: `${starCard.planning}%` }}
-                              ></div>
-                            </div>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[rgb(22,126,253)] mr-2"></div>
+                            <span className="text-sm">Feeling: {starCard.feeling}%</span>
                           </div>
-                          <span className="font-bold text-indigo-600">{starCard.planning}%</span>
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full bg-[rgb(255,203,47)] mr-2"></div>
+                            <span className="text-sm">Planning: {starCard.planning}%</span>
+                          </div>
                         </div>
                       </div>
                       
