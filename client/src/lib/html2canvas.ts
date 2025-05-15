@@ -12,21 +12,23 @@ export async function downloadElementAsImage(
   try {
     // Create canvas from the element
     const canvas = await html2canvas(element, {
-      backgroundColor: null,
-      scale: 2, // Higher scale for better quality
-      logging: false,
+      backgroundColor: '#ffffff',
+      scale: 2,
       useCORS: true,
       allowTaint: true,
+      logging: true,
+      width: element.offsetWidth,
+      height: element.offsetHeight
     });
 
     // Convert canvas to data URL
     const dataUrl = canvas.toDataURL('image/png');
-    
+
     // Create download link
     const link = document.createElement('a');
     link.download = filename;
     link.href = dataUrl;
-    
+
     // Trigger download
     document.body.appendChild(link);
     link.click();
