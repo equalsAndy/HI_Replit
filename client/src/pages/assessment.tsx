@@ -760,19 +760,21 @@ export default function Assessment() {
               </div>
               
               <div className="space-y-3 border rounded-md p-3 bg-gray-50">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-green-600 rounded-sm mr-2"></div>
-                  <span className="text-sm font-medium">Thinking: {assessmentResults?.thinking || 0}%</span>
-                  <span className="ml-2 text-xs text-gray-500">- Analytical & logical approach</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-red-600 rounded-sm mr-2"></div>
-                  <span className="text-sm font-medium">Acting: {assessmentResults?.acting || 0}%</span>
-                  <span className="ml-2 text-xs text-gray-500">- Decisive & action-oriented</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded-sm mr-2"></div>
-                  <span className="text-sm font-medium">Feeling: {assessmentResults?.feeling || 0}%</span>
+                {Object.entries({
+                  thinking: { color: 'bg-green-600', label: 'Analytical & logical approach', value: assessmentResults?.thinking || 0 },
+                  acting: { color: 'bg-red-600', label: 'Decisive & action-oriented', value: assessmentResults?.acting || 0 },
+                  feeling: { color: 'bg-blue-600', label: 'Empathetic & relationship-focused', value: assessmentResults?.feeling || 0 },
+                  planning: { color: 'bg-yellow-600', label: 'Organized & methodical', value: assessmentResults?.planning || 0 }
+                })
+                .sort(([,a], [,b]) => b.value - a.value)
+                .map(([key, { color, label, value }]) => (
+                  <div key={key} className="flex items-center">
+                    <div className={`w-4 h-4 ${color} rounded-sm mr-2`}></div>
+                    <span className="text-sm font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}: {value}%</span>
+                    <span className="ml-2 text-xs text-gray-500">- {label}</span>
+                  </div>
+                ))}
+              </div>
                   <span className="ml-2 text-xs text-gray-500">- Empathetic & relationship-focused</span>
                 </div>
                 <div className="flex items-center">

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -19,27 +20,24 @@ const COLORS = {
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
-  const radius = 25 + innerRadius + (outerRadius - innerRadius);
+  const radius = innerRadius + (outerRadius - innerRadius) * 2; // Increased radius
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  // Get the color from the payload data
-  const labelColor = payload.color || 'black';
 
   return (
     <text 
       x={x} 
       y={y} 
-      fill={labelColor} 
+      fill={payload.color}
       textAnchor={x > cx ? 'start' : 'end'} 
       dominantBaseline="central"
-      fontWeight="bold"
-      fontSize="14px"
-      stroke="white" // Add a white outline
-      strokeWidth="0.5" // Make outline thin
-      paintOrder="stroke" // Draw stroke first, then fill
+      style={{ 
+        fontWeight: 600,
+        fontSize: '14px',
+        filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
+      }}
     >
-      {`${name}: ${(percent * 100).toFixed(0)}%`}
+      {`${name}: ${value}%`}
     </text>
   );
 };
@@ -50,7 +48,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
     { name: 'Acting', value: acting, color: COLORS.acting },
     { name: 'Feeling', value: feeling, color: COLORS.feeling },
     { name: 'Planning', value: planning, color: COLORS.planning }
-  ];
+  ].sort((a, b) => b.value - a.value); // Sort by value descending
 
   // Filter out any attributes with 0 value
   const filteredData = data.filter(item => item.value > 0);
@@ -69,7 +67,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             cx="50%"
             cy="50%"
             labelLine={true}
-            label={({name, value}) => `${name}: ${value}%`}
+            label={renderCustomizedLabel}
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"
