@@ -79,6 +79,37 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
   const chartData = filteredData.length === 0 
     ? data.map(item => ({ ...item, value: 25 })) 
     : filteredData;
+    
+  // Create static labels instead of using the pie chart labels
+  const renderStaticLabels = () => {
+    return (
+      <>
+        {/* Feeling - Top */}
+        <text x="50%" y="10%" textAnchor="middle" fill={COLORS.feeling} 
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          Feeling
+        </text>
+        
+        {/* Thinking - Left */}
+        <text x="15%" y="50%" textAnchor="end" fill={COLORS.thinking}
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          {thinking}%
+        </text>
+        
+        {/* Planning - Bottom */}
+        <text x="50%" y="95%" textAnchor="middle" fill={COLORS.planning}
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          Plan
+        </text>
+        
+        {/* Acting - Right */}
+        <text x="85%" y="50%" textAnchor="start" fill={COLORS.acting}
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          Acting: {acting}%
+        </text>
+      </>
+    );
+  };
 
   return (
     <div className="w-full h-[300px]">
@@ -88,8 +119,8 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             data={chartData}
             cx="50%"
             cy="50%"
-            labelLine={true}
-            label={renderCustomizedLabel}
+            labelLine={false}
+            label={false} // Disable dynamic labels
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"
@@ -98,6 +129,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
+          {renderStaticLabels()}
         </PieChart>
       </ResponsiveContainer>
     </div>
