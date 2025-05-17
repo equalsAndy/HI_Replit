@@ -85,26 +85,26 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
     return (
       <>
         {/* Feeling - Top */}
-        <text x="50%" y="15%" textAnchor="middle" fill={COLORS.feeling} 
-              style={{ fontWeight: 'bold', fontSize: '24px', filter: 'drop-shadow(0px 0px 3px white)' }}>
-          Feeling: {feeling}%
+        <text x="50%" y="10%" textAnchor="middle" fill={COLORS.feeling} 
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          Feeling
         </text>
         
         {/* Thinking - Left */}
         <text x="15%" y="50%" textAnchor="end" fill={COLORS.thinking}
-              style={{ fontWeight: 'bold', fontSize: '24px', filter: 'drop-shadow(0px 0px 3px white)' }}>
-          Thinking: {thinking}%
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          {thinking}%
         </text>
         
         {/* Planning - Bottom */}
-        <text x="50%" y="85%" textAnchor="middle" fill={COLORS.planning}
-              style={{ fontWeight: 'bold', fontSize: '24px', filter: 'drop-shadow(0px 0px 3px white)' }}>
-          Planning: {planning}%
+        <text x="50%" y="95%" textAnchor="middle" fill={COLORS.planning}
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
+          Plan
         </text>
         
         {/* Acting - Right */}
         <text x="85%" y="50%" textAnchor="start" fill={COLORS.acting}
-              style={{ fontWeight: 'bold', fontSize: '24px', filter: 'drop-shadow(0px 0px 3px white)' }}>
+              style={{ fontWeight: 'bold', fontSize: '16px' }}>
           Acting: {acting}%
         </text>
       </>
@@ -112,8 +112,8 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
   };
 
   return (
-    <div className="w-full" style={{ height: '400px', minHeight: '400px' }}>
-      <ResponsiveContainer width="100%" height={400}>
+    <div className="w-full h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
             data={chartData}
@@ -121,7 +121,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             cy="50%"
             labelLine={false}
             label={false} // Disable dynamic labels
-            outerRadius={120} // Increased size
+            outerRadius={80}
             fill="#8884d8"
             dataKey="value"
           >
