@@ -775,14 +775,6 @@ export default function Assessment() {
                   </div>
                 ))}
               </div>
-                  <span className="ml-2 text-xs text-gray-500">- Empathetic & relationship-focused</span>
-                </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-yellow-600 rounded-sm mr-2"></div>
-                  <span className="text-sm font-medium">Planning: {assessmentResults?.planning || 0}%</span>
-                  <span className="ml-2 text-xs text-gray-500">- Organized & methodical</span>
-                </div>
-              </div>
             </div>
             
             <div className="flex justify-end space-x-3">
