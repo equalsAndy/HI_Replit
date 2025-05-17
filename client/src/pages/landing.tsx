@@ -1,8 +1,8 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
-import AllStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
-import ImaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
+import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
+import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 
 export default function Landing() {
   return (
