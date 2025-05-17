@@ -29,7 +29,7 @@ const QUADRANT_COLORS = {
 // Helper function to map attribute names to their color
 function getAttributeColor(attrName: string): string {
   if (!attrName) return 'rgb(100, 100, 100)'; // Handle null/undefined
-  
+
   // Define more comprehensive lists of attributes for each quadrant
   const thinkingAttributes = [
     'Abstract', 'Analytic', 'Analytical', 'Astute', 'Big Picture', 'Clever', 'Curious', 
@@ -37,7 +37,7 @@ function getAttributeColor(attrName: string): string {
     'Rational', 'Reflective', 'Sensible', 'Strategic', 'Thoughtful', 'Creative', 
     'Conceptual', 'Dependable', 'Independent', 'Self-aware'
   ];
-  
+
   const actingAttributes = [
     'Adaptable', 'Adventuresome', 'Adventurous', 'Assertive', 'Bold', 'Brave', 'Capable', 
     'Challenging', 'Competitive', 'Confident', 'Courageous', 'Decisive', 'Dynamic', 
@@ -46,7 +46,7 @@ function getAttributeColor(attrName: string): string {
     'Resolute', 'Resourceful', 'Spontaneous', 'Strong', 'Vigorous', 'Action-oriented', 
     'Determined', 'Controlled', 'Driven', 'Sociable'
   ];
-  
+
   const feelingAttributes = [
     'Accepting', 'Authentic', 'Calm', 'Caring', 'Collaborative', 'Compassionate', 'Connected',
     'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Empathic', 'Encouraging',
@@ -54,7 +54,7 @@ function getAttributeColor(attrName: string): string {
     'Inspiring', 'Intuitive', 'Kind', 'Objective', 'Open', 'Passionate', 'Positive',
     'Receptive', 'Sociable', 'Supportive', 'Vulnerable', 'Empowering', 'Perceptive'
   ];
-  
+
   const planningAttributes = [
     'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detail-Oriented', 'Detailed', 
     'Diligent', 'Immersed', 'Industrious', 'Methodical', 'Meticulous', 'Orderly', 
@@ -62,13 +62,13 @@ function getAttributeColor(attrName: string): string {
     'Systematic', 'Thorough', 'Tidy', 'Trustworthy', 'Structured', 'Disciplined', 
     'Prepared', 'Attentive', 'Predictable'
   ];
-  
+
   // For debugging
   console.log(`Mapping attribute: "${attrName}"`);
-  
+
   // Normalize to make comparison consistent
   const normalizedName = attrName.trim();
-  
+
   // Direct attribute mapping for specific cases
   const exactAttributeMapping: Record<string, string> = {
     'Abstract': 'rgb(1, 162, 82)',    // Green - Thinking
@@ -76,12 +76,12 @@ function getAttributeColor(attrName: string): string {
     'Investigative': 'rgb(1, 162, 82)', // Green - Thinking
     'Assertive': 'rgb(241, 64, 64)'   // Red - Acting
   };
-  
+
   // Check for exact match first
   if (exactAttributeMapping[normalizedName]) {
     return exactAttributeMapping[normalizedName];
   }
-  
+
   // Case-insensitive check in arrays
   const lowerName = normalizedName.toLowerCase();
   if (thinkingAttributes.some(attr => attr.toLowerCase() === lowerName)) {
@@ -93,7 +93,7 @@ function getAttributeColor(attrName: string): string {
   } else if (planningAttributes.some(attr => attr.toLowerCase() === lowerName)) {
     return 'rgb(255, 203, 47)'; // Yellow for planning
   }
-  
+
   // If no exact match found, try pattern matching
   if (lowerName.includes('think') || 
       lowerName.includes('logic') ||
@@ -124,7 +124,7 @@ function getAttributeColor(attrName: string): string {
             lowerName.includes('order')) {
     return 'rgb(255, 203, 47)'; // Yellow for planning
   }
-  
+
   console.log(`No color match for "${attrName}", using default gray`);
   return 'rgb(100, 100, 100)'; // Default gray if not found
 }
@@ -159,7 +159,7 @@ export default function UserHome() {
     const firstScriptTag = document.getElementsByTagName('script')[0];
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
   }, []);
-  
+
   // Record user's visit to the dashboard
   useEffect(() => {
     // Mark that the user has visited the dashboard
@@ -233,7 +233,7 @@ export default function UserHome() {
       });
     }
   });
-  
+
   // Randomize star card mutation
   const randomizeStarCard = useMutation({
     mutationFn: async () => {
@@ -255,7 +255,7 @@ export default function UserHome() {
       });
     }
   });
-  
+
   // Use the shared logout hook instead
   const logout = useLogout();
 
@@ -329,13 +329,13 @@ export default function UserHome() {
                 className="h-10 w-auto"
               />
             </Link>
-            
+
             {/* Test User Indicator & Controls */}
             <div className="flex items-center space-x-3">
               <div className="flex items-center">
                 {/* Removed user name display as requested */}
               </div>
-              
+
               {/* Data Status Indicators removed as requested */}
             </div>
           </div>
@@ -392,11 +392,11 @@ export default function UserHome() {
               {expandedSection === "introduction" && (
                 <div className="p-6 border-t border-gray-200">
                   <h2 className="text-xl font-semibold mb-4 text-purple-700">All-Star Teams Workshop Introduction</h2>
-                  
+
                   <p className="mb-4 text-gray-700">
                     Welcome to the All-Star Teams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.
                   </p>
-                  
+
                   <div className="aspect-w-16 aspect-h-9 mb-6 bg-gray-100 rounded-md overflow-hidden">
                     <iframe 
                       src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
@@ -405,9 +405,9 @@ export default function UserHome() {
                       allowFullScreen
                     ></iframe>
                   </div>
-                  
+
                   <p className="font-medium text-gray-700 mb-4">The workshop has these main components:</p>
-                  
+
                   <ul className="list-disc pl-6 space-y-2 mb-6">
                     <li className="text-gray-700">Complete your profile information</li>
                     <li className="text-gray-700">Take the Star Strengths Assessment (10-15 minutes)</li>
@@ -416,7 +416,7 @@ export default function UserHome() {
                     <li className="text-gray-700">Visualize your future potential</li>
                     <li className="text-gray-700">Integrate insights into your professional life</li>
                   </ul>
-                  
+
                   <Button
                     variant="default"
                     className={appStyles.primaryBgColor}
@@ -699,7 +699,8 @@ export default function UserHome() {
                     onClick={() => navigate('/imagination-assessment')}
                   >
                     <div className="flex items-center">
-                      <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mr-2`} />
+                      <Sparkles className={`h-5 w-5 ${appStyles.primaryTextColor} mrI'll update the video link for the Triple Challenge section in the user home page.
+-2`} />
                       <span className={`${appStyles.primaryTextColor} font-medium`}>Take the Imagination Assessment</span>
                     </div>
                     <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${appStyles.primaryTextColor}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -960,7 +961,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Triple Challenge</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src={`https://www.youtube.com/embed/zIFGKPMN8t8?enablejsapi=1${selectedContent === 'challenge' ? '&autoplay=1' : ''}`}
+                        src={`https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1${selectedContent === 'challenge' ? '&autoplay=1' : ''}`}
                         className="w-full h-full" 
                         title="Module 1: The Triple Challenge"
                         frameBorder="0" 
@@ -1268,13 +1269,13 @@ export default function UserHome() {
             ) : (
               /* AllStarTeams Content */
               <>
-                
+
                 {/* Star Card Section */}
                 {starCard ? (
                   <>
                     <div className="mb-6">
                       <h3 className="text-lg font-bold text-indigo-700 mb-3">Your Star Card</h3>
-                      
+
                       {/* Different content for placeholder vs completed star card */}
                       {starCard.state === 'empty' ? (
                         <>
