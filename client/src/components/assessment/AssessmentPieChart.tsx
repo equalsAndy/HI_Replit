@@ -20,25 +20,47 @@ const COLORS = {
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 2; // Increased radius
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.6; // Adjusted radius
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
+  // Create a background for better visibility
   return (
-    <text 
-      x={x} 
-      y={y} 
-      fill={payload.color}
-      textAnchor={x > cx ? 'start' : 'end'} 
-      dominantBaseline="central"
-      style={{ 
-        fontWeight: 600,
-        fontSize: '14px',
-        filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
-      }}
-    >
-      {`${name}: ${value}%`}
-    </text>
+    <g>
+      {/* Text shadow/background for better visibility */}
+      <text 
+        x={x} 
+        y={y} 
+        fill="white"
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        style={{ 
+          fontWeight: 600,
+          fontSize: '14px',
+          stroke: 'white',
+          strokeWidth: 4,
+          strokeLinejoin: 'round',
+          paintOrder: 'stroke'
+        }}
+      >
+        {`${name}: ${value}%`}
+      </text>
+      
+      {/* Actual text */}
+      <text 
+        x={x} 
+        y={y} 
+        fill={payload.color}
+        textAnchor={x > cx ? 'start' : 'end'} 
+        dominantBaseline="central"
+        style={{ 
+          fontWeight: 600,
+          fontSize: '14px'
+        }}
+      >
+        {`${name}: ${value}%`}
+      </text>
+    </g>
   );
 };
 
