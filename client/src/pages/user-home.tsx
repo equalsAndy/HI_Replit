@@ -961,7 +961,7 @@ export default function UserHome() {
                     <h3 className="text-xl font-semibold text-purple-700 mb-4">The Triple Challenge</h3>
                     <div className="w-full h-[500px] rounded-lg overflow-hidden shadow-md mb-4">
                       <iframe 
-                        src={`https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1${selectedContent === 'challenge' ? '&autoplay=1' : ''}`}
+                        src={`https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1${selectedContent === 'challenge' ? '&autoplay=1' : ''}`}
                         className="w-full h-full" 
                         title="Module 1: The Triple Challenge"
                         frameBorder="0" 
