@@ -167,30 +167,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
         </div>
       </Card>
       
-      {/* Show summary of all answers when finished */}
-      {currentQuestion === roundingOutQuestions.length - 1 && Object.keys(answers).length === roundingOutQuestions.length && (
-        <Card className="p-6 mt-6">
-          <h3 className="text-lg font-semibold mb-4">Your Flow Reflection Summary</h3>
-          
-          <div className="space-y-4">
-            {roundingOutQuestions.map(q => (
-              <div key={q.id}>
-                <p className="font-medium">{q.text}</p>
-                <p className="text-gray-700 whitespace-pre-wrap">{answers[q.id]}</p>
-              </div>
-            ))}
-          </div>
-          
-          <div className="mt-6 flex justify-end">
-            <Button
-              onClick={() => onComplete && onComplete()}
-              className="bg-indigo-700 hover:bg-indigo-800"
-            >
-              Continue to Add Flow to Star Card
-            </Button>
-          </div>
-        </Card>
-      )}
+      {/* No summary at the end - just proceed to next section */}
     </div>
   );
 }
