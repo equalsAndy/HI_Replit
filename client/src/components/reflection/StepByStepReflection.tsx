@@ -497,32 +497,56 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             Let's explore one strength at a time.
           </p>
           
-          {/* Simplified Strengths Distribution */}
-          <div className="mt-6 bg-white/10 rounded-lg p-4">
+          {/* Improved Strengths Distribution - ordered by score */}
+          <div className="mt-6 bg-white/30 rounded-lg p-5">
             <div className="flex flex-col items-center">
-              <h3 className="text-white text-center mb-3">Your Strengths Distribution</h3>
+              <h3 className="text-white font-bold text-center mb-3">Your Strengths Distribution</h3>
               
-              <div className="grid grid-cols-4 gap-3 mb-2 w-full max-w-md">
-                <div className="bg-yellow-500/20 rounded p-2 text-center">
-                  <div className="text-xl font-bold text-white">{starCard?.planning || 0}%</div>
-                  <div className="text-xs text-white/80">Planning</div>
-                </div>
-                <div className="bg-red-500/20 rounded p-2 text-center">
-                  <div className="text-xl font-bold text-white">{starCard?.acting || 0}%</div>
-                  <div className="text-xs text-white/80">Acting</div>
-                </div>
-                <div className="bg-blue-500/20 rounded p-2 text-center">
-                  <div className="text-xl font-bold text-white">{starCard?.feeling || 0}%</div>
-                  <div className="text-xs text-white/80">Feeling</div>
-                </div>
-                <div className="bg-green-500/20 rounded p-2 text-center">
-                  <div className="text-xl font-bold text-white">{starCard?.thinking || 0}%</div>
-                  <div className="text-xs text-white/80">Thinking</div>
-                </div>
+              <div className="flex flex-col gap-2 mb-2 w-full max-w-md">
+                {sortedQuadrants.map((quadrant, index) => {
+                  let bgColor = '';
+                  let textColor = 'text-gray-900';
+                  let borderColor = '';
+                  let isHighlighted = currentStep <= 4 && index === currentStep - 1;
+                  
+                  switch(quadrant.label) {
+                    case 'PLANNING':
+                      bgColor = 'bg-yellow-400';
+                      borderColor = isHighlighted ? 'border-2 border-yellow-700' : '';
+                      break;
+                    case 'ACTING':
+                      bgColor = 'bg-red-400';
+                      borderColor = isHighlighted ? 'border-2 border-red-700' : '';
+                      break;
+                    case 'FEELING':
+                      bgColor = 'bg-blue-400';
+                      borderColor = isHighlighted ? 'border-2 border-blue-700' : '';
+                      break;
+                    case 'THINKING':
+                      bgColor = 'bg-green-400';
+                      borderColor = isHighlighted ? 'border-2 border-green-700' : '';
+                      break;
+                  }
+                  
+                  return (
+                    <div 
+                      key={quadrant.label}
+                      className={`${bgColor} ${borderColor} rounded-lg p-2 flex justify-between items-center ${isHighlighted ? 'transform scale-105' : ''}`}
+                    >
+                      <div className="flex items-center">
+                        <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-gray-900 font-bold mr-2">
+                          {index + 1}
+                        </div>
+                        <span className={`font-semibold ${textColor}`}>{quadrant.label.charAt(0) + quadrant.label.slice(1).toLowerCase()}</span>
+                      </div>
+                      <span className={`text-lg font-bold ${textColor}`}>{quadrant.score}%</span>
+                    </div>
+                  );
+                })}
               </div>
               
-              <div className="text-xs text-white/70 mt-1 text-center">
-                Based on your assessment, {topStrength?.label.charAt(0) + topStrength?.label.slice(1).toLowerCase()} is your strongest trait at {topStrength?.score || 0}%
+              <div className="text-xs font-medium text-white mt-2 text-center bg-black/20 p-2 rounded-md">
+                Your strengths are shown from highest to lowest score
               </div>
             </div>
           </div>
