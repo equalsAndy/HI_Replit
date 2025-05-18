@@ -294,10 +294,13 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             </div>
           </div>
           
-          <div>
-            <label htmlFor={`strength-${step}-reflection`} className="block text-sm font-medium text-gray-700 mb-1">
-              Your Reflection (2-3 sentences)
+          <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
+            <label htmlFor={`strength-${step}-reflection`} className="block text-lg font-semibold text-indigo-800 mb-2">
+              Your Reflection Space
             </label>
+            <p className="text-gray-700 mb-3 text-sm italic">
+              Write 2-3 sentences about when you've used this strength effectively
+            </p>
             <Textarea 
               id={`strength-${step}-reflection`}
               value={step === 1 ? reflections.strength1 : 
@@ -305,7 +308,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                      step === 3 ? reflections.strength3 : reflections.strength4}
               onChange={(e) => handleReflectionChange(step, e.target.value)}
               placeholder={`Describe specific moments when you've used your ${strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} strength effectively...`}
-              className="min-h-[120px] w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md"
+              className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
             />
           </div>
         </div>
@@ -323,7 +326,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
               5
             </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-800">What I Value Most in Team Environments</h3>
+          <h3 className="text-xl font-bold text-gray-800">What You Value Most in Team Environments</h3>
         </div>
         
         <div className="ml-16 mb-6">
@@ -392,7 +395,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
               6
             </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-800">My Unique Contribution to the Team</h3>
+          <h3 className="text-xl font-bold text-gray-800">Your Unique Contribution to the Team</h3>
         </div>
         
         <div className="ml-16 mb-6">
@@ -428,16 +431,19 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             </div>
           </div>
           
-          <div>
-            <label htmlFor="unique-contribution-reflection" className="block text-sm font-medium text-gray-700 mb-1">
-              Your Reflection (2-3 sentences)
+          <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg shadow-sm">
+            <label htmlFor="unique-contribution-reflection" className="block text-lg font-semibold text-green-800 mb-2">
+              Your Reflection Space
             </label>
+            <p className="text-gray-700 mb-3 text-sm italic">
+              Write 2-3 sentences about your unique contribution to the team
+            </p>
             <Textarea 
               id="unique-contribution-reflection"
               value={reflections.uniqueContribution}
               onChange={(e) => handleReflectionChange(6, e.target.value)}
-              placeholder="Describe your unique contribution..."
-              className="min-h-[120px] w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md"
+              placeholder="Describe your unique contribution to the team..."
+              className="min-h-[140px] w-full border-green-300 focus:border-green-500 focus:ring-green-500 rounded-md bg-white"
             />
           </div>
         </div>
