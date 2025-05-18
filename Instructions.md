@@ -561,3 +561,16 @@ Creating a second application within the same codebase is feasible with the curr
 - Easy navigation between questions
 - Clear indication of auto-advance state
 - Smooth transitions between questions
+
+## Post-Assessment Completion
+- Display overall flow state level (Flow Fluent, Flow Aware, etc.)
+- Show personalized insights based on score
+- Provide clear next steps:
+  1. Individual reflection on flow patterns
+  2. Preparation for team workshop integration
+  3. Download/save results for future reference
+- Show recommended flow-enhancing activities based on score
+- Store results in user profile for:
+  - Future reference
+  - Team workshop preparation
+  - Progress tracking
