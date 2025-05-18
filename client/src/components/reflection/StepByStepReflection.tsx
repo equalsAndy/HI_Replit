@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -42,6 +42,38 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
     teamValues: '',
     uniqueContribution: ''
   });
+  
+  // Function to populate reflections with demo lorem ipsum text
+  const fillWithDemoData = () => {
+    const loremTexts = [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
+      "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
+      "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni."
+    ];
+    
+    // Get random lorem ipsum paragraph
+    const getRandomLorem = () => {
+      const idx1 = Math.floor(Math.random() * loremTexts.length);
+      let idx2 = Math.floor(Math.random() * loremTexts.length);
+      while (idx2 === idx1) {
+        idx2 = Math.floor(Math.random() * loremTexts.length);
+      }
+      return loremTexts[idx1] + " " + loremTexts[idx2];
+    };
+    
+    // Fill all reflection fields
+    setReflections({
+      strength1: getRandomLorem(),
+      strength2: getRandomLorem(),
+      strength3: getRandomLorem(),
+      strength4: getRandomLorem(),
+      teamValues: getRandomLorem(),
+      uniqueContribution: getRandomLorem()
+    });
+  };
   
   // Helper function to determine current progress percentage
   const progressPercentage = Math.round((currentStep / totalSteps) * 100);
@@ -552,8 +584,8 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
               <Button 
                 className="px-5 bg-green-600 hover:bg-green-700 text-white"
                 onClick={() => {
-                  // Save the reflection data
-                  saveReflectionData();
+                  // Save the reflection data (using localStorage for now)
+                  localStorage.setItem('reflectionData', JSON.stringify(reflections));
                   // Navigate to the next tab
                   window.location.href = "/flow";
                 }}
