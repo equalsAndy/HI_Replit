@@ -20,47 +20,25 @@ const COLORS = {
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 1.6; // Adjusted radius
+  const radius = innerRadius + (outerRadius - innerRadius) * 2; // Increased radius
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
-  // Create a background for better visibility
   return (
-    <g>
-      {/* Text shadow/background for better visibility */}
-      <text 
-        x={x} 
-        y={y} 
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        style={{ 
-          fontWeight: 600,
-          fontSize: '14px',
-          stroke: 'white',
-          strokeWidth: 4,
-          strokeLinejoin: 'round',
-          paintOrder: 'stroke'
-        }}
-      >
-        {`${name}: ${value}%`}
-      </text>
-      
-      {/* Actual text */}
-      <text 
-        x={x} 
-        y={y} 
-        fill={payload.color}
-        textAnchor={x > cx ? 'start' : 'end'} 
-        dominantBaseline="central"
-        style={{ 
-          fontWeight: 600,
-          fontSize: '14px'
-        }}
-      >
-        {`${name}: ${value}%`}
-      </text>
-    </g>
+    <text 
+      x={x} 
+      y={y} 
+      fill={payload.color}
+      textAnchor={x > cx ? 'start' : 'end'} 
+      dominantBaseline="central"
+      style={{ 
+        fontWeight: 600,
+        fontSize: '14px',
+        filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
+      }}
+    >
+      {`${name}: ${value}%`}
+    </text>
   );
 };
 
@@ -79,49 +57,18 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
   const chartData = filteredData.length === 0 
     ? data.map(item => ({ ...item, value: 25 })) 
     : filteredData;
-    
-  // Create static labels instead of using the pie chart labels
-  const renderStaticLabels = () => {
-    return (
-      <>
-        {/* Feeling - Top */}
-        <text x="50%" y="10%" textAnchor="middle" fill={COLORS.feeling} 
-              style={{ fontWeight: 'bold', fontSize: '16px' }}>
-          Feeling
-        </text>
-        
-        {/* Thinking - Left */}
-        <text x="15%" y="50%" textAnchor="end" fill={COLORS.thinking}
-              style={{ fontWeight: 'bold', fontSize: '16px' }}>
-          {thinking}%
-        </text>
-        
-        {/* Planning - Bottom */}
-        <text x="50%" y="95%" textAnchor="middle" fill={COLORS.planning}
-              style={{ fontWeight: 'bold', fontSize: '16px' }}>
-          Plan
-        </text>
-        
-        {/* Acting - Right */}
-        <text x="85%" y="50%" textAnchor="start" fill={COLORS.acting}
-              style={{ fontWeight: 'bold', fontSize: '16px' }}>
-          Acting: {acting}%
-        </text>
-      </>
-    );
-  };
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
+        <PieChart>
           <Pie
             data={chartData}
             cx="50%"
             cy="50%"
-            labelLine={false}
-            label={false} // Disable dynamic labels
-            outerRadius={120}
+            labelLine={true}
+            label={renderCustomizedLabel}
+            outerRadius={80}
             fill="#8884d8"
             dataKey="value"
           >
@@ -129,7 +76,6 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
               <Cell key={`cell-${index}`} fill={entry.color} />
             ))}
           </Pie>
-          {renderStaticLabels()}
         </PieChart>
       </ResponsiveContainer>
     </div>

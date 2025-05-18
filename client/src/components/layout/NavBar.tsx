@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
-import HiLogo from '@assets/HI_Logo_horizontal.png';
+import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
 
 export function NavBar() {
