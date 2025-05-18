@@ -48,9 +48,19 @@ export function TestUsersModal({
     )
   );
   
+  // Determine if user has flow data specifically
+  const hasFlowData = !!(
+    flowAttributesData && 
+    (flowAttributesData.flowScore || 
+     (flowAttributesData.attributes && 
+      Array.isArray(flowAttributesData.attributes) && 
+      flowAttributesData.attributes.length > 0))
+  );
+  
   // Log the hasData condition to help debug
   console.log("Has data condition:", { 
     hasData, 
+    hasFlowData,
     starCardData: starCardData ? {
       thinking: starCardData.thinking,
       acting: starCardData.acting,
@@ -60,7 +70,8 @@ export function TestUsersModal({
     } : null,
     flowAttributes: flowAttributesData ? {
       hasAttributes: !!flowAttributesData.attributes,
-      attributesLength: flowAttributesData.attributes ? flowAttributesData.attributes.length : 0
+      attributesLength: flowAttributesData.attributes ? flowAttributesData.attributes.length : 0,
+      flowScore: flowAttributesData.flowScore
     } : null
   });
 
@@ -85,6 +96,41 @@ export function TestUsersModal({
     onError: (error) => {
       toast({
         title: "Failed to reset user data",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Clear flow data only mutation
+  const clearFlowData = useMutation({
+    mutationFn: async () => {
+      // First get current flow attributes
+      const flowData = { 
+        ...flowAttributesData,
+        flowScore: 0,
+        attributes: []
+      };
+      
+      // Update the flow attributes to clear the data
+      const res = await apiRequest('POST', `/api/flow-attributes`, flowData);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Only invalidate flow-related queries
+      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      
+      toast({
+        title: "Flow data cleared",
+        description: `Flow assessment data for Test User ${userId} has been cleared.`,
+      });
+      
+      // Don't close the modal so user can see the updated data
+      queryClient.invalidateQueries();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear flow data",
         description: String(error),
         variant: "destructive",
       });
@@ -125,16 +171,30 @@ export function TestUsersModal({
           </div>
         </div>
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
+          
+          {/* Clear Flow Data button */}
+          {hasFlowData && (
+            <Button 
+              variant="outline" 
+              className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-300"
+              onClick={() => clearFlowData.mutate()}
+              disabled={clearFlowData.isPending}
+            >
+              {clearFlowData.isPending ? "Clearing..." : "Clear Flow Data Only"}
+            </Button>
+          )}
+          
+          {/* Clear All Data button */}
           <Button 
             variant="destructive" 
             onClick={() => resetUserData.mutate()}
             disabled={!hasData || resetUserData.isPending}
           >
-            {resetUserData.isPending ? "Clearing..." : "Clear User Data"}
+            {resetUserData.isPending ? "Clearing..." : "Clear All User Data"}
           </Button>
         </DialogFooter>
       </DialogContent>
