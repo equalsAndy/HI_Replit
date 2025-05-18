@@ -159,11 +159,34 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
       return;
     }
     
-    // Update answers immediately
-    setAnswers(prev => ({
-      ...prev,
+    // Create updated answers
+    const updatedAnswers = {
+      ...answers,
       [questionId]: value
-    }));
+    };
+    
+    // Update answers state
+    setAnswers(updatedAnswers);
+    
+    // Persist answers to API as they're selected (auto-save)
+    try {
+      // Only auto-save if we have at least one answer
+      if (Object.keys(updatedAnswers).length > 0) {
+        const flowScore = Object.values(updatedAnswers).reduce((sum, val) => sum + val, 0);
+        
+        // Call the API to save the flow attributes
+        apiRequest('/api/flow-attributes', {
+          method: 'POST',
+          body: JSON.stringify({
+            flowScore,
+            attributes: [] // Empty array for now, will be populated later
+          })
+        }).catch(err => console.error('Error saving flow assessment:', err));
+      }
+    } catch (err) {
+      // Silently handle errors - don't disrupt the user experience
+      console.error('Error auto-saving flow assessment:', err);
+    }
     
     // Clear error
     setError(null);
