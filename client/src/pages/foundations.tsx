@@ -12,7 +12,18 @@ import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
-import { BookOpen, ClipboardCheck, Edit, Star } from 'lucide-react';
+import { BookOpen, ClipboardCheck, Edit, Star, AlertTriangle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -128,9 +139,29 @@ export default function Foundations() {
       // Otherwise disable the tab
       return true;
     }
+    
+    // Check prerequisites for Flow tab
+    if (tabId === "flow") {
+      // Flow tab requires:
+      // 1. A valid star card with scores
+      // 2. At least some reflection data saved
+      
+      // Check if star card is missing or has no scores
+      if (!starCard || (starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) {
+        return true;
+      }
+      
+      // Check for reflection data in localStorage
+      const reflectionData = localStorage.getItem('reflectionData');
+      if (!reflectionData) {
+        return true;
+      }
+      
+      return false;
+    }
 
     // For sequential progression
-    const tabSequence = ["intro", "starcard", "reflect"];
+    const tabSequence = ["intro", "starcard", "reflect", "flow"];
     const currentIndex = tabSequence.indexOf(activeTab);
     const targetIndex = tabSequence.indexOf(tabId);
 

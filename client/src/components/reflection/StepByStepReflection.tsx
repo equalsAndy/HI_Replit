@@ -502,11 +502,25 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
       <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
         {/* Reflection Header */}
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-          <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
-          <p className="text-white/80">
-            Understanding how your unique strengths work together helps you maximize your potential.
-            Let's explore one strength at a time.
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
+              <p className="text-white/80">
+                Understanding how your unique strengths work together helps you maximize your potential.
+                Let's explore one strength at a time.
+              </p>
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
+            >
+              <FileText className="w-3 h-3 mr-1" />
+              Add Demo Data
+            </Button>
+          </div>
           
           {/* Improved Strengths Distribution - ordered by score */}
           <div className="mt-6 bg-white/30 rounded-lg p-5">
