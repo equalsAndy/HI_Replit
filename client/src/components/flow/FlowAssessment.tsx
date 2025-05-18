@@ -48,7 +48,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   // State for tracking answers
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [showResult, setShowResult] = useState(false);
+  const [showResult, setShowResult] = useState(isCompleted); // Show results page immediately if assessment was completed
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
