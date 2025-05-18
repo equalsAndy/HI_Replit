@@ -548,13 +548,26 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             >
               Previous Question
             </Button>
-            <Button 
-              className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white"
-              onClick={handleNext}
-              disabled={currentStep === totalSteps}
-            >
-              {currentStep === totalSteps ? 'Complete Reflection' : 'Continue to Next Question'}
-            </Button>
+            {currentStep === totalSteps ? (
+              <Button 
+                className="px-5 bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => {
+                  // Save the reflection data
+                  saveReflectionData();
+                  // Navigate to the next tab
+                  window.location.href = "/flow";
+                }}
+              >
+                Complete Reflection
+              </Button>
+            ) : (
+              <Button 
+                className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={handleNext}
+              >
+                Continue to Next Question
+              </Button>
+            )}
           </div>
         </div>
       </div>

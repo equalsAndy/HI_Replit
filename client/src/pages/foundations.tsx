@@ -334,49 +334,54 @@ export default function Foundations() {
                 <p>
                   Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in your development journey.
                 </p>
-
-                <div className="aspect-w-16 aspect-h-9 mb-6 mt-6">
-                  <iframe 
-                    src="https://www.youtube.com/embed/x6h7LDtdnJw" 
-                    title="Star Profile Review" 
-                    frameBorder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowFullScreen
-                    className="w-full h-80 rounded border border-gray-200"
-                  ></iframe>
-                </div>
-
-                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
-                  <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
-                  <ul>
-                    <li>Reflect on your apex strength and how it shows up</li>
-                    <li>Consider how your profile shifts over time and in different roles</li>
-                    <li>Use your Star Card as a personal development compass</li>
-                  </ul>
-                </div>
-
-                <p>
-                  Watch the short video, then explore your profile with fresh eyes.
-                </p>
               </div>
-
-              <div className="my-8 border border-gray-200 rounded-md overflow-hidden bg-white">
-                <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="text-xl font-bold text-center">Your Star Card</h3>
+              
+              <div className="flex flex-col md:flex-row gap-6 mt-6">
+                <div className="md:w-1/2">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <iframe 
+                      src="https://www.youtube.com/embed/x6h7LDtdnJw" 
+                      title="Star Profile Review" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="w-full h-full rounded border border-gray-200"
+                    ></iframe>
+                  </div>
                 </div>
-                <div className="p-4 flex justify-center">
-                  {/* Insert StarCard component */}
-                  <div className="max-w-lg w-full">
-                    <StarCard 
-                      thinking={starCard?.thinking || 0}
-                      acting={starCard?.acting || 0}
-                      feeling={starCard?.feeling || 0}
-                      planning={starCard?.planning || 0}
-                      imageUrl={starCard?.imageUrl || null}
-                    />
+                
+                <div className="md:w-1/2">
+                  <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                      <h3 className="text-xl font-bold text-center">Your Star Card</h3>
+                    </div>
+                    <div className="p-4 flex justify-center">
+                      <div className="w-full">
+                        <StarCard 
+                          thinking={starCard?.thinking || 0}
+                          acting={starCard?.acting || 0}
+                          feeling={starCard?.feeling || 0}
+                          planning={starCard?.planning || 0}
+                          imageUrl={starCard?.imageUrl || null}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
+                <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
+                <ul>
+                  <li>Reflect on your apex strength and how it shows up</li>
+                  <li>Consider how your profile shifts over time and in different roles</li>
+                  <li>Use your Star Card as a personal development compass</li>
+                </ul>
+              </div>
+
+              <p className="prose max-w-none">
+                Watch the short video, then explore your profile with fresh eyes.
+              </p>
 
               <div className="flex justify-end mt-6">
                 <Button 
