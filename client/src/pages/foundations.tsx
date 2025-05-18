@@ -180,9 +180,7 @@ export default function Foundations() {
               <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
                 {isTabDisabled("starcard") ? (
                   <span className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
-                    </svg>
+                    <BookOpen className="h-4 w-4 mr-1.5" />
                     Your StarCard
                   </span>
                 ) : (
@@ -195,9 +193,7 @@ export default function Foundations() {
               <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
                 {isTabDisabled("reflect") ? (
                   <span className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H8m10-4a6 6 0 11-12 0 6 6 0 0112 0z" />
-                    </svg>
+                    <Edit className="h-4 w-4 mr-1.5" />
                     Reflect
                   </span>
                 ) : (
