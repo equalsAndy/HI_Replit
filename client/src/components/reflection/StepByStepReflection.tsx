@@ -333,43 +333,15 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
           </p>
           
           <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-indigo-800 mb-2">Consider your team environment preferences:</h4>
+            <h4 className="font-medium text-indigo-800 mb-2">Consider what you value in team environments:</h4>
             <p className="text-gray-700 text-sm mb-3">
-              With {topStrength.label.charAt(0) + topStrength.label.slice(1).toLowerCase()} as your primary strength, you likely value teams that:
+              Reflect on the team qualities that bring out your best performance and satisfaction:
             </p>
             <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-              {topStrength.label === 'PLANNING' && (
-                <>
-                  <li>Have clear processes and structured workflows</li>
-                  <li>Value organization and methodical approaches</li>
-                  <li>Respect deadlines and commitments</li>
-                  <li>Appreciate thoroughness and attention to detail</li>
-                </>
-              )}
-              {topStrength.label === 'ACTING' && (
-                <>
-                  <li>Focus on results and practical outcomes</li>
-                  <li>Move quickly and decisively</li>
-                  <li>Value initiative and proactive behavior</li>
-                  <li>Appreciate directness and efficiency</li>
-                </>
-              )}
-              {topStrength.label === 'FEELING' && (
-                <>
-                  <li>Prioritize relationships and team harmony</li>
-                  <li>Value open communication and trust</li>
-                  <li>Appreciate empathy and emotional intelligence</li>
-                  <li>Create inclusive and supportive environments</li>
-                </>
-              )}
-              {topStrength.label === 'THINKING' && (
-                <>
-                  <li>Embrace innovation and creative problem-solving</li>
-                  <li>Value data-driven decision making</li>
-                  <li>Appreciate intellectual debate and idea exploration</li>
-                  <li>Encourage strategic and systems thinking</li>
-                </>
-              )}
+              <li>Think about communication styles that work well for you</li>
+              <li>Consider decision-making approaches you find most effective</li>
+              <li>Reflect on workflow structures that help you perform at your best</li>
+              <li>Identify team dynamics that energize rather than drain you</li>
             </ul>
             
             <div className="mb-2">
@@ -432,9 +404,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
           <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
             <h4 className="font-medium text-green-800 mb-2">Consider your unique contribution:</h4>
             <p className="text-gray-700 text-sm mb-3">
-              With {topStrength.label.charAt(0) + topStrength.label.slice(1).toLowerCase()} ({topStrength.score}%) 
-              and {secondStrength.label.charAt(0) + secondStrength.label.slice(1).toLowerCase()} ({secondStrength.score}%) 
-              as your top strengths, you likely contribute by:
+              Think about the distinctive value you bring to your team or organization that others might not provide:
             </p>
             
             <div className="mb-2">
@@ -545,9 +515,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 })}
               </div>
               
-              <div className="text-xs font-medium text-white mt-2 text-center bg-black/20 p-2 rounded-md">
-                Your strengths are shown from highest to lowest score
-              </div>
+              {/* Removed instruction text as requested */}
             </div>
           </div>
         </div>
