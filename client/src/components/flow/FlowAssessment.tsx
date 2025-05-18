@@ -109,8 +109,38 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     }
   };
   
-  // Common function to handle all value selections
+  // Common function to handle value selections (used by slider and quick select)
   const handleValueSelection = (questionId: number, value: number) => {
+    // Skip if already selected this value
+    if (answers[questionId] === value) {
+      return;
+    }
+    
+    // Update answers immediately
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+    
+    // Clear error
+    setError(null);
+    
+    // Note: We DON'T auto-advance here - only the number buttons should trigger auto-advance
+    // This prevents unwanted auto-advancing when using the slider
+  };
+  
+  // Handle slider change - pass to common handler
+  const handleSliderChange = (questionId: number, value: number[]) => {
+    handleValueSelection(questionId, value[0]);
+  };
+  
+  // Handle quick selection (the "3" button) - pass to common handler
+  const handleQuickSelect = (questionId: number) => {
+    handleValueSelection(questionId, 3);
+  };
+  
+  // Handle direct number click - this is the main way users select answers
+  const handleNumberClick = (questionId: number, value: number) => {
     // Skip if already selected this value
     if (answers[questionId] === value) {
       return;
@@ -131,33 +161,15 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     // Clear error
     setError(null);
     
-    // Handle auto-advance if enabled
-    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
-      // Create a new timeout
-      autoAdvanceTimeoutRef.current = setTimeout(() => {
-        nextQuestion();
-      }, 700);
-    }
-  };
-  
-  // Handle slider change - pass to common handler
-  const handleSliderChange = (questionId: number, value: number[]) => {
-    handleValueSelection(questionId, value[0]);
-  };
-  
-  // Handle quick selection (the "3" button) - pass to common handler
-  const handleQuickSelect = (questionId: number) => {
-    handleValueSelection(questionId, 3);
-  };
-  
-  // Handle direct number click - pass to common handler
-  const handleNumberClick = (questionId: number, value: number) => {
-    handleValueSelection(questionId, value);
-    
-    // If auto-advance is enabled and this isn't the last question, highlight that we'll advance
+    // Show notification for auto-advance
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
       setAutoAdvancePending(true);
       setTimeout(() => setAutoAdvancePending(false), 1500);
+      
+      // Auto-advance after delay if enabled
+      autoAdvanceTimeoutRef.current = setTimeout(() => {
+        nextQuestion();
+      }, 700);
     }
   };
   
