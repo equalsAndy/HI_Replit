@@ -49,7 +49,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [showResult, setShowResult] = useState(false);
-  const [autoAdvance, setAutoAdvance] = useState(false);
+  const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
   
@@ -192,6 +192,13 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   // Move to previous question
   const goToPrevQuestion = () => {
     if (currentQuestion > 0) {
+      // Disable auto-advance when going back to previous questions
+      if (autoAdvance) {
+        setAutoAdvance(false);
+        // Show notification that auto-advance was disabled
+        setAutoAdvancePending(true);
+        setTimeout(() => setAutoAdvancePending(false), 3000);
+      }
       setCurrentQuestion(prev => prev - 1);
     }
   };
@@ -435,8 +442,10 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
           
           {/* Auto-advance notification - only show when the autoAdvancePending flag is true */}
           {autoAdvancePending && (
-            <div className="text-sm text-indigo-600 font-medium animate-pulse">
-              Click your selection again to advance to the next question
+            <div className="text-sm text-indigo-600 font-medium animate-pulse bg-indigo-50 p-2 rounded-md border border-indigo-100">
+              {autoAdvance 
+                ? "Auto-advance enabled. The assessment will move forward after you select an answer." 
+                : "Auto-advance disabled. You'll need to click Next to proceed after answering."}
             </div>
           )}
         </div>
