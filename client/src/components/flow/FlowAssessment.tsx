@@ -463,6 +463,17 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
           </div>
         )}
 
+        {/* Auto-advance notification */}
+        {autoAdvancePending && (
+          <div className="mb-4 p-2 rounded-md bg-indigo-50 border border-indigo-200 text-center">
+            <p className="text-indigo-700 font-medium text-sm">
+              {autoAdvance 
+                ? "Auto-advance is ON. You'll automatically go to the next question after answering."
+                : "Auto-advance has been turned OFF. You'll need to click Next after answering each question."}
+            </p>
+          </div>
+        )}
+        
         <div className="flex justify-between">
           <Button 
             variant="outline" 
