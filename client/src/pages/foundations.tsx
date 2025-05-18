@@ -12,6 +12,390 @@ import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 
+// Step by Step Reflection Component
+function StepByStepReflection({ starCard, handleTabChange }: { 
+  starCard: { thinking: number; acting: number; feeling: number; planning: number } | undefined;
+  handleTabChange: (tab: string) => void; 
+}) {
+  const [activeStep, setActiveStep] = useState<number>(1);
+  const [reflections, setReflections] = useState<{[key: string]: string}>({
+    strength1: '',
+    strength2: '',
+    strength3: '',
+    strength4: '',
+    teamContribution: '',
+    teamValue: ''
+  });
+  
+  // Helper functions for strength names and descriptions
+  const getQuadrantName = (key: string) => {
+    const names: {[key: string]: string} = {
+      'thinking': 'Thinking',
+      'acting': 'Acting',
+      'feeling': 'Feeling',
+      'planning': 'Planning'
+    };
+    return names[key] || 'Unknown';
+  };
+  
+  const getQuadrantDescription = (key: string) => {
+    const descriptions: {[key: string]: string} = {
+      'thinking': 'analytical & logical approach',
+      'acting': 'decisive & action-oriented',
+      'feeling': 'empathetic & relationship-focused',
+      'planning': 'organized & methodical'
+    };
+    return descriptions[key] || '';
+  };
+  
+  // Get sorted strengths
+  const sortedStrengths = starCard ? 
+    Object.entries({
+      'thinking': starCard.thinking,
+      'acting': starCard.acting,
+      'feeling': starCard.feeling,
+      'planning': starCard.planning
+    })
+    .sort(([,a], [,b]) => b - a)
+    .map(([key]) => key)
+    : [];
+  
+  const handleReflectionChange = (field: string, value: string) => {
+    setReflections(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  const handleNextStep = () => {
+    if (activeStep < 6) {
+      setActiveStep(activeStep + 1);
+    }
+  };
+  
+  const handlePreviousStep = () => {
+    if (activeStep > 1) {
+      setActiveStep(activeStep - 1);
+    }
+  };
+  
+  return (
+    <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+      {/* Header with step indicator */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+        <h2 className="text-xl font-bold mb-2">Your Strengths Reflection</h2>
+        <p className="opacity-90">Step {activeStep} of 6: {
+          activeStep === 1 ? "Your Strengths Overview" :
+          activeStep === 2 ? `Your Primary Strength` :
+          activeStep === 3 ? `Your Secondary Strength` :
+          activeStep === 4 ? `Your Third Strength` :
+          activeStep === 5 ? `Your Fourth Strength` :
+          "Your Team Contributions"
+        }</p>
+        
+        {/* Progress bar */}
+        <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+          <div 
+            className="bg-white h-2 rounded-full transition-all duration-300 ease-in-out" 
+            style={{ width: `${(activeStep / 6) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+      
+      <div className="p-6">
+        {/* Step 1: Overview with pie chart */}
+        {activeStep === 1 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto text-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">Your Strengths Profile</h3>
+              <p className="text-gray-600 mb-6">
+                This visualization shows your unique distribution of strengths. In the next steps,
+                you'll reflect on how you use each of these strengths in your professional life.
+              </p>
+            </div>
+            
+            <div className="mx-auto max-w-md">
+              {starCard && (
+                <AssessmentPieChart
+                  thinking={starCard.thinking || 0}
+                  acting={starCard.acting || 0}
+                  feeling={starCard.feeling || 0}
+                  planning={starCard.planning || 0}
+                />
+              )}
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mt-6">
+              <div className="bg-green-50 p-3 rounded-lg border border-green-100 text-center">
+                <div className="text-green-700 font-bold">{starCard?.thinking || 0}%</div>
+                <div className="text-sm text-gray-600">Thinking</div>
+              </div>
+              <div className="bg-red-50 p-3 rounded-lg border border-red-100 text-center">
+                <div className="text-red-700 font-bold">{starCard?.acting || 0}%</div>
+                <div className="text-sm text-gray-600">Acting</div>
+              </div>
+              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                <div className="text-blue-700 font-bold">{starCard?.feeling || 0}%</div>
+                <div className="text-sm text-gray-600">Feeling</div>
+              </div>
+              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-center">
+                <div className="text-yellow-700 font-bold">{starCard?.planning || 0}%</div>
+                <div className="text-sm text-gray-600">Planning</div>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Step 2: Reflect on 1st strength */}
+        {activeStep === 2 && sortedStrengths.length > 0 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                Your Primary Strength: {getQuadrantName(sortedStrengths[0])}
+              </h3>
+              <div className="flex items-center text-gray-600 mb-4">
+                <div className={`w-4 h-4 rounded-full mr-2 ${
+                  sortedStrengths[0] === 'thinking' ? 'bg-green-600' :
+                  sortedStrengths[0] === 'acting' ? 'bg-red-600' :
+                  sortedStrengths[0] === 'feeling' ? 'bg-blue-600' :
+                  'bg-yellow-600'
+                }`}></div>
+                <span>{getQuadrantDescription(sortedStrengths[0])}</span>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                <h4 className="font-medium text-indigo-800 mb-2">How and when do you use this strength?</h4>
+                <p className="text-gray-700 text-sm mb-3">
+                  Think about specific situations at work where your {getQuadrantName(sortedStrengths[0]).toLowerCase()} 
+                  skills really shine. What does it look like in action?
+                </p>
+                <div className="text-xs text-gray-600 italic mb-1">Examples:</div>
+                <div className="text-xs text-gray-600 grid gap-2 mb-2">
+                  {sortedStrengths[0] === 'thinking' && (
+                    <>
+                      <div className="bg-white p-2 rounded">"I use my analytical strength when solving complex problems. I'm often asked to review data and find patterns that others might miss."</div>
+                      <div className="bg-white p-2 rounded">"My thinking skills help me create logical approaches to challenges. I break down big problems into smaller, manageable parts."</div>
+                    </>
+                  )}
+                  {sortedStrengths[0] === 'acting' && (
+                    <>
+                      <div className="bg-white p-2 rounded">"I use my decisive strength to drive projects forward when things get stuck. I'm comfortable making quick decisions when needed."</div>
+                      <div className="bg-white p-2 rounded">"My action-oriented nature helps me turn ideas into reality. I create momentum that inspires others to move forward."</div>
+                    </>
+                  )}
+                  {sortedStrengths[0] === 'feeling' && (
+                    <>
+                      <div className="bg-white p-2 rounded">"I use my empathetic strength during team conflicts. I can sense underlying tensions and help people understand each other's perspectives."</div>
+                      <div className="bg-white p-2 rounded">"My relationship skills help me build strong connections with clients. I listen carefully to their needs and make them feel valued."</div>
+                    </>
+                  )}
+                  {sortedStrengths[0] === 'planning' && (
+                    <>
+                      <div className="bg-white p-2 rounded">"I use my organizational strength to keep projects on track. I create systems that help everyone know exactly what needs to be done and when."</div>
+                      <div className="bg-white p-2 rounded">"My methodical approach helps prevent mistakes. I think through processes step by step and anticipate potential issues before they happen."</div>
+                    </>
+                  )}
+                </div>
+              </div>
+              
+              <Textarea 
+                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[0])} strength in your work life...`}
+                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                value={reflections.strength1}
+                onChange={(e) => handleReflectionChange('strength1', e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Step 3: Reflect on 2nd strength */}
+        {activeStep === 3 && sortedStrengths.length > 1 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                Your Secondary Strength: {getQuadrantName(sortedStrengths[1])}
+              </h3>
+              <div className="flex items-center text-gray-600 mb-4">
+                <div className={`w-4 h-4 rounded-full mr-2 ${
+                  sortedStrengths[1] === 'thinking' ? 'bg-green-600' :
+                  sortedStrengths[1] === 'acting' ? 'bg-red-600' :
+                  sortedStrengths[1] === 'feeling' ? 'bg-blue-600' :
+                  'bg-yellow-600'
+                }`}></div>
+                <span>{getQuadrantDescription(sortedStrengths[1])}</span>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                <h4 className="font-medium text-indigo-800 mb-2">How does this strength complement your primary strength?</h4>
+                <p className="text-gray-700 text-sm">
+                  Describe situations where your {getQuadrantName(sortedStrengths[1]).toLowerCase()} abilities 
+                  add value to your work. How does it pair with your primary strength?
+                </p>
+              </div>
+              
+              <Textarea 
+                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[1])} strength in your work life...`}
+                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                value={reflections.strength2}
+                onChange={(e) => handleReflectionChange('strength2', e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Step 4: Reflect on 3rd strength */}
+        {activeStep === 4 && sortedStrengths.length > 2 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                Your Third Strength: {getQuadrantName(sortedStrengths[2])}
+              </h3>
+              <div className="flex items-center text-gray-600 mb-4">
+                <div className={`w-4 h-4 rounded-full mr-2 ${
+                  sortedStrengths[2] === 'thinking' ? 'bg-green-600' :
+                  sortedStrengths[2] === 'acting' ? 'bg-red-600' :
+                  sortedStrengths[2] === 'feeling' ? 'bg-blue-600' :
+                  'bg-yellow-600'
+                }`}></div>
+                <span>{getQuadrantDescription(sortedStrengths[2])}</span>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                <h4 className="font-medium text-indigo-800 mb-2">When does this strength become most valuable?</h4>
+                <p className="text-gray-700 text-sm">
+                  Think about specific scenarios where your {getQuadrantName(sortedStrengths[2]).toLowerCase()} abilities 
+                  have helped you or your team overcome challenges.
+                </p>
+              </div>
+              
+              <Textarea 
+                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[2])} strength in your work life...`}
+                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                value={reflections.strength3}
+                onChange={(e) => handleReflectionChange('strength3', e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Step 5: Reflect on 4th strength */}
+        {activeStep === 5 && sortedStrengths.length > 3 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                Your Fourth Strength: {getQuadrantName(sortedStrengths[3])}
+              </h3>
+              <div className="flex items-center text-gray-600 mb-4">
+                <div className={`w-4 h-4 rounded-full mr-2 ${
+                  sortedStrengths[3] === 'thinking' ? 'bg-green-600' :
+                  sortedStrengths[3] === 'acting' ? 'bg-red-600' :
+                  sortedStrengths[3] === 'feeling' ? 'bg-blue-600' :
+                  'bg-yellow-600'
+                }`}></div>
+                <span>{getQuadrantDescription(sortedStrengths[3])}</span>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                <h4 className="font-medium text-indigo-800 mb-2">How might you develop this strength further?</h4>
+                <p className="text-gray-700 text-sm">
+                  While this is currently your least dominant strength, it still has value. How could you 
+                  grow this area to complement your other strengths?
+                </p>
+              </div>
+              
+              <Textarea 
+                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[3])} strength in your work life...`}
+                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                value={reflections.strength4}
+                onChange={(e) => handleReflectionChange('strength4', e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+        
+        {/* Step 6: Team contributions */}
+        {activeStep === 6 && (
+          <div className="space-y-6">
+            <div className="max-w-3xl mx-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-3">Your Unique Contribution to the Team</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                  <h4 className="font-medium text-indigo-800 mb-2">What I uniquely bring to the team</h4>
+                  <p className="text-gray-700 text-sm mb-3">
+                    Based on your strength profile, what unique qualities do you contribute to your team?
+                    Think about how your combination of strengths creates value.
+                  </p>
+                  <Textarea 
+                    placeholder="Describe your unique contribution to your team or organization..."
+                    className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    value={reflections.teamContribution}
+                    onChange={(e) => handleReflectionChange('teamContribution', e.target.value)}
+                  />
+                </div>
+                
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                  <h4 className="font-medium text-purple-800 mb-2">What I value in fellow team members</h4>
+                  <p className="text-gray-700 text-sm mb-3">
+                    What strengths do you appreciate seeing in your colleagues? 
+                    How do they complement your own strengths?
+                  </p>
+                  <Textarea 
+                    placeholder="Describe what you appreciate most in your colleagues..."
+                    className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                    value={reflections.teamValue}
+                    onChange={(e) => handleReflectionChange('teamValue', e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                <h4 className="font-medium text-green-800 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Reflection Complete!
+                </h4>
+                <p className="text-gray-700 text-sm mt-2">
+                  You've completed your Star Profile reflection. These insights will help you leverage your 
+                  strengths more intentionally in your daily work.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Navigation buttons */}
+        <div className="flex justify-between mt-8">
+          <Button 
+            variant="outline"
+            onClick={handlePreviousStep}
+            disabled={activeStep === 1}
+          >
+            Previous
+          </Button>
+          
+          {activeStep < 6 ? (
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700"
+              onClick={handleNextStep}
+            >
+              Continue
+            </Button>
+          ) : (
+            <Button 
+              onClick={() => handleTabChange("starcard")}
+              className="bg-indigo-700 hover:bg-indigo-800"
+            >
+              Back to Star Card
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Define quadrant colors
 const QUADRANT_COLORS = {
   thinking: 'rgb(1, 162, 82)',    // Green
@@ -403,61 +787,501 @@ export default function Foundations() {
                   Now that you've seen your Star Card, take some time to reflect on what your strengths profile reveals about you.
                   This is a space to articulate how you use these strengths in your professional life.
                 </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Purpose:</span> Express in your own words how you see yourself, your strengths, values, what you uniquely bring to the team, what you value in others, and what you are enthused about professionally.
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Directions:</span> Respond to the prompts.
-                </p>
               </div>
-
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 1st strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 2nd strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
+              
+              <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                  <h2 className="text-xl font-bold mb-2">Your Strengths Reflection</h2>
+                </div>
+                
+                <div className="p-6">
+                  <div className="space-y-6">
+                    {/* Primary Strength */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">
+                          Your Primary Strength: {starCard && 
+                            (() => {
+                              const values = [
+                                { key: 'Thinking', value: starCard.thinking },
+                                { key: 'Acting', value: starCard.acting },
+                                { key: 'Feeling', value: starCard.feeling },
+                                { key: 'Planning', value: starCard.planning }
+                              ].sort((a, b) => b.value - a.value);
+                              return values[0]?.key || '';
+                            })()
+                          }
+                        </h3>
+                        
+                        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4">
+                          <h4 className="font-medium text-indigo-800 mb-2">How do you use this strength?</h4>
+                          <p className="text-gray-700 text-sm mb-3">
+                            Think about specific situations at work where this strength really shines. 
+                            What does it look like in action?
+                          </p>
+                          
+                          <div className="text-xs text-gray-600 italic mb-1">Example:</div>
+                          <div className="text-xs text-gray-600">
+                            <div className="bg-white p-2 rounded mb-2">
+                              "I use this strength when solving complex problems. I'm able to approach challenges 
+                              in a way that leverages my natural abilities."
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <Textarea 
+                          placeholder="Describe how you use your primary strength in your work life..."
+                          className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      {/* Secondary Strength */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">
+                          Your Secondary Strength: {starCard && 
+                            (() => {
+                              const values = [
+                                { key: 'Thinking', value: starCard.thinking },
+                                { key: 'Acting', value: starCard.acting },
+                                { key: 'Feeling', value: starCard.feeling },
+                                { key: 'Planning', value: starCard.planning }
+                              ].sort((a, b) => b.value - a.value);
+                              return values[1]?.key || '';
+                            })()
+                          }
+                        </h3>
+                        
+                        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-4">
+                          <h4 className="font-medium text-indigo-800 mb-2">How does this complement your primary strength?</h4>
+                          <p className="text-gray-700 text-sm">
+                            Describe situations where your secondary strength adds value to your work.
+                            How does it pair with your primary strength?
+                          </p>
+                        </div>
+                        
+                        <Textarea 
+                          placeholder="Describe how you use your secondary strength in your work life..."
+                          className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Team contributions */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">What I uniquely bring to the team</h3>
+                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 mb-4">
+                          <p className="text-gray-700 text-sm">
+                            Based on your strength profile, what unique qualities do you contribute to your team?
+                            Think about how your combination of strengths creates value.
+                          </p>
+                        </div>
+                        
+                        <Textarea 
+                          placeholder="Describe your unique contribution to your team or organization..."
+                          className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium">What I value in fellow team members</h3>
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-4">
+                          <p className="text-gray-700 text-sm">
+                            What strengths do you appreciate seeing in your colleagues? 
+                            How do they complement your own strengths?
+                          </p>
+                        </div>
+                        
+                        <Textarea 
+                          placeholder="Describe what you appreciate most in your colleagues..."
+                          className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 3rd strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 4th strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
+              </div>
+            </TabsContent>
+                  strength2: '',
+                  strength3: '',
+                  strength4: '',
+                  teamContribution: '',
+                  teamValue: ''
+                });
+                
+                // Helper function to get quadrant name
+                const getQuadrantName = (key: string) => {
+                  const names: Record<string, string> = {
+                    'thinking': 'Thinking',
+                    'acting': 'Acting',
+                    'feeling': 'Feeling',
+                    'planning': 'Planning'
+                  };
+                  return names[key] || 'Unknown';
+                };
+                
+                // Helper function to get quadrant description
+                const getQuadrantDescription = (key: string) => {
+                  const descriptions: Record<string, string> = {
+                    'thinking': 'analytical & logical approach',
+                    'acting': 'decisive & action-oriented',
+                    'feeling': 'empathetic & relationship-focused',
+                    'planning': 'organized & methodical'
+                  };
+                  return descriptions[key] || '';
+                };
+                
+                // Get sorted strengths
+                const sortedStrengths = starCard ? 
+                  Object.entries({
+                    'thinking': starCard.thinking,
+                    'acting': starCard.acting,
+                    'feeling': starCard.feeling,
+                    'planning': starCard.planning
+                  })
+                  .sort(([,a], [,b]) => b - a)
+                  .map(([key]) => key)
+                  : [];
+                
+                // Handler for reflection text changes
+                const handleReflectionChange = (field: string, value: string) => {
+                  setReflections(prev => ({
+                    ...prev,
+                    [field]: value
+                  }));
+                };
+                
+                // Navigation handlers
+                const handleNextStep = () => {
+                  if (activeStep < 6) {
+                    setActiveStep(activeStep + 1);
+                  }
+                };
+                
+                const handlePreviousStep = () => {
+                  if (activeStep > 1) {
+                    setActiveStep(activeStep - 1);
+                  }
+                };
+                
+                return (
+                  <>
+                    <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-200">
+                      {/* Header with step indicator */}
+                      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                        <h2 className="text-xl font-bold mb-2">Your Strengths Reflection</h2>
+                        <p className="opacity-90">Step {activeStep} of 6: {
+                          activeStep === 1 ? "Your Strengths Overview" :
+                          activeStep === 2 ? `Your Primary Strength` :
+                          activeStep === 3 ? `Your Secondary Strength` :
+                          activeStep === 4 ? `Your Third Strength` :
+                          activeStep === 5 ? `Your Fourth Strength` :
+                          "Your Team Contributions"
+                        }</p>
+                        
+                        {/* Progress bar */}
+                        <div className="mt-4 bg-white/20 rounded-full h-2 overflow-hidden">
+                          <div 
+                            className="bg-white h-2 rounded-full transition-all duration-300 ease-in-out" 
+                            style={{ width: `${(activeStep / 6) * 100}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        {/* Step 1: Overview with pie chart */}
+                        {activeStep === 1 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto text-center">
+                              <h3 className="text-xl font-bold text-gray-800 mb-4">Your Strengths Profile</h3>
+                              <p className="text-gray-600 mb-6">
+                                This visualization shows your unique distribution of strengths. In the next steps,
+                                you'll reflect on how you use each of these strengths in your professional life.
+                              </p>
+                            </div>
+                            
+                            <div className="mx-auto max-w-md">
+                              {starCard && (
+                                <AssessmentPieChart
+                                  thinking={starCard.thinking || 0}
+                                  acting={starCard.acting || 0}
+                                  feeling={starCard.feeling || 0}
+                                  planning={starCard.planning || 0}
+                                />
+                              )}
+                            </div>
+                            
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-3xl mx-auto mt-6">
+                              <div className="bg-green-50 p-3 rounded-lg border border-green-100 text-center">
+                                <div className="text-green-700 font-bold">{starCard?.thinking || 0}%</div>
+                                <div className="text-sm text-gray-600">Thinking</div>
+                              </div>
+                              <div className="bg-red-50 p-3 rounded-lg border border-red-100 text-center">
+                                <div className="text-red-700 font-bold">{starCard?.acting || 0}%</div>
+                                <div className="text-sm text-gray-600">Acting</div>
+                              </div>
+                              <div className="bg-blue-50 p-3 rounded-lg border border-blue-100 text-center">
+                                <div className="text-blue-700 font-bold">{starCard?.feeling || 0}%</div>
+                                <div className="text-sm text-gray-600">Feeling</div>
+                              </div>
+                              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-100 text-center">
+                                <div className="text-yellow-700 font-bold">{starCard?.planning || 0}%</div>
+                                <div className="text-sm text-gray-600">Planning</div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Step 2: Reflect on 1st strength */}
+                        {activeStep === 2 && sortedStrengths.length > 0 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                                Your Primary Strength: {getQuadrantName(sortedStrengths[0])}
+                              </h3>
+                              <div className="flex items-center text-gray-600 mb-4">
+                                <div className={`w-4 h-4 rounded-full mr-2 ${
+                                  sortedStrengths[0] === 'thinking' ? 'bg-green-600' :
+                                  sortedStrengths[0] === 'acting' ? 'bg-red-600' :
+                                  sortedStrengths[0] === 'feeling' ? 'bg-blue-600' :
+                                  'bg-yellow-600'
+                                }`}></div>
+                                <span>{getQuadrantDescription(sortedStrengths[0])}</span>
+                              </div>
+                              
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                                <h4 className="font-medium text-indigo-800 mb-2">How and when do you use this strength?</h4>
+                                <p className="text-gray-700 text-sm mb-3">
+                                  Think about specific situations at work where your {getQuadrantName(sortedStrengths[0]).toLowerCase()} 
+                                  skills really shine. What does it look like in action?
+                                </p>
+                                <div className="text-xs text-gray-600 italic mb-1">Examples:</div>
+                                <div className="text-xs text-gray-600 grid gap-2 mb-2">
+                                  {sortedStrengths[0] === 'thinking' && (
+                                    <>
+                                      <div className="bg-white p-2 rounded">"I use my analytical strength when solving complex problems. I'm often asked to review data and find patterns that others might miss."</div>
+                                      <div className="bg-white p-2 rounded">"My thinking skills help me create logical approaches to challenges. I break down big problems into smaller, manageable parts."</div>
+                                    </>
+                                  )}
+                                  {sortedStrengths[0] === 'acting' && (
+                                    <>
+                                      <div className="bg-white p-2 rounded">"I use my decisive strength to drive projects forward when things get stuck. I'm comfortable making quick decisions when needed."</div>
+                                      <div className="bg-white p-2 rounded">"My action-oriented nature helps me turn ideas into reality. I create momentum that inspires others to move forward."</div>
+                                    </>
+                                  )}
+                                  {sortedStrengths[0] === 'feeling' && (
+                                    <>
+                                      <div className="bg-white p-2 rounded">"I use my empathetic strength during team conflicts. I can sense underlying tensions and help people understand each other's perspectives."</div>
+                                      <div className="bg-white p-2 rounded">"My relationship skills help me build strong connections with clients. I listen carefully to their needs and make them feel valued."</div>
+                                    </>
+                                  )}
+                                  {sortedStrengths[0] === 'planning' && (
+                                    <>
+                                      <div className="bg-white p-2 rounded">"I use my organizational strength to keep projects on track. I create systems that help everyone know exactly what needs to be done and when."</div>
+                                      <div className="bg-white p-2 rounded">"My methodical approach helps prevent mistakes. I think through processes step by step and anticipate potential issues before they happen."</div>
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              <Textarea 
+                                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[0])} strength in your work life...`}
+                                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                value={reflections.strength1}
+                                onChange={(e) => handleReflectionChange('strength1', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Step 3: Reflect on 2nd strength */}
+                        {activeStep === 3 && sortedStrengths.length > 1 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                                Your Secondary Strength: {getQuadrantName(sortedStrengths[1])}
+                              </h3>
+                              <div className="flex items-center text-gray-600 mb-4">
+                                <div className={`w-4 h-4 rounded-full mr-2 ${
+                                  sortedStrengths[1] === 'thinking' ? 'bg-green-600' :
+                                  sortedStrengths[1] === 'acting' ? 'bg-red-600' :
+                                  sortedStrengths[1] === 'feeling' ? 'bg-blue-600' :
+                                  'bg-yellow-600'
+                                }`}></div>
+                                <span>{getQuadrantDescription(sortedStrengths[1])}</span>
+                              </div>
+                              
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                                <h4 className="font-medium text-indigo-800 mb-2">How does this strength complement your primary strength?</h4>
+                                <p className="text-gray-700 text-sm">
+                                  Describe situations where your {getQuadrantName(sortedStrengths[1]).toLowerCase()} abilities 
+                                  add value to your work. How does it pair with your primary strength?
+                                </p>
+                              </div>
+                              
+                              <Textarea 
+                                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[1])} strength in your work life...`}
+                                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                value={reflections.strength2}
+                                onChange={(e) => handleReflectionChange('strength2', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Step 4: Reflect on 3rd strength */}
+                        {activeStep === 4 && sortedStrengths.length > 2 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                                Your Third Strength: {getQuadrantName(sortedStrengths[2])}
+                              </h3>
+                              <div className="flex items-center text-gray-600 mb-4">
+                                <div className={`w-4 h-4 rounded-full mr-2 ${
+                                  sortedStrengths[2] === 'thinking' ? 'bg-green-600' :
+                                  sortedStrengths[2] === 'acting' ? 'bg-red-600' :
+                                  sortedStrengths[2] === 'feeling' ? 'bg-blue-600' :
+                                  'bg-yellow-600'
+                                }`}></div>
+                                <span>{getQuadrantDescription(sortedStrengths[2])}</span>
+                              </div>
+                              
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                                <h4 className="font-medium text-indigo-800 mb-2">When does this strength become most valuable?</h4>
+                                <p className="text-gray-700 text-sm">
+                                  Think about specific scenarios where your {getQuadrantName(sortedStrengths[2]).toLowerCase()} abilities 
+                                  have helped you or your team overcome challenges.
+                                </p>
+                              </div>
+                              
+                              <Textarea 
+                                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[2])} strength in your work life...`}
+                                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                value={reflections.strength3}
+                                onChange={(e) => handleReflectionChange('strength3', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Step 5: Reflect on 4th strength */}
+                        {activeStep === 5 && sortedStrengths.length > 3 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3">
+                                Your Fourth Strength: {getQuadrantName(sortedStrengths[3])}
+                              </h3>
+                              <div className="flex items-center text-gray-600 mb-4">
+                                <div className={`w-4 h-4 rounded-full mr-2 ${
+                                  sortedStrengths[3] === 'thinking' ? 'bg-green-600' :
+                                  sortedStrengths[3] === 'acting' ? 'bg-red-600' :
+                                  sortedStrengths[3] === 'feeling' ? 'bg-blue-600' :
+                                  'bg-yellow-600'
+                                }`}></div>
+                                <span>{getQuadrantDescription(sortedStrengths[3])}</span>
+                              </div>
+                              
+                              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+                                <h4 className="font-medium text-indigo-800 mb-2">How might you develop this strength further?</h4>
+                                <p className="text-gray-700 text-sm">
+                                  While this is currently your least dominant strength, it still has value. How could you 
+                                  grow this area to complement your other strengths?
+                                </p>
+                              </div>
+                              
+                              <Textarea 
+                                placeholder={`Describe how you use your ${getQuadrantName(sortedStrengths[3])} strength in your work life...`}
+                                className="w-full min-h-[150px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                value={reflections.strength4}
+                                onChange={(e) => handleReflectionChange('strength4', e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Step 6: Team contributions */}
+                        {activeStep === 6 && (
+                          <div className="space-y-6">
+                            <div className="max-w-3xl mx-auto">
+                              <h3 className="text-xl font-bold text-gray-800 mb-3">Your Unique Contribution to the Team</h3>
+                              
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                                  <h4 className="font-medium text-indigo-800 mb-2">What I uniquely bring to the team</h4>
+                                  <p className="text-gray-700 text-sm mb-3">
+                                    Based on your strength profile, what unique qualities do you contribute to your team?
+                                    Think about how your combination of strengths creates value.
+                                  </p>
+                                  <Textarea 
+                                    placeholder="Describe your unique contribution to your team or organization..."
+                                    className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={reflections.teamContribution}
+                                    onChange={(e) => handleReflectionChange('teamContribution', e.target.value)}
+                                  />
+                                </div>
+                                
+                                <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                                  <h4 className="font-medium text-purple-800 mb-2">What I value in fellow team members</h4>
+                                  <p className="text-gray-700 text-sm mb-3">
+                                    What strengths do you appreciate seeing in your colleagues? 
+                                    How do they complement your own strengths?
+                                  </p>
+                                  <Textarea 
+                                    placeholder="Describe what you appreciate most in your colleagues..."
+                                    className="w-full min-h-[120px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
+                                    value={reflections.teamValue}
+                                    onChange={(e) => handleReflectionChange('teamValue', e.target.value)}
+                                  />
+                                </div>
+                              </div>
+                              
+                              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                                <h4 className="font-medium text-green-800 flex items-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  Reflection Complete!
+                                </h4>
+                                <p className="text-gray-700 text-sm mt-2">
+                                  You've completed your Star Profile reflection. These insights will help you leverage your 
+                                  strengths more intentionally in your daily work.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Navigation buttons */}
+                        <div className="flex justify-between mt-8">
+                          <Button 
+                            variant="outline"
+                            onClick={handlePreviousStep}
+                            disabled={activeStep === 1}
+                          >
+                            Previous
+                          </Button>
+                          
+                          {activeStep < 6 ? (
+                            <Button 
+                              className="bg-indigo-600 hover:bg-indigo-700"
+                              onClick={handleNextStep}
+                            >
+                              Continue
+                            </Button>
+                          ) : (
+                            <Button 
+                              onClick={() => handleTabChange("starcard")}
+                              className="bg-indigo-700 hover:bg-indigo-800"
+                            >
+                              Back to Star Card
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                );
+              })()}
                     <label className="block font-medium text-gray-700 mb-2">
                       What I uniquely bring to the team
                     </label>
