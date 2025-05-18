@@ -153,6 +153,12 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   // Handle direct number click - pass to common handler
   const handleNumberClick = (questionId: number, value: number) => {
     handleValueSelection(questionId, value);
+    
+    // If auto-advance is enabled and this isn't the last question, highlight that we'll advance
+    if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
+      setAutoAdvancePending(true);
+      setTimeout(() => setAutoAdvancePending(false), 1500);
+    }
   };
   
   // Handle submit
@@ -189,6 +195,16 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     return flowQuestions.every(q => !!answers[q.id]);
   };
   
+  // Show a notification when auto-advance status changes
+  const toggleAutoAdvance = (checked: boolean) => {
+    const isEnabling = !!checked;
+    setAutoAdvance(isEnabling);
+    
+    // Show notification about the status change
+    setAutoAdvancePending(true);
+    setTimeout(() => setAutoAdvancePending(false), 3000);
+  };
+  
   // Move to previous question
   const goToPrevQuestion = () => {
     if (currentQuestion > 0) {
@@ -217,13 +233,11 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   
   // Reset answers for new questions when switching to a new one
   useEffect(() => {
-    // This effect ensures we only run the reset when changing questions
-    if (!answers[question.id]) {
-      // If no answer for this question, clear the current value
-    }
-    
     // Clear any error messages when moving to a new question
     setError(null);
+    
+    // Make sure there's no default selection for new questions
+    // (existing answers are preserved, but new questions start unselected)
   }, [currentQuestion]);
   
   // Get current question and previous question
@@ -406,19 +420,8 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
             <Checkbox 
               id="auto-advance" 
               checked={autoAdvance}
-              onCheckedChange={(checked) => {
-                const isEnabling = !!checked;
-                setAutoAdvance(isEnabling);
-                
-                // Only show notification when enabling auto-advance and there's already an answer
-                if (isEnabling && currentValue > 0) {
-                  setAutoAdvancePending(true);
-                  setTimeout(() => setAutoAdvancePending(false), 5000);
-                } else {
-                  // Make sure it's off when disabling
-                  setAutoAdvancePending(false);
-                }
-              }}
+              onCheckedChange={toggleAutoAdvance}
+              className="data-[state=checked]:bg-indigo-600"
             />
             <label
               htmlFor="auto-advance"
