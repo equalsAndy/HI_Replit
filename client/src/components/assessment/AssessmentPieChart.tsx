@@ -112,16 +112,16 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
   };
 
   return (
-    <div className="w-full h-[300px]">
+    <div className="w-full h-[400px]">
       <ResponsiveContainer width="100%" height="100%">
-        <PieChart>
+        <PieChart margin={{ top: 40, right: 40, bottom: 40, left: 40 }}>
           <Pie
             data={chartData}
             cx="50%"
             cy="50%"
             labelLine={false}
             label={false} // Disable dynamic labels
-            outerRadius={80}
+            outerRadius={120}
             fill="#8884d8"
             dataKey="value"
           >
