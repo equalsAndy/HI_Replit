@@ -53,6 +53,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   const [error, setError] = useState<string | null>(null);
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
   const [adjustingQuestionId, setAdjustingQuestionId] = useState<number | null>(null);
+  const [showScoring, setShowScoring] = useState(false);
   
   // Using a ref for auto advance timeout to be able to clear it
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -621,17 +622,13 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
                             {/* Only show a color-coded oval with the answer label */}
                             <div 
                               className={`
-                                px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm cursor-pointer
-                                ${answers[q.id] === 1 ? 'bg-red-600 hover:bg-red-700' : 
-                                  answers[q.id] === 2 ? 'bg-orange-500 hover:bg-orange-600' : 
-                                  answers[q.id] === 3 ? 'bg-indigo-600 hover:bg-indigo-700' : 
-                                  answers[q.id] === 4 ? 'bg-green-600 hover:bg-green-700' : 
-                                  answers[q.id] === 5 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'}
-                                transition-colors
+                                px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm
+                                ${answers[q.id] === 1 ? 'bg-red-600' : 
+                                  answers[q.id] === 2 ? 'bg-orange-500' : 
+                                  answers[q.id] === 3 ? 'bg-indigo-600' : 
+                                  answers[q.id] === 4 ? 'bg-green-600' : 
+                                  answers[q.id] === 5 ? 'bg-purple-600' : 'bg-gray-400'}
                               `}
-                              onClick={() => {
-                                setAdjustingQuestionId(q.id);
-                              }}
                             >
                               {answers[q.id] ? valueToLabel(answers[q.id]) : 'Not answered'}
                             </div>
@@ -696,27 +693,47 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
               </div>
             </div>
             
-            <div className="space-y-3">
-              <h4 className="font-semibold">Scoring & Interpretation</h4>
-              <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
-              <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
-              <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
-              <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
+            <div className="mb-6 border border-gray-200 rounded-md overflow-hidden">
+              <button 
+                onClick={() => setShowScoring(!showScoring)}
+                className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+              >
+                <h4 className="font-semibold">Scoring & Interpretation</h4>
+                <span className="text-gray-500">
+                  {showScoring ? 
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    :
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  }
+                </span>
+              </button>
+              
+              {showScoring && (
+                <div className="p-3 space-y-2 bg-white">
+                  <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
+                  <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
+                  <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
+                  <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
+                </div>
+              )}
             </div>
           </div>
           
-          <DialogFooter className="flex justify-between">
+          <DialogFooter className="flex justify-end">
             <Button 
-              variant="outline" 
               onClick={() => {
-                setShowResult(false);
-                setCurrentQuestion(0);
-              }}
+                closeResultDialog();
+                if (onTabChange) {
+                  onTabChange("roundingout");
+                }
+              }} 
+              className="bg-indigo-700 hover:bg-indigo-800"
             >
-              Restart Assessment
-            </Button>
-            <Button onClick={closeResultDialog} className="bg-indigo-700 hover:bg-indigo-800">
-              Continue
+              Continue to Rounding Out
             </Button>
           </DialogFooter>
         </DialogContent>
