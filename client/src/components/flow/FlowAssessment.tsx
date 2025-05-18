@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -52,6 +52,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
+  const [adjustingQuestionId, setAdjustingQuestionId] = useState<number | null>(null);
   
   // Using a ref for auto advance timeout to be able to clear it
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -616,61 +617,75 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
                           <span className="font-semibold mr-1">Question #{q.id}:</span> {q.text}
                         </td>
                         <td className="px-3 py-2 text-center">
-                          <div className="flex items-center justify-center">
-                            <div className="relative w-28 h-8 mx-2">
-                              {/* Custom slider track */}
-                              <div className="absolute h-2 rounded-full bg-gray-200 w-full top-3 z-0 shadow-inner overflow-hidden">
-                                <div 
-                                  className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
-                                  style={{ 
-                                    width: answers[q.id] ? `${(answers[q.id] - 1) / 4 * 100}%` : '0%',
-                                    display: answers[q.id] ? 'block' : 'none'
-                                  }}
-                                ></div>
-                              </div>
-                              
-                              {/* Circle markers - perfectly aligned */}
-                              <div className="absolute flex justify-between w-full px-0 z-10">
-                                {[1, 2, 3, 4, 5].map((value) => {
-                                  return (
-                                    <div
-                                      key={value}
-                                      onClick={() => handleNumberClick(q.id, value)}
-                                      className={`
-                                        cursor-pointer w-4 h-4 rounded-full flex items-center justify-center mt-1
-                                        ${answers[q.id] && value <= answers[q.id]
-                                          ? 'bg-indigo-600 text-white shadow transform hover:scale-110 transition-transform' 
-                                          : 'bg-white border border-gray-300 hover:border-indigo-300 transition-colors'}
-                                      `}
-                                    >
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              
-                              {/* Custom thumb */}
-                              <div 
-                                className="absolute cursor-pointer z-20 transition-all duration-300"
-                                style={{ 
-                                  left: `calc(${((answers[q.id] - 1) / 4) * 100}%)`,
-                                  top: '-4px',
-                                  transform: 'translateX(-50%)',
-                                  display: answers[q.id] ? 'block' : 'none' // Hide if no answer
-                                }}
-                              >
-                                <div className="flex items-center justify-center w-8 h-8 rounded-full border-2 border-indigo-500 text-white bg-indigo-600 shadow-md">
-                                  <span className="text-xs font-bold">{answers[q.id]}</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-indigo-100 text-indigo-800 ml-2 min-w-[80px] text-center shadow-sm border border-indigo-200">
+                          <div className="flex justify-center">
+                            {/* Only show a color-coded oval with the answer label */}
+                            <div 
+                              className={`
+                                px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm cursor-pointer
+                                ${answers[q.id] === 1 ? 'bg-red-600 hover:bg-red-700' : 
+                                  answers[q.id] === 2 ? 'bg-orange-500 hover:bg-orange-600' : 
+                                  answers[q.id] === 3 ? 'bg-indigo-600 hover:bg-indigo-700' : 
+                                  answers[q.id] === 4 ? 'bg-green-600 hover:bg-green-700' : 
+                                  answers[q.id] === 5 ? 'bg-purple-600 hover:bg-purple-700' : 'bg-gray-400'}
+                                transition-colors
+                              `}
+                              onClick={() => {
+                                setAdjustingQuestionId(q.id);
+                              }}
+                            >
                               {answers[q.id] ? valueToLabel(answers[q.id]) : 'Not answered'}
-                            </span>
+                            </div>
                           </div>
+                          
+                          {/* Show adjustment options when this question is being adjusted */}
+                          {adjustingQuestionId === q.id && (
+                            <div className="mt-3 flex justify-center space-x-2">
+                              {[1, 2, 3, 4, 5].map((value) => {
+                                // Define badge color for each value
+                                const badgeColors = {
+                                  1: 'bg-red-600 hover:bg-red-700',
+                                  2: 'bg-orange-500 hover:bg-orange-600',
+                                  3: 'bg-indigo-600 hover:bg-indigo-700',
+                                  4: 'bg-green-600 hover:bg-green-700',
+                                  5: 'bg-purple-600 hover:bg-purple-700',
+                                };
+                                
+                                const activeColor = badgeColors[value as keyof typeof badgeColors];
+                                
+                                return (
+                                  <div
+                                    key={value}
+                                    onClick={() => {
+                                      // Update the answer
+                                      setAnswers(prev => ({
+                                        ...prev,
+                                        [q.id]: value
+                                      }));
+                                      
+                                      // Close the adjustment interface
+                                      setAdjustingQuestionId(null);
+                                    }}
+                                    className={`
+                                      cursor-pointer px-3 py-1 rounded-full
+                                      ${activeColor} text-white shadow-sm text-xs
+                                      ${answers[q.id] === value ? 'ring-2 ring-white' : ''}
+                                    `}
+                                  >
+                                    {valueToLabel(value)}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
                         </td>
                         <td className="px-3 py-2 text-right text-xs">
-                          <span className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer">
+                          <span 
+                            id={`adjust-btn-${q.id}`}
+                            onClick={() => {
+                              setAdjustingQuestionId(adjustingQuestionId === q.id ? null : q.id); 
+                            }}
+                            className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer"
+                          >
                             <SliderIcon className="h-3 w-3 mr-1" /> Adjust
                           </span>
                         </td>
