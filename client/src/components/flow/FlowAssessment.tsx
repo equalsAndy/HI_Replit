@@ -42,9 +42,11 @@ const flowQuestions: FlowQuestion[] = [
 interface FlowAssessmentProps {
   isCompleted?: boolean;
   onTabChange?: (tabId: string) => void;
+  existingFlowScore?: number;
+  readOnly?: boolean;
 }
 
-export default function FlowAssessment({ isCompleted = false, onTabChange }: FlowAssessmentProps) {
+export default function FlowAssessment({ isCompleted = false, onTabChange, existingFlowScore, readOnly = false }: FlowAssessmentProps) {
   // State for tracking answers
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [currentQuestion, setCurrentQuestion] = useState(0);
