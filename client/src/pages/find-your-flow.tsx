@@ -8,6 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useToast } from "@/hooks/use-toast";
 import MainContainer from '@/components/layout/MainContainer';
 import FlowAssessment from '@/components/flow/FlowAssessment';
+import RoundingOutReflection from '@/components/flow/RoundingOutReflection';
 import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -728,50 +729,18 @@ export default function FindYourFlow() {
           </TabsContent>
           
           <TabsContent value="roundingout" className="space-y-6">
-            <div className="prose max-w-none">
+            <div className="prose max-w-none mb-6">
               <h2>Rounding Out Your Flow Understanding</h2>
               <p>
                 Now that you've completed the flow assessment, take some time to round out your understanding of flow
                 and how you can create more opportunities for flow in your work and life.
               </p>
-              
-              <h3 className="mt-6">Flow Reflection Questions</h3>
-              <p>Reflect on your personal experiences with flow to better understand how to create optimal conditions in your work and life.</p>
             </div>
             
-            <div className="space-y-4 mt-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">What activities or tasks consistently put you in a flow state?</label>
-                <Textarea 
-                  placeholder="Your answer" 
-                  className="min-h-[80px] border border-gray-300 w-full"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">What are the biggest barriers to experiencing flow in your work?</label>
-                <Textarea 
-                  placeholder="Your answer" 
-                  className="min-h-[80px] border border-gray-300 w-full"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">What conditions help you get into flow more easily?</label>
-                <Textarea 
-                  placeholder="Your answer" 
-                  className="min-h-[80px] border border-gray-300 w-full"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium mb-1">What one change could you make to experience more flow in your work?</label>
-                <Textarea 
-                  placeholder="Your answer" 
-                  className="min-h-[80px] border border-gray-300 w-full"
-                />
-              </div>
-            </div>
+            {/* New step-by-step reflection interface */}
+            <RoundingOutReflection 
+              onComplete={() => handleTabChange("starcard")}
+            />
             
             <div className="grid grid-cols-1 gap-4 mt-6">
               <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
@@ -779,25 +748,25 @@ export default function FindYourFlow() {
                 <p className="text-sm text-gray-700 mb-2">
                   Download our guide to creating more flow experiences in your daily work:
                 </p>
-                <a href="#" className="text-blue-600 hover:text-blue-800 text-sm">
-                  Flow State Guide PDF
-                </a>
+                <Button variant="outline" className="bg-white">
+                  <a 
+                    href="#" 
+                    onClick={(e) => {
+                      e.preventDefault();
+                      toast({
+                        title: "Resource Coming Soon",
+                        description: "This resource will be available in a future update.",
+                      });
+                    }}
+                    className="flex items-center"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+                    </svg>
+                    Download Flow Guide (PDF)
+                  </a>
+                </Button>
               </div>
-            </div>
-            
-            <div className="flex justify-between mt-8">
-              <Button 
-                onClick={() => handleTabChange("assessment")}
-                variant="outline"
-              >
-                Go Back
-              </Button>
-              <Button 
-                onClick={() => handleTabChange("starcard")}
-                className="bg-indigo-700 hover:bg-indigo-800"
-              >
-                Next: Add Flow to StarCard
-              </Button>
             </div>
           </TabsContent>
           
