@@ -75,6 +75,10 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     // Go to the last question to show the Finish button
     setCurrentQuestion(flowQuestions.length - 1);
     
+    // Ensure auto-advance is turned off when filling demo answers
+    // This prevents automatic progression that could interfere with the Finish button
+    setAutoAdvance(false);
+    
     // Clear any errors
     setError(null);
   };
@@ -187,6 +191,12 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   
   // Handle submit
   const handleSubmit = () => {
+    // Clear any pending timeouts first
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
+    
     setShowResult(true);
   };
   
@@ -533,10 +543,15 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
           
           <Button 
             onClick={nextQuestion}
-            className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance ? 'opacity-50' : ''}`}
-            disabled={(autoAdvance && currentValue > 0) || (!currentValue && currentQuestion === flowQuestions.length - 1)}
+            className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance && currentQuestion < flowQuestions.length - 1 ? 'opacity-50' : ''}`}
+            disabled={
+              // Disable only if we're not on the last question AND auto-advance is on AND we have a value
+              (autoAdvance && currentQuestion < flowQuestions.length - 1 && currentValue > 0) || 
+              // Or if we're on the last question but haven't selected a value
+              (!currentValue && currentQuestion === flowQuestions.length - 1)
+            }
             title={
-              autoAdvance && currentValue > 0 
+              autoAdvance && currentValue > 0 && currentQuestion < flowQuestions.length - 1
                 ? "Next question will advance automatically" 
                 : currentQuestion === flowQuestions.length - 1 && !currentValue
                   ? "Please answer this question" 
