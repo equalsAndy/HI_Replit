@@ -720,7 +720,7 @@ export default function FindYourFlow() {
             <FlowAssessment 
               isCompleted={hasCompletedFlowAssessment}
               onTabChange={handleTabChange}
-              existingFlowScore={flowAttributesData?.flowScore || undefined}
+              existingFlowScore={flowAttributesData?.flowScore > 0 ? flowAttributesData.flowScore : undefined}
               readOnly={!!flowAttributesData?.flowScore && flowAttributesData.flowScore > 0}
             />
             

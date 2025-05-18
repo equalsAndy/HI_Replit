@@ -325,7 +325,53 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   const previousQuestion = currentQuestion > 0 ? flowQuestions[currentQuestion - 1] : null;
   const prevAnswer = previousQuestion ? answers[previousQuestion.id] || 0 : 0;
   
-  // If the assessment is already completed, show a completion message
+  // If returning with an existing flow score, show results in read-only mode
+  if (readOnly && existingFlowScore) {
+    // Set up a view that shows the existing flow score and interpretation
+    const interpretation = getInterpretation(existingFlowScore);
+    
+    return (
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="flex items-center justify-center text-center flex-col">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Your Flow Assessment Results</h3>
+            
+            <div className="text-center mb-4">
+              <p className="text-2xl font-bold text-indigo-700">
+                {existingFlowScore} / {flowQuestions.length * 5}
+              </p>
+              <p className="text-lg font-semibold">
+                {interpretation.level}
+              </p>
+            </div>
+            
+            <div className="mb-4 p-4 bg-indigo-50 rounded-lg text-left">
+              <p>{interpretation.description}</p>
+            </div>
+            
+            <p className="text-gray-600 mb-4">
+              You've already completed the flow assessment. Your results have been saved to your profile.
+              Continue to the next sections to add flow attributes to your Star Card.
+            </p>
+            
+            <Button 
+              onClick={() => onTabChange ? onTabChange("roundingout") : null}
+              className="bg-indigo-700 hover:bg-indigo-800"
+            >
+              Continue to Rounding Out
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // If the assessment is already completed (but no score is available), show a basic completion message
   if (isCompleted) {
     return (
       <div className="space-y-6">
