@@ -10,6 +10,7 @@ import MainContainer from '@/components/layout/MainContainer';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
+import WellbeingLadder from '@/components/visualization/WellbeingLadder';
 
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
@@ -156,92 +157,44 @@ export default function VisualizeYourself() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <Card className="bg-gray-50">
-                  <CardContent className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Your Well-Being Ladder</h3>
-                    <div className="flex items-center space-x-4">
-                      <div className="flex flex-col justify-between h-[400px] border-r pr-6">
-                        {Array.from({ length: 11 }).map((_, i) => (
-                          <div key={10 - i} className="flex items-center h-9">
-                            <span className="w-6 text-right font-semibold">{10 - i}</span>
-                            <div className="w-16 h-[1px] bg-gray-300 ml-2"></div>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="flex-1 h-[400px] flex flex-col justify-between">
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Best possible life</p>
-                          <p className="text-sm text-gray-700 mb-8">
-                            Complete satisfaction, achieving goals, fulfilling relationships,
-                            feeling purposeful, and overall thriving
-                          </p>
-                        </div>
-
-                        <div>
-                          <p className="text-xs text-gray-500 mb-1">Worst possible life</p>
-                          <p className="text-sm text-gray-700">
-                            Dissatisfaction, struggling to meet basic needs,
-                            feeling unfulfilled, and lacking direction
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+            {/* New Wellbeing Ladder Component with interactive sliders */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+              <h3 className="text-xl font-bold text-gray-800 mb-6">Your Wellbeing Ladder</h3>
+              
+              {/* Import the WellbeingLadder component */}
+              <WellbeingLadder 
+                onCurrentValueChange={(value) => setWellbeingLevel(value)}
+                onFutureValueChange={() => {}}
+              />
+            </div>
+            
+            <div className="space-y-6">
+              <div className="mt-6">
+                <Label htmlFor="factors" className="text-base font-medium">
+                  2. What key factors have shaped your current rating?
+                </Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  What are the main elements contributing to your current well-being?
+                </p>
+                <Textarea
+                  id="factors"
+                  placeholder="Your answer"
+                  className="min-h-[100px] mt-2"
+                />
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="current-position" className="text-base font-medium">
-                    1. Where are you on the ladder today? (0–10)
-                  </Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    Consider your overall life satisfaction at this moment.
-                  </p>
-                  <div className="flex items-center space-x-4 mt-4">
-                    <Slider
-                      id="current-position"
-                      max={10}
-                      step={1}
-                      value={[wellbeingLevel]}
-                      onValueChange={(value) => setWellbeingLevel(value[0])}
-                      className="flex-1"
-                    />
-                    <span className="bg-indigo-600 text-white w-10 h-10 rounded-full flex items-center justify-center font-bold">
-                      {wellbeingLevel}
-                    </span>
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <Label htmlFor="factors" className="text-base font-medium">
-                    2. What key factors have shaped this rating?
-                  </Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    What are the main elements contributing to your current well-being?
-                  </p>
-                  <Textarea
-                    id="factors"
-                    placeholder="Your answer"
-                    className="min-h-[100px] mt-2"
-                  />
-                </div>
-
-                <div className="mt-6">
-                  <Label htmlFor="one-year-vision" className="text-base font-medium">
-                    3. Where do you realistically see yourself in one year? (0-10)
-                  </Label>
-                  <p className="text-sm text-gray-500 mb-2">
-                    What achievable improvement would represent meaningful growth?
-                  </p>
-                  <Textarea
-                    id="one-year-vision"
-                    placeholder="Your answer"
-                    className="min-h-[100px] mt-2"
-                  />
-                </div>
+              <div className="mt-6">
+                <Label htmlFor="one-year-vision" className="text-base font-medium">
+                  3. What specific improvements do you envision for your future position?
+                </Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  What achievements or changes would make your life better in one year?
+                </p>
+                <Textarea
+                  id="one-year-vision"
+                  placeholder="Your answer"
+                  className="min-h-[100px] mt-2"
+                />
               </div>
             </div>
 
