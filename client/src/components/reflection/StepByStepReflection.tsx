@@ -73,6 +73,9 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
       teamValues: getRandomLorem(),
       uniqueContribution: getRandomLorem()
     });
+    
+    // Jump to the final question immediately
+    setCurrentStep(totalSteps);
   };
   
   // Helper function to determine current progress percentage
@@ -600,11 +603,11 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 onClick={() => {
                   // Save the reflection data (using localStorage for now)
                   localStorage.setItem('reflectionData', JSON.stringify(reflections));
-                  // Navigate to the next tab
+                  // Navigate to the flow page
                   window.location.href = "/flow";
                 }}
               >
-                Complete Reflection
+                Submit Reflection & Go to Flow
               </Button>
             ) : (
               <Button 
