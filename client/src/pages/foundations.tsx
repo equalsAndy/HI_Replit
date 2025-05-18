@@ -12,6 +12,7 @@ import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import StepByStepReflection from "@/components/reflection/StepByStepReflection";
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
