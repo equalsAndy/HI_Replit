@@ -12,7 +12,7 @@ import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
-import { BookOpen, ClipboardCheck, PenLine, Sparkles } from 'lucide-react';
+import { BookOpen, ClipboardCheck, Edit, Star } from 'lucide-react';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -202,7 +202,7 @@ export default function Foundations() {
                   </span>
                 ) : (
                   <span className="flex items-center">
-                    <PenLine className="h-4 w-4 mr-1.5" />
+                    <Edit className="h-4 w-4 mr-1.5" />
                     Reflect
                   </span>
                 )}

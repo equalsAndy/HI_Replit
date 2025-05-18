@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import MainContainer from '@/components/layout/MainContainer';
-import { BookOpen, ClipboardCheck, PenLine, Sparkles } from 'lucide-react';
+import { BookOpen, ClipboardCheck, Edit, Star } from 'lucide-react';
 import FlowAssessment from '@/components/flow/FlowAssessment';
 import RoundingOutReflection from '@/components/flow/RoundingOutReflection';
 import StarCard from '@/components/starcard/StarCard';
@@ -636,7 +636,7 @@ export default function FindYourFlow() {
                 </span>
               ) : (
                 <span className="flex items-center">
-                  <PenLine className="h-4 w-4 mr-1.5" />
+                  <Edit className="h-4 w-4 mr-1.5" />
                   Rounding Out
                 </span>
               )}
@@ -651,7 +651,7 @@ export default function FindYourFlow() {
                 </span>
               ) : (
                 <span className="flex items-center">
-                  <Sparkles className="h-4 w-4 mr-1.5" />
+                  <Star className="h-4 w-4 mr-1.5" />
                   Add Flow to StarCard
                 </span>
               )}
