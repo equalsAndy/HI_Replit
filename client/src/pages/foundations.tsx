@@ -417,40 +417,32 @@ export default function Foundations() {
                     Let's explore one strength at a time.
                   </p>
                   
-                  {/* Strengths Distribution Visualization */}
+                  {/* Simplified Strengths Distribution */}
                   <div className="mt-6 bg-white/10 rounded-lg p-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-center justify-center">
-                        {starCard && (
-                          <div className="w-40 h-40">
-                            <AssessmentPieChart
-                              thinking={starCard.thinking || 0}
-                              acting={starCard.acting || 0}
-                              feeling={starCard.feeling || 0}
-                              planning={starCard.planning || 0}
-                            />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-col justify-center">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-                            <div className="text-sm text-white">{starCard?.thinking || 0}% Thinking</div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                            <div className="text-sm text-white">{starCard?.acting || 0}% Acting</div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-                            <div className="text-sm text-white">{starCard?.feeling || 0}% Feeling</div>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
-                            <div className="text-sm text-white">{starCard?.planning || 0}% Planning</div>
-                          </div>
+                    <div className="flex flex-col items-center">
+                      <h3 className="text-white text-center mb-3">Your Strengths Distribution</h3>
+                      
+                      <div className="grid grid-cols-4 gap-3 mb-2 w-full max-w-md">
+                        <div className="bg-red-500/20 rounded p-2 text-center">
+                          <div className="text-xl font-bold text-white">{starCard?.acting || 0}%</div>
+                          <div className="text-xs text-white/80">Acting</div>
                         </div>
+                        <div className="bg-green-500/20 rounded p-2 text-center">
+                          <div className="text-xl font-bold text-white">{starCard?.thinking || 0}%</div>
+                          <div className="text-xs text-white/80">Thinking</div>
+                        </div>
+                        <div className="bg-blue-500/20 rounded p-2 text-center">
+                          <div className="text-xl font-bold text-white">{starCard?.feeling || 0}%</div>
+                          <div className="text-xs text-white/80">Feeling</div>
+                        </div>
+                        <div className="bg-yellow-500/20 rounded p-2 text-center">
+                          <div className="text-xl font-bold text-white">{starCard?.planning || 0}%</div>
+                          <div className="text-xs text-white/80">Planning</div>
+                        </div>
+                      </div>
+                      
+                      <div className="text-xs text-white/70 mt-1 text-center">
+                        Based on your assessment, Acting is your strongest trait at {starCard?.acting || 0}%
                       </div>
                     </div>
                   </div>
