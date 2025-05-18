@@ -273,12 +273,12 @@ export default function StarCard({
         {/* Main Star Card Diagram - The "cluster" moved down 10px from previous position */}
         <div className="relative mx-auto mb-6" style={{ width: '308px', height: '308px', marginTop: '-25px' }}>
           {/* Flow Label */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-1px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '-4px', right: '9px', width: '66px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Flow
           </div>
 
           {/* Core Label - positioned over top right quadrant */}
-          <div className="absolute text-[0.65rem] font-medium" style={{ top: '56px', left: '138px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
+          <div className="absolute text-[0.65rem] font-medium" style={{ top: '64px', left: '158px', width: '60px', textAlign: 'center', zIndex: 30, color: 'rgba(0, 0, 0, 0.8)' }}>
             Core
           </div>
 
