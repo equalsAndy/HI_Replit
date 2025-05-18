@@ -397,30 +397,106 @@ export default function Foundations() {
             </TabsContent>
 
             <TabsContent value="reflect" className="space-y-6">
-              <div className="prose max-w-none mb-6">
-                <h2>Reflect on Your Star Profile</h2>
-                <p>
-                  Now that you've seen your Star Card, take some time to reflect on what your strengths profile reveals about you.
-                  This is a space to articulate how you use these strengths in your professional life.
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Purpose:</span> Express in your own words how you see yourself, your strengths, values, what you uniquely bring to the team, what you value in others, and what you are enthused about professionally.
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-medium">Directions:</span> Respond to the prompts.
-                </p>
-              </div>
-
-              <div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 1st strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
+              <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
+                {/* Reflection Header */}
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+                  <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
+                  <p className="text-white/80">
+                    Understanding how your unique strengths work together helps you maximize your potential.
+                    Let's explore each of your strengths, starting with your strongest.
+                  </p>
+                  
+                  {/* Strengths Distribution Visualization */}
+                  <div className="mt-6 bg-white/10 rounded-lg p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="flex items-center justify-center">
+                        {starCard && (
+                          <div className="w-40 h-40">
+                            <AssessmentPieChart
+                              thinking={starCard.thinking || 0}
+                              acting={starCard.acting || 0}
+                              feeling={starCard.feeling || 0}
+                              planning={starCard.planning || 0}
+                            />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col justify-center">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            <div className="text-sm text-white">{starCard?.thinking || 0}% Thinking</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div className="text-sm text-white">{starCard?.acting || 0}% Acting</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <div className="text-sm text-white">{starCard?.feeling || 0}% Feeling</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div className="text-sm text-white">{starCard?.planning || 0}% Planning</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Reflection Content */}
+                <div className="p-6">
+                  {/* Primary Strength Section */}
+                  <div className="mb-8">
+                    <div className="flex items-center mb-4">
+                      <div className="bg-red-100 p-2 rounded-full mr-3">
+                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                          1
+                        </div>
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-800">Your 1st Strength: Acting ({starCard?.acting || 0}%)</h3>
+                    </div>
+                    
+                    <div className="ml-16 mb-6">
+                      <p className="text-gray-700 mb-3">
+                        Your Acting strength shows your decisive, results-focused, and action-oriented nature. 
+                        At {starCard?.acting || 0}% of your profile, this represents your ability to make decisions, 
+                        take initiative, and drive projects to completion.
+                      </p>
+                      
+                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
+                        <h4 className="font-medium text-indigo-800 mb-3">How and when do you use your Acting strength?</h4>
+                        <p className="text-gray-700 text-sm mb-3">
+                          Consider moments when your decisive nature made a difference. Reflect on:
+                        </p>
+                        <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
+                          <li>Situations where you took initiative when others hesitated</li>
+                          <li>How you've turned ideas into tangible results</li>
+                          <li>Times when your decisiveness moved a project forward</li>
+                          <li>How your pragmatic approach solved practical problems</li>
+                        </ul>
+                        
+                        <div className="bg-white p-3 rounded-lg border border-gray-200 mb-2">
+                          <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
+                          <div className="text-sm text-gray-700">
+                            <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
+                            <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="acting-reflection" className="block text-sm font-medium text-gray-700 mb-1">
+                          Your Reflection (2-3 sentences)
+                        </label>
+                        <Textarea 
+                          id="acting-reflection"
+                          placeholder="Describe specific moments when you've used your Acting strength effectively..."
+                          className="min-h-[120px] w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   <div>
