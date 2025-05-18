@@ -134,9 +134,10 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     handleValueSelection(questionId, value[0]);
   };
   
-  // Handle quick selection (the "3" button) - pass to common handler
+  // Handle quick selection (clicking the thumb) - just display current value, don't set to 3
   const handleQuickSelect = (questionId: number) => {
-    handleValueSelection(questionId, 3);
+    // Just show the current value as a tooltip
+    // This doesn't change any values or trigger auto-advance
   };
   
   // Handle direct number click - this is the main way users select answers
@@ -370,7 +371,6 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button 
-                        onClick={() => handleQuickSelect(question.id)}
                         className="flex items-center justify-center w-12 h-12 rounded-full border-2 border-indigo-500 text-white bg-indigo-600 hover:bg-indigo-700 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transform hover:scale-105 transition-all"
                         onMouseDown={(e) => {
                           e.stopPropagation();
@@ -381,9 +381,14 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
                       </button>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-xs p-3 bg-indigo-900 text-white border-none">
-                      <p className="font-medium">{autoAdvance 
-                        ? "Click to select '3 - Sometimes' and automatically advance" 
-                        : `Your selection: ${currentValue || '?'} - ${valueToLabel(currentValue) || 'Select a value'}`}</p>
+                      <p className="font-medium">
+                        {`Your selection: ${currentValue || '?'} - ${valueToLabel(currentValue) || 'Select a value'}`}
+                      </p>
+                      {autoAdvance && currentValue > 0 && (
+                        <p className="text-xs mt-1 text-indigo-200">
+                          Auto-advance is ON. Will move to next question automatically.
+                        </p>
+                      )}
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
