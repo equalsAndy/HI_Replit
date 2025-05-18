@@ -142,15 +142,15 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
   
   // Handle direct number click - this is the main way users select answers
   const handleNumberClick = (questionId: number, value: number) => {
-    // Skip if already selected this value
-    if (answers[questionId] === value) {
-      return;
-    }
-    
-    // Clear any existing timeout to prevent multiple advances
+    // First, check if we're already on another timeout
     if (autoAdvanceTimeoutRef.current) {
       clearTimeout(autoAdvanceTimeoutRef.current);
       autoAdvanceTimeoutRef.current = null;
+    }
+
+    // Skip if already selected this value
+    if (answers[questionId] === value) {
+      return;
     }
     
     // Update answers immediately
@@ -162,15 +162,26 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     // Clear error
     setError(null);
     
-    // Show notification for auto-advance
+    // Auto-advance logic
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
+      // Show notification
+      setAutoAdvancePending(true);
+      
+      // Auto-advance after delay
+      const advanceTimeout = setTimeout(() => {
+        // First hide notification
+        setAutoAdvancePending(false);
+        
+        // Then advance to next question directly
+        setCurrentQuestion(currentQ => currentQ + 1);
+      }, 700);
+      
+      // Store timeout reference
+      autoAdvanceTimeoutRef.current = advanceTimeout;
+    } else {
+      // Just show a brief notification that this value was selected
       setAutoAdvancePending(true);
       setTimeout(() => setAutoAdvancePending(false), 1500);
-      
-      // Auto-advance after delay if enabled
-      autoAdvanceTimeoutRef.current = setTimeout(() => {
-        nextQuestion();
-      }, 700);
     }
   };
   
@@ -194,6 +205,12 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     
     // Clear error and proceed
     setError(null);
+    
+    // Clear any pending auto-advance timeouts
+    if (autoAdvanceTimeoutRef.current) {
+      clearTimeout(autoAdvanceTimeoutRef.current);
+      autoAdvanceTimeoutRef.current = null;
+    }
     
     if (currentQuestion < flowQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
