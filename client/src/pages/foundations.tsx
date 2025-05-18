@@ -399,12 +399,12 @@ export default function Foundations() {
             <TabsContent value="reflect" className="space-y-6">
               {/* Reflection Component with Step Navigation */}
               <div className="flex justify-end mb-4">
-                <div className="bg-white rounded-md shadow-sm border border-gray-200 px-2 py-1 flex items-center space-x-2">
+                <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
                   <span className="text-xs font-medium text-gray-500">Your progress:</span>
                   <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
                     <div className="h-full bg-indigo-600 rounded-full" style={{ width: '20%' }}></div>
                   </div>
-                  <span className="text-xs font-medium text-gray-700">1 of 5</span>
+                  <span className="text-xs font-medium text-gray-700">Step 1 of 5</span>
                 </div>
               </div>
               
@@ -450,6 +450,7 @@ export default function Foundations() {
                 
                 {/* Reflection Content */}
                 <div className="p-6">
+                  {/* Reflection content - dynamically shows one step at a time */}
                   {/* Step 1: First Strength - Acting */}
                   <div className="mb-8">
                     <div className="flex items-center mb-4">
