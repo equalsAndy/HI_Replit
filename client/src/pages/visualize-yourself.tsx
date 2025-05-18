@@ -10,7 +10,7 @@ import MainContainer from '@/components/layout/MainContainer';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
-import WellbeingLadder from '@/components/visualization/WellbeingLadder';
+import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
 
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
@@ -163,8 +163,8 @@ export default function VisualizeYourself() {
               
               {/* Import the WellbeingLadder component */}
               <WellbeingLadder 
-                onCurrentValueChange={(value) => setWellbeingLevel(value)}
-                onFutureValueChange={() => {}}
+                onCurrentValueChange={(value: number) => setWellbeingLevel(value)}
+                onFutureValueChange={(value: number) => {}}
               />
             </div>
             

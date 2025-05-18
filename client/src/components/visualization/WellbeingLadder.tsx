@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
-// We'll load the image directly using its path
-const wellbeingLadderImagePath = '/assets/wellbeing-ladder.png';
+import { LadderVisual } from './LadderVisual';
 
 interface WellbeingLadderProps {
   onCurrentValueChange?: (value: number) => void;
@@ -42,32 +41,30 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div className="relative">
-        <img 
-          src={wellbeingLadderImagePath} 
-          alt="Wellbeing Ladder" 
-          className="w-full max-w-md mx-auto"
-        />
-        
-        {/* Current position marker - purple circle */}
-        <div 
-          className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold left-0"
-          style={{ 
-            top: calculateMarkerPosition(currentPosition),
-            left: `6%`
-          }}
-        >
-          {currentPosition}
-        </div>
-        
-        {/* Future position marker - orange circle */}
-        <div 
-          className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold right-0"
-          style={{ 
-            top: calculateMarkerPosition(futurePosition),
-            right: `6%`
-          }}
-        >
-          {futurePosition}
+        <div className="w-full max-w-md mx-auto">
+          <LadderVisual />
+          
+          {/* Current position marker - purple circle */}
+          <div 
+            className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
+            style={{ 
+              top: `${135 + (10-currentPosition) * 55}px`,
+              left: `100px`
+            }}
+          >
+            {currentPosition}
+          </div>
+          
+          {/* Future position marker - orange circle */}
+          <div 
+            className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
+            style={{ 
+              top: `${135 + (10-futurePosition) * 55}px`,
+              right: `100px`
+            }}
+          >
+            {futurePosition}
+          </div>
         </div>
       </div>
       
