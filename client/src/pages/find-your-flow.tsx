@@ -573,8 +573,8 @@ export default function FindYourFlow() {
       score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
     }));
     
-    // Random flow score between 70 and 95
-    const randomFlowScore = Math.floor(Math.random() * 26) + 70;
+    // Random flow score between 45 and 60 (max possible score)
+    const randomFlowScore = Math.floor(Math.random() * 16) + 45;
     
     // Save flow attributes to server
     flowAttributesMutation.mutate({
@@ -721,8 +721,8 @@ export default function FindYourFlow() {
             <FlowAssessment 
               isCompleted={hasCompletedFlowAssessment}
               onTabChange={handleTabChange}
-              existingFlowScore={flowAttributesData?.flowScore > 0 ? flowAttributesData.flowScore : undefined}
-              readOnly={!!flowAttributesData?.flowScore && flowAttributesData.flowScore > 0}
+              existingFlowScore={flowAttributesData && flowAttributesData.flowScore != null ? Math.min(flowAttributesData.flowScore, 60) : undefined}
+              readOnly={!!flowAttributesData && flowAttributesData.flowScore != null && flowAttributesData.flowScore > 0}
             />
             
             {/* Next: Rounding Out button removed as requested */}
@@ -965,8 +965,8 @@ export default function FindYourFlow() {
                           score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
                         }));
                         
-                        // Random flow score between 70 and 95
-                        const randomFlowScore = Math.floor(Math.random() * 26) + 70;
+                        // Random flow score between 45 and 60 (max possible score)
+                        const randomFlowScore = Math.floor(Math.random() * 16) + 45;
                         
                         // Save flow attributes to server
                         flowAttributesMutation.mutate({
