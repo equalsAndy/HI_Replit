@@ -343,7 +343,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             
             <div className="text-center mb-4">
               <p className="text-2xl font-bold text-indigo-700">
-                {existingFlowScore} / {flowQuestions.length * 5}
+                {Math.min(existingFlowScore, flowQuestions.length * 5)} / {flowQuestions.length * 5}
               </p>
               <p className="text-lg font-semibold">
                 {interpretation.level}
