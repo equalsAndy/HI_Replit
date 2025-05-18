@@ -19,7 +19,7 @@ const COLORS = {
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
-  const radius = outerRadius + 15; // Position labels 15px from outer edge
+  const radius = outerRadius + 35; // Position labels 35px from outer edge
   const x = cx + radius * Math.cos(-midAngle * RADIAN);
   const y = cy + radius * Math.sin(-midAngle * RADIAN);
 
