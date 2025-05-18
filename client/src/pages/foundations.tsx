@@ -101,6 +101,10 @@ export default function Foundations() {
   const defaultTab = searchParams.get('tab') || 'intro';
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
+  
+  // State for managing the flow tab alert dialog
+  const [showFlowAlertDialog, setShowFlowAlertDialog] = useState(false);
+  const [missingPrerequisites, setMissingPrerequisites] = useState<string[]>([]);
 
   // Get user profile and star card data to determine progress
   const { data: user } = useQuery<UserType>({
@@ -172,8 +176,34 @@ export default function Foundations() {
     return !completedTabs.includes(tabId) && tabId !== activeTab && targetIndex > currentIndex + 1;
   };
 
+  // Function to check what prerequisites are missing for the flow tab
+  const checkFlowTabPrerequisites = () => {
+    const missing: string[] = [];
+    
+    // Check if star card is missing or has no scores
+    if (!starCard || (starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) {
+      missing.push("Complete your strengths assessment");
+    }
+    
+    // Check for reflection data in localStorage
+    const reflectionData = localStorage.getItem('reflectionData');
+    if (!reflectionData) {
+      missing.push("Complete your reflection exercises");
+    }
+    
+    return missing;
+  };
+
   // Handle tab change
   const handleTabChange = (tabId: string) => {
+    if (tabId === "flow" && isTabDisabled(tabId)) {
+      // Show alert dialog with missing prerequisites
+      const missing = checkFlowTabPrerequisites();
+      setMissingPrerequisites(missing);
+      setShowFlowAlertDialog(true);
+      return;
+    }
+    
     if (!isTabDisabled(tabId)) {
       setActiveTab(tabId);
       if (!completedTabs.includes(activeTab)) {
@@ -184,6 +214,42 @@ export default function Foundations() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Alert Dialog for Flow Tab Prerequisites */}
+      <AlertDialog open={showFlowAlertDialog} onOpenChange={setShowFlowAlertDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center text-amber-600">
+              <AlertTriangle className="h-5 w-5 mr-2" />
+              Complete Prerequisites First
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Before accessing the Flow Assessment, please complete the following:
+              
+              <ul className="list-disc pl-5 mt-2 space-y-1 text-sm">
+                {missingPrerequisites.map((item, index) => (
+                  <li key={index} className="text-gray-800">{item}</li>
+                ))}
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={() => {
+                if (missingPrerequisites.includes("Complete your strengths assessment")) {
+                  navigate("/assessment");
+                } else if (missingPrerequisites.includes("Complete your reflection exercises")) {
+                  setActiveTab("reflect");
+                }
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              Go to Next Step
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
       {/* Use the Header component that now has the logout feature */}
       <Header showDashboardLink={true} />
 
@@ -222,17 +288,17 @@ export default function Foundations() {
                 )}
               </TabsTrigger>
               <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
-                {isTabDisabled("reflect") ? (
-                  <span className="flex items-center">
-                    <Edit className="h-4 w-4 mr-1.5" />
-                    Reflect
-                  </span>
-                ) : (
-                  <span className="flex items-center">
-                    <Edit className="h-4 w-4 mr-1.5" />
-                    Reflect
-                  </span>
-                )}
+                <span className="flex items-center">
+                  <Edit className="h-4 w-4 mr-1.5" />
+                  Reflect
+                </span>
+              </TabsTrigger>
+              
+              <TabsTrigger value="flow" data-value="flow" disabled={isTabDisabled("flow")}>
+                <span className="flex items-center">
+                  <Star className="h-4 w-4 mr-1.5" />
+                  Flow Assessment
+                </span>
               </TabsTrigger>
             </TabsList>
 
