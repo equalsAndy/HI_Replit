@@ -520,3 +520,44 @@ export interface IStorage {
 ## Conclusion
 
 Creating a second application within the same codebase is feasible with the current architecture. By adding an application context and updating the routing and UI components, we can provide two distinct learning experiences while sharing the same infrastructure and codebase. This approach allows for efficient development and maintenance while providing users with different learning paths based on their needs.
+# Flow Assessment Interface Requirements
+
+## Auto-Advance Feature
+- Auto-advance should be ON by default
+- Include toggle to disable/enable auto-advance
+- Maintain 700ms delay before auto-advancing
+- When going back to previous questions, auto-advance should:
+  - Automatically disable
+  - Show notification that auto-advance was disabled
+  - Allow user to re-enable it
+
+## Answer Interface
+- Initial state: No default selection/answer shown
+- All questions start with slider/numbers unselected
+- Answer options 1-5 available
+- Clicking any number:
+  - Records the answer
+  - Advances to next question (if auto-advance enabled)
+
+## Navigation & Answer Modification
+- Users can go back to previous questions
+- Previous answers can be modified
+- When modifying previous answers:
+  - Auto-advance is disabled
+  - User is notified of auto-advance being disabled
+  - User can re-enable auto-advance
+
+## Data Storage & Results
+- Flow assessment answers stored in user file
+- Not connected to StarCard completion state
+- Maintain existing scoring system:
+  - 50-60: Flow Fluent
+  - 39-49: Flow Aware
+  - 26-38: Flow Blocked
+  - 12-25: Flow Distant
+
+## User Experience Notes
+- Clear visual feedback for selected answers
+- Easy navigation between questions
+- Clear indication of auto-advance state
+- Smooth transitions between questions
