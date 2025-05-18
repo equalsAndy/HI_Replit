@@ -516,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const answerData = {
         userId,
         questionId: parseInt(String(questionId)), // Ensure questionId is a number
-        ranking: Array.isArray(rankings) ? rankings : [] // Ensure rankings is always an array
+        rankings: Array.isArray(rankings) ? rankings : [] // Match schema property name
       };
       
       console.log("Processed answer data:", answerData);
