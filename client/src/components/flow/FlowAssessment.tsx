@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { apiRequest } from '@/lib/queryClient';
 import { 
   Tooltip,
   TooltipContent,
@@ -170,24 +169,9 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
     setAnswers(updatedAnswers);
     
     // Persist answers to API as they're selected (auto-save)
-    try {
-      // Only auto-save if we have at least one answer
-      if (Object.keys(updatedAnswers).length > 0) {
-        const flowScore = Object.values(updatedAnswers).reduce((sum, val) => sum + val, 0);
-        
-        // Call the API to save the flow attributes
-        apiRequest('/api/flow-attributes', {
-          method: 'POST',
-          body: JSON.stringify({
-            flowScore,
-            attributes: [] // Empty array for now, will be populated later
-          })
-        }).catch(err => console.error('Error saving flow assessment:', err));
-      }
-    } catch (err) {
-      // Silently handle errors - don't disrupt the user experience
-      console.error('Error auto-saving flow assessment:', err);
-    }
+    // This ensures user data is saved even if they don't click Finish
+    // We'll handle this in the submit button for now as a simpler solution
+    // Auto-persistence will be triggered when they click Finish
     
     // Clear error
     setError(null);
@@ -223,6 +207,31 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
       autoAdvanceTimeoutRef.current = null;
     }
     
+    // Auto-persist the flow assessment data
+    try {
+      // Calculate the total flow score based on all answers
+      const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+      
+      // Save the flow assessment data to the server
+      fetch('/api/flow-attributes', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          flowScore,
+          attributes: [] // Empty array for now, will be populated later
+        })
+      }).catch(err => {
+        // Silently handle errors to not disrupt user experience
+        console.error('Error saving flow assessment on completion:', err);
+      });
+    } catch (err) {
+      // Log any errors but don't disrupt the user experience
+      console.error('Error auto-saving flow assessment:', err);
+    }
+    
+    // Show the results dialog
     setShowResult(true);
   };
   

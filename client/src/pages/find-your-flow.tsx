@@ -722,16 +722,7 @@ export default function FindYourFlow() {
               onTabChange={handleTabChange}
             />
             
-            {!hasCompletedFlowAssessment && (
-              <div className="flex justify-end mt-6">
-                <Button 
-                  onClick={() => handleTabChange("roundingout")}
-                  className="bg-indigo-700 hover:bg-indigo-800"
-                >
-                  Next: Rounding Out
-                </Button>
-              </div>
-            )}
+            {/* Next: Rounding Out button removed as requested */}
           </TabsContent>
           
           <TabsContent value="roundingout" className="space-y-6">
