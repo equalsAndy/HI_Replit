@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -59,7 +58,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
     : filteredData;
 
   return (
-    <div className="w-full h-[300px]">
+    <div className="w-full h-[450px]">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
