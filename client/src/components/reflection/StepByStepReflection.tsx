@@ -603,8 +603,8 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 onClick={() => {
                   // Save the reflection data (using localStorage for now)
                   localStorage.setItem('reflectionData', JSON.stringify(reflections));
-                  // Navigate to the flow page
-                  window.location.href = "/flow";
+                  // Navigate to the find-your-flow page
+                  window.location.href = "/find-your-flow";
                 }}
               >
                 Submit Reflection & Go to Flow
