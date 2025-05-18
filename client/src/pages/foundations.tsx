@@ -397,13 +397,24 @@ export default function Foundations() {
             </TabsContent>
 
             <TabsContent value="reflect" className="space-y-6">
+              {/* Reflection Component with Step Navigation */}
+              <div className="flex justify-end mb-4">
+                <div className="bg-white rounded-md shadow-sm border border-gray-200 px-2 py-1 flex items-center space-x-2">
+                  <span className="text-xs font-medium text-gray-500">Your progress:</span>
+                  <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-indigo-600 rounded-full" style={{ width: '20%' }}></div>
+                  </div>
+                  <span className="text-xs font-medium text-gray-700">1 of 5</span>
+                </div>
+              </div>
+              
               <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
                 {/* Reflection Header */}
                 <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
                   <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
                   <p className="text-white/80">
                     Understanding how your unique strengths work together helps you maximize your potential.
-                    Let's explore each of your strengths, starting with your strongest.
+                    Let's explore one strength at a time.
                   </p>
                   
                   {/* Strengths Distribution Visualization */}
@@ -447,7 +458,7 @@ export default function Foundations() {
                 
                 {/* Reflection Content */}
                 <div className="p-6">
-                  {/* Primary Strength Section */}
+                  {/* Step 1: First Strength - Acting */}
                   <div className="mb-8">
                     <div className="flex items-center mb-4">
                       <div className="bg-red-100 p-2 rounded-full mr-3">
@@ -461,8 +472,8 @@ export default function Foundations() {
                     <div className="ml-16 mb-6">
                       <p className="text-gray-700 mb-3">
                         Your Acting strength shows your decisive, results-focused, and action-oriented nature. 
-                        At {starCard?.acting || 0}% of your profile, this represents your ability to make decisions, 
-                        take initiative, and drive projects to completion.
+                        This represents your ability to make decisions, take initiative, and drive projects 
+                        to completion.
                       </p>
                       
                       <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
