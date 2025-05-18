@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,7 +11,6 @@ import StarCard from "@/components/starcard/StarCard";
 import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
-import { ChevronDown, ChevronUp } from "lucide-react";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
 
 // Define quadrant colors
@@ -346,235 +345,35 @@ export default function Foundations() {
 
               <div className="my-8 border border-gray-200 rounded-md overflow-hidden bg-white">
                 <div className="p-4 border-b border-gray-200 bg-gray-50">
-                  <h3 className="text-xl font-bold text-center text-gray-800">STAR CARD</h3>
+                  <h3 className="text-xl font-bold text-center">Your Star Card</h3>
                 </div>
-
-                <div className="p-6">
-                  {/* Star Card Visual - Always display the card in its current state */}
-                  <div className="mb-6">
+                <div className="p-4 flex justify-center">
+                  {/* Insert StarCard component */}
+                  <div className="max-w-lg w-full">
                     <StarCard 
-                      profile={{
-                        name: user?.name || "",
-                        title: user?.title || "",
-                        organization: user?.organization || "",
-                        avatarUrl: user?.avatarUrl
-                      }}
-                      quadrantData={{
-                        thinking: starCard?.thinking || 0,
-                        acting: starCard?.acting || 0,
-                        feeling: starCard?.feeling || 0,
-                        planning: starCard?.planning || 0
-                      }}
-                      downloadable={true}
-                      preview={false}
-                      imageUrl={starCard?.imageUrl}
-                      flowAttributes={
-                        flowAttributes?.attributes && Array.isArray(flowAttributes.attributes) ? 
-                          flowAttributes.attributes.map((attr: any) => ({
-                            text: attr.name,
-                            color: getAttributeColor(attr.name)
-                          })) : []
-                      }
+                      thinking={starCard?.thinking || 0}
+                      acting={starCard?.acting || 0}
+                      feeling={starCard?.feeling || 0}
+                      planning={starCard?.planning || 0}
+                      imageUrl={starCard?.imageUrl || null}
                     />
                   </div>
-                  
-                  <div className="flex justify-between mt-4">
-                    <Button 
-                      onClick={() => !isTabDisabled("intro") && handleTabChange("intro")}
-                      variant="outline"
-                      disabled={isTabDisabled("intro")}
-                    >
-                      Previous: Strengths
-                    </Button>
-                    <Button 
-                      onClick={() => !isTabDisabled("reflect") && handleTabChange("reflect")}
-                      className="bg-indigo-600 hover:bg-indigo-700"
-                      disabled={isTabDisabled("reflect")}
-                    >
-                      Next: Reflect
-                    </Button>
-                  </div>
                 </div>
+              </div>
+
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={() => handleTabChange("reflect")}
+                  className="bg-indigo-700 hover:bg-indigo-800"
+                >
+                  Continue to Reflection Exercise
+                </Button>
               </div>
             </TabsContent>
 
             <TabsContent value="reflect" className="space-y-6">
-              {/* Reflection Component with Step Navigation */}
-              <div className="flex justify-end mb-4">
-                <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
-                  <span className="text-xs font-medium text-gray-500">Your progress:</span>
-                  <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                    <div className="h-full bg-indigo-600 rounded-full" style={{ width: '20%' }}></div>
-                  </div>
-                  <span className="text-xs font-medium text-gray-700">Step 1 of 5</span>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
-                {/* Reflection Header */}
-                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-                  <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
-                  <p className="text-white/80">
-                    Understanding how your unique strengths work together helps you maximize your potential.
-                    Let's explore one strength at a time.
-                  </p>
-                  
-                  {/* Simplified Strengths Distribution */}
-                  <div className="mt-6 bg-white/10 rounded-lg p-4">
-                    <div className="flex flex-col items-center">
-                      <h3 className="text-white text-center mb-3">Your Strengths Distribution</h3>
-                      
-                      <div className="grid grid-cols-4 gap-3 mb-2 w-full max-w-md">
-                        <div className="bg-red-500/20 rounded p-2 text-center">
-                          <div className="text-xl font-bold text-white">{starCard?.acting || 0}%</div>
-                          <div className="text-xs text-white/80">Acting</div>
-                        </div>
-                        <div className="bg-green-500/20 rounded p-2 text-center">
-                          <div className="text-xl font-bold text-white">{starCard?.thinking || 0}%</div>
-                          <div className="text-xs text-white/80">Thinking</div>
-                        </div>
-                        <div className="bg-blue-500/20 rounded p-2 text-center">
-                          <div className="text-xl font-bold text-white">{starCard?.feeling || 0}%</div>
-                          <div className="text-xs text-white/80">Feeling</div>
-                        </div>
-                        <div className="bg-yellow-500/20 rounded p-2 text-center">
-                          <div className="text-xl font-bold text-white">{starCard?.planning || 0}%</div>
-                          <div className="text-xs text-white/80">Planning</div>
-                        </div>
-                      </div>
-                      
-                      <div className="text-xs text-white/70 mt-1 text-center">
-                        Based on your assessment, Acting is your strongest trait at {starCard?.acting || 0}%
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Reflection Content */}
-                <div className="p-6">
-                  {/* Reflection content - dynamically shows one step at a time */}
-                  {/* Step 1: First Strength - Acting */}
-                  <div className="mb-8">
-                    <div className="flex items-center mb-4">
-                      <div className="bg-red-100 p-2 rounded-full mr-3">
-                        <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
-                          1
-                        </div>
-                      </div>
-                      <h3 className="text-xl font-bold text-gray-800">Your 1st Strength: Acting ({starCard?.acting || 0}%)</h3>
-                    </div>
-                    
-                    <div className="ml-16 mb-6">
-                      <p className="text-gray-700 mb-3">
-                        Your Acting strength shows your decisive, results-focused, and action-oriented nature. 
-                        This represents your ability to make decisions, take initiative, and drive projects 
-                        to completion.
-                      </p>
-                      
-                      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
-                        <h4 className="font-medium text-indigo-800 mb-3">How and when do you use your Acting strength?</h4>
-                        <p className="text-gray-700 text-sm mb-3">
-                          Consider moments when your decisive nature made a difference. Reflect on:
-                        </p>
-                        <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-                          <li>Situations where you took initiative when others hesitated</li>
-                          <li>How you've turned ideas into tangible results</li>
-                          <li>Times when your decisiveness moved a project forward</li>
-                          <li>How your pragmatic approach solved practical problems</li>
-                        </ul>
-                        
-                        <div className="bg-white p-3 rounded-lg border border-gray-200 mb-2">
-                          <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
-                          <div className="text-sm text-gray-700">
-                            <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
-                            <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <label htmlFor="acting-reflection" className="block text-sm font-medium text-gray-700 mb-1">
-                          Your Reflection (2-3 sentences)
-                        </label>
-                        <Textarea 
-                          id="acting-reflection"
-                          placeholder="Describe specific moments when you've used your Acting strength effectively..."
-                          className="min-h-[120px] w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 2nd strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 3rd strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      How and when I use my 4th strength
-                    </label>
-                    <Textarea 
-                      placeholder="Describe how this strength shows up in your life..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      What I uniquely bring to the team
-                    </label>
-                    <Textarea 
-                      placeholder="Describe your unique contribution to your team or organization..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block font-medium text-gray-700 mb-2">
-                      What I value in fellow team members
-                    </label>
-                    <Textarea 
-                      placeholder="Describe what you appreciate most in your colleagues..."
-                      className="w-full min-h-[100px] border-gray-300 focus:border-indigo-500 focus:ring-indigo-500"
-                    />
-                  </div>
-                </div>
-
-                <div className="flex justify-between mt-6">
-                  <Button 
-                    onClick={() => !isTabDisabled("starcard") && handleTabChange("starcard")}
-                    variant="outline"
-                    disabled={isTabDisabled("starcard")}
-                  >
-                    Previous: Your StarCard
-                  </Button>
-                  <Link href="/find-your-flow">
-                    <Button className="bg-indigo-600 hover:bg-indigo-700">
-                      Next: Find Your Flow
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+              {/* Using the StepByStepReflection component */}
+              <StepByStepReflection starCard={starCard} />
             </TabsContent>
           </Tabs>
         </div>

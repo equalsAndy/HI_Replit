@@ -77,7 +77,13 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
   };
   
   // Colors based on quadrant
-  const strengthColors = {
+  const strengthColors: Record<string, {
+    bg: string,
+    circle: string,
+    lightBg: string,
+    border: string,
+    text: string
+  }> = {
     'PLANNING': {
       bg: 'bg-yellow-100',
       circle: 'bg-yellow-500',
