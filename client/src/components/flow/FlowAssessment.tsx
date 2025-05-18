@@ -592,7 +592,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange }: Flo
             <div className="mb-6">
               <h4 className="font-semibold mb-3">Your Answers Summary</h4>
               <p className="text-sm text-gray-600 mb-3">
-                Review your answers below. Adjust the sliders directly to modify any of your responses.
+                Review your answers below. Click an answer or the Adjust button to modify your responses.
               </p>
               
               <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
