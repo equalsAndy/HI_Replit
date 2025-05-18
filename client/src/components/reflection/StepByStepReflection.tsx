@@ -368,16 +368,19 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             </div>
           </div>
           
-          <div>
-            <label htmlFor="team-values-reflection" className="block text-sm font-medium text-gray-700 mb-1">
-              Your Reflection (2-3 sentences)
+          <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
+            <label htmlFor="team-values-reflection" className="block text-lg font-semibold text-indigo-800 mb-2">
+              Your Reflection Space
             </label>
+            <p className="text-gray-700 mb-3 text-sm italic">
+              Write 2-3 sentences about the team environment where you perform best
+            </p>
             <Textarea 
               id="team-values-reflection"
               value={reflections.teamValues}
               onChange={(e) => handleReflectionChange(5, e.target.value)}
               placeholder="Describe the team environment where you thrive..."
-              className="min-h-[120px] w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md"
+              className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
             />
           </div>
         </div>
