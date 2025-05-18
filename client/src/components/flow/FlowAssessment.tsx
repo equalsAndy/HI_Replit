@@ -47,15 +47,34 @@ interface FlowAssessmentProps {
 }
 
 export default function FlowAssessment({ isCompleted = false, onTabChange, existingFlowScore, readOnly = false }: FlowAssessmentProps) {
-  // State for tracking answers
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  // State for tracking answers - initialize with saved answers if available in localStorage
+  const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    // Try to load saved answers from localStorage
+    const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
+    if (savedAnswers) {
+      try {
+        return JSON.parse(savedAnswers);
+      } catch (e) {
+        console.error('Error parsing saved flow assessment answers:', e);
+      }
+    }
+    return {};
+  });
+  
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [showResult, setShowResult] = useState(isCompleted); // Show results page immediately if assessment was completed
+  const [showResult, setShowResult] = useState(isCompleted || !!existingFlowScore); // Show results page if assessment was completed or score exists
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
   const [adjustingQuestionId, setAdjustingQuestionId] = useState<number | null>(null);
   const [showScoring, setShowScoring] = useState(false);
+  
+  // Save answers to localStorage whenever they change
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      localStorage.setItem('flowAssessmentAnswers', JSON.stringify(answers));
+    }
+  }, [answers]);
   
   // Using a ref for auto advance timeout to be able to clear it
   const autoAdvanceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
