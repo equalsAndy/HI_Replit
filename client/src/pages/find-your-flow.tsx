@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import MainContainer from '@/components/layout/MainContainer';
+import { BookOpen, ClipboardCheck, PenLine, Sparkles } from 'lucide-react';
 import FlowAssessment from '@/components/flow/FlowAssessment';
 import RoundingOutReflection from '@/components/flow/RoundingOutReflection';
 import StarCard from '@/components/starcard/StarCard';
@@ -604,7 +605,12 @@ export default function FindYourFlow() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-4 mb-6">
-            <TabsTrigger value="intro" data-value="intro">Flow Intro</TabsTrigger>
+            <TabsTrigger value="intro" data-value="intro">
+              <span className="flex items-center">
+                <BookOpen className="h-4 w-4 mr-1.5" />
+                Flow Intro
+              </span>
+            </TabsTrigger>
             <TabsTrigger value="assessment" data-value="assessment" disabled={isTabDisabled("assessment")}>
               {isTabDisabled("assessment") ? (
                 <span className="flex items-center">
@@ -613,7 +619,12 @@ export default function FindYourFlow() {
                   </svg>
                   Flow Assessment
                 </span>
-              ) : "Flow Assessment"}
+              ) : (
+                <span className="flex items-center">
+                  <ClipboardCheck className="h-4 w-4 mr-1.5" />
+                  Flow Assessment
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="roundingout" data-value="roundingout" disabled={isTabDisabled("roundingout")}>
               {isTabDisabled("roundingout") ? (
@@ -623,7 +634,12 @@ export default function FindYourFlow() {
                   </svg>
                   Rounding Out
                 </span>
-              ) : "Rounding Out"}
+              ) : (
+                <span className="flex items-center">
+                  <PenLine className="h-4 w-4 mr-1.5" />
+                  Rounding Out
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
               {isTabDisabled("starcard") ? (
@@ -633,7 +649,12 @@ export default function FindYourFlow() {
                   </svg>
                   Add Flow to StarCard
                 </span>
-              ) : "Add Flow to StarCard"}
+              ) : (
+                <span className="flex items-center">
+                  <Sparkles className="h-4 w-4 mr-1.5" />
+                  Add Flow to StarCard
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
           

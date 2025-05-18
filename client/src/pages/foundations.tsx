@@ -12,6 +12,7 @@ import { QuadrantData, ProfileData } from "@shared/schema";
 import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
+import { BookOpen, ClipboardCheck, PenLine, Sparkles } from 'lucide-react';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -164,8 +165,18 @@ export default function Foundations() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
             <TabsList className="grid grid-cols-4 mb-6">
-              <TabsTrigger value="intro" data-value="intro">Strengths</TabsTrigger>
-              <TabsTrigger value="assessment" data-value="assessment">Strengths Assessment</TabsTrigger>
+              <TabsTrigger value="intro" data-value="intro">
+                <span className="flex items-center">
+                  <BookOpen className="h-4 w-4 mr-1.5" />
+                  Strengths
+                </span>
+              </TabsTrigger>
+              <TabsTrigger value="assessment" data-value="assessment">
+                <span className="flex items-center">
+                  <ClipboardCheck className="h-4 w-4 mr-1.5" />
+                  Strengths Assessment
+                </span>
+              </TabsTrigger>
               <TabsTrigger value="starcard" data-value="starcard" disabled={isTabDisabled("starcard")}>
                 {isTabDisabled("starcard") ? (
                   <span className="flex items-center">
@@ -174,7 +185,12 @@ export default function Foundations() {
                     </svg>
                     Your StarCard
                   </span>
-                ) : "Your StarCard"}
+                ) : (
+                  <span className="flex items-center">
+                    <BookOpen className="h-4 w-4 mr-1.5" />
+                    Your StarCard
+                  </span>
+                )}
               </TabsTrigger>
               <TabsTrigger value="reflect" data-value="reflect" disabled={isTabDisabled("reflect")}>
                 {isTabDisabled("reflect") ? (
@@ -184,7 +200,12 @@ export default function Foundations() {
                     </svg>
                     Reflect
                   </span>
-                ) : "Reflect"}
+                ) : (
+                  <span className="flex items-center">
+                    <PenLine className="h-4 w-4 mr-1.5" />
+                    Reflect
+                  </span>
+                )}
               </TabsTrigger>
             </TabsList>
 
