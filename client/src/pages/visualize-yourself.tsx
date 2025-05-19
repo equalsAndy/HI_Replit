@@ -230,11 +230,15 @@ export default function VisualizeYourself() {
       
       // Set results based on selected source
       if (imageSource === 'unsplash') {
+        console.log('Setting Unsplash results:', results.unsplash.length);
         setSearchResults(results.unsplash);
       } else if (imageSource === 'pexels') {
+        console.log('Setting Pexels results:', results.pexels.length);
         setSearchResults(results.pexels);
       } else if (imageSource === 'all') {
         // Show results from the active source tab
+        console.log('Setting All Sources results for', activeSource, 
+          activeSource === 'unsplash' ? results.unsplash.length : results.pexels.length);
         setSearchResults(activeSource === 'unsplash' ? results.unsplash : results.pexels);
       } else if (imageSource === 'upload') {
         toast({
@@ -314,11 +318,12 @@ export default function VisualizeYourself() {
         description: "The image has been added to your collection.",
         variant: "default"
       });
-    } else if (imageSource === 'pexels') {
+    } else if (imageSource === 'pexels' || (imageSource === 'all' && activeSource === 'pexels')) {
       // Handle Pexels image format
+      console.log('Selecting Pexels image:', image);
       newImage = {
         id: String(image.id), // Ensure id is a string for consistency
-        url: image.src.large || image.src.medium || image.src.original,
+        url: image.src?.large || image.src?.medium || image.src?.large2x || image.src?.original,
         source: 'pexels',
         searchTerm: searchQuery, // Save the search term used to find this image
         credit: {
@@ -806,7 +811,7 @@ export default function VisualizeYourself() {
                               // Handle both Unsplash and Pexels image formats
                               (imageSource === 'unsplash' || (imageSource === 'all' && activeSource === 'unsplash'))
                                 ? image.urls?.small
-                                : image.src?.medium || image.src?.small || ''
+                                : (image.src?.medium || image.src?.small || image.src?.tiny || image.src?.original || '')
                             } 
                             alt={image.alt_description || image.photographer || 'Search result image'}
                             className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"

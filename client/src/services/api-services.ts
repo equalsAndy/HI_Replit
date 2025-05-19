@@ -45,8 +45,15 @@ export const searchPexels = async (query: string, perPage: number = 20) => {
     
     // Handle the response safely
     if ('photos' in result) {
-      console.log('Pexels search results:', result.photos.length || 0, 'images found');
-      return result.photos || [];
+      const photos = result.photos || [];
+      console.log('Pexels search results:', photos.length, 'images found');
+      
+      // Log the first photo to examine its structure
+      if (photos.length > 0) {
+        console.log('Example Pexels photo structure:', JSON.stringify(photos[0]));
+      }
+      
+      return photos;
     } else {
       console.error('Pexels API error:', result);
       return [];
