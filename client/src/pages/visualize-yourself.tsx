@@ -218,15 +218,15 @@ export default function VisualizeYourself() {
   };
   
   // Search for images from all sources
-  const handleSearch = async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = async (query: string = searchQuery) => {
+    if (!query.trim()) return;
     
     setIsSearching(true);
     setSearchResults([]);
     
     try {
       // Search across both APIs simultaneously
-      const results = await searchImages(searchQuery, 15);
+      const results = await searchImages(query, 15);
       
       // Set results based on selected source
       if (imageSource === 'unsplash') {
@@ -744,7 +744,7 @@ export default function VisualizeYourself() {
                           onChange={(e) => setSearchQuery(e.target.value)}
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
-                              searchImages();
+                              handleSearch();
                             }
                           }}
                           className="flex-1"
