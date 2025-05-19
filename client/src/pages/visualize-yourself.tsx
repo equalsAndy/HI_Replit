@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -11,6 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
+import { BookOpen, Lightbulb, PenLine } from 'lucide-react';
+import { createApi } from 'unsplash-js';
 
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
