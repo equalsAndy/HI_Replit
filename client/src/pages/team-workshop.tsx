@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'wouter';
 import { BookOpen, ExternalLink, Users, Calendar, Clock, Star, CheckSquare } from 'lucide-react';
+import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 
 // Workshop materials
 const workshopMaterials = [
@@ -107,7 +108,7 @@ export default function TeamWorkshop() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <Users className="h-5 w-5 text-purple-600 mr-2" />
+              <img src={ImaginalAgilityLogo} alt="Imaginal Agility Logo" className="h-10 mr-3" />
               <h1 className="text-xl font-bold text-purple-800">Team Workshop</h1>
             </div>
             <Link href="/user-home" className="text-purple-600 hover:text-purple-800">
