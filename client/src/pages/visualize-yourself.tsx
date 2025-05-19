@@ -13,6 +13,7 @@ import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
 import { BookOpen, Lightbulb, PenLine } from 'lucide-react';
 import { createApi } from 'unsplash-js';
+import * as pexels from 'pexels';
 
 // Define interface for selected image
 interface SelectedImage {
@@ -27,16 +28,6 @@ interface SelectedImage {
   };
 }
 
-import { createClient } from 'pexels';
-
-// Initialize Unsplash client with environment variable
-const unsplashApi = createApi({
-  accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || '',
-});
-
-// Initialize Pexels client
-const pexelsClient = createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
-
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
@@ -49,6 +40,23 @@ export default function VisualizeYourself() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // API clients
+  const [unsplashApi, setUnsplashApi] = useState<any>(null);
+  const [pexelsClient, setPexelsClient] = useState<any>(null);
+  
+  // Initialize API clients on component mount
+  useEffect(() => {
+    // Initialize the Unsplash API client
+    const uApi = createApi({
+      accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || ''
+    });
+    setUnsplashApi(uApi);
+    
+    // Initialize the Pexels API client with the provided API key
+    const pClient = new pexels.createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
+    setPexelsClient(pClient);
+  }, []);
 
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery({
@@ -133,7 +141,7 @@ export default function VisualizeYourself() {
     setSearchResults([]);
     
     try {
-      if (imageSource === 'unsplash') {
+      if (imageSource === 'unsplash' && unsplashApi) {
         const result = await unsplashApi.search.getPhotos({
           query: searchQuery,
           perPage: 20,
@@ -149,7 +157,7 @@ export default function VisualizeYourself() {
         } else {
           setSearchResults(result.response?.results || []);
         }
-      } else if (imageSource === 'pexels') {
+      } else if (imageSource === 'pexels' && pexelsClient) {
         try {
           const result = await pexelsClient.photos.search({ 
             query: searchQuery,
@@ -173,6 +181,12 @@ export default function VisualizeYourself() {
             variant: "destructive"
           });
         }
+      } else {
+        toast({
+          title: "API client not initialized",
+          description: `The ${imageSource === 'unsplash' ? 'Unsplash' : 'Pexels'} API client is not yet initialized.`,
+          variant: "destructive"
+        });
       }
     } catch (error) {
       console.error('Error searching images:', error);
@@ -226,9 +240,8 @@ export default function VisualizeYourself() {
         }
       };
     } else if (imageSource === 'pexels') {
-      // Placeholder for Pexels integration
       newImage = {
-        id: image.id,
+        id: image.id.toString(),
         url: image.src.medium,
         source: 'pexels',
         credit: {
@@ -617,8 +630,8 @@ export default function VisualizeYourself() {
           <TabsContent value="future" className="space-y-6">
             <div className="aspect-w-16 aspect-h-9 mb-4">
               <iframe 
-                src="https://www.youtube.com/embed/_VsH5NO9jyg" 
-                title="Your Future Self" 
+                src="https://www.youtube.com/embed/fCWOyk7IsVs" 
+                title="Your Future Self"
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
@@ -627,106 +640,49 @@ export default function VisualizeYourself() {
             </div>
 
             <div className="prose max-w-none">
-              <h2>Your Future Self: Longer Term</h2>
+              <h2>Writing to Your Future Self</h2>
               <p>
-                This exercise honors every participant's infinite capacity for growth. Whether someone is 22 or 82, the focus remains on 
-                continuing evolution, discovering wisdom, and creating legacy.
+                This exercise connects you to your long-term growth and purpose. We're going to craft a message to your future self, one year from now,
+                reflecting on what you've learned from your wellbeing assessment and imagery work.
               </p>
-
-              <blockquote className="border-l-4 border-gray-300 pl-4 italic">
-                "Remember Hokusai's wisdom - every decade brings new insight, broader vision, and deeper connection to one's life's work. 
-                The stories of your future self have no boundaries."
-              </blockquote>
-
-              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 not-prose">
-                <h3 className="text-yellow-800 font-medium">Katsushika Hokusai: Artist Until 90</h3>
-                <p className="text-sm">
-                  A renowned Japanese ukiyo-e artist who lived during the 18th-19th centuries, Hokusai continually reinvented himself throughout his long life. At age 75, he wrote:
-                </p>
-                <p className="text-sm mt-2 italic">
-                  "From the age of 6 I had a mania for drawing the shapes of things. When I was 50 I had published a universe of designs. 
-                  But all I have done before the age of 70 is not worth bothering with. At 73 I began to understand the true construction 
-                  of animals, plants, trees, birds, fishes, and insects. At 80 I shall have made still more progress. At 90 I shall penetrate 
-                  the mystery of things. At 100 I shall have reached a marvelous stage, and when I am 110, everything I create; a dot, a line, 
-                  will jump to life as never before."
-                </p>
-              </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm space-y-6">
               <div>
-                <Card className="h-full">
-                  <CardContent className="p-6">
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Tsunami_by_hokusai_19th_century.jpg/1920px-Tsunami_by_hokusai_19th_century.jpg" 
-                      alt="The Great Wave off Kanagawa by Hokusai" 
-                      className="w-full h-auto object-cover rounded-md mb-4"
-                    />
-                    <img 
-                      src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Hokusai-self-portrait.jpg" 
-                      alt="Self-portrait of Hokusai in old age" 
-                      className="w-full h-auto object-cover rounded-md"
-                    />
-                    <p className="text-sm text-gray-500 mt-2 text-center">
-                      Hokusai's "The Great Wave" (top) and self-portrait (bottom)
-                    </p>
-                  </CardContent>
-                </Card>
+                <Label htmlFor="future-letter" className="text-lg font-semibold">
+                  Write a Letter to Your Future Self (1 Year from Now)
+                </Label>
+                <p className="text-sm text-gray-600 mt-1 mb-4">
+                  Imagine you're sending this message to yourself one year in the future. What would you want to say?
+                </p>
+                <Textarea
+                  id="future-letter"
+                  placeholder="Dear Future Me..."
+                  className="min-h-[300px] mt-2"
+                />
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <Label htmlFor="future-vision" className="text-base font-medium">
-                    Where do you see yourself in 5, 15, and 20 years?
-                  </Label>
-                  <Textarea
-                    id="future-vision"
-                    placeholder="Your answer"
-                    className="min-h-[100px] mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="future-look" className="text-base font-medium">
-                    What does your life look like when optimized for flow?
-                  </Label>
-                  <Textarea
-                    id="future-look"
-                    placeholder="Your answer"
-                    className="min-h-[100px] mt-2"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="happy-life" className="text-base font-medium">
-                    When pursuing a happy, filled stage of life, what will you have achieved and still want to achieve?
-                  </Label>
-                  <Textarea
-                    id="happy-life"
-                    placeholder="Your answer"
-                    className="min-h-[100px] mt-2"
-                  />
-                </div>
+              <div>
+                <h3 className="text-base font-medium mb-2">Consider addressing:</h3>
+                <ul className="space-y-2 text-gray-600">
+                  <li>• What you hope to have accomplished by then</li>
+                  <li>• What challenges you anticipate overcoming</li>
+                  <li>• What growth you want to see in yourself</li>
+                  <li>• What you don't want to forget about your current situation</li>
+                  <li>• What advice you'd give to your future self</li>
+                </ul>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mt-6">
-              <h3 className="text-lg font-semibold mb-4">Your Future Self Statement</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Look back at your answers. Now write a short paragraph (3-5 sentences) that brings these together. Your vision statement should describe your future self in a way that inspires you — who you are, what you value, and how you want to be embodied.
+            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm space-y-4 mt-8">
+              <h3 className="text-lg font-semibold">Long-Term Visualization</h3>
+              <p className="text-gray-600">
+                Now, take a moment to visualize your future self reading this letter. What's different about them? How do they feel receiving these words?
               </p>
-
-              <p className="text-sm text-gray-500 mb-2">You can start with:</p>
-              <ul className="text-sm text-gray-500 mb-4 list-disc pl-5">
-                <li>"In the future, I see myself..."</li>
-                <li>"My purpose is to..."</li>
-                <li>"I am becoming someone who..."</li>
-              </ul>
-
               <Textarea
-                id="future-statement"
-                placeholder="Your future self statement..."
-                className="min-h-[150px]"
+                id="future-visualization"
+                placeholder="I see my future self..."
+                className="min-h-[150px] mt-2"
               />
             </div>
 
@@ -737,11 +693,11 @@ export default function VisualizeYourself() {
               >
                 Go Back
               </Button>
-              <Link href="/user-home">
-                <Button className="bg-indigo-700 hover:bg-indigo-800">
-                  Return to Dashboard
-                </Button>
-              </Link>
+              <Button 
+                className="bg-indigo-700 hover:bg-indigo-800"
+              >
+                Complete Assessment
+              </Button>
             </div>
           </TabsContent>
         </Tabs>
