@@ -12,8 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
 import { BookOpen, Lightbulb, PenLine } from 'lucide-react';
-import { createApi } from 'unsplash-js';
-import * as pexels from 'pexels';
+import { searchUnsplash } from '@/services/api-services';
 
 // Define interface for selected image
 interface SelectedImage {
@@ -41,19 +40,13 @@ export default function VisualizeYourself() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  // API clients
-  const [unsplashApi, setUnsplashApi] = useState<any>(null);
+  // Track if search component is mounted
+  const [isMounted, setIsMounted] = useState(false);
   
-  // Initialize API clients on component mount
+  // Set mounted state on component mount
   useEffect(() => {
-    // Initialize the Unsplash API client
-    const uApi = createApi({
-      accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || ''
-    });
-    setUnsplashApi(uApi);
-    
-    // Log message to help debug
-    console.log("Unsplash API initialized");
+    setIsMounted(true);
+    return () => setIsMounted(false);
   }, []);
 
   // Get user profile
@@ -139,21 +132,17 @@ export default function VisualizeYourself() {
     setSearchResults([]);
     
     try {
-      if (imageSource === 'unsplash' && unsplashApi) {
-        const result = await unsplashApi.search.getPhotos({
-          query: searchQuery,
-          perPage: 20,
-        });
-        
-        if (result.errors) {
-          console.error('Unsplash API errors:', result.errors);
+      if (imageSource === 'unsplash') {
+        try {
+          const results = await searchUnsplash(searchQuery, 20);
+          setSearchResults(results);
+        } catch (err) {
+          console.error('Unsplash search error:', err);
           toast({
             title: "Error searching images",
             description: "There was a problem connecting to Unsplash. Please try again later.",
             variant: "destructive"
           });
-        } else {
-          setSearchResults(result.response?.results || []);
         }
       } else if (imageSource === 'pexels') {
         // For Pexels API - as a placeholder for now
@@ -162,14 +151,12 @@ export default function VisualizeYourself() {
           description: "Pexels integration is in progress. Please use Unsplash or upload your own images for now.",
           variant: "default"
         });
-        setIsSearching(false);
       } else if (imageSource === 'upload') {
         toast({
           title: "Upload Images",
           description: "Please use the file selector to upload your own images.",
           variant: "default"
         });
-        setIsSearching(false);
       }
     } catch (error) {
       console.error('Error searching images:', error);
