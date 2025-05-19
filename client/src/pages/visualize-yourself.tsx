@@ -11,8 +11,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
-import { BookOpen, Lightbulb, PenLine, ChevronDown, ChevronUp, Search, X, Image, Upload, Save } from 'lucide-react';
-import { searchUnsplash } from '@/services/api-services';
+import { BookOpen, Lightbulb, PenLine, ChevronDown, ChevronUp, Search, X, Image, Upload, Save, SplitSquareVertical } from 'lucide-react';
+import { searchUnsplash, searchPexels, searchImages } from '@/services/api-services';
 
 // Define interface for selected image
 interface SelectedImage {
@@ -216,33 +216,34 @@ export default function VisualizeYourself() {
     setSelectedImages(prev => prev.filter(img => img.id !== id));
   };
   
-  // Search for images
-  const searchImages = async () => {
+  // Search for images from all sources
+  const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
     setSearchResults([]);
     
     try {
-      if (imageSource === 'unsplash') {
-        try {
-          const results = await searchUnsplash(searchQuery, 20);
-          setSearchResults(results);
-        } catch (err) {
-          console.error('Unsplash search error:', err);
+      if (imageSource === 'unsplash' || imageSource === 'pexels') {
+        // For unified search, we'll use both APIs simultaneously
+        const results = await searchImages(searchQuery, 15);
+        
+        // Set results based on selected source or combine them
+        if (imageSource === 'unsplash') {
+          setSearchResults(results.unsplash);
+        } else if (imageSource === 'pexels') {
+          setSearchResults(results.pexels);
+        } 
+        
+        // If no results were found, show a message
+        if ((imageSource === 'unsplash' && results.unsplash.length === 0) || 
+            (imageSource === 'pexels' && results.pexels.length === 0)) {
           toast({
-            title: "Error searching images",
-            description: "There was a problem connecting to Unsplash. Please try again later.",
-            variant: "destructive"
+            title: "No images found",
+            description: `No images found for "${searchQuery}". Try a different search term.`,
+            variant: "default"
           });
         }
-      } else if (imageSource === 'pexels') {
-        // For Pexels API - as a placeholder for now
-        toast({
-          title: "Coming Soon",
-          description: "Pexels integration is in progress. Please use Unsplash or upload your own images for now.",
-          variant: "default"
-        });
       } else if (imageSource === 'upload') {
         toast({
           title: "Upload Images",
@@ -274,9 +275,8 @@ export default function VisualizeYourself() {
       return;
     }
     
-    const imageExists = selectedImages.some(img => 
-      (imageSource === 'unsplash' && img.id === image.id)
-    );
+    // Check for duplicates - both Unsplash and Pexels use 'id' field
+    const imageExists = selectedImages.some(img => img.id === image.id);
     
     if (imageExists) {
       toast({
@@ -290,6 +290,7 @@ export default function VisualizeYourself() {
     let newImage: SelectedImage;
     
     if (imageSource === 'unsplash') {
+      // Handle Unsplash image format
       newImage = {
         id: image.id,
         url: image.urls.regular,
@@ -299,6 +300,27 @@ export default function VisualizeYourself() {
           photographer: image.user.name,
           photographerUrl: image.user.links.html,
           sourceUrl: image.links.html
+        }
+      };
+      
+      setSelectedImages(prev => [...prev, newImage]);
+      
+      toast({
+        title: "Image selected",
+        description: "The image has been added to your collection.",
+        variant: "default"
+      });
+    } else if (imageSource === 'pexels') {
+      // Handle Pexels image format
+      newImage = {
+        id: String(image.id), // Ensure id is a string for consistency
+        url: image.src.large || image.src.medium || image.src.original,
+        source: 'pexels',
+        searchTerm: searchQuery, // Save the search term used to find this image
+        credit: {
+          photographer: image.photographer,
+          photographerUrl: image.photographer_url,
+          sourceUrl: image.url
         }
       };
       
@@ -591,12 +613,12 @@ export default function VisualizeYourself() {
                         <X className="h-4 w-4 text-red-500" />
                       </button>
                       
-                      {/* Show search term under the image */}
+                      {/* Show search term at the top of the image */}
                       {image.searchTerm && (
-                        <div className="mt-1 text-sm text-gray-600 truncate text-center">
-                          <span title={image.searchTerm}>
-                            {image.searchTerm.length > 20 
-                              ? image.searchTerm.substring(0, 20) + '...' 
+                        <div className="absolute top-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-t-lg">
+                          <span className="font-semibold">Search:</span> <span title={image.searchTerm}>
+                            {image.searchTerm.length > 25 
+                              ? image.searchTerm.substring(0, 25) + '...' 
                               : image.searchTerm}
                           </span>
                         </div>
@@ -714,7 +736,7 @@ export default function VisualizeYourself() {
                         <Button 
                           variant="default" 
                           size="default"
-                          onClick={searchImages}
+                          onClick={() => handleSearch()}
                           disabled={isSearching || !searchQuery.trim()}
                           className="flex items-center gap-1"
                         >
