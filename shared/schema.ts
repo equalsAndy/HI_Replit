@@ -82,6 +82,7 @@ export const visualizations = pgTable("visualizations", {
   optimizedFlow: text("optimized_flow"),
   happyLifeAchievements: text("happy_life_achievements"),
   futureStatement: text("future_statement"),
+  showInstructions: boolean("show_instructions").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -206,6 +207,7 @@ export const insertVisualizationSchema = createInsertSchema(visualizations).pick
   optimizedFlow: true,
   happyLifeAchievements: true,
   futureStatement: true,
+  showInstructions: true,
 });
 
 // Types

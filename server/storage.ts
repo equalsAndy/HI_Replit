@@ -63,6 +63,9 @@ export interface IStorage {
   updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined>;
 }
 
+import { eq } from 'drizzle-orm';
+import { db } from './db';
+
 export class MemStorage implements IStorage {
   private users: Map<number, User>;
   private assessments: Map<number, Assessment>;
@@ -324,34 +327,103 @@ export class MemStorage implements IStorage {
   }
   
   async getVisualization(userId: number): Promise<Visualization | undefined> {
-    return Array.from(this.visualizations.values()).find(
-      (visualization) => visualization.userId === userId
-    );
+    try {
+      if (this.db) {
+        // Use database if it's available
+        const [visualization] = await this.db.select().from(visualizations).where(eq(visualizations.userId, userId));
+        return visualization;
+      } else {
+        // Fallback to in-memory storage
+        return Array.from(this.visualizations.values()).find(
+          (visualization) => visualization.userId === userId
+        );
+      }
+    } catch (error) {
+      console.error('Error getting visualization:', error);
+      // Fallback to in-memory storage
+      return Array.from(this.visualizations.values()).find(
+        (visualization) => visualization.userId === userId
+      );
+    }
   }
 
   async createVisualization(insertVisualization: InsertVisualization): Promise<Visualization> {
-    const id = this.currentVisualizationId++;
-    const visualization: Visualization = { 
-      ...insertVisualization, 
-      id,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    };
-    this.visualizations.set(id, visualization);
-    return visualization;
+    try {
+      if (this.db) {
+        // Use database if it's available
+        const [visualization] = await this.db.insert(visualizations).values({
+          ...insertVisualization,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }).returning();
+        return visualization;
+      } else {
+        // Fallback to in-memory storage
+        const id = this.currentVisualizationId++;
+        const visualization: Visualization = { 
+          ...insertVisualization, 
+          id,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+        this.visualizations.set(id, visualization);
+        return visualization;
+      }
+    } catch (error) {
+      console.error('Error creating visualization:', error);
+      // Fallback to in-memory storage
+      const id = this.currentVisualizationId++;
+      const visualization: Visualization = { 
+        ...insertVisualization, 
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      this.visualizations.set(id, visualization);
+      return visualization;
+    }
   }
 
   async updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined> {
-    const visualization = this.visualizations.get(id);
-    if (!visualization) return undefined;
-    
-    const updatedVisualization = { 
-      ...visualization, 
-      ...visualizationData,
-      updatedAt: new Date()
-    };
-    this.visualizations.set(id, updatedVisualization);
-    return updatedVisualization;
+    try {
+      if (this.db) {
+        // Use database if it's available
+        const [visualization] = await this.db
+          .update(visualizations)
+          .set({
+            ...visualizationData,
+            updatedAt: new Date()
+          })
+          .where(eq(visualizations.id, id))
+          .returning();
+        return visualization;
+      } else {
+        // Fallback to in-memory storage
+        const visualization = this.visualizations.get(id);
+        if (!visualization) return undefined;
+        
+        const updatedVisualization = { 
+          ...visualization, 
+          ...visualizationData,
+          updatedAt: new Date()
+        };
+        this.visualizations.set(id, updatedVisualization);
+        return updatedVisualization;
+      }
+    } catch (error) {
+      console.error('Error updating visualization:', error);
+      // Fallback to in-memory storage
+      const visualization = this.visualizations.get(id);
+      if (!visualization) return undefined;
+      
+      const updatedVisualization = { 
+        ...visualization, 
+        ...visualizationData,
+        updatedAt: new Date()
+      };
+      this.visualizations.set(id, updatedVisualization);
+      return updatedVisualization;
+    }
   }
   
   async deleteVisualization(userId: number): Promise<void> {
