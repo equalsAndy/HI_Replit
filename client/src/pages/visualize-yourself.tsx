@@ -14,13 +14,37 @@ import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
 import { BookOpen, Lightbulb, PenLine } from 'lucide-react';
 import { createApi } from 'unsplash-js';
 
+// Define interface for selected image
+interface SelectedImage {
+  id: string;
+  url: string;
+  source: 'upload' | 'unsplash' | 'pexels'; // Image source
+  file?: File; // Only for uploaded images
+  credit?: {
+    photographer?: string;
+    photographerUrl?: string;
+    sourceUrl?: string;
+  };
+}
+
+// Initialize Unsplash client - you'd need to get an API key for production
+const unsplashApi = createApi({
+  // In production, you would use an environment variable for the API key
+  accessKey: 'your-unsplash-access-key-here',
+});
+
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const [wellbeingLevel, setWellbeingLevel] = useState<number>(5);
   const { toast } = useToast();
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
-  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  
+  // Image selection state
+  const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
+  const [imageSource, setImageSource] = useState<'upload' | 'unsplash' | 'pexels'>('upload');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery({
@@ -71,22 +95,133 @@ export default function VisualizeYourself() {
       }
 
       // Limit to 5 images total
-      const filesToAdd = validFiles.slice(0, 5 - uploadedImages.length);
-      setUploadedImages(prev => [...prev, ...filesToAdd]);
-
-      // Create object URLs for preview
-      const urls = filesToAdd.map(file => URL.createObjectURL(file));
-      setImageUrls(prev => [...prev, ...urls]);
+      const filesToAdd = validFiles.slice(0, 5 - selectedImages.length);
+      
+      // Create object URLs and add to selected images
+      const newSelectedImages = filesToAdd.map(file => ({
+        id: `upload-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        url: URL.createObjectURL(file),
+        source: 'upload' as const,
+        file
+      }));
+      
+      setSelectedImages(prev => [...prev, ...newSelectedImages]);
     }
   };
 
-  // Remove uploaded image
-  const removeImage = (index: number) => {
-    // Revoke the object URL to prevent memory leaks
-    URL.revokeObjectURL(imageUrls[index]);
+  // Remove image
+  const removeImage = (id: string) => {
+    const imageToRemove = selectedImages.find(img => img.id === id);
+    
+    // If it's an uploaded image, revoke the object URL to prevent memory leaks
+    if (imageToRemove && imageToRemove.source === 'upload') {
+      URL.revokeObjectURL(imageToRemove.url);
+    }
 
-    setUploadedImages(prev => prev.filter((_, i) => i !== index));
-    setImageUrls(prev => prev.filter((_, i) => i !== index));
+    setSelectedImages(prev => prev.filter(img => img.id !== id));
+  };
+  
+  // Search for images
+  const searchImages = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    setSearchResults([]);
+    
+    try {
+      if (imageSource === 'unsplash') {
+        const result = await unsplashApi.search.getPhotos({
+          query: searchQuery,
+          perPage: 20,
+        });
+        
+        if (result.errors) {
+          console.error('Unsplash API errors:', result.errors);
+          toast({
+            title: "Error searching images",
+            description: "There was a problem connecting to Unsplash. Please try again later.",
+            variant: "destructive"
+          });
+        } else {
+          setSearchResults(result.response?.results || []);
+        }
+      } else if (imageSource === 'pexels') {
+        // For now, showing a message that Pexels API key is needed
+        // In a real application, you would implement the Pexels API call here
+        toast({
+          title: "Pexels API",
+          description: "To use Pexels, you'll need to add a Pexels API key.",
+          variant: "default"
+        });
+      }
+    } catch (error) {
+      console.error('Error searching images:', error);
+      toast({
+        title: "Error searching images",
+        description: "There was a problem searching for images. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  // Select an image from search results
+  const selectImage = (image: any) => {
+    // Don't add more than 5 images
+    if (selectedImages.length >= 5) {
+      toast({
+        title: "Maximum images reached",
+        description: "You can select up to 5 images. Remove some to add more.",
+        variant: "default"
+      });
+      return;
+    }
+    
+    const imageExists = selectedImages.some(img => 
+      (imageSource === 'unsplash' && img.id === image.id) ||
+      (imageSource === 'pexels' && img.id === image.id)
+    );
+    
+    if (imageExists) {
+      toast({
+        title: "Image already selected",
+        description: "This image is already in your selection.",
+        variant: "default"
+      });
+      return;
+    }
+    
+    let newImage: SelectedImage;
+    
+    if (imageSource === 'unsplash') {
+      newImage = {
+        id: image.id,
+        url: image.urls.regular,
+        source: 'unsplash',
+        credit: {
+          photographer: image.user.name,
+          photographerUrl: image.user.links.html,
+          sourceUrl: image.links.html
+        }
+      };
+    } else if (imageSource === 'pexels') {
+      // Placeholder for Pexels integration
+      newImage = {
+        id: image.id,
+        url: image.src.medium,
+        source: 'pexels',
+        credit: {
+          photographer: image.photographer,
+          photographerUrl: image.photographer_url,
+          sourceUrl: image.url
+        }
+      };
+    } else {
+      return; // Unknown source
+    }
+    
+    setSelectedImages(prev => [...prev, newImage]);
   };
 
   // Show loading state
@@ -110,7 +245,10 @@ export default function VisualizeYourself() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid grid-cols-3 mb-6">
-            <TabsTrigger value="ladder" data-value="ladder">Ladder of Wellbeing</TabsTrigger>
+            <TabsTrigger value="ladder" data-value="ladder">
+              <BookOpen className="h-4 w-4 mr-2" />
+              Ladder of Wellbeing
+            </TabsTrigger>
             <TabsTrigger value="potential" data-value="potential" disabled={isTabDisabled("potential")}>
               {isTabDisabled("potential") ? (
                 <span className="flex items-center">
@@ -119,7 +257,12 @@ export default function VisualizeYourself() {
                   </svg>
                   Visualizing Potential
                 </span>
-              ) : "Visualizing Potential"}
+              ) : (
+                <span className="flex items-center">
+                  <Lightbulb className="h-4 w-4 mr-2" />
+                  Visualizing Potential
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger value="future" data-value="future" disabled={isTabDisabled("future")}>
               {isTabDisabled("future") ? (
@@ -129,7 +272,12 @@ export default function VisualizeYourself() {
                   </svg>
                   Your Future Self
                 </span>
-              ) : "Your Future Self"}
+              ) : (
+                <span className="flex items-center">
+                  <PenLine className="h-4 w-4 mr-2" />
+                  Your Future Self
+                </span>
+              )}
             </TabsTrigger>
           </TabsList>
 
@@ -268,58 +416,149 @@ export default function VisualizeYourself() {
 
               <h3 className="mt-6">Instructions:</h3>
               <ul>
-                <li>Upload 1-5 images that represent your future self.</li>
-                <li>You can use photos, symbols, or artwork — anything that feels meaningful.</li>
-                <li>Supported image types: JPG, PNG, or GIF. Max 10MB per file.</li>
+                <li>Select 1-5 images that represent your future self.</li>
+                <li>You can upload your own images or search for images from Unsplash or Pexels.</li>
+                <li>Choose imagery that feels meaningful and aspirational to you.</li>
+                <li>Supported image types for upload: JPG, PNG, or GIF. Max 10MB per file.</li>
               </ul>
             </div>
 
             <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4">Upload Your Potential Images</h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Upload 1-5 images that represent the version of you you're growing into. These can be photos, symbols, art, or anything meaningful to you.
-                This activity has proven benefits, both short and longer term.
-              </p>
-
-              <div className="mt-6">
-                <Label htmlFor="image-upload" className="block">
-                  <Button variant="outline" className="mr-4">Choose Files</Button>
-                  <span className="text-sm text-gray-500">
-                    {uploadedImages.length === 0 
-                      ? "No files chosen" 
-                      : `${uploadedImages.length} file${uploadedImages.length > 1 ? 's' : ''} selected`
-                    }
-                  </span>
-                </Label>
-                <Input 
-                  id="image-upload" 
-                  type="file" 
-                  accept="image/png, image/jpeg, image/gif"
-                  multiple
-                  className="hidden"
-                  onChange={handleImageUpload}
-                />
+              <h3 className="text-lg font-semibold mb-4">Choose Your Potential Images</h3>
+              
+              {/* Image Source Selector */}
+              <div className="flex space-x-2 mb-6">
+                <Button 
+                  variant={imageSource === 'upload' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setImageSource('upload')}
+                >
+                  Upload Images
+                </Button>
+                <Button 
+                  variant={imageSource === 'unsplash' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setImageSource('unsplash')}
+                >
+                  Unsplash
+                </Button>
+                <Button 
+                  variant={imageSource === 'pexels' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setImageSource('pexels')}
+                >
+                  Pexels
+                </Button>
               </div>
-
-              {imageUrls.length > 0 && (
-                <div className="mt-6">
-                  <h4 className="text-sm font-medium mb-2">Selected Images:</h4>
+              
+              {/* Upload Interface */}
+              {imageSource === 'upload' && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Upload images that represent the version of you you're growing into. These can be photos, symbols, art, or anything meaningful to you.
+                  </p>
+                  <Label htmlFor="image-upload" className="block">
+                    <Button variant="outline" className="mr-4">Choose Files</Button>
+                    <span className="text-sm text-gray-500">
+                      {selectedImages.filter(img => img.source === 'upload').length === 0 
+                        ? "No files chosen" 
+                        : `${selectedImages.filter(img => img.source === 'upload').length} file(s) selected`
+                      }
+                    </span>
+                  </Label>
+                  <Input 
+                    id="image-upload" 
+                    type="file" 
+                    accept="image/png, image/jpeg, image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+              )}
+              
+              {/* Search Interface for Unsplash and Pexels */}
+              {(imageSource === 'unsplash' || imageSource === 'pexels') && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    Search for images that resonate with how you envision your future self.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Input 
+                      type="text" 
+                      placeholder={`Search ${imageSource === 'unsplash' ? 'Unsplash' : 'Pexels'}...`}
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button 
+                      onClick={searchImages} 
+                      disabled={isSearching || !searchQuery.trim()}
+                    >
+                      {isSearching ? 'Searching...' : 'Search'}
+                    </Button>
+                  </div>
+                  
+                  {/* Search Results */}
+                  {searchResults.length > 0 && (
+                    <div className="mt-6">
+                      <h4 className="text-sm font-medium mb-2">Search Results:</h4>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {searchResults.map((image: any) => (
+                          <div 
+                            key={image.id} 
+                            className="relative cursor-pointer group"
+                            onClick={() => selectImage(image)}
+                          >
+                            <img 
+                              src={imageSource === 'unsplash' ? image.urls.small : image.src.medium} 
+                              alt={imageSource === 'unsplash' ? image.alt_description : image.photographer}
+                              className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"
+                            />
+                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
+                              <div className="text-white opacity-0 group-hover:opacity-100 font-medium">
+                                Click to select
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {imageSource === 'unsplash' && (
+                        <p className="text-xs text-gray-500 mt-2">Images from Unsplash</p>
+                      )}
+                      {imageSource === 'pexels' && (
+                        <p className="text-xs text-gray-500 mt-2">Images from Pexels</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+              
+              {/* Selected Images Display (shared between all sources) */}
+              {selectedImages.length > 0 && (
+                <div className="mt-8">
+                  <h4 className="text-base font-medium mb-3">Your Selected Images ({selectedImages.length}/5):</h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {imageUrls.map((url, index) => (
-                      <div key={index} className="relative group">
+                    {selectedImages.map((image) => (
+                      <div key={image.id} className="relative group">
                         <img 
-                          src={url} 
-                          alt={`Potential ${index + 1}`} 
+                          src={image.url} 
+                          alt="Selected Potential" 
                           className="w-full h-40 object-cover rounded border border-gray-200"
                         />
                         <button
-                          onClick={() => removeImage(index)}
+                          onClick={() => removeImage(image.id)}
                           className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
+                        {image.credit && (
+                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
+                            {image.credit.photographer && `Photo by ${image.credit.photographer}`}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
