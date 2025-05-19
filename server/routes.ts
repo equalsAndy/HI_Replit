@@ -7,6 +7,7 @@ import {
   insertAnswerSchema, 
   insertAssessmentSchema,
   insertStarCardSchema,
+  insertVisualizationSchema,
   Answer,
   QuadrantData
 } from "@shared/schema";
@@ -940,6 +941,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Debug helper route
+  // Get visualization data
+  app.get("/api/visualization", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const visualization = await storage.getVisualization(userId);
+      
+      if (!visualization) {
+        // Return empty object if no visualization exists yet
+        return res.json({});
+      }
+      
+      res.json(visualization);
+    } catch (error) {
+      console.error("Error fetching visualization:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+  
+  // Save visualization data
+  app.post("/api/visualization", async (req: Request, res: Response) => {
+    try {
+      const userId = getUserIdFromRequest(req);
+      if (!userId) {
+        return res.status(401).json({ error: "Authentication required" });
+      }
+      
+      const existingVisualization = await storage.getVisualization(userId);
+      
+      let visualization;
+      if (existingVisualization) {
+        // Update existing record
+        visualization = await storage.updateVisualization(
+          existingVisualization.id,
+          { ...req.body, userId }
+        );
+      } else {
+        // Create new record
+        visualization = await storage.createVisualization({
+          ...req.body,
+          userId
+        });
+      }
+      
+      res.json(visualization);
+    } catch (error) {
+      console.error("Error saving visualization:", error);
+      res.status(500).json({ error: "Server error" });
+    }
+  });
+
   app.get("/api/debug", async (req: Request, res: Response) => {
     try {
       console.log("Debug route - cookies:", req.cookies);

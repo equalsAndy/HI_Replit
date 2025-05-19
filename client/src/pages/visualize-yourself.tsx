@@ -27,6 +27,24 @@ interface SelectedImage {
   };
 }
 
+// Define type for visualization data
+interface Visualization {
+  id?: number;
+  userId?: number;
+  wellbeingLevel?: number;
+  wellbeingFactors?: string;
+  oneYearVision?: string;
+  specificChanges?: string;
+  quarterlyProgress?: string;
+  quarterlyActions?: string;
+  potentialImageUrls?: string;
+  imageMeaning?: string;
+  futureVision?: string;
+  optimizedFlow?: string;
+  happyLifeAchievements?: string;
+  futureStatement?: string;
+}
+
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
@@ -44,6 +62,7 @@ export default function VisualizeYourself() {
   const [showSearchInterface, setShowSearchInterface] = useState(true);
   const [showInstructions, setShowInstructions] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [imageMeaning, setImageMeaning] = useState('');
   
   // Track if component is mounted
   const [isMounted, setIsMounted] = useState(false);
@@ -58,7 +77,7 @@ export default function VisualizeYourself() {
   });
   
   // Get visualization data
-  const { data: visualization, isLoading: visualizationLoading } = useQuery({
+  const { data: visualization, isLoading: visualizationLoading } = useQuery<Visualization>({
     queryKey: ['/api/visualization'],
     staleTime: 60000, // 1 minute
   });
@@ -100,19 +119,26 @@ export default function VisualizeYourself() {
     }
   });
   
-  // Set mounted state on component mount and load saved images
+  // Load saved data when visualization data is available
   useEffect(() => {
     setIsMounted(true);
     
-    // Load saved images when visualization data is available
-    if (visualization && visualization.potentialImageUrls) {
-      try {
-        const savedImages = JSON.parse(visualization.potentialImageUrls as string) as SelectedImage[];
-        if (Array.isArray(savedImages) && savedImages.length > 0) {
-          setSelectedImages(savedImages);
+    if (visualization) {
+      // Load image meaning
+      if (visualization.imageMeaning) {
+        setImageMeaning(visualization.imageMeaning);
+      }
+      
+      // Load saved images
+      if (visualization.potentialImageUrls) {
+        try {
+          const savedImages = JSON.parse(visualization.potentialImageUrls as string) as SelectedImage[];
+          if (Array.isArray(savedImages) && savedImages.length > 0) {
+            setSelectedImages(savedImages);
+          }
+        } catch (error) {
+          console.error('Error parsing saved images:', error);
         }
-      } catch (error) {
-        console.error('Error parsing saved images:', error);
       }
     }
     
@@ -299,6 +325,7 @@ export default function VisualizeYourself() {
     // Prepare visualization data
     const visualizationData = {
       potentialImageUrls: JSON.stringify(selectedImages),
+      imageMeaning: imageMeaning,
       // Preserve existing visualization data
       ...(visualization || {})
     };
@@ -308,7 +335,7 @@ export default function VisualizeYourself() {
   };
 
   // Show loading state
-  if (userLoading) {
+  if (userLoading || visualizationLoading) {
     return (
       <MainContainer showStepNavigation={false} className="bg-white">
         <div className="text-center">
@@ -413,6 +440,7 @@ export default function VisualizeYourself() {
                   id="factors"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.wellbeingFactors || ''}
                 />
               </div>
 
@@ -427,6 +455,7 @@ export default function VisualizeYourself() {
                   id="one-year-vision"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.oneYearVision || ''}
                 />
               </div>
             </div>
@@ -443,6 +472,7 @@ export default function VisualizeYourself() {
                   id="changes"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.specificChanges || ''}
                 />
               </div>
 
@@ -459,6 +489,7 @@ export default function VisualizeYourself() {
                     id="quarterly-progress"
                     placeholder="Your answer"
                     className="min-h-[100px] mt-2"
+                    defaultValue={visualization?.quarterlyProgress || ''}
                   />
                 </div>
               </div>
@@ -474,6 +505,7 @@ export default function VisualizeYourself() {
                   id="actions"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.quarterlyActions || ''}
                 />
               </div>
             </div>
@@ -713,6 +745,8 @@ export default function VisualizeYourself() {
                 id="image-meaning"
                 placeholder="Write about the significance of your chosen images..."
                 className="min-h-[120px] mt-2"
+                value={imageMeaning}
+                onChange={(e) => setImageMeaning(e.target.value)}
               />
             </div>
             
@@ -758,6 +792,7 @@ export default function VisualizeYourself() {
                   id="future-vision"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.optimizedFlow || ''}
                 />
               </div>
 
@@ -772,6 +807,7 @@ export default function VisualizeYourself() {
                   id="happy-life"
                   placeholder="Your answer"
                   className="min-h-[100px] mt-2"
+                  defaultValue={visualization?.happyLifeAchievements || ''}
                 />
               </div>
 
@@ -786,6 +822,7 @@ export default function VisualizeYourself() {
                   id="future-statement"
                   placeholder="My Future Self statement..."
                   className="min-h-[150px] mt-2"
+                  defaultValue={visualization?.futureStatement || ''}
                 />
               </div>
             </div>
