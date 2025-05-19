@@ -570,15 +570,27 @@ export default function VisualizeYourself() {
           <TabsContent value="potential" className="space-y-6">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold text-gray-900">Visualizing Your Potential</h2>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setShowInstructions(!showInstructions)}
-                className="flex items-center gap-1"
-              >
-                {showInstructions ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                {showInstructions ? "Hide Instructions" : "Show Instructions"}
-              </Button>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="show-instructions"
+                  checked={showInstructions}
+                  onChange={(e) => {
+                    setShowInstructions(e.target.checked);
+                    // Auto-save instructions preference
+                    if (visualization && visualization.id) {
+                      saveVisualization.mutate({
+                        ...visualization,
+                        showInstructions: e.target.checked
+                      });
+                    }
+                  }}
+                  className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                />
+                <label htmlFor="show-instructions" className="text-sm font-medium text-gray-700">
+                  Show Instructions
+                </label>
+              </div>
             </div>
             
             {showInstructions && (
@@ -695,31 +707,33 @@ export default function VisualizeYourself() {
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                 <div className="flex flex-col gap-4 mb-4">
                   {/* Search input always appears first */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-2">Search for images:</h4>
-                    <div className="flex gap-2">
-                      <Input
-                        placeholder="e.g. achievement, success, growth"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
-                            handleSearch();
-                          }
-                        }}
-                        className="flex-1"
-                      />
-                      <Button 
-                        variant="default" 
-                        size="default"
-                        onClick={() => searchQuery && handleSearch()}
-                        disabled={isSearching || !searchQuery.trim()}
-                        className="flex items-center gap-1"
-                      >
-                        <Search className="h-4 w-4" /> {isSearching ? "Searching..." : "Search"}
-                      </Button>
+                  {imageSource !== 'upload' && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g. achievement, success, growth"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
+                              handleSearch();
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button 
+                          variant="default" 
+                          size="default"
+                          onClick={() => searchQuery && handleSearch()}
+                          disabled={isSearching || !searchQuery.trim()}
+                          className="flex items-center gap-1"
+                        >
+                          <Search className="h-4 w-4" /> {isSearching ? "Searching..." : "Search"}
+                        </Button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   
                   {/* Image source options appear second */}
                   <div>
