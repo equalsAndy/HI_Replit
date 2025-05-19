@@ -769,7 +769,7 @@ export default function VisualizeYourself() {
                             : 'text-gray-500 hover:text-indigo-500 hover:border-indigo-300'
                         }`}
                       >
-                        Pexels
+                        Pexels <span className="ml-1 text-xs px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-full">Coming Soon</span>
                       </button>
                     </div>
                   </div>
