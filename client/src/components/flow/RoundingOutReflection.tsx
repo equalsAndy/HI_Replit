@@ -17,23 +17,18 @@ interface RoundingOutProps {
 const roundingOutQuestions: RoundingOutQuestion[] = [
   {
     id: 1,
-    text: "What activities or tasks consistently put you in a flow state?",
-    hint: "Consider both work and personal activities where you lose track of time and feel completely engaged."
+    text: "When does stress or distraction tend to show up for you?",
+    hint: "Reflect on patterns, triggers, or situations that knock you off balance."
   },
   {
     id: 2,
-    text: "What are the biggest barriers to experiencing flow in your work?",
-    hint: "These might include distractions, unclear goals, or skill mismatches."
+    text: "Which strengths or qualities do you need to nurture — and why?",
+    hint: "Consider what parts of you need extra care, attention, or encouragement to thrive."
   },
   {
     id: 3,
-    text: "What conditions help you get into flow more easily?",
-    hint: "Think about your environment, mindset, or preparation that facilitates flow."
-  },
-  {
-    id: 4,
-    text: "What one change could you make to experience more flow in your work?",
-    hint: "Consider a specific, actionable change you could implement within the next week."
+    text: "How will you harness your strengths to create forward momentum — especially when things feel uncertain or stuck?",
+    hint: "Consider how your natural abilities could help you move through challenges or take meaningful next steps."
   }
 ];
 
