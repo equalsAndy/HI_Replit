@@ -44,27 +44,25 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
         <div className="w-full max-w-md mx-auto">
           <LadderVisual />
           
-          {/* Current position marker - purple circle */}
+          {/* Current position marker - purple circle (no number) */}
           <div 
-            className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
+            className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg"
             style={{ 
-              top: `${80 + (10-currentPosition) * 55}px`,
-              left: `145px`
+              top: `${80 + (10-currentPosition) * 55 - 4}px`,
+              left: `175px`,
+              transform: `translateX(-50%)`
             }}
-          >
-            {currentPosition}
-          </div>
+          />
           
-          {/* Future position marker - orange circle */}
+          {/* Future position marker - orange circle (no number) */}
           <div 
-            className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
+            className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg"
             style={{ 
-              top: `${80 + (10-futurePosition) * 55}px`,
-              right: `145px`
+              top: `${80 + (10-futurePosition) * 55 - 4}px`,
+              right: `175px`,
+              transform: `translateX(50%)`
             }}
-          >
-            {futurePosition}
-          </div>
+          />
         </div>
       </div>
       
