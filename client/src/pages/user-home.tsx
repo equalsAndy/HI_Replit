@@ -295,15 +295,14 @@ export default function UserHome() {
   // Progress calculation removed as requested
 
   // Determine app-specific styles and content
+  const { appLogo, appName } = useApplication();
   const appStyles = {
     primaryColor: currentApp === 'allstarteams' ? 'indigo' : 'purple',
     primaryBgColor: currentApp === 'allstarteams' ? 'bg-indigo-600' : 'bg-purple-600',
     primaryTextColor: currentApp === 'allstarteams' ? 'text-indigo-700' : 'text-purple-700',
     primaryLightBgColor: currentApp === 'allstarteams' ? 'bg-indigo-100' : 'bg-purple-100',
-    logo: currentApp === 'allstarteams' 
-      ? '/src/assets/all-star-teams-logo-250px.png' 
-      : '/src/assets/imaginal_agility_logo_nobkgrd.png',
-    appName: currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'
+    logo: appLogo,
+    appName: appName
   };
 
   if (userLoading) {
