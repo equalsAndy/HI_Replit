@@ -689,6 +689,11 @@ export default function VisualizeYourself() {
                           placeholder="e.g. achievement, success, growth"
                           value={searchQuery}
                           onChange={(e) => setSearchQuery(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
+                              searchImages();
+                            }
+                          }}
                           className="flex-1"
                         />
                         <Button 
