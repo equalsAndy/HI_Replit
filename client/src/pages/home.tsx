@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 
 export default function Home() {
   // Fetch user profile
@@ -14,6 +15,9 @@ export default function Home() {
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
+        <div className="flex justify-center mb-6">
+          <img src={AllStarTeamsLogo} alt="All Star Teams Logo" className="h-16" />
+        </div>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Welcome</h1>
         
         <div className="max-w-3xl mx-auto">

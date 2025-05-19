@@ -13,6 +13,7 @@ import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
 import { BookOpen, ClipboardCheck, Edit, Star, AlertTriangle } from 'lucide-react';
+import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import {
   AlertDialog,
   AlertDialogAction,
