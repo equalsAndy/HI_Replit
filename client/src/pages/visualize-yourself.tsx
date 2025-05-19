@@ -19,6 +19,7 @@ interface SelectedImage {
   id: string;
   url: string;
   source: 'upload' | 'unsplash' | 'pexels'; // Image source
+  searchTerm?: string; // The search term used to find this image
   file?: File; // Only for uploaded images
   credit?: {
     photographer?: string;
@@ -195,6 +196,7 @@ export default function VisualizeYourself() {
         id: `upload-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         url: URL.createObjectURL(file),
         source: 'upload' as const,
+        searchTerm: file.name.split('.')[0].replace(/_/g, ' ').replace(/-/g, ' '), // Use filename as search term
         file
       }));
       
@@ -292,6 +294,7 @@ export default function VisualizeYourself() {
         id: image.id,
         url: image.urls.regular,
         source: 'unsplash',
+        searchTerm: searchQuery, // Save the search term used to find this image
         credit: {
           photographer: image.user.name,
           photographerUrl: image.user.links.html,
@@ -574,7 +577,7 @@ export default function VisualizeYourself() {
               {selectedImages.length > 0 ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {selectedImages.map(image => (
-                    <div key={image.id} className="relative group">
+                    <div key={image.id} className="relative group mb-2">
                       <img 
                         src={image.url} 
                         alt="Selected visualization" 
@@ -587,6 +590,18 @@ export default function VisualizeYourself() {
                       >
                         <X className="h-4 w-4 text-red-500" />
                       </button>
+                      
+                      {/* Show search term under the image */}
+                      {image.searchTerm && (
+                        <div className="mt-1 text-sm text-gray-600 truncate text-center">
+                          <span title={image.searchTerm}>
+                            {image.searchTerm.length > 20 
+                              ? image.searchTerm.substring(0, 20) + '...' 
+                              : image.searchTerm}
+                          </span>
+                        </div>
+                      )}
+                      
                       {image.credit && (
                         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
                           Photo by{" "}
