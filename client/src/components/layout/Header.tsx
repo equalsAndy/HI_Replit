@@ -2,7 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useLogout } from "@/hooks/use-logout";
-import { AppLogo } from "@/components/ui/AppLogo";
+import AllStarTeamsLogo from "../../assets/all-star-teams-logo-250px.png";
 
 interface HeaderProps {
   showDashboardLink?: boolean;
