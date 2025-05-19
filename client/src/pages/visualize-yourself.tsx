@@ -610,6 +610,17 @@ export default function VisualizeYourself() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                   {selectedImages.map(image => (
                     <div key={image.id} className="relative group mb-2">
+                      {/* Show search term above the image */}
+                      {image.searchTerm && (
+                        <div className="bg-gray-100 border border-gray-200 text-gray-700 text-xs p-1 mb-1 rounded">
+                          <span className="font-semibold">Search:</span> <span title={image.searchTerm}>
+                            {image.searchTerm.length > 25 
+                              ? image.searchTerm.substring(0, 25) + '...' 
+                              : image.searchTerm}
+                          </span>
+                        </div>
+                      )}
+                      
                       <img 
                         src={image.url} 
                         alt="Selected visualization" 
@@ -622,17 +633,6 @@ export default function VisualizeYourself() {
                       >
                         <X className="h-4 w-4 text-red-500" />
                       </button>
-                      
-                      {/* Show search term at the top of the image */}
-                      {image.searchTerm && (
-                        <div className="absolute top-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-t-lg">
-                          <span className="font-semibold">Search:</span> <span title={image.searchTerm}>
-                            {image.searchTerm.length > 25 
-                              ? image.searchTerm.substring(0, 25) + '...' 
-                              : image.searchTerm}
-                          </span>
-                        </div>
-                      )}
                       
                       {image.credit && (
                         <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
@@ -682,8 +682,36 @@ export default function VisualizeYourself() {
             
             {showSearchInterface && (
               <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <div className="flex flex-col md:flex-row gap-4 mb-4">
-                  <div className="flex-1">
+                <div className="flex flex-col gap-4 mb-4">
+                  {/* Search input always appears first */}
+                  <div>
+                    <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="e.g. achievement, success, growth"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
+                            handleSearch();
+                          }
+                        }}
+                        className="flex-1"
+                      />
+                      <Button 
+                        variant="default" 
+                        size="default"
+                        onClick={() => searchQuery && handleSearch()}
+                        disabled={isSearching || !searchQuery.trim()}
+                        className="flex items-center gap-1"
+                      >
+                        <Search className="h-4 w-4" /> {isSearching ? "Searching..." : "Search"}
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Image source options appear second */}
+                  <div>
                     <h4 className="text-sm font-medium mb-2">Image Source:</h4>
                     <div className="flex flex-wrap gap-2">
                       <Button
@@ -705,8 +733,9 @@ export default function VisualizeYourself() {
                     </div>
                   </div>
                   
-                  {imageSource === 'upload' ? (
-                    <div className="flex-1">
+                  {/* Upload input only appears when upload source is selected */}
+                  {imageSource === 'upload' && (
+                    <div>
                       <h4 className="text-sm font-medium mb-2">Upload Images:</h4>
                       <Input 
                         type="file" 
@@ -718,32 +747,6 @@ export default function VisualizeYourself() {
                       <p className="text-xs text-gray-500 mt-1">
                         Maximum 5 images, 10MB each
                       </p>
-                    </div>
-                  ) : (
-                    <div className="flex-1">
-                      <h4 className="text-sm font-medium mb-2">Search for images:</h4>
-                      <div className="flex gap-2">
-                        <Input
-                          placeholder="e.g. achievement, success, growth"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && searchQuery.trim() && !isSearching) {
-                              handleSearch();
-                            }
-                          }}
-                          className="flex-1"
-                        />
-                        <Button 
-                          variant="default" 
-                          size="default"
-                          onClick={() => searchQuery && handleSearch()}
-                          disabled={isSearching || !searchQuery.trim()}
-                          className="flex items-center gap-1"
-                        >
-                          <Search className="h-4 w-4" /> {isSearching ? "Searching..." : "Search"}
-                        </Button>
-                      </div>
                     </div>
                   )}
                 </div>
