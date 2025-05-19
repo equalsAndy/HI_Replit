@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useLogout } from "@/hooks/use-logout";
+import { AppLogo } from "@/components/ui/AppLogo";
 
 interface HeaderProps {
   showDashboardLink?: boolean;
@@ -28,7 +29,7 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
     <header className="bg-white border-b border-gray-200 py-2">
       <div className="container mx-auto px-3 flex justify-between items-center">
         <Link href="/" className="logo flex items-center cursor-pointer">
-          <div className="text-indigo-700 font-bold">AllStarTeams</div>
+          <AppLogo size="lg" />
         </Link>
         
         <div className="flex items-center space-x-2">
