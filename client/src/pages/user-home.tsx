@@ -301,8 +301,8 @@ export default function UserHome() {
     primaryTextColor: currentApp === 'allstarteams' ? 'text-indigo-700' : 'text-purple-700',
     primaryLightBgColor: currentApp === 'allstarteams' ? 'bg-indigo-100' : 'bg-purple-100',
     logo: currentApp === 'allstarteams' 
-      ? '/src/assets/all-star-teams-logo-250px.png' 
-      : '/src/assets/imaginal_agility_logo_nobkgrd.png',
+      ? appLogo || './assets/all-star-teams-logo-250px.png' 
+      : appLogo || './assets/imaginal_agility_logo_nobkgrd.png',
     appName: currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'
   };
 
