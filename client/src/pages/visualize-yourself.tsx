@@ -813,21 +813,24 @@ export default function VisualizeYourself() {
               </div>
             )}
             
-            <div className="mt-8">
-              <Label htmlFor="image-meaning" className="text-base font-medium">
-                What do these images represent to you?
-              </Label>
-              <p className="text-sm text-gray-500 mb-2">
-                Explain how your selected images connect to your future vision
-              </p>
-              <Textarea
-                id="image-meaning"
-                placeholder="Write about the significance of your chosen images..."
-                className="min-h-[120px] mt-2"
-                value={imageMeaning}
-                onChange={(e) => setImageMeaning(e.target.value)}
-              />
-            </div>
+            {/* Image meaning question - only shown when images are selected */}
+            {selectedImages.length > 0 && (
+              <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                <Label htmlFor="image-meaning" className="text-base font-medium">
+                  What do these images represent to you?
+                </Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Explain how your selected images connect to your future vision
+                </p>
+                <Textarea
+                  id="image-meaning"
+                  placeholder="Write about the significance of your chosen images..."
+                  className="min-h-[120px] mt-2"
+                  value={imageMeaning}
+                  onChange={(e) => setImageMeaning(e.target.value)}
+                />
+              </div>
+            )}
             
             <div className="flex justify-between mt-8">
               <Button 
