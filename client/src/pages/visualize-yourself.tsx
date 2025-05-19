@@ -297,8 +297,9 @@ export default function VisualizeYourself() {
     
     let newImage: SelectedImage;
     
-    if (imageSource === 'unsplash') {
+    if (imageSource === 'unsplash' || (imageSource === 'all' && activeSource === 'unsplash')) {
       // Handle Unsplash image format
+      console.log('Selecting Unsplash image:', image);
       newImage = {
         id: image.id,
         url: image.urls.regular,
@@ -762,12 +763,8 @@ export default function VisualizeYourself() {
                         Unsplash
                       </button>
                       <button
-                        onClick={() => setActiveSource('pexels')}
-                        className={`px-4 py-2 text-sm font-medium ${
-                          activeSource === 'pexels'
-                            ? 'text-indigo-600 border-b-2 border-indigo-600'
-                            : 'text-gray-500 hover:text-indigo-500 hover:border-indigo-300'
-                        }`}
+                        disabled
+                        className="px-4 py-2 text-sm font-medium text-gray-400 cursor-not-allowed"
                       >
                         Pexels <span className="ml-1 text-xs px-1.5 py-0.5 bg-amber-100 text-amber-800 rounded-full">Coming Soon</span>
                       </button>
