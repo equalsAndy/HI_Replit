@@ -44,6 +44,7 @@ interface Visualization {
   optimizedFlow?: string;
   happyLifeAchievements?: string;
   futureStatement?: string;
+  showInstructions?: boolean;
 }
 
 export default function VisualizeYourself() {
@@ -62,7 +63,7 @@ export default function VisualizeYourself() {
   
   // UI state
   const [showSearchInterface, setShowSearchInterface] = useState(true);
-  const [showInstructions, setShowInstructions] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(false); // Default to hidden/unchecked
   const [isSaving, setIsSaving] = useState(false);
   const [imageMeaning, setImageMeaning] = useState('');
   
@@ -141,6 +142,11 @@ export default function VisualizeYourself() {
         } catch (error) {
           console.error('Error parsing saved images:', error);
         }
+      }
+      
+      // Load instructions visibility state
+      if (visualization.showInstructions !== undefined) {
+        setShowInstructions(visualization.showInstructions);
       }
     }
     
@@ -221,6 +227,16 @@ export default function VisualizeYourself() {
   const handleSearch = async (query: string = searchQuery) => {
     if (!query.trim()) return;
     
+    // If in upload mode, don't perform a search
+    if (imageSource === 'upload') {
+      toast({
+        title: "Upload Images",
+        description: "Please use the file selector to upload your own images.",
+        variant: "default"
+      });
+      return;
+    }
+    
     setIsSearching(true);
     setSearchResults([]);
     
@@ -240,12 +256,6 @@ export default function VisualizeYourself() {
         console.log('Setting All Sources results for', activeSource, 
           activeSource === 'unsplash' ? results.unsplash.length : results.pexels.length);
         setSearchResults(activeSource === 'unsplash' ? results.unsplash : results.pexels);
-      } else if (imageSource === 'upload') {
-        toast({
-          title: "Upload Images",
-          description: "Please use the file selector to upload your own images.",
-          variant: "default"
-        });
       }
       
       // If no results were found, show a message
@@ -361,6 +371,7 @@ export default function VisualizeYourself() {
     const visualizationData = {
       potentialImageUrls: JSON.stringify(selectedImages),
       imageMeaning: imageMeaning,
+      showInstructions: showInstructions, // Save instructions visibility state
       // Preserve existing visualization data
       ...(visualization || {})
     };
