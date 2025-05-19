@@ -48,8 +48,8 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
           <div 
             className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
             style={{ 
-              top: `${135 + (10-currentPosition) * 55}px`,
-              left: `100px`
+              top: `${80 + (10-currentPosition) * 55}px`,
+              left: `145px`
             }}
           >
             {currentPosition}
@@ -59,8 +59,8 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
           <div 
             className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg flex items-center justify-center text-white font-bold"
             style={{ 
-              top: `${135 + (10-futurePosition) * 55}px`,
-              right: `100px`
+              top: `${80 + (10-futurePosition) * 55}px`,
+              right: `145px`
             }}
           >
             {futurePosition}

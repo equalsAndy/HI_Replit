@@ -26,14 +26,14 @@ export function LadderVisual() {
       <text x="335" y="90" fontSize="14" fontWeight="bold">Best possible life</text>
       <text x="335" y="630" fontSize="14" fontWeight="bold">Worst possible life</text>
       
-      {/* Legend */}
+      {/* Legend - placed below ladder on each side */}
       <g>
-        <circle cx="120" cy="660" r="6" fill="#9333ea" />
-        <text x="130" y="664" fontSize="12" dominantBaseline="middle">Current</text>
+        <circle cx="175" cy="650" r="6" fill="#9333ea" />
+        <text x="175" y="668" fontSize="12" textAnchor="middle">Current</text>
       </g>
       <g>
-        <circle cx="120" cy="680" r="6" fill="#f97316" />
-        <text x="130" y="684" fontSize="12" dominantBaseline="middle">1 year from now</text>
+        <circle cx="325" cy="650" r="6" fill="#f97316" />
+        <text x="325" y="668" fontSize="12" textAnchor="middle">1 year from now</text>
       </g>
     </svg>
   );
