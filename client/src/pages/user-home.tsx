@@ -323,11 +323,15 @@ export default function UserHome() {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-6">
             <Link href="/" className="logo flex items-center cursor-pointer">
-              <img 
-                src={appStyles.logo}
-                alt={appStyles.appName}
-                className="h-10 w-auto"
-              />
+              {currentApp === 'allstarteams' ? (
+                <div className="h-10 flex items-center text-indigo-700 font-bold">
+                  AllStarTeams
+                </div>
+              ) : (
+                <div className="h-10 flex items-center text-purple-700 font-bold">
+                  Imaginal Agility
+                </div>
+              )}
             </Link>
 
             {/* Test User Indicator & Controls */}
