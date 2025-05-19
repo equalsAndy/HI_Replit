@@ -15,12 +15,12 @@ type ApplicationContextType = {
 const appConfig = {
   'allstarteams': {
     name: 'AllStarTeams',
-    logo: 'all-star-teams-logo-250px.png',
+    logo: '/assets/all-star-teams-logo-250px.png',
     primaryColor: 'indigo',
   },
   'imaginal-agility': {
     name: 'Imaginal Agility',
-    logo: 'imaginal_agility_logo_nobkgrd.png',
+    logo: '/assets/imaginal_agility_logo_nobkgrd.png',
     primaryColor: 'purple',
   }
 };
