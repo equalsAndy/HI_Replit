@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'wouter';
 import { BookOpen, ExternalLink, Users, Calendar, Clock, Star, CheckSquare } from 'lucide-react';
+import { AppLogo } from '@/components/ui/AppLogo';
 
 // Workshop materials
 const workshopMaterials = [
