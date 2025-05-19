@@ -29,7 +29,22 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
     <header className="bg-white border-b border-gray-200 py-2">
       <div className="container mx-auto px-3 flex justify-between items-center">
         <Link href="/" className="logo flex items-center cursor-pointer">
-          <div className="text-indigo-700 font-bold">AllStarTeams</div>
+          <img 
+            src="/images/all-star-teams-logo-250px.png" 
+            alt="AllStarTeams" 
+            className="h-8 w-auto"
+            onError={(e) => {
+              const target = e.currentTarget;
+              target.style.display = 'none';
+              const textNode = document.createElement('div');
+              textNode.className = 'text-indigo-700 font-bold';
+              textNode.innerText = 'AllStarTeams';
+              
+              if (target.parentElement) {
+                target.parentElement.appendChild(textNode);
+              }
+            }}
+          />
         </Link>
         
         <div className="flex items-center space-x-2">
