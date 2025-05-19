@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from '@/components/ui/textarea';
@@ -11,7 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
-import { BookOpen, Lightbulb, PenLine } from 'lucide-react';
+import { BookOpen, Lightbulb, PenLine, ChevronDown, ChevronUp, Search, X, Image, Upload, Save } from 'lucide-react';
 import { searchUnsplash } from '@/services/api-services';
 
 // Define interface for selected image
@@ -40,20 +40,84 @@ export default function VisualizeYourself() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   
-  // Track if search component is mounted
+  // UI state
+  const [showSearchInterface, setShowSearchInterface] = useState(true);
+  const [showInstructions, setShowInstructions] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // Track if component is mounted
   const [isMounted, setIsMounted] = useState(false);
   
-  // Set mounted state on component mount
-  useEffect(() => {
-    setIsMounted(true);
-    return () => setIsMounted(false);
-  }, []);
-
+  // QueryClient for cache invalidation
+  const queryClient = useQueryClient();
+  
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
+  
+  // Get visualization data
+  const { data: visualization, isLoading: visualizationLoading } = useQuery({
+    queryKey: ['/api/visualization'],
+    staleTime: 60000, // 1 minute
+  });
+  
+  // Save visualization mutation
+  const saveVisualization = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/visualization', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save visualization data');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
+      toast({
+        title: "Saved successfully",
+        description: "Your images have been saved to your profile",
+        variant: "default"
+      });
+      setIsSaving(false);
+    },
+    onError: (error) => {
+      console.error('Error saving visualization:', error);
+      toast({
+        title: "Save failed",
+        description: "There was a problem saving your images",
+        variant: "destructive"
+      });
+      setIsSaving(false);
+    }
+  });
+  
+  // Set mounted state on component mount and load saved images
+  useEffect(() => {
+    setIsMounted(true);
+    
+    // Load saved images when visualization data is available
+    if (visualization && visualization.potentialImageUrls) {
+      try {
+        const savedImages = JSON.parse(visualization.potentialImageUrls as string) as SelectedImage[];
+        if (Array.isArray(savedImages) && savedImages.length > 0) {
+          setSelectedImages(savedImages);
+        }
+      } catch (error) {
+        console.error('Error parsing saved images:', error);
+      }
+    }
+    
+    return () => setIsMounted(false);
+  }, [visualization]);
 
   // Check if a tab should be disabled
   const isTabDisabled = (tabId: string): boolean => {
@@ -217,6 +281,30 @@ export default function VisualizeYourself() {
         variant: "default"
       });
     }
+  };
+  
+  // Save selected images to user profile
+  const handleSaveImages = () => {
+    if (selectedImages.length === 0) {
+      toast({
+        title: "No images selected",
+        description: "Please select at least one image before saving.",
+        variant: "default"
+      });
+      return;
+    }
+    
+    setIsSaving(true);
+    
+    // Prepare visualization data
+    const visualizationData = {
+      potentialImageUrls: JSON.stringify(selectedImages),
+      // Preserve existing visualization data
+      ...(visualization || {})
+    };
+    
+    // Save visualization data
+    saveVisualization.mutate(visualizationData);
   };
 
   // Show loading state
@@ -402,186 +490,242 @@ export default function VisualizeYourself() {
 
           {/* Visualizing Potential Tab */}
           <TabsContent value="potential" className="space-y-6">
-            <div className="prose max-w-none">
-              <h2>Visualizing Your Potential</h2>
-              <p>
-                This exercise helps you turn your one-year vision into something visible. By choosing or creating images that represent your future self,
-                you engage your imagination — and activate your growth. Your imagery ought to be positive and aspirational.
-              </p>
-
-              <h3 className="mt-6">Instructions:</h3>
-              <ul>
-                <li>Select 1-5 images that represent your future self.</li>
-                <li>You can upload your own images or search for images from Unsplash or Pexels.</li>
-                <li>Choose imagery that feels meaningful and aspirational to you.</li>
-                <li>Supported image types for upload: JPG, PNG, or GIF. Max 10MB per file.</li>
-              </ul>
+            <div className="flex justify-between items-center">
+              <h2 className="text-2xl font-bold text-gray-900">Visualizing Your Potential</h2>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowInstructions(!showInstructions)}
+                className="flex items-center gap-1"
+              >
+                {showInstructions ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                {showInstructions ? "Hide Instructions" : "Show Instructions"}
+              </Button>
             </div>
-
-            <div className="bg-gray-50 rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold mb-4">Choose Your Potential Images</h3>
-              
-              {/* Image Source Selector */}
-              <div className="flex space-x-2 mb-6">
+            
+            {showInstructions && (
+              <div className="prose max-w-none bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+                <p>
+                  This exercise helps you turn your one-year vision into something visible. By choosing or creating images that represent your future self,
+                  you engage your imagination and activate your brain's visualization centers in powerful ways.
+                </p>
+                <p>
+                  Select 1-5 images that represent your ideal future self one year from now. These might be symbolic, aspirational, or representative 
+                  of specific achievements you're working toward.
+                </p>
+                <p className="font-medium">Guidelines:</p>
+                <ul>
+                  <li>Choose images that evoke positive emotions</li>
+                  <li>Look for images that align with your ladder reflection</li>
+                  <li>Select a variety of images that represent different aspects of your future vision</li>
+                  <li>You can upload your own images or search for images from Unsplash</li>
+                </ul>
+              </div>
+            )}
+            
+            {/* Display selected images */}
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-medium">Your Selected Images ({selectedImages.length}/5)</h3>
                 <Button 
-                  variant={imageSource === 'upload' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setImageSource('upload')}
+                  variant="default" 
+                  size="sm" 
+                  onClick={handleSaveImages}
+                  disabled={selectedImages.length === 0 || isSaving}
+                  className="flex items-center gap-2"
                 >
-                  Upload Images
-                </Button>
-                <Button 
-                  variant={imageSource === 'unsplash' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setImageSource('unsplash')}
-                >
-                  Unsplash
-                </Button>
-                <Button 
-                  variant={imageSource === 'pexels' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setImageSource('pexels')}
-                >
-                  Pexels
+                  <Save className="h-4 w-4" /> 
+                  {isSaving ? "Saving..." : "Save Images"}
                 </Button>
               </div>
               
-              {/* Upload Interface */}
-              {imageSource === 'upload' && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Upload images that represent the version of you you're growing into. These can be photos, symbols, art, or anything meaningful to you.
-                  </p>
-                  <Label htmlFor="image-upload" className="block">
-                    <Button variant="outline" className="mr-4">Choose Files</Button>
-                    <span className="text-sm text-gray-500">
-                      {selectedImages.filter(img => img.source === 'upload').length === 0 
-                        ? "No files chosen" 
-                        : `${selectedImages.filter(img => img.source === 'upload').length} file(s) selected`
-                      }
-                    </span>
-                  </Label>
-                  <Input 
-                    id="image-upload" 
-                    type="file" 
-                    accept="image/png, image/jpeg, image/gif"
-                    multiple
-                    className="hidden"
-                    onChange={handleImageUpload}
-                  />
+              {selectedImages.length > 0 ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                  {selectedImages.map(image => (
+                    <div key={image.id} className="relative group">
+                      <img 
+                        src={image.url} 
+                        alt="Selected visualization" 
+                        className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        onClick={() => removeImage(image.id)}
+                        className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-70 hover:opacity-100 transition"
+                        title="Remove image"
+                      >
+                        <X className="h-4 w-4 text-red-500" />
+                      </button>
+                      {image.credit && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
+                          Photo by{" "}
+                          <a 
+                            href={image.credit.photographerUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            {image.credit.photographer}
+                          </a>
+                          {" "}on{" "}
+                          <a 
+                            href={image.credit.sourceUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="underline"
+                          >
+                            Unsplash
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+                  <Image className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-500">No images selected yet</p>
+                  <p className="text-sm text-gray-400 mt-1">Upload your own images or search for images below</p>
                 </div>
               )}
-              
-              {/* Search Interface for Unsplash and Pexels */}
-              {(imageSource === 'unsplash' || imageSource === 'pexels') && (
-                <div className="mt-4">
-                  <p className="text-sm text-gray-600 mb-4">
-                    Search for images that resonate with how you envision your future self.
-                  </p>
-                  <div className="flex space-x-2">
-                    <Input 
-                      type="text" 
-                      placeholder={`Search ${imageSource === 'unsplash' ? 'Unsplash' : 'Pexels'}...`}
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="flex-1"
-                    />
-                    <Button 
-                      onClick={searchImages} 
-                      disabled={isSearching || !searchQuery.trim()}
-                    >
-                      {isSearching ? 'Searching...' : 'Search'}
-                    </Button>
+            </div>
+            
+            {/* Search interface toggle */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Find Images</h3>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowSearchInterface(!showSearchInterface)}
+              >
+                {showSearchInterface ? "Hide Search" : "Show Search"}
+              </Button>
+            </div>
+            
+            {showSearchInterface && (
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium mb-2">Image Source:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        variant={imageSource === 'upload' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageSource('upload')}
+                        className="flex items-center gap-1"
+                      >
+                        <Upload className="h-4 w-4" /> Upload
+                      </Button>
+                      <Button
+                        variant={imageSource === 'unsplash' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageSource('unsplash')}
+                        className="flex items-center gap-1"
+                      >
+                        <Image className="h-4 w-4" /> Unsplash
+                      </Button>
+                      <Button
+                        variant={imageSource === 'pexels' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageSource('pexels')}
+                        className="flex items-center gap-1"
+                        disabled
+                      >
+                        <Image className="h-4 w-4" /> Pexels (Coming Soon)
+                      </Button>
+                    </div>
                   </div>
                   
-                  {/* Search Results */}
-                  {searchResults.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-sm font-medium mb-2">Search Results:</h4>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        {searchResults.map((image: any) => (
-                          <div 
-                            key={image.id} 
-                            className="relative cursor-pointer group"
-                            onClick={() => selectImage(image)}
-                          >
-                            <img 
-                              src={image.urls?.small || image.src?.medium || ''} 
-                              alt={image.alt_description || image.photographer || 'Search result image'}
-                              className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"
-                            />
-                            <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
-                              <div className="text-white opacity-0 group-hover:opacity-100 font-medium">
-                                Click to select
-                              </div>
-                            </div>
-                          </div>
-                        ))}
+                  {imageSource === 'upload' ? (
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium mb-2">Upload Images:</h4>
+                      <Input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple 
+                        onChange={handleImageUpload}
+                        disabled={selectedImages.length >= 5}
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Maximum 5 images, 10MB each
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="flex-1">
+                      <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="e.g. achievement, success, growth"
+                          value={searchQuery}
+                          onChange={(e) => setSearchQuery(e.target.value)}
+                          className="flex-1"
+                        />
+                        <Button 
+                          variant="default" 
+                          size="default"
+                          onClick={searchImages}
+                          disabled={isSearching || !searchQuery.trim()}
+                          className="flex items-center gap-1"
+                        >
+                          <Search className="h-4 w-4" /> {isSearching ? "Searching..." : "Search"}
+                        </Button>
                       </div>
-                      {imageSource === 'unsplash' && (
-                        <p className="text-xs text-gray-500 mt-2">Images from Unsplash</p>
-                      )}
-                      {imageSource === 'pexels' && (
-                        <p className="text-xs text-gray-500 mt-2">Images from Pexels</p>
-                      )}
                     </div>
                   )}
                 </div>
-              )}
-              
-              {/* Selected Images Display (shared between all sources) */}
-              {selectedImages.length > 0 && (
-                <div className="mt-8">
-                  <h4 className="text-base font-medium mb-3">Your Selected Images ({selectedImages.length}/5):</h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                    {selectedImages.map((image) => (
-                      <div key={image.id} className="relative group">
-                        <img 
-                          src={image.url} 
-                          alt="Selected Potential" 
-                          className="w-full h-40 object-cover rounded border border-gray-200"
-                        />
-                        <button
-                          onClick={() => removeImage(image.id)}
-                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                
+                {/* Search results */}
+                {searchResults.length > 0 && (
+                  <div className="mt-4">
+                    <h4 className="text-sm font-medium mb-2">Search Results:</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                      {searchResults.map((image: any) => (
+                        <div 
+                          key={image.id} 
+                          className="relative cursor-pointer group"
+                          onClick={() => selectImage(image)}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                        {image.credit && (
-                          <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 truncate">
-                            {image.credit.photographer && `Photo by ${image.credit.photographer}`}
+                          <img 
+                            src={image.urls?.small || image.src?.medium || ''} 
+                            alt={image.alt_description || image.photographer || 'Search result image'}
+                            className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
+                            <div className="text-white opacity-0 group-hover:opacity-100 font-medium">
+                              Click to select
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-
-              <div className="mt-8">
-                <Label htmlFor="image-meaning" className="text-base font-medium">
-                  What do these images represent about your future self?
-                </Label>
-                <Textarea
-                  id="image-meaning"
-                  placeholder="Describe what these images mean to you and why they represent your future potential..."
-                  className="min-h-[150px] mt-2"
-                />
+                )}
               </div>
+            )}
+            
+            <div className="mt-8">
+              <Label htmlFor="image-meaning" className="text-base font-medium">
+                What do these images represent to you?
+              </Label>
+              <p className="text-sm text-gray-500 mb-2">
+                Explain how your selected images connect to your future vision
+              </p>
+              <Textarea
+                id="image-meaning"
+                placeholder="Write about the significance of your chosen images..."
+                className="min-h-[120px] mt-2"
+              />
             </div>
-
+            
             <div className="flex justify-between mt-8">
               <Button 
+                variant="outline" 
                 onClick={() => handleTabChange("ladder")}
-                variant="outline"
               >
-                Go Back
+                Back: Ladder of Wellbeing
               </Button>
               <Button 
-                onClick={() => handleTabChange("future")}
                 className="bg-indigo-700 hover:bg-indigo-800"
+                onClick={() => handleTabChange("future")}
               >
                 Next: Your Future Self
               </Button>
@@ -590,75 +734,86 @@ export default function VisualizeYourself() {
 
           {/* Your Future Self Tab */}
           <TabsContent value="future" className="space-y-6">
-            <div className="aspect-w-16 aspect-h-9 mb-4">
-              <iframe 
-                src="https://www.youtube.com/embed/fCWOyk7IsVs" 
-                title="Your Future Self"
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="w-full h-80 rounded border border-gray-200"
-              ></iframe>
-            </div>
-
             <div className="prose max-w-none">
-              <h2>Writing to Your Future Self</h2>
+              <h2>Your Future Self</h2>
               <p>
-                This exercise connects you to your long-term growth and purpose. We're going to craft a message to your future self, one year from now,
-                reflecting on what you've learned from your wellbeing assessment and imagery work.
+                Based on the vision you've explored through the wellbeing ladder and your selected images, now it's time to articulate your future self more clearly.
+                By writing about this future version of yourself, you create a cognitive bridge that helps your brain recognize opportunities and pathways to 
+                realize this potential.
+              </p>
+              <p>
+                These reflections help integrate the foundational elements of your wellbeing journey and visualization into a coherent narrative for personal growth.
               </p>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm space-y-6">
+            <div className="space-y-6">
               <div>
-                <Label htmlFor="future-letter" className="text-lg font-semibold">
-                  Write a Letter to Your Future Self (1 Year from Now)
+                <Label htmlFor="future-vision" className="text-base font-medium">
+                  1. How have you optimized your experience of flow in this vision?
                 </Label>
-                <p className="text-sm text-gray-600 mt-1 mb-4">
-                  Imagine you're sending this message to yourself one year in the future. What would you want to say?
+                <p className="text-sm text-gray-500 mb-2">
+                  Describe how your strengths and ideal operating conditions are being expressed
                 </p>
                 <Textarea
-                  id="future-letter"
-                  placeholder="Dear Future Me..."
-                  className="min-h-[300px] mt-2"
+                  id="future-vision"
+                  placeholder="Your answer"
+                  className="min-h-[100px] mt-2"
                 />
               </div>
 
               <div>
-                <h3 className="text-base font-medium mb-2">Consider addressing:</h3>
-                <ul className="space-y-2 text-gray-600">
-                  <li>• What you hope to have accomplished by then</li>
-                  <li>• What challenges you anticipate overcoming</li>
-                  <li>• What growth you want to see in yourself</li>
-                  <li>• What you don't want to forget about your current situation</li>
-                  <li>• What advice you'd give to your future self</li>
-                </ul>
+                <Label htmlFor="happy-life" className="text-base font-medium">
+                  2. What will you have achieved that contributes to your wellbeing?
+                </Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Name 2-3 specific achievements or experiences that will mark your progress
+                </p>
+                <Textarea
+                  id="happy-life"
+                  placeholder="Your answer"
+                  className="min-h-[100px] mt-2"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="future-statement" className="text-base font-medium">
+                  3. Create a "My Future Self" Statement
+                </Label>
+                <p className="text-sm text-gray-500 mb-2">
+                  Write a paragraph in present tense that captures what your life is like 12 months from now
+                </p>
+                <Textarea
+                  id="future-statement"
+                  placeholder="My Future Self statement..."
+                  className="min-h-[150px] mt-2"
+                />
               </div>
             </div>
 
-            <div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm space-y-4 mt-8">
-              <h3 className="text-lg font-semibold">Long-Term Visualization</h3>
-              <p className="text-gray-600">
-                Now, take a moment to visualize your future self reading this letter. What's different about them? How do they feel receiving these words?
+            <div className="mt-6 p-5 bg-indigo-50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Next Steps</h3>
+              <p className="text-gray-700 mb-4">
+                Consider creating reminders that keep this vision active in your daily awareness:
               </p>
-              <Textarea
-                id="future-visualization"
-                placeholder="I see my future self..."
-                className="min-h-[150px] mt-2"
-              />
+              <ul className="list-disc pl-5 space-y-2 text-gray-700">
+                <li>Save your selected images as a phone or desktop wallpaper</li>
+                <li>Schedule monthly calendar reminders with your Future Self statement</li>
+                <li>Create a vision board using your selected images</li>
+                <li>Record yourself reading your Future Self statement</li>
+              </ul>
             </div>
 
             <div className="flex justify-between mt-8">
               <Button 
+                variant="outline" 
                 onClick={() => handleTabChange("potential")}
-                variant="outline"
               >
-                Go Back
+                Back: Visualizing Potential
               </Button>
               <Button 
                 className="bg-indigo-700 hover:bg-indigo-800"
               >
-                Complete Assessment
+                Complete Visualization
               </Button>
             </div>
           </TabsContent>
