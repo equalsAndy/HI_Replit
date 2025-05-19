@@ -29,7 +29,7 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
       <div className="container mx-auto px-3 flex justify-between items-center">
         <Link href="/" className="logo flex items-center cursor-pointer">
           <img 
-            src="/public/assets/all-star-teams-logo-250px.png" 
+            src="/assets/all-star-teams-logo-250px.png" 
             alt="AllStarTeams" 
             className="h-8 w-auto"
           />
