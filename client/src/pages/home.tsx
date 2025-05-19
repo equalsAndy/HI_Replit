@@ -14,9 +14,6 @@ export default function Home() {
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-12">
-        <div className="flex justify-center mb-6">
-          <img src="/assets/all-star-teams-logo-250px.png" alt="All Star Teams Logo" className="h-16" />
-        </div>
         <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Welcome</h1>
         
         <div className="max-w-3xl mx-auto">

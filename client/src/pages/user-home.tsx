@@ -301,8 +301,8 @@ export default function UserHome() {
     primaryTextColor: currentApp === 'allstarteams' ? 'text-indigo-700' : 'text-purple-700',
     primaryLightBgColor: currentApp === 'allstarteams' ? 'bg-indigo-100' : 'bg-purple-100',
     logo: currentApp === 'allstarteams' 
-      ? '/assets/all-star-teams-logo-250px.png' 
-      : '/assets/imaginal_agility_logo_nobkgrd.png',
+      ? '/src/assets/all-star-teams-logo-250px.png' 
+      : '/src/assets/imaginal_agility_logo_nobkgrd.png',
     appName: currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'
   };
 
@@ -323,15 +323,11 @@ export default function UserHome() {
         <div className="container mx-auto px-4 py-3 flex justify-between items-center">
           <div className="flex items-center space-x-6">
             <Link href="/" className="logo flex items-center cursor-pointer">
-              {currentApp === 'allstarteams' ? (
-                <div className="h-10 flex items-center text-indigo-700 font-bold">
-                  AllStarTeams
-                </div>
-              ) : (
-                <div className="h-10 flex items-center text-purple-700 font-bold">
-                  Imaginal Agility
-                </div>
-              )}
+              <img 
+                src={appStyles.logo}
+                alt={appStyles.appName}
+                className="h-10 w-auto"
+              />
             </Link>
 
             {/* Test User Indicator & Controls */}
