@@ -43,7 +43,6 @@ export default function VisualizeYourself() {
   
   // API clients
   const [unsplashApi, setUnsplashApi] = useState<any>(null);
-  const [pexelsClient, setPexelsClient] = useState<any>(null);
   
   // Initialize API clients on component mount
   useEffect(() => {
@@ -53,9 +52,8 @@ export default function VisualizeYourself() {
     });
     setUnsplashApi(uApi);
     
-    // Initialize the Pexels API client with the provided API key
-    const pClient = new pexels.createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
-    setPexelsClient(pClient);
+    // Log message to help debug
+    console.log("Unsplash API initialized");
   }, []);
 
   // Get user profile
@@ -157,36 +155,21 @@ export default function VisualizeYourself() {
         } else {
           setSearchResults(result.response?.results || []);
         }
-      } else if (imageSource === 'pexels' && pexelsClient) {
-        try {
-          const result = await pexelsClient.photos.search({ 
-            query: searchQuery,
-            per_page: 20 
-          });
-          
-          if (result.photos) {
-            setSearchResults(result.photos);
-          } else {
-            toast({
-              title: "No results found",
-              description: "Try a different search term",
-              variant: "default"
-            });
-          }
-        } catch (error) {
-          console.error('Pexels API error:', error);
-          toast({
-            title: "Error searching images",
-            description: "There was a problem connecting to Pexels. Please try again later.",
-            variant: "destructive"
-          });
-        }
-      } else {
+      } else if (imageSource === 'pexels') {
+        // For Pexels API - as a placeholder for now
         toast({
-          title: "API client not initialized",
-          description: `The ${imageSource === 'unsplash' ? 'Unsplash' : 'Pexels'} API client is not yet initialized.`,
-          variant: "destructive"
+          title: "Coming Soon",
+          description: "Pexels integration is in progress. Please use Unsplash or upload your own images for now.",
+          variant: "default"
         });
+        setIsSearching(false);
+      } else if (imageSource === 'upload') {
+        toast({
+          title: "Upload Images",
+          description: "Please use the file selector to upload your own images.",
+          variant: "default"
+        });
+        setIsSearching(false);
       }
     } catch (error) {
       console.error('Error searching images:', error);
@@ -213,8 +196,7 @@ export default function VisualizeYourself() {
     }
     
     const imageExists = selectedImages.some(img => 
-      (imageSource === 'unsplash' && img.id === image.id) ||
-      (imageSource === 'pexels' && img.id === image.id)
+      (imageSource === 'unsplash' && img.id === image.id)
     );
     
     if (imageExists) {
@@ -239,22 +221,15 @@ export default function VisualizeYourself() {
           sourceUrl: image.links.html
         }
       };
-    } else if (imageSource === 'pexels') {
-      newImage = {
-        id: image.id.toString(),
-        url: image.src.medium,
-        source: 'pexels',
-        credit: {
-          photographer: image.photographer,
-          photographerUrl: image.photographer_url,
-          sourceUrl: image.url
-        }
-      };
-    } else {
-      return; // Unknown source
+      
+      setSelectedImages(prev => [...prev, newImage]);
+      
+      toast({
+        title: "Image selected",
+        description: "The image has been added to your collection.",
+        variant: "default"
+      });
     }
-    
-    setSelectedImages(prev => [...prev, newImage]);
   };
 
   // Show loading state
