@@ -54,7 +54,7 @@ export default function VisualizeYourself() {
   
   // Image selection state
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
-  const [imageSource, setImageSource] = useState<'upload' | 'unsplash' | 'pexels' | 'all'>('upload');
+  const [imageSource, setImageSource] = useState<'upload' | 'unsplash' | 'pexels' | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [activeSource, setActiveSource] = useState<'unsplash' | 'pexels'>('unsplash');
@@ -686,36 +686,20 @@ export default function VisualizeYourself() {
                     <h4 className="text-sm font-medium mb-2">Image Source:</h4>
                     <div className="flex flex-wrap gap-2">
                       <Button
+                        variant={imageSource === 'all' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageSource('all')}
+                        className="flex items-center gap-1"
+                      >
+                        <Search className="h-4 w-4" /> Search
+                      </Button>
+                      <Button
                         variant={imageSource === 'upload' ? "default" : "outline"}
                         size="sm"
                         onClick={() => setImageSource('upload')}
                         className="flex items-center gap-1"
                       >
                         <Upload className="h-4 w-4" /> Upload
-                      </Button>
-                      <Button
-                        variant={imageSource === 'all' ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setImageSource('all')}
-                        className="flex items-center gap-1"
-                      >
-                        <SplitSquareVertical className="h-4 w-4" /> All Sources
-                      </Button>
-                      <Button
-                        variant={imageSource === 'unsplash' ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setImageSource('unsplash')}
-                        className="flex items-center gap-1"
-                      >
-                        <Image className="h-4 w-4" /> Unsplash
-                      </Button>
-                      <Button
-                        variant={imageSource === 'pexels' ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => setImageSource('pexels')}
-                        className="flex items-center gap-1"
-                      >
-                        <Image className="h-4 w-4" /> Pexels
                       </Button>
                     </div>
                   </div>
