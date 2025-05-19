@@ -506,8 +506,8 @@ export default function VisualizeYourself() {
                             onClick={() => selectImage(image)}
                           >
                             <img 
-                              src={imageSource === 'unsplash' ? image.urls.small : image.src.medium} 
-                              alt={imageSource === 'unsplash' ? image.alt_description : image.photographer}
+                              src={image.urls?.small || image.src?.medium || ''} 
+                              alt={image.alt_description || image.photographer || 'Search result image'}
                               className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"
                             />
                             <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 flex items-center justify-center transition-all">
