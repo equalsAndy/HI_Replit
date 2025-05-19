@@ -27,10 +27,9 @@ interface SelectedImage {
   };
 }
 
-// Initialize Unsplash client - you'd need to get an API key for production
+// Initialize Unsplash client with environment variable
 const unsplashApi = createApi({
-  // In production, you would use an environment variable for the API key
-  accessKey: 'your-unsplash-access-key-here',
+  accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || '',
 });
 
 export default function VisualizeYourself() {
