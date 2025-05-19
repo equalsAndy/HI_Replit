@@ -108,7 +108,7 @@ export default function TeamWorkshop() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center">
-              <AppLogo appName="imaginal-agility" size="md" />
+              <div className="text-purple-700 font-bold mr-3">Imaginal Agility</div>
               <h1 className="text-xl font-bold text-purple-800">Team Workshop</h1>
             </div>
             <Link href="/user-home" className="text-purple-600 hover:text-purple-800">

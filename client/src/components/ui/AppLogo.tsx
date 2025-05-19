@@ -1,4 +1,6 @@
 import React from 'react';
+import AllStarTeamsLogo from '../../assets/all-star-teams-logo-250px.png';
+import ImaginalAgilityLogo from '../../assets/imaginal_agility_logo_nobkgrd.png';
 
 interface AppLogoProps {
   appName?: string;
@@ -8,16 +10,14 @@ interface AppLogoProps {
 
 export function AppLogo({ appName = 'allstarteams', size = 'md', className = '' }: AppLogoProps) {
   const heightClass = size === 'sm' ? 'h-6' : size === 'md' ? 'h-8' : 'h-10';
-  const logoSrc = appName.includes('imaginal') 
-    ? '/assets/imaginal_agility_logo_nobkgrd.png'
-    : '/assets/all-star-teams-logo-250px.png';
+  const logoImg = appName.includes('imaginal') ? ImaginalAgilityLogo : AllStarTeamsLogo;
   const altText = appName.includes('imaginal') ? 'Imaginal Agility' : 'AllStarTeams';
   const textClass = appName.includes('imaginal') ? 'text-purple-700' : 'text-indigo-700';
   
   return (
     <div className={`flex items-center ${className}`}>
       <img 
-        src={logoSrc} 
+        src={logoImg} 
         alt={altText} 
         className={`${heightClass} w-auto`}
         onError={(e) => {
