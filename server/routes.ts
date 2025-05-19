@@ -65,6 +65,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     sameSite: 'lax' as const,
     secure: false // Allow cookies on non-HTTPS connections for development
   };
+  
+  // Helper function to get userId from request
+  const getUserIdFromRequest = (req: Request): number | null => {
+    // Try to get userId from cookies first
+    const userIdFromCookie = req.cookies.userId;
+    
+    // Then try from query parameters
+    const userIdFromQuery = req.query.userId;
+    
+    // Log the cookies for debugging
+    if (process.env.NODE_ENV === 'development') {
+      console.log("GET " + req.path + " - checking for userId from cookies/query:", userIdFromCookie || userIdFromQuery);
+      console.log("Cookies:", req.cookies);
+    }
+    
+    if (userIdFromCookie) {
+      return parseInt(userIdFromCookie);
+    }
+    
+    if (userIdFromQuery) {
+      return parseInt(userIdFromQuery as string);
+    }
+    
+    // For development only - default to a test user
+    if (process.env.NODE_ENV === 'development') {
+      console.log("No userId in cookies, defaulting to test user 1 for development");
+      return 1;
+    }
+    
+    return null;
+  };
 
   // Serve static files from the uploads directory
   app.use('/uploads', express.static(uploadsDir));
