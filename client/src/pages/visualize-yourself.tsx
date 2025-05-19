@@ -63,7 +63,7 @@ export default function VisualizeYourself() {
   
   // UI state
   const [showSearchInterface, setShowSearchInterface] = useState(true);
-  const [showInstructions, setShowInstructions] = useState(false); // Default to hidden/unchecked
+  const [showInstructions, setShowInstructions] = useState(true); // Default to shown/checked
   const [isSaving, setIsSaving] = useState(false);
   const [imageMeaning, setImageMeaning] = useState('');
   
@@ -777,7 +777,7 @@ export default function VisualizeYourself() {
                 </div>
                 
                 {/* Source tabs for All Sources option */}
-                {imageSource === 'all' && searchResults.length > 0 && (
+                {imageSource === 'all' && imageSource !== 'upload' && searchResults.length > 0 && (
                   <div className="mt-4 border-b border-gray-200">
                     <div className="flex space-x-4">
                       <button
@@ -801,7 +801,7 @@ export default function VisualizeYourself() {
                 )}
                 
                 {/* Search results */}
-                {searchResults.length > 0 && (
+                {searchResults.length > 0 && imageSource !== 'upload' && (
                   <div className="mt-4">
                     <h4 className="text-sm font-medium mb-2">
                       Search Results: <span className="text-gray-500">
