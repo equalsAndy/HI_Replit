@@ -27,10 +27,15 @@ interface SelectedImage {
   };
 }
 
+import { createClient } from 'pexels';
+
 // Initialize Unsplash client with environment variable
 const unsplashApi = createApi({
   accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || '',
 });
+
+// Initialize Pexels client
+const pexelsClient = createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
 
 export default function VisualizeYourself() {
   const [activeTab, setActiveTab] = useState("ladder");
@@ -145,13 +150,29 @@ export default function VisualizeYourself() {
           setSearchResults(result.response?.results || []);
         }
       } else if (imageSource === 'pexels') {
-        // For now, showing a message that Pexels API key is needed
-        // In a real application, you would implement the Pexels API call here
-        toast({
-          title: "Pexels API",
-          description: "To use Pexels, you'll need to add a Pexels API key.",
-          variant: "default"
-        });
+        try {
+          const result = await pexelsClient.photos.search({ 
+            query: searchQuery,
+            per_page: 20 
+          });
+          
+          if (result.photos) {
+            setSearchResults(result.photos);
+          } else {
+            toast({
+              title: "No results found",
+              description: "Try a different search term",
+              variant: "default"
+            });
+          }
+        } catch (error) {
+          console.error('Pexels API error:', error);
+          toast({
+            title: "Error searching images",
+            description: "There was a problem connecting to Pexels. Please try again later.",
+            variant: "destructive"
+          });
+        }
       }
     } catch (error) {
       console.error('Error searching images:', error);
