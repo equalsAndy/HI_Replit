@@ -1110,11 +1110,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const user = await storage.getUser(userId);
       const starCard = await storage.getStarCard(userId);
       const flowAttributes = await storage.getFlowAttributes(userId);
+      const visualization = await storage.getVisualization(userId);
       
       res.status(200).json({
         user,
         starCard,
-        flowAttributes
+        flowAttributes,
+        visualization
       });
     } catch (error) {
       console.error("Error fetching test user data:", error);
