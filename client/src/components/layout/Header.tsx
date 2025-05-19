@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useLogout } from "@/hooks/use-logout";
+import { useApplication } from "@/hooks/use-application";
 
 interface HeaderProps {
   showDashboardLink?: boolean;
@@ -10,6 +11,9 @@ interface HeaderProps {
 export default function Header({ showDashboardLink = true }: HeaderProps) {
   // Use our custom logout hook
   const logout = useLogout();
+  
+  // Get application logo and name
+  const { appLogo, appName } = useApplication();
   
   // Check if user is logged in by querying user profile
   const { data: user } = useQuery({
@@ -29,8 +33,8 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
       <div className="container mx-auto px-3 flex justify-between items-center">
         <Link href="/" className="logo flex items-center cursor-pointer">
           <img 
-            src="/src/assets/all-star-teams-logo-250px.png" 
-            alt="AllStarTeams" 
+            src={appLogo} 
+            alt={appName} 
             className="h-8 w-auto"
           />
         </Link>
