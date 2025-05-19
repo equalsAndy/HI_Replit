@@ -54,9 +54,10 @@ export default function VisualizeYourself() {
   
   // Image selection state
   const [selectedImages, setSelectedImages] = useState<SelectedImage[]>([]);
-  const [imageSource, setImageSource] = useState<'upload' | 'unsplash' | 'pexels'>('upload');
+  const [imageSource, setImageSource] = useState<'upload' | 'unsplash' | 'pexels' | 'all'>('upload');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [activeSource, setActiveSource] = useState<'unsplash' | 'pexels'>('unsplash');
   const [isSearching, setIsSearching] = useState(false);
   
   // UI state
@@ -224,30 +225,33 @@ export default function VisualizeYourself() {
     setSearchResults([]);
     
     try {
-      if (imageSource === 'unsplash' || imageSource === 'pexels') {
-        // For unified search, we'll use both APIs simultaneously
-        const results = await searchImages(searchQuery, 15);
-        
-        // Set results based on selected source or combine them
-        if (imageSource === 'unsplash') {
-          setSearchResults(results.unsplash);
-        } else if (imageSource === 'pexels') {
-          setSearchResults(results.pexels);
-        } 
-        
-        // If no results were found, show a message
-        if ((imageSource === 'unsplash' && results.unsplash.length === 0) || 
-            (imageSource === 'pexels' && results.pexels.length === 0)) {
-          toast({
-            title: "No images found",
-            description: `No images found for "${searchQuery}". Try a different search term.`,
-            variant: "default"
-          });
-        }
+      // Search across both APIs simultaneously
+      const results = await searchImages(searchQuery, 15);
+      
+      // Set results based on selected source
+      if (imageSource === 'unsplash') {
+        setSearchResults(results.unsplash);
+      } else if (imageSource === 'pexels') {
+        setSearchResults(results.pexels);
+      } else if (imageSource === 'all') {
+        // Show results from the active source tab
+        setSearchResults(activeSource === 'unsplash' ? results.unsplash : results.pexels);
       } else if (imageSource === 'upload') {
         toast({
           title: "Upload Images",
           description: "Please use the file selector to upload your own images.",
+          variant: "default"
+        });
+      }
+      
+      // If no results were found, show a message
+      if ((imageSource === 'unsplash' && results.unsplash.length === 0) || 
+          (imageSource === 'pexels' && results.pexels.length === 0) ||
+          (imageSource === 'all' && activeSource === 'unsplash' && results.unsplash.length === 0) ||
+          (imageSource === 'all' && activeSource === 'pexels' && results.pexels.length === 0)) {
+        toast({
+          title: "No images found",
+          description: `No images found for "${searchQuery}". Try a different search term.`,
           variant: "default"
         });
       }
@@ -685,6 +689,14 @@ export default function VisualizeYourself() {
                         <Upload className="h-4 w-4" /> Upload
                       </Button>
                       <Button
+                        variant={imageSource === 'all' ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setImageSource('all')}
+                        className="flex items-center gap-1"
+                      >
+                        <SplitSquareVertical className="h-4 w-4" /> All Sources
+                      </Button>
+                      <Button
                         variant={imageSource === 'unsplash' ? "default" : "outline"}
                         size="sm"
                         onClick={() => setImageSource('unsplash')}
@@ -697,9 +709,8 @@ export default function VisualizeYourself() {
                         size="sm"
                         onClick={() => setImageSource('pexels')}
                         className="flex items-center gap-1"
-                        disabled
                       >
-                        <Image className="h-4 w-4" /> Pexels (Coming Soon)
+                        <Image className="h-4 w-4" /> Pexels
                       </Button>
                     </div>
                   </div>
@@ -736,7 +747,7 @@ export default function VisualizeYourself() {
                         <Button 
                           variant="default" 
                           size="default"
-                          onClick={() => handleSearch()}
+                          onClick={() => searchQuery && handleSearch()}
                           disabled={isSearching || !searchQuery.trim()}
                           className="flex items-center gap-1"
                         >
@@ -747,10 +758,42 @@ export default function VisualizeYourself() {
                   )}
                 </div>
                 
+                {/* Source tabs for All Sources option */}
+                {imageSource === 'all' && searchResults.length > 0 && (
+                  <div className="mt-4 border-b border-gray-200">
+                    <div className="flex space-x-4">
+                      <button
+                        onClick={() => setActiveSource('unsplash')}
+                        className={`px-4 py-2 text-sm font-medium ${
+                          activeSource === 'unsplash'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600'
+                            : 'text-gray-500 hover:text-indigo-500 hover:border-indigo-300'
+                        }`}
+                      >
+                        Unsplash
+                      </button>
+                      <button
+                        onClick={() => setActiveSource('pexels')}
+                        className={`px-4 py-2 text-sm font-medium ${
+                          activeSource === 'pexels'
+                            ? 'text-indigo-600 border-b-2 border-indigo-600'
+                            : 'text-gray-500 hover:text-indigo-500 hover:border-indigo-300'
+                        }`}
+                      >
+                        Pexels
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
                 {/* Search results */}
                 {searchResults.length > 0 && (
                   <div className="mt-4">
-                    <h4 className="text-sm font-medium mb-2">Search Results:</h4>
+                    <h4 className="text-sm font-medium mb-2">
+                      Search Results: <span className="text-gray-500">
+                        {searchResults.length} images for "{searchQuery}"
+                      </span>
+                    </h4>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                       {searchResults.map((image: any) => (
                         <div 
@@ -759,7 +802,12 @@ export default function VisualizeYourself() {
                           onClick={() => selectImage(image)}
                         >
                           <img 
-                            src={image.urls?.small || image.src?.medium || ''} 
+                            src={
+                              // Handle both Unsplash and Pexels image formats
+                              (imageSource === 'unsplash' || (imageSource === 'all' && activeSource === 'unsplash'))
+                                ? image.urls?.small
+                                : image.src?.medium || image.src?.small || ''
+                            } 
                             alt={image.alt_description || image.photographer || 'Search result image'}
                             className="w-full h-32 object-cover rounded border border-gray-200 hover:border-indigo-400 transition"
                           />
