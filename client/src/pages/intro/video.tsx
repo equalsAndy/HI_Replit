@@ -5,7 +5,7 @@ import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
-export default function IntroVideo() {
+export default function IntroductionVideo() {
   const [_, navigate] = useLocation();
   const { markStepCompleted } = useNavigationProgress();
   
@@ -41,24 +41,30 @@ export default function IntroVideo() {
         
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
         
-        <ul className="space-y-3 mb-8 list-disc pl-5">
-          <li className="text-gray-700">
-            <span className="font-medium">Complete your profile information</span>
+        <ul className="space-y-3 mb-8">
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Complete your profile information</span>
           </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Take the Star Strengths Assessment</span> (10-15 minutes)
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Take the Star Strengths Assessment (10-15 minutes)</span>
           </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Review your Star Profile</span> and strengths
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Review your Star Profile and strengths</span>
           </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Explore your flow attributes</span>
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Explore your flow attributes</span>
           </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Visualize your future potential</span>
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Visualize your future potential</span>
           </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Integrate insights</span> into your professional life
+          <li className="flex items-start">
+            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+            <span>Integrate insights into your professional life</span>
           </li>
         </ul>
         

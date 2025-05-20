@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { CheckCircle2, XCircle, CheckSquare, MessageSquare } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
-import { Card } from '@/components/ui/card';
-import { CheckCircleIcon, XCircleIcon } from 'lucide-react';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { cn } from '@/lib/utils';
 
 interface KnowledgeCheckOption {
   id: string;
   text: string;
   correct: boolean;
-  feedback: string;
+  feedback?: string;
 }
 
 interface KnowledgeCheckProps {
@@ -19,116 +19,155 @@ interface KnowledgeCheckProps {
   onComplete?: (correct: boolean) => void;
 }
 
-export default function KnowledgeCheck({
+export function KnowledgeCheck({
   id,
   question,
   options,
   onComplete
 }: KnowledgeCheckProps) {
-  const [selectedOption, setSelectedOption] = useState<string | null>(null);
-  const [hasSubmitted, setHasSubmitted] = useState<boolean>(false);
-  const [isCorrect, setIsCorrect] = useState<boolean>(false);
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(false);
+  const { markStepCompleted } = useNavigationProgress();
   
+  // Handle option selection
+  const handleOptionSelect = (optionId: string) => {
+    if (!isSubmitted) {
+      setSelectedOptionId(optionId);
+    }
+  };
+  
+  // Handle submitting the answer
   const handleSubmit = () => {
-    if (!selectedOption) return;
+    if (!selectedOptionId) return;
     
-    const selectedAnswer = options.find(option => option.id === selectedOption);
-    const correct = !!selectedAnswer?.correct;
+    const selectedOption = options.find(opt => opt.id === selectedOptionId);
+    const correct = !!selectedOption?.correct;
     
     setIsCorrect(correct);
-    setHasSubmitted(true);
+    setIsSubmitted(true);
     
+    // Always mark as completed, regardless of correctness
+    markStepCompleted(id);
+    
+    // Call the callback if provided
     if (onComplete) {
       onComplete(correct);
     }
   };
   
-  const handleReset = () => {
-    setSelectedOption(null);
-    setHasSubmitted(false);
-    setIsCorrect(false);
+  // Handle continuing to next section
+  const handleContinue = () => {
+    // This is intentionally empty as navigation is handled by the parent component
+    // We've already marked this step as completed
   };
   
   return (
-    <Card className="p-6 mb-8 border-2 border-purple-100">
-      <div className="space-y-6">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Knowledge Check</h3>
-          <p className="text-gray-700">{question}</p>
+    <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+      <div className="bg-indigo-50 border-b border-indigo-100 p-4">
+        <div className="flex items-center">
+          <MessageSquare className="h-5 w-5 text-indigo-600 mr-2" />
+          <h3 className="text-lg font-medium text-indigo-900">Knowledge Check</h3>
         </div>
+        <p className="mt-1 text-sm text-gray-600">
+          Test your understanding of the material covered so far.
+        </p>
+      </div>
+      
+      <div className="p-5">
+        <p className="text-base font-medium text-gray-900 mb-4">{question}</p>
         
-        <RadioGroup 
-          value={selectedOption || ""} 
-          onValueChange={setSelectedOption}
-          className="space-y-3"
-          disabled={hasSubmitted}
-        >
-          {options.map((option) => (
-            <div 
-              key={option.id}
-              className={`
-                border rounded-md p-4 transition-colors
-                ${hasSubmitted && option.id === selectedOption && option.correct ? 'bg-green-50 border-green-200' : ''}
-                ${hasSubmitted && option.id === selectedOption && !option.correct ? 'bg-red-50 border-red-200' : ''}
-                ${!hasSubmitted ? 'hover:bg-gray-50 cursor-pointer' : ''}
-              `}
-            >
-              <div className="flex items-start">
-                <RadioGroupItem 
-                  value={option.id} 
-                  id={`option-${id}-${option.id}`}
-                  className="mt-1"
-                  disabled={hasSubmitted}
-                />
-                <div className="ml-3 flex-1">
-                  <Label 
-                    htmlFor={`option-${id}-${option.id}`}
-                    className={`font-medium ${hasSubmitted ? 'cursor-default' : 'cursor-pointer'}`}
-                  >
-                    {option.text}
-                  </Label>
-                  
-                  {hasSubmitted && option.id === selectedOption && (
-                    <div className="mt-2 text-sm flex items-start gap-2">
-                      {option.correct ? (
-                        <CheckCircleIcon className="h-5 w-5 text-green-500 flex-shrink-0 mt-0.5" />
+        <div className="space-y-3">
+          {options.map((option) => {
+            const isSelected = selectedOptionId === option.id;
+            const showCorrectness = isSubmitted;
+            const isCorrectOption = option.correct;
+            
+            return (
+              <div
+                key={option.id}
+                className={cn(
+                  "border rounded-md p-3 cursor-pointer transition-all",
+                  isSelected 
+                    ? "border-indigo-400 bg-indigo-50" 
+                    : "border-gray-200 hover:border-indigo-200 hover:bg-indigo-50/50",
+                  showCorrectness && isCorrectOption && "border-green-400 bg-green-50",
+                  showCorrectness && isSelected && !isCorrectOption && "border-red-400 bg-red-50"
+                )}
+                onClick={() => handleOptionSelect(option.id)}
+              >
+                <div className="flex items-start">
+                  <div className="flex-shrink-0 mt-0.5">
+                    {showCorrectness ? (
+                      isCorrectOption ? (
+                        <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : (
-                        <XCircleIcon className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-                      )}
-                      <p className={option.correct ? 'text-green-700' : 'text-red-700'}>
+                        isSelected ? (
+                          <XCircle className="h-5 w-5 text-red-500" />
+                        ) : (
+                          <div className="h-5 w-5 border border-gray-300 rounded-sm" />
+                        )
+                      )
+                    ) : (
+                      isSelected ? (
+                        <CheckSquare className="h-5 w-5 text-indigo-600" />
+                      ) : (
+                        <div className="h-5 w-5 border border-gray-300 rounded-sm" />
+                      )
+                    )}
+                  </div>
+                  <div className="ml-3">
+                    <p className={cn(
+                      "text-sm font-medium",
+                      isSelected ? "text-indigo-700" : "text-gray-700",
+                      showCorrectness && isCorrectOption && "text-green-700",
+                      showCorrectness && isSelected && !isCorrectOption && "text-red-700"
+                    )}>
+                      {option.text}
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Feedback text */}
+                {showCorrectness && (isSelected || isCorrectOption) && option.feedback && (
+                  <AnimatePresence>
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-2 text-sm ml-8"
+                    >
+                      <p className={cn(
+                        isCorrectOption ? "text-green-600" : "text-red-600"
+                      )}>
                         {option.feedback}
                       </p>
-                    </div>
-                  )}
-                </div>
+                    </motion.div>
+                  </AnimatePresence>
+                )}
               </div>
-            </div>
-          ))}
-        </RadioGroup>
+            );
+          })}
+        </div>
         
-        <div className="pt-4 flex justify-between">
-          {hasSubmitted ? (
-            <div className="flex gap-4">
-              <Button onClick={handleReset} variant="outline">
-                Try Again
-              </Button>
-              {isCorrect && (
-                <div className="text-green-600 flex items-center">
-                  <CheckCircleIcon className="h-5 w-5 mr-2" />
-                  <span>Correct! You can now proceed.</span>
-                </div>
-              )}
-            </div>
-          ) : (
-            <Button 
-              onClick={handleSubmit} 
-              disabled={!selectedOption}
+        <div className="mt-6 flex justify-end">
+          {!isSubmitted ? (
+            <Button
+              onClick={handleSubmit}
+              disabled={!selectedOptionId}
             >
               Submit Answer
+            </Button>
+          ) : (
+            <Button 
+              onClick={handleContinue}
+              variant={isCorrect ? "default" : "outline"}
+            >
+              Continue
             </Button>
           )}
         </div>
       </div>
-    </Card>
+    </div>
   );
 }

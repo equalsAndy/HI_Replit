@@ -1,18 +1,8 @@
-import VerticalNavigation from './VerticalNavigation';
-import MobileNavigation from './MobileNavigation';
-import NavigationHeader from './NavigationHeader';
-import Navigation from './Navigation';
-import ContentSection from './ContentSection';
-import KnowledgeCheck from './KnowledgeCheck';
-
-export {
-  VerticalNavigation,
-  MobileNavigation,
-  NavigationHeader,
-  Navigation,
-  ContentSection,
-  KnowledgeCheck
-};
-
-// Re-export the default Navigation component as well
-export default Navigation;
+export * from './NavigationHeader';
+export * from './NavigationSidebar';
+export * from './CollapsibleSection';
+export * from './ContentSection';
+export * from './NextPrevButtons';
+export * from './QuickResumeModal';
+export * from './KnowledgeCheck';
+export { Navigation } from './Navigation';
