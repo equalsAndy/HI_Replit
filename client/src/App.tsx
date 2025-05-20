@@ -129,6 +129,7 @@ function Router() {
           <Route path="/visualize-yourself" component={VisualizeYourself} />
           <Route path="/navigation-demo" component={NavigationDemo} />
           <Route path="/learning-overview" component={LearningOverview} />
+          <Route path="/user-home2" component={() => import("@/pages/user-home2").then(module => <module.default />)} />
           
           {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
