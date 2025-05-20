@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
@@ -27,7 +28,6 @@ const appConfig = {
   }
 };
 
-import { createContext } from 'react';
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
 export function ApplicationProvider({ children }: { children: ReactNode }) {
