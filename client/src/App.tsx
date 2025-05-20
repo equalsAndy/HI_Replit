@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import React, { useEffect, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -107,9 +107,19 @@ function Router() {
               </div>
             </div>;
           }} />
-          {/* Main learning routes */}
-          <Route path="/intro/video" component={() => import("@/pages/intro/video").then(module => module.default)} />
-          <Route path="/discover-strengths/intro" component={() => import("@/pages/discover-strengths/intro").then(module => module.default)} />
+          {/* Main learning routes - redirect for now until we have all pages */}
+          <Route path="/intro/video" component={() => {
+            useEffect(() => {
+              navigate('/navigation-demo');
+            }, []);
+            return <div>Loading...</div>;
+          }} />
+          <Route path="/discover-strengths/intro" component={() => {
+            useEffect(() => {
+              navigate('/navigation-demo');
+            }, []);
+            return <div>Loading...</div>;
+          }} />
 
           {/* Existing routes */}
           <Route path="/foundations" component={Foundations} />

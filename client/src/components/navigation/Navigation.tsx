@@ -93,12 +93,12 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     updateNavigationSections(journeySections);
   }, []); // Removed the dependency since it causes infinite updates
   
-  // Set current step based on props
+  // Set current step based on props (only when it changes)
   useEffect(() => {
     if (currentStepId) {
       setCurrentStep(currentStepId);
     }
-  }, [currentStepId, setCurrentStep]);
+  }, [currentStepId]); // Removed setCurrentStep dependency to avoid infinite loop
   
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">

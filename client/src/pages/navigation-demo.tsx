@@ -6,15 +6,12 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { StarIcon, BarChartIcon, Activity, LucideRepeat2, Sparkles, LightbulbIcon, Timer } from 'lucide-react';
 
-// Learning journey sections based on the image provided
+// Learning journey sections based on the spreadsheet
 const journeySections = [
-  { id: 'F1', title: 'Star Self-Assessment', path: '/assessment', icon: StarIcon },
-  { id: 'F2', title: 'Core Strengths', path: '/core-strengths', icon: BarChartIcon },
-  { id: 'F3', title: 'Flow State', path: '/find-your-flow', icon: Activity },
-  { id: 'F4', title: 'Rounding Out', path: '/rounding-out', icon: LucideRepeat2 },
-  { id: 'F5', title: 'Visualizing Potential', path: '/visualize-yourself', icon: Sparkles },
-  { id: 'F6', title: 'Ladder of Well-Being', path: '/well-being', icon: LightbulbIcon },
-  { id: 'F7', title: 'Future Self', path: '/future-self', icon: Timer },
+  { id: '1', title: 'All star teams Introduction', path: '/intro/video', icon: StarIcon },
+  { id: '2', title: 'Discover your Strengths', path: '/discover-strengths/intro', icon: BarChartIcon },
+  { id: '3', title: 'Find your Flow', path: '/find-your-flow/intro', icon: Activity },
+  { id: '4', title: 'Visualize your Potential', path: '/visualize-potential', icon: Sparkles },
 ];
 
 export default function NavigationDemo() {
