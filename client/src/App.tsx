@@ -16,6 +16,8 @@ import { TestUserBanner } from "@/components/test-users/TestUserBanner";
 import FindYourFlow from "./pages/find-your-flow";
 import Foundations from "./pages/foundations";
 import VisualizeYourself from "./pages/visualize-yourself";
+import NavigationDemo from "./pages/navigation-demo";
+import LearningOverview from "./pages/learning-overview";
 
 // Import Imaginal Agility pages
 import ImaginationAssessment from "./pages/imagination-assessment";
@@ -110,6 +112,8 @@ function Router() {
           <Route path="/report" component={Report} />
           <Route path="/find-your-flow" component={FindYourFlow} />
           <Route path="/visualize-yourself" component={VisualizeYourself} />
+          <Route path="/navigation-demo" component={NavigationDemo} />
+          <Route path="/learning-overview" component={LearningOverview} />
           
           {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />

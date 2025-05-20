@@ -13,6 +13,8 @@ import Header from "@/components/layout/Header";
 import { AssessmentPieChart } from "@/components/assessment/AssessmentPieChart";
 import StepByStepReflection from "@/components/reflection/StepByStepReflection";
 import { BookOpen, ClipboardCheck, Edit, Star, AlertTriangle } from 'lucide-react';
+import { ContentSection } from '@/components/navigation';
+import MainContainer from '@/components/layout/MainContainer';
 import {
   AlertDialog,
   AlertDialogAction,

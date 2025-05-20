@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import StepNavigation from "./StepNavigation";
 import Header from "./Header";
+import { Navigation } from "@/components/navigation/Navigation";
+import { useNavigationProgress } from "@/hooks/use-navigation-progress";
 
 interface MainContainerProps {
   children: ReactNode;
@@ -10,9 +12,10 @@ interface MainContainerProps {
   showStepNavigation?: boolean;
   showHeader?: boolean;
   className?: string;
+  useModernNavigation?: boolean;
 }
 
-// Define our learning path steps
+// Define our learning path steps (legacy navigation)
 const steps = [
   { id: "A", label: "Reflect On Your Strengths", path: "/core-strengths" },
   { id: "B", label: "Identify Your Flow", path: "/flow-assessment" },
@@ -25,7 +28,8 @@ export default function MainContainer({
   stepId, 
   showStepNavigation = true,
   showHeader = true,
-  className = ""
+  className = "",
+  useModernNavigation = true
 }: MainContainerProps) {
   const [location] = useLocation();
   
@@ -35,6 +39,18 @@ export default function MainContainer({
     staleTime: Infinity,
   });
   
+  // If using modern navigation, use the new Navigation component
+  if (useModernNavigation) {
+    return (
+      <Navigation currentStepId={stepId}>
+        <div className={className}>
+          {children}
+        </div>
+      </Navigation>
+    );
+  }
+  
+  // Otherwise, use the legacy navigation
   return (
     <div className="flex flex-col min-h-screen">
       {showHeader && <Header />}
