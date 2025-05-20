@@ -416,13 +416,23 @@ export default function UserHome() {
                     <li className="text-gray-700">Integrate insights into your professional life</li>
                   </ul>
 
-                  <Button
-                    variant="default"
-                    className={appStyles.primaryBgColor}
-                    onClick={() => setExpandedSection(null)}
-                  >
-                    Continue
-                  </Button>
+                  <div className="flex flex-wrap gap-3">
+                    <Button
+                      variant="default"
+                      className={appStyles.primaryBgColor}
+                      onClick={() => setExpandedSection(null)}
+                    >
+                      Continue
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="border-indigo-500 text-indigo-600 hover:bg-indigo-50"
+                      onClick={() => navigate('/navigation-demo')}
+                    >
+                      Try New Navigation System
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
