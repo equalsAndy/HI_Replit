@@ -1,11 +1,13 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Book, Star, PieChart, Target } from 'lucide-react';
 import { useApplication } from '@/hooks/use-application';
 import { useNavigationProgress, NavigationSection } from '@/hooks/use-navigation-progress';
 import { NavigationHeader } from './NavigationHeader';
 import { NavigationSidebar } from './NavigationSidebar';
+import { MobileNavigation } from './MobileNavigation';
 import { QuickResumeModal } from './QuickResumeModal';
+import { Button } from '@/components/ui/button';
 
 interface NavigationProps {
   children: ReactNode;
@@ -16,6 +18,18 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const [location] = useLocation();
   const { currentApp } = useApplication();
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
+  const [showMobileNav, setShowMobileNav] = useState(false);
+  
+  // Define navigation structure based on the image provided
+  const newJourneySections = [
+    { id: 'F1', title: 'Star Self-Assessment', path: '/assessment' },
+    { id: 'F2', title: 'Core Strengths', path: '/core-strengths' },
+    { id: 'F3', title: 'Flow State', path: '/find-your-flow' },
+    { id: 'F4', title: 'Rounding Out', path: '/rounding-out' },
+    { id: 'F5', title: 'Visualizing Potential', path: '/visualize-yourself' },
+    { id: 'F6', title: 'Ladder of Well-Being', path: '/well-being' },
+    { id: 'F7', title: 'Future Self', path: '/future-self' },
+  ];
   
   // Define our navigation structure based on the current application
   useEffect(() => {
@@ -135,6 +149,27 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       
       {/* Quick Resume Modal */}
       <QuickResumeModal />
+      
+      {/* Mobile Menu Toggle Button (shows at the top on mobile) */}
+      <div className="md:hidden mx-4 mt-4">
+        <Button 
+          variant="outline" 
+          className="w-full flex items-center justify-center gap-2 border-yellow-400 text-yellow-700"
+          onClick={() => setShowMobileNav(!showMobileNav)}
+        >
+          {showMobileNav ? 'Hide Learning Journey' : 'Show Learning Journey'}
+        </Button>
+      </div>
+      
+      {/* Mobile Navigation */}
+      {showMobileNav && (
+        <div className="md:hidden mt-4 mx-4 p-4 bg-white rounded-md border border-gray-200 shadow-sm">
+          <MobileNavigation 
+            currentSectionId={currentStepId}
+            customSections={newJourneySections}
+          />
+        </div>
+      )}
       
       {/* Main content area */}
       <main className="flex-1 container mx-auto px-4 py-6 md:py-8">
