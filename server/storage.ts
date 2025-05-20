@@ -461,4 +461,307 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  public sessionStore: any;
+
+  constructor() {
+    // Create session store backed by PostgreSQL
+    const PgStore = connectPg(session);
+    this.sessionStore = new PgStore({
+      pool: new Pool({ connectionString: process.env.DATABASE_URL }),
+      tableName: 'session'
+    });
+  }
+
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(schema.users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    const [user] = await db
+      .update(schema.users)
+      .set(userData)
+      .where(eq(schema.users.id, id))
+      .returning();
+    return user || undefined;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(schema.users);
+  }
+
+  async createTestUsers(): Promise<void> {
+    // Create 5 test users with different profiles
+    const testUsers = [
+      {
+        username: 'user1',
+        password: 'password',
+        name: 'Test User 1',
+        title: 'Software Engineer',
+        organization: 'Tech Company',
+        progress: 0
+      },
+      {
+        username: 'user2',
+        password: 'password',
+        name: 'Test User 2',
+        title: 'Product Manager',
+        organization: 'Innovation Inc',
+        progress: 0
+      },
+      {
+        username: 'user3',
+        password: 'password',
+        name: 'Test User 3',
+        title: 'Data Scientist',
+        organization: 'Analytics Co',
+        progress: 0
+      },
+      {
+        username: 'user4',
+        password: 'password',
+        name: 'Test User 4',
+        title: 'UX Designer',
+        organization: 'Design Studio',
+        progress: 0
+      },
+      {
+        username: 'user5',
+        password: 'password',
+        name: 'Test User 5',
+        title: 'Marketing Director',
+        organization: 'Brand Agency',
+        progress: 0
+      }
+    ];
+    
+    // First, check if these users already exist
+    for (const userData of testUsers) {
+      const existingUser = await this.getUserByUsername(userData.username);
+      if (!existingUser) {
+        await this.createUser(userData);
+      }
+    }
+  }
+
+  async getTestUsers(): Promise<User[]> {
+    // Get all users with usernames beginning with 'user'
+    return await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.username.substring(0, 4), 'user'));
+  }
+
+  async getQuestions(): Promise<Question[]> {
+    return await db.select().from(schema.questions);
+  }
+
+  async getAssessment(userId: number): Promise<Assessment | undefined> {
+    const [assessment] = await db
+      .select()
+      .from(schema.assessments)
+      .where(eq(schema.assessments.userId, userId));
+    return assessment || undefined;
+  }
+
+  async createAssessment(assessment: InsertAssessment): Promise<Assessment> {
+    const [createdAssessment] = await db
+      .insert(schema.assessments)
+      .values(assessment)
+      .returning();
+    return createdAssessment;
+  }
+
+  async updateAssessment(id: number, assessmentData: Partial<Assessment>): Promise<Assessment | undefined> {
+    const [assessment] = await db
+      .update(schema.assessments)
+      .set(assessmentData)
+      .where(eq(schema.assessments.id, id))
+      .returning();
+    return assessment || undefined;
+  }
+
+  async deleteAssessment(userId: number): Promise<void> {
+    await db
+      .delete(schema.assessments)
+      .where(eq(schema.assessments.userId, userId));
+  }
+
+  async saveAnswer(answer: InsertAnswer): Promise<Answer> {
+    const [savedAnswer] = await db
+      .insert(schema.answers)
+      .values(answer)
+      .returning();
+    return savedAnswer;
+  }
+
+  async getAnswers(userId: number): Promise<Answer[]> {
+    return await db
+      .select()
+      .from(schema.answers)
+      .where(eq(schema.answers.userId, userId));
+  }
+
+  async deleteAnswers(userId: number): Promise<void> {
+    await db
+      .delete(schema.answers)
+      .where(eq(schema.answers.userId, userId));
+  }
+
+  async getStarCard(userId: number): Promise<StarCard | undefined> {
+    const [starCard] = await db
+      .select()
+      .from(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+    return starCard || undefined;
+  }
+
+  async createStarCard(starCard: InsertStarCard): Promise<StarCard> {
+    const [createdStarCard] = await db
+      .insert(schema.starCards)
+      .values(starCard)
+      .returning();
+    return createdStarCard;
+  }
+
+  async updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined> {
+    const [starCard] = await db
+      .update(schema.starCards)
+      .set(starCardData)
+      .where(eq(schema.starCards.id, id))
+      .returning();
+    return starCard || undefined;
+  }
+
+  async deleteStarCard(userId: number): Promise<void> {
+    await db
+      .delete(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+  }
+
+  async getFlowAttributes(userId: number): Promise<FlowAttributes | undefined> {
+    const [flowAttributes] = await db
+      .select()
+      .from(schema.flowAttributes)
+      .where(eq(schema.flowAttributes.userId, userId));
+    return flowAttributes || undefined;
+  }
+
+  async createFlowAttributes(flowAttributes: InsertFlowAttributes): Promise<FlowAttributes> {
+    // Set current timestamps
+    const now = new Date();
+    const attributesWithTimestamps = {
+      ...flowAttributes,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    const [createdFlowAttributes] = await db
+      .insert(schema.flowAttributes)
+      .values(attributesWithTimestamps)
+      .returning();
+    return createdFlowAttributes;
+  }
+
+  async updateFlowAttributes(id: number, flowAttributesData: Partial<FlowAttributes>): Promise<FlowAttributes | undefined> {
+    const updateData = {
+      ...flowAttributesData,
+      updatedAt: new Date()
+    };
+    
+    const [flowAttributes] = await db
+      .update(schema.flowAttributes)
+      .set(updateData)
+      .where(eq(schema.flowAttributes.id, id))
+      .returning();
+    return flowAttributes || undefined;
+  }
+
+  async deleteFlowAttributes(userId: number): Promise<void> {
+    await db
+      .delete(schema.flowAttributes)
+      .where(eq(schema.flowAttributes.userId, userId));
+  }
+
+  async getVisualization(userId: number): Promise<Visualization | undefined> {
+    try {
+      const [visualization] = await db
+        .select()
+        .from(schema.visualizations)
+        .where(eq(schema.visualizations.userId, userId));
+      return visualization || undefined;
+    } catch (error) {
+      console.error('Error getting visualization from database:', error);
+      return undefined;
+    }
+  }
+
+  async createVisualization(visualization: InsertVisualization): Promise<Visualization> {
+    try {
+      // Set current timestamps
+      const now = new Date();
+      const visualizationWithTimestamps = {
+        ...visualization,
+        createdAt: now,
+        updatedAt: now
+      };
+      
+      const [createdVisualization] = await db
+        .insert(schema.visualizations)
+        .values(visualizationWithTimestamps)
+        .returning();
+      return createdVisualization;
+    } catch (error) {
+      console.error('Error creating visualization in database:', error);
+      throw error;
+    }
+  }
+
+  async updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined> {
+    try {
+      const updateData = {
+        ...visualizationData,
+        updatedAt: new Date()
+      };
+      
+      const [visualization] = await db
+        .update(schema.visualizations)
+        .set(updateData)
+        .where(eq(schema.visualizations.id, id))
+        .returning();
+      return visualization || undefined;
+    } catch (error) {
+      console.error('Error updating visualization in database:', error);
+      return undefined;
+    }
+  }
+
+  async resetUserData(userId: number): Promise<void> {
+    // Reset progress to 0
+    await this.updateUser(userId, { progress: 0 });
+    
+    // Delete all user data
+    await this.deleteAssessment(userId);
+    await this.deleteAnswers(userId);
+    await this.deleteStarCard(userId);
+    await this.deleteFlowAttributes(userId);
+    await this.deleteVisualization(userId);
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();
