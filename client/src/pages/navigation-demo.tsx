@@ -1,173 +1,133 @@
 import React from 'react';
+import { useLocation } from 'wouter';
 import MainContainer from '@/components/layout/MainContainer';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { ContentSection, KnowledgeCheck } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { StarIcon, BarChartIcon, Activity, LucideRepeat2, Sparkles, LightbulbIcon, Timer } from 'lucide-react';
+
+// Learning journey sections based on the spreadsheet
+const journeySections = [
+  { id: '1', title: 'All star teams Introduction', path: '/intro/video', icon: StarIcon },
+  { id: '2', title: 'Discover your Strengths', path: '/discover-strengths/intro', icon: BarChartIcon },
+  { id: '3', title: 'Find your Flow', path: '/find-your-flow/intro', icon: Activity },
+  { id: '4', title: 'Visualize your Potential', path: '/visualize-potential', icon: Sparkles },
+];
 
 export default function NavigationDemo() {
-  const { markStepCompleted } = useNavigationProgress();
-
-  // Example handler for completing a step
-  const handleCompleteStep = (stepId: string) => {
-    markStepCompleted(stepId);
-  };
+  const [location, navigate] = useLocation();
   
   return (
-    <MainContainer 
-      stepId="strengths-intro" 
-      useModernNavigation={true}
-      showStepNavigation={true}
-    >
+    <MainContainer stepId="F1" useModernNavigation={true}>
       <div className="max-w-3xl mx-auto">
-        <h1 className="text-3xl font-bold mb-6">Navigation Demo</h1>
-        
         <ContentSection
-          title="Discover Your Strengths"
-          description="Learn about the core strengths that make up your unique Star Profile"
-          stepId="strengths-intro"
-          estimatedTime={10}
-          onNextClick={() => handleCompleteStep('strengths-intro')}
+          title="Modern Navigation System Demo"
+          description="Explore the features of our new navigation system"
+          stepId="F1"
+          estimatedTime={5}
+          required={true}
+          onNextClick={() => navigate('/learning-overview')}
         >
-          <div className="space-y-4">
-            <p>
-              In this module, you'll discover the unique strengths that make you who you are. 
-              Everyone has their own pattern of natural strengths that they can leverage to 
-              achieve greater wellbeing, effectiveness, and fulfillment.
+          <h2>Welcome to the Modern Navigation Demo</h2>
+          
+          <p>
+            This demo showcases the new navigation system features:
+          </p>
+          
+          <ul>
+            <li>Fixed header with progress visualization</li>
+            <li>Collapsible sections that expand to show detailed content</li>
+            <li>Progress persistence using localStorage</li>
+            <li>Micro-animations for transitions and completion celebrations</li>
+            <li>Knowledge check prompts between major sections</li>
+            <li>Quick resume feature</li>
+            <li><strong>Mobile-friendly vertical navigation</strong> - On mobile devices, click the "Show Learning Journey" button at the top</li>
+          </ul>
+          
+          <div className="my-8 p-4 bg-indigo-50 rounded-md border border-indigo-100">
+            <h3 className="text-indigo-800 font-medium mb-2">Navigation Features</h3>
+            <p className="text-indigo-700">
+              Notice the header above showing your progress and current position in the learning journey.
+              Try using the next/previous buttons to navigate between sections.
             </p>
-            
-            <h3 className="text-xl font-semibold mt-6">Key concepts</h3>
-            <ul className="list-disc pl-6 space-y-2">
-              <li>Everyone has natural strengths they can leverage for success</li>
-              <li>Your Star Profile is a unique pattern of your core strengths</li>
-              <li>Understanding your strengths helps you align your efforts with your natural talents</li>
-              <li>Working against your strengths pattern requires more energy and often leads to stress</li>
-            </ul>
-            
-            <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mt-4">
-              <p className="text-blue-800">
-                <strong>Pro tip:</strong> After completing this section, you'll have a clearer understanding
-                of which types of activities naturally energize you versus those that might drain your energy.
-              </p>
-            </div>
           </div>
-        </ContentSection>
-        
-        <ContentSection
-          title="Knowledge Check"
-          stepId="strengths-knowledge-check"
-          onNextClick={() => handleCompleteStep('strengths-knowledge-check')}
-        >
-          <KnowledgeCheck
-            id="strength-quiz-1"
-            question="Which of the following statements about personal strengths is true?"
-            options={[
-              {
-                id: "a",
-                text: "Everyone should try to develop the same set of strengths to be successful",
-                correct: false,
-                feedback: "Different people have different natural strength patterns. Success comes from leveraging your unique set of strengths."
-              },
-              {
-                id: "b",
-                text: "Your strengths are fixed at birth and cannot be developed over time",
-                correct: false,
-                feedback: "While you have natural tendencies, strengths can be developed and enhanced through practice and mindful effort."
-              },
-              {
-                id: "c",
-                text: "Understanding your unique strength pattern helps you align your efforts with your natural talents",
-                correct: true,
-                feedback: "Correct! Knowing your strengths helps you make choices that leverage your natural abilities."
-              },
-              {
-                id: "d",
-                text: "The best approach is to focus exclusively on improving your weaknesses",
-                correct: false,
-                feedback: "While addressing weaknesses can be important, research shows that people achieve more by leveraging and developing their natural strengths."
-              }
-            ]}
-            onComplete={(correct) => {
-              if (correct) {
-                handleCompleteStep('strengths-knowledge-check');
-              }
-            }}
-          />
-        </ContentSection>
-        
-        <ContentSection
-          title="Core Strengths Assessment"
-          description="Complete this assessment to identify your core strengths"
-          stepId="strengths-assessment"
-          estimatedTime={15}
-          onNextClick={() => handleCompleteStep('strengths-assessment')}
-        >
-          <div className="space-y-4">
-            <p>
-              The assessment below will help you identify your unique pattern of strengths.
-              Answer each question honestly based on what feels natural to you, not what
-              you think is the "right" answer.
+          
+          {/* Mobile-friendly vertical navigation preview */}
+          <div className="mt-8 mb-4">
+            <h3 className="text-lg font-medium mb-3">Mobile-Friendly Learning Journey</h3>
+            <p className="mb-4">
+              Our new vertical navigation works well on all devices, especially mobile. The sections are arranged in a clear, sequential order:
             </p>
             
-            <div className="bg-gray-100 p-6 rounded-lg mt-4">
-              <h3 className="text-lg font-medium mb-4">Sample Assessment Questions</h3>
-              <div className="space-y-6">
-                <div>
-                  <p className="font-medium mb-2">1. When faced with a new challenge, I typically:</p>
-                  <div className="space-y-1">
-                    <div className="flex items-center">
-                      <input type="radio" id="q1-a" name="q1" className="mr-2" />
-                      <label htmlFor="q1-a">Dive in and figure it out as I go</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q1-b" name="q1" className="mr-2" />
-                      <label htmlFor="q1-b">Create a detailed plan before starting</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q1-c" name="q1" className="mr-2" />
-                      <label htmlFor="q1-c">Seek others' perspectives and experiences</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q1-d" name="q1" className="mr-2" />
-                      <label htmlFor="q1-d">Research the topic thoroughly</label>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <p className="font-medium mb-2">2. I'm most energized when:</p>
-                  <div className="space-y-1">
-                    <div className="flex items-center">
-                      <input type="radio" id="q2-a" name="q2" className="mr-2" />
-                      <label htmlFor="q2-a">Working with a team to solve problems</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q2-b" name="q2" className="mr-2" />
-                      <label htmlFor="q2-b">Having time to think deeply and reflect</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q2-c" name="q2" className="mr-2" />
-                      <label htmlFor="q2-c">Being able to express my creativity</label>
-                    </div>
-                    <div className="flex items-center">
-                      <input type="radio" id="q2-d" name="q2" className="mr-2" />
-                      <label htmlFor="q2-d">Taking action and seeing immediate results</label>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-8 text-center">
-                <p className="text-gray-500 italic mb-4">This is a demo with sample questions. The full assessment contains 30 questions.</p>
-                <Button 
-                  onClick={() => handleCompleteStep('strengths-assessment')}
-                  className="px-6"
+            <div className="space-y-2 border p-4 rounded-md bg-gray-50">
+              {journeySections.map((section, index) => (
+                <Card 
+                  key={section.id}
+                  className={`p-3 flex items-center ${index === 0 ? 'bg-yellow-50 border-yellow-300' : 'bg-white'}`}
                 >
-                  Complete Assessment
-                </Button>
-              </div>
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 text-xs font-medium ${
+                    index === 0 ? 'bg-yellow-400 text-white' : 'bg-gray-200 text-gray-600'
+                  }`}>
+                    {section.id.replace('F', '')}
+                  </div>
+                  <span className={`font-medium ${index === 0 ? 'text-yellow-800' : 'text-gray-700'}`}>{section.title}</span>
+                </Card>
+              ))}
             </div>
           </div>
+          
+          <p className="mt-6">
+            Click the buttons below to explore other pages that use the new navigation system:
+          </p>
+          
+          <div className="flex flex-wrap gap-4 mt-6">
+            <Button onClick={() => navigate('/foundations')}>
+              Foundations
+            </Button>
+            <Button onClick={() => navigate('/learning-overview')}>
+              Learning Overview
+            </Button>
+            <Button onClick={() => navigate('/user-home')}>
+              Return to Dashboard
+            </Button>
+          </div>
         </ContentSection>
+        
+        <KnowledgeCheck
+          id="navigation-demo-check"
+          question="Which of the following is a feature of the new navigation system?"
+          options={[
+            {
+              id: "1",
+              text: "Automatic content generation with AI",
+              correct: false,
+              feedback: "The navigation system doesn't generate content automatically."
+            },
+            {
+              id: "2",
+              text: "Progress persistence using localStorage",
+              correct: true,
+              feedback: "Correct! The navigation system stores your progress in localStorage so you can resume where you left off."
+            },
+            {
+              id: "3",
+              text: "Payment processing capabilities",
+              correct: false,
+              feedback: "The navigation system doesn't handle payments."
+            },
+            {
+              id: "4",
+              text: "Automatic translation to multiple languages",
+              correct: false,
+              feedback: "The navigation system doesn't include automatic translation capabilities."
+            }
+          ]}
+          onComplete={(correct) => {
+            if (correct) {
+              setTimeout(() => navigate('/learning-overview'), 2000);
+            }
+          }}
+        />
       </div>
     </MainContainer>
   );
