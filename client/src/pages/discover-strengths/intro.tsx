@@ -20,14 +20,17 @@ export default function StrengthsIntro() {
         <h1 className="text-3xl font-bold text-purple-800 mb-4">Introduction to Strengths</h1>
         
         <p className="text-lg text-gray-700 mb-6">
-          Understanding your core strengths is the foundation of personal and professional growth. Everyone has natural talents that, when developed, can become powerful strengths.
+          Everyone has natural talents and abilities that, when identified and developed, 
+          can become powerful strengths. Understanding your unique strengths profile is the 
+          foundation for personal and professional growth.
         </p>
         
         <Card className="mb-8">
           <CardContent className="p-6">
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">The Four Quadrants of Strengths</h2>
             <p className="mb-6">
-              The AllStarTeams framework identifies four key quadrants of strengths that every person possesses in different proportions:
+              The All-Star Teams model identifies four key quadrants of strengths that every person 
+              possesses in different proportions:
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
@@ -53,7 +56,8 @@ export default function StrengthsIntro() {
             </div>
             
             <p>
-              Everyone has all four quadrants, but most people tend to have natural strengths in one or two areas. The Star Strengths Assessment will help you identify your unique profile.
+              Everyone has all four quadrants, but most people tend to have natural strengths in one or two areas. 
+              The Star Strengths Assessment will help you identify your unique profile.
             </p>
           </CardContent>
         </Card>
@@ -61,7 +65,8 @@ export default function StrengthsIntro() {
         <div className="bg-purple-50 border border-purple-100 rounded-lg p-6 mb-8">
           <h2 className="text-xl font-semibold text-purple-800 mb-3">What to Expect in the Assessment</h2>
           <p className="mb-4">
-            The assessment contains questions that will measure your tendencies across the four quadrants. There are no right or wrong answers - just answer honestly about your natural preferences.
+            The assessment contains questions that will measure your tendencies across the four quadrants. 
+            There are no right or wrong answers - just answer honestly about your natural preferences.
           </p>
           <ul className="space-y-2 mb-4">
             <li className="flex items-start">

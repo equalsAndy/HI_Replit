@@ -1,262 +1,251 @@
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect, useCallback } from 'react';
 
-// Define types for our navigation progress
+// Define the navigation structure types
 export interface NavigationStep {
   id: string;
-  label: string;
+  title: string;
   path: string;
-  estimatedTime?: number; // in minutes
-  completed?: boolean;
-  required?: boolean;
+  status?: StepStatus;
+  requiredSteps?: string[];
 }
 
 export interface NavigationSection {
   id: string;
   title: string;
-  description?: string;
   steps: NavigationStep[];
-  completed?: boolean;
-  expanded?: boolean;
 }
 
-export interface NavigationProgress {
-  currentStepId?: string;
-  lastVisitedAt?: number;
+// Define the step status types
+export type StepStatus = 'locked' | 'available' | 'current' | 'completed';
+
+// Define the progress type stored in localStorage
+export interface StepProgress {
   completedSteps: string[];
+  currentStepId?: string;
   expandedSections: string[];
-  sections: NavigationSection[];
+  lastVisited?: {
+    stepId: string;
+    timestamp: number;
+  };
 }
 
-// Local storage key
-const NAVIGATION_PROGRESS_KEY = 'app_navigation_progress';
+// Define the navigation sections with proper structure and step dependencies
+// These would follow the structure from the provided Excel spreadsheet
+export const NAVIGATION_SECTIONS: NavigationSection[] = [
+  {
+    id: 'intro',
+    title: '1. Introduction',
+    steps: [
+      {
+        id: 'intro-welcome',
+        title: 'Welcome',
+        path: '/intro/welcome',
+      },
+      {
+        id: 'intro-video',
+        title: 'Workshop Video',
+        path: '/intro/video',
+        requiredSteps: ['intro-welcome']
+      }
+    ]
+  },
+  {
+    id: 'strengths',
+    title: '2. Discover Your Strengths',
+    steps: [
+      {
+        id: 'strengths-intro',
+        title: 'Introduction',
+        path: '/discover-strengths/intro',
+        requiredSteps: ['intro-video']
+      },
+      {
+        id: 'strengths-assessment',
+        title: 'Core Strengths Assessment',
+        path: '/discover-strengths/assessment',
+        requiredSteps: ['strengths-intro']
+      },
+      {
+        id: 'strengths-review',
+        title: 'Review Your Star Profile',
+        path: '/discover-strengths/review',
+        requiredSteps: ['strengths-assessment']
+      }
+    ]
+  },
+  {
+    id: 'flow',
+    title: '3. Find Your Flow',
+    steps: [
+      {
+        id: 'flow-intro',
+        title: 'Understanding Flow States',
+        path: '/flow/intro',
+        requiredSteps: ['strengths-review']
+      },
+      {
+        id: 'flow-assessment',
+        title: 'Flow Assessment',
+        path: '/flow/assessment',
+        requiredSteps: ['flow-intro']
+      },
+      {
+        id: 'flow-reflect',
+        title: 'Reflect on Your Results',
+        path: '/flow/reflect',
+        requiredSteps: ['flow-assessment']
+      }
+    ]
+  },
+  {
+    id: 'potential',
+    title: '4. Visualize Your Potential',
+    steps: [
+      {
+        id: 'potential-intro',
+        title: 'Understanding Potential',
+        path: '/potential/intro',
+        requiredSteps: ['flow-reflect']
+      },
+      {
+        id: 'potential-future-self',
+        title: 'Your Future Self',
+        path: '/potential/future-self',
+        requiredSteps: ['potential-intro']
+      },
+      {
+        id: 'potential-recap',
+        title: 'Recap Your Insights',
+        path: '/potential/recap',
+        requiredSteps: ['potential-future-self']
+      }
+    ]
+  }
+];
 
-// Default time values in milliseconds
-const ONE_DAY = 24 * 60 * 60 * 1000;
+// The localStorage key for storing progress
+const PROGRESS_STORAGE_KEY = 'allStarTeams:navigationProgress';
 
 export function useNavigationProgress() {
-  const { toast } = useToast();
-  const [localProgress, setLocalProgress] = useState<NavigationProgress | null>(null);
-  
-  // Get user progress from the server
-  const { data: userData, isLoading: isUserDataLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
-    staleTime: Infinity,
+  // Initialize state with default values
+  const [progress, setProgress] = useState<StepProgress>({
+    completedSteps: [],
+    expandedSections: [],
   });
   
-  // Initialize from localStorage on first load
+  const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Load progress from localStorage on mount
   useEffect(() => {
-    const savedProgress = localStorage.getItem(NAVIGATION_PROGRESS_KEY);
-    if (savedProgress) {
-      try {
-        const parsed = JSON.parse(savedProgress);
-        setLocalProgress(parsed);
-      } catch (error) {
-        console.error('Error parsing navigation progress from localStorage:', error);
-        // If parsing fails, we'll initialize with default values
+    try {
+      const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+      if (savedProgress) {
+        setProgress(JSON.parse(savedProgress));
       }
+      setIsInitialized(true);
+    } catch (error) {
+      console.error('Error loading navigation progress:', error);
+      setIsInitialized(true);
     }
   }, []);
   
-  // Update progress on the server
-  const updateServerProgress = useMutation({
-    mutationFn: async (progress: number) => {
-      const res = await apiRequest('PUT', '/api/user/progress', { progress });
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-    },
-    onError: (error) => {
-      toast({
-        title: "Failed to update progress on server",
-        description: String(error),
-        variant: "destructive",
-      });
+  // Save progress to localStorage whenever it changes
+  useEffect(() => {
+    if (isInitialized) {
+      try {
+        localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify(progress));
+      } catch (error) {
+        console.error('Error saving navigation progress:', error);
+      }
     }
-  });
-  
-  // Save progress to localStorage
-  const saveProgressToLocalStorage = (progress: NavigationProgress) => {
-    try {
-      localStorage.setItem(NAVIGATION_PROGRESS_KEY, JSON.stringify(progress));
-      setLocalProgress(progress);
-    } catch (error) {
-      console.error('Error saving navigation progress to localStorage:', error);
-      toast({
-        title: "Failed to save progress locally",
-        description: "Your progress may not be saved between sessions.",
-        variant: "destructive",
-      });
-    }
-  };
-  
-  // Calculate overall progress percentage
-  const calculateOverallProgress = (): number => {
-    if (!localProgress?.sections) return 0;
-    
-    const allSteps = localProgress.sections.flatMap(section => section.steps);
-    const totalRequiredSteps = allSteps.filter(step => step.required !== false).length;
-    const completedRequiredSteps = localProgress.completedSteps.filter(stepId => 
-      allSteps.find(step => step.id === stepId && step.required !== false)
-    ).length;
-    
-    return totalRequiredSteps > 0 
-      ? Math.round((completedRequiredSteps / totalRequiredSteps) * 100)
-      : 0;
-  };
+  }, [progress, isInitialized]);
   
   // Mark a step as completed
-  const markStepCompleted = (stepId: string) => {
-    if (!localProgress) return;
-    
-    // Skip if already completed
-    if (localProgress.completedSteps.includes(stepId)) return;
-    
-    const newProgress = {
-      ...localProgress,
-      completedSteps: [...localProgress.completedSteps, stepId],
-      currentStepId: stepId,
-      lastVisitedAt: Date.now()
-    };
-    
-    saveProgressToLocalStorage(newProgress);
-    
-    // Update server progress
-    const progressPercentage = calculateOverallProgress();
-    updateServerProgress.mutate(progressPercentage);
-  };
-  
-  // Set current step
-  const setCurrentStep = (stepId: string) => {
-    if (!localProgress) return;
-    
-    const newProgress = {
-      ...localProgress,
-      currentStepId: stepId,
-      lastVisitedAt: Date.now()
-    };
-    
-    saveProgressToLocalStorage(newProgress);
-  };
-  
-  // Check if a step is accessible (can only access if previous steps are complete or it's already visited)
-  const isStepAccessible = (stepId: string): boolean => {
-    if (!localProgress) return false;
-    
-    // If the step is already completed, it's accessible
-    if (localProgress.completedSteps.includes(stepId)) return true;
-    
-    // Get all steps in sequential order
-    const allSteps = localProgress.sections.flatMap(section => section.steps);
-    const allStepIds = allSteps.map(step => step.id);
-    
-    // Find the index of the current step
-    const stepIndex = allStepIds.indexOf(stepId);
-    if (stepIndex === -1) return false; // Step not found
-    
-    // If it's the first step, it's always accessible
-    if (stepIndex === 0) return true;
-    
-    // Check if all previous steps are completed
-    for (let i = 0; i < stepIndex; i++) {
-      if (!localProgress.completedSteps.includes(allStepIds[i])) {
-        return false; // Found an incomplete previous step
-      }
-    }
-    
-    return true; // All previous steps are completed
-  };
-  
-  // Toggle section expansion
-  const toggleSectionExpanded = (sectionId: string) => {
-    if (!localProgress) return;
-    
-    const isCurrentlyExpanded = localProgress.expandedSections.includes(sectionId);
-    const newExpandedSections = isCurrentlyExpanded
-      ? localProgress.expandedSections.filter(id => id !== sectionId)
-      : [...localProgress.expandedSections, sectionId];
-    
-    const newProgress = {
-      ...localProgress,
-      expandedSections: newExpandedSections
-    };
-    
-    saveProgressToLocalStorage(newProgress);
-  };
-  
-  // Initialize or update navigation sections
-  const updateNavigationSections = (sections: NavigationSection[]) => {
-    // If we have existing progress, merge with new sections
-    if (localProgress) {
-      // Keep track of completed steps and expanded sections
-      const newProgress = {
-        ...localProgress,
-        sections: sections.map(section => ({
-          ...section,
-          expanded: localProgress.expandedSections.includes(section.id),
-          steps: section.steps.map(step => ({
-            ...step,
-            completed: localProgress.completedSteps.includes(step.id)
-          }))
-        }))
-      };
-      
-      saveProgressToLocalStorage(newProgress);
-    } else {
-      // Initialize with default values
-      const defaultProgress: NavigationProgress = {
-        completedSteps: [],
-        expandedSections: [sections[0]?.id].filter(Boolean), // Expand first section by default
-        sections: sections,
-        lastVisitedAt: Date.now()
-      };
-      
-      saveProgressToLocalStorage(defaultProgress);
-    }
-  };
-  
-  // Get last position for quick resume
-  const getLastPosition = () => {
-    if (!localProgress) return null;
-    
-    const { currentStepId, lastVisitedAt } = localProgress;
-    
-    // If last visit was more than a day ago, show quick resume
-    const shouldShowQuickResume = lastVisitedAt && 
-      (Date.now() - lastVisitedAt > ONE_DAY);
-    
-    if (currentStepId && shouldShowQuickResume) {
-      const allSteps = localProgress.sections.flatMap(section => section.steps);
-      const currentStep = allSteps.find(step => step.id === currentStepId);
-      
-      if (currentStep) {
+  const markStepCompleted = useCallback((stepId: string) => {
+    setProgress(prev => {
+      // Only add the step if it's not already in completedSteps
+      if (!prev.completedSteps.includes(stepId)) {
         return {
-          stepId: currentStepId,
-          path: currentStep.path,
-          label: currentStep.label,
-          lastVisitedAt
+          ...prev,
+          completedSteps: [...prev.completedSteps, stepId],
+          lastVisited: {
+            stepId,
+            timestamp: Date.now()
+          }
         };
       }
+      return prev;
+    });
+  }, []);
+  
+  // Reset all progress
+  const resetProgress = useCallback(() => {
+    setProgress({
+      completedSteps: [],
+      expandedSections: []
+    });
+  }, []);
+  
+  // Get the status of a specific step
+  const getStepStatus = useCallback((stepId: string): StepStatus => {
+    if (progress.completedSteps.includes(stepId)) {
+      return 'completed';
     }
     
-    return null;
-  };
+    if (progress.currentStepId === stepId) {
+      return 'current';
+    }
+    
+    // Check if all required steps are completed
+    const allSteps = getAllStepsFlat();
+    const step = allSteps.find(s => s.id === stepId);
+    
+    if (step?.requiredSteps) {
+      const allRequiredStepsCompleted = step.requiredSteps.every(
+        requiredId => progress.completedSteps.includes(requiredId)
+      );
+      
+      return allRequiredStepsCompleted ? 'available' : 'locked';
+    }
+    
+    // If this is the first step or has no dependencies, it's available
+    return 'available';
+  }, [progress.completedSteps, progress.currentStepId]);
+  
+  // Check if a step can be accessed
+  const canAccessStep = useCallback((stepId: string): boolean => {
+    const status = getStepStatus(stepId);
+    return status === 'completed' || status === 'current' || status === 'available';
+  }, [getStepStatus]);
+  
+  // Helper to get all steps as a flat array with status
+  const getAllSteps = useCallback(() => {
+    return NAVIGATION_SECTIONS.flatMap(section => 
+      section.steps.map(step => ({
+        ...step,
+        status: getStepStatus(step.id)
+      }))
+    );
+  }, [getStepStatus]);
+  
+  // Helper function to get all steps as a flat array without status
+  const getAllStepsFlat = useCallback(() => {
+    return NAVIGATION_SECTIONS.flatMap(section => section.steps);
+  }, []);
+  
+  // Get all navigation sections
+  const getNavigationSections = useCallback(() => {
+    return NAVIGATION_SECTIONS;
+  }, []);
   
   return {
-    progress: localProgress,
-    isLoading: isUserDataLoading || localProgress === null,
-    currentStepId: localProgress?.currentStepId,
-    completedSteps: localProgress?.completedSteps || [],
-    expandedSections: localProgress?.expandedSections || [],
+    progress,
     markStepCompleted,
-    setCurrentStep,
-    toggleSectionExpanded,
-    updateNavigationSections,
-    getLastPosition,
-    calculateOverallProgress,
-    isStepAccessible
+    resetProgress,
+    getStepStatus,
+    canAccessStep,
+    getAllSteps,
+    getNavigationSections,
+    isInitialized
   };
 }

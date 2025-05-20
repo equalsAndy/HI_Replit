@@ -1,97 +1,96 @@
-import { ReactNode } from 'react';
+import React, { ReactNode } from 'react';
+import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Clock, CheckCircle, BookOpen } from 'lucide-react';
-import { NextPrevButtons } from './NextPrevButtons';
-import { cn } from '@/lib/utils';
+import { Card } from '@/components/ui/card';
+import { CheckCircleIcon, ChevronRightIcon, TimerIcon } from 'lucide-react';
 
 interface ContentSectionProps {
+  children: ReactNode;
   title: string;
   description?: string;
   stepId: string;
-  estimatedTime?: number;
+  estimatedTime?: number; // In minutes
   required?: boolean;
-  children: ReactNode;
-  className?: string;
-  hideNavigation?: boolean;
   onNextClick?: () => void;
-  onPrevClick?: () => void;
-  showCompleteButton?: boolean;
-  onCompleteClick?: () => void;
+  onBackClick?: () => void;
+  showNextButton?: boolean;
+  showBackButton?: boolean;
+  nextButtonText?: string;
+  backButtonText?: string;
 }
 
-export function ContentSection({
+export default function ContentSection({
+  children,
   title,
   description,
   stepId,
   estimatedTime,
   required = true,
-  children,
-  className,
-  hideNavigation = false,
   onNextClick,
-  onPrevClick,
-  showCompleteButton = false,
-  onCompleteClick
+  onBackClick,
+  showNextButton = true,
+  showBackButton = false,
+  nextButtonText = 'Continue',
+  backButtonText = 'Back'
 }: ContentSectionProps) {
-  const { completedSteps, currentStepId } = useNavigationProgress();
-  const isCompleted = completedSteps.includes(stepId);
+  const { markStepCompleted } = useNavigationProgress();
+  
+  const handleNextClick = () => {
+    // Mark current step as completed when moving forward
+    markStepCompleted(stepId);
+    
+    // Call provided onNextClick handler if any
+    if (onNextClick) {
+      onNextClick();
+    }
+  };
   
   return (
-    <Card className={cn("mb-8", className)}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-xl flex items-center">
-              {title}
-              {isCompleted && (
-                <CheckCircle className="ml-2 h-5 w-5 text-green-500" />
-              )}
-            </CardTitle>
-            {description && (
-              <CardDescription className="mt-1">
-                {description}
-              </CardDescription>
-            )}
+    <div className="bg-white rounded-lg shadow-sm mb-8">
+      <div className="border-b border-gray-100 p-6">
+        <div className="flex justify-between items-center">
+          <div className="flex-1">
+            <h2 className="text-2xl font-semibold text-gray-800">{title}</h2>
+            {description && <p className="text-gray-600 mt-1">{description}</p>}
           </div>
           
-          <div className="flex flex-col items-end space-y-2">
-            {estimatedTime && (
-              <div className="flex items-center text-sm text-gray-500">
-                <Clock className="h-4 w-4 mr-1" />
-                <span>{estimatedTime} min</span>
-              </div>
-            )}
-            
-            {required ? (
-              <Badge variant="default" className="bg-indigo-100 text-indigo-800 hover:bg-indigo-200">
-                Required
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="text-gray-500">
-                Optional
-              </Badge>
-            )}
-          </div>
+          {estimatedTime && (
+            <div className="flex items-center text-sm text-gray-500">
+              <TimerIcon className="w-4 h-4 mr-1" />
+              <span>~{estimatedTime} min</span>
+            </div>
+          )}
         </div>
-      </CardHeader>
+      </div>
       
-      <CardContent className="prose prose-indigo max-w-none">
+      <div className="p-6">
         {children}
-      </CardContent>
+      </div>
       
-      {!hideNavigation && (
-        <CardFooter>
-          <NextPrevButtons 
-            onNext={onNextClick}
-            onPrev={onPrevClick}
-            onComplete={onCompleteClick}
-            showComplete={showCompleteButton}
-            completeLabel="Complete Section"
-          />
-        </CardFooter>
-      )}
-    </Card>
+      <div className="px-6 py-4 border-t border-gray-100 flex justify-between">
+        {showBackButton && (
+          <Button 
+            variant="outline" 
+            onClick={onBackClick} 
+            className="flex items-center"
+          >
+            <span className="mr-2">←</span>
+            {backButtonText}
+          </Button>
+        )}
+        
+        <div className="flex-1"></div>
+        
+        {showNextButton && (
+          <Button 
+            onClick={handleNextClick}
+            className="flex items-center gap-1"
+          >
+            {nextButtonText}
+            <ChevronRightIcon className="w-4 h-4" />
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

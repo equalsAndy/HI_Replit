@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import StepNavigation from "./StepNavigation";
 import Header from "./Header";
-import { Navigation } from "@/components/navigation/Navigation";
+import Navigation from "@/components/navigation/Navigation";
 import { useNavigationProgress } from "@/hooks/use-navigation-progress";
 
 interface MainContainerProps {
@@ -40,9 +40,9 @@ export default function MainContainer({
   });
   
   // If using modern navigation, use the new Navigation component
-  if (useModernNavigation) {
+  if (useModernNavigation && stepId) {
     return (
-      <Navigation currentStepId={stepId}>
+      <Navigation stepId={stepId}>
         <div className={className}>
           {children}
         </div>
