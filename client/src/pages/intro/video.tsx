@@ -1,76 +1,112 @@
-import React from 'react';
+import React, { useState } from 'react';
 import MainContainer from '@/components/layout/MainContainer';
-import { Button } from '@/components/ui/button';
-import { useLocation } from 'wouter';
-import { Card, CardContent } from '@/components/ui/card';
+import { ContentSection } from '@/components/navigation';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
+import { ArrowRightIcon, CheckCircleIcon } from 'lucide-react';
 
-export default function IntroVideo() {
-  const [_, navigate] = useLocation();
+export default function WorkshopVideo() {
   const { markStepCompleted } = useNavigationProgress();
+  const [videoWatched, setVideoWatched] = useState(false);
   
-  const handleComplete = () => {
-    markStepCompleted('1-1');
-    navigate('/discover-strengths/intro');
+  const handleCompleteStep = () => {
+    markStepCompleted('intro-video');
+  };
+  
+  // Simulate video watched state
+  const handleVideoEnd = () => {
+    setVideoWatched(true);
   };
   
   return (
-    <MainContainer stepId="1-1">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-800 mb-4">All-Star Teams Workshop Introduction</h1>
-        
-        <p className="text-lg text-gray-700 mb-6">
-          Welcome to the All-Star Teams workshop! Through this journey, you'll 
-          discover your unique strengths profile and learn how to leverage it in your 
-          professional life.
-        </p>
-        
-        <Card className="mb-8">
-          <CardContent className="p-0 overflow-hidden">
-            <div className="aspect-w-16 aspect-h-9">
-              <iframe 
-                src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
-                title="AllStarTeams Workshop Introduction"
-                className="w-full h-full" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
+    <MainContainer 
+      stepId="intro-video" 
+      useModernNavigation={true}
+      showStepNavigation={true}
+    >
+      <div className="max-w-3xl mx-auto">
+        <ContentSection
+          title="Workshop Introduction Video"
+          description="Learn what to expect from this workshop"
+          stepId="intro-video"
+          estimatedTime={7}
+          onNextClick={handleCompleteStep}
+          showNextButton={videoWatched}
+        >
+          <div className="space-y-6">
+            <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden relative">
+              {/* Placeholder for video - in production this would be a real embedded video */}
+              <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
+                <p className="text-gray-500 mb-4">Workshop Introduction Video</p>
+                <p className="text-sm text-gray-400 mb-8">
+                  This is where the actual workshop introduction video would be embedded.
+                  The video explains the workshop structure and what participants will learn.
+                </p>
+                
+                {/* Simulate video player controls */}
+                <div className="mt-auto w-full flex items-center justify-between pb-4">
+                  <div className="bg-gray-200 h-1 flex-1 rounded-full overflow-hidden">
+                    <div className={`bg-blue-500 h-full rounded-full ${videoWatched ? 'w-full' : 'w-0'}`}></div>
+                  </div>
+                  <Button
+                    onClick={handleVideoEnd}
+                    size="sm"
+                    variant={videoWatched ? "outline" : "default"}
+                    className="ml-4"
+                  >
+                    {videoWatched ? (
+                      <>
+                        <CheckCircleIcon className="h-4 w-4 mr-1 text-green-500" />
+                        Watched
+                      </>
+                    ) : (
+                      "Watch Video"
+                    )}
+                  </Button>
+                </div>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-        
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
-        
-        <ul className="space-y-3 mb-8 list-disc pl-5">
-          <li className="text-gray-700">
-            <span className="font-medium">Complete your profile information</span>
-          </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Take the Star Strengths Assessment</span> (10-15 minutes)
-          </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Review your Star Profile</span> and strengths
-          </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Explore your flow attributes</span>
-          </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Visualize your future potential</span>
-          </li>
-          <li className="text-gray-700">
-            <span className="font-medium">Integrate insights</span> into your professional life
-          </li>
-        </ul>
-        
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleComplete}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            size="lg"
-          >
-            Continue to Strengths Introduction
-          </Button>
-        </div>
+            
+            <h3 className="text-xl font-semibold mt-8">Key Points from the Video</h3>
+            <ul className="list-disc pl-6 space-y-2">
+              <li>This workshop will help you understand your unique pattern of strengths</li>
+              <li>You'll discover how you enter flow states for optimal performance</li>
+              <li>Create a vision of your future potential and impact</li>
+              <li>All insights will be captured in your personalized Star Card</li>
+              <li>The tools and concepts can be applied to both personal growth and team development</li>
+            </ul>
+            
+            {videoWatched ? (
+              <div className="bg-green-50 p-5 rounded-lg border border-green-100 mt-6">
+                <h4 className="font-medium text-green-800 flex items-center">
+                  <CheckCircleIcon className="h-5 w-5 mr-2" />
+                  Video Completed
+                </h4>
+                <p className="text-green-700 mt-2 mb-4">
+                  Great job watching the introduction video! You're now ready to move on to 
+                  discovering your strengths.
+                </p>
+                <Button 
+                  onClick={handleCompleteStep}
+                  asChild
+                >
+                  <Link to="/discover-strengths/intro">
+                    Continue to Discover Your Strengths <ArrowRightIcon className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-blue-50 p-5 rounded-lg border border-blue-100 mt-6">
+                <h4 className="font-medium text-blue-800">Before You Continue</h4>
+                <p className="text-blue-700">
+                  Please watch the video above for an overview of the workshop. Once you've 
+                  watched the video, you'll be able to continue to the next module.
+                </p>
+              </div>
+            )}
+          </div>
+        </ContentSection>
       </div>
     </MainContainer>
   );

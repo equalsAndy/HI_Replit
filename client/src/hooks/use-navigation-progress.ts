@@ -212,11 +212,15 @@ export function useNavigationProgress() {
     return 'available';
   }, [progress.completedSteps, progress.currentStepId]);
   
-  // Check if a step can be accessed
+  // Check if a step can be accessed (temporarily making all steps accessible)
   const canAccessStep = useCallback((stepId: string): boolean => {
-    const status = getStepStatus(stepId);
-    return status === 'completed' || status === 'current' || status === 'available';
-  }, [getStepStatus]);
+    // For now, make all steps accessible for development
+    return true;
+    
+    // Original logic (commented out)
+    // const status = getStepStatus(stepId);
+    // return status === 'completed' || status === 'current' || status === 'available';
+  }, []);
   
   // Helper to get all steps as a flat array with status
   const getAllSteps = useCallback(() => {
