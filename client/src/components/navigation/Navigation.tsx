@@ -20,7 +20,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
-  // Define navigation structure based on the spreadsheet
+  // Define navigation structure based on the exact spreadsheet content and paths
   const journeySections = [
     { 
       id: '1', 
@@ -30,7 +30,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       completedSteps: 0,
       icon: 'BookOpen',
       steps: [
-        { id: '1-1', label: 'Introduction video', path: '/intro/video', type: 'Learning' },
+        { id: '1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
       ]
     },
     { 
@@ -57,8 +57,8 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       steps: [
         { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
         { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-        { id: '3-3', label: 'Rounding out', path: '/rounding-out', type: 'Writing' },
-        { id: '3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
+        { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
+        { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity' },
       ]
     },
     { 
