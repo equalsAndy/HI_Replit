@@ -6,72 +6,50 @@ import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the learning journey sections with nested steps
+// Define the learning journey sections based on the provided table
 const defaultSections = [
   { 
-    id: 'F1', 
-    title: 'Star Self-Assessment', 
-    path: '/assessment',
+    id: 'M1', 
+    title: 'All Star Teams Introduction', 
+    path: '/intro',
     steps: [
-      { id: 'F1-1', label: 'About the Assessment', path: '/assessment/about' },
-      { id: 'F1-2', label: 'Take the Assessment', path: '/assessment' },
-      { id: 'F1-3', label: 'Review Results', path: '/assessment/results' },
+      { id: 'M1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
     ]
   },
   { 
-    id: 'F2', 
-    title: 'Core Strengths', 
-    path: '/core-strengths',
+    id: 'M2', 
+    title: 'Discover your Strengths', 
+    path: '/discover-strengths',
     steps: [
-      { id: 'F2-1', label: 'Understand Your Strengths', path: '/core-strengths' },
-      { id: 'F2-2', label: 'Strengths Reflection', path: '/strength-reflection' },
+      { id: 'M2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
+      { id: 'M2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
+      { id: 'M2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
+      { id: 'M2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
     ]
   },
   { 
-    id: 'F3', 
-    title: 'Flow State', 
+    id: 'M3', 
+    title: 'Find your Flow', 
     path: '/find-your-flow',
     steps: [
-      { id: 'F3-1', label: 'Find Your Flow', path: '/find-your-flow' },
-      { id: 'F3-2', label: 'Flow Attributes', path: '/flow-attributes' },
+      { id: 'M3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
+      { id: 'M3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+      { id: 'M3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
+      { id: 'M3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
     ]
   },
   { 
-    id: 'F4', 
-    title: 'Rounding Out', 
-    path: '/rounding-out',
+    id: 'M4', 
+    title: 'Visualize your Potential', 
+    path: '/visualize-potential',
     steps: [
-      { id: 'F4-1', label: 'Balance Your Strengths', path: '/rounding-out' },
-      { id: 'F4-2', label: 'Team Integration', path: '/team-integration' },
+      { id: 'M4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
+      { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+      { id: 'M4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
+      { id: 'M4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
+      { id: 'M4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
     ]
-  },
-  { 
-    id: 'F5', 
-    title: 'Visualizing Potential', 
-    path: '/visualize-yourself',
-    steps: [
-      { id: 'F5-1', label: 'Visualization Exercise', path: '/visualize-yourself' },
-      { id: 'F5-2', label: 'Future Possibilities', path: '/future-possibilities' },
-    ]
-  },
-  { 
-    id: 'F6', 
-    title: 'Ladder of Well-Being', 
-    path: '/well-being',
-    steps: [
-      { id: 'F6-1', label: 'Well-Being Introduction', path: '/well-being' },
-      { id: 'F6-2', label: 'Your Well-Being Plan', path: '/well-being-plan' },
-    ]
-  },
-  { 
-    id: 'F7', 
-    title: 'Future Self', 
-    path: '/future-self',
-    steps: [
-      { id: 'F7-1', label: 'Envisioning Your Future', path: '/future-self' },
-      { id: 'F7-2', label: 'Action Planning', path: '/action-planning' },
-    ]
-  },
+  }
 ];
 
 interface Section {

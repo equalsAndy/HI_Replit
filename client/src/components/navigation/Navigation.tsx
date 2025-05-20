@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from 'react';
+import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { Book, Star, PieChart, Target } from 'lucide-react';
 import { useApplication } from '@/hooks/use-application';
@@ -20,177 +20,66 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
-  // Define navigation structure based on the image provided - these will be our primary sections
+  // Define navigation structure based on the provided table
   const journeySections = [
     { 
-      id: 'F1', 
-      title: 'Star Self-Assessment', 
-      path: '/assessment',
+      id: 'M1', 
+      title: 'All Star Teams Introduction', 
+      path: '/intro',
       steps: [
-        { id: 'F1-1', label: 'About the Assessment', path: '/assessment/about' },
-        { id: 'F1-2', label: 'Take the Assessment', path: '/assessment' },
-        { id: 'F1-3', label: 'Review Results', path: '/assessment/results' },
+        { id: 'M1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
       ]
     },
     { 
-      id: 'F2', 
-      title: 'Core Strengths', 
-      path: '/core-strengths',
+      id: 'M2', 
+      title: 'Discover your Strengths', 
+      path: '/discover-strengths',
       steps: [
-        { id: 'F2-1', label: 'Understand Your Strengths', path: '/core-strengths' },
-        { id: 'F2-2', label: 'Strengths Reflection', path: '/strength-reflection' },
+        { id: 'M2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
+        { id: 'M2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
+        { id: 'M2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
+        { id: 'M2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
       ]
     },
     { 
-      id: 'F3', 
-      title: 'Flow State', 
+      id: 'M3', 
+      title: 'Find your Flow', 
       path: '/find-your-flow',
       steps: [
-        { id: 'F3-1', label: 'Find Your Flow', path: '/find-your-flow' },
-        { id: 'F3-2', label: 'Flow Attributes', path: '/flow-attributes' },
+        { id: 'M3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
+        { id: 'M3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+        { id: 'M3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
+        { id: 'M3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
       ]
     },
     { 
-      id: 'F4', 
-      title: 'Rounding Out', 
-      path: '/rounding-out',
+      id: 'M4', 
+      title: 'Visualize your Potential', 
+      path: '/visualize-potential',
       steps: [
-        { id: 'F4-1', label: 'Balance Your Strengths', path: '/rounding-out' },
-        { id: 'F4-2', label: 'Team Integration', path: '/team-integration' },
+        { id: 'M4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
+        { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+        { id: 'M4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
+        { id: 'M4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
+        { id: 'M4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
       ]
-    },
-    { 
-      id: 'F5', 
-      title: 'Visualizing Potential', 
-      path: '/visualize-yourself',
-      steps: [
-        { id: 'F5-1', label: 'Visualization Exercise', path: '/visualize-yourself' },
-        { id: 'F5-2', label: 'Future Possibilities', path: '/future-possibilities' },
-      ]
-    },
-    { 
-      id: 'F6', 
-      title: 'Ladder of Well-Being', 
-      path: '/well-being',
-      steps: [
-        { id: 'F6-1', label: 'Well-Being Introduction', path: '/well-being' },
-        { id: 'F6-2', label: 'Your Well-Being Plan', path: '/well-being-plan' },
-      ]
-    },
-    { 
-      id: 'F7', 
-      title: 'Future Self', 
-      path: '/future-self',
-      steps: [
-        { id: 'F7-1', label: 'Envisioning Your Future', path: '/future-self' },
-        { id: 'F7-2', label: 'Action Planning', path: '/action-planning' },
-      ]
-    },
+    }
   ];
   
-  // Define our navigation structure based on the current application
+  // Use a ref to track if we've initialized the navigation structure
+  const hasInitialized = useRef(false);
+  
+  // Initialize the navigation structure only once
   useEffect(() => {
-    // Define AllStarTeams navigation
-    const allStarTeamsNavigation: NavigationSection[] = [
-      {
-        id: 'foundations',
-        title: 'Foundations',
-        steps: [
-          { id: 'A1', label: 'Welcome', path: '/foundations', estimatedTime: 5, required: true },
-          { id: 'A2', label: 'Your Learning Journey', path: '/learning-overview', estimatedTime: 5, required: true },
-          { id: 'A3', label: 'Understanding Strengths', path: '/strength-model', estimatedTime: 10, required: true },
-        ]
-      },
-      {
-        id: 'core-strengths',
-        title: 'Reflect On Your Strengths',
-        steps: [
-          { id: 'B1', label: 'Core Strengths Overview', path: '/core-strengths', estimatedTime: 5, required: true },
-          { id: 'B2', label: 'Strength Reflection', path: '/strength-reflection', estimatedTime: 15, required: true },
-          { id: 'B3', label: 'Knowledge Check', path: '/strength-check', estimatedTime: 3, required: true },
-        ]
-      },
-      {
-        id: 'flow-assessment',
-        title: 'Identify Your Flow',
-        steps: [
-          { id: 'C1', label: 'Flow Assessment', path: '/flow-assessment', estimatedTime: 5, required: true },
-          { id: 'C2', label: 'Find Your Flow', path: '/find-your-flow', estimatedTime: 10, required: true },
-          { id: 'C3', label: 'Flow Attributes', path: '/flow-attributes', estimatedTime: 5, required: true },
-        ]
-      },
-      {
-        id: 'rounding-out',
-        title: 'Rounding Out',
-        steps: [
-          { id: 'D1', label: 'Balance Your Strengths', path: '/rounding-out', estimatedTime: 10, required: true },
-          { id: 'D2', label: 'Team Integration', path: '/team-integration', estimatedTime: 10, required: false },
-          { id: 'D3', label: 'Practice Scenarios', path: '/practice-scenarios', estimatedTime: 15, required: false },
-        ]
-      },
-      {
-        id: 'completion',
-        title: 'Complete Your Star Card',
-        steps: [
-          { id: 'E1', label: 'Star Card Overview', path: '/star-card-overview', estimatedTime: 5, required: true },
-          { id: 'E2', label: 'Your Star Card', path: '/report', estimatedTime: 10, required: true },
-        ]
-      }
-    ];
+    // Skip if we've already initialized
+    if (hasInitialized.current) return;
     
-    // Define Imaginal Agility navigation
-    const imaginalAgilityNavigation: NavigationSection[] = [
-      {
-        id: 'foundations',
-        title: 'Imagination Foundations',
-        steps: [
-          { id: 'A1', label: 'Welcome', path: '/foundations', estimatedTime: 5, required: true },
-          { id: 'A2', label: 'Your Learning Journey', path: '/learning-overview', estimatedTime: 5, required: true },
-          { id: 'A3', label: 'Understanding Imagination', path: '/imagination-model', estimatedTime: 10, required: true },
-        ]
-      },
-      {
-        id: 'assessment',
-        title: 'Imagination Assessment',
-        steps: [
-          { id: 'B1', label: 'Assessment Overview', path: '/imagination-assessment', estimatedTime: 5, required: true },
-          { id: 'B2', label: 'Complete Assessment', path: '/imagination-questionnaire', estimatedTime: 15, required: true },
-          { id: 'B3', label: 'Knowledge Check', path: '/imagination-check', estimatedTime: 3, required: true },
-        ]
-      },
-      {
-        id: 'agility',
-        title: 'Agility Spectrum',
-        steps: [
-          { id: 'C1', label: 'Understanding Agility', path: '/agility-spectrum', estimatedTime: 10, required: true },
-          { id: 'C2', label: 'Your Agility Profile', path: '/agility-profile', estimatedTime: 10, required: true },
-        ]
-      },
-      {
-        id: 'integration',
-        title: 'Creative Integration',
-        steps: [
-          { id: 'D1', label: 'Integration Approaches', path: '/creative-integration', estimatedTime: 10, required: true },
-          { id: 'D2', label: 'Practical Applications', path: '/practical-applications', estimatedTime: 15, required: false },
-        ]
-      },
-      {
-        id: 'completion',
-        title: 'Your Agility Profile',
-        steps: [
-          { id: 'E1', label: 'Profile Overview', path: '/profile-overview', estimatedTime: 5, required: true },
-          { id: 'E2', label: 'Your Profile', path: '/agility-report', estimatedTime: 10, required: true },
-        ]
-      }
-    ];
+    // Mark as initialized
+    hasInitialized.current = true;
     
-    // Update navigation based on current app
-    const navigationSections = currentApp === 'allstarteams' 
-      ? allStarTeamsNavigation 
-      : imaginalAgilityNavigation;
-    
-    updateNavigationSections(navigationSections);
-  }, [currentApp, updateNavigationSections]);
+    // Use the journeySections we defined above 
+    updateNavigationSections(journeySections);
+  }, [updateNavigationSections]);
   
   // Set current step based on props
   useEffect(() => {
