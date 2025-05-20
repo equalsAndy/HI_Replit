@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
+import UserHome2 from "./pages/user-home2";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -129,7 +130,9 @@ function Router() {
           <Route path="/visualize-yourself" component={VisualizeYourself} />
           <Route path="/navigation-demo" component={NavigationDemo} />
           <Route path="/learning-overview" component={LearningOverview} />
-          <Route path="/user-home2" component={() => import("@/pages/user-home2").then(module => <module.default />)} />
+          <Route path="/user-home2" component={() => {
+            return <UserHome2 />;
+          }} />
           
           {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />

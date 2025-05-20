@@ -420,6 +420,12 @@ export default function UserHome() {
                     <Button
                       variant="default"
                       className={appStyles.primaryBgColor}
+                      onClick={() => navigate('/user-home2')}
+                    >
+                      Try New Navigation
+                    </Button>
+                    <Button
+                      variant="outline"
                       onClick={() => setExpandedSection(null)}
                     >
                       Continue
