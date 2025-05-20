@@ -563,7 +563,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(schema.users)
-      .where(eq(schema.users.username.substring(0, 4), 'user'));
+      .where(eq(schema.users.username.like('user%'), true));
   }
 
   async getQuestions(): Promise<Question[]> {
