@@ -20,70 +20,60 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
-  // Define navigation structure based on the provided image and table content
+  // Define navigation structure based on the spreadsheet
   const journeySections = [
     { 
       id: '1', 
-      title: 'Foundations', 
-      path: '/foundations',
-      totalSteps: 3,
+      title: 'All star teams Introduction', 
+      path: '/intro',
+      totalSteps: 1,
       completedSteps: 0,
       icon: 'BookOpen',
       steps: [
-        { id: '1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
-        { id: '1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
-        { id: '1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
+        { id: '1-1', label: 'Introduction video', path: '/intro/video', type: 'Learning' },
       ]
     },
     { 
       id: '2', 
-      title: 'Reflect On Your Strengths', 
-      path: '/core-strengths',
-      totalSteps: 3,
+      title: 'Discover your Strengths', 
+      path: '/discover-strengths',
+      totalSteps: 4,
       completedSteps: 0,
       icon: 'Star',
       steps: [
-        { id: '2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
-        { id: '2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
-        { id: '2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
+        { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
+        { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
+        { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
+        { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
       ]
     },
     { 
       id: '3', 
-      title: 'Identify Your Flow', 
-      path: '/flow-assessment',
-      totalSteps: 3,
+      title: 'Find your Flow', 
+      path: '/find-your-flow',
+      totalSteps: 4,
       completedSteps: 0,
       icon: 'Clock',
       steps: [
-        { id: '3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-        { id: '3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
-        { id: '3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
+        { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
+        { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+        { id: '3-3', label: 'Rounding out', path: '/rounding-out', type: 'Writing' },
+        { id: '3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
       ]
     },
     { 
       id: '4', 
-      title: 'Rounding Out', 
-      path: '/rounding-out',
-      totalSteps: 3,
+      title: 'Visualize your Potential', 
+      path: '/visualize-potential',
+      totalSteps: 5,
       completedSteps: 0,
       icon: 'Target',
       steps: [
-        { id: '4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
-        { id: '4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
-        { id: '4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
-      ]
-    },
-    { 
-      id: '5', 
-      title: 'Complete Your Star Card', 
-      path: '/star-card-overview',
-      totalSteps: 2,
-      completedSteps: 0,
-      icon: 'CheckCircle',
-      steps: [
-        { id: '5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
-        { id: '5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
+        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
+        { id: '4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
+        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
+        { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
       ]
     }
   ];

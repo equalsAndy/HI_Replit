@@ -15,70 +15,60 @@ import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the learning journey sections based on the provided image and table content
+// Define navigation structure based on the spreadsheet
 const defaultSections = [
   { 
     id: '1', 
-    title: 'Foundations', 
-    path: '/foundations',
-    totalSteps: 3,
+    title: 'All star teams Introduction', 
+    path: '/intro',
+    totalSteps: 1,
     completedSteps: 0,
     icon: 'BookOpen',
     steps: [
-      { id: '1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
-      { id: '1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
-      { id: '1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
+      { id: '1-1', label: 'Introduction video', path: '/intro/video', type: 'Learning' },
     ]
   },
   { 
     id: '2', 
-    title: 'Reflect On Your Strengths', 
-    path: '/core-strengths',
-    totalSteps: 3,
+    title: 'Discover your Strengths', 
+    path: '/discover-strengths',
+    totalSteps: 4,
     completedSteps: 0,
     icon: 'Star',
     steps: [
-      { id: '2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
-      { id: '2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
-      { id: '2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
+      { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
+      { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
+      { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
+      { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
     ]
   },
   { 
     id: '3', 
-    title: 'Identify Your Flow', 
-    path: '/flow-assessment',
-    totalSteps: 3,
+    title: 'Find your Flow', 
+    path: '/find-your-flow',
+    totalSteps: 4,
     completedSteps: 0,
     icon: 'Clock',
     steps: [
-      { id: '3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-      { id: '3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
-      { id: '3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
+      { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
+      { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+      { id: '3-3', label: 'Rounding out', path: '/rounding-out', type: 'Writing' },
+      { id: '3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
     ]
   },
   { 
     id: '4', 
-    title: 'Rounding Out', 
-    path: '/rounding-out',
-    totalSteps: 3,
+    title: 'Visualize your Potential', 
+    path: '/visualize-potential',
+    totalSteps: 5,
     completedSteps: 0,
     icon: 'Target',
     steps: [
-      { id: '4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
-      { id: '4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
-      { id: '4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
-    ]
-  },
-  { 
-    id: '5', 
-    title: 'Complete Your Star Card', 
-    path: '/star-card-overview',
-    totalSteps: 2,
-    completedSteps: 0,
-    icon: 'CheckCircle',
-    steps: [
-      { id: '5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
-      { id: '5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
+      { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
+      { id: '4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+      { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
+      { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
+      { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
     ]
   }
 ];
@@ -176,7 +166,87 @@ export function MobileNavigation({
               </div>
             </div>
             
-            {/* We'll remove the dropdown steps as per the screenshot style */}
+            {/* Steps within the section */}
+            {isExpanded && section.steps && (
+              <div className="pl-8 pr-3 py-2 space-y-2 mt-1 border border-gray-100 rounded-md bg-gray-50">
+                {section.steps.map((step) => {
+                  const isStepActive = currentSectionId === step.id;
+                  const isStepCompleted = completedSteps.includes(step.id);
+                  const isAccessible = isStepAccessible(step.id);
+                  
+                  return (
+                    <div 
+                      key={step.id}
+                      className={cn(
+                        "p-2 rounded-md transition-colors",
+                        isStepActive 
+                          ? "bg-yellow-100 cursor-pointer" 
+                          : isStepCompleted 
+                            ? "bg-green-50 cursor-pointer" 
+                            : isAccessible
+                              ? "bg-white hover:bg-gray-100 cursor-pointer"
+                              : "bg-gray-50 opacity-75 cursor-not-allowed"
+                      )}
+                      onClick={() => isAccessible ? navigate(step.path) : null}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {!isAccessible && !isStepCompleted ? (
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs bg-gray-300 text-gray-500">
+                              <Lock className="h-3 w-3" />
+                            </div>
+                          ) : (
+                            <div className={cn(
+                              "w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs",
+                              isStepActive 
+                                ? "bg-yellow-400 text-white" 
+                                : isStepCompleted 
+                                  ? "bg-green-500 text-white" 
+                                  : "bg-gray-200 text-gray-600"
+                            )}>
+                              {isStepCompleted ? <Check className="h-3 w-3" /> : step.id.split('-')[1]}
+                            </div>
+                          )}
+                          <span className={cn(
+                            "text-sm",
+                            isStepActive 
+                              ? "font-medium text-yellow-800" 
+                              : isStepCompleted 
+                                ? "text-green-700" 
+                                : !isAccessible
+                                  ? "text-gray-500"
+                                  : "text-gray-700"
+                          )}>
+                            {step.label}
+                          </span>
+                        </div>
+                        
+                        {step.type && (
+                          <span className={cn(
+                            "text-xs px-2 py-1 rounded-full",
+                            step.type === 'Learning' 
+                              ? "bg-blue-50 text-blue-700" 
+                              : step.type === 'Activity' 
+                                ? "bg-purple-50 text-purple-700"
+                                : step.type === 'Writing'
+                                  ? "bg-teal-50 text-teal-700"
+                                  : "bg-gray-50 text-gray-700"
+                          )}>
+                            {step.type}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {!isAccessible && !isStepCompleted && (
+                        <div className="text-xs text-gray-500 mt-1 pl-7">
+                          Complete previous steps first
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
