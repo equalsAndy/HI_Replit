@@ -12,7 +12,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Link } from 'wouter';
 import { WellbeingLadder } from '@/components/visualization/WellbeingLadder';
 import { BookOpen, Lightbulb, PenLine, ChevronDown, ChevronUp, Search, X, Image, Upload, Save, SplitSquareVertical } from 'lucide-react';
-import { searchUnsplash, searchPexels, searchImages } from '@/services/api-services';
+import { searchUnsplash, searchImages } from '@/services/api-services';
 
 // Define interface for selected image
 interface SelectedImage {
@@ -237,32 +237,32 @@ export default function VisualizeYourself() {
       return;
     }
     
+    // If Pexels is selected, show "Coming Soon" message
+    if (imageSource === 'pexels') {
+      toast({
+        title: "Pexels Coming Soon",
+        description: "Pexels integration is coming soon. Please use Unsplash for now.",
+        variant: "default"
+      });
+      setSearchResults([]);
+      return;
+    }
+    
     setIsSearching(true);
     setSearchResults([]);
     
     try {
-      // Search across both APIs simultaneously
+      // Search using Unsplash only
       const results = await searchImages(query, 15);
       
-      // Set results based on selected source
-      if (imageSource === 'unsplash') {
+      // Set results based on selected source - always use Unsplash
+      if (imageSource === 'unsplash' || imageSource === 'all') {
         console.log('Setting Unsplash results:', results.unsplash.length);
         setSearchResults(results.unsplash);
-      } else if (imageSource === 'pexels') {
-        console.log('Setting Pexels results:', results.pexels.length);
-        setSearchResults(results.pexels);
-      } else if (imageSource === 'all') {
-        // Show results from the active source tab
-        console.log('Setting All Sources results for', activeSource, 
-          activeSource === 'unsplash' ? results.unsplash.length : results.pexels.length);
-        setSearchResults(activeSource === 'unsplash' ? results.unsplash : results.pexels);
       }
       
       // If no results were found, show a message
-      if ((imageSource === 'unsplash' && results.unsplash.length === 0) || 
-          (imageSource === 'pexels' && results.pexels.length === 0) ||
-          (imageSource === 'all' && activeSource === 'unsplash' && results.unsplash.length === 0) ||
-          (imageSource === 'all' && activeSource === 'pexels' && results.pexels.length === 0)) {
+      if (results.unsplash.length === 0) {
         toast({
           title: "No images found",
           description: `No images found for "${searchQuery}". Try a different search term.`,
@@ -293,7 +293,7 @@ export default function VisualizeYourself() {
       return;
     }
     
-    // Check for duplicates - both Unsplash and Pexels use 'id' field
+    // Check for duplicates
     const imageExists = selectedImages.some(img => img.id === image.id);
     
     if (imageExists) {
@@ -305,53 +305,37 @@ export default function VisualizeYourself() {
       return;
     }
     
-    let newImage: SelectedImage;
-    
-    if (imageSource === 'unsplash' || (imageSource === 'all' && activeSource === 'unsplash')) {
-      // Handle Unsplash image format
-      console.log('Selecting Unsplash image:', image);
-      newImage = {
-        id: image.id,
-        url: image.urls.regular,
-        source: 'unsplash',
-        searchTerm: searchQuery, // Save the search term used to find this image
-        credit: {
-          photographer: image.user.name,
-          photographerUrl: image.user.links.html,
-          sourceUrl: image.links.html
-        }
-      };
-      
-      setSelectedImages(prev => [...prev, newImage]);
-      
+    // For Pexels (which is disabled), show coming soon message
+    if (imageSource === 'pexels' || (imageSource === 'all' && activeSource === 'pexels')) {
       toast({
-        title: "Image selected",
-        description: "The image has been added to your collection.",
+        title: "Pexels Coming Soon",
+        description: "Pexels integration is coming soon. Please use Unsplash for now.",
         variant: "default"
       });
-    } else if (imageSource === 'pexels' || (imageSource === 'all' && activeSource === 'pexels')) {
-      // Handle Pexels image format
-      console.log('Selecting Pexels image:', image);
-      newImage = {
-        id: String(image.id), // Ensure id is a string for consistency
-        url: image.src?.large || image.src?.medium || image.src?.large2x || image.src?.original,
-        source: 'pexels',
-        searchTerm: searchQuery, // Save the search term used to find this image
-        credit: {
-          photographer: image.photographer,
-          photographerUrl: image.photographer_url,
-          sourceUrl: image.url
-        }
-      };
-      
-      setSelectedImages(prev => [...prev, newImage]);
-      
-      toast({
-        title: "Image selected",
-        description: "The image has been added to your collection.",
-        variant: "default"
-      });
+      return;
     }
+    
+    // Handle Unsplash image format
+    console.log('Selecting Unsplash image:', image);
+    const newImage: SelectedImage = {
+      id: image.id,
+      url: image.urls.regular,
+      source: 'unsplash',
+      searchTerm: searchQuery, // Save the search term used to find this image
+      credit: {
+        photographer: image.user.name,
+        photographerUrl: image.user.links.html,
+        sourceUrl: image.links.html
+      }
+    };
+    
+    setSelectedImages(prev => [...prev, newImage]);
+    
+    toast({
+      title: "Image selected",
+      description: "The image has been added to your collection.",
+      variant: "default"
+    });
   };
   
   // Save selected images to user profile
