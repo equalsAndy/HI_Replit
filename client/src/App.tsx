@@ -107,6 +107,11 @@ function Router() {
               </div>
             </div>;
           }} />
+          {/* Main learning routes */}
+          <Route path="/intro/video" component={() => import("@/pages/intro/video").then(module => module.default)} />
+          <Route path="/discover-strengths/intro" component={() => import("@/pages/discover-strengths/intro").then(module => module.default)} />
+
+          {/* Existing routes */}
           <Route path="/foundations" component={Foundations} />
           <Route path="/assessment" component={Assessment} />
           <Route path="/report" component={Report} />

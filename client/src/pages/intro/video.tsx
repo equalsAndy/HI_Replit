@@ -1,21 +1,21 @@
 import React from 'react';
-import { MainContainer } from '@/components/layout/MainContainer';
+import MainContainer from '@/components/layout/MainContainer';
 import { Button } from '@/components/ui/button';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { Card, CardContent } from '@/components/ui/card';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 export default function IntroductionVideo() {
-  const navigate = useNavigate()[1];
-  const { markStepComplete } = useNavigationProgress();
+  const [_, navigate] = useLocation();
+  const { markStepCompleted } = useNavigationProgress();
   
   const handleComplete = () => {
-    markStepComplete('1-1');
+    markStepCompleted('1-1');
     navigate('/discover-strengths/intro');
   };
   
   return (
-    <MainContainer currentStepId="1-1">
+    <MainContainer stepId="1-1">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-purple-800 mb-4">All-Star Teams Workshop Introduction</h1>
         

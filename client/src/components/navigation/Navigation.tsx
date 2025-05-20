@@ -81,7 +81,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   // Use a ref to track if we've initialized the navigation structure
   const hasInitialized = useRef(false);
   
-  // Initialize the navigation structure only once
+  // Initialize the navigation structure only once 
   useEffect(() => {
     // Skip if we've already initialized
     if (hasInitialized.current) return;
@@ -91,7 +91,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     
     // Use the journeySections we defined above 
     updateNavigationSections(journeySections);
-  }, [updateNavigationSections]);
+  }, []); // Removed the dependency since it causes infinite updates
   
   // Set current step based on props
   useEffect(() => {
