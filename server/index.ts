@@ -1,7 +1,7 @@
 import express from "express";
 import type { Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes.js";
-import { setupVite, log } from "./vite.js";
+import { setupVite, log, serveStatic } from "./vite.js";
 
 const app = express();
 // Increase JSON payload size limit to handle base64 images (10MB)
