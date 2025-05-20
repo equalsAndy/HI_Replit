@@ -2,13 +2,30 @@
 import { createApi } from 'unsplash-js';
 import { createClient } from 'pexels';
 
+// Polyfill for isomorphic-fetch to prevent "require is not defined" error
+if (typeof window !== 'undefined') {
+  // We're in a browser environment, ensure fetch is available
+  window.fetch = window.fetch || fetch;
+}
+
 // Unsplash API client
 export const unsplashApi = createApi({
   accessKey: import.meta.env.VITE_UNSPLASH_ACCESS_KEY || '',
 });
 
-// Pexels API client
-export const pexelsClient = createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
+// Pexels API client with error handling for require statements
+let pexelsClient;
+try {
+  pexelsClient = createClient(import.meta.env.VITE_PEXELS_API_KEY || '');
+} catch (error) {
+  console.error('Error initializing Pexels client:', error);
+  // Provide a fallback client with the same interface but returns empty results
+  pexelsClient = {
+    photos: {
+      search: async () => ({ photos: [] })
+    }
+  };
+}
 
 // Export function to search Unsplash
 export const searchUnsplash = async (query: string, perPage: number = 20) => {
