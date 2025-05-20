@@ -559,12 +559,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTestUsers(): Promise<User[]> {
-    // Get all users with usernames beginning with 'Test'
-    const users = await db
-      .select()
-      .from(schema.users)
-      .where(sql`${schema.users.username} LIKE 'Test%'`);
-    return users;
+    // Get all test users by querying the database directly
+    try {
+      const allUsers = await db
+        .select()
+        .from(schema.users);
+      
+      // Filter users with names starting with "Test" in JavaScript
+      return allUsers.filter(user => 
+        user.name && user.name.startsWith('Test')
+      );
+    } catch (error) {
+      console.error("Error in getTestUsers:", error);
+      return [];
+    }
   }
 
   async getQuestions(): Promise<Question[]> {
