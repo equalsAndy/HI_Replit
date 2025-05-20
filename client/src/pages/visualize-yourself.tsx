@@ -777,7 +777,7 @@ export default function VisualizeYourself() {
                 </div>
                 
                 {/* Source tabs for All Sources option */}
-                {imageSource === 'all' && imageSource !== 'upload' && searchResults.length > 0 && (
+                {imageSource === 'all' && searchResults.length > 0 && (
                   <div className="mt-4 border-b border-gray-200">
                     <div className="flex space-x-4">
                       <button
