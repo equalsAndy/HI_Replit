@@ -1,53 +1,84 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { ChevronRight, ChevronDown, Check, Lock } from 'lucide-react';
+import { 
+  ChevronRight, 
+  Check, 
+  Lock,
+  BookOpen,
+  Star,
+  Clock,
+  Target,
+  CheckCircle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the learning journey sections based on the provided table
+// Define the learning journey sections based on the provided screenshot
 const defaultSections = [
   { 
-    id: 'M1', 
-    title: 'All Star Teams Introduction', 
-    path: '/intro',
+    id: 'F1', 
+    title: 'Foundations', 
+    path: '/foundations',
+    totalSteps: 3,
+    completedSteps: 0,
+    icon: 'BookOpen',
     steps: [
-      { id: 'M1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
+      { id: 'F1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
+      { id: 'F1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
+      { id: 'F1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
     ]
   },
   { 
-    id: 'M2', 
-    title: 'Discover your Strengths', 
-    path: '/discover-strengths',
+    id: 'F2', 
+    title: 'Reflect On Your Strengths', 
+    path: '/core-strengths',
+    totalSteps: 3,
+    completedSteps: 0,
+    icon: 'Star',
     steps: [
-      { id: 'M2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
-      { id: 'M2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
-      { id: 'M2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
-      { id: 'M2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
+      { id: 'F2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
+      { id: 'F2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
+      { id: 'F2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
     ]
   },
   { 
-    id: 'M3', 
-    title: 'Find your Flow', 
-    path: '/find-your-flow',
+    id: 'F3', 
+    title: 'Identify Your Flow', 
+    path: '/flow-assessment',
+    totalSteps: 3,
+    completedSteps: 0,
+    icon: 'Clock',
     steps: [
-      { id: 'M3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
-      { id: 'M3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-      { id: 'M3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
-      { id: 'M3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
+      { id: 'F3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+      { id: 'F3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
+      { id: 'F3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
     ]
   },
   { 
-    id: 'M4', 
-    title: 'Visualize your Potential', 
-    path: '/visualize-potential',
+    id: 'F4', 
+    title: 'Rounding Out', 
+    path: '/rounding-out',
+    totalSteps: 3,
+    completedSteps: 0,
+    icon: 'Target',
     steps: [
-      { id: 'M4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
-      { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity' },
-      { id: 'M4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
-      { id: 'M4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
-      { id: 'M4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
+      { id: 'F4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
+      { id: 'F4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
+      { id: 'F4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
+    ]
+  },
+  { 
+    id: 'F5', 
+    title: 'Complete Your Star Card', 
+    path: '/star-card-overview',
+    totalSteps: 2,
+    completedSteps: 0,
+    icon: 'CheckCircle',
+    steps: [
+      { id: 'F5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
+      { id: 'F5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
     ]
   }
 ];
@@ -56,6 +87,9 @@ interface Section {
   id: string;
   title: string;
   path: string;
+  icon?: string;
+  totalSteps?: number;
+  completedSteps?: number;
   steps?: Array<{
     id: string;
     label: string;
@@ -89,12 +123,12 @@ export function MobileNavigation({
     }
   };
   
-  // Get the main section ID from the current step ID (e.g., "M2-1" -> "M2")
+  // Get the main section ID from the current step ID (e.g., "F2-1" -> "F2")
   const currentMainSection = currentSectionId?.split('-')[0] || null;
   
   return (
-    <div className={cn("w-full space-y-3 py-4", className)}>
-      <h3 className="text-sm font-medium text-gray-500 mb-3">LEARNING JOURNEY</h3>
+    <div className={cn("w-full space-y-4 py-4 pb-8", className)}>
+      <h3 className="text-sm font-medium text-gray-500 mb-2 px-2">YOUR MODULES</h3>
       
       {sections.map((section) => {
         const isActive = section.id === currentMainSection;
@@ -105,128 +139,44 @@ export function MobileNavigation({
           <div key={section.id} className="mb-2">
             <div 
               className={cn(
-                "w-full rounded-md transition-all duration-200 cursor-pointer border",
+                "w-full rounded-md py-4 px-5 transition-all duration-200 cursor-pointer shadow-sm",
                 isActive 
-                  ? "bg-yellow-50 border-yellow-300" 
+                  ? "bg-violet-50 border-l-4 border-l-violet-500" 
                   : isCompleted 
-                    ? "bg-green-50 border-green-200" 
-                    : "bg-white border-gray-200"
+                    ? "bg-white border-l-4 border-l-green-500" 
+                    : "bg-white border-0"
               )}
               onClick={() => toggleSection(section.id)}
             >
-              <div className="flex items-center justify-between p-3">
-                <div className="flex items-center">
-                  <div className={cn(
-                    "w-6 h-6 rounded-full flex items-center justify-center mr-3 text-xs font-medium",
-                    isActive 
-                      ? "bg-yellow-400 text-white" 
-                      : isCompleted 
-                        ? "bg-green-500 text-white" 
-                        : "bg-gray-200 text-gray-600"
-                  )}>
-                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : section.id.replace('M', '')}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {section.icon === 'BookOpen' && <BookOpen className="h-6 w-6 text-violet-500" />}
+                  {section.icon === 'Star' && <Star className="h-6 w-6 text-violet-500" />}
+                  {section.icon === 'Clock' && <Clock className="h-6 w-6 text-violet-500" />}
+                  {section.icon === 'Target' && <Target className="h-6 w-6 text-violet-500" />}
+                  {section.icon === 'CheckCircle' && <CheckCircle className="h-6 w-6 text-violet-500" />}
+                  
+                  <div className="flex flex-col">
+                    <span className={cn(
+                      "font-medium text-lg",
+                      isActive ? "text-violet-900" : "text-gray-800"
+                    )}>
+                      {section.title}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {section.completedSteps} of {section.totalSteps} complete
+                    </span>
                   </div>
-                  <span className={cn(
-                    "font-medium text-sm",
-                    isActive ? "text-yellow-800" : isCompleted ? "text-green-700" : "text-gray-700"
-                  )}>
-                    {section.title}
-                  </span>
                 </div>
                 
-                {isExpanded ? (
-                  <ChevronDown className={cn(
-                    "h-4 w-4",
-                    isActive ? "text-yellow-500" : isCompleted ? "text-green-500" : "text-gray-400"
-                  )} />
-                ) : (
-                  <ChevronRight className={cn(
-                    "h-4 w-4",
-                    isActive ? "text-yellow-500" : isCompleted ? "text-green-500" : "text-gray-400"
-                  )} />
-                )}
+                <ChevronRight className={cn(
+                  "h-5 w-5",
+                  isActive ? "text-violet-500" : "text-gray-400"
+                )} />
               </div>
             </div>
             
-            {/* Steps within the section */}
-            {isExpanded && section.steps && (
-              <div className="pl-8 pr-3 py-2 space-y-2 mt-1 border border-gray-100 rounded-md bg-gray-50">
-                {section.steps.map((step) => {
-                  const isStepActive = currentSectionId === step.id;
-                  const isStepCompleted = completedSteps.includes(step.id);
-                  const isAccessible = isStepAccessible(step.id);
-                  
-                  return (
-                    <div 
-                      key={step.id}
-                      className={cn(
-                        "p-2 rounded-md transition-colors",
-                        isStepActive 
-                          ? "bg-yellow-100 cursor-pointer" 
-                          : isStepCompleted 
-                            ? "bg-green-50 cursor-pointer" 
-                            : isAccessible
-                              ? "bg-white hover:bg-gray-100 cursor-pointer"
-                              : "bg-gray-50 opacity-75 cursor-not-allowed"
-                      )}
-                      onClick={() => isAccessible ? navigate(step.path) : null}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center">
-                          {!isAccessible && !isStepCompleted ? (
-                            <div className="w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs bg-gray-300 text-gray-500">
-                              <Lock className="h-3 w-3" />
-                            </div>
-                          ) : (
-                            <div className={cn(
-                              "w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs",
-                              isStepActive 
-                                ? "bg-yellow-400 text-white" 
-                                : isStepCompleted 
-                                  ? "bg-green-500 text-white" 
-                                  : "bg-gray-200 text-gray-600"
-                            )}>
-                              {isStepCompleted ? <Check className="h-3 w-3" /> : step.id.split('-')[1]}
-                            </div>
-                          )}
-                          <span className={cn(
-                            "text-sm",
-                            isStepActive 
-                              ? "font-medium text-yellow-800" 
-                              : isStepCompleted 
-                                ? "text-green-700" 
-                                : !isAccessible
-                                  ? "text-gray-500"
-                                  : "text-gray-700"
-                          )}>
-                            {step.label}
-                          </span>
-                        </div>
-                        
-                        {step.type && (
-                          <span className={cn(
-                            "text-xs px-2 py-1 rounded-full",
-                            step.type === 'Learning' 
-                              ? "bg-blue-50 text-blue-700" 
-                              : step.type === 'Activity' 
-                                ? "bg-purple-50 text-purple-700"
-                                : "bg-teal-50 text-teal-700"
-                          )}>
-                            {step.type}
-                          </span>
-                        )}
-                      </div>
-                      
-                      {!isAccessible && !isStepCompleted && (
-                        <div className="text-xs text-gray-500 mt-1 pl-7">
-                          Complete previous steps first
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
+            {/* We'll remove the dropdown steps as per the screenshot style */}
           </div>
         );
       })}
