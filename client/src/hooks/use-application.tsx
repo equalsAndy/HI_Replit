@@ -27,6 +27,7 @@ const appConfig = {
   }
 };
 
+import { createContext } from 'react';
 const ApplicationContext = createContext<ApplicationContextType | undefined>(undefined);
 
 export function ApplicationProvider({ children }: { children: ReactNode }) {
