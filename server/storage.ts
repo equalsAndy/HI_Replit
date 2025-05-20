@@ -10,7 +10,7 @@ import {
 } from "@shared/schema";
 import { nanoid } from 'nanoid';
 import { db } from './db';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 import connectPg from 'connect-pg-simple';
 import session from 'express-session';
@@ -559,11 +559,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getTestUsers(): Promise<User[]> {
-    // Get all users with usernames beginning with 'user'
-    return await db
+    // Get all users with usernames beginning with 'Test'
+    const users = await db
       .select()
       .from(schema.users)
-      .where(eq(schema.users.username.like('user%'), true));
+      .where(sql`${schema.users.username} LIKE 'Test%'`);
+    return users;
   }
 
   async getQuestions(): Promise<Question[]> {
