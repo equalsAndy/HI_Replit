@@ -20,48 +20,70 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
-  // Define navigation structure based on the provided table
+  // Define navigation structure based on the provided image and table content
   const journeySections = [
     { 
-      id: 'M1', 
-      title: 'All Star Teams Introduction', 
-      path: '/intro',
+      id: '1', 
+      title: 'Foundations', 
+      path: '/foundations',
+      totalSteps: 3,
+      completedSteps: 0,
+      icon: 'BookOpen',
       steps: [
-        { id: 'M1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
+        { id: '1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
+        { id: '1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
+        { id: '1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
       ]
     },
     { 
-      id: 'M2', 
-      title: 'Discover your Strengths', 
-      path: '/discover-strengths',
+      id: '2', 
+      title: 'Reflect On Your Strengths', 
+      path: '/core-strengths',
+      totalSteps: 3,
+      completedSteps: 0,
+      icon: 'Star',
       steps: [
-        { id: 'M2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
-        { id: 'M2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
-        { id: 'M2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
-        { id: 'M2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
+        { id: '2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
+        { id: '2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
+        { id: '2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
       ]
     },
     { 
-      id: 'M3', 
-      title: 'Find your Flow', 
-      path: '/find-your-flow',
+      id: '3', 
+      title: 'Identify Your Flow', 
+      path: '/flow-assessment',
+      totalSteps: 3,
+      completedSteps: 0,
+      icon: 'Clock',
       steps: [
-        { id: 'M3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
-        { id: 'M3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-        { id: 'M3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
-        { id: 'M3-4', label: 'Add Flow to your Star Card', path: '/add-flow-starcard', type: 'Activity' },
+        { id: '3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+        { id: '3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
+        { id: '3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
       ]
     },
     { 
-      id: 'M4', 
-      title: 'Visualize your Potential', 
-      path: '/visualize-potential',
+      id: '4', 
+      title: 'Rounding Out', 
+      path: '/rounding-out',
+      totalSteps: 3,
+      completedSteps: 0,
+      icon: 'Target',
       steps: [
-        { id: 'M4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
-        { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
-        { id: 'M4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
-        { id: 'M4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
-        { id: 'M4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
+        { id: '4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
+        { id: '4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
+        { id: '4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
+      ]
+    },
+    { 
+      id: '5', 
+      title: 'Complete Your Star Card', 
+      path: '/star-card-overview',
+      totalSteps: 2,
+      completedSteps: 0,
+      icon: 'CheckCircle',
+      steps: [
+        { id: '5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
+        { id: '5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
       ]
     }
   ];

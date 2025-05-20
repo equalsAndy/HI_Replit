@@ -15,70 +15,70 @@ import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Define the learning journey sections based on the provided screenshot
+// Define the learning journey sections based on the provided image and table content
 const defaultSections = [
   { 
-    id: 'F1', 
+    id: '1', 
     title: 'Foundations', 
     path: '/foundations',
     totalSteps: 3,
     completedSteps: 0,
     icon: 'BookOpen',
     steps: [
-      { id: 'F1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
-      { id: 'F1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
-      { id: 'F1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
+      { id: '1-1', label: 'Welcome', path: '/foundations', type: 'Learning' },
+      { id: '1-2', label: 'Your Learning Journey', path: '/learning-overview', type: 'Learning' },
+      { id: '1-3', label: 'Understanding Strengths', path: '/strength-model', type: 'Learning' },
     ]
   },
   { 
-    id: 'F2', 
+    id: '2', 
     title: 'Reflect On Your Strengths', 
     path: '/core-strengths',
     totalSteps: 3,
     completedSteps: 0,
     icon: 'Star',
     steps: [
-      { id: 'F2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
-      { id: 'F2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
-      { id: 'F2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
+      { id: '2-1', label: 'Core Strengths Overview', path: '/core-strengths', type: 'Learning' },
+      { id: '2-2', label: 'Strength Reflection', path: '/strength-reflection', type: 'Writing' },
+      { id: '2-3', label: 'Knowledge Check', path: '/strength-check', type: 'Activity' },
     ]
   },
   { 
-    id: 'F3', 
+    id: '3', 
     title: 'Identify Your Flow', 
     path: '/flow-assessment',
     totalSteps: 3,
     completedSteps: 0,
     icon: 'Clock',
     steps: [
-      { id: 'F3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-      { id: 'F3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
-      { id: 'F3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
+      { id: '3-1', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+      { id: '3-2', label: 'Find Your Flow', path: '/find-your-flow', type: 'Learning' },
+      { id: '3-3', label: 'Flow Attributes', path: '/flow-attributes', type: 'Activity' },
     ]
   },
   { 
-    id: 'F4', 
+    id: '4', 
     title: 'Rounding Out', 
     path: '/rounding-out',
     totalSteps: 3,
     completedSteps: 0,
     icon: 'Target',
     steps: [
-      { id: 'F4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
-      { id: 'F4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
-      { id: 'F4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
+      { id: '4-1', label: 'Balance Your Strengths', path: '/rounding-out', type: 'Learning' },
+      { id: '4-2', label: 'Team Integration', path: '/team-integration', type: 'Learning' },
+      { id: '4-3', label: 'Practice Scenarios', path: '/practice-scenarios', type: 'Activity' },
     ]
   },
   { 
-    id: 'F5', 
+    id: '5', 
     title: 'Complete Your Star Card', 
     path: '/star-card-overview',
     totalSteps: 2,
     completedSteps: 0,
     icon: 'CheckCircle',
     steps: [
-      { id: 'F5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
-      { id: 'F5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
+      { id: '5-1', label: 'Star Card Overview', path: '/star-card-overview', type: 'Learning' },
+      { id: '5-2', label: 'Your Star Card', path: '/report', type: 'Summary' },
     ]
   }
 ];
