@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { ChevronRight, ChevronDown, Check } from 'lucide-react';
+import { ChevronRight, ChevronDown, Check, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ const defaultSections = [
     path: '/visualize-potential',
     steps: [
       { id: 'M4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
-      { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+      { id: 'M4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity' },
       { id: 'M4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
       { id: 'M4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
       { id: 'M4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
@@ -60,6 +60,7 @@ interface Section {
     id: string;
     label: string;
     path: string;
+    type?: string;
   }>;
 }
 
@@ -75,7 +76,7 @@ export function MobileNavigation({
   customSections
 }: MobileNavigationProps) {
   const [, navigate] = useLocation();
-  const { completedSteps } = useNavigationProgress();
+  const { completedSteps, isStepAccessible } = useNavigationProgress();
   const [expandedSection, setExpandedSection] = useState<string | null>(currentSectionId?.split('-')[0] || null);
   
   const sections = customSections || defaultSections;
@@ -85,11 +86,10 @@ export function MobileNavigation({
       setExpandedSection(null);
     } else {
       setExpandedSection(sectionId);
-      // Don't navigate if we're just expanding to see steps
     }
   };
   
-  // Get the main section ID from the current step ID (e.g., "F1-2" -> "F1")
+  // Get the main section ID from the current step ID (e.g., "M2-1" -> "M2")
   const currentMainSection = currentSectionId?.split('-')[0] || null;
   
   return (
@@ -124,7 +124,7 @@ export function MobileNavigation({
                         ? "bg-green-500 text-white" 
                         : "bg-gray-200 text-gray-600"
                   )}>
-                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : section.id.replace('F', '')}
+                    {isCompleted ? <Check className="h-3.5 w-3.5" /> : section.id.replace('M', '')}
                   </div>
                   <span className={cn(
                     "font-medium text-sm",
@@ -149,34 +149,35 @@ export function MobileNavigation({
             </div>
             
             {/* Steps within the section */}
-            <AnimatePresence>
-              {isExpanded && section.steps && (
-                <motion.div
-                  initial={{ height: 0, opacity: 0 }}
-                  animate={{ height: "auto", opacity: 1 }}
-                  exit={{ height: 0, opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="overflow-hidden"
-                >
-                  <div className="pl-8 pr-3 py-2 space-y-2 mt-1 border border-gray-100 rounded-md bg-gray-50">
-                    {section.steps.map((step) => {
-                      const isStepActive = currentSectionId === step.id;
-                      const isStepCompleted = completedSteps.includes(step.id);
-                      
-                      return (
-                        <div 
-                          key={step.id}
-                          className={cn(
-                            "p-2 rounded-md cursor-pointer transition-colors",
-                            isStepActive 
-                              ? "bg-yellow-100" 
-                              : isStepCompleted 
-                                ? "bg-green-50" 
-                                : "bg-white hover:bg-gray-100"
-                          )}
-                          onClick={() => navigate(step.path)}
-                        >
-                          <div className="flex items-center">
+            {isExpanded && section.steps && (
+              <div className="pl-8 pr-3 py-2 space-y-2 mt-1 border border-gray-100 rounded-md bg-gray-50">
+                {section.steps.map((step) => {
+                  const isStepActive = currentSectionId === step.id;
+                  const isStepCompleted = completedSteps.includes(step.id);
+                  const isAccessible = isStepAccessible(step.id);
+                  
+                  return (
+                    <div 
+                      key={step.id}
+                      className={cn(
+                        "p-2 rounded-md transition-colors",
+                        isStepActive 
+                          ? "bg-yellow-100 cursor-pointer" 
+                          : isStepCompleted 
+                            ? "bg-green-50 cursor-pointer" 
+                            : isAccessible
+                              ? "bg-white hover:bg-gray-100 cursor-pointer"
+                              : "bg-gray-50 opacity-75 cursor-not-allowed"
+                      )}
+                      onClick={() => isAccessible ? navigate(step.path) : null}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          {!isAccessible && !isStepCompleted ? (
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs bg-gray-300 text-gray-500">
+                              <Lock className="h-3 w-3" />
+                            </div>
+                          ) : (
                             <div className={cn(
                               "w-5 h-5 rounded-full flex items-center justify-center mr-2 text-xs",
                               isStepActive 
@@ -187,20 +188,45 @@ export function MobileNavigation({
                             )}>
                               {isStepCompleted ? <Check className="h-3 w-3" /> : step.id.split('-')[1]}
                             </div>
-                            <span className={cn(
-                              "text-sm",
-                              isStepActive ? "font-medium text-yellow-800" : isStepCompleted ? "text-green-700" : "text-gray-700"
-                            )}>
-                              {step.label}
-                            </span>
-                          </div>
+                          )}
+                          <span className={cn(
+                            "text-sm",
+                            isStepActive 
+                              ? "font-medium text-yellow-800" 
+                              : isStepCompleted 
+                                ? "text-green-700" 
+                                : !isAccessible
+                                  ? "text-gray-500"
+                                  : "text-gray-700"
+                          )}>
+                            {step.label}
+                          </span>
                         </div>
-                      );
-                    })}
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                        
+                        {step.type && (
+                          <span className={cn(
+                            "text-xs px-2 py-1 rounded-full",
+                            step.type === 'Learning' 
+                              ? "bg-blue-50 text-blue-700" 
+                              : step.type === 'Activity' 
+                                ? "bg-purple-50 text-purple-700"
+                                : "bg-teal-50 text-teal-700"
+                          )}>
+                            {step.type}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {!isAccessible && !isStepCompleted && (
+                        <div className="text-xs text-gray-500 mt-1 pl-7">
+                          Complete previous steps first
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}

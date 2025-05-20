@@ -142,6 +142,34 @@ export function useNavigationProgress() {
     saveProgressToLocalStorage(newProgress);
   };
   
+  // Check if a step is accessible (can only access if previous steps are complete or it's already visited)
+  const isStepAccessible = (stepId: string): boolean => {
+    if (!localProgress) return false;
+    
+    // If the step is already completed, it's accessible
+    if (localProgress.completedSteps.includes(stepId)) return true;
+    
+    // Get all steps in sequential order
+    const allSteps = localProgress.sections.flatMap(section => section.steps);
+    const allStepIds = allSteps.map(step => step.id);
+    
+    // Find the index of the current step
+    const stepIndex = allStepIds.indexOf(stepId);
+    if (stepIndex === -1) return false; // Step not found
+    
+    // If it's the first step, it's always accessible
+    if (stepIndex === 0) return true;
+    
+    // Check if all previous steps are completed
+    for (let i = 0; i < stepIndex; i++) {
+      if (!localProgress.completedSteps.includes(allStepIds[i])) {
+        return false; // Found an incomplete previous step
+      }
+    }
+    
+    return true; // All previous steps are completed
+  };
+  
   // Toggle section expansion
   const toggleSectionExpanded = (sectionId: string) => {
     if (!localProgress) return;
@@ -228,6 +256,7 @@ export function useNavigationProgress() {
     toggleSectionExpanded,
     updateNavigationSections,
     getLastPosition,
-    calculateOverallProgress
+    calculateOverallProgress,
+    isStepAccessible
   };
 }
