@@ -20,15 +20,72 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
-  // Define navigation structure based on the image provided
-  const newJourneySections = [
-    { id: 'F1', title: 'Star Self-Assessment', path: '/assessment' },
-    { id: 'F2', title: 'Core Strengths', path: '/core-strengths' },
-    { id: 'F3', title: 'Flow State', path: '/find-your-flow' },
-    { id: 'F4', title: 'Rounding Out', path: '/rounding-out' },
-    { id: 'F5', title: 'Visualizing Potential', path: '/visualize-yourself' },
-    { id: 'F6', title: 'Ladder of Well-Being', path: '/well-being' },
-    { id: 'F7', title: 'Future Self', path: '/future-self' },
+  // Define navigation structure based on the image provided - these will be our primary sections
+  const journeySections = [
+    { 
+      id: 'F1', 
+      title: 'Star Self-Assessment', 
+      path: '/assessment',
+      steps: [
+        { id: 'F1-1', label: 'About the Assessment', path: '/assessment/about' },
+        { id: 'F1-2', label: 'Take the Assessment', path: '/assessment' },
+        { id: 'F1-3', label: 'Review Results', path: '/assessment/results' },
+      ]
+    },
+    { 
+      id: 'F2', 
+      title: 'Core Strengths', 
+      path: '/core-strengths',
+      steps: [
+        { id: 'F2-1', label: 'Understand Your Strengths', path: '/core-strengths' },
+        { id: 'F2-2', label: 'Strengths Reflection', path: '/strength-reflection' },
+      ]
+    },
+    { 
+      id: 'F3', 
+      title: 'Flow State', 
+      path: '/find-your-flow',
+      steps: [
+        { id: 'F3-1', label: 'Find Your Flow', path: '/find-your-flow' },
+        { id: 'F3-2', label: 'Flow Attributes', path: '/flow-attributes' },
+      ]
+    },
+    { 
+      id: 'F4', 
+      title: 'Rounding Out', 
+      path: '/rounding-out',
+      steps: [
+        { id: 'F4-1', label: 'Balance Your Strengths', path: '/rounding-out' },
+        { id: 'F4-2', label: 'Team Integration', path: '/team-integration' },
+      ]
+    },
+    { 
+      id: 'F5', 
+      title: 'Visualizing Potential', 
+      path: '/visualize-yourself',
+      steps: [
+        { id: 'F5-1', label: 'Visualization Exercise', path: '/visualize-yourself' },
+        { id: 'F5-2', label: 'Future Possibilities', path: '/future-possibilities' },
+      ]
+    },
+    { 
+      id: 'F6', 
+      title: 'Ladder of Well-Being', 
+      path: '/well-being',
+      steps: [
+        { id: 'F6-1', label: 'Well-Being Introduction', path: '/well-being' },
+        { id: 'F6-2', label: 'Your Well-Being Plan', path: '/well-being-plan' },
+      ]
+    },
+    { 
+      id: 'F7', 
+      title: 'Future Self', 
+      path: '/future-self',
+      steps: [
+        { id: 'F7-1', label: 'Envisioning Your Future', path: '/future-self' },
+        { id: 'F7-2', label: 'Action Planning', path: '/action-planning' },
+      ]
+    },
   ];
   
   // Define our navigation structure based on the current application
@@ -166,7 +223,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
         <div className="md:hidden mt-4 mx-4 p-4 bg-white rounded-md border border-gray-200 shadow-sm">
           <MobileNavigation 
             currentSectionId={currentStepId}
-            customSections={newJourneySections}
+            customSections={journeySections}
           />
         </div>
       )}
