@@ -237,18 +237,26 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                   ) : !isAccessible ? (
                                     <Lock className="h-4 w-4 text-gray-400" />
-                                  ) : step.type === 'Learning' ? (
+                                  ) : null}
+                                </div>
+                                
+                                <span className="flex-1">{step.label}</span>
+                                
+                                {/* Content type icons on the right side */}
+                                <div className="ml-2 flex-shrink-0">
+                                  {step.type === 'Learning' && (
                                     <BookOpen className="h-4 w-4 text-indigo-500" />
-                                  ) : step.type === 'Assessment' ? (
+                                  )}
+                                  {step.type === 'Assessment' && (
                                     <Activity className="h-4 w-4 text-orange-500" />
-                                  ) : step.type === 'Reflection' ? (
+                                  )}
+                                  {step.type === 'Reflection' && (
                                     <PenLine className="h-4 w-4 text-purple-500" />
-                                  ) : (
+                                  )}
+                                  {(!step.type) && (
                                     <FileText className="h-4 w-4 text-gray-500" />
                                   )}
                                 </div>
-                                
-                                <span>{step.label}</span>
                               </li>
                             </TooltipTrigger>
                             {!isAccessible && (
