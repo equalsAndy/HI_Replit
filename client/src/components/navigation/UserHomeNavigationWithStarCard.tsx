@@ -61,11 +61,14 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   return (
     <>
-      {/* Mobile menu button - only visible when drawer is closed and on mobile */}
-      {isMobile && !drawerOpen && (
+      {/* Menu button - visible when drawer is closed (on mobile or desktop) */}
+      {!drawerOpen && (
         <button
           onClick={toggleDrawer}
-          className="fixed top-1/2 -translate-y-1/2 left-2 z-30 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center border border-gray-200"
+          className={cn(
+            "fixed top-1/2 -translate-y-1/2 z-30 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center border border-gray-200",
+            isMobile ? "left-2" : "left-5"
+          )}
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5 text-gray-700" />
@@ -90,7 +93,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         ) : cn(
           "h-full relative",
-          drawerOpen ? "w-80" : "w-16"
+          drawerOpen ? "w-80" : "hidden" // Hide completely when closed on desktop
         )
       )}>
         {/* Toggle Button - position depends on mobile/desktop */}
@@ -110,11 +113,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         {/* Navigation Content */}
         <div className="p-4 h-full overflow-y-auto">
           {/* Title */}
-          <h2 className={cn(
-            "font-bold text-xl mb-4 text-gray-800",
-            !drawerOpen && !isMobile && "text-center text-sm"
-          )}>
-            {drawerOpen ? "Your Learning Journey" : !isMobile ? "Menu" : ""}
+          <h2 className="font-bold text-xl mb-4 text-gray-800">
+            Your Learning Journey
           </h2>
           
           {/* Navigation Sections */}
