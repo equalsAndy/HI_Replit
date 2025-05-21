@@ -63,37 +63,31 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
       
-      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
-        {showInstructions && (
-          <div className="prose max-w-none">
-            <p className="mb-2">
-              Select 1-5 images that represent your ideal future self one year from now. Choose images that evoke positive 
-              emotions, align with your ladder reflection, and represent different aspects of your future vision.
-            </p>
-            
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowInstructions(!showInstructions)}
-              >
-                Hide Instructions
-              </Button>
+      <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
+        <div className="flex justify-between items-start">
+          {showInstructions && (
+            <div className="prose max-w-none text-sm pr-4">
+              <p className="mb-1">
+                This exercise helps you turn your one-year vision into something visible. Select 1-5 images that represent your ideal future self.
+              </p>
+              <ul className="list-disc pl-5 mb-1 text-xs space-y-0">
+                <li>Choose images that evoke positive emotions</li>
+                <li>Look for images that align with your ladder reflection</li>
+                <li>Select a variety of images that represent different aspects of your future vision</li>
+                <li>You can upload your own images or search for images from Unsplash</li>
+              </ul>
             </div>
-          </div>
-        )}
-        
-        {!showInstructions && (
-          <div className="flex justify-end mb-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowInstructions(!showInstructions)}
-            >
-              Show Instructions
-            </Button>
-          </div>
-        )}
+          )}
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0"
+            onClick={() => setShowInstructions(!showInstructions)}
+          >
+            {showInstructions ? "Hide Instructions" : "Show Instructions"}
+          </Button>
+        </div>
       </div>
 
       {/* Display selected images */}
