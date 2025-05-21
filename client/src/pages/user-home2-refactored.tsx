@@ -281,6 +281,7 @@ export default function UserHome2() {
           handleStepClick={handleStepClick}
           starCard={starCard}
           flowAttributesData={flowAttributesData}
+          currentContent={currentContent}
         />
         
         {/* Content Area */}

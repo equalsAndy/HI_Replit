@@ -253,7 +253,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   {step.type === 'Reflection' && (
                                     <PenLine className="h-4 w-4 text-purple-500" />
                                   )}
-                                  {(!step.type || step.type === 'Resource') && (
+                                  {(step.type === 'Resource' || !step.type) && (
                                     <FileText className="h-4 w-4 text-gray-500" />
                                   )}
                                 </div>

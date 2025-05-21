@@ -16,7 +16,7 @@ export interface NavigationStep {
   id: string;
   label: string;
   path: string;
-  type: 'Learning' | 'Assessment' | 'Reflection';
+  type: 'Learning' | 'Assessment' | 'Reflection' | 'Resource';
   required?: boolean;
 }
 
