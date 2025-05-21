@@ -57,3 +57,55 @@ export function useLearningState() {
     navigate
   };
 }
+import { useState, useEffect } from 'react';
+import { PROGRESS_STORAGE_KEY } from '@/components/navigation/navigationData';
+
+export function useLearningState() {
+  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [currentContent, setCurrentContent] = useState<string>("welcome");
+  
+  useEffect(() => {
+    const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    if (savedProgress) {
+      try {
+        const { completed } = JSON.parse(savedProgress);
+        if (Array.isArray(completed)) {
+          setCompletedSteps(completed);
+        }
+      } catch (error) {
+        console.error('Error loading navigation progress:', error);
+      }
+    }
+  }, []);
+
+  const markStepCompleted = (stepId: string) => {
+    if (!completedSteps.includes(stepId)) {
+      const newCompletedSteps = [...completedSteps, stepId];
+      setCompletedSteps(newCompletedSteps);
+      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: newCompletedSteps }));
+    }
+  };
+
+  const isStepAccessible = (sectionId: string, stepId: string) => {
+    const sectionIndex = parseInt(sectionId) - 1;
+    const stepIndex = parseInt(stepId.split('-')[1]) - 1;
+    
+    if (sectionIndex === 0 && stepIndex === 0) return true;
+    
+    if (stepIndex === 0 && sectionIndex > 0) {
+      const prevSection = navigationSections[sectionIndex - 1];
+      return prevSection.steps.every(step => completedSteps.includes(step.id));
+    }
+    
+    const prevStepId = `${sectionId}-${stepIndex}`;
+    return completedSteps.includes(prevStepId);
+  };
+
+  return {
+    completedSteps,
+    currentContent,
+    setCurrentContent,
+    markStepCompleted,
+    isStepAccessible
+  };
+}
