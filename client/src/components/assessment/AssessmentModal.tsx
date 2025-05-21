@@ -830,26 +830,21 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="space-y-3">
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded bg-[rgb(1,162,82)] mr-3"></div>
-                <span className="font-semibold">Thinking: {assessmentResults.thinking}%</span>
-                <span className="ml-3 text-gray-600 text-sm"> - Analytical & logical approach</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded bg-[rgb(255,203,47)] mr-3"></div>
-                <span className="font-semibold">Planning: {assessmentResults.planning}%</span>
-                <span className="ml-3 text-gray-600 text-sm"> - Organized & methodical</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded bg-[rgb(22,126,253)] mr-3"></div>
-                <span className="font-semibold">Feeling: {assessmentResults.feeling}%</span>
-                <span className="ml-3 text-gray-600 text-sm"> - Empathetic & relationship-focused</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-5 h-5 rounded bg-[rgb(241,64,64)] mr-3"></div>
-                <span className="font-semibold">Acting: {assessmentResults.acting}%</span>
-                <span className="ml-3 text-gray-600 text-sm"> - Decisive & action-oriented</span>
-              </div>
+              {[
+                { name: 'Thinking', value: assessmentResults.thinking, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
+                { name: 'Planning', value: assessmentResults.planning, color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
+                { name: 'Feeling', value: assessmentResults.feeling, color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
+                { name: 'Acting', value: assessmentResults.acting, color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
+              ]
+                .sort((a, b) => b.value - a.value)
+                .map(strength => (
+                  <div key={strength.name} className="flex items-center">
+                    <div className="w-5 h-5 rounded mr-3" style={{ backgroundColor: strength.color }}></div>
+                    <span className="font-semibold">{strength.name}: {strength.value}%</span>
+                    <span className="ml-3 text-gray-600 text-sm"> - {strength.desc}</span>
+                  </div>
+                ))
+              }
             </div>
           </div>
         </>
