@@ -11,7 +11,10 @@ const RecapView: React.FC<ContentViewProps> = ({
   starCard
 }) => {
   // Fetch visualization data
-  const { data: visualizationData } = useQuery({
+  const { data: visualizationData = {} } = useQuery<{
+    oneYearVision?: string;
+    actionSteps?: string;
+  }>({
     queryKey: ['/api/visualization'],
     refetchOnWindowFocus: false
   });
