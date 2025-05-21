@@ -385,15 +385,18 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     setDraggedOption(null);
   };
   
-  // Auto-complete with demo answers for all questions and submit to server
+  // Auto-complete with demo answers for questions and submit to server
+  // For demo mode, only fill the first 22 questions, then stop
   const handleDemoAnswers = async () => {
     setIsLoading(true);
     
-    // Create demo answers for all questions
+    // Create demo answers for questions up to 22
     const demoAnswers: {[key: number]: RankedOption[]} = {};
     
-    // For each question in the assessment
-    assessmentQuestions.forEach(question => {
+    // For each question in the assessment up to 22
+    const questionsToFill = assessmentQuestions.slice(0, 22);
+    
+    questionsToFill.forEach(question => {
       // Randomize the options
       const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
       
@@ -406,12 +409,55 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       ];
     });
     
-    // Set all answers
+    // Set all answers so far
     setAnswers(demoAnswers);
     
-    // Calculate results based on the demo answers
+    // Navigate to question 22
+    setCurrentQuestionIndex(21); // (0-indexed, so 21 is the 22nd question)
+    
+    // Set rankings for question 22 to show it's ready to continue
+    if (assessmentQuestions[21]) {
+      const options = assessmentQuestions[21].options;
+      setRankings({
+        mostLikeMe: options[0],
+        second: options[1],
+        third: options[2],
+        leastLikeMe: options[3]
+      });
+    }
+    
+    // Toast to inform user they can continue
+    toast({
+      title: "Demo Data Ready",
+      description: "You're at question 22. Click 'Continue' to complete the assessment.",
+    });
+    
+    setIsLoading(false);
+  };
+  
+  // Function to handle completion when user clicks continue after demo data
+  const completeWithDemoData = async () => {
+    setIsLoading(true);
+    
+    // Fill any remaining questions with random answers
+    const completeAnswers = { ...answers };
+    
+    // Ensure all questions have answers
+    assessmentQuestions.forEach(question => {
+      if (!completeAnswers[question.id]) {
+        const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+        completeAnswers[question.id] = [
+          { optionId: shuffledOptions[0].id, rank: 1 },
+          { optionId: shuffledOptions[1].id, rank: 2 },
+          { optionId: shuffledOptions[2].id, rank: 3 },
+          { optionId: shuffledOptions[3].id, rank: 4 }
+        ];
+      }
+    });
+    
+    // Calculate results based on the completed answers
     const results = calculateQuadrantScores(
-      Object.entries(demoAnswers).map(([questionId, rankings]) => ({
+      Object.entries(completeAnswers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       })),
@@ -420,7 +466,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     
     try {
       // Format data for server
-      const formattedAnswers = Object.entries(demoAnswers).map(([questionId, rankings]) => ({
+      const formattedAnswers = Object.entries(completeAnswers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       }));
@@ -437,11 +483,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       });
       
       if (!response.ok) {
-        throw new Error('Failed to complete demo assessment');
+        throw new Error('Failed to complete assessment');
       }
-      
-      // Set the last question as current to show we completed all questions
-      setCurrentQuestionIndex(assessmentQuestions.length - 1);
       
       // Set results and show results view
       setAssessmentResults(results);
@@ -451,12 +494,6 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       // Invalidate star card query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       
-      // Show toast notification
-      toast({
-        title: "Demo Assessment Complete!",
-        description: "Your Star Card has been created with demo data.",
-      });
-      
       // Call onComplete callback if provided
       if (onComplete) {
         onComplete({ 
@@ -465,18 +502,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         });
       }
     } catch (error) {
-      console.error('Error completing demo assessment:', error);
+      console.error('Error completing assessment:', error);
       
       // Even if there's an error, still show results
       setAssessmentResults(results);
       setIsLoading(false);
       setView('results');
-      
-      toast({
-        title: "Demo Data Generated",
-        description: "Note: The data could not be saved to the server.",
-        variant: "destructive"
-      });
     }
   };
   
