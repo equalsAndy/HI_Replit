@@ -356,7 +356,7 @@ export default function UserHome2() {
                   <Button 
                     onClick={() => {
                       markStepCompleted('1-1');
-                      navigate('/intro/video');
+                      setCurrentContent("welcome");
                     }}
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                     size="lg"
