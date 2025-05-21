@@ -28,6 +28,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   markStepCompleted,
   setCurrentContent,
   starCard,
+  user,
+  flowAttributesData,
   setIsAssessmentModalOpen
 }) => {
   // Return the appropriate content based on currentContent
@@ -123,6 +125,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+          user={user}
+          flowAttributesData={flowAttributesData}
         />
       );
     

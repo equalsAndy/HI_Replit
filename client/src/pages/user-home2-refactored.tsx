@@ -5,7 +5,7 @@ import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigation';
 import ContentViews from '@/components/content/ContentViews';
 import { navigationSections } from '@/components/navigation/navigationData';
-import { StarCard } from '@/shared/types';
+import { StarCard, User } from '@/shared/types';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
@@ -17,9 +17,21 @@ export default function UserHome2() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("welcome");
   
+  // Fetch user profile data
+  const { data: user } = useQuery<User>({
+    queryKey: ['/api/user/profile'],
+    refetchOnWindowFocus: false
+  });
+  
   // Fetch user's Star Card data
   const { data: starCard } = useQuery<StarCard>({
     queryKey: ['/api/starcard'],
+    refetchOnWindowFocus: false
+  });
+  
+  // Fetch flow attributes data
+  const { data: flowAttributesData } = useQuery({
+    queryKey: ['/api/flow-attributes'],
     refetchOnWindowFocus: false
   });
   
@@ -199,6 +211,8 @@ export default function UserHome2() {
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+          user={user}
+          flowAttributesData={flowAttributesData}
           setIsAssessmentModalOpen={setIsAssessmentModalOpen}
         />
       </div>

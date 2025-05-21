@@ -33,12 +33,29 @@ export interface StarCard {
   state?: string | null;
 }
 
+// User type
+export interface User {
+  id: number;
+  name: string;
+  title?: string;
+  organization?: string;
+  progress?: number;
+  avatarUrl?: string;
+}
+
 // Base props for content view components
 export interface ContentViewProps {
   navigate: (to: string) => void;
   markStepCompleted: (stepId: string) => void;
   setCurrentContent: (content: string) => void;
   starCard?: StarCard;
+  user?: User;
+  flowAttributesData?: {
+    id?: number;
+    userId?: number;
+    flowScore?: number;
+    attributes?: Array<{ name: string; score: number; }>;
+  };
 }
 
 // Flow Assessment related types
