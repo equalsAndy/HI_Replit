@@ -106,12 +106,19 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       </div>
       
       <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-8">
+        <p className="text-sm text-indigo-700 mb-2">
+          <span className="font-medium text-indigo-800">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
+        </p>
         <p className="text-sm text-indigo-800 italic">
-          "From the age of 6 I had a mania for drawing the shapes of things. When I was 50 I had published a universe of designs. 
-          But all I have done before the age of 70 is not worth bothering with. At 75 I'll have learned something of the pattern of nature... 
-          At 80 I shall have made still more progress. At 90 I shall penetrate the mystery of life itself. At
-          100, I shall be a marvelous artist. At 110, everything I create; a dot, a line, will jump to life as never before."
-          <span className="block mt-1 font-medium text-right">— Katsushika Hokusai</span>
+          "From the age of 6 I had a mania for drawing the shapes of things.
+          When I was 50 I had published a universe of designs. But all I have done before the the age of 70 is not worth bothering with. At
+          75 I'll have learned something of the pattern of nature, of animals, of plants, of trees, birds, fish and insects. When I am 80 you will 
+          see real progress. At 90 I shall have cut my way deeply into the mystery of life itself. At 100, I shall be a marvelous artist. At 110, 
+          everything I create; a dot, a line, will jump to life as never before.
+          <br /><br />
+          To all of you who are going to live as long as I do, I promise to keep my word. I am writing this in my old age. I used to call 
+          myself Hokusai, but today I sign my self 'The Old Man Mad About Drawing.'"
+          <span className="block mt-1 font-medium text-right">— Hokusai Katsushika</span>
         </p>
       </div>
 
