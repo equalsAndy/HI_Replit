@@ -1,4 +1,4 @@
-import React, { useEffect, Suspense } from "react";
+import React, { useEffect, Suspense, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import UserHome2 from "./pages/user-home2";
 import UserHome2Refactored from "./pages/user-home2-refactored";
@@ -27,6 +27,9 @@ import ImaginationAssessment from "./pages/imagination-assessment";
 import FiveCsAssessment from "./pages/5cs-assessment";
 import InsightsDashboard from "./pages/insights-dashboard";
 import TeamWorkshop from "./pages/team-workshop";
+
+// Lazy-loaded components
+const ImaginalAgilityPage = lazy(() => import("./pages/imaginal-agility"));
 
 // Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
@@ -114,7 +117,11 @@ function Router() {
             </div>;
           }} />
           {/* Main learning routes - redirect for now until we have all pages */}
-          <Route path="/intro/video" component={() => import('./pages/intro/video')} />
+          <Route path="/intro/video">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading video...</div>}>
+              {React.createElement(lazy(() => import('./pages/intro/video')))}
+            </Suspense>
+          </Route>
           <Route path="/discover-strengths/intro" component={() => {
             useEffect(() => {
               navigate('/navigation-demo');
@@ -135,7 +142,11 @@ function Router() {
           }} />
 
           {/* Imaginal Agility Routes */}
-          <Route path="/imaginal-agility" component={React.lazy(() => import('./pages/imaginal-agility'))} />
+          <Route path="/imaginal-agility">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading Imaginal Agility...</div>}>
+              <ImaginalAgilityPage />
+            </Suspense>
+          </Route>
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />
