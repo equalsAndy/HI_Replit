@@ -14,6 +14,11 @@ export default function IntroductionVideo() {
     navigate('/ast-user-home');
   };
   
+  // Mark as completed on mount
+  React.useEffect(() => {
+    markStepCompleted('1-1');
+  }, []);
+  
   return (
     <MainContainer stepId="1-1">
       <div className="max-w-4xl mx-auto">
