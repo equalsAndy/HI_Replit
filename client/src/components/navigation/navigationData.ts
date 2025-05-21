@@ -1,7 +1,7 @@
 import { 
   StarIcon, BarChartIcon, Activity, Sparkles, BookOpen
 } from 'lucide-react';
-import { NavigationSection } from '../../shared/types';
+import { NavigationSection } from '@/shared/types';
 
 // Navigation sections based on the spreadsheet
 export const navigationSections: NavigationSection[] = [

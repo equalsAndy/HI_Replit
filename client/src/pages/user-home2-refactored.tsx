@@ -5,7 +5,7 @@ import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigation';
 import ContentViews from '@/components/content/ContentViews';
 import { navigationSections } from '@/components/navigation/navigationData';
-import { StarCard } from '../shared/types';
+import { StarCard } from '@/shared/types';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
