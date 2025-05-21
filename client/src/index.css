@@ -24,6 +24,9 @@
   --ring: 20 14.3% 4.1%;
   --radius: 0.5rem;
   
+  /* Layout dimensions */
+  --header-height: 44px;
+  
   /* Chart/quadrant colors */
   --chart-1: 142 70% 45%; /* Green */
   --chart-2: 0 84% 60%; /* Red */

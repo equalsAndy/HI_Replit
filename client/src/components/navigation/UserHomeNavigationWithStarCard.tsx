@@ -65,7 +65,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       {isMobile && !drawerOpen && (
         <button
           onClick={toggleDrawer}
-          className="fixed top-16 left-2 z-30 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center border border-gray-200"
+          className="fixed top-1/2 -translate-y-1/2 left-2 z-30 bg-white rounded-full shadow-md w-10 h-10 flex items-center justify-center border border-gray-200"
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5 text-gray-700" />
@@ -86,7 +86,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         "bg-white shadow-sm transition-all duration-300 ease-in-out border-r border-gray-200",
         // Mobile styles - use fixed position when open, hide when closed
         isMobile ? cn(
-          "fixed top-0 left-0 bottom-0 z-30",
+          "fixed top-[calc(var(--header-height,44px))] left-0 bottom-0 z-30",
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         ) : cn(
           "h-full relative",

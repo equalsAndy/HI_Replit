@@ -223,8 +223,8 @@ export default function UserHome2() {
   return (
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header with Reset Button */}
-      <header className="bg-white border-b border-gray-200 py-2 px-4">
-        <div className="flex justify-between items-center">
+      <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
+        <div className="flex justify-between items-center h-full">
           <div className="text-lg font-medium">AllStarTeams Workshop</div>
           <Button 
             variant="outline" 
