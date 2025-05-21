@@ -9,12 +9,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 
 // Navigation sections based on the spreadsheet
 const navigationSections = [
   { 
     id: '1', 
-    title: 'All star teams Introduction', 
+    title: 'AllStarTeams Introduction', 
     path: '/intro/video',
     icon: StarIcon,
     totalSteps: 1,
@@ -76,6 +77,7 @@ export default function UserHome2() {
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState<string>("welcome");
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   
   // Fetch user profile data
   const { data: user } = useQuery<{
@@ -133,8 +135,22 @@ export default function UserHome2() {
     return completedSteps.includes(prevStepId);
   };
 
+  // Handle assessment completion
+  const handleAssessmentComplete = (result: any) => {
+    // Mark the assessment step as completed
+    markStepCompleted('2-2');
+    // You may want to update other state or navigate after assessment completes
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
+      {/* Assessment Modal */}
+      <AssessmentModal 
+        isOpen={isAssessmentModalOpen} 
+        onClose={() => setIsAssessmentModalOpen(false)}
+        onComplete={handleAssessmentComplete}
+      />
+      
       {/* Retractable Navigation Drawer */}
       <div 
         className={cn(
@@ -204,6 +220,10 @@ export default function UserHome2() {
                                     // If it's "Intro to Strengths", show the content in-place
                                     setCurrentContent("intro-strengths");
                                     markStepCompleted(step.id);
+                                  } else if (step.id === '2-2') {
+                                    // If it's "Strengths Assessment", open the assessment modal
+                                    setIsAssessmentModalOpen(true);
+                                    // Don't mark as completed yet - will do that after assessment
                                   } else {
                                     // For other pages, navigate to their routes
                                     navigate(step.path);
@@ -251,11 +271,11 @@ export default function UserHome2() {
         <div className="container mx-auto px-6 py-8">
           {currentContent === "welcome" && (
             <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to All-Star Teams Workshop</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to AllStarTeams Workshop</h1>
               
               <div className="prose max-w-none">
                 <p className="text-lg text-gray-700 mb-6">
-                  Welcome to the All-Star Teams workshop! Through this journey, you'll 
+                  Welcome to the AllStarTeams workshop! Through this journey, you'll 
                   discover your unique strengths profile and learn how to leverage it in your 
                   professional life.
                 </p>
