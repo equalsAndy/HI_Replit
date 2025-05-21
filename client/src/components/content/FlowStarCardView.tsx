@@ -383,9 +383,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       <FlowBadge 
                         key={attr}
                         text={attr}
-                        rank={rank}
+                        rank={rank || 0}
                         selected={isSelected}
-                        rankBadgeColor={rank !== null ? getRankBadgeColor(rank) : ''}
+                        rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
                         onSelect={() => handleAttributeSelect(attr)}
                       />
                     );

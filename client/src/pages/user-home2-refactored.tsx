@@ -201,6 +201,8 @@ export default function UserHome2() {
         completedSteps={completedSteps}
         isStepAccessible={isStepAccessible}
         handleStepClick={handleStepClick}
+        starCard={starCard}
+        flowAttributesData={flowAttributesData}
       />
       
       {/* Main Content Area */}
