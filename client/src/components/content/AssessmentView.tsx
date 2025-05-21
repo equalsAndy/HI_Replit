@@ -7,11 +7,16 @@ interface AssessmentViewProps extends ContentViewProps {
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
 }
 
-const AssessmentView: React.FC<AssessmentViewProps> = ({
+interface StarCard {
+  state?: string;
+}
+
+const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
-  setIsAssessmentModalOpen
+  setIsAssessmentModalOpen,
+  starCard
 }) => {
   return (
     <>
