@@ -71,7 +71,7 @@ const AssessmentView: React.FC<AssessmentViewProps> = ({
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg"
             size="lg"
           >
-            Start Assessment <ChevronRight className="ml-2 h-5 w-5" />
+            {starCard?.state === 'partial' ? 'Continue Assessment' : 'Start Assessment'} <ChevronRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
       </div>
