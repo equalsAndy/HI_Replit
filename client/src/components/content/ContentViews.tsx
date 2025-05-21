@@ -17,6 +17,7 @@ import FutureSelfView from './FutureSelfView';
 import FinalReflectionView from './FinalReflectionView';
 import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
+import { useApplication } from '@/hooks/use-application';
 
 interface ContentViewsProps extends ContentViewProps {
   currentContent: string;
@@ -33,9 +34,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   flowAttributesData,
   setIsAssessmentModalOpen
 }) => {
-  // Return the appropriate content based on currentContent
+  // Get the current application context
+  const { currentApp } = useApplication();
+  const isImaginalAgility = currentApp === 'imaginal-agility';
+  
+  // Return the appropriate content based on currentContent and current application
   switch (currentContent) {
-    // AllStarTeams Introduction
+    // Introduction View
     case 'welcome':
       return (
         <WelcomeView 
@@ -43,6 +48,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+          isImaginalAgility={isImaginalAgility}
         />
       );
 

@@ -51,6 +51,7 @@ export interface ContentViewProps {
   setCurrentContent: (content: string) => void;
   starCard?: StarCard;
   user?: User;
+  isImaginalAgility?: boolean;
   flowAttributesData?: {
     id?: number;
     userId?: number;

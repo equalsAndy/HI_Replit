@@ -125,7 +125,7 @@ export default function UserHome2() {
   }, [starCard]);
   
   // Update navigation sections with completed steps count
-  const updatedNavigationSections = navigationSections.map(section => {
+  const updatedNavigationSections = activeNavigationSections.map(section => {
     const completedStepsInSection = section.steps.filter(step => 
       completedSteps.includes(step.id)
     ).length;
