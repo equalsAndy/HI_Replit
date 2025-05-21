@@ -263,44 +263,304 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       
     case 'triple-challenge':
       return (
-        <PlaceholderView 
-          title="The Triple Challenge"
-          description="Explore the three interconnected challenges of complexity, change, and connection that professionals face in today's rapidly evolving landscape."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="imaginal-solution"
-          nextLabel="Next: The Imaginal Agility Solution"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
+          
+          <div className="mb-8 bg-purple-50 p-6 rounded-lg">
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Today's Leaders Face Three Interconnected Challenges</h2>
+            
+            <div className="grid md:grid-cols-3 gap-6 mt-6">
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-xl text-purple-800 font-semibold mb-2">Complexity</h3>
+                <p className="text-gray-700">
+                  We operate in environments with countless interdependent variables, where cause and effect are often distant in time and space.
+                </p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-xl text-purple-800 font-semibold mb-2">Velocity</h3>
+                <p className="text-gray-700">
+                  The pace of change continues to accelerate, requiring faster adaptation and more agile thinking than ever before.
+                </p>
+              </div>
+              
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <h3 className="text-xl text-purple-800 font-semibold mb-2">Uncertainty</h3>
+                <p className="text-gray-700">
+                  We must make decisions with incomplete information in contexts of increasing unpredictability and risk.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Why Traditional Approaches Fall Short</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Linear thinking, rigid planning, and top-down management are increasingly inadequate for today's environment. 
+            As technology advances, we need to develop uniquely human capabilities that complement rather than compete 
+            with artificial intelligence.
+          </p>
+          
+          <div className="bg-purple-100 p-6 rounded-lg mb-8">
+            <h3 className="text-xl font-semibold text-purple-800 mb-4">The Collaboration Gap</h3>
+            <p className="text-gray-700">
+              Many organizations struggle to bridge disciplinary silos and connect diverse perspectives. 
+              True innovation emerges from the intersections between different domains of knowledge, requiring 
+              new forms of collaboration and knowledge integration.
+            </p>
+          </div>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-2');
+                setCurrentContent("imaginal-solution");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: The Imaginal Agility Solution
+            </Button>
+          </div>
+        </div>
       );
       
     case 'imaginal-solution':
       return (
-        <PlaceholderView 
-          title="The Imaginal Agility Solution"
-          description="Discover how Imaginal Agility provides a framework for navigating complexity with creativity, adaptability, and purpose."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="five-capabilities"
-          nextLabel="Next: Your 5 Capabilities (5Cs)"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
+          
+          <div className="mb-8">
+            <img 
+              src="https://images.unsplash.com/photo-1500576992153-0271099def59?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2969&q=80" 
+              alt="Person looking at a vast horizon, representing imagination and possibility"
+              className="w-full rounded-lg object-cover h-64"
+            />
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Strategic Imagination: The Human Advantage</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Imaginal Agility is the human capacity to navigate complex, fast-changing environments by 
+            integrating imagination with strategic thinking. It's not just creative thinking, but the ability 
+            to envision possibilities and create practical pathways toward preferred futures.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">What It Is</h3>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>A systematic approach to developing imagination as a strategic capability</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>A portfolio of practices that strengthen adaptability in changing contexts</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>A framework for integrating human creativity with technological capabilities</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">What It Is Not</h3>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>Generic creativity training or artistic expression</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>Unrealistic or impractical "blue sky" thinking</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 font-bold mr-2">•</span>
+                  <span>A technical skill that can be replaced by AI</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The 5 Core Capabilities (5Cs)</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Our research has identified five core capabilities that form the foundation of Imaginal Agility. 
+            Each capability can be strengthened through deliberate practice and integrated into your professional workflow:
+          </p>
+          
+          <div className="bg-purple-100 p-6 rounded-lg mb-8">
+            <ul className="space-y-4">
+              <li className="flex items-start">
+                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
+                <div>
+                  <span className="font-semibold text-purple-800">Curiosity:</span>
+                  <span className="text-gray-700"> The ability to ask powerful questions, challenge assumptions, and maintain openness to new information</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
+                <div>
+                  <span className="font-semibold text-purple-800">Courage:</span>
+                  <span className="text-gray-700"> The willingness to take intelligent risks, embrace uncertainty, and adapt in the face of challenges</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
+                <div>
+                  <span className="font-semibold text-purple-800">Connection:</span>
+                  <span className="text-gray-700"> The capacity to build relationships, bridge disciplines, and integrate diverse perspectives</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
+                <div>
+                  <span className="font-semibold text-purple-800">Creativity:</span>
+                  <span className="text-gray-700"> The ability to generate novel ideas, make unexpected connections, and envision new possibilities</span>
+                </div>
+              </li>
+              <li className="flex items-start">
+                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
+                <div>
+                  <span className="font-semibold text-purple-800">Clarity:</span>
+                  <span className="text-gray-700"> The skill to discern patterns, find signal in noise, and maintain focus on what matters most</span>
+                </div>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-3');
+                setCurrentContent("five-capabilities");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Your 5 Capabilities (5Cs)
+            </Button>
+          </div>
+        </div>
       );
       
     case 'five-capabilities':
       return (
-        <PlaceholderView 
-          title="Your 5 Capabilities (5Cs)"
-          description="Learn about the five core capabilities that form the foundation of Imaginal Agility: Clarity, Curiosity, Creativity, Courage, and Connection."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="imagination-assessment"
-          nextLabel="Next: Take the Imagination Assessment"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Your 5 Capabilities (5Cs)</h1>
+          
+          <p className="text-lg text-gray-700 mb-6">
+            Understanding your 5Cs profile is the first step toward developing your Imaginal Agility. 
+            Each capability represents a distinct dimension of strategic imagination that can be 
+            strengthened through deliberate practice.
+          </p>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Curiosity</h3>
+              <p className="text-gray-700 mb-4">
+                The ability to ask powerful questions, challenge assumptions, and maintain openness to new information.
+              </p>
+              <div className="bg-white p-3 rounded-lg text-sm">
+                <span className="font-semibold text-purple-800">Key practices:</span>
+                <ul className="mt-2 space-y-1">
+                  <li>Asking "what if" and "how might we" questions</li>
+                  <li>Seeking diverse perspectives</li>
+                  <li>Suspending judgment</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Courage</h3>
+              <p className="text-gray-700 mb-4">
+                The willingness to take intelligent risks, embrace uncertainty, and adapt in the face of challenges.
+              </p>
+              <div className="bg-white p-3 rounded-lg text-sm">
+                <span className="font-semibold text-purple-800">Key practices:</span>
+                <ul className="mt-2 space-y-1">
+                  <li>Experimenting with new approaches</li>
+                  <li>Learning from failures</li>
+                  <li>Persisting through ambiguity</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Connection</h3>
+              <p className="text-gray-700 mb-4">
+                The capacity to build relationships, bridge disciplines, and integrate diverse perspectives.
+              </p>
+              <div className="bg-white p-3 rounded-lg text-sm">
+                <span className="font-semibold text-purple-800">Key practices:</span>
+                <ul className="mt-2 space-y-1">
+                  <li>Building collaborative networks</li>
+                  <li>Crossing disciplinary boundaries</li>
+                  <li>Creating psychological safety</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Creativity</h3>
+              <p className="text-gray-700 mb-4">
+                The ability to generate novel ideas, make unexpected connections, and envision new possibilities.
+              </p>
+              <div className="bg-white p-3 rounded-lg text-sm">
+                <span className="font-semibold text-purple-800">Key practices:</span>
+                <ul className="mt-2 space-y-1">
+                  <li>Ideation and divergent thinking</li>
+                  <li>Making surprising connections</li>
+                  <li>Generating multiple scenarios</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
+              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Clarity</h3>
+              <p className="text-gray-700 mb-4">
+                The skill to discern patterns, find signal in noise, and maintain focus on what matters most.
+              </p>
+              <div className="bg-white p-3 rounded-lg text-sm">
+                <span className="font-semibold text-purple-800">Key practices:</span>
+                <ul className="mt-2 space-y-1">
+                  <li>Strategic prioritization</li>
+                  <li>Pattern recognition</li>
+                  <li>Focused attention</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-purple-100 p-6 rounded-lg mb-8">
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Everyone Has a Unique Profile</h2>
+            <p className="text-gray-700 mb-4">
+              While all five capabilities are important, most people naturally have stronger and weaker areas. 
+              Understanding your profile helps you build on your strengths while developing your areas for growth.
+            </p>
+            <p className="text-gray-700">
+              The assessments in this program will help you identify your current profile and track your development 
+              over time as you practice the techniques and apply the principles of Imaginal Agility.
+            </p>
+          </div>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-4');
+                setCurrentContent("imagination-assessment");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Take the Imagination Assessment
+            </Button>
+          </div>
+        </div>
       );
       
     case 'imagination-assessment':
