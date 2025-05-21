@@ -407,41 +407,43 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               <p className="text-gray-600 mb-4">Review your answers below. Click an answer or the Adjust button to modify your responses.</p>
               
               <div className="border rounded-md divide-y">
-                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium">
+                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
                   <div>QUESTION</div>
                   <div>YOUR ANSWER</div>
                   <div>ACTION</div>
                 </div>
                 
-                {flowQuestions.map((q) => {
-                  const answerValue = answers[q.id] || 0;
-                  if (answerValue === 0) return null;
-                  
-                  return (
-                    <div key={q.id} className="grid grid-cols-[1fr,auto,auto] items-center p-3">
-                      <div className="pr-4">
-                        <p className="text-gray-800">Question #{q.id}: {q.text}</p>
-                      </div>
-                      
-                      <div className="px-3">
-                        <div className={`px-4 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
-                          {valueToLabel(answerValue)}
+                <div className="max-h-72 overflow-y-auto divide-y">
+                  {flowQuestions.map((q) => {
+                    const answerValue = answers[q.id] || 0;
+                    if (answerValue === 0) return null;
+                    
+                    return (
+                      <div key={q.id} className="grid grid-cols-[1fr,auto,auto] items-center p-3">
+                        <div className="pr-4">
+                          <p className="text-gray-800">Question #{q.id}: {q.text}</p>
+                        </div>
+                        
+                        <div className="px-3">
+                          <div className={`px-4 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
+                            {valueToLabel(answerValue)}
+                          </div>
+                        </div>
+                        
+                        <div className="text-center">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-indigo-600 hover:text-indigo-800" 
+                            onClick={() => handleAdjustAnswer(q.id)}
+                          >
+                            <span className="text-indigo-600 mr-1">⚙</span> Adjust
+                          </Button>
                         </div>
                       </div>
-                      
-                      <div className="text-center">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-indigo-600 hover:text-indigo-800" 
-                          onClick={() => handleAdjustAnswer(q.id)}
-                        >
-                          <span className="text-indigo-600 mr-1">⚙</span> Adjust
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             </div>
             
