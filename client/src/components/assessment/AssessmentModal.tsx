@@ -2,12 +2,29 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, X, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { AssessmentPieChart } from './AssessmentPieChart';
 import { useQuery } from '@tanstack/react-query';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AssessmentPieChart } from './AssessmentPieChart';
+import { 
+  DndContext, 
+  closestCenter, 
+  KeyboardSensor, 
+  PointerSensor, 
+  useSensor, 
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface QuestionOption {
   id: string;
@@ -21,32 +38,166 @@ interface Question {
   options: QuestionOption[];
 }
 
+interface DraggableOptionProps {
+  option: QuestionOption;
+  position: number;
+}
+
 interface AssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete?: (data: any) => void;
 }
 
+// Sample questions from the assessment screenshot
+const SAMPLE_QUESTIONS = [
+  {
+    id: 1,
+    text: "When solving a problem at work, I typically...",
+    options: [
+      { id: "1a", text: "Look at the facts and think through different solutions", quadrant: "thinking" },
+      { id: "1b", text: "Talk with colleagues to hear their concerns and ideas", quadrant: "feeling" },
+      { id: "1c", text: "Jump in quickly to find a practical fix", quadrant: "acting" },
+      { id: "1d", text: "Create a step-by-step plan to tackle the issue", quadrant: "planning" }
+    ]
+  },
+  {
+    id: 2,
+    text: "In team meetings, I tend to focus on...",
+    options: [
+      { id: "2a", text: "Analyzing information and identifying key insights", quadrant: "thinking" },
+      { id: "2b", text: "Building consensus and ensuring everyone feels heard", quadrant: "feeling" },
+      { id: "2c", text: "Moving the discussion toward concrete actions", quadrant: "acting" },
+      { id: "2d", text: "Establishing clear processes and timelines", quadrant: "planning" }
+    ]
+  },
+  {
+    id: 3,
+    text: "When working on a project, I'm at my best when...",
+    options: [
+      { id: "3a", text: "I can explore ideas and think conceptually", quadrant: "thinking" },
+      { id: "3b", text: "I'm connecting with people and understanding their needs", quadrant: "feeling" },
+      { id: "3c", text: "I'm taking action and producing tangible results", quadrant: "acting" },
+      { id: "3d", text: "I'm organizing tasks and creating structure", quadrant: "planning" }
+    ]
+  },
+  {
+    id: 4,
+    text: "When faced with change, my first reaction is to...",
+    options: [
+      { id: "4a", text: "Analyze why the change is happening and its implications", quadrant: "thinking" },
+      { id: "4b", text: "Consider how people will be affected and how to support them", quadrant: "feeling" },
+      { id: "4c", text: "Start adapting quickly and look for opportunities", quadrant: "acting" },
+      { id: "4d", text: "Create a roadmap for navigating the transition", quadrant: "planning" }
+    ]
+  },
+  {
+    id: 5,
+    text: "I find it most satisfying when I can...",
+    options: [
+      { id: "5a", text: "Solve complex problems and find innovative solutions", quadrant: "thinking" },
+      { id: "5b", text: "Build meaningful relationships and help others succeed", quadrant: "feeling" },
+      { id: "5c", text: "Take initiative and make things happen", quadrant: "acting" },
+      { id: "5d", text: "Create efficient systems and monitor progress", quadrant: "planning" }
+    ]
+  }
+];
+
+// Position labels
+const POSITION_LABELS = [
+  "Most like me",
+  "Second",
+  "Third",
+  "Least like me"
+];
+
+// DraggableOption component
+function DraggableOption({ option, position }: DraggableOptionProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: option.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style}
+      className="bg-white p-4 my-2 rounded-lg shadow border border-gray-200 cursor-move"
+      {...attributes} 
+      {...listeners}
+    >
+      <p className="text-sm md:text-base">{option.text}</p>
+    </div>
+  );
+}
+
+// Droppable Area component
+function DroppableArea({ position, items = [], questionOptions }: { 
+  position: number; 
+  items: string[];
+  questionOptions: QuestionOption[];
+}) {
+  // Find the actual option objects that match the ids in items
+  const optionsInPosition = items.map(id => 
+    questionOptions.find(option => option.id === id)
+  ).filter(Boolean) as QuestionOption[];
+
+  return (
+    <div className="w-full">
+      <div className="min-h-[80px] p-2 rounded-lg border border-dashed border-gray-300 flex flex-col items-center justify-center bg-gray-50">
+        {optionsInPosition.length === 0 ? (
+          <div className="text-gray-400 p-4">Drop here</div>
+        ) : (
+          <SortableContext items={items} strategy={verticalListSortingStrategy}>
+            {optionsInPosition.map(option => (
+              <DraggableOption key={option.id} option={option} position={position} />
+            ))}
+          </SortableContext>
+        )}
+      </div>
+      <p className="text-center mt-2 font-medium">{POSITION_LABELS[position]}</p>
+    </div>
+  );
+}
+
 export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModalProps) {
   const { toast } = useToast();
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [questions, setQuestions] = useState<Question[]>(SAMPLE_QUESTIONS);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<{[key: number]: { [key: string]: number }}>({});
+  const [sortedOptions, setSortedOptions] = useState<{ [key: number]: string[][] }>({});
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [results, setResults] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [demoModeEnabled, setDemoModeEnabled] = useState(false);
   
+  // Configure DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 }
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   // Get existing star card to check if assessment was already completed
   const { data: starCard } = useQuery({ 
     queryKey: ['/api/starcard'],
     enabled: isOpen
   });
   
-  // Check if assessment is already completed or in progress
   useEffect(() => {
-    if (isOpen && starCard) {
-      if (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0) {
+    if (isOpen) {
+      if (starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)) {
         // Star card exists with scores, show results directly
         setResults({
           thinking: starCard.thinking || 0,
@@ -62,60 +213,6 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     }
   }, [isOpen, starCard]);
   
-  // Sample questions for the assessment
-  const sampleQuestions = [
-    {
-      id: 1,
-      text: "When starting a new project, I prefer to...",
-      options: [
-        { id: "1a", text: "Start working right away and adjust as I go", quadrant: "acting" },
-        { id: "1b", text: "Get to know my teammates and build good working relationships", quadrant: "feeling" },
-        { id: "1c", text: "Break down the work into clear steps with deadlines", quadrant: "planning" },
-        { id: "1d", text: "Consider different approaches before deciding how to proceed", quadrant: "thinking" }
-      ]
-    },
-    {
-      id: 2,
-      text: "When faced with a challenge, I typically...",
-      options: [
-        { id: "2a", text: "Tackle it head-on and find a quick solution", quadrant: "acting" },
-        { id: "2b", text: "Talk it through with others to understand their perspectives", quadrant: "feeling" },
-        { id: "2c", text: "Create a detailed plan to overcome it systematically", quadrant: "planning" },
-        { id: "2d", text: "Analyze the root cause and consider multiple solutions", quadrant: "thinking" }
-      ]
-    },
-    {
-      id: 3,
-      text: "In team discussions, I am most likely to...",
-      options: [
-        { id: "3a", text: "Push for decisions and action steps", quadrant: "acting" },
-        { id: "3b", text: "Ensure everyone's voices and feelings are considered", quadrant: "feeling" },
-        { id: "3c", text: "Keep the conversation focused on our goals and timeline", quadrant: "planning" },
-        { id: "3d", text: "Ask questions and explore implications of different ideas", quadrant: "thinking" }
-      ]
-    },
-    {
-      id: 4,
-      text: "I am most motivated by...",
-      options: [
-        { id: "4a", text: "Seeing tangible results of my work", quadrant: "acting" },
-        { id: "4b", text: "Creating positive experiences for others", quadrant: "feeling" },
-        { id: "4c", text: "Achieving milestones and completing goals", quadrant: "planning" },
-        { id: "4d", text: "Learning new concepts and gaining insights", quadrant: "thinking" }
-      ]
-    },
-    {
-      id: 5,
-      text: "When making decisions, I tend to...",
-      options: [
-        { id: "5a", text: "Go with my gut and decide quickly", quadrant: "acting" },
-        { id: "5b", text: "Consider how it will affect people involved", quadrant: "feeling" },
-        { id: "5c", text: "Evaluate options against our objectives", quadrant: "planning" },
-        { id: "5d", text: "Gather all available information before deciding", quadrant: "thinking" }
-      ]
-    }
-  ];
-  
   // Initialize new assessment
   const initializeAssessment = async () => {
     setIsLoading(true);
@@ -125,11 +222,10 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       // Try to start a new assessment on the server
       await apiRequest('POST', '/api/assessment/start', {});
       
-      // If successful (or if it fails because we're in development with sample data),
-      // proceed with the assessment using our sample questions
-      setQuestions(sampleQuestions);
+      // Set up the questions and initial state
+      setQuestions(SAMPLE_QUESTIONS);
       setCurrentQuestionIndex(0);
-      setAnswers({});
+      setSortedOptions({});
       setResults(null);
     } catch (err: any) {
       // If this fails because an assessment is already in progress,
@@ -148,35 +244,121 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   useEffect(() => {
     if (!isOpen) {
       setCurrentQuestionIndex(0);
-      setAnswers({});
+      setSortedOptions({});
       setResults(null);
       setError(null);
+      setDemoModeEnabled(false);
     }
   }, [isOpen]);
   
-  // Handle selecting an option
-  const handleSelectOption = (questionId: number, optionId: string, rank: number) => {
-    setAnswers(prev => {
-      const questionAnswers = prev[questionId] || {};
-      return {
-        ...prev,
-        [questionId]: {
-          ...questionAnswers,
-          [optionId]: rank
+  // Handle drag end event
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+    
+    const currentQuestion = questions[currentQuestionIndex];
+    const questionId = currentQuestion.id;
+    
+    // Get the current state for this question or initialize it
+    const currentSorted = sortedOptions[questionId] || [[], [], [], []];
+    
+    // Find which arrays contain the dragged item
+    let sourceIndex = -1;
+    let sourceArray: string[] = [];
+    
+    for (let i = 0; i < currentSorted.length; i++) {
+      if (currentSorted[i].includes(active.id as string)) {
+        sourceIndex = i;
+        sourceArray = [...currentSorted[i]];
+        break;
+      }
+    }
+    
+    // Find the target array index from the over.id
+    const targetId = String(over.id);
+    let targetIndex = parseInt(targetId.split('-')[1], 10);
+    
+    // If target is not a drop area, it's another item
+    if (isNaN(targetIndex)) {
+      // Find which array contains the target item
+      for (let i = 0; i < currentSorted.length; i++) {
+        if (currentSorted[i].includes(targetId)) {
+          targetIndex = i;
+          break;
         }
-      };
+      }
+    }
+    
+    // Don't do anything if source and target are the same or if invalid indices
+    if (sourceIndex === targetIndex || sourceIndex === -1 || targetIndex === -1) return;
+    
+    // Remove from source array
+    const newSourceArray = sourceArray.filter(id => id !== active.id);
+    
+    // Add to target array (if there's already an item, swap them)
+    const newTargetArray = [...currentSorted[targetIndex]];
+    
+    // If the target already has an item and the source doesn't have space
+    if (newTargetArray.length >= 1 && newSourceArray.length >= 1) {
+      // Just add the dragged item to the target (replacing any existing item)
+      newTargetArray.splice(0, newTargetArray.length, active.id as string);
+    } else {
+      // Add the dragged item to target
+      newTargetArray.push(active.id as string);
+    }
+    
+    // Create new state
+    const newSorted = [...currentSorted];
+    newSorted[sourceIndex] = newSourceArray;
+    newSorted[targetIndex] = newTargetArray;
+    
+    // Update state
+    setSortedOptions({
+      ...sortedOptions,
+      [questionId]: newSorted
     });
   };
   
-  // Check if all options for current question are ranked
+  // Toggle demo mode
+  const toggleDemoMode = () => {
+    if (!demoModeEnabled) {
+      // Pre-fill answers for demo
+      const demoAnswers: { [key: number]: string[][] } = {};
+      
+      questions.forEach((question, index) => {
+        const options = [...question.options];
+        const shuffled = options.sort(() => 0.5 - Math.random());
+        
+        demoAnswers[question.id] = [
+          [shuffled[0].id],
+          [shuffled[1].id],
+          [shuffled[2].id],
+          [shuffled[3].id]
+        ];
+      });
+      
+      setSortedOptions(demoAnswers);
+    } else {
+      // Clear answers
+      setSortedOptions({});
+    }
+    
+    setDemoModeEnabled(!demoModeEnabled);
+  };
+  
+  // Check if current question is complete (all options are placed)
   const isCurrentQuestionComplete = () => {
     if (!questions[currentQuestionIndex]) return false;
     
     const questionId = questions[currentQuestionIndex].id;
-    const optionCount = questions[currentQuestionIndex].options.length;
-    const answeredCount = Object.keys(answers[questionId] || {}).length;
+    const currentSorted = sortedOptions[questionId] || [[], [], [], []];
     
-    return answeredCount === optionCount;
+    // Count total items in all positions
+    const totalPlaced = currentSorted.reduce((total, position) => total + position.length, 0);
+    
+    // Check if all options are placed
+    return totalPlaced === questions[currentQuestionIndex].options.length;
   };
   
   // Navigate to next question
@@ -198,7 +380,10 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   
   // Cancel assessment
   const cancelAssessment = () => {
-    if (Object.keys(answers).length > 0) {
+    // Check if there are any answers
+    const hasAnswers = Object.keys(sortedOptions).length > 0;
+    
+    if (hasAnswers) {
       // Show confirmation if there are answers
       if (window.confirm("Are you sure you want to cancel? All your answers will be lost.")) {
         onClose();
@@ -212,16 +397,15 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   const resetAssessment = async () => {
     if (window.confirm("Are you sure you want to reset your assessment? All your data will be lost.")) {
       try {
-        // In a production app, we would add an API endpoint to reset assessment data
-        // For now, just restart the assessment with empty answers
         setIsLoading(true);
         setError(null);
         setCurrentQuestionIndex(0);
-        setAnswers({});
+        setSortedOptions({});
         setResults(null);
+        setDemoModeEnabled(false);
         
-        // Reload sample questions
-        setQuestions(sampleQuestions);
+        // Reload questions
+        setQuestions(SAMPLE_QUESTIONS);
         setIsLoading(false);
       } catch (error) {
         toast({
@@ -246,23 +430,25 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         planning: 0
       };
       
-      // Count points for each quadrant based on rankings (1=highest, 4=lowest)
-      Object.entries(answers).forEach(([questionId, rankings]) => {
-        Object.entries(rankings).forEach(([optionId, rank]) => {
-          // Find the corresponding option in our questions
-          const question = questions.find(q => q.id === parseInt(questionId));
-          if (!question) return;
-          
-          const option = question.options.find(o => o.id === optionId);
-          if (!option) return;
-          
-          // Assign points based on rank (inverted: 4 points for rank 1, 1 point for rank 4)
-          const points = 5 - rank; // So rank 1 = 4pts, rank 2 = 3pts, etc.
-          
-          // Add points to the corresponding quadrant
-          if (option.quadrant in quadrantScores) {
-            quadrantScores[option.quadrant as keyof typeof quadrantScores] += points;
-          }
+      // Process each question's ranking
+      Object.entries(sortedOptions).forEach(([questionId, positions]) => {
+        const question = questions.find(q => q.id === parseInt(questionId));
+        if (!question) return;
+        
+        // Assign points based on position (inverted: position 0 = 4pts, position 3 = 1pt)
+        positions.forEach((optionIds, positionIndex) => {
+          optionIds.forEach(optionId => {
+            const option = question.options.find(o => o.id === optionId);
+            if (!option) return;
+            
+            // Calculate points (4 for position 0, 3 for position 1, etc.)
+            const points = 4 - positionIndex;
+            
+            // Add points to the corresponding quadrant
+            if (option.quadrant in quadrantScores) {
+              quadrantScores[option.quadrant as keyof typeof quadrantScores] += points;
+            }
+          });
         });
       });
       
@@ -293,10 +479,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       // Set results
       setResults(result);
       
-      // Save to server (this is simulated since the actual server call is failing)
+      // Save to server
       try {
         // In production, we would complete the assessment with the API
-        await apiRequest('POST', '/api/assessment/complete', {});
+        await apiRequest('POST', '/api/assessment/complete', { quadrants: result });
+        // Invalidate related queries
+        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       } catch (err) {
         // Just log the error but still show the results since we have them
         console.error('Error saving assessment results to server:', err);
@@ -323,8 +511,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     }
   };
   
-  // Render option selection UI
-  const renderOptionSelection = () => {
+  // Render the drag and drop question UI
+  const renderDragDropQuestion = () => {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center h-64">
@@ -364,84 +552,101 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     }
     
     const currentQuestion = questions[currentQuestionIndex];
-    const questionAnswers = answers[currentQuestion.id] || {};
+    const questionId = currentQuestion.id;
+    const currentSorted = sortedOptions[questionId] || [[], [], [], []];
     
-    // Calculate which ranks are already assigned
-    const assignedRanks = Object.values(questionAnswers);
+    // Collect all option IDs that are already placed
+    const placedOptionIds = currentSorted.flat();
     
-    // Get available ranks (those not yet assigned)
-    const availableRanks = [1, 2, 3, 4].filter(rank => !assignedRanks.includes(rank));
+    // Get unplaced options
+    const unplacedOptions = currentQuestion.options.filter(
+      option => !placedOptionIds.includes(option.id)
+    );
+    
+    // Create array of all option IDs
+    const allOptionIds = currentQuestion.options.map(option => option.id);
+    
+    // Progress percentage
+    const progressPercentage = Math.round(((currentQuestionIndex + 1) / questions.length) * 100);
     
     return (
       <div className="px-2 sm:px-4">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium">Question {currentQuestionIndex + 1} of {questions.length}</h3>
           <div className="text-sm text-gray-500">
-            {Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}% complete
+            {progressPercentage}% complete
           </div>
         </div>
         
-        <div className="h-1 w-full bg-gray-200 rounded mb-6">
+        {/* Progress bar */}
+        <div className="h-1 w-full bg-gray-200 rounded mb-4">
           <div 
-            className="h-1 bg-indigo-600 rounded" 
-            style={{ width: `${Math.round(((currentQuestionIndex + 1) / questions.length) * 100)}%` }}
+            className="h-1 bg-indigo-600 rounded transition-all" 
+            style={{ width: `${progressPercentage}%` }}
           ></div>
         </div>
         
-        <p className="mb-6 text-base sm:text-lg">{currentQuestion.text}</p>
-        
-        <div className="space-y-4">
-          {currentQuestion.options.map((option) => {
-            const selectedRank = questionAnswers[option.id];
-            
-            return (
-              <Card key={option.id} className="p-3 sm:p-4 relative">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <p className="text-sm sm:text-base flex-1">{option.text}</p>
-                  
-                  <div className="flex flex-wrap items-center gap-2">
-                    {selectedRank ? (
-                      <div className="flex items-center">
-                        <span className="mr-2 font-medium">Rank: {selectedRank}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          onClick={() => {
-                            // Remove this rank
-                            const newAnswers = { ...questionAnswers };
-                            delete newAnswers[option.id];
-                            setAnswers({ ...answers, [currentQuestion.id]: newAnswers });
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex flex-wrap items-center gap-2">
-                        {availableRanks.map(rank => (
-                          <Button 
-                            key={rank}
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleSelectOption(currentQuestion.id, option.id, rank)}
-                          >
-                            {rank}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
+        {/* Question text */}
+        <div className="mb-6 p-4 bg-[#f8f9fe] rounded-lg">
+          <p className="text-base sm:text-lg font-medium text-[#4F46E5]">{currentQuestion.text}</p>
         </div>
         
-        <div className="flex-row-reverse sm:flex justify-between mt-8">
+        {/* Drag and drop area */}
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          {/* Unplaced options */}
+          {unplacedOptions.length > 0 && (
+            <div className="mb-6 p-4 bg-[#fffbf1] rounded-lg">
+              <p className="mb-3 text-sm text-gray-500">Drag each option to rank them from most to least like you:</p>
+              <SortableContext items={unplacedOptions.map(o => o.id)} strategy={verticalListSortingStrategy}>
+                {unplacedOptions.map(option => (
+                  <DraggableOption key={option.id} option={option} position={-1} />
+                ))}
+              </SortableContext>
+            </div>
+          )}
+          
+          {/* Drop areas */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-6">
+            {[0, 1, 2, 3].map(position => (
+              <DroppableArea 
+                key={`position-${position}`} 
+                position={position} 
+                items={currentSorted[position] || []}
+                questionOptions={currentQuestion.options}
+              />
+            ))}
+          </div>
+        </DndContext>
+        
+        {/* Navigation buttons */}
+        <div className="flex flex-col-reverse sm:flex-row justify-between mt-8">
+          <div className="mt-3 sm:mt-0">
+            <Button
+              variant="outline"
+              onClick={goToPreviousQuestion}
+              disabled={currentQuestionIndex === 0 || isSubmitting}
+              className="w-full sm:w-auto mr-2"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" /> Previous
+            </Button>
+            
+            <Button
+              variant="outline"
+              onClick={toggleDemoMode}
+              className="w-full sm:w-auto mt-2 sm:mt-0"
+            >
+              {demoModeEnabled ? "Clear Answers" : "Demo Answers"}
+            </Button>
+          </div>
+          
           <Button 
             onClick={goToNextQuestion}
             disabled={!isCurrentQuestionComplete() || isSubmitting}
-            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 mt-3 sm:mt-0"
+            className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
           >
             {isSubmitting ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -450,15 +655,6 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             ) : (
               'Complete Assessment'
             )}
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            onClick={goToPreviousQuestion}
-            disabled={currentQuestionIndex === 0 || isSubmitting}
-            className="w-full sm:w-auto"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" /> Previous
           </Button>
         </div>
       </div>
@@ -523,7 +719,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && cancelAssessment()}>
-      <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
         <DialogHeader className="sm:px-2">
           <div className="flex items-center justify-between">
             <DialogTitle>AllStarTeams Strengths Assessment</DialogTitle>
@@ -533,12 +729,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </Button>
           </div>
           <DialogDescription>
-            For each scenario, rank the options from 1 (most like you) to 4 (least like you).
+            For each scenario, rank the options from most like you to least like you by dragging them to the appropriate position.
           </DialogDescription>
         </DialogHeader>
         
         <div className="py-2 sm:py-4">
-          {results ? renderResults() : renderOptionSelection()}
+          {results ? renderResults() : renderDragDropQuestion()}
         </div>
         
         {!isLoading && !error && !results && (
