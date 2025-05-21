@@ -372,14 +372,11 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
           
           <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
             <h4 className="font-medium text-indigo-800 mb-2">Consider what you value in team environments:</h4>
-            <p className="text-gray-700 text-sm mb-3">
-              Reflect on the team qualities that bring out your best performance and satisfaction:
-            </p>
             <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-              <li>Think about communication styles that work well for you</li>
-              <li>Consider decision-making approaches you find most effective</li>
-              <li>Reflect on workflow structures that help you perform at your best</li>
-              <li>Identify team dynamics that energize rather than drain you</li>
+              <li>What type of communication style works best for you?</li>
+              <li>How much structure vs. flexibility do you need?</li>
+              <li>What kinds of roles or responsibilities energize you?</li>
+              <li>How do you prefer to receive feedback?</li>
             </ul>
             
             <div className="mb-2">
@@ -414,7 +411,7 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
               id="team-values-reflection"
               value={reflections.teamValues}
               onChange={(e) => handleReflectionChange(5, e.target.value)}
-              placeholder="Describe the team environment where you thrive..."
+              placeholder="Describe the team environment where you perform at your best..."
               className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
             />
           </div>
@@ -433,19 +430,20 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
               6
             </div>
           </div>
-          <h3 className="text-xl font-bold text-gray-800">Your Unique Contribution to the Team</h3>
+          <h3 className="text-xl font-bold text-gray-800">Your Unique Contribution</h3>
         </div>
         
         <div className="ml-16 mb-6">
           <p className="text-gray-700 mb-3">
-            Your unique combination of strengths creates a distinctive value that you bring to your team or organization. 
-            This is how you stand out and make a difference in ways others might not.
+            Your particular strengths profile creates a unique combination that you bring to your team. 
+            Think about how your top strengths work together to create value.
           </p>
           
           <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-green-800 mb-2">Consider your unique contribution:</h4>
+            <h4 className="font-medium text-green-800 mb-2">Consider your unique combination of strengths:</h4>
             <p className="text-gray-700 text-sm mb-3">
-              Think about the distinctive value you bring to your team or organization that others might not provide:
+              Your top two strengths are {topStrength.label.toLowerCase()} ({topStrength.score}%) and {secondStrength.label.toLowerCase()} ({secondStrength.score}%). 
+              How do these work together to create a unique perspective or approach?
             </p>
             
             <div className="mb-2">
@@ -461,7 +459,6 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                   <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
                   <div className="text-sm text-gray-700">
-                    <p className="mb-2 italic">"My unique contribution comes from blending my planning abilities with my thinking strengths. I help the team create structured approaches to complex problems, breaking down abstract challenges into concrete, actionable steps with clear timelines and responsibilities."</p>
                     <p className="italic">"I bring value through my combination of action orientation and empathy. I drive projects forward decisively while ensuring team members feel heard and supported. This helps us maintain both momentum and morale, especially during high-pressure situations."</p>
                   </div>
                 </div>
@@ -503,120 +500,132 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
       </div>
       
       <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
-        {/* Reflection Header */}
-        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-          <div className="flex justify-between items-start">
-            <div>
-              <h2 className="text-xl font-bold mb-2">Your Strengths Reflection Journey</h2>
-              <p className="text-white/80">
-                Understanding how your unique strengths work together helps you maximize your potential.
-                Let's explore one strength at a time.
-              </p>
-            </div>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={fillWithDemoData}
-              className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
-            >
-              <FileText className="w-3 h-3 mr-1" />
-              Add Demo Data
-            </Button>
-          </div>
-          
-          {/* Improved Strengths Distribution - ordered by score */}
-          <div className="mt-6 bg-white/30 rounded-lg p-5">
-            <div className="flex flex-col items-center">
-              <h3 className="text-white font-bold text-center mb-3">Your Strengths Distribution</h3>
-              
-              <div className="flex flex-col gap-2 mb-2 w-full max-w-md">
-                {sortedQuadrants.map((quadrant, index) => {
-                  let bgColor = '';
-                  let textColor = 'text-gray-900';
-                  let borderColor = '';
-                  let isHighlighted = currentStep <= 4 && index === currentStep - 1;
-                  
-                  switch(quadrant.label) {
-                    case 'PLANNING':
-                      bgColor = 'bg-yellow-400';
-                      borderColor = isHighlighted ? 'border-2 border-yellow-700' : '';
-                      break;
-                    case 'ACTING':
-                      bgColor = 'bg-red-400';
-                      borderColor = isHighlighted ? 'border-2 border-red-700' : '';
-                      break;
-                    case 'FEELING':
-                      bgColor = 'bg-blue-400';
-                      borderColor = isHighlighted ? 'border-2 border-blue-700' : '';
-                      break;
-                    case 'THINKING':
-                      bgColor = 'bg-green-400';
-                      borderColor = isHighlighted ? 'border-2 border-green-700' : '';
-                      break;
-                  }
-                  
-                  return (
-                    <div 
-                      key={quadrant.label}
-                      className={`${bgColor} ${borderColor} rounded-lg p-2 flex justify-between items-center ${isHighlighted ? 'transform scale-105' : ''}`}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-6 h-6 rounded-full bg-white/80 flex items-center justify-center text-gray-900 font-bold mr-2">
-                          {index + 1}
-                        </div>
-                        <span className={`font-semibold ${textColor}`}>{quadrant.label.charAt(0) + quadrant.label.slice(1).toLowerCase()}</span>
-                      </div>
-                      <span className={`text-lg font-bold ${textColor}`}>{quadrant.score}%</span>
-                    </div>
-                  );
-                })}
+        {/* Responsive grid layout with purple area and strengths */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
+          {/* Left side - Purple gradient area */}
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-bold mb-2">Reflect on your Strengths</h2>
+                <p className="text-white/80">
+                  Understanding how your unique strengths work together helps you maximize your potential.
+                  Let's explore one strength at a time.
+                </p>
               </div>
               
-              {/* Removed instruction text as requested */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={fillWithDemoData}
+                className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
+                id="fillDemoDataButton"
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                Add Demo Data
+              </Button>
+            </div>
+            
+            {/* Strengths Distribution */}
+            <div className="mt-4 bg-white/30 rounded-lg p-4">
+              <div className="flex flex-col items-center">
+                <h3 className="text-white font-bold text-center mb-3">Your Strengths Distribution</h3>
+                
+                <div className="flex flex-col gap-2 mb-2 w-full max-w-md">
+                  {sortedQuadrants.map((quadrant, index) => {
+                    let bgColor = '';
+                    let textColor = 'text-gray-900';
+                    let borderColor = '';
+                    let isHighlighted = currentStep <= 4 && index === currentStep - 1;
+                    
+                    switch(quadrant.label) {
+                      case 'PLANNING':
+                        bgColor = 'bg-yellow-400';
+                        borderColor = isHighlighted ? 'border-2 border-yellow-700' : '';
+                        break;
+                      case 'ACTING':
+                        bgColor = 'bg-red-400';
+                        borderColor = isHighlighted ? 'border-2 border-red-700' : '';
+                        break;
+                      case 'FEELING':
+                        bgColor = 'bg-blue-400';
+                        borderColor = isHighlighted ? 'border-2 border-blue-700' : '';
+                        break;
+                      case 'THINKING':
+                        bgColor = 'bg-green-400';
+                        borderColor = isHighlighted ? 'border-2 border-green-700' : '';
+                        break;
+                    }
+                    
+                    return (
+                      <div 
+                        key={quadrant.label}
+                        className={`relative rounded-md ${bgColor} ${borderColor} ${textColor} p-2 transition-all duration-200 ${isHighlighted ? 'shadow-md transform scale-105' : ''}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <div className="w-6 h-6 bg-white rounded-full flex items-center justify-center mr-3 font-bold text-gray-700">
+                              {index + 1}
+                            </div>
+                            <span className="font-medium">{quadrant.label}</span>
+                          </div>
+                          <span className="font-bold">{quadrant.score}%</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right side - Instructions and content */}
+          <div className="bg-gray-50 p-6">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">Instructions</h3>
+            <p className="text-gray-700 mb-4">
+              For each of your strengths, you'll reflect on how you currently use them and their impact.
+              This reflection will help you leverage your strengths more intentionally.
+            </p>
+            <div className="bg-white rounded-lg p-4 border border-gray-200">
+              <h4 className="text-md font-medium text-gray-700 mb-2">Tips for Reflection:</h4>
+              <ul className="list-disc ml-5 text-sm text-gray-600 space-y-1">
+                <li>Be specific about when and how you've used each strength</li>
+                <li>Consider both work and personal contexts</li>
+                <li>Think about the impact your strengths had on others</li>
+                <li>Reflect on how you might use these strengths more intentionally</li>
+              </ul>
             </div>
           </div>
         </div>
         
-        {/* Reflection Content - displays only the current step */}
-        <div className="p-6">
-          {currentStep === 1 && renderStrengthReflection(1)}
-          {currentStep === 2 && renderStrengthReflection(2)}
-          {currentStep === 3 && renderStrengthReflection(3)}
-          {currentStep === 4 && renderStrengthReflection(4)}
-          {currentStep === 5 && renderTeamValuesReflection()}
-          {currentStep === 6 && renderUniqueContributionReflection()}
+        {/* Reflection content based on current step */}
+        <div className="p-6 border-t border-gray-200">
+          {/* Conditional rendering based on current step */}
+          {currentStep <= 4 ? (
+            renderStrengthReflection(currentStep)
+          ) : currentStep === 5 ? (
+            renderTeamValuesReflection()
+          ) : (
+            renderUniqueContributionReflection()
+          )}
           
-          {/* Navigation buttons */}
-          <div className="flex justify-between items-center mt-10 pt-6 border-t border-gray-200">
+          {/* Navigation controls */}
+          <div className="flex justify-between mt-8">
             <Button 
-              variant="outline" 
-              className="px-5 text-gray-700" 
               onClick={handlePrevious}
               disabled={currentStep === 1}
+              variant="outline"
             >
-              Previous Question
+              Previous
             </Button>
-            {currentStep === totalSteps ? (
-              <Button 
-                className="px-5 bg-green-600 hover:bg-green-700 text-white"
-                onClick={() => {
-                  // Save the reflection data (using localStorage for now)
-                  localStorage.setItem('reflectionData', JSON.stringify(reflections));
-                  // Navigate to the find-your-flow page
-                  window.location.href = "/find-your-flow";
-                }}
-              >
-                Submit Reflection & Go to Flow
-              </Button>
-            ) : (
-              <Button 
-                className="px-5 bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={handleNext}
-              >
-                Continue to Next Question
-              </Button>
-            )}
+            
+            <Button 
+              onClick={handleNext}
+              disabled={currentStep === totalSteps}
+              variant="default"
+              className="bg-indigo-600 hover:bg-indigo-700"
+            >
+              Next
+            </Button>
           </div>
         </div>
       </div>
