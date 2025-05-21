@@ -91,7 +91,11 @@ export default function UserHome2() {
   // Handle step click
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Handle navigation based on the specific step
-    if (stepId === '2-1') { 
+    if (stepId === '1-1') {
+      // If it's "Introduction Video", show the welcome content
+      setCurrentContent("welcome");
+      markStepCompleted(stepId);
+    } else if (stepId === '2-1') { 
       // If it's "Intro to Strengths", show the content in-place
       setCurrentContent("intro-strengths");
       markStepCompleted(stepId);
@@ -112,8 +116,8 @@ export default function UserHome2() {
       setCurrentContent("intro-flow");
       markStepCompleted(stepId);
     } else {
-      // For other pages, navigate to their routes
-      navigate(stepId);
+      // For other pages, use the placeholder content
+      setCurrentContent(`placeholder-${stepId}`);
     }
   };
 

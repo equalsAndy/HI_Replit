@@ -13,6 +13,7 @@ import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import UserHome from "@/pages/user-home";
 import { TestUserBanner } from "@/components/test-users/TestUserBanner";
+import { Button } from "@/components/ui/button";
 
 // Import module pages
 import FindYourFlow from "./pages/find-your-flow";
@@ -76,6 +77,17 @@ function Router() {
         />
       )}
       <NavBar />
+      {/* Testing Link for Refactored User Home 2 */}
+      {user && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <Button 
+            onClick={() => navigate('/user-home2-refactored')}
+            className="bg-indigo-600 hover:bg-indigo-700"
+          >
+            Try Refactored Navigation
+          </Button>
+        </div>
+      )}
       <div className="flex-1">
         <Switch>
           <Route path="/" component={Landing} />
