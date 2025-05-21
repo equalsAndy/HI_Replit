@@ -135,6 +135,7 @@ function Router() {
           }} />
 
           {/* Imaginal Agility Routes */}
+          <Route path="/imaginal-agility" component={React.lazy(() => import('./pages/imaginal-agility'))} />
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />

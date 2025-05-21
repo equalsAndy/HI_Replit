@@ -192,6 +192,117 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
+    // Imaginal Agility content views
+    case 'imaginal-intro':
+      return (
+        <PlaceholderView 
+          title="Introduction to Imaginal Agility"
+          description="Welcome to the Imaginal Agility workshop! Through this journey, you'll discover your unique capabilities and learn how to leverage them to navigate complex challenges."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="triple-challenge"
+          nextLabel="Next: The Triple Challenge"
+        />
+      );
+      
+    case 'triple-challenge':
+      return (
+        <PlaceholderView 
+          title="The Triple Challenge"
+          description="Explore the three interconnected challenges of complexity, change, and connection that professionals face in today's rapidly evolving landscape."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="imaginal-solution"
+          nextLabel="Next: The Imaginal Agility Solution"
+        />
+      );
+      
+    case 'imaginal-solution':
+      return (
+        <PlaceholderView 
+          title="The Imaginal Agility Solution"
+          description="Discover how Imaginal Agility provides a framework for navigating complexity with creativity, adaptability, and purpose."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="five-capabilities"
+          nextLabel="Next: Your 5 Capabilities (5Cs)"
+        />
+      );
+      
+    case 'five-capabilities':
+      return (
+        <PlaceholderView 
+          title="Your 5 Capabilities (5Cs)"
+          description="Learn about the five core capabilities that form the foundation of Imaginal Agility: Clarity, Curiosity, Creativity, Courage, and Connection."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="imagination-assessment"
+          nextLabel="Next: Take the Imagination Assessment"
+        />
+      );
+      
+    case 'imagination-assessment':
+      return (
+        <PlaceholderView 
+          title="Take the Imagination Assessment"
+          description="Assess your imaginative capacities and discover your unique imagination profile."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="five-c-assessment" 
+          nextLabel="Next: Complete the 5Cs Assessment"
+        />
+      );
+      
+    case 'five-c-assessment':
+      return (
+        <PlaceholderView 
+          title="Complete the 5Cs Assessment"
+          description="Evaluate your proficiency in each of the five capabilities and identify areas for development."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="insights-review"
+          nextLabel="Next: Review Your Insights"
+        />
+      );
+      
+    case 'insights-review':
+      return (
+        <PlaceholderView 
+          title="Review Your Insights"
+          description="Explore the results of your assessments and gain valuable insights into your strengths and development opportunities."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          nextContentKey="team-workshop"
+          nextLabel="Next: Team Workshop"
+        />
+      );
+      
+    case 'team-workshop':
+      return (
+        <PlaceholderView 
+          title="Team Workshop"
+          description="Access resources and guidance for conducting an Imaginal Agility workshop with your team to foster collective capabilities."
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+      
     // Handle placeholder content
     default:
       return (
