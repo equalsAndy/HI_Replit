@@ -18,6 +18,7 @@ import FinalReflectionView from './FinalReflectionView';
 import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
 import { useApplication } from '@/hooks/use-application';
+import { Button } from '@/components/ui/button';
 
 interface ContentViewsProps extends ContentViewProps {
   currentContent: string;
@@ -201,16 +202,63 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     // Imaginal Agility content views
     case 'imaginal-intro':
       return (
-        <PlaceholderView 
-          title="Introduction to Imaginal Agility"
-          description="Welcome to the Imaginal Agility workshop! Through this journey, you'll discover your unique capabilities and learn how to leverage them to navigate complex challenges."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="triple-challenge"
-          nextLabel="Next: The Triple Challenge"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
+          
+          <div className="mb-8">
+            <iframe 
+              src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
+              title="IAWS ORIENTATION VIDEO"
+              className="w-full h-[400px] rounded-lg" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Imaginal Agility is founded on the principle that human imagination becomes
+            more critical—not less—in the age of artificial intelligence. This workshop will
+            help you develop the capacity to envision possibilities beyond what
+            technology alone can generate.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Learning Journey Overview</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Your journey begins with understanding imagination as an innate human
+            capability that can be systematically strengthened. Throughout this program,
+            you'll progress through awareness, practice, and application of the five core
+            capabilities that fuel Imaginal Agility.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Principles</h2>
+          <ul className="list-disc pl-6 mb-6 space-y-2">
+            <li className="text-lg text-gray-700">Everyone possesses natural imaginative capacities</li>
+            <li className="text-lg text-gray-700">These capabilities grow stronger with deliberate practice</li>
+            <li className="text-lg text-gray-700">The integration of all capabilities creates maximum impact</li>
+            <li className="text-lg text-gray-700">The goal is flourishing alongside technology, not competing with it</li>
+          </ul>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            The most innovative organizations today don't just implement AI—they
+            reimagine what's possible when human creativity works in concert with
+            technology.
+          </p>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-1');
+                setCurrentContent("triple-challenge");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: The Triple Challenge
+            </Button>
+          </div>
+        </div>
       );
       
     case 'triple-challenge':
