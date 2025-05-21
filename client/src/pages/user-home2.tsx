@@ -541,67 +541,71 @@ export default function UserHome2() {
           
           {currentContent === "intro-flow" && (
             <>
-              <h1 className="text-3xl font-bold text-gray-900 mb-6">Understanding Flow State</h1>
+              <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
               
-              <div className="aspect-w-16 aspect-h-9 mb-6">
-                <iframe 
-                  src="https://www.youtube.com/embed/JxdhWd8agmE" 
-                  title="Introduction to Flow State" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                  className="w-full h-80 rounded border border-gray-200"
-                ></iframe>
-              </div>
-              
-              <div className="prose max-w-none">
-                <p className="text-lg mb-6">
-                  Flow is a state of complete immersion in an activity, characterized by energized focus, full involvement, 
-                  and enjoyment in the process. It's often described as being "in the zone" - when time seems to disappear 
-                  and you're completely absorbed in what you're doing.
-                </p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
-                  <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
-                    <h3 className="text-indigo-700 font-medium mb-2">Clear Goals</h3>
-                    <p className="text-sm">You know exactly what you need to accomplish and can measure your progress.</p>
-                  </div>
-                  
-                  <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                    <h3 className="text-purple-700 font-medium mb-2">Balance of Challenge & Skill</h3>
-                    <p className="text-sm">The task is challenging enough to engage you but not so difficult that it causes anxiety.</p>
-                  </div>
-                  
-                  <div className="bg-teal-50 p-4 rounded-lg border border-teal-100">
-                    <h3 className="text-teal-700 font-medium mb-2">Immediate Feedback</h3>
-                    <p className="text-sm">You can quickly tell how well you're doing, allowing for adjustment in real-time.</p>
-                  </div>
-                  
-                  <div className="bg-amber-50 p-4 rounded-lg border border-amber-100">
-                    <h3 className="text-amber-700 font-medium mb-2">Deep Concentration</h3>
-                    <p className="text-sm">Your attention is completely focused on the task at hand, with no distractions.</p>
+              <div className="flex flex-col md:flex-row gap-6 mb-4">
+                <div className="md:w-1/2">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <iframe 
+                      src="https://www.youtube.com/embed/JxdhWd8agmE" 
+                      title="Introduction to Flow State" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="w-full h-52 rounded border border-gray-200"
+                    ></iframe>
                   </div>
                 </div>
                 
-                <h3>Benefits of Flow State</h3>
-                <p>
-                  Regularly experiencing flow is associated with:
-                </p>
-                <ul>
-                  <li>Higher productivity and performance</li>
-                  <li>Increased creativity and innovation</li>
-                  <li>Greater work satisfaction and well-being</li>
-                  <li>Reduced stress and burnout</li>
-                  <li>More meaningful and engaging experiences</li>
-                </ul>
+                <div className="md:w-1/2">
+                  <div className="prose">
+                    <p className="mb-3">
+                      Flow is a state of complete immersion in an activity, characterized by energized focus, full involvement, 
+                      and enjoyment in the process. It's often described as being "in the zone" - when time seems to disappear 
+                      and you're completely absorbed in what you're doing.
+                    </p>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Benefits of Flow State</h3>
+                    <ul className="list-disc pl-5 space-y-1 text-sm">
+                      <li>Higher productivity and performance</li>
+                      <li>Increased creativity and innovation</li>
+                      <li>Greater work satisfaction and well-being</li>
+                      <li>Reduced stress and burnout</li>
+                      <li>More meaningful and engaging experiences</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+                  <h3 className="text-indigo-700 font-medium mb-1 text-sm">Clear Goals</h3>
+                  <p className="text-xs">You know exactly what you need to accomplish and can measure your progress.</p>
+                </div>
                 
-                <p>
+                <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
+                  <h3 className="text-purple-700 font-medium mb-1 text-sm">Challenge & Skill Balance</h3>
+                  <p className="text-xs">The task is challenging enough to engage you but not so difficult that it causes anxiety.</p>
+                </div>
+                
+                <div className="bg-teal-50 p-3 rounded-lg border border-teal-100">
+                  <h3 className="text-teal-700 font-medium mb-1 text-sm">Immediate Feedback</h3>
+                  <p className="text-xs">You can quickly tell how well you're doing, allowing for adjustment in real-time.</p>
+                </div>
+                
+                <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
+                  <h3 className="text-amber-700 font-medium mb-1 text-sm">Deep Concentration</h3>
+                  <p className="text-xs">Your attention is completely focused on the task at hand, with no distractions.</p>
+                </div>
+              </div>
+              
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
+                <p className="text-blue-800 text-sm">
                   In the upcoming assessment, you'll answer questions to determine your flow profile - how often you experience flow, 
                   what triggers it for you, and how to create more flow experiences in your work.
                 </p>
               </div>
               
-              <div className="flex justify-end mt-6">
+              <div className="flex justify-end">
                 <Button 
                   onClick={() => {
                     navigate('/find-your-flow/assessment');
