@@ -119,16 +119,47 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </p>
       </div>
       
-      {/* Video Section with the requested YouTube video */}
-      <div className="aspect-w-16 aspect-h-9 mb-6">
-        <iframe 
-          src="https://www.youtube.com/embed/srLM8lHPj40"
-          title="Understanding Flow State" 
-          frameBorder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowFullScreen
-          className="w-full h-80 rounded border border-gray-200"
-        ></iframe>
+      <div className="flex flex-col md:flex-row gap-6 mb-6">
+        {/* Video Section with the requested YouTube video */}
+        <div className="md:w-1/2">
+          <div className="aspect-w-16 aspect-h-9">
+            <iframe 
+              src="https://www.youtube.com/embed/srLM8lHPj40"
+              title="Understanding Flow State" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="w-full h-64 rounded border border-gray-200"
+            ></iframe>
+          </div>
+        </div>
+        
+        <div className="md:w-1/2">
+          <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-100 h-full">
+            <h3 className="font-medium text-indigo-800 mb-3 flex items-center">
+              <Edit className="h-4 w-4 mr-2 text-indigo-600" />
+              Flow State Key Principles
+            </h3>
+            <ul className="space-y-2 text-indigo-700 text-sm">
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Clear goals</strong> - Know exactly what you need to accomplish</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Balance of challenge & skill</strong> - Not too easy, not too hard</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Immediate feedback</strong> - Know how you're performing as you go</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Deep concentration</strong> - Full attention on the task at hand</span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
       
       {reflectionCompleted ? (
@@ -246,30 +277,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             </div>
           </Card>
           
-          <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-100">
-            <h3 className="font-medium text-indigo-800 mb-3 flex items-center">
-              <Edit className="h-4 w-4 mr-2 text-indigo-600" />
-              Flow State Key Principles
-            </h3>
-            <ul className="space-y-2 text-indigo-700 text-sm">
-              <li className="flex items-start">
-                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Clear goals</strong> - Know exactly what you need to accomplish</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Balance of challenge & skill</strong> - Not too easy, not too hard</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Immediate feedback</strong> - Know how you're performing as you go</span>
-              </li>
-              <li className="flex items-start">
-                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
-                <span><strong>Deep concentration</strong> - Full attention on the task at hand</span>
-              </li>
-            </ul>
-          </div>
+
         </div>
       )}
     </>
