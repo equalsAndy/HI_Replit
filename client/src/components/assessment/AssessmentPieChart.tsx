@@ -59,7 +59,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
     : filteredData;
 
   return (
-    <div className="w-full h-[350px] mx-auto">
+    <div className="w-full h-full mx-auto">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
@@ -68,7 +68,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             cy="50%"
             labelLine={true}
             label={renderCustomizedLabel}
-            outerRadius="45%"
+            outerRadius={window.innerWidth >= 1024 ? "50%" : "45%"}
             fill="#8884d8"
             dataKey="value"
           >
