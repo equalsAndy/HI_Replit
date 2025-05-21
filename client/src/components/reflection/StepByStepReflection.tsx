@@ -25,9 +25,15 @@ interface StarCardType {
 
 interface StepByStepReflectionProps {
   starCard: StarCardType | undefined;
+  setCurrentContent?: (content: string) => void;
+  markStepCompleted?: (stepId: string) => void;
 }
 
-export default function StepByStepReflection({ starCard }: StepByStepReflectionProps) {
+export default function StepByStepReflection({ 
+  starCard, 
+  setCurrentContent,
+  markStepCompleted 
+}: StepByStepReflectionProps) {
   // State for managing reflection steps
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
@@ -238,6 +244,16 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowExamples(false);
+    } else if (currentStep === totalSteps) {
+      // We're on the last step, mark reflection as completed
+      if (markStepCompleted) {
+        markStepCompleted('2-3'); // Mark reflection step as completed
+      }
+      
+      // Navigate to Intro to Flow
+      if (setCurrentContent) {
+        setCurrentContent('intro-to-flow');
+      }
     }
   };
   
@@ -691,11 +707,10 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             
             <Button 
               onClick={handleNext}
-              disabled={currentStep === totalSteps}
               variant="default"
               className="bg-indigo-600 hover:bg-indigo-700"
             >
-              Next
+              {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
             </Button>
           </div>
         </div>

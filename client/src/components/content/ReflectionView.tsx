@@ -30,7 +30,11 @@ const ReflectionView: React.FC<ContentViewProps> = ({
         </Button>
       </div>
       
-      <StepByStepReflection starCard={starCard} />
+      <StepByStepReflection 
+        starCard={starCard}
+        setCurrentContent={setCurrentContent}
+        markStepCompleted={markStepCompleted}
+      />
     </>
   );
 };
