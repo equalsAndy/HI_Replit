@@ -158,88 +158,79 @@ export default function UserHome2() {
     // You may want to update other state or navigate after assessment completes
   };
   
-  // Handle step click
+  // Define a structure to map stepIds to navigation sequence for automatic progress
+  const navigationSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
+    // Section 1
+    '1-1': { prev: null, next: '2-1', contentKey: 'welcome' },
+    
+    // Section 2
+    '2-1': { prev: '1-1', next: '2-2', contentKey: 'intro-strengths' },
+    '2-2': { prev: '2-1', next: '2-3', contentKey: 'strengths-assessment' }, // Assessment doesn't auto-complete
+    '2-3': { prev: '2-2', next: '2-4', contentKey: 'star-card-preview' },
+    '2-4': { prev: '2-3', next: '3-1', contentKey: 'reflection' },
+    
+    // Section 3
+    '3-1': { prev: '2-4', next: '3-2', contentKey: 'intro-to-flow' },
+    '3-2': { prev: '3-1', next: '3-3', contentKey: 'flow-assessment' }, // Assessment doesn't auto-complete
+    '3-3': { prev: '3-2', next: '3-4', contentKey: 'flow-rounding-out' },
+    '3-4': { prev: '3-3', next: '4-1', contentKey: 'flow-star-card' },
+    
+    // Section 4
+    '4-1': { prev: '3-4', next: '4-2', contentKey: 'wellbeing' },
+    '4-2': { prev: '4-1', next: '4-3', contentKey: 'cantril-ladder' },
+    '4-3': { prev: '4-2', next: '4-4', contentKey: 'visualizing-you' },
+    '4-4': { prev: '4-3', next: '4-5', contentKey: 'future-self' },
+    '4-5': { prev: '4-4', next: null, contentKey: 'your-statement' },
+    '4-6': { prev: '4-5', next: null, contentKey: 'recap' },
+  };
+
+  // Helper function to find step ID from content key
+  const findStepIdFromContentKey = (contentKey: string): string | null => {
+    for (const [stepId, data] of Object.entries(navigationSequence)) {
+      if (data.contentKey === contentKey) {
+        return stepId;
+      }
+    }
+    
+    // Special case for intro-to-flow which might be referred to as intro-flow
+    if (contentKey === 'intro-to-flow') {
+      return '3-1';
+    }
+    
+    return null;
+  };
+
+  // Handle step click with automatic progression
   const handleStepClick = (sectionId: string, stepId: string) => {
-    // Handle navigation based on the specific step
+    // Get navigation info for this step
+    const navInfo = navigationSequence[stepId];
     
-    // Section 1: AllStarTeams Introduction
-    if (stepId === '1-1') {
-      // If it's "Introduction Video", show the welcome content
-      setCurrentContent("welcome");
-      markStepCompleted(stepId);
-    } 
-    
-    // Section 2: Discover your Strengths
-    else if (stepId === '2-1') { 
-      // If it's "Intro to Strengths", show the content in-place
-      setCurrentContent("intro-strengths");
-      markStepCompleted(stepId);
-    } else if (stepId === '2-2') {
-      // If it's "Strengths Assessment", show the content in the right panel
-      setCurrentContent("strengths-assessment");
-      // Don't mark as completed yet - will do that after assessment
-    } else if (stepId === '2-3') {
-      // If it's "Star Card Preview", show the star card preview content
-      setCurrentContent("star-card-preview");
-      markStepCompleted(stepId);
-    } else if (stepId === '2-4') {
-      // If it's "Reflect", show the reflection content
-      setCurrentContent("reflection");
-      markStepCompleted(stepId);
-    } 
-    
-    // Section 3: Find your Flow
-    else if (stepId === '3-1') {
-      // If it's "Intro to Flow", show the flow intro content from our new IntroToFlowView component
-      setCurrentContent("intro-to-flow");
-      markStepCompleted(stepId);
-      console.log("Navigation menu clicked - showing intro-to-flow content");
-    } else if (stepId === '3-2') {
-      // Flow Assessment
-      setCurrentContent("flow-assessment");
-      // Don't mark as completed yet - marking will happen when they complete the assessment
-    } else if (stepId === '3-3') {
-      // Rounding Out
-      setCurrentContent("flow-rounding-out");
-      markStepCompleted(stepId);
-    } else if (stepId === '3-4') {
-      // Add Flow to Star Card
-      setCurrentContent("flow-star-card");
-      markStepCompleted(stepId);
-    } 
-    
-    // Section 4: Visualize your Potential
-    else if (stepId === '4-1') {
-      // Ladder of Well-being
-      setCurrentContent("wellbeing");
-      markStepCompleted(stepId);
-    } else if (stepId === '4-2') {
-      // Cantril Ladder
-      setCurrentContent("cantril-ladder");
-      markStepCompleted(stepId);
-    } else if (stepId === '4-3') {
-      // Visualizing You
-      setCurrentContent("visualizing-you");
-      markStepCompleted(stepId);
-    } else if (stepId === '4-4') {
-      // Your Future Self
-      setCurrentContent("future-self");
-      markStepCompleted(stepId);
-    } else if (stepId === '4-5') {
-      // Your Statement
-      setCurrentContent("your-statement");
-      markStepCompleted(stepId);
-    } else if (stepId === '4-6') {
-      // Recap
-      setCurrentContent("recap");
-      markStepCompleted(stepId);
-    } 
-    
-    // Resources and other sections
-    else {
-      // For other pages, use the placeholder content
+    if (!navInfo) {
+      // For steps not defined in the sequence (like resource items)
       setCurrentContent(`placeholder-${stepId}`);
       markStepCompleted(stepId);
+      return;
+    }
+    
+    // Handle assessments specially - don't mark as completed yet
+    const isAssessment = stepId === '2-2' || stepId === '3-2';
+    
+    // Set the content based on the navigation mapping
+    setCurrentContent(navInfo.contentKey);
+    
+    // Mark previous step as completed if it exists
+    if (navInfo.prev && !completedSteps.includes(navInfo.prev)) {
+      markStepCompleted(navInfo.prev);
+    }
+    
+    // Mark current step as completed unless it's an assessment
+    if (!isAssessment) {
+      markStepCompleted(stepId);
+    }
+    
+    // Log navigation to intro-to-flow for debugging
+    if (stepId === '3-1') {
+      console.log("Navigation menu clicked - showing intro-to-flow content");
     }
   };
 
