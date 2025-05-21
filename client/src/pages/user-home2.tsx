@@ -11,6 +11,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
+import StarCard from '@/components/starcard/StarCard';
 
 // Navigation sections based on the spreadsheet
 const navigationSections = [
@@ -418,128 +419,66 @@ export default function UserHome2() {
                   Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in
                   your development journey.
                 </p>
-                
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                  <div>
-                    <div className="bg-gray-50 rounded-lg p-1 mb-4">
-                      <div className="aspect-w-16 aspect-h-9">
-                        <iframe 
-                          src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1" 
-                          title="STAR REVIEW VIDEO"
-                          className="w-full rounded-lg" 
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                          allowFullScreen
-                        ></iframe>
-                      </div>
-                    </div>
-                    
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <blockquote className="italic text-gray-700 mb-4">
-                        "Imagination is more important than knowledge. For knowledge is limited to all
-                        we now know and understand, while imagination embraces the entire world, and
-                        all there ever will be to know and understand." — Albert Einstein
-                      </blockquote>
-                    </div>
+              </div>
+              
+              <div className="flex flex-col md:flex-row gap-6 mt-6">
+                <div className="md:w-1/2">
+                  <div className="aspect-w-16 aspect-h-9">
+                    <iframe 
+                      src="https://www.youtube.com/embed/x6h7LDtdnJw" 
+                      title="Star Profile Review" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="w-full h-full rounded border border-gray-200"
+                    ></iframe>
                   </div>
-                  
-                  <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                    <div className="p-6">
-                      <h2 className="text-xl font-bold text-center mb-6">Your Star Card</h2>
-                      
-                      <div className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex items-center mb-4">
-                          <div className="h-16 w-16 rounded-full bg-gray-200 flex items-center justify-center mr-4">
-                            <svg className="h-8 w-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                            </svg>
-                          </div>
-                          <div>
-                            <div className="font-semibold text-lg">Name: {user?.name || 'Your Name'}</div>
-                            <div className="text-gray-600">Title: {user?.title || 'Your Title'}</div>
-                            <div className="text-gray-600">Organization: {user?.organization || 'Your Organization'}</div>
-                          </div>
-                        </div>
-                        
-                        <div className="text-center mb-4">
-                          <div className="text-lg font-semibold">Imagination</div>
-                          <div className="text-sm text-gray-600">Your Apex Strength</div>
-                        </div>
-                        
-                        <div className="grid grid-cols-2 gap-1 mx-auto max-w-xs mb-4">
-                          <div className="bg-yellow-200 p-3 text-center">
-                            <div className="font-semibold">PLANNING</div>
-                            <div>20%</div>
-                          </div>
-                          <div className="bg-red-400 p-3 text-center text-white">
-                            <div className="font-semibold">ACTING</div>
-                            <div>32%</div>
-                          </div>
-                          <div className="bg-green-500 p-3 text-center text-white">
-                            <div className="font-semibold">THINKING</div>
-                            <div>20%</div>
-                          </div>
-                          <div className="bg-blue-400 p-3 text-center text-white">
-                            <div className="font-semibold">FEELING</div>
-                            <div>28%</div>
-                          </div>
-                        </div>
-                        
-                        <div className="relative flex justify-center items-center">
-                          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-full p-2 border border-gray-200">
-                            <svg className="h-6 w-6 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                          </div>
-                          <div className="text-xs absolute top-1/2 left-0 transform -translate-y-1/2 ml-2">Core</div>
-                          <div className="text-xs absolute top-1/2 right-0 transform -translate-y-1/2 mr-2">Flow</div>
-                          <div className="flex justify-between w-full px-4">
-                            <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                            <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                          </div>
-                        </div>
-                        
-                        <div className="flex justify-between my-2 px-4">
-                          <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                          <div className="w-12 h-12 bg-gray-200 rounded"></div>
-                        </div>
-                        
-                        <div className="flex justify-center mt-6">
-                          <div className="text-indigo-700 font-semibold flex items-center">
-                            <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
-                              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                            </svg>
-                            allstarteams
-                          </div>
-                        </div>
+                </div>
+                
+                <div className="md:w-1/2">
+                  <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                      <h3 className="text-xl font-bold text-center">Your Star Card</h3>
+                    </div>
+                    <div className="p-4 flex justify-center">
+                      <div className="w-full">
+                        <StarCard 
+                          thinking={starCard?.thinking || 0}
+                          acting={starCard?.acting || 0}
+                          feeling={starCard?.feeling || 0}
+                          planning={starCard?.planning || 0}
+                          imageUrl={starCard?.imageUrl || null}
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="bg-blue-50 p-6 rounded-lg mb-8">
-                  <h3 className="text-xl font-semibold text-blue-800 mb-3">Understanding Your Star Card</h3>
-                  <p className="text-blue-700 mb-4">
-                    Your Star Card visually represents your strengths profile across the four key dimensions. The percentages show 
-                    your unique distribution of strengths, highlighting your natural tendencies and potential growth areas.
-                  </p>
-                  <p className="text-blue-700">
-                    In the next steps, you'll learn how to interpret these results and apply them to enhance your 
-                    personal and professional development.
-                  </p>
-                </div>
-                
-                <div className="flex justify-center">
-                  <Button 
-                    onClick={() => {
-                      markStepCompleted('2-3');
-                      navigate('/discover-strengths/reflect');
-                    }}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-8"
-                    size="lg"
-                  >
-                    Continue to Reflection
-                  </Button>
-                </div>
+              </div>
+              
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
+                <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
+                <ul>
+                  <li>Reflect on your apex strength and how it shows up</li>
+                  <li>Consider how your profile shifts over time and in different roles</li>
+                  <li>Use your Star Card as a personal development compass</li>
+                </ul>
+              </div>
+
+              <p className="prose max-w-none">
+                Watch the short video, then explore your profile with fresh eyes.
+              </p>
+
+              <div className="flex justify-end mt-6">
+                <Button 
+                  onClick={() => {
+                    markStepCompleted('2-3');
+                    navigate('/discover-strengths/reflect');
+                  }}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-8"
+                  size="lg"
+                >
+                  Continue to Reflection
+                </Button>
               </div>
             </>
           )}
