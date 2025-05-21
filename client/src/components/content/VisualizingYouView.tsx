@@ -1,110 +1,277 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
-import { ChevronRight, Brain, Eye, Heart } from 'lucide-react';
+import { ChevronRight, Brain, Eye, Heart, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { apiRequest } from '@/lib/queryClient';
+import { queryClient } from '@/lib/queryClient';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
+  const [selectedImages, setSelectedImages] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [imageMeaning, setImageMeaning] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(true);
+  
+  const handleSearch = async () => {
+    if (!searchQuery.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      // This would typically call an API endpoint
+      setSearchResults([
+        // Placeholder results
+        { id: '1', urls: { regular: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f' }, user: { name: 'Example User', links: { html: '#' } }, links: { html: '#' } },
+        { id: '2', urls: { regular: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0' }, user: { name: 'Example User', links: { html: '#' } }, links: { html: '#' } },
+      ]);
+    } catch (error) {
+      console.error('Search error:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+  
+  const addImage = (image: any) => {
+    if (selectedImages.length >= 5) {
+      return; // Max 5 images
+    }
+    
+    const newImage = {
+      id: image.id,
+      url: image.urls.regular,
+      source: 'unsplash',
+      searchTerm: searchQuery,
+      credit: {
+        photographer: image.user.name,
+        photographerUrl: image.user.links.html,
+        sourceUrl: image.links.html
+      }
+    };
+    
+    setSelectedImages(prev => [...prev, newImage]);
+  };
+  
+  const removeImage = (id: string) => {
+    setSelectedImages(prev => prev.filter(img => img.id !== id));
+  };
+
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing You</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
       
-      <div className="prose max-w-none mb-8">
-        <p className="text-lg text-gray-700">
-          Visualization is a powerful technique used by elite performers across domains to 
-          accelerate growth and progress toward goals. When you vividly imagine your future self, 
-          you're actually programming your brain for success.
-        </p>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="md:w-1/2">
-          <div className="aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/WFkEqY8zBJk" 
-              title="The Science of Visualization" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-              className="w-full h-64 rounded border border-gray-200"
-            ></iframe>
-          </div>
-        </div>
-        
-        <div className="md:w-1/2">
-          <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100 h-full">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-4">The Science Behind Visualization</h3>
-            <div className="space-y-4">
-              <div className="flex">
-                <Brain className="h-5 w-5 text-indigo-600 mr-3 flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-medium text-indigo-700">Neural Pathways</h4>
-                  <p className="text-indigo-600 text-sm">
-                    Visualization activates many of the same neural pathways as physical practice, 
-                    essentially giving your brain a "rehearsal" of success.
-                  </p>
-                </div>
-              </div>
-              <div className="flex">
-                <Eye className="h-5 w-5 text-indigo-600 mr-3 flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-medium text-indigo-700">Reticular Activating System</h4>
-                  <p className="text-indigo-600 text-sm">
-                    Regular visualization trains your brain's RAS to notice opportunities and 
-                    resources that align with your visualized future that you might otherwise miss.
-                  </p>
-                </div>
-              </div>
-              <div className="flex">
-                <Heart className="h-5 w-5 text-indigo-600 mr-3 flex-shrink-0 mt-1" />
-                <div>
-                  <h4 className="font-medium text-indigo-700">Emotional State</h4>
-                  <p className="text-indigo-600 text-sm">
-                    Visualization that includes emotional elements activates the limbic system,
-                    creating positive associations with your goals that enhance motivation.
-                  </p>
-                </div>
-              </div>
+      <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100 mb-8">
+        {showInstructions && (
+          <div className="prose max-w-none">
+            <p>
+              This exercise helps you turn your one-year vision into something visible. By choosing or creating images that 
+              represent your future self, you engage your imagination and activate your brain's visualization centers in powerful ways.
+            </p>
+            
+            <p>
+              Select 1-5 images that represent your ideal future self one year from now. These might be symbolic, aspirational, or representative 
+              of specific achievements you're working toward.
+            </p>
+            
+            <p className="font-medium">Guidelines:</p>
+            <ul>
+              <li>Choose images that evoke positive emotions</li>
+              <li>Look for images that align with your ladder reflection</li>
+              <li>Select a variety of images that represent different aspects of your future vision</li>
+              <li>You can upload your own images or search for images from Unsplash</li>
+            </ul>
+            
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowInstructions(!showInstructions)}
+              >
+                {showInstructions ? "Hide Instructions" : "Show Instructions"}
+              </Button>
             </div>
           </div>
-        </div>
+        )}
+        
+        {!showInstructions && (
+          <div className="flex justify-end mb-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowInstructions(!showInstructions)}
+            >
+              Show Instructions
+            </Button>
+          </div>
+        )}
       </div>
 
-      <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
-        <h3 className="text-amber-800 font-medium mb-3">Effective Visualization Techniques</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Multi-Sensory Approach</h4>
-            <p className="text-sm text-amber-700">
-              The most effective visualization engages all your senses. As you imagine your future self,
-              incorporate what you see, hear, feel, smell, and even taste in that future scenario.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Process Visualization</h4>
-            <p className="text-sm text-amber-700">
-              Don't just visualize end goals - research shows visualizing the process and steps to get there
-              is more effective. Imagine yourself overcoming specific obstacles along the way.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Third-Person Perspective</h4>
-            <p className="text-sm text-amber-700">
-              Try visualizing yourself from a third-person perspective occasionally. This can help you see
-              yourself more objectively and build confidence by "watching" yourself succeed.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Regular Practice</h4>
-            <p className="text-sm text-amber-700">
-              Consistency is key. Even 5 minutes of daily visualization can yield significant results.
-              Many successful people practice visualization before important events or as part of their morning routine.
-            </p>
-          </div>
+      {/* Display selected images */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="text-lg font-medium">Your Selected Images ({selectedImages.length}/5)</h3>
+          <Button 
+            variant="default" 
+            size="sm" 
+            onClick={() => {}}
+            disabled={selectedImages.length === 0 || isSaving}
+            className="flex items-center gap-2"
+          >
+            <Save className="h-4 w-4" /> 
+            {isSaving ? "Saving..." : "Save Images"}
+          </Button>
         </div>
+        
+        {selectedImages.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {selectedImages.map(image => (
+              <div key={image.id} className="relative group mb-2">
+                {/* Show search term above the image */}
+                {image.searchTerm && (
+                  <div className="bg-gray-100 border border-gray-200 text-gray-700 text-xs p-1 mb-1 rounded">
+                    <span className="font-semibold">Search:</span> <span title={image.searchTerm}>
+                      {image.searchTerm.length > 25 
+                        ? image.searchTerm.substring(0, 25) + '...' 
+                        : image.searchTerm}
+                    </span>
+                  </div>
+                )}
+                
+                <img 
+                  src={image.url} 
+                  alt="Selected visualization" 
+                  className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                />
+                <button
+                  onClick={() => removeImage(image.id)}
+                  className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-70 hover:opacity-100 transition"
+                  title="Remove image"
+                >
+                  <X className="h-4 w-4 text-red-500" />
+                </button>
+                
+                {image.credit && (
+                  <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
+                    Photo by{" "}
+                    <a 
+                      href={image.credit.photographerUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      {image.credit.photographer}
+                    </a>
+                    {" "}on{" "}
+                    <a 
+                      href={image.credit.sourceUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="underline"
+                    >
+                      Unsplash
+                    </a>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="border border-dashed border-gray-300 rounded-lg p-8 text-center bg-gray-50">
+            <Image className="h-8 w-8 mx-auto text-gray-400 mb-2" />
+            <p className="text-gray-500">No images selected yet</p>
+            <p className="text-sm text-gray-400 mt-1">Upload your own images or search for images below</p>
+          </div>
+        )}
+      </div>
+      
+      {/* Search interface */}
+      <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-8">
+        <h3 className="text-lg font-medium mb-4">Find Images</h3>
+        
+        <div className="space-y-4">
+          <div>
+            <h4 className="text-sm font-medium mb-2">Search for images:</h4>
+            <div className="flex gap-2">
+              <Input
+                placeholder="e.g. achievement, success, growth"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1"
+              />
+              <Button 
+                variant="default" 
+                onClick={handleSearch}
+                disabled={isSearching || !searchQuery.trim()}
+                className="flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" /> 
+                {isSearching ? "Searching..." : "Search"}
+              </Button>
+            </div>
+          </div>
+          
+          {/* File upload option */}
+          <div>
+            <h4 className="text-sm font-medium mb-2">Upload your own image:</h4>
+            <label className="flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-700 rounded-md border border-gray-300 cursor-pointer hover:bg-gray-100 transition">
+              <Upload className="h-4 w-4" />
+              <span>Choose file</span>
+              <input 
+                type="file" 
+                accept="image/*" 
+                className="hidden"
+                onChange={() => {}}
+              />
+            </label>
+            <p className="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
+          </div>
+          
+          {/* Display search results */}
+          {searchResults.length > 0 && (
+            <div>
+              <h4 className="text-sm font-medium mb-2">Search results for "{searchQuery}":</h4>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                {searchResults.map(image => (
+                  <div 
+                    key={image.id} 
+                    className="relative group cursor-pointer rounded-md overflow-hidden border border-gray-200"
+                    onClick={() => addImage(image)}
+                  >
+                    <img 
+                      src={image.urls.regular} 
+                      alt={`Search result for ${searchQuery}`}
+                      className="w-full h-32 object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all">
+                      <div className="bg-white rounded-full p-1 transform scale-0 group-hover:scale-100 transition-transform">
+                        <Plus className="h-5 w-5 text-indigo-600" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Image meaning */}
+      <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+        <h3 className="text-lg font-medium text-purple-800 mb-3">What Do These Images Mean to You?</h3>
+        <p className="text-sm text-purple-600 mb-4">
+          Explain what these images represent about your future vision. How do they connect to your strengths and flow state?
+        </p>
+        <textarea
+          value={imageMeaning}
+          onChange={(e) => setImageMeaning(e.target.value)}
+          placeholder="These images represent my vision because..."
+          className="w-full p-2 min-h-[120px] border border-gray-300 rounded-md"
+        />
       </div>
       
       <div className="flex justify-end">
