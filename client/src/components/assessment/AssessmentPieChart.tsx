@@ -59,7 +59,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
     : filteredData;
 
   return (
-    <div className="w-[500px] h-[350px]">
+    <div className="w-[500px] h-[350px] mx-auto">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
           <Pie
