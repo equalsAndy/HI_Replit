@@ -750,7 +750,7 @@ export default function Assessment() {
                 Your Star Card will guide your personal development journey and help you identify areas where you shine and where you can grow. The workshop activities will help you explore these dimensions in depth.
               </p>
               
-              <div className="flex justify-center items-center w-full mb-6">
+              <div className="flex justify-center items-center w-full mb-6 h-[350px]">
                 <AssessmentPieChart 
                   thinking={assessmentResults?.thinking || 0}
                   acting={assessmentResults?.acting || 0}
