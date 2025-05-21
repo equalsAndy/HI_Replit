@@ -44,7 +44,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     // Discover your Strengths
     case 'intro-strengths':
       return (
@@ -55,7 +55,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'strengths-assessment':
       return (
         <AssessmentView 
@@ -66,7 +66,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           setIsAssessmentModalOpen={setIsAssessmentModalOpen}
         />
       );
-    
+
     case 'star-card-preview':
       return (
         <StarCardPreviewView 
@@ -76,7 +76,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'reflection':
       return (
         <ReflectionView 
@@ -86,7 +86,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     // Find your Flow
     case 'intro-flow':
       return (
@@ -97,7 +97,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'flow-assessment':
       return (
         <FlowAssessmentView 
@@ -107,7 +107,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'flow-rounding-out':
       return (
         <FlowRoundingOutView 
@@ -117,7 +117,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'flow-star-card':
       return (
         <FlowStarCardView 
@@ -129,7 +129,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           flowAttributesData={flowAttributesData}
         />
       );
-    
+
     // Visualize your Potential
     case 'wellbeing':
       return (
@@ -140,7 +140,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'cantril-ladder':
       return (
         <CantrilLadderView 
@@ -150,7 +150,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'visualizing-you':
       return (
         <VisualizingYouView 
@@ -160,7 +160,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'future-self':
       return (
         <FutureSelfView 
@@ -170,7 +170,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     case 'your-statement':
       return (
         <FinalReflectionView 
@@ -180,7 +180,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     // Handle placeholder content
     default:
       return (
