@@ -578,21 +578,43 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
             </div>
           </div>
 
-          {/* Right side - Instructions and content */}
+          {/* Right side - Current strength content */}
           <div className="bg-gray-50 p-6">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Instructions</h3>
+            <div className="flex items-center mb-4">
+              <div className="bg-red-100 p-2 rounded-full mr-3">
+                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
+                  1
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-800">Your 1st Strength: Acting (31%)</h3>
+            </div>
+            
             <p className="text-gray-700 mb-4">
-              For each of your strengths, you'll reflect on how you currently use them and their impact.
-              This reflection will help you leverage your strengths more intentionally.
+              Your Acting strength shows your decisive, results-focused, and action-oriented nature. This represents your ability to make 
+              decisions, take initiative, and drive projects to completion.
             </p>
-            <div className="bg-white rounded-lg p-4 border border-gray-200">
-              <h4 className="text-md font-medium text-gray-700 mb-2">Tips for Reflection:</h4>
-              <ul className="list-disc ml-5 text-sm text-gray-600 space-y-1">
-                <li>Be specific about when and how you've used each strength</li>
-                <li>Consider both work and personal contexts</li>
-                <li>Think about the impact your strengths had on others</li>
-                <li>Reflect on how you might use these strengths more intentionally</li>
+            
+            <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-4">
+              <h4 className="font-medium text-red-800 mb-3">How and when do you use your Acting strength?</h4>
+              <p className="text-gray-700 text-sm mb-3">
+                Consider moments when your acting nature made a difference. Reflect on:
+              </p>
+              <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
+                <li>Situations where you took initiative when others hesitated</li>
+                <li>How you've turned ideas into tangible results</li>
+                <li>Times when your decisiveness moved a project forward</li>
+                <li>How your pragmatic approach solved practical problems</li>
               </ul>
+              
+              <div className="mb-2">
+                <button 
+                  onClick={() => setShowExamples(!showExamples)}
+                  className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
+                >
+                  {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
+                  {showExamples ? "Hide example responses" : "Show example responses"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
