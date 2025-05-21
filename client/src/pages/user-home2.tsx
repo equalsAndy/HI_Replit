@@ -63,11 +63,11 @@ const navigationSections = [
     totalSteps: 5,
     completedSteps: 0,
     steps: [
-      { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning', required: true },
-      { id: '4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing', required: true },
-      { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity', required: true },
-      { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning', required: true },
-      { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing', required: true }
+      { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
+      { id: '4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+      { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
+      { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
+      { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' }
     ]
   }
 ];
@@ -271,11 +271,7 @@ export default function UserHome2() {
                               {!accessible && (
                                 <Lock className="ml-2 h-3 w-3 text-gray-400" />
                               )}
-                              {step.required && (
-                                <div className="ml-auto text-xs px-2 py-1 rounded-full bg-blue-50 text-blue-700">
-                                  Required
-                                </div>
-                              )}
+
                             </div>
                           </TooltipTrigger>
                           {!accessible && (
@@ -503,7 +499,7 @@ export default function UserHome2() {
                 <Button 
                   onClick={() => {
                     markStepCompleted('2-3');
-                    navigate('/discover-strengths/reflect');
+                    setCurrentContent("reflection");
                   }}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white px-8"
                   size="lg"
@@ -511,6 +507,30 @@ export default function UserHome2() {
                   Continue to Reflection
                 </Button>
               </div>
+            </>
+          )}
+          
+          {currentContent === "reflection" && (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Reflect on Your Strengths</h1>
+              
+              <div className="flex justify-end mb-4">
+                <Button
+                  onClick={() => {
+                    const fillWithDemoData = document.getElementById('fillDemoDataButton');
+                    if (fillWithDemoData) {
+                      fillWithDemoData.click();
+                    }
+                  }}
+                  variant="outline"
+                  className="bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+                >
+                  <FileText className="h-4 w-4 mr-2" />
+                  Demo Data
+                </Button>
+              </div>
+              
+              <StepByStepReflection starCard={starCard} />
             </>
           )}
           
