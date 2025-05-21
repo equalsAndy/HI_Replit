@@ -876,13 +876,6 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
-        <div className="absolute right-4 top-4">
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-            <span className="sr-only">Close</span>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-        
         <DialogHeader>
           <DialogTitle>AllStarTeams Strengths Assessment</DialogTitle>
           <DialogDescription>
