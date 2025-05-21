@@ -4,7 +4,15 @@ import { ContentViewProps } from '../../shared/types';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card } from '@/components/ui/card';
-import { InfoIcon, HelpCircle } from 'lucide-react';
+import { InfoIcon, HelpCircle, X, ChevronRight } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { 
   Tooltip,
   TooltipContent,
@@ -43,6 +51,8 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   const [answers, setAnswers] = useState<Record<number, number>>({});
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showResults, setShowResults] = useState(false);
+  const [showScoringInfo, setShowScoringInfo] = useState(false);
   
   // Get current question
   const question = flowQuestions[currentQuestion];
@@ -77,8 +87,8 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     if (currentQuestion < flowQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
-      // Complete assessment
-      handleComplete();
+      // Complete assessment and show results
+      setShowResults(true);
     }
   };
   
@@ -101,8 +111,68 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     markStepCompleted('3-2');
     
     // Navigate to next step
+    setShowResults(false);
     setCurrentContent("flow-rounding-out");
   };
+  
+  // Adjust a specific answer
+  const handleAdjustAnswer = (questionId: number) => {
+    setShowResults(false);
+    setCurrentQuestion(questionId - 1);
+  };
+  
+  // Get interpretation based on score
+  const getInterpretation = (score: number) => {
+    if (score >= 50) {
+      return {
+        level: "Flow Fluent",
+        description: "You reliably access flow and have developed strong internal and external conditions to sustain it."
+      };
+    } else if (score >= 39) {
+      return {
+        level: "Flow Aware",
+        description: "You are familiar with the experience but have room to reinforce routines or reduce blockers."
+      };
+    } else if (score >= 26) {
+      return {
+        level: "Flow Blocked",
+        description: "You occasionally experience flow but face challenges in entry, recovery, or sustaining focus."
+      };
+    } else {
+      return {
+        level: "Flow Distant",
+        description: "You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed."
+      };
+    }
+  };
+  
+  // Convert number to label
+  const valueToLabel = (value: number) => {
+    switch (value) {
+      case 1: return "Never";
+      case 2: return "Rarely";
+      case 3: return "Sometimes";
+      case 4: return "Often";
+      case 5: return "Always";
+      default: return "";
+    }
+  };
+  
+  // Get color for label badge
+  const getColorForValue = (value: number) => {
+    switch (value) {
+      case 1: return "bg-red-500 text-white";
+      case 2: return "bg-orange-500 text-white";
+      case 3: return "bg-yellow-500 text-white";
+      case 4: return "bg-green-500 text-white";
+      case 5: return "bg-purple-600 text-white";
+      default: return "bg-gray-200 text-gray-800";
+    }
+  };
+  
+  // Calculate total score
+  const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+  const interpretation = getInterpretation(totalScore);
   
   // Fill demo answers
   const fillDemoAnswers = () => {
