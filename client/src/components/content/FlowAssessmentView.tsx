@@ -117,8 +117,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   
   // Adjust a specific answer
   const handleAdjustAnswer = (questionId: number) => {
+    // Close the results modal
     setShowResults(false);
+    
+    // Navigate to the specific question for adjustment
     setCurrentQuestion(questionId - 1);
+    
+    // Log for debugging
+    console.log(`Adjusting answer for question #${questionId}`);
   };
   
   // Get interpretation based on score
@@ -434,7 +440,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="text-indigo-600 hover:text-indigo-800" 
+                            className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors" 
                             onClick={() => handleAdjustAnswer(q.id)}
                           >
                             <span className="text-indigo-600 mr-1">⚙</span> Adjust
