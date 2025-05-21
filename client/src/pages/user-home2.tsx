@@ -13,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import StarCard from '@/components/starcard/StarCard';
 import StepByStepReflection from '@/components/reflection/StepByStepReflection';
+import FlowAssessment from '@/components/flow/FlowAssessment';
 
 // Navigation sections based on the spreadsheet
 const navigationSections = [
