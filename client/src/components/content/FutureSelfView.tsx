@@ -56,8 +56,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-gray-50 p-6 rounded-lg border">
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
+        <div className="md:w-3/5 bg-gray-50 p-6 rounded-lg border">
           <div className="aspect-w-16 aspect-h-9">
             <iframe 
               src="https://www.youtube.com/embed/_VsH5NO9jyg" 
@@ -68,57 +68,53 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               className="w-full h-64 rounded border border-gray-200"
             ></iframe>
           </div>
-        </div>
-        
-        <div className="bg-gray-50 p-6 rounded-lg border flex flex-col">
-          <div className="prose mb-4">
-            <h3 className="text-indigo-800 font-medium">Purpose</h3>
-            <p className="text-sm text-gray-700">
-              This exercise honors every participant's infinite capacity for growth. 
-              Whether someone is 22 or 82, the focus remains on continuing evolution, 
-              deepening wisdom, and creating one's masterpiece. The most meaningful 
-              futures are not constrained by time but expanded by purpose.
+          
+          <div className="mt-4">
+            <p className="text-sm text-gray-700 mb-2">
+              <span className="font-medium text-gray-900">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
             </p>
-            <p className="text-sm text-gray-700 mt-2">
-              Remember Hokusai's wisdom - every decade brings new insight, sharper vision, 
-              and deeper connection to your life's work. The canvas of your future self 
-              has no boundaries.
+            <p className="text-sm text-gray-800 italic">
+              "From the age of 6 I had a mania for drawing the shapes of things.
+              When I was 50 I had published a universe of designs. But all I have done before the the age of 70 is not worth bothering with. At
+              75 I'll have learned something of the pattern of nature, of animals, of plants, of trees, birds, fish and insects. When I am 80 you will 
+              see real progress. At 90 I shall have cut my way deeply into the mystery of life itself. At 100, I shall be a marvelous artist. At 110, 
+              everything I create; a dot, a line, will jump to life as never before.
+              <br /><br />
+              To all of you who are going to live as long as I do, I promise to keep my word. I am writing this in my old age. I used to call 
+              myself Hokusai, but today I sign my self 'The Old Man Mad About Drawing.'"
+              <span className="block mt-1 font-medium text-right">— Hokusai Katsushika</span>
             </p>
           </div>
-          
-          <div className="flex gap-4 mt-auto">
-            <div className="w-1/2">
-              <img 
-                src={hokusaiWaveImage} 
-                alt="The Great Wave off Kanagawa by Hokusai" 
-                className="w-full h-auto rounded border border-gray-200"
-              />
-            </div>
-            <div className="w-1/2">
-              <img 
-                src={hokusaiPortraitImage} 
-                alt="Portrait of Hokusai" 
-                className="w-full h-auto rounded border border-gray-200"
-              />
-            </div>
+        </div>
+        
+        <div className="md:w-2/5">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <img 
+              src={hokusaiWaveImage} 
+              alt="The Great Wave off Kanagawa by Hokusai" 
+              className="w-full h-auto rounded border border-gray-200"
+            />
+            <img 
+              src={hokusaiPortraitImage} 
+              alt="Portrait of Hokusai" 
+              className="w-full h-auto rounded border border-gray-200"
+            />
           </div>
         </div>
       </div>
-      
-      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-8">
-        <p className="text-sm text-indigo-700 mb-2">
-          <span className="font-medium text-indigo-800">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
+
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
+        <h3 className="text-lg font-medium text-indigo-900 mb-2">Purpose</h3>
+        <p className="text-sm text-indigo-800">
+          This exercise honors every participant's infinite capacity for growth. 
+          Whether someone is 22 or 82, the focus remains on continuing evolution, 
+          deepening wisdom, and creating one's masterpiece. The most meaningful 
+          futures are not constrained by time but expanded by purpose.
         </p>
-        <p className="text-sm text-indigo-800 italic">
-          "From the age of 6 I had a mania for drawing the shapes of things.
-          When I was 50 I had published a universe of designs. But all I have done before the the age of 70 is not worth bothering with. At
-          75 I'll have learned something of the pattern of nature, of animals, of plants, of trees, birds, fish and insects. When I am 80 you will 
-          see real progress. At 90 I shall have cut my way deeply into the mystery of life itself. At 100, I shall be a marvelous artist. At 110, 
-          everything I create; a dot, a line, will jump to life as never before.
-          <br /><br />
-          To all of you who are going to live as long as I do, I promise to keep my word. I am writing this in my old age. I used to call 
-          myself Hokusai, but today I sign my self 'The Old Man Mad About Drawing.'"
-          <span className="block mt-1 font-medium text-right">— Hokusai Katsushika</span>
+        <p className="text-sm text-indigo-800 mt-2">
+          Remember Hokusai's wisdom - every decade brings new insight, sharper vision, 
+          and deeper connection to your life's work. The canvas of your future self 
+          has no boundaries.
         </p>
       </div>
 
