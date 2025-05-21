@@ -33,6 +33,7 @@ interface UserHomeNavigationProps {
   starCard?: StarCard | null;
   flowAttributesData?: FlowAttributesResponse | null;
   currentContent?: string;
+  isImaginalAgility?: boolean;
 }
 
 const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
@@ -44,7 +45,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   handleStepClick,
   starCard,
   flowAttributesData,
-  currentContent
+  currentContent,
+  isImaginalAgility = false
 }) => {
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);

@@ -267,7 +267,9 @@ export default function UserHome2() {
       {/* Header with Reset Button */}
       <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
         <div className="flex justify-between items-center h-full">
-          <div className="text-lg font-medium">AllStarTeams Workshop</div>
+          <div className="text-lg font-medium">
+            {currentApp === 'imaginal-agility' ? 'Imaginal Agility Workshop' : 'AllStarTeams Workshop'}
+          </div>
           <Button 
             variant="outline" 
             size="sm"
@@ -301,6 +303,7 @@ export default function UserHome2() {
           starCard={starCard}
           flowAttributesData={flowAttributesData}
           currentContent={currentContent}
+          isImaginalAgility={currentApp === 'imaginal-agility'}
         />
         
         {/* Content Area */}
@@ -314,6 +317,7 @@ export default function UserHome2() {
             user={user}
             flowAttributesData={flowAttributesData}
             setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={currentApp === 'imaginal-agility'}
           />
         </div>
       </div>
