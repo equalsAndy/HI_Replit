@@ -763,8 +763,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </p>
           </div>
           
-          <div className="flex justify-center mb-8">
-            <div className="w-64 h-64">
+          <div className="flex justify-center items-center my-12">
+            <div className="w-[400px] h-[400px]">
               <AssessmentPieChart
                 thinking={assessmentResults.thinking}
                 acting={assessmentResults.acting}

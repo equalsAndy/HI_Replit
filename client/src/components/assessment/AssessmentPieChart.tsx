@@ -67,7 +67,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             cy="50%"
             labelLine={true}
             label={renderCustomizedLabel}
-            outerRadius={80}
+            outerRadius={120}
             fill="#8884d8"
             dataKey="value"
           >
