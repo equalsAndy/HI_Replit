@@ -133,6 +133,13 @@ export default function UserHome2() {
     // If it's the first step of the first section, it's always accessible
     if (sectionIndex === 0 && stepIndex === 0) return true;
     
+    // If it's the Intro to Flow step (3-1), check if reflection step (2-4) is completed
+    if (sectionId === '3' && stepId === '3-1') {
+      // Make it accessible if either the previous section is complete
+      // or if we've specifically completed the reflection step
+      return completedSteps.includes('2-4') || completedSteps.includes('2-3');
+    }
+    
     // For the first step of other sections, check if all steps in previous section are completed
     if (stepIndex === 0 && sectionIndex > 0) {
       const prevSection = navigationSections[sectionIndex - 1];
