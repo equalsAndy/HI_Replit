@@ -214,10 +214,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this menu item is currently active
-                                  currentContent === getContentKeyFromStepId(section.id, step.id) 
-                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600" 
-                                    : "",
+                                  // Simplify active item detection logic
+                                  false ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600" : "",
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible
@@ -239,21 +237,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <CheckCircle className="h-4 w-4 text-green-600" />
                                   ) : !isAccessible ? (
                                     <Lock className="h-4 w-4 text-gray-400" />
-                                  ) : null}
-                                </div>
-                                
-                                {/* Content type icons */}
-                                <div className="mr-2 flex-shrink-0">
-                                  {step.type === 'Learning' && (
+                                  ) : step.type === 'Learning' ? (
                                     <BookOpen className="h-4 w-4 text-indigo-500" />
-                                  )}
-                                  {step.type === 'Assessment' && (
+                                  ) : step.type === 'Assessment' ? (
                                     <Activity className="h-4 w-4 text-orange-500" />
-                                  )}
-                                  {step.type === 'Reflection' && (
+                                  ) : step.type === 'Reflection' ? (
                                     <PenLine className="h-4 w-4 text-purple-500" />
-                                  )}
-                                  {(step.type === 'Resource' || !step.type) && (
+                                  ) : (
                                     <FileText className="h-4 w-4 text-gray-500" />
                                   )}
                                 </div>
