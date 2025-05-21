@@ -606,8 +606,13 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 <li>How your pragmatic approach solved practical problems</li>
               </ul>
             </div>
-            
-            <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
+          </div>
+        </div>
+        
+        {/* Reflection Space - Full Width Section */}
+        <div className="p-6 bg-gray-50 border-t border-gray-200">
+          <div className="max-w-4xl mx-auto">
+            <div className="p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
               <label htmlFor="strength-1-reflection" className="block text-lg font-semibold text-indigo-800 mb-2">
                 Your Reflection Space
               </label>
