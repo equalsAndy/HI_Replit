@@ -74,6 +74,14 @@ export interface FlowAssessmentData {
   updatedAt?: Date;
 }
 
+// Flow Attributes response from API
+export interface FlowAttributesResponse {
+  id?: number;
+  userId?: number;
+  attributes?: Array<{ name: string; score: number; }>;
+  flowScore?: number;
+}
+
 // Reflection data types
 export interface ReflectionData {
   id?: number;
