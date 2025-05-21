@@ -253,6 +253,7 @@ export default function StepByStepReflection({
       // Navigate to Intro to Flow
       if (setCurrentContent) {
         setCurrentContent('intro-to-flow');
+        console.log("Navigating to intro-to-flow");
       }
     }
   };

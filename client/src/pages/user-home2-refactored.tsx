@@ -184,7 +184,7 @@ export default function UserHome2() {
     // Section 3: Find your Flow
     else if (stepId === '3-1') {
       // If it's "Intro to Flow", show the flow intro content
-      setCurrentContent("intro-flow");
+      setCurrentContent("intro-to-flow");
       markStepCompleted(stepId);
     } else if (stepId === '3-2') {
       // Flow Assessment

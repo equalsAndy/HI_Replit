@@ -6,6 +6,7 @@ import AssessmentView from './AssessmentView';
 import StarCardPreviewView from './StarCardPreviewView';
 import ReflectionView from './ReflectionView';
 import FlowIntroView from './FlowIntroView';
+import IntroToFlowView from './IntroToFlowView';
 import FlowAssessmentView from './FlowAssessmentView';
 import FlowRoundingOutView from './FlowRoundingOutView';
 import FlowStarCardView from './FlowStarCardView';
@@ -88,9 +89,9 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       );
 
     // Find your Flow
-    case 'intro-flow':
+    case 'intro-to-flow':
       return (
-        <FlowIntroView 
+        <IntroToFlowView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
