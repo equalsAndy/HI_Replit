@@ -385,11 +385,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     setDraggedOption(null);
   };
   
-  // Auto-complete with demo answers for all questions and jump to results
-  const handleDemoAnswers = () => {
+  // Auto-complete with demo answers for all questions and submit to server
+  const handleDemoAnswers = async () => {
     setIsLoading(true);
     
-    // Create fake answers for all questions
+    // Create demo answers for all questions
     const demoAnswers: {[key: number]: RankedOption[]} = {};
     
     // For each question in the assessment
@@ -418,20 +418,43 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       optionCategoryMapping
     );
     
-    // Set results and go to results view
-    setAssessmentResults(results);
-    
-    setTimeout(() => {
+    try {
+      // Format data for server
+      const formattedAnswers = Object.entries(demoAnswers).map(([questionId, rankings]) => ({
+        questionId: parseInt(questionId),
+        rankings
+      }));
+      
+      // Send to server
+      const response = await fetch('/api/assessment/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          quadrantData: results,
+          answers: formattedAnswers
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to complete demo assessment');
+      }
+      
+      // Set the last question as current to show we completed all questions
+      setCurrentQuestionIndex(assessmentQuestions.length - 1);
+      
+      // Set results and show results view
+      setAssessmentResults(results);
       setIsLoading(false);
       setView('results');
       
-      // Invalidate star card query to refresh data (simulating the completion)
+      // Invalidate star card query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       
       // Show toast notification
       toast({
         title: "Demo Assessment Complete!",
-        description: "A sample Star Card has been created with random data.",
+        description: "Your Star Card has been created with demo data.",
       });
       
       // Call onComplete callback if provided
@@ -441,7 +464,20 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           demoData: true 
         });
       }
-    }, 500);
+    } catch (error) {
+      console.error('Error completing demo assessment:', error);
+      
+      // Even if there's an error, still show results
+      setAssessmentResults(results);
+      setIsLoading(false);
+      setView('results');
+      
+      toast({
+        title: "Demo Data Generated",
+        description: "Note: The data could not be saved to the server.",
+        variant: "destructive"
+      });
+    }
   };
   
   // Progress bar calculation
@@ -702,29 +738,33 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           </Button>
         </div>
         
-        {/* Cancel button */}
-        <div className="mt-4 sm:mt-4">
-          <Button 
-            variant="ghost" 
-            onClick={onClose}
-            className="text-sm text-gray-500 hover:text-gray-700 w-full sm:w-auto"
-          >
-            <X className="h-4 w-4 mr-1" /> Cancel Assessment
-          </Button>
-        </div>
+        {/* Cancel button removed from here, now in top-right corner */}
       </div>
     </div>
   );
   
-  // Render the results screen
+  // Render the results screen to match the design in the image
   const renderResults = () => (
-    <div className="p-4 space-y-4">
-      <h3 className="text-xl font-bold text-center">Your AllStarTeams Strengths Profile</h3>
+    <div className="p-4 space-y-5">
+      <h2 className="text-2xl font-bold text-gray-900">Your Star Strengths Results</h2>
       
       {assessmentResults && (
-        <div className="mb-6">
-          <div className="flex justify-center mb-4">
-            <div className="w-64 h-64 sm:w-72 sm:h-72">
+        <>
+          <div>
+            <p className="text-gray-700 mb-2">
+              <span className="font-semibold">Congratulations!</span> You've completed the assessment and 
+              created your unique Star Card showing your strengths across four key dimensions.
+            </p>
+            
+            <p className="text-gray-700 mb-5">
+              Your Star Card will guide your personal development journey and help
+              you identify areas where you shine and where you can grow. The
+              workshop activities will help you explore these dimensions in depth.
+            </p>
+          </div>
+          
+          <div className="flex justify-center mb-8">
+            <div className="w-64 h-64">
               <AssessmentPieChart
                 thinking={assessmentResults.thinking}
                 acting={assessmentResults.acting}
@@ -734,37 +774,46 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </div>
           </div>
           
-          <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-            <div className="flex items-center">
-              <div className="w-4 h-4 rounded-full bg-[rgb(1,162,82)] mr-2"></div>
-              <span className="text-sm sm:text-base">Thinking: {assessmentResults.thinking}%</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 rounded-full bg-[rgb(241,64,64)] mr-2"></div>
-              <span className="text-sm sm:text-base">Acting: {assessmentResults.acting}%</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 rounded-full bg-[rgb(22,126,253)] mr-2"></div>
-              <span className="text-sm sm:text-base">Feeling: {assessmentResults.feeling}%</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 rounded-full bg-[rgb(255,203,47)] mr-2"></div>
-              <span className="text-sm sm:text-base">Planning: {assessmentResults.planning}%</span>
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <div className="space-y-3">
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded bg-[rgb(1,162,82)] mr-3"></div>
+                <span className="font-semibold">Thinking: {assessmentResults.thinking}%</span>
+                <span className="ml-3 text-gray-600 text-sm"> - Analytical & logical approach</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded bg-[rgb(255,203,47)] mr-3"></div>
+                <span className="font-semibold">Planning: {assessmentResults.planning}%</span>
+                <span className="ml-3 text-gray-600 text-sm"> - Organized & methodical</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded bg-[rgb(22,126,253)] mr-3"></div>
+                <span className="font-semibold">Feeling: {assessmentResults.feeling}%</span>
+                <span className="ml-3 text-gray-600 text-sm"> - Empathetic & relationship-focused</span>
+              </div>
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded bg-[rgb(241,64,64)] mr-3"></div>
+                <span className="font-semibold">Acting: {assessmentResults.acting}%</span>
+                <span className="ml-3 text-gray-600 text-sm"> - Decisive & action-oriented</span>
+              </div>
             </div>
           </div>
-        </div>
+        </>
       )}
       
-      <div className="text-center">
-        <p className="text-gray-600 text-sm sm:text-base mb-8">
-          Your strengths profile has been saved. You can now continue with your learning journey.
-        </p>
+      <div className="flex justify-between pt-4">
+        <Button 
+          variant="outline"
+          onClick={onClose}
+        >
+          Close
+        </Button>
         
         <Button 
           onClick={continueAssessment}
-          className="bg-indigo-600 hover:bg-indigo-700 px-8"
+          className="bg-indigo-600 hover:bg-indigo-700"
         >
-          Continue
+          Continue to Your Star Card
         </Button>
       </div>
     </div>
@@ -773,14 +822,15 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+        <div className="absolute right-4 top-4">
+          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
+            <span className="sr-only">Close</span>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+        
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle>AllStarTeams Strengths Assessment</DialogTitle>
-            <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-              <span className="sr-only">Close</span>
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle>AllStarTeams Strengths Assessment</DialogTitle>
           <DialogDescription>
             {view === 'intro' && "Discover your unique strengths profile with this assessment."}
             {view === 'assessment' && "For each scenario, rank the options from most like you to least like you."}
