@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
 import { navigationSections } from '@/components/navigation/navigationData';
 import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
@@ -16,6 +20,7 @@ export default function UserHome2() {
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("welcome");
+  const { toast } = useToast();
   
   // Fetch user profile data
   const { data: user } = useQuery<User>({
@@ -33,6 +38,37 @@ export default function UserHome2() {
   const { data: flowAttributesData } = useQuery<FlowAttributesResponse>({
     queryKey: ['/api/flow-attributes'],
     refetchOnWindowFocus: false
+  });
+  
+  // Reset user progress mutation
+  const resetUserProgress = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) return null;
+      const res = await apiRequest('POST', `/api/test-users/reset/${user.id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Clear local storage progress
+      localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      setCompletedSteps([]);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      
+      toast({
+        title: "Progress Reset",
+        description: "Your progress has been reset successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset progress: " + String(error),
+        variant: "destructive"
+      });
+    }
   });
   
   // Load completed steps from localStorage on component mount
@@ -185,38 +221,58 @@ export default function UserHome2() {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Assessment Modal */}
-      <AssessmentModal 
-        isOpen={isAssessmentModalOpen} 
-        onClose={() => setIsAssessmentModalOpen(false)}
-        onComplete={handleAssessmentComplete}
-      />
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Header with Reset Button */}
+      <header className="bg-white border-b border-gray-200 py-2 px-4">
+        <div className="flex justify-between items-center">
+          <div className="text-lg font-medium">AllStarTeams Workshop</div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-1 text-gray-700"
+            onClick={() => resetUserProgress.mutate()}
+            disabled={resetUserProgress.isPending}
+          >
+            <RefreshCw className="h-4 w-4" />
+            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
+          </Button>
+        </div>
+      </header>
       
-      {/* Left Navigation Drawer */}
-      <UserHomeNavigation
-        drawerOpen={drawerOpen}
-        toggleDrawer={toggleDrawer}
-        navigationSections={updatedNavigationSections}
-        completedSteps={completedSteps}
-        isStepAccessible={isStepAccessible}
-        handleStepClick={handleStepClick}
-        starCard={starCard}
-        flowAttributesData={flowAttributesData}
-      />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 overflow-auto p-6">
-        <ContentViews
-          currentContent={currentContent}
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          user={user}
-          flowAttributesData={flowAttributesData}
-          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Assessment Modal */}
+        <AssessmentModal 
+          isOpen={isAssessmentModalOpen} 
+          onClose={() => setIsAssessmentModalOpen(false)}
+          onComplete={handleAssessmentComplete}
         />
+        
+        {/* Left Navigation Drawer */}
+        <UserHomeNavigation
+          drawerOpen={drawerOpen}
+          toggleDrawer={toggleDrawer}
+          navigationSections={updatedNavigationSections}
+          completedSteps={completedSteps}
+          isStepAccessible={isStepAccessible}
+          handleStepClick={handleStepClick}
+          starCard={starCard}
+          flowAttributesData={flowAttributesData}
+        />
+        
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto p-6">
+          <ContentViews
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+            starCard={starCard}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+          />
+        </div>
       </div>
     </div>
   );
