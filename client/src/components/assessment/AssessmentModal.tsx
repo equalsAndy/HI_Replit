@@ -34,7 +34,7 @@ interface AssessmentModalProps {
 
 export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModalProps) {
   const { toast } = useToast();
-  
+
   // State management
   const [view, setView] = useState<'intro' | 'assessment' | 'results'>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -42,7 +42,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [assessmentResults, setAssessmentResults] = useState<QuadrantData | null>(null);
-  
+
   // For drag and drop
   const [draggedOption, setDraggedOption] = useState<Option | null>(null);
   const [rankings, setRankings] = useState<{
@@ -56,17 +56,17 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     third: null,
     leastLikeMe: null
   });
-  
+
   // Get existing star card to check if assessment was already completed
   const { data: starCard } = useQuery<StarCardType>({ 
     queryKey: ['/api/starcard'],
     enabled: isOpen,
     staleTime: Infinity
   });
-  
+
   const currentQuestion = assessmentQuestions[currentQuestionIndex];
   const totalQuestions = assessmentQuestions.length;
-  
+
   // Check assessment status when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -85,7 +85,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             setIsLoading(false);
             return;
           }
-          
+
           // Otherwise try to start a new assessment
           try {
             await fetch('/api/assessment/start', {
@@ -96,14 +96,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           } catch (error) {
             console.error("Error starting assessment:", error);
           }
-          
+
           // Skip intro and go straight to assessment
           setView('assessment');
           setIsLoading(false);
         } catch (error) {
           console.error("Error checking assessment status:", error);
           setIsLoading(false);
-          
+
           // If we have an error but star card exists, show those results
           if (starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)) {
             setAssessmentResults({
@@ -119,15 +119,15 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           }
         }
       };
-      
+
       checkAssessmentStatus();
     }
   }, [isOpen, starCard]);
-  
+
   // Reset rankings when question changes
   useEffect(() => {
     if (!isOpen || view !== 'assessment') return;
-    
+
     // Reset rankings when question changes
     setRankings({
       mostLikeMe: null,
@@ -158,7 +158,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       });
     }
   }, [currentQuestionIndex, isOpen, answers, view]);
-  
+
   // Start assessment - move from intro to assessment view
   const startAssessment = async () => {
     // Skip the intro and go straight to assessment
@@ -166,7 +166,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     setCurrentQuestionIndex(0);
     setAnswers({});
   };
-  
+
   // Function to get quadrant scores from answers
   const getQuadrantScores = (): QuadrantData => {
     // Convert answers object to array
@@ -178,21 +178,21 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     // Use the imported calculation function
     return calculateQuadrantScores(answersArray, optionCategoryMapping);
   };
-  
+
   // Complete the assessment
   const completeAssessment = async () => {
     setIsSubmitting(true);
-    
+
     try {
       // Calculate final results
       const results = getQuadrantScores();
-      
+
       // Format answer data for server
       const formattedAnswers = Object.entries(answers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       }));
-      
+
       // Save to server
       const response = await fetch('/api/assessment/complete', {
         method: 'POST',
@@ -203,26 +203,26 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           answers: formattedAnswers
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to complete assessment');
       }
-      
+
       const data = await response.json();
-      
+
       // Invalidate star card query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-      
+
       // Show toast notification
       toast({
         title: "Assessment Complete!",
         description: "Your Star Card has been created!",
       });
-      
+
       // Set results and show results view
       setAssessmentResults(results);
       setView('results');
-      
+
       // Call onComplete callback if provided
       if (onComplete) {
         onComplete(data);
@@ -238,7 +238,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       setIsSubmitting(false);
     }
   };
-  
+
   // Save the current answer and move to next question (or complete)
   const saveAnswerAndContinue = async () => {
     // Check if all spots are filled
@@ -250,7 +250,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       });
       return;
     }
-    
+
     // Format the rankings
     const rankingData: RankedOption[] = [
       { optionId: rankings.mostLikeMe.id, rank: 1 },
@@ -258,13 +258,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       { optionId: rankings.third.id, rank: 3 },
       { optionId: rankings.leastLikeMe.id, rank: 4 }
     ];
-    
+
     // Save answer to local state
     setAnswers(prev => ({
       ...prev,
       [currentQuestion.id]: rankingData
     }));
-    
+
     // Try to save to server (but don't block progress if it fails)
     try {
       await fetch('/api/assessment/answer', {
@@ -279,16 +279,16 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     } catch (error) {
       console.error('Error saving answer:', error);
     }
-    
+
     // Check if we're at question 22 (index 21) and have demo data
     const isAtQuestion22 = currentQuestionIndex === 21;
-    
+
     // Count the total answered questions
     const completedQuestionCount = Object.keys(answers).length + 1; // +1 for current question
-    
+
     // Determine if we're using demo data - if we have exactly 22 questions answered and are at question 22
     const isUsingDemoData = completedQuestionCount === 22 && isAtQuestion22;
-    
+
     // Move to next question or complete
     if (currentQuestionIndex < totalQuestions - 1) {
       // If we're at question 22 and using demo data, we should complete the assessment
@@ -297,7 +297,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       } else {
         // Otherwise go to next question
         setCurrentQuestionIndex(prev => prev + 1);
-        
+
         // Clear rankings for the next question
         setRankings({
           mostLikeMe: null,
@@ -311,14 +311,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       completeAssessment();
     }
   };
-  
+
   // Go back to previous question
   const goToPreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
       setCurrentQuestionIndex(prev => prev - 1);
     }
   };
-  
+
   // Handle clicking on an option
   const placeOptionInNextAvailableSlot = (option: Option) => {
     // Create a new rankings object to modify
@@ -352,7 +352,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     // Update the state with all changes at once
     setRankings(newRankings);
   };
-  
+
   // Handle click on an option
   const handleOptionClick = (option: Option) => {
     // Only handle click if there's an empty slot
@@ -360,7 +360,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       placeOptionInNextAvailableSlot(option);
     }
   };
-  
+
   // Drag and drop functionality
   const handleDragStart = (e: React.DragEvent<HTMLDivElement>, option: Option) => {
     e.dataTransfer.setData('optionId', option.id);
@@ -407,22 +407,22 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
     setDraggedOption(null);
   };
-  
+
   // Auto-complete with demo answers for questions and submit to server
   // For demo mode, only fill the first 22 questions, then stop
   const handleDemoAnswers = async () => {
     setIsLoading(true);
-    
+
     // Create demo answers for questions up to 22
     const demoAnswers: {[key: number]: RankedOption[]} = {};
-    
+
     // For each question in the assessment up to 22
     const questionsToFill = assessmentQuestions.slice(0, 22);
-    
+
     questionsToFill.forEach(question => {
       // Randomize the options
       const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
-      
+
       // Create rankings for this question
       demoAnswers[question.id] = [
         { optionId: shuffledOptions[0].id, rank: 1 },
@@ -431,13 +431,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         { optionId: shuffledOptions[3].id, rank: 4 }
       ];
     });
-    
+
     // Set all answers so far
     setAnswers(demoAnswers);
-    
+
     // Navigate to question 22
     setCurrentQuestionIndex(21); // (0-indexed, so 21 is the 22nd question)
-    
+
     // Set rankings for question 22 to show it's ready to continue
     if (assessmentQuestions[21]) {
       const options = assessmentQuestions[21].options;
@@ -448,23 +448,23 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         leastLikeMe: options[3]
       });
     }
-    
+
     // Toast to inform user they can continue
     toast({
       title: "Demo Data Ready",
       description: "You're at question 22. Click 'Continue' to complete the assessment.",
     });
-    
+
     setIsLoading(false);
   };
-  
+
   // Function to handle completion when user clicks continue after demo data
   const completeWithDemoData = async () => {
     setIsLoading(true);
-    
+
     // Fill any remaining questions with random answers
     const completeAnswers = { ...answers };
-    
+
     // Ensure all questions have answers
     assessmentQuestions.forEach(question => {
       if (!completeAnswers[question.id]) {
@@ -477,7 +477,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         ];
       }
     });
-    
+
     // Calculate results based on the completed answers
     const results = calculateQuadrantScores(
       Object.entries(completeAnswers).map(([questionId, rankings]) => ({
@@ -486,14 +486,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       })),
       optionCategoryMapping
     );
-    
+
     try {
       // Format data for server
       const formattedAnswers = Object.entries(completeAnswers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       }));
-      
+
       // Send to server
       const response = await fetch('/api/assessment/complete', {
         method: 'POST',
@@ -504,19 +504,19 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           answers: formattedAnswers
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to complete assessment');
       }
-      
+
       // Set results and show results view
       setAssessmentResults(results);
       setIsLoading(false);
       setView('results');
-      
+
       // Invalidate star card query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-      
+
       // Call onComplete callback if provided
       if (onComplete) {
         onComplete({ 
@@ -526,20 +526,20 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       }
     } catch (error) {
       console.error('Error completing assessment:', error);
-      
+
       // Even if there's an error, still show results
       setAssessmentResults(results);
       setIsLoading(false);
       setView('results');
     }
   };
-  
+
   // Progress bar calculation
   const progressPercentage = Math.min(
     Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100),
     100
   );
-  
+
   // Available options (not yet ranked)
   const availableOptions = currentQuestion?.options.filter(option => 
     option !== rankings.mostLikeMe && 
@@ -547,12 +547,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     option !== rankings.third && 
     option !== rankings.leastLikeMe
   ) || [];
-  
+
   // Continue assessment button
   const continueAssessment = () => {
     onClose();
   };
-  
+
   // Render the intro screen
   const renderIntro = () => (
     <div className="py-4 space-y-4">
@@ -577,7 +577,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           </li>
         </ul>
       </div>
-      
+
       <div className="bg-amber-50 rounded-lg p-4">
         <h3 className="font-medium text-amber-800 mb-2">Instructions</h3>
         <p className="text-sm text-amber-700">
@@ -585,7 +585,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           like you (4). There are no right or wrong answers - just be honest about your preferences.
         </p>
       </div>
-      
+
       <div className="bg-green-50 rounded-lg p-4">
         <h3 className="font-medium text-green-800 mb-2 flex items-center">
           <CheckCircle className="h-4 w-4 mr-2" /> What you'll get
@@ -596,7 +596,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           through the rest of the AllStarTeams program.
         </p>
       </div>
-      
+
       <DialogFooter className="flex flex-col sm:flex-row gap-2 sm:gap-0 mt-4">
         <Button variant="outline" onClick={onClose} className="w-full sm:w-auto order-2 sm:order-1">
           Cancel
@@ -610,7 +610,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       </DialogFooter>
     </div>
   );
-  
+
   // Render the assessment questions
   const renderAssessment = () => (
     <div className="p-2 sm:p-4">
@@ -620,17 +620,17 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         </h3>
         <span className="text-xs text-gray-500">{progressPercentage}% complete</span>
       </div>
-      
+
       <div className="w-full bg-gray-200 rounded-full h-1.5 mb-4">
         <div 
           className="bg-indigo-600 h-1.5 rounded-full transition-all" 
           style={{ width: `${progressPercentage}%` }}
         ></div>
       </div>
-      
+
       <div className="bg-white rounded-lg mb-3">
         <h3 className="text-lg font-medium text-indigo-700 mb-4">{currentQuestion.text}</h3>
-        
+
         {/* Options to rank - displayed as draggable items */}
         <div className="mb-4">
           <div className="bg-amber-50 p-4 rounded-lg mb-4">
@@ -652,7 +652,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
             )}
           </div>
-          
+
           {/* Ranking slots as drop zones */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
             <div className="flex flex-col items-center">
@@ -679,7 +679,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               </div>
               <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Most like me</p>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <div 
                 onDragOver={handleDragOver}
@@ -704,7 +704,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               </div>
               <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Second</p>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <div 
                 onDragOver={handleDragOver}
@@ -729,7 +729,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               </div>
               <p className="mt-1 text-gray-700 text-xs sm:text-sm font-medium">Third</p>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <div 
                 onDragOver={handleDragOver}
@@ -756,7 +756,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-between items-center pb-2">
           <div className="space-x-2">
             <Button
@@ -767,7 +767,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
-            
+
             <Button
               variant="outline"
               onClick={handleDemoAnswers}
@@ -776,7 +776,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               Demo Data
             </Button>
           </div>
-          
+
           <Button 
             onClick={saveAnswerAndContinue}
             className={`${currentQuestionIndex === totalQuestions - 1 ? 'bg-teal-600 hover:bg-teal-700' : 'bg-indigo-600 hover:bg-indigo-700'} h-10`}
@@ -791,17 +791,17 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             )}
           </Button>
         </div>
-        
+
         {/* Cancel button removed from here, now in top-right corner */}
       </div>
     </div>
   );
-  
+
   // Render the results screen to match the design in the image
   const renderResults = () => (
     <div className="p-4 space-y-5">
       <h2 className="text-2xl font-bold text-gray-900">Your Star Strengths Results</h2>
-      
+
       {assessmentResults && (
         <>
           <div>
@@ -809,14 +809,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               <span className="font-semibold">Congratulations!</span> You've completed the assessment and 
               created your unique Star Card showing your strengths across four key dimensions.
             </p>
-            
+
             <p className="text-gray-700 mb-5">
               Your Star Card will guide your personal development journey and help
               you identify areas where you shine and where you can grow. The
               workshop activities will help you explore these dimensions in depth.
             </p>
           </div>
-          
+
           <div className="flex justify-center items-center my-4 w-full px-4">
             <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
               <AssessmentPieChart
@@ -827,7 +827,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               />
             </div>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="space-y-3">
               {[
@@ -849,7 +849,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           </div>
         </>
       )}
-      
+
       <div className="flex justify-between pt-4">
         <Button 
           variant="outline"
@@ -857,7 +857,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         >
           Close
         </Button>
-        
+
         <Button 
           onClick={continueAssessment}
           className="bg-indigo-600 hover:bg-indigo-700"
@@ -867,7 +867,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       </div>
     </div>
   );
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
@@ -879,7 +879,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             {view === 'results' && "Your personal strengths profile based on your assessment."}
           </DialogDescription>
         </DialogHeader>
-        
+
         {/* Loading state */}
         {isLoading ? (
           <div className="flex items-center justify-center h-64">
