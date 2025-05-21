@@ -89,9 +89,19 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       );
 
     // Find your Flow
+    case 'intro-flow':
+      return (
+        <FlowIntroView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+      
     case 'intro-to-flow':
       return (
-        <IntroToFlowView 
+        <FlowIntroView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

@@ -183,9 +183,10 @@ export default function UserHome2() {
     
     // Section 3: Find your Flow
     else if (stepId === '3-1') {
-      // If it's "Intro to Flow", show the flow intro content
+      // If it's "Intro to Flow", show the flow intro content from our new IntroToFlowView component
       setCurrentContent("intro-to-flow");
       markStepCompleted(stepId);
+      console.log("Navigation menu clicked - showing intro-to-flow content");
     } else if (stepId === '3-2') {
       // Flow Assessment
       setCurrentContent("flow-assessment");
