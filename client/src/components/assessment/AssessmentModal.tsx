@@ -97,7 +97,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             console.error("Error starting assessment:", error);
           }
           
-          setView('intro');
+          // Skip intro and go straight to assessment
+          setView('assessment');
           setIsLoading(false);
         } catch (error) {
           console.error("Error checking assessment status:", error);
@@ -113,7 +114,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             });
             setView('results');
           } else {
-            setView('intro');
+            // Skip intro and go straight to assessment
+            setView('assessment');
           }
         }
       };
@@ -159,6 +161,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   
   // Start assessment - move from intro to assessment view
   const startAssessment = async () => {
+    // Skip the intro and go straight to assessment
     setView('assessment');
     setCurrentQuestionIndex(0);
     setAnswers({});

@@ -398,7 +398,7 @@ export default function UserHome2() {
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg"
                     size="lg"
                   >
-                    Take the Assessment <ChevronRight className="ml-2 h-5 w-5" />
+                    Start Assessment <ChevronRight className="ml-2 h-5 w-5" />
                   </Button>
                 </div>
               </div>
