@@ -77,17 +77,7 @@ function Router() {
         />
       )}
       <NavBar />
-      {/* Testing Link for Refactored User Home 2 */}
-      {user && (
-        <div className="fixed bottom-4 right-4 z-50">
-          <Button 
-            onClick={() => navigate('/user-home2-refactored')}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            Try Refactored Navigation
-          </Button>
-        </div>
-      )}
+      {/* Removed floating button */}
       <div className="flex-1">
         <Switch>
           <Route path="/" component={Landing} />

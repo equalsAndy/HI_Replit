@@ -41,17 +41,28 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
           </span>
         </div>
         
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="bg-yellow-200 border-yellow-500 text-yellow-900 hover:bg-yellow-100"
-          onClick={() => setIsModalOpen(true)}
-        >
-          <Badge variant="outline" className="mr-2 bg-yellow-100">
-            TEST USER {userId}
-          </Badge>
-          View/Clear Data
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
+            onClick={() => window.location.href = '/user-home2-refactored'}
+          >
+            Go to Refactored App
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-yellow-200 border-yellow-500 text-yellow-900 hover:bg-yellow-100"
+            onClick={() => setIsModalOpen(true)}
+          >
+            <Badge variant="outline" className="mr-2 bg-yellow-100">
+              TEST USER {userId}
+            </Badge>
+            View/Clear Data
+          </Button>
+        </div>
       </div>
       
       {isModalOpen && (
