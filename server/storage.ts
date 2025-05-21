@@ -768,7 +768,8 @@ export class DatabaseStorage implements IStorage {
     await this.deleteAnswers(userId);
     await this.deleteStarCard(userId);
     await this.deleteFlowAttributes(userId);
-    await this.deleteVisualization(userId);
+    // Note: Visualization delete functionality is not implemented yet
+    // await this.deleteVisualization(userId);
   }
 }
 

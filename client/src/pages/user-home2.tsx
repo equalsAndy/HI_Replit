@@ -473,11 +473,20 @@ export default function UserHome2() {
               </div>
               
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
-                <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
-                <ul>
-                  <li>Reflect on your apex strength and how it shows up</li>
-                  <li>Consider how your profile shifts over time and in different roles</li>
-                  <li>Use your Star Card as a personal development compass</li>
+                <h3 className="text-indigo-700 font-medium mb-2">This exercise invites you to:</h3>
+                <ul className="space-y-2 text-indigo-700">
+                  <li className="flex items-start">
+                    <CheckCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-indigo-700" />
+                    <span>Reflect on your apex strength and how it shows up</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-indigo-700" />
+                    <span>Consider how your profile shifts over time and in different roles</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckCircle className="h-4 w-4 mr-2 mt-0.5 flex-shrink-0 text-indigo-700" />
+                    <span>Use your Star Card as a personal development compass</span>
+                  </li>
                 </ul>
               </div>
 
