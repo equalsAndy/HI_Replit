@@ -1,7 +1,7 @@
 import React, { useEffect, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import UserHome2 from "./pages/user-home2";
-import UserHome2Refactored from "./pages/user-home2-refactored";
+import ASTUserHome from "./pages/ast-user-home";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -94,7 +94,7 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/user-home2" component={UserHome2} />
-          <Route path="/user-home2-refactored" component={UserHome2Refactored} />
+          <Route path="/ast-user-home" component={ASTUserHome} />
           <Route path="/logout" component={() => {
             // Simplified logout page
             useEffect(() => {
