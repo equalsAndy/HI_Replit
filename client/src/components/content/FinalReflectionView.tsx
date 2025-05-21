@@ -92,8 +92,6 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         </div>
       </div>
       
-
-      
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
