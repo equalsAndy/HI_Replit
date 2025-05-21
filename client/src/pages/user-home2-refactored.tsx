@@ -5,7 +5,7 @@ import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
 import { navigationSections } from '@/components/navigation/navigationData';
-import { StarCard, User } from '@/shared/types';
+import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
@@ -30,7 +30,7 @@ export default function UserHome2() {
   });
   
   // Fetch flow attributes data
-  const { data: flowAttributesData } = useQuery({
+  const { data: flowAttributesData } = useQuery<FlowAttributesResponse>({
     queryKey: ['/api/flow-attributes'],
     refetchOnWindowFocus: false
   });
