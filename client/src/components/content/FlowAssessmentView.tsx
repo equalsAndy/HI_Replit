@@ -371,23 +371,23 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       
       {/* Results Modal */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
+        <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden bg-white rounded-lg">
+          <div className="flex justify-between items-center p-4 border-b">
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">Your Flow Assessment Results</h2>
+              <p className="text-gray-500 text-sm">Based on your responses to all {flowQuestions.length} questions.</p>
+            </div>
             <button 
-              onClick={() => setShowResults(false)} 
-              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+              onClick={() => setShowResults(false)}
+              className="text-gray-400 hover:text-gray-500"
             >
-              <X className="h-4 w-4" />
-              <span className="sr-only">Close</span>
+              <X className="h-5 w-5" />
             </button>
-            <DialogTitle className="text-xl font-bold">Your Flow Assessment Results</DialogTitle>
-            <DialogDescription>
-              Based on your responses to all {flowQuestions.length} questions.
-            </DialogDescription>
-          </DialogHeader>
+          </div>
           
-          <div className="mt-4 space-y-6">
-            <div className="text-center">
+          <div className="p-6 overflow-y-auto max-h-[80vh]">
+            {/* Score display */}
+            <div className="text-center my-6">
               <div className="text-4xl font-bold text-indigo-600 mb-2">
                 {totalScore} / {flowQuestions.length * 5}
               </div>
@@ -396,37 +396,47 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               </div>
             </div>
             
-            <div className="bg-blue-50 p-4 rounded-md text-blue-800">
+            {/* Interpretation box */}
+            <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
               <p>{interpretation.description}</p>
             </div>
             
-            <div>
+            {/* Answers summary */}
+            <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Your Answers Summary</h3>
               <p className="text-gray-600 mb-4">Review your answers below. Click an answer or the Adjust button to modify your responses.</p>
               
               <div className="border rounded-md divide-y">
+                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium">
+                  <div>QUESTION</div>
+                  <div>YOUR ANSWER</div>
+                  <div>ACTION</div>
+                </div>
+                
                 {flowQuestions.map((q) => {
                   const answerValue = answers[q.id] || 0;
                   if (answerValue === 0) return null;
                   
                   return (
-                    <div key={q.id} className="p-3 flex items-center justify-between">
-                      <div className="flex-grow">
-                        <p className="font-medium text-gray-800">Question #{q.id}: {q.text}</p>
+                    <div key={q.id} className="grid grid-cols-[1fr,auto,auto] items-center p-3">
+                      <div className="pr-4">
+                        <p className="text-gray-800">Question #{q.id}: {q.text}</p>
                       </div>
                       
-                      <div className="flex items-center gap-2">
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
+                      <div className="px-3">
+                        <div className={`px-4 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
                           {valueToLabel(answerValue)}
                         </div>
-                        
+                      </div>
+                      
+                      <div className="text-center">
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-8 text-indigo-600 hover:text-indigo-800" 
+                          className="text-indigo-600 hover:text-indigo-800" 
                           onClick={() => handleAdjustAnswer(q.id)}
                         >
-                          Adjust
+                          <span className="text-indigo-600 mr-1">⚙</span> Adjust
                         </Button>
                       </div>
                     </div>
@@ -435,17 +445,18 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               </div>
             </div>
             
-            <div className="border rounded-md p-3">
+            {/* Scoring information */}
+            <div className="border rounded-md overflow-hidden mb-6">
               <div 
-                className="flex items-center justify-between cursor-pointer" 
+                className="flex items-center justify-between p-3 cursor-pointer bg-white hover:bg-gray-50" 
                 onClick={() => setShowScoringInfo(!showScoringInfo)}
               >
                 <h3 className="text-lg font-semibold">Scoring & Interpretation</h3>
-                <ChevronRight className={`h-5 w-5 transform transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} />
+                <ChevronRight className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} />
               </div>
               
               {showScoringInfo && (
-                <div className="mt-3 text-sm text-gray-600">
+                <div className="p-4 bg-gray-50 text-sm text-gray-600 border-t">
                   <p className="mb-2">Your Flow Score is calculated by adding up your responses to all {flowQuestions.length} questions:</p>
                   
                   <ul className="list-disc pl-5 mb-3 space-y-1">
@@ -461,14 +472,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
             </div>
           </div>
           
-          <DialogFooter>
+          <div className="border-t p-4 bg-gray-50 flex justify-end">
             <Button 
               onClick={handleComplete}
-              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+              className="bg-indigo-600 hover:bg-indigo-700"
             >
               Continue to Rounding Out
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </>
