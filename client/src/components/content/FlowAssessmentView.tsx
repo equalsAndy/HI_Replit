@@ -124,20 +124,6 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       </p>
       
       <Card className="border border-gray-200 p-6 mb-8">
-        <div className="flex items-center gap-2 mb-6">
-          <div className="text-center px-6 py-3 rounded-lg bg-indigo-50 text-indigo-500 font-medium border border-indigo-100">
-            Flow Intro
-          </div>
-          <div className="text-center px-6 py-3 rounded-lg bg-indigo-100 text-indigo-800 font-medium border border-indigo-200">
-            Flow Assessment
-          </div>
-          <div className="text-center px-6 py-3 rounded-lg bg-gray-50 text-gray-400 font-medium border border-gray-100">
-            Rounding Out
-          </div>
-          <div className="text-center px-6 py-3 rounded-lg bg-gray-50 text-gray-400 font-medium border border-gray-100">
-            Add Flow to StarCard
-          </div>
-        </div>
         
         <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
         
