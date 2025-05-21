@@ -112,10 +112,10 @@ function Router() {
                   window.location.href = '/auth';
                 }
               };
-              
+
               logout();
             }, []);
-            
+
             return <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
                 <h2 className="text-xl mb-4">Logging out...</h2>
@@ -143,7 +143,7 @@ function Router() {
           <Route path="/user-home2" component={() => {
             return <UserHome2 />;
           }} />
-          
+
           {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
