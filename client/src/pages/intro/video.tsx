@@ -11,13 +11,8 @@ export default function IntroductionVideo() {
   
   const handleComplete = () => {
     markStepCompleted('1-1');
-    navigate('/ast-user-home');
+    navigate('/discover-strengths/intro');
   };
-  
-  // Mark as completed on mount
-  React.useEffect(() => {
-    markStepCompleted('1-1');
-  }, []);
   
   return (
     <MainContainer stepId="1-1">
@@ -34,7 +29,7 @@ export default function IntroductionVideo() {
           <CardContent className="p-0 overflow-hidden">
             <div className="aspect-w-16 aspect-h-9">
               <iframe 
-                src="https://www.youtube.com/embed/ao04eaeDIFQ"
+                src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
                 title="AllStarTeams Workshop Introduction"
                 className="w-full h-full" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

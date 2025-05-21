@@ -1,6 +1,7 @@
 import React, { useEffect, Suspense } from "react";
 import { Switch, Route, useLocation } from "wouter";
-import ASTUserHome from "./pages/ast-user-home";
+import UserHome2 from "./pages/user-home2";
+import UserHome2Refactored from "./pages/user-home2-refactored";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -80,7 +81,7 @@ function Router() {
       {user && (
         <div className="fixed bottom-4 right-4 z-50">
           <Button 
-            onClick={() => navigate('/ast-user-home')}
+            onClick={() => navigate('/user-home2-refactored')}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
             Try Refactored Navigation
@@ -92,7 +93,8 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
-          <Route path="/ast-user-home" component={ASTUserHome} />
+          <Route path="/user-home2" component={UserHome2} />
+          <Route path="/user-home2-refactored" component={UserHome2Refactored} />
           <Route path="/logout" component={() => {
             // Simplified logout page
             useEffect(() => {
@@ -110,10 +112,10 @@ function Router() {
                   window.location.href = '/auth';
                 }
               };
-
+              
               logout();
             }, []);
-
+            
             return <div className="flex items-center justify-center min-h-screen">
               <div className="text-center">
                 <h2 className="text-xl mb-4">Logging out...</h2>
@@ -139,9 +141,9 @@ function Router() {
           <Route path="/navigation-demo" component={NavigationDemo} />
           <Route path="/learning-overview" component={LearningOverview} />
           <Route path="/user-home2" component={() => {
-            return <ASTUserHome />;
+            return <UserHome2 />;
           }} />
-
+          
           {/* Imaginal Agility Routes */}
           <Route path="/imagination-assessment" component={ImaginationAssessment} />
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
