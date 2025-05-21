@@ -21,45 +21,79 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   starCard,
   setIsAssessmentModalOpen
 }) => {
-  // Return the appropriate view based on the current content
+  // Return the appropriate content based on currentContent
   switch (currentContent) {
-    case "welcome":
-      return <WelcomeView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} />;
-    
-    case "intro-strengths":
-      return <IntroStrengthsView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} />;
-    
-    case "strengths-assessment":
-      return <AssessmentView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} setIsAssessmentModalOpen={setIsAssessmentModalOpen} />;
-    
-    case "star-card-preview":
-      return <StarCardPreviewView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} starCard={starCard} />;
-    
-    case "reflection":
-      return <ReflectionView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} starCard={starCard} />;
-    
-    case "intro-flow":
-      return <FlowIntroView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} />;
-    
-    case "flow-assessment":
-    case "flow-card":
-    case "rounding-out":
-    case "well-being":
-    case "cantril-ladder":
-    case "visualizing-you":
-    case "future-self":
-    case "your-statement":
+    case 'welcome':
       return (
-        <PlaceholderView 
-          title={currentContent.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-          navigate={navigate} 
-          markStepCompleted={markStepCompleted} 
-          setCurrentContent={setCurrentContent} 
+        <WelcomeView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'intro-strengths':
+      return (
+        <IntroStrengthsView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'strengths-assessment':
+      return (
+        <AssessmentView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+        />
+      );
+    
+    case 'star-card-preview':
+      return (
+        <StarCardPreviewView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'reflection':
+      return (
+        <ReflectionView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'intro-flow':
+      return (
+        <FlowIntroView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
         />
       );
     
     default:
-      return <WelcomeView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} />;
+      return (
+        <PlaceholderView 
+          title={`${currentContent}`}
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
   }
 };
 

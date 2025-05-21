@@ -1,83 +1,74 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { ContentViewProps } from '../../shared/types';
+import { ArrowRight } from 'lucide-react';
 
 const WelcomeView: React.FC<ContentViewProps> = ({
-  navigate, 
+  navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to AllStarTeams</h1>
-      
-      <div className="prose max-w-none">
-        <p className="text-lg text-gray-700 mb-6">
-          Welcome to the AllStarTeams workshop! Through this journey, you'll 
-          discover your unique strengths profile and learn how to leverage it in your 
-          professional life.
-        </p>
+      <div className="max-w-3xl mx-auto text-center mb-12">
+        <h1 className="text-4xl font-bold text-gray-900 mb-6">Welcome to AllStarTeams</h1>
         
-        <Card className="mb-8">
-          <CardContent className="p-0 overflow-hidden">
-            <div className="aspect-w-16 aspect-h-9">
-              <iframe 
-                src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
-                title="AllStarTeams Workshop Introduction"
-                className="w-full h-[400px]" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-              ></iframe>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
-        
-        <ul className="space-y-3 mb-8">
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Complete your profile information</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Take the Star Strengths Assessment (10-15 minutes)</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Review your Star Profile and strengths</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Explore your flow attributes</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Visualize your future potential</span>
-          </li>
-          <li className="flex items-start">
-            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-            <span>Integrate insights into your professional life</span>
-          </li>
-        </ul>
-        
-        <p className="text-lg mb-8">
-          Ready to get started? Click the button below to begin your journey or use the navigation menu on the left.
-        </p>
-        
-        <div className="flex justify-center">
-          <Button 
-            onClick={() => {
-              markStepCompleted('1-1');
-              navigate('/profile');
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg"
-            size="lg"
-          >
-            Let's Begin
-          </Button>
+        <div className="prose max-w-none">
+          <p className="text-xl text-gray-600 mb-8">
+            Begin your journey to discover your natural strengths, enhance your flow state, 
+            and visualize your unlimited potential.
+          </p>
         </div>
+        
+        <div className="aspect-w-16 aspect-h-9 mb-10">
+          <iframe 
+            src="https://www.youtube.com/embed/pwJ2LNJZY3g" 
+            title="Welcome to AllStarTeams" 
+            frameBorder="0" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowFullScreen
+            className="w-full h-96 rounded-lg shadow-md"
+          ></iframe>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+        <div className="bg-green-50 p-6 rounded-lg border border-green-100 shadow-sm">
+          <h3 className="text-xl font-semibold text-green-800 mb-3">Discover Your Strengths</h3>
+          <p className="text-green-700 mb-4">
+            Uncover your unique combination of thinking, acting, feeling, and planning strengths 
+            that drive your success.
+          </p>
+        </div>
+        
+        <div className="bg-blue-50 p-6 rounded-lg border border-blue-100 shadow-sm">
+          <h3 className="text-xl font-semibold text-blue-800 mb-3">Find Your Flow</h3>
+          <p className="text-blue-700 mb-4">
+            Identify what brings you into a state of energized focus and full engagement, 
+            so you can create more peak experiences.
+          </p>
+        </div>
+        
+        <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 shadow-sm">
+          <h3 className="text-xl font-semibold text-purple-800 mb-3">Visualize Your Potential</h3>
+          <p className="text-purple-700 mb-4">
+            Create a clear vision of your future self and the impact you can make
+            when operating at your highest potential.
+          </p>
+        </div>
+      </div>
+      
+      <div className="flex justify-center">
+        <Button 
+          onClick={() => {
+            markStepCompleted('1-1');
+            setCurrentContent("intro-strengths");
+          }}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-6 text-lg"
+          size="lg"
+        >
+          Begin Your Journey <ArrowRight className="ml-2 h-5 w-5" />
+        </Button>
       </div>
     </>
   );
