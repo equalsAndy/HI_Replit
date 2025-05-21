@@ -565,56 +565,382 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       
     case 'imagination-assessment':
       return (
-        <PlaceholderView 
-          title="Take the Imagination Assessment"
-          description="Assess your imaginative capacities and discover your unique imagination profile."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="five-c-assessment" 
-          nextLabel="Next: Complete the 5Cs Assessment"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination Assessment</h1>
+          
+          <div className="mb-8">
+            <img 
+              src="https://images.unsplash.com/photo-1555212697-194d092e3b8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2187&q=80" 
+              alt="Creative workspace representing imagination"
+              className="w-full rounded-lg object-cover h-64"
+            />
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Why Assess Your Imagination?</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            The Imagination Assessment provides you with insights into your natural imaginative tendencies
+            and helps identify areas where targeted practice can enhance your strategic imagination capabilities.
+            This self-assessment is the first step in developing your personalized Imaginal Agility profile.
+          </p>
+          
+          <div className="bg-purple-50 p-6 rounded-lg mb-8">
+            <h3 className="text-xl font-semibold text-purple-800 mb-3">Assessment Overview</h3>
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</div>
+                <span className="text-gray-700">30 scenario-based questions that explore how you think and respond in various situations</span>
+              </li>
+              <li className="flex items-start">
+                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">2</div>
+                <span className="text-gray-700">10-15 minutes to complete</span>
+              </li>
+              <li className="flex items-start">
+                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">3</div>
+                <span className="text-gray-700">No right or wrong answers - focus on what feels most natural to you</span>
+              </li>
+              <li className="flex items-start">
+                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">4</div>
+                <span className="text-gray-700">Personalized results showing your unique imagination profile</span>
+              </li>
+            </ul>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Preparing for the Assessment</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            For the most accurate results, find a quiet space where you can reflect honestly without 
+            distractions. Answer based on how you naturally think and act, not how you think you should respond.
+          </p>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-5');
+                setCurrentContent("five-c-assessment");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Complete the 5Cs Assessment
+            </Button>
+          </div>
+        </div>
       );
       
     case 'five-c-assessment':
       return (
-        <PlaceholderView 
-          title="Complete the 5Cs Assessment"
-          description="Evaluate your proficiency in each of the five capabilities and identify areas for development."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="insights-review"
-          nextLabel="Next: Review Your Insights"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">5Cs Assessment</h1>
+          
+          <div className="bg-purple-50 p-6 rounded-lg mb-8">
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Assess Your 5 Capabilities</h2>
+            <p className="text-lg text-gray-700 mb-4">
+              This assessment takes a deeper dive into each of the five core capabilities that form the foundation of Imaginal Agility.
+              Your responses will help create your personalized capability profile and identify areas for targeted development.
+            </p>
+            
+            <div className="grid md:grid-cols-5 gap-4 mt-6">
+              {['Curiosity', 'Courage', 'Connection', 'Creativity', 'Clarity'].map((capability, index) => (
+                <div key={index} className="flex flex-col items-center">
+                  <div className="h-16 w-16 rounded-full bg-purple-600 text-white flex items-center justify-center mb-3 text-xl font-bold">C</div>
+                  <span className="font-semibold text-purple-800">{capability}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">What to Expect</h2>
+          <ul className="space-y-3 mb-6">
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+              <span className="text-gray-700">25 carefully designed questions across the five capability areas</span>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+              <span className="text-gray-700">Approximately 10 minutes to complete</span>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+              <span className="text-gray-700">Personalized results showing your unique capability profile</span>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+              <span className="text-gray-700">Specific recommendations for developing each capability</span>
+            </li>
+          </ul>
+          
+          <div className="bg-purple-100 p-6 rounded-lg mb-8">
+            <h3 className="text-xl font-semibold text-purple-800 mb-3">Why Your Profile Matters</h3>
+            <p className="text-gray-700">
+              Your unique capability profile will help you understand your natural strengths and identify areas 
+              where targeted practice can enhance your overall Imaginal Agility. The most effective leaders develop
+              all five capabilities while leveraging their distinctive strengths.
+            </p>
+          </div>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-6');
+                setCurrentContent("insights-review");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Review Your Insights
+            </Button>
+          </div>
+        </div>
       );
       
     case 'insights-review':
       return (
-        <PlaceholderView 
-          title="Review Your Insights"
-          description="Explore the results of your assessments and gain valuable insights into your strengths and development opportunities."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-          nextContentKey="team-workshop"
-          nextLabel="Next: Team Workshop"
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Insights Review</h1>
+          
+          <div className="bg-purple-50 p-6 rounded-lg mb-8">
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Your Imaginal Agility Profile</h2>
+            
+            <div className="grid md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-xl text-purple-800 font-semibold mb-3">Imagination Assessment</h3>
+                <p className="text-gray-700 mb-4">
+                  Your assessment reveals a strong tendency toward divergent thinking, with particular strengths
+                  in possibility generation and comfort with ambiguity. Your imaginative profile shows a blend
+                  of practical and exploratory thinking patterns.
+                </p>
+                <div className="bg-white p-4 rounded-lg">
+                  <div className="mb-2">
+                    <span className="text-sm text-purple-800 font-semibold">Possibility Thinking</span>
+                    <div className="h-2 bg-gray-200 rounded-full mt-1">
+                      <div className="h-2 bg-purple-600 rounded-full" style={{width: '78%'}}></div>
+                    </div>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-sm text-purple-800 font-semibold">Comfort with Ambiguity</span>
+                    <div className="h-2 bg-gray-200 rounded-full mt-1">
+                      <div className="h-2 bg-purple-600 rounded-full" style={{width: '65%'}}></div>
+                    </div>
+                  </div>
+                  <div className="mb-2">
+                    <span className="text-sm text-purple-800 font-semibold">Idea Fluency</span>
+                    <div className="h-2 bg-gray-200 rounded-full mt-1">
+                      <div className="h-2 bg-purple-600 rounded-full" style={{width: '72%'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-xl text-purple-800 font-semibold mb-3">5Cs Assessment</h3>
+                <p className="text-gray-700 mb-4">
+                  Your 5Cs profile highlights significant strengths in Curiosity and Creativity, with
+                  opportunities for development in Connection and Clarity. Your profile suggests a
+                  natural affinity for exploring possibilities.
+                </p>
+                <div className="bg-white p-4 rounded-lg">
+                  <div className="grid grid-cols-5 gap-2">
+                    {[
+                      {name: 'Curiosity', score: 85},
+                      {name: 'Courage', score: 68},
+                      {name: 'Connection', score: 60},
+                      {name: 'Creativity', score: 82},
+                      {name: 'Clarity', score: 65}
+                    ].map((capability, index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div className="h-10 w-10 rounded-full bg-purple-600 text-white flex items-center justify-center mb-1 text-sm font-bold">C</div>
+                        <span className="text-xs text-purple-800 font-semibold text-center">{capability.name}</span>
+                        <span className="text-xs text-gray-600">{capability.score}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Key Insights & Development Opportunities</h2>
+          
+          <div className="mb-6">
+            <h3 className="text-xl text-purple-800 font-semibold mb-3">Your Strategic Strengths</h3>
+            <ul className="space-y-2">
+              <li className="flex items-start">
+                <div className="text-green-600 font-bold mr-2">✓</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Possibility Generation:</span> You excel at generating multiple solutions and scenarios
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-green-600 font-bold mr-2">✓</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Curiosity:</span> Your natural questioning approach helps you discover insights others might miss
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-green-600 font-bold mr-2">✓</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Creative Thinking:</span> You make unexpected connections that lead to innovative ideas
+                </span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="mb-8">
+            <h3 className="text-xl text-purple-800 font-semibold mb-3">Development Opportunities</h3>
+            <ul className="space-y-2">
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Connection:</span> Practice intentional collaboration and perspective-seeking
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Clarity:</span> Develop your ability to synthesize information and identify priorities
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Implementation Focus:</span> Bridge the gap between idea generation and practical application
+                </span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-7');
+                setCurrentContent("team-workshop");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Team Workshop
+            </Button>
+          </div>
+        </div>
       );
       
     case 'team-workshop':
       return (
-        <PlaceholderView 
-          title="Team Workshop"
-          description="Access resources and guidance for conducting an Imaginal Agility workshop with your team to foster collective capabilities."
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
-        />
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Team Workshop</h1>
+          
+          <div className="mb-8">
+            <img 
+              src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
+              alt="Team workshop session with people collaborating at a table"
+              className="w-full rounded-lg object-cover h-64"
+            />
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Individual to Collective Capability</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            While individual Imaginal Agility is powerful, collective imagination is transformative. 
+            The Team Workshop extends your personal development into a collaborative experience that 
+            builds shared capabilities across your team or organization.
+          </p>
+          
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Workshop Benefits</h3>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <div className="text-green-600 font-bold mr-2">✓</div>
+                  <span className="text-gray-700">Build shared understanding of imagination's strategic value</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="text-green-600 font-bold mr-2">✓</div>
+                  <span className="text-gray-700">Learn how individual profiles combine for team effectiveness</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="text-green-600 font-bold mr-2">✓</div>
+                  <span className="text-gray-700">Practice collaborative imagination techniques</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="text-green-600 font-bold mr-2">✓</div>
+                  <span className="text-gray-700">Apply the 5Cs to real organizational challenges</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl text-purple-800 font-semibold mb-3">Workshop Format</h3>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</div>
+                  <span className="text-gray-700">Half-day or full-day facilitated session</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">2</div>
+                  <span className="text-gray-700">Interactive exercises and group discussions</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">3</div>
+                  <span className="text-gray-700">Team capability mapping and strengths analysis</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">4</div>
+                  <span className="text-gray-700">Action planning for ongoing development</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Preparation</h2>
+          <p className="text-lg text-gray-700 mb-4">
+            To maximize the impact of your team workshop, we recommend:
+          </p>
+          
+          <div className="bg-purple-100 p-6 rounded-lg mb-8">
+            <ul className="space-y-3">
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Assessment Completion:</span> Have all participants complete both assessments before the workshop
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Challenge Identification:</span> Select 1-2 real organizational challenges to work on during the session
+                </span>
+              </li>
+              <li className="flex items-start">
+                <div className="text-purple-600 font-bold mr-2">→</div>
+                <span className="text-gray-700">
+                  <span className="font-semibold">Psychological Safety:</span> Create an environment where all participants feel comfortable sharing ideas
+                </span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="flex justify-between mt-8">
+            <Button 
+              onClick={() => {
+                setCurrentContent("insights-review");
+              }}
+              variant="outline"
+              className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              size="lg"
+            >
+              ← Back to Insights
+            </Button>
+            
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-8');
+                navigate('/user-home2-refactored');
+              }}
+              className="bg-green-600 hover:bg-green-700 text-white"
+              size="lg"
+            >
+              Complete Imaginal Agility Module
+            </Button>
+          </div>
+        </div>
       );
       
     // Handle placeholder content
