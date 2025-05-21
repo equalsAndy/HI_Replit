@@ -23,11 +23,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  // Check if the starCard is complete (has all values)
-  const isAssessmentComplete = starCard && starCard.thinking !== undefined && 
-                              starCard.acting !== undefined && 
-                              starCard.feeling !== undefined && 
-                              starCard.planning !== undefined;
+  // Check if the starCard is complete (has non-zero values)
+  const isAssessmentComplete = starCard && 
+                              (starCard.thinking > 0 || 
+                               starCard.acting > 0 || 
+                               starCard.feeling > 0 || 
+                               starCard.planning > 0);
 
   const continueToNextStep = () => {
     markStepCompleted('2-2');
