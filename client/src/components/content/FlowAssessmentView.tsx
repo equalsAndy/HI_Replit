@@ -13,6 +13,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { 
   Tooltip,
   TooltipContent,
@@ -115,16 +120,16 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     setCurrentContent("flow-rounding-out");
   };
   
-  // Adjust a specific answer
-  const handleAdjustAnswer = (questionId: number) => {
-    // Close the results modal
-    setShowResults(false);
-    
-    // Navigate to the specific question for adjustment
-    setCurrentQuestion(questionId - 1);
+  // Update a specific answer directly in the results modal
+  const handleUpdateAnswer = (questionId: number, newValue: number) => {
+    // Update the answer
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: newValue
+    }));
     
     // Log for debugging
-    console.log(`Adjusting answer for question #${questionId}`);
+    console.log(`Updated answer for question #${questionId} to ${newValue}`);
   };
   
   // Get interpretation based on score
@@ -437,14 +442,50 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                         </div>
                         
                         <div className="text-center">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors" 
-                            onClick={() => handleAdjustAnswer(q.id)}
-                          >
-                            <span className="text-indigo-600 mr-1">⚙</span> Adjust
-                          </Button>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 transition-colors" 
+                              >
+                                <span className="text-indigo-600 mr-1">⚙</span> Adjust
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-3">
+                              <div className="space-y-4">
+                                <h4 className="font-medium text-sm">Adjust your answer:</h4>
+                                <p className="text-sm text-gray-500">{q.text}</p>
+                                <div className="flex justify-between items-center gap-2">
+                                  {[1, 2, 3, 4, 5].map((value) => (
+                                    <div
+                                      key={value}
+                                      onClick={() => handleUpdateAnswer(q.id, value)}
+                                      className={`
+                                        cursor-pointer w-8 h-8 rounded-full flex items-center justify-center
+                                        ${value === answerValue 
+                                          ? value === 1 ? 'bg-red-500 text-white' 
+                                          : value === 2 ? 'bg-orange-500 text-white'
+                                          : value === 3 ? 'bg-yellow-500 text-white'
+                                          : value === 4 ? 'bg-green-500 text-white'
+                                          : 'bg-purple-600 text-white'
+                                          : 'bg-gray-100 hover:bg-gray-200'}
+                                      `}
+                                    >
+                                      {value}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex justify-between text-xs">
+                                  <span className="text-red-500">Never</span>
+                                  <span className="text-orange-500">Rarely</span>
+                                  <span className="text-yellow-500">Sometimes</span>
+                                  <span className="text-green-500">Often</span>
+                                  <span className="text-purple-600">Always</span>
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                       </div>
                     );
