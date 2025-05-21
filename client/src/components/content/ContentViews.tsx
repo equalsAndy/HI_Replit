@@ -207,7 +207,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           
           <div className="mb-8">
             <iframe 
-              src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
+              src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
               title="IAWS ORIENTATION VIDEO"
               className="w-full h-[400px] rounded-lg" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
