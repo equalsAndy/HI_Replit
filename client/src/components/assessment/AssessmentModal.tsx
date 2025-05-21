@@ -553,8 +553,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     // Close the modal
     onClose();
     
-    // Navigate to Star Card Preview page
-    window.location.href = '/user-home2-refactored?content=star-card-preview';
+    // Set a navigation flag in sessionStorage
+    sessionStorage.setItem('navigateToStarCardPreview', 'true');
+    
+    // Refresh the page to trigger the navigation
+    window.location.href = '/user-home2-refactored';
   };
 
   // Render the intro screen

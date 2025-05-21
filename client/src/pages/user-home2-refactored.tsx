@@ -22,6 +22,21 @@ export default function UserHome2() {
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   
+  // Check for Star Card Preview navigation flag
+  useEffect(() => {
+    const navigateFlag = sessionStorage.getItem('navigateToStarCardPreview');
+    if (navigateFlag === 'true') {
+      // Clear the flag
+      sessionStorage.removeItem('navigateToStarCardPreview');
+      
+      // Navigate to Star Card Preview
+      setCurrentContent('star-card-preview');
+      
+      // Mark the assessment step as completed
+      markStepCompleted('2-2');
+    }
+  }, []);
+  
   // Fetch user profile data
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile'],
