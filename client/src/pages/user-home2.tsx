@@ -298,7 +298,7 @@ export default function UserHome2() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-6 py-8">
-          {currentContent === "welcome" && (
+          {(currentContent === "welcome" || currentContent === "intro-video") && (
             <>
               <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to AllStarTeams Workshop</h1>
               
@@ -356,7 +356,7 @@ export default function UserHome2() {
                   <Button 
                     onClick={() => {
                       markStepCompleted('1-1');
-                      setCurrentContent("welcome");
+                      setCurrentContent("intro-video");
                     }}
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                     size="lg"
