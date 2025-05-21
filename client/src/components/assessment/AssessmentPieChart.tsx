@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 
@@ -9,10 +10,10 @@ interface AssessmentPieChartProps {
 }
 
 const COLORS = {
-  thinking: 'rgb(1, 162, 82)',    // Green
-  acting: 'rgb(241, 64, 64)',      // Red
-  feeling: 'rgb(22, 126, 253)',    // Blue
-  planning: 'rgb(255, 203, 47)'    // Yellow
+  acting: 'rgb(241, 64, 64)',     // Red
+  feeling: 'rgb(22, 126, 253)',   // Blue
+  planning: 'rgb(255, 203, 47)',  // Yellow
+  thinking: 'rgb(1, 162, 82)'     // Green
 };
 
 // Custom bold label renderer
@@ -43,11 +44,11 @@ const renderCustomizedLabel = (props: any) => {
 
 export function AssessmentPieChart({ thinking, acting, feeling, planning }: AssessmentPieChartProps) {
   const data = [
-    { name: 'Thinking', value: thinking, color: COLORS.thinking },
     { name: 'Acting', value: acting, color: COLORS.acting },
     { name: 'Feeling', value: feeling, color: COLORS.feeling },
-    { name: 'Planning', value: planning, color: COLORS.planning }
-  ].sort((a, b) => b.value - a.value); // Sort by value descending
+    { name: 'Planning', value: planning, color: COLORS.planning },
+    { name: 'Thinking', value: thinking, color: COLORS.thinking }
+  ];
 
   // Filter out any attributes with 0 value
   const filteredData = data.filter(item => item.value > 0);
