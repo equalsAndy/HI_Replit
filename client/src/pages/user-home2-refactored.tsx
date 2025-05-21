@@ -97,7 +97,19 @@ export default function UserHome2() {
         console.error('Error loading progress:', error);
       }
     }
-  }, []);
+    
+    // Check if we have a star card with data but missing navigation progress
+    // This ensures if user cleared localStorage but has completed the assessment,
+    // their progress is still reflected in the navigation
+    if (starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning) {
+      // Make sure steps leading to star card preview are marked complete
+      setTimeout(() => {
+        markStepCompleted('1-1'); // Introduction Video
+        markStepCompleted('2-1'); // Intro to Strengths
+        markStepCompleted('2-2'); // The assessment itself
+      }, 100);
+    }
+  }, [starCard]);
   
   // Update navigation sections with completed steps count
   const updatedNavigationSections = navigationSections.map(section => {
@@ -153,8 +165,11 @@ export default function UserHome2() {
 
   // Handle assessment completion
   const handleAssessmentComplete = (result: any) => {
-    // Mark the assessment step as completed
-    markStepCompleted('2-2');
+    // When assessment is completed, make sure previous steps are also marked as completed
+    markStepCompleted('1-1'); // Introduction Video
+    markStepCompleted('2-1'); // Intro to Strengths
+    markStepCompleted('2-2'); // The assessment itself
+    
     // You may want to update other state or navigate after assessment completes
   };
   
