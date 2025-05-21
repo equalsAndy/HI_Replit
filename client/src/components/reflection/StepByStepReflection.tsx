@@ -580,32 +580,60 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
 
           {/* Right side - Current strength content */}
           <div className="bg-gray-50 p-6">
-            <div className="flex items-center mb-4">
-              <div className="bg-red-100 p-2 rounded-full mr-3">
-                <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">
-                  1
+            {/* Dynamically show the current strength based on currentStep */}
+            {currentStep <= 4 && (
+              <>
+                <div className="flex items-center mb-4">
+                  <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].bg} p-2 rounded-full mr-3`}>
+                    <div className={`w-8 h-8 ${strengthColors[sortedQuadrants[currentStep-1].label].circle} rounded-full flex items-center justify-center text-white font-bold`}>
+                      {currentStep}
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-800">
+                    Your {currentStep === 1 ? '1st' : currentStep === 2 ? '2nd' : currentStep === 3 ? '3rd' : '4th'} Strength: {sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} ({sortedQuadrants[currentStep-1].score}%)
+                  </h3>
                 </div>
-              </div>
-              <h3 className="text-xl font-bold text-gray-800">Your 1st Strength: Acting (31%)</h3>
-            </div>
+                
+                <p className="text-gray-700 mb-4">
+                  {getStrengthDescription(sortedQuadrants[currentStep-1].label)}
+                </p>
+                
+                <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].lightBg} border ${strengthColors[sortedQuadrants[currentStep-1].label].border} rounded-lg p-4 mb-4`}>
+                  <h4 className={`font-medium ${strengthColors[sortedQuadrants[currentStep-1].label].text} mb-3`}>
+                    {getStrengthPrompt(sortedQuadrants[currentStep-1].label).question}
+                  </h4>
+                  <p className="text-gray-700 text-sm mb-3">
+                    Consider moments when your {sortedQuadrants[currentStep-1].label.toLowerCase()} nature made a difference. Reflect on:
+                  </p>
+                  <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
+                    {getStrengthPrompt(sortedQuadrants[currentStep-1].label).bullets.map((bullet, index) => (
+                      <li key={index}>{bullet}</li>
+                    ))}
+                  </ul>
+                </div>
+              </>
+            )}
             
-            <p className="text-gray-700 mb-4">
-              Your Acting strength shows your decisive, results-focused, and action-oriented nature. This represents your ability to make 
-              decisions, take initiative, and drive projects to completion.
-            </p>
+            {/* Show other content for steps 5-6 */}
+            {currentStep === 5 && (
+              <>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">What You Value Most in Team Environments</h3>
+                <p className="text-gray-700 mb-4">
+                  Based on your strengths profile, certain team environments will help you perform at your best. 
+                  Consider what team qualities or behaviors would complement your unique strengths distribution.
+                </p>
+              </>
+            )}
             
-            <div className="bg-red-50 border border-red-100 rounded-lg p-4 mb-4">
-              <h4 className="font-medium text-red-800 mb-3">How and when do you use your Acting strength?</h4>
-              <p className="text-gray-700 text-sm mb-3">
-                Consider moments when your acting nature made a difference. Reflect on:
-              </p>
-              <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-                <li>Situations where you took initiative when others hesitated</li>
-                <li>How you've turned ideas into tangible results</li>
-                <li>Times when your decisiveness moved a project forward</li>
-                <li>How your pragmatic approach solved practical problems</li>
-              </ul>
-            </div>
+            {currentStep === 6 && (
+              <>
+                <h3 className="text-xl font-bold text-gray-800 mb-4">Your Unique Contribution</h3>
+                <p className="text-gray-700 mb-4">
+                  Your particular strengths profile creates a unique combination that you bring to your team. 
+                  Think about how your top strengths work together to create value.
+                </p>
+              </>
+            )}
           </div>
         </div>
         
