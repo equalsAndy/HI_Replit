@@ -125,8 +125,8 @@ export default function UserHome2() {
       markStepCompleted(stepId);
     } else if (stepId === '3-2') {
       // Flow Assessment
-      setCurrentContent(`placeholder-${stepId}`);
-      markStepCompleted(stepId);
+      setCurrentContent("flow-assessment");
+      // Don't mark as completed yet - marking will happen when they complete the assessment
     } else if (stepId === '3-3') {
       // Rounding Out
       setCurrentContent("flow-rounding-out");
