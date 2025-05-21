@@ -45,7 +45,7 @@ const flowAttributes = [
 // Custom flow badge component
 const FlowBadge = ({ text, rank, selected = false, rankBadgeColor = "", onSelect, onRemove }: { 
   text: string; 
-  rank?: number | null; 
+  rank: number; // Changed from optional to required with default
   selected?: boolean;
   rankBadgeColor?: string;
   onSelect?: () => void;
