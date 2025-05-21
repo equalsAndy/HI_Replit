@@ -43,9 +43,9 @@ const flowAttributes = [
 ];
 
 // Custom flow badge component
-const FlowBadge = ({ text, rank, selected = false, rankBadgeColor = "", onSelect, onRemove }: { 
+const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", onSelect, onRemove }: { 
   text: string; 
-  rank: number; // Changed from optional to required with default
+  rank?: number | null; // Allow null or undefined with a default value applied
   selected?: boolean;
   rankBadgeColor?: string;
   onSelect?: () => void;
@@ -357,7 +357,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                         <FlowBadge 
                           key={attr.text} 
                           text={attr.text} 
-                          rank={attr.rank} 
+                          rank={attr.rank || 0} 
                           selected={true}
                           rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
                           onRemove={() => handleRemoveAttribute(attr.text)}
