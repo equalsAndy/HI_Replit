@@ -15,6 +15,7 @@ import VisualizingYouView from './VisualizingYouView';
 import FutureSelfView from './FutureSelfView';
 import YourStatementView from './YourStatementView';
 import RecapView from './RecapView';
+import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
 
 interface ContentViewsProps extends ContentViewProps {

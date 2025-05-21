@@ -65,11 +65,12 @@ export const navigationSections: NavigationSection[] = [
     title: 'Resources', 
     path: '/resources',
     icon: BookOpen,
-    totalSteps: 2,
+    totalSteps: 3,
     completedSteps: 0,
     steps: [
       { id: '5-1', label: 'Workshop Guide', path: '/resources/workshop', type: 'Learning' },
-      { id: '5-2', label: 'PDF Summary', path: '/resources/summary', type: 'Learning' }
+      { id: '5-2', label: 'PDF Summary', path: '/resources/summary', type: 'Learning' },
+      { id: '5-3', label: 'Your Star Card', path: '/resources/star-card', type: 'Learning' }
     ]
   }
 ];

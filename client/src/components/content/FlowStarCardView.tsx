@@ -333,42 +333,6 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-4">Your Star Card</h3>
-          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6">
-            <div className="p-4 flex justify-center">
-              <div className="w-full">
-                <StarCard 
-                  thinking={starCard?.thinking || 0}
-                  acting={starCard?.acting || 0}
-                  feeling={starCard?.feeling || 0}
-                  planning={starCard?.planning || 0}
-                  imageUrl={starCard?.imageUrl || null}
-                  flowAttributes={starCardFlowAttributes}
-                />
-              </div>
-            </div>
-            {flowAttributesData?.flowScore && (
-              <div className="p-3 bg-indigo-50 border-t border-indigo-100 flex items-center justify-center">
-                <Gauge className="h-5 w-5 text-indigo-600 mr-2" />
-                <span className="text-indigo-700 font-medium">Flow Score: {flowAttributesData.flowScore}/100</span>
-              </div>
-            )}
-          </div>
-          
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-            <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
-            <p className="text-sm text-blue-700 mb-3">
-              Flow attributes represent how you work at your best. They complement your Star strengths 
-              profile which shows <strong>what</strong> you're naturally good at.
-            </p>
-            <p className="text-sm text-blue-700">
-              Together, they create a more complete picture of your professional identity and help
-              others understand how to collaborate with you effectively.
-            </p>
-          </div>
-        </div>
-        
-        <div>
           <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
           <div className="bg-white border border-gray-200 rounded-lg p-4">
             <div className="mb-4">
@@ -431,6 +395,18 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           </div>
           
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 mt-6">
+            <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
+            <p className="text-sm text-blue-700 mb-3">
+              Flow attributes represent how you work at your best. They complement your Star strengths 
+              profile which shows <strong>what</strong> you're naturally good at.
+            </p>
+            <p className="text-sm text-blue-700">
+              Together, they create a more complete picture of your professional identity and help
+              others understand how to collaborate with you effectively.
+            </p>
+          </div>
+          
           <div className="mt-6">
             <Button
               className="w-full bg-indigo-700 hover:bg-indigo-800"
@@ -439,6 +415,25 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             >
               {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
             </Button>
+          </div>
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Your Star Card</h3>
+          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6">
+            <div className="p-4 flex justify-center">
+              <div className="w-full">
+                <StarCard 
+                  thinking={starCard?.thinking || 0}
+                  acting={starCard?.acting || 0}
+                  feeling={starCard?.feeling || 0}
+                  planning={starCard?.planning || 0}
+                  imageUrl={starCard?.imageUrl || null}
+                  flowAttributes={starCardFlowAttributes}
+                  downloadable={false}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
