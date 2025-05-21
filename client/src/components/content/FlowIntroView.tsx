@@ -77,6 +77,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
         <Button 
           onClick={() => {
             markStepCompleted('3-1');
+            // This was changed to match the action in user-home2.tsx which navigates directly
             navigate('/find-your-flow/assessment');
           }}
           className="bg-indigo-700 hover:bg-indigo-800"
