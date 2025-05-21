@@ -62,7 +62,7 @@ const WellbeingView: React.FC<ContentViewProps> = ({
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
             <iframe 
-              src="https://www.youtube.com/embed/IZtV2uLi72w" 
+              src="https://www.youtube.com/embed/yidsMx8B678" 
               title="Understanding Wellbeing" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
