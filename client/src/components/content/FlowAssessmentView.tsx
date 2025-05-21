@@ -194,7 +194,6 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       </p>
       
       <Card className="border border-gray-200 p-6 mb-8">
-        
         <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
         
         <p className="mb-4">
@@ -217,87 +216,119 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
             </Button>
           </div>
           
-          <p className="text-gray-600 mb-6">
-            Rate your agreement with each statement on a scale from 1 (Never) to 5 (Always). Answer with a specific activity or task in mind where you most often seek or experience flow.
-          </p>
-          
           <div className="mb-8">
-            <h4 className="font-medium mb-4">Question #{question.id}: {question.text}</h4>
+            <p className="font-medium mb-4">
+              <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
+            </p>
             
-            <div className="mb-2">
-              <Slider
-                value={currentValue ? [currentValue] : [0]}
-                min={1}
-                max={5}
-                step={1}
-                className="w-full"
-                onValueChange={(val) => handleAnswerSelect(val[0])}
-              />
+            <div className="mb-8 relative">
+              <div className="h-16 relative">
+                {/* Main track background */}
+                <div className="absolute h-3 rounded-full bg-gray-200 w-full top-6 z-0 shadow-inner overflow-hidden">
+                  {/* Gradient fill - animated for smoother transitions */}
+                  <div 
+                    className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
+                    style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
+                  ></div>
+                </div>
+                
+                {/* Circle markers - perfectly aligned on the track */}
+                <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
+                  {[1, 2, 3, 4, 5].map((value) => {
+                    // Determine the styling based on whether this value is selected
+                    const isSelected = value <= currentValue;
+                    let bgColor = "bg-white";
+                    let textColor = "text-gray-800";
+                    let borderStyle = "border-2 border-gray-300 hover:border-indigo-300";
+                    
+                    if (isSelected) {
+                      switch (value) {
+                        case 1:
+                          bgColor = "bg-red-500";
+                          textColor = "text-white";
+                          borderStyle = "border-red-400";
+                          break;
+                        case 2:
+                          bgColor = "bg-orange-500";
+                          textColor = "text-white";
+                          borderStyle = "border-orange-400";
+                          break;
+                        case 3:
+                          bgColor = "bg-yellow-500";
+                          textColor = "text-white";
+                          borderStyle = "border-yellow-400";
+                          break;
+                        case 4:
+                          bgColor = "bg-green-500";
+                          textColor = "text-white";
+                          borderStyle = "border-green-400";
+                          break;
+                        case 5:
+                          bgColor = "bg-purple-600";
+                          textColor = "text-white";
+                          borderStyle = "border-purple-400";
+                          break;
+                      }
+                    }
+                    
+                    return (
+                      <div
+                        key={value}
+                        onClick={() => handleAnswerSelect(value)}
+                        className={`
+                          cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
+                          ${bgColor} ${textColor} ${borderStyle}
+                          ${isSelected ? 'shadow-md transform hover:scale-110 transition-transform' : 'transition-colors'}
+                        `}
+                      >
+                        <span className="text-xs font-medium">{value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div className="flex justify-between text-sm mt-2">
+                <span className="text-red-500">Never</span>
+                <span className="text-orange-500">Rarely</span>
+                <span className="text-yellow-500">Sometimes</span>
+                <span className="text-green-500">Often</span>
+                <span className="text-purple-600">Always</span>
+              </div>
             </div>
             
-            <div className="flex justify-between text-sm">
-              <span className="text-red-500">Never</span>
-              <span className="text-orange-500">Rarely</span>
-              <span className="text-yellow-500">Sometimes</span>
-              <span className="text-green-500">Often</span>
-              <span className="text-blue-500">Always</span>
+            <div className="text-center">
+              {currentValue > 0 ? (
+                <p className="text-indigo-600 font-medium">
+                  Please select your answer
+                </p>
+              ) : null}
             </div>
-            
-            <div className="flex justify-center gap-4 mt-4">
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border ${currentValue === 1 ? 'bg-red-500 text-white' : 'border-red-500 text-red-500'}`}
-                onClick={() => handleAnswerSelect(1)}
-              >
-                1
-              </div>
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border ${currentValue === 2 ? 'bg-orange-500 text-white' : 'border-orange-500 text-orange-500'}`}
-                onClick={() => handleAnswerSelect(2)}
-              >
-                2
-              </div>
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border ${currentValue === 3 ? 'bg-yellow-500 text-white' : 'border-yellow-500 text-yellow-500'}`}
-                onClick={() => handleAnswerSelect(3)}
-              >
-                3
-              </div>
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border ${currentValue === 4 ? 'bg-green-500 text-white' : 'border-green-500 text-green-500'}`}
-                onClick={() => handleAnswerSelect(4)}
-              >
-                4
-              </div>
-              <div 
-                className={`w-8 h-8 rounded-full flex items-center justify-center cursor-pointer border ${currentValue === 5 ? 'bg-blue-500 text-white' : 'border-blue-500 text-blue-500'}`}
-                onClick={() => handleAnswerSelect(5)}
-              >
-                5
-              </div>
-            </div>
-            
-            {error && (
-              <div className="text-red-500 text-center mt-2">{error}</div>
-            )}
           </div>
           
-          <div className="flex justify-center items-center mb-4">
-            <div className="flex items-center gap-2">
+          <div className="flex flex-col items-center justify-center mb-4 space-y-2">
+            <div className="flex items-center space-x-2">
               <Checkbox 
                 id="auto-advance" 
-                checked={autoAdvance} 
+                checked={autoAdvance}
                 onCheckedChange={(checked) => setAutoAdvance(!!checked)}
+                className="data-[state=checked]:bg-indigo-600"
               />
-              <label htmlFor="auto-advance" className="text-sm cursor-pointer">
+              <label
+                htmlFor="auto-advance"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
                 Auto Advance
               </label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <span><HelpCircle className="w-4 h-4 text-gray-400" /></span>
+                    <div>
+                      <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                    </div>
                   </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="w-64 text-xs">When enabled, the assessment will automatically move to the next question after you select an answer.</p>
+                  <TooltipContent className="max-w-xs">
+                    <p>Check the box to advance to the next question after you select an answer. You can always go back and adjust your answers.</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -309,12 +340,23 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               variant="outline" 
               onClick={handleBack}
               disabled={currentQuestion === 0}
+              className="px-4"
             >
               Go Back
             </Button>
             
-            <div className="text-sm text-gray-500">
-              Question {currentQuestion + 1} of {flowQuestions.length}
+            <div className="text-center">
+              <div className="flex flex-col items-center">
+                <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
+                  <div 
+                    className="h-full bg-indigo-600 rounded-full" 
+                    style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
+                  ></div>
+                </div>
+                <span className="text-sm text-gray-500">
+                  Question {currentQuestion + 1} of {flowQuestions.length}
+                </span>
+              </div>
             </div>
             
             <Button 
@@ -326,6 +368,109 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           </div>
         </Card>
       </Card>
+      
+      {/* Results Modal */}
+      <Dialog open={showResults} onOpenChange={setShowResults}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <button 
+              onClick={() => setShowResults(false)} 
+              className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
+            >
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </button>
+            <DialogTitle className="text-xl font-bold">Your Flow Assessment Results</DialogTitle>
+            <DialogDescription>
+              Based on your responses to all {flowQuestions.length} questions.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-4 space-y-6">
+            <div className="text-center">
+              <div className="text-4xl font-bold text-indigo-600 mb-2">
+                {totalScore} / {flowQuestions.length * 5}
+              </div>
+              <div className="text-xl font-semibold text-gray-800">
+                {interpretation.level}
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-4 rounded-md text-blue-800">
+              <p>{interpretation.description}</p>
+            </div>
+            
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Your Answers Summary</h3>
+              <p className="text-gray-600 mb-4">Review your answers below. Click an answer or the Adjust button to modify your responses.</p>
+              
+              <div className="border rounded-md divide-y">
+                {flowQuestions.map((q) => {
+                  const answerValue = answers[q.id] || 0;
+                  if (answerValue === 0) return null;
+                  
+                  return (
+                    <div key={q.id} className="p-3 flex items-center justify-between">
+                      <div className="flex-grow">
+                        <p className="font-medium text-gray-800">Question #{q.id}: {q.text}</p>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <div className={`px-3 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
+                          {valueToLabel(answerValue)}
+                        </div>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 text-indigo-600 hover:text-indigo-800" 
+                          onClick={() => handleAdjustAnswer(q.id)}
+                        >
+                          Adjust
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            <div className="border rounded-md p-3">
+              <div 
+                className="flex items-center justify-between cursor-pointer" 
+                onClick={() => setShowScoringInfo(!showScoringInfo)}
+              >
+                <h3 className="text-lg font-semibold">Scoring & Interpretation</h3>
+                <ChevronRight className={`h-5 w-5 transform transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} />
+              </div>
+              
+              {showScoringInfo && (
+                <div className="mt-3 text-sm text-gray-600">
+                  <p className="mb-2">Your Flow Score is calculated by adding up your responses to all {flowQuestions.length} questions:</p>
+                  
+                  <ul className="list-disc pl-5 mb-3 space-y-1">
+                    <li><strong>50-60 points:</strong> Flow Fluent - You reliably access flow states.</li>
+                    <li><strong>39-49 points:</strong> Flow Aware - You experience flow but have room to improve.</li>
+                    <li><strong>26-38 points:</strong> Flow Blocked - You struggle with consistency in flow.</li>
+                    <li><strong>12-25 points:</strong> Flow Distant - Flow is a rare experience for you.</li>
+                  </ul>
+                  
+                  <p>This assessment is based on Mihaly Csikszentmihalyi's flow research and identifies your current relationship with flow states.</p>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              onClick={handleComplete}
+              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+            >
+              Continue to Rounding Out
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
