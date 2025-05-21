@@ -75,23 +75,32 @@ export function TestUsersModal({
     } : null
   });
 
-  // Reset user data mutation
+  // Progress tracking constants
+  const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
+  
+  // Reset user data and progress mutation
   const resetUserData = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', `/api/test-users/reset/${userId}`);
       return res.json();
     },
     onSuccess: () => {
+      // Clear local storage progress
+      localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      
       // Invalidate all queries to refresh data
       queryClient.invalidateQueries();
       
       toast({
         title: "User data cleared",
-        description: `All data for Test User ${userId} has been reset.`,
+        description: `All data and navigation progress for Test User ${userId} has been reset.`,
       });
       
       // Close the modal
       onClose();
+      
+      // Force page reload to ensure navigation state is reset
+      setTimeout(() => window.location.reload(), 1000);
     },
     onError: (error) => {
       toast({
