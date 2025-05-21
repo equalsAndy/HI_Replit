@@ -1,5 +1,4 @@
-
-// Copying contents of user-home2-refactored.tsx as checkpoint
+// Checkpoint before Imaginal Agility navigation changes
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
