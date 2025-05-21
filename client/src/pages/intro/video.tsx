@@ -19,6 +19,30 @@ export default function IntroductionVideo() {
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-purple-800 mb-4">All-Star Teams Workshop Introduction</h1>
         
+        <Card className="mb-8">
+          <CardContent className="p-0 overflow-hidden">
+            <div className="aspect-w-16 aspect-h-9">
+              <iframe 
+                src="https://www.youtube.com/embed/1Belekdly70"
+                title="AllStarTeams Workshop Introduction"
+                className="w-full h-full" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="prose max-w-none">
+          <h2 className="text-2xl font-semibold mb-4">Welcome to Your Journey</h2>
+          <p className="text-gray-700 mb-6">
+            In this workshop, you'll discover your unique strengths and learn how to leverage them effectively. The journey consists of four main sections that will help you understand and visualize your potential.
+          </p>
+          <Button onClick={handleComplete} className="bg-purple-600 hover:bg-purple-700 text-white">
+            Continue to Strengths Discovery
+          </Button>
+        </div>
+        
         <p className="text-lg text-gray-700 mb-6">
           Welcome to the All-Star Teams workshop! Through this journey, you'll 
           discover your unique strengths profile and learn how to leverage it in your 

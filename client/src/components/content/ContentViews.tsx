@@ -41,9 +41,48 @@ export default function ContentViews({
   const renderStrengthsAssessment = () => (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Strengths Assessment</h1>
-      {/* Strengths assessment content */}
       <div className="prose max-w-none">
-        {/* ... Assessment content JSX ... */}
+        <p className="text-lg text-gray-700 mb-6">
+          This assessment will help you identify your natural strengths across four key dimensions:
+          Thinking, Acting, Feeling, and Planning.
+        </p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-green-700">THINKING</h3>
+              <p className="text-sm">Analytical and strategic capabilities</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-red-700">ACTING</h3>
+              <p className="text-sm">Implementation and execution skills</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-blue-700">FEELING</h3>
+              <p className="text-sm">Emotional intelligence and intuition</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-yellow-700">PLANNING</h3>
+              <p className="text-sm">Organization and future orientation</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Button 
+          onClick={() => setIsAssessmentModalOpen(true)}
+          className="bg-purple-600 hover:bg-purple-700 text-white"
+        >
+          Start Assessment
+        </Button>
       </div>
     </>
   );
