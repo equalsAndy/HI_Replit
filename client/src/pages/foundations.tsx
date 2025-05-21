@@ -45,21 +45,21 @@ function getAttributeColor(attrName: string): string {
     'Thoughtful': 'rgb(1, 162, 82)',
     'Clever': 'rgb(1, 162, 82)',
     'Innovative': 'rgb(1, 162, 82)',
-    
+
     // Acting quadrant attributes (red)
     'Energetic': 'rgb(241, 64, 64)',
     'Bold': 'rgb(241, 64, 64)',
     'Decisive': 'rgb(241, 64, 64)',
     'Proactive': 'rgb(241, 64, 64)',
     'Persistent': 'rgb(241, 64, 64)',
-    
+
     // Feeling quadrant attributes (blue)
     'Empathetic': 'rgb(22, 126, 253)',
     'Friendly': 'rgb(22, 126, 253)',
     'Supportive': 'rgb(22, 126, 253)',
     'Compassionate': 'rgb(22, 126, 253)',
     'Intuitive': 'rgb(22, 126, 253)',
-    
+
     // Planning quadrant attributes (yellow)
     'Organized': 'rgb(255, 203, 47)',
     'Meticulous': 'rgb(255, 203, 47)',
@@ -67,7 +67,7 @@ function getAttributeColor(attrName: string): string {
     'Consistent': 'rgb(255, 203, 47)',
     'Practical': 'rgb(255, 203, 47)',
   };
-  
+
   return attrColorMap[attrName] || 'rgb(100, 100, 100)'; // Default gray if not found
 }
 
@@ -103,7 +103,7 @@ export default function Foundations() {
   const defaultTab = searchParams.get('tab') || 'intro';
   const [activeTab, setActiveTab] = useState(defaultTab);
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
-  
+
   // State for managing the flow tab alert dialog
   const [showFlowAlertDialog, setShowFlowAlertDialog] = useState(false);
   const [missingPrerequisites, setMissingPrerequisites] = useState<string[]>([]);
@@ -119,7 +119,7 @@ export default function Foundations() {
     enabled: !!user,
     staleTime: Infinity,
   });
-  
+
   // Get flow attributes data
   const { data: flowAttributes } = useQuery<{ attributes: any[] }>({
     queryKey: ['/api/flow-attributes'],
@@ -136,33 +136,33 @@ export default function Foundations() {
     if (tabId === "starcard") {
       // If no starCard exists, disable the tab
       if (!starCard) return true;
-      
+
       // Enable tab if any quadrant has a score greater than 0 (regardless of pending status)
       if (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0) {
         return false;
       }
-      
+
       // Otherwise disable the tab
       return true;
     }
-    
+
     // Check prerequisites for Flow tab
     if (tabId === "flow") {
       // Flow tab requires:
       // 1. A valid star card with scores
       // 2. At least some reflection data saved
-      
+
       // Check if star card is missing or has no scores
       if (!starCard || (starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) {
         return true;
       }
-      
+
       // Check for reflection data in localStorage
       const reflectionData = localStorage.getItem('reflectionData');
       if (!reflectionData) {
         return true;
       }
-      
+
       return false;
     }
 
@@ -181,18 +181,18 @@ export default function Foundations() {
   // Function to check what prerequisites are missing for the flow tab
   const checkFlowTabPrerequisites = () => {
     const missing: string[] = [];
-    
+
     // Check if star card is missing or has no scores
     if (!starCard || (starCard.thinking === 0 && starCard.acting === 0 && starCard.feeling === 0 && starCard.planning === 0)) {
       missing.push("Complete your strengths assessment");
     }
-    
+
     // Check for reflection data in localStorage
     const reflectionData = localStorage.getItem('reflectionData');
     if (!reflectionData) {
       missing.push("Complete your reflection exercises");
     }
-    
+
     return missing;
   };
 
@@ -205,7 +205,7 @@ export default function Foundations() {
       setShowFlowAlertDialog(true);
       return;
     }
-    
+
     if (!isTabDisabled(tabId)) {
       setActiveTab(tabId);
       if (!completedTabs.includes(activeTab)) {
@@ -226,7 +226,7 @@ export default function Foundations() {
             </AlertDialogTitle>
             <AlertDialogDescription>
               Before accessing the Flow Assessment, please complete the following:
-              
+
               <ul className="list-disc pl-5 mt-2 space-y-1 text-sm">
                 {missingPrerequisites.map((item, index) => (
                   <li key={index} className="text-gray-800">{item}</li>
@@ -251,7 +251,7 @@ export default function Foundations() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       {/* Use the Header component that now has the logout feature */}
       <Header showDashboardLink={true} />
 
@@ -295,7 +295,7 @@ export default function Foundations() {
                   Reflect
                 </span>
               </TabsTrigger>
-              
+
               <TabsTrigger value="flow" data-value="flow" disabled={isTabDisabled("flow")}>
                 <span className="flex items-center">
                   <Star className="h-4 w-4 mr-1.5" />
@@ -308,15 +308,15 @@ export default function Foundations() {
               <div className="prose max-w-none">
                 <h2>Strengths Assessment</h2>
                 <p>Take the assessment to discover your unique strengths profile across the four quadrants: Thinking, Acting, Feeling, and Planning.</p>
-                
+
                 {/* If they have completed the assessment, show results instead of the button */}
                 {(starCard && (starCard.thinking > 0 || starCard.acting > 0 || starCard.feeling > 0 || starCard.planning > 0)) ? (
                   <div className="mt-6">
                     {/* Assessment completed message removed */}
-                    
+
                     <div className="mt-4">
                       <h3 className="font-medium text-lg text-gray-800 mb-4">Your Assessment Results</h3>
-                      
+
                       <div className="mb-6">
                         {/* Import and use the pie chart component */}
                         <AssessmentPieChart
@@ -325,7 +325,7 @@ export default function Foundations() {
                           feeling={starCard.feeling || 0}
                           planning={starCard.planning || 0}
                         />
-                        
+
                         {/* Text summary below chart */}
                         <div className="mt-4 grid grid-cols-2 gap-2">
                           <div className="flex items-center">
@@ -346,7 +346,7 @@ export default function Foundations() {
                           </div>
                         </div>
                       </div>
-                      
+
                       <div className="flex justify-end mt-4">
                         <Button 
                           onClick={() => handleTabChange("starcard")}
@@ -434,7 +434,7 @@ export default function Foundations() {
                   Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in your development journey.
                 </p>
               </div>
-              
+
               <div className="flex flex-col md:flex-row gap-6 mt-6">
                 <div className="md:w-1/2">
                   <div className="aspect-w-16 aspect-h-9">
@@ -448,7 +448,7 @@ export default function Foundations() {
                     ></iframe>
                   </div>
                 </div>
-                
+
                 <div className="md:w-1/2">
                   <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
                     <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -468,7 +468,7 @@ export default function Foundations() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
                 <h3 className="text-indigo-700 font-medium">This exercise invites you to:</h3>
                 <ul>

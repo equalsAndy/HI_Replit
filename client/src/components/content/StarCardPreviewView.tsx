@@ -13,14 +13,14 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Star Profile + Star Card</h1>
-      
+
       <div className="prose max-w-none">
         <p className="text-lg mb-6">
           Your Star Profile captures your current strengths and growth edge. It's not a fixed label — it's a reflection of where you are now in
           your development journey.
         </p>
       </div>
-      
+
       <div className="flex flex-col md:flex-row gap-6 mt-6">
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
@@ -34,7 +34,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
             ></iframe>
           </div>
         </div>
-        
+
         <div className="md:w-1/2">
           <div className="border border-gray-200 rounded-md overflow-hidden bg-white h-full">
             <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -54,7 +54,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 my-6">
         <h3 className="text-indigo-700 font-medium mb-2">This exercise invites you to:</h3>
         <ul className="space-y-2 text-indigo-700">
