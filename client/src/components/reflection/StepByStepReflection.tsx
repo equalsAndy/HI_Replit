@@ -605,8 +605,24 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                 <li>Times when your decisiveness moved a project forward</li>
                 <li>How your pragmatic approach solved practical problems</li>
               </ul>
+            </div>
+            
+            <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
+              <label htmlFor="strength-1-reflection" className="block text-lg font-semibold text-indigo-800 mb-2">
+                Your Reflection Space
+              </label>
+              <p className="text-gray-700 mb-3 text-sm italic">
+                Write 2-3 sentences about when you've used this strength effectively
+              </p>
+              <Textarea 
+                id="strength-1-reflection"
+                value={reflections.strength1}
+                onChange={(e) => handleReflectionChange(1, e.target.value)}
+                placeholder="Describe specific moments when you've used your Acting strength effectively..."
+                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+              />
               
-              <div className="mb-2">
+              <div className="mt-3">
                 <button 
                   onClick={() => setShowExamples(!showExamples)}
                   className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
@@ -614,24 +630,24 @@ export default function StepByStepReflection({ starCard }: StepByStepReflectionP
                   {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
                   {showExamples ? "Hide example responses" : "Show example responses"}
                 </button>
+                
+                {showExamples && (
+                  <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
+                    <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
+                    <div className="text-sm text-gray-700">
+                      <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
+                      <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
         
-        {/* Reflection content based on current step */}
+        {/* Navigation controls */}
         <div className="p-6 border-t border-gray-200">
-          {/* Conditional rendering based on current step */}
-          {currentStep <= 4 ? (
-            renderStrengthReflection(currentStep)
-          ) : currentStep === 5 ? (
-            renderTeamValuesReflection()
-          ) : (
-            renderUniqueContributionReflection()
-          )}
-          
-          {/* Navigation controls */}
-          <div className="flex justify-between mt-8">
+          <div className="flex justify-between mt-2">
             <Button 
               onClick={handlePrevious}
               disabled={currentStep === 1}
