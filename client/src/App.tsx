@@ -81,7 +81,7 @@ function Router() {
       {user && (
         <div className="fixed bottom-4 right-4 z-50">
           <Button 
-            onClick={() => navigate('/user-home2-refactored')}
+            onClick={() => navigate('/ast-user-home')}
             className="bg-indigo-600 hover:bg-indigo-700"
           >
             Try Refactored Navigation
@@ -94,7 +94,9 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/user-home2" component={UserHome2} />
-          <Route path="/user-home2-refactored" component={UserHome2Refactored} />
+          <Route path="/ast-user-home" component={() => {
+            return <UserHome2 />;
+          }} />
           <Route path="/logout" component={() => {
             // Simplified logout page
             useEffect(() => {
