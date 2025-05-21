@@ -4,15 +4,19 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
-import { navigationSections } from '@/components/navigation/navigationData';
+import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useApplication } from '@/hooks/use-application';
 
-// Constants
-const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
+// Constants for different apps
+const APP_PROGRESS_KEYS = {
+  'allstarteams': 'allstarteams-navigation-progress',
+  'imaginal-agility': 'imaginal-agility-navigation-progress'
+};
 
 export default function UserHome2() {
   const [location, navigate] = useLocation();
@@ -21,6 +25,15 @@ export default function UserHome2() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
+  const { currentApp } = useApplication();
+  
+  // Determine which navigation sections to use based on the selected app
+  const activeNavigationSections = currentApp === 'imaginal-agility' 
+    ? imaginalAgilityNavigationSections 
+    : navigationSections;
+    
+  // Get the appropriate progress storage key based on the selected app
+  const progressStorageKey = APP_PROGRESS_KEYS[currentApp];
   
   // Check for Star Card Preview navigation flag
   useEffect(() => {
@@ -64,7 +77,7 @@ export default function UserHome2() {
     },
     onSuccess: () => {
       // Clear local storage progress
-      localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      localStorage.removeItem(progressStorageKey);
       setCompletedSteps([]);
       
       // Invalidate queries to refresh data
@@ -88,7 +101,7 @@ export default function UserHome2() {
   
   // Load completed steps from localStorage on component mount
   useEffect(() => {
-    const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
+    const savedProgress = localStorage.getItem(progressStorageKey);
     if (savedProgress) {
       try {
         const { completed } = JSON.parse(savedProgress);
@@ -133,7 +146,7 @@ export default function UserHome2() {
     if (!completedSteps.includes(stepId)) {
       const newCompletedSteps = [...completedSteps, stepId];
       setCompletedSteps(newCompletedSteps);
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: newCompletedSteps }));
+      localStorage.setItem(progressStorageKey, JSON.stringify({ completed: newCompletedSteps }));
     }
   };
   
