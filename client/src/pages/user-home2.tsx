@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { 
   ChevronLeft, ChevronRight, StarIcon, BarChartIcon, 
   Activity, Sparkles, Lock, BookOpen, ClipboardCheck, Edit, Star,
-  CheckCircle
+  CheckCircle, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
