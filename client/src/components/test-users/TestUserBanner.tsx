@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { InfoIcon } from "lucide-react";
+import { InfoIcon, Repeat } from "lucide-react";
 import { useQuery } from '@tanstack/react-query';
 import { TestUsersModal } from './TestUsersModal';
+import { useApplication } from '@/hooks/use-application';
 
 interface TestUserBannerProps {
   userId: number;
@@ -12,6 +13,7 @@ interface TestUserBannerProps {
 
 export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { currentApp, setCurrentApp } = useApplication();
   
   // Get user data
   const { data: userData } = useQuery<any>({
@@ -30,6 +32,21 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
     queryKey: ['/api/flow-attributes'],
     enabled: isModalOpen, // Only fetch when modal is opened
   });
+  
+  // Function to toggle between applications
+  const toggleApplication = () => {
+    // Toggle to the other application
+    const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
+    setCurrentApp(newApp);
+    localStorage.setItem('selectedApp', newApp);
+    
+    // Navigate to the appropriate page
+    if (newApp === 'allstarteams') {
+      window.location.href = '/user-home2-refactored';
+    } else {
+      window.location.href = '/imaginal-agility';
+    }
+  };
 
   return (
     <>
@@ -49,6 +66,16 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
             onClick={() => window.location.href = '/user-home2-refactored'}
           >
             Go to Refactored App
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
+            onClick={toggleApplication}
+          >
+            <Repeat className="h-4 w-4 mr-1" />
+            Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
           </Button>
           
           <Button 
