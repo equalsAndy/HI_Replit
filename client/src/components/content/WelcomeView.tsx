@@ -62,18 +62,7 @@ const WelcomeView: React.FC<ContentViewProps> = ({
           </li>
         </ul>
         
-        <div className="flex justify-between items-center">
-          <Button 
-            onClick={() => {
-              markStepCompleted('1-1');
-              setCurrentContent("intro-strengths");
-            }}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-            size="lg"
-          >
-            Begin Your Learning Journey
-          </Button>
-          
+        <div className="flex justify-end">
           <Button 
             onClick={() => {
               markStepCompleted('1-1');
