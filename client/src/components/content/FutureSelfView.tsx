@@ -42,97 +42,109 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Future Self</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Future Self: Longer Term</h1>
       
       <div className="prose max-w-none mb-6">
         <p className="text-lg text-gray-700">
-          Imagine yourself one year from now, having moved higher on your ladder of wellbeing.
-          What does that future look like? How will you get there?
+          Time exposes limits every participant's infinite capacity for growth. Whether someone is 22 or 82, the focus remains on continuous evolution, deepening wisdom, and creating one's masterwork. In this context, life is not measured in chronological time but expanded by purpose.
+        </p>
+        <p className="text-lg text-gray-700 mt-3">
+          Remember Hokusai's wisdom: every decade brings new insight, broader vision, and deeper connection to your life's work. The stories of your future self have no boundaries.
         </p>
       </div>
 
-      <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-6 rounded-lg border border-indigo-100 mb-8">
-        <div className="flex items-start">
-          <Sparkles className="h-6 w-6 text-indigo-600 mr-3 flex-shrink-0 mt-1" />
-          <div>
-            <h3 className="text-xl font-semibold text-indigo-900 mb-2">Your Vision</h3>
-            <p className="text-indigo-700 mb-4">
-              Describe your ideal life one year from now. Be specific about what you're doing, 
-              how you're feeling, and what's different from today.
+      <div className="flex flex-col md:flex-row gap-8 mb-8">
+        <div className="md:w-1/2">
+          <div className="aspect-w-16 aspect-h-9">
+            <iframe 
+              src="https://www.youtube.com/embed/_VsH5NO9jyg" 
+              title="Your Future Self" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="w-full h-64 rounded border border-gray-200"
+            ></iframe>
+          </div>
+          
+          <div className="mt-4 p-4 bg-indigo-50 rounded-lg border border-indigo-100">
+            <h3 className="font-medium text-indigo-800 mb-2">Katsushika Hokusai's Journey</h3>
+            <p className="text-sm text-indigo-700">
+              "From the age of 6 I had a mania for drawing the shapes of things. When I was 50 I had published a universe of designs. But all I have done before the age of 70 is not worth bothering with. At 73 I have learned something of the pattern of nature... At 80 I shall have made still more progress. At 90 I shall penetrate the mystery of things. At 100 I shall be a marvelous artist. At 110, everything I create will be alive."
             </p>
+          </div>
+        </div>
+        
+        <div className="md:w-1/2 space-y-5">
+          <div className="bg-gradient-to-r from-indigo-50 via-purple-50 to-pink-50 p-5 rounded-lg border border-indigo-100">
+            <h3 className="text-lg font-semibold text-indigo-900 mb-3">Where do you see yourself in 15 and 20 years?</h3>
             <Textarea 
-              placeholder="In one year from now, I..."
+              placeholder="In the future, I see myself..."
               value={oneYearVision}
               onChange={(e) => setOneYearVision(e.target.value)}
-              className="min-h-[120px] bg-white"
+              className="min-h-[100px] bg-white"
+            />
+          </div>
+          
+          <div className="bg-gradient-to-r from-blue-50 via-blue-50 to-indigo-50 p-5 rounded-lg border border-blue-100">
+            <h3 className="text-lg font-semibold text-blue-900 mb-3">What does your life look like when optimized for flow?</h3>
+            <Textarea 
+              placeholder="When optimized for flow, my life looks like..."
+              value={challenges}
+              onChange={(e) => setChallenges(e.target.value)}
+              className="min-h-[100px] bg-white"
             />
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-blue-50 p-5 rounded-lg border border-blue-100">
-          <h3 className="text-blue-800 font-medium flex items-center mb-3">
-            <Lightbulb className="h-5 w-5 mr-2 text-blue-500" />
-            Potential Challenges
+        <div className="bg-amber-50 p-5 rounded-lg border border-amber-100">
+          <h3 className="text-amber-800 font-medium mb-3">
+            When picturing a happy final stage of life, what will you have achieved and still want to achieve?
           </h3>
-          <p className="text-sm text-blue-700 mb-3">
-            What obstacles might you face on the way to achieving this vision?
-          </p>
           <Textarea 
-            placeholder="Challenges I might face include..."
-            value={challenges}
-            onChange={(e) => setChallenges(e.target.value)}
-            className="min-h-[100px]"
-          />
-        </div>
-
-        <div className="bg-green-50 p-5 rounded-lg border border-green-100">
-          <h3 className="text-green-800 font-medium flex items-center mb-3">
-            <Lightbulb className="h-5 w-5 mr-2 text-green-500" />
-            Strengths to Leverage
-          </h3>
-          <p className="text-sm text-green-700 mb-3">
-            What strengths can you draw on to overcome these challenges?
-          </p>
-          <Textarea 
-            placeholder="My key strengths that will help include..."
+            placeholder="In the final stages of my life, I will have..."
             value={strengths}
             onChange={(e) => setStrengths(e.target.value)}
             className="min-h-[100px]"
           />
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <div className="bg-purple-50 p-5 rounded-lg border border-purple-100">
-          <h3 className="text-purple-800 font-medium flex items-center mb-3">
-            <Lightbulb className="h-5 w-5 mr-2 text-purple-500" />
-            Resources Needed
+          <h3 className="text-purple-800 font-medium mb-3">
+            Look back at your answers. Now write a short paragraph (3-5 sentences) that brings these together. Your vision statement should describe your future self in a way that inspires you – who you are, what you value, and how you want to live and lead.
           </h3>
-          <p className="text-sm text-purple-700 mb-3">
-            What support, skills, or resources will you need to make this vision a reality?
+          <p className="text-sm text-purple-600 mb-3">
+            You can start with: "In the future, I see myself..."
           </p>
           <Textarea 
-            placeholder="Resources I'll need include..."
+            placeholder="In the future, I see myself..."
             value={resourcesNeeded}
             onChange={(e) => setResourcesNeeded(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[120px]"
           />
         </div>
+      </div>
 
-        <div className="bg-amber-50 p-5 rounded-lg border border-amber-100">
-          <h3 className="text-amber-800 font-medium flex items-center mb-3">
-            <Lightbulb className="h-5 w-5 mr-2 text-amber-500" />
-            Action Steps
+      <div className="bg-green-50 p-5 rounded-lg border border-green-100 mb-8">
+        <h3 className="text-green-800 font-medium mb-3">
+          My purpose is to...
+        </h3>
+        <Textarea 
+          placeholder="My purpose is to..."
+          value={actionSteps}
+          onChange={(e) => setActionSteps(e.target.value)}
+          className="min-h-[100px]"
+        />
+        
+        <div className="mt-4">
+          <h3 className="text-green-800 font-medium mb-3">
+            I am becoming someone who...
           </h3>
-          <p className="text-sm text-amber-700 mb-3">
-            What specific actions will you take in the next month to move toward this vision?
-          </p>
           <Textarea 
-            placeholder="My first steps will be..."
-            value={actionSteps}
-            onChange={(e) => setActionSteps(e.target.value)}
+            placeholder="I am becoming someone who..."
+            value={challenges}
+            onChange={(e) => setChallenges(e.target.value)}
             className="min-h-[100px]"
           />
         </div>
