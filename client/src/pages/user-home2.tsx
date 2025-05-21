@@ -33,7 +33,7 @@ const navigationSections = [
     completedSteps: 0,
     steps: [
       { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning', required: true },
-      { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity', required: true },
+      { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity', required: false },
       { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning', required: true },
       { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing', required: true }
     ]
