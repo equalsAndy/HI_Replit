@@ -548,9 +548,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     option !== rankings.leastLikeMe
   ) || [];
 
-  // Continue assessment button
+  // Continue assessment button - directs to Star Card Preview
   const continueAssessment = () => {
+    // Close the modal
     onClose();
+    
+    // Navigate to Star Card Preview page
+    window.location.href = '/user-home2-refactored?content=star-card-preview';
   };
 
   // Render the intro screen
