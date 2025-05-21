@@ -1,6 +1,8 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Lock } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Lock,
+  CheckCircle
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { NavigationSection } from '../../shared/types';
@@ -14,7 +16,7 @@ interface UserHomeNavigationProps {
   handleStepClick: (sectionId: string, stepId: string) => void;
 }
 
-export const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
+const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   drawerOpen,
   toggleDrawer,
   navigationSections,
@@ -23,100 +25,96 @@ export const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   handleStepClick
 }) => {
   return (
-    <div 
-      className={cn(
-        "h-full border-r border-gray-200 bg-white transition-all duration-300 flex flex-col",
-        drawerOpen ? "w-64" : "w-14"
-      )}
-    >
-      {/* Drawer Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {drawerOpen && <h2 className="font-semibold text-gray-800">Your Learning Journey</h2>}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={toggleDrawer}
-          className="rounded-full ml-auto"
-        >
-          {drawerOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-        </Button>
-      </div>
+    <div className={cn(
+      "h-full bg-white shadow-sm transition-all duration-300 ease-in-out border-r border-gray-200 relative",
+      drawerOpen ? "w-80" : "w-16"
+    )}>
+      {/* Toggle Button */}
+      <button
+        onClick={toggleDrawer}
+        className="absolute -right-3 top-12 z-10 bg-white rounded-full w-6 h-6 flex items-center justify-center shadow border border-gray-200"
+      >
+        {drawerOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+      </button>
       
-      {/* Navigation Sections */}
-      <div className="overflow-y-auto h-[calc(100%-64px)]">
-        {navigationSections.map((section) => (
-          <div key={section.id} className="border-b border-gray-100">
-            {/* Section Header */}
-            <div 
-              className={cn(
-                "flex items-center px-4 py-3 hover:bg-gray-50 cursor-pointer",
-                drawerOpen ? "" : "justify-center"
-              )}
-            >
-              <div className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium bg-indigo-100 text-indigo-700",
-              )}>
-                {section.id}
+      {/* Navigation Content */}
+      <div className="p-4 h-full overflow-y-auto">
+        {/* Title */}
+        <h2 className={cn(
+          "font-bold text-xl mb-4 text-gray-800",
+          !drawerOpen && "text-center text-sm"
+        )}>
+          {drawerOpen ? "Your Learning Journey" : "Menu"}
+        </h2>
+        
+        {/* Navigation Sections */}
+        <nav className="space-y-6">
+          {navigationSections.map((section) => (
+            <div key={section.id} className="space-y-2">
+              {/* Section Header */}
+              <div className="flex items-center space-x-2">
+                <section.icon className={cn("h-5 w-5 text-indigo-600")} />
+                
+                {drawerOpen && (
+                  <>
+                    <h3 className="font-medium text-gray-800">{section.title}</h3>
+                    <div className="ml-auto text-xs text-gray-500">
+                      {section.completedSteps}/{section.steps.length}
+                    </div>
+                  </>
+                )}
               </div>
               
+              {/* Section Steps */}
               {drawerOpen && (
-                <>
-                  <div className="ml-3 flex-1">
-                    <div className="text-sm font-medium text-gray-800">{section.title}</div>
-                    <div className="text-xs text-gray-500">
-                      {section.completedSteps} of {section.totalSteps} complete
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
-                </>
+                <ul className="pl-7 space-y-2 border-l border-gray-200">
+                  {section.steps.map((step) => {
+                    const isCompleted = completedSteps.includes(step.id);
+                    const isAccessible = isStepAccessible(section.id, step.id);
+                    
+                    return (
+                      <TooltipProvider key={step.id}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <li 
+                              className={cn(
+                                "rounded-md p-2 flex items-center text-sm transition",
+                                isCompleted 
+                                  ? "text-green-700 bg-green-50" 
+                                  : isAccessible
+                                    ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                    : "text-gray-400 cursor-not-allowed"
+                              )}
+                              onClick={() => {
+                                if (isAccessible) {
+                                  handleStepClick(section.id, step.id);
+                                }
+                              }}
+                            >
+                              <div className="mr-2 flex-shrink-0">
+                                {isCompleted ? (
+                                  <CheckCircle className="h-4 w-4 text-green-600" />
+                                ) : !isAccessible ? (
+                                  <Lock className="h-4 w-4 text-gray-400" />
+                                ) : null}
+                              </div>
+                              <span>{step.label}</span>
+                            </li>
+                          </TooltipTrigger>
+                          {!isAccessible && (
+                            <TooltipContent side="right">
+                              <p className="text-xs">Complete previous steps first</p>
+                            </TooltipContent>
+                          )}
+                        </Tooltip>
+                      </TooltipProvider>
+                    );
+                  })}
+                </ul>
               )}
             </div>
-            
-            {/* Section Steps (only visible when drawer is open) */}
-            {drawerOpen && (
-              <div className="pl-6 pr-2 pb-2">
-                {section.steps.map((step) => {
-                  const accessible = isStepAccessible(section.id, step.id);
-                  const completed = completedSteps.includes(step.id);
-                  
-                  return (
-                    <TooltipProvider key={step.id}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div 
-                            onClick={() => {
-                              if (accessible) {
-                                handleStepClick(section.id, step.id);
-                              }
-                            }}
-                            className={cn(
-                              "flex items-center px-4 py-2 my-1 rounded-md text-sm",
-                              accessible 
-                                ? "cursor-pointer hover:bg-gray-100" 
-                                : "opacity-60 cursor-not-allowed",
-                              completed && "bg-green-50 text-green-800"
-                            )}
-                          >
-                            <div className="text-xs w-6 text-gray-400">{step.id}</div>
-                            <div className="ml-2">{step.label}</div>
-                            {!accessible && (
-                              <Lock className="ml-2 h-3 w-3 text-gray-400" />
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        {!accessible && (
-                          <TooltipContent>
-                            <p>Complete previous steps first</p>
-                          </TooltipContent>
-                        )}
-                      </Tooltip>
-                    </TooltipProvider>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </nav>
       </div>
     </div>
   );
