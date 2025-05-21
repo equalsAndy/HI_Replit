@@ -385,17 +385,63 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     setDraggedOption(null);
   };
   
-  // Auto-complete with demo answers
+  // Auto-complete with demo answers for all questions and jump to results
   const handleDemoAnswers = () => {
-    // Pre-fill current question's rankings with random order
-    const currentOptions = [...currentQuestion.options].sort(() => Math.random() - 0.5);
+    setIsLoading(true);
     
-    setRankings({
-      mostLikeMe: currentOptions[0],
-      second: currentOptions[1],
-      third: currentOptions[2],
-      leastLikeMe: currentOptions[3]
+    // Create fake answers for all questions
+    const demoAnswers: {[key: number]: RankedOption[]} = {};
+    
+    // For each question in the assessment
+    assessmentQuestions.forEach(question => {
+      // Randomize the options
+      const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+      
+      // Create rankings for this question
+      demoAnswers[question.id] = [
+        { optionId: shuffledOptions[0].id, rank: 1 },
+        { optionId: shuffledOptions[1].id, rank: 2 },
+        { optionId: shuffledOptions[2].id, rank: 3 },
+        { optionId: shuffledOptions[3].id, rank: 4 }
+      ];
     });
+    
+    // Set all answers
+    setAnswers(demoAnswers);
+    
+    // Calculate results based on the demo answers
+    const results = calculateQuadrantScores(
+      Object.entries(demoAnswers).map(([questionId, rankings]) => ({
+        questionId: parseInt(questionId),
+        rankings
+      })),
+      optionCategoryMapping
+    );
+    
+    // Set results and go to results view
+    setAssessmentResults(results);
+    
+    setTimeout(() => {
+      setIsLoading(false);
+      setView('results');
+      
+      // Invalidate star card query to refresh data (simulating the completion)
+      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      
+      // Show toast notification
+      toast({
+        title: "Demo Assessment Complete!",
+        description: "A sample Star Card has been created with random data.",
+      });
+      
+      // Call onComplete callback if provided
+      if (onComplete) {
+        onComplete({ 
+          quadrantData: results,
+          demoData: true 
+        });
+      }
+    }, 500);
   };
   
   // Progress bar calculation
@@ -637,7 +683,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
               onClick={handleDemoAnswers}
               className="h-9 text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
             >
-              Demo
+              Demo Data
             </Button>
           </div>
           
