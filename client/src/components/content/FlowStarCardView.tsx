@@ -109,6 +109,9 @@ const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 
     'Resilient', 'Spontaneous', 'Vigorous'
   ].map(a => a.toLowerCase());
   
+  // Check if attribute is defined before calling toLowerCase
+  if (!attribute) return 'default';
+  
   const lowerAttribute = attribute.toLowerCase();
   
   if (greenAttributes.includes(lowerAttribute)) return 'green';
