@@ -2,7 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { NavigationSection, StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { navigationSections } from './navigationData';
 import { Button } from '@/components/ui/button';
-import { ChevronRight, ChevronLeft, Menu, X, CheckCircle, Lock } from 'lucide-react';
+import { 
+  ChevronRight, 
+  ChevronLeft, 
+  Menu, 
+  X, 
+  CheckCircle, 
+  Lock, 
+  BookOpen, 
+  PenLine, 
+  Activity,
+  FileText
+} from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
 import {
@@ -21,6 +32,7 @@ interface UserHomeNavigationProps {
   handleStepClick: (sectionId: string, stepId: string) => void;
   starCard?: StarCard | null;
   flowAttributesData?: FlowAttributesResponse | null;
+  currentContent?: string;
 }
 
 const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
@@ -31,7 +43,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   isStepAccessible,
   handleStepClick,
   starCard,
-  flowAttributesData
+  flowAttributesData,
+  currentContent
 }) => {
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
@@ -42,6 +55,46 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                            Array.isArray(flowAttributesData.attributes) && 
                            flowAttributesData.attributes.length > 0;
   const isStarCardComplete = hasStarCard && hasFlowAttributes;
+  
+  // Helper function to convert step IDs to content keys used in the app
+  const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
+    // Map section-step to content keys
+    const contentKeyMap: Record<string, string> = {
+      // Section 1: AllStarTeams Introduction
+      '1-1': 'welcome',
+      
+      // Section 2: Discover your Strengths
+      '2-1': 'intro-strengths',
+      '2-2': 'strengths-assessment',
+      '2-3': 'star-card-preview',
+      '2-4': 'reflection',
+      
+      // Section 3: Find your Flow
+      '3-1': 'intro-flow',  // Also handled as 'intro-to-flow'
+      '3-2': 'flow-assessment',
+      '3-3': 'flow-rounding-out',
+      '3-4': 'flow-star-card',
+      
+      // Section 4: Visualize your Potential
+      '4-1': 'wellbeing',
+      '4-2': 'cantril-ladder',
+      '4-3': 'visualizing-you',
+      '4-4': 'future-self',
+      '4-5': 'your-statement',
+      
+      // Section 5: Resources
+      '5-1': 'workshop-guide',
+      '5-2': 'pdf-summary',
+      '5-3': 'your-star-card',
+    };
+    
+    // Special case for intro-to-flow which has two possible content keys
+    if (currentContent === 'intro-to-flow' && stepId === '3-1') {
+      return 'intro-to-flow';
+    }
+    
+    return contentKeyMap[stepId] || `placeholder-${stepId}`;
+  };
 
   // Function to handle window resize and update isMobile state
   useEffect(() => {
@@ -161,6 +214,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
+                                  // Check if this menu item is currently active
+                                  currentContent === getContentKeyFromStepId(section.id, step.id) 
+                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600" 
+                                    : "",
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible
@@ -184,6 +241,23 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
                                 </div>
+                                
+                                {/* Content type icons */}
+                                <div className="mr-2 flex-shrink-0">
+                                  {step.type === 'Learning' && (
+                                    <BookOpen className="h-4 w-4 text-indigo-500" />
+                                  )}
+                                  {step.type === 'Assessment' && (
+                                    <Activity className="h-4 w-4 text-orange-500" />
+                                  )}
+                                  {step.type === 'Reflection' && (
+                                    <PenLine className="h-4 w-4 text-purple-500" />
+                                  )}
+                                  {(!step.type || step.type === 'Resource') && (
+                                    <FileText className="h-4 w-4 text-gray-500" />
+                                  )}
+                                </div>
+                                
                                 <span>{step.label}</span>
                               </li>
                             </TooltipTrigger>
