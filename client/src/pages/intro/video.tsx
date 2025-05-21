@@ -11,7 +11,7 @@ export default function IntroductionVideo() {
   
   const handleComplete = () => {
     markStepCompleted('1-1');
-    navigate('/discover-strengths/intro');
+    navigate('/ast-user-home');
   };
   
   return (
@@ -29,7 +29,7 @@ export default function IntroductionVideo() {
           <CardContent className="p-0 overflow-hidden">
             <div className="aspect-w-16 aspect-h-9">
               <iframe 
-                src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
+                src="https://www.youtube.com/embed/ao04eaeDIFQ"
                 title="AllStarTeams Workshop Introduction"
                 className="w-full h-full" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
