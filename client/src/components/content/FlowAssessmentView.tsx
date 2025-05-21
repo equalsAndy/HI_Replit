@@ -120,6 +120,9 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     setCurrentContent("flow-rounding-out");
   };
   
+  // State to track which popover is open
+  const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
+  
   // Update a specific answer directly in the results modal
   const handleUpdateAnswer = (questionId: number, newValue: number) => {
     // Update the answer
@@ -130,6 +133,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     
     // Log for debugging
     console.log(`Updated answer for question #${questionId} to ${newValue}`);
+    
+    // Close the popover after 3 seconds
+    setTimeout(() => {
+      setOpenPopoverId(null);
+    }, 3000);
   };
   
   // Get interpretation based on score
@@ -442,7 +450,13 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                         </div>
                         
                         <div className="text-center">
-                          <Popover>
+                          <Popover open={openPopoverId === q.id} onOpenChange={(open) => {
+                            if (open) {
+                              setOpenPopoverId(q.id);
+                            } else {
+                              setOpenPopoverId(null);
+                            }
+                          }}>
                             <PopoverTrigger asChild>
                               <Button 
                                 variant="ghost" 
@@ -464,12 +478,13 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                                       className={`
                                         cursor-pointer w-8 h-8 rounded-full flex items-center justify-center
                                         ${value === answerValue 
-                                          ? value === 1 ? 'bg-red-500 text-white' 
-                                          : value === 2 ? 'bg-orange-500 text-white'
-                                          : value === 3 ? 'bg-yellow-500 text-white'
-                                          : value === 4 ? 'bg-green-500 text-white'
-                                          : 'bg-purple-600 text-white'
-                                          : 'bg-gray-100 hover:bg-gray-200'}
+                                          ? value === 1 ? 'bg-red-500 text-white shadow-md' 
+                                          : value === 2 ? 'bg-orange-500 text-white shadow-md'
+                                          : value === 3 ? 'bg-yellow-500 text-white shadow-md'
+                                          : value === 4 ? 'bg-green-500 text-white shadow-md'
+                                          : 'bg-purple-600 text-white shadow-md'
+                                          : 'bg-gray-100 hover:bg-gray-200 transition-colors duration-200'}
+                                        transform hover:scale-110 transition-transform duration-200
                                       `}
                                     >
                                       {value}
