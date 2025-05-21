@@ -6,6 +6,7 @@ import AssessmentView from './AssessmentView';
 import StarCardPreviewView from './StarCardPreviewView';
 import ReflectionView from './ReflectionView';
 import FlowIntroView from './FlowIntroView';
+import FlowAssessmentView from './FlowAssessmentView';
 import FlowRoundingOutView from './FlowRoundingOutView';
 import FlowStarCardView from './FlowStarCardView';
 import WellbeingView from './WellbeingView';
@@ -88,6 +89,16 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'intro-flow':
       return (
         <FlowIntroView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'flow-assessment':
+      return (
+        <FlowAssessmentView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
