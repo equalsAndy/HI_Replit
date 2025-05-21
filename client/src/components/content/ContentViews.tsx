@@ -6,6 +6,14 @@ import AssessmentView from './AssessmentView';
 import StarCardPreviewView from './StarCardPreviewView';
 import ReflectionView from './ReflectionView';
 import FlowIntroView from './FlowIntroView';
+import FlowRoundingOutView from './FlowRoundingOutView';
+import FlowStarCardView from './FlowStarCardView';
+import WellbeingView from './WellbeingView';
+import CantrilLadderView from './CantrilLadderView';
+import VisualizingYouView from './VisualizingYouView';
+import FutureSelfView from './FutureSelfView';
+import YourStatementView from './YourStatementView';
+import RecapView from './RecapView';
 import PlaceholderView from './PlaceholderView';
 
 interface ContentViewsProps extends ContentViewProps {
@@ -23,6 +31,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 }) => {
   // Return the appropriate content based on currentContent
   switch (currentContent) {
+    // AllStarTeams Introduction
     case 'welcome':
       return (
         <WelcomeView 
@@ -33,6 +42,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
     
+    // Discover your Strengths
     case 'intro-strengths':
       return (
         <IntroStrengthsView 
@@ -74,6 +84,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
     
+    // Find your Flow
     case 'intro-flow':
       return (
         <FlowIntroView 
@@ -84,6 +95,88 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
     
+    case 'flow-rounding-out':
+      return (
+        <FlowRoundingOutView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'flow-star-card':
+      return (
+        <FlowStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    // Visualize your Potential
+    case 'wellbeing':
+      return (
+        <WellbeingView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'cantril-ladder':
+      return (
+        <CantrilLadderView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'visualizing-you':
+      return (
+        <VisualizingYouView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'future-self':
+      return (
+        <FutureSelfView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'your-statement':
+      return (
+        <YourStatementView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    case 'recap':
+      return (
+        <RecapView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          starCard={starCard}
+        />
+      );
+    
+    // Handle placeholder content
     default:
       return (
         <PlaceholderView 

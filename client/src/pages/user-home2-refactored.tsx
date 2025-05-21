@@ -91,11 +91,16 @@ export default function UserHome2() {
   // Handle step click
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Handle navigation based on the specific step
+    
+    // Section 1: AllStarTeams Introduction
     if (stepId === '1-1') {
       // If it's "Introduction Video", show the welcome content
       setCurrentContent("welcome");
       markStepCompleted(stepId);
-    } else if (stepId === '2-1') { 
+    } 
+    
+    // Section 2: Discover your Strengths
+    else if (stepId === '2-1') { 
       // If it's "Intro to Strengths", show the content in-place
       setCurrentContent("intro-strengths");
       markStepCompleted(stepId);
@@ -111,13 +116,59 @@ export default function UserHome2() {
       // If it's "Reflect", show the reflection content
       setCurrentContent("reflection");
       markStepCompleted(stepId);
-    } else if (stepId === '3-1') {
+    } 
+    
+    // Section 3: Find your Flow
+    else if (stepId === '3-1') {
       // If it's "Intro to Flow", show the flow intro content
       setCurrentContent("intro-flow");
       markStepCompleted(stepId);
-    } else {
+    } else if (stepId === '3-2') {
+      // Flow Assessment
+      setCurrentContent(`placeholder-${stepId}`);
+      markStepCompleted(stepId);
+    } else if (stepId === '3-3') {
+      // Rounding Out
+      setCurrentContent("flow-rounding-out");
+      markStepCompleted(stepId);
+    } else if (stepId === '3-4') {
+      // Add Flow to Star Card
+      setCurrentContent("flow-star-card");
+      markStepCompleted(stepId);
+    } 
+    
+    // Section 4: Visualize your Potential
+    else if (stepId === '4-1') {
+      // Ladder of Well-being
+      setCurrentContent("wellbeing");
+      markStepCompleted(stepId);
+    } else if (stepId === '4-2') {
+      // Cantril Ladder
+      setCurrentContent("cantril-ladder");
+      markStepCompleted(stepId);
+    } else if (stepId === '4-3') {
+      // Visualizing You
+      setCurrentContent("visualizing-you");
+      markStepCompleted(stepId);
+    } else if (stepId === '4-4') {
+      // Your Future Self
+      setCurrentContent("future-self");
+      markStepCompleted(stepId);
+    } else if (stepId === '4-5') {
+      // Your Statement
+      setCurrentContent("your-statement");
+      markStepCompleted(stepId);
+    } else if (stepId === '4-6') {
+      // Recap
+      setCurrentContent("recap");
+      markStepCompleted(stepId);
+    } 
+    
+    // Resources and other sections
+    else {
       // For other pages, use the placeholder content
       setCurrentContent(`placeholder-${stepId}`);
+      markStepCompleted(stepId);
     }
   };
 
