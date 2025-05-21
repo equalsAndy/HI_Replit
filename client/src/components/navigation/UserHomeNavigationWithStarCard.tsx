@@ -214,8 +214,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Simplify active item detection logic
-                                  false ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600" : "",
+                                  // Check if this item corresponds to current content
+                                  getContentKeyFromStepId(section.id, step.id) === currentContent 
+                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium" : "",
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible
