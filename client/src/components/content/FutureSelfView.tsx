@@ -6,6 +6,9 @@ import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 
+import hokusaiWaveImage from '@assets/image_1747799995641.png';
+import hokusaiPortraitImage from '@assets/image_1747800012190.png';
+
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
@@ -53,17 +56,63 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
-      <div className="bg-gray-50 p-6 rounded-lg border mb-8">
-        <div className="aspect-w-16 aspect-h-9">
-          <iframe 
-            src="https://www.youtube.com/embed/_VsH5NO9jyg" 
-            title="Your Future Self" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-64 rounded border border-gray-200"
-          ></iframe>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        <div className="bg-gray-50 p-6 rounded-lg border">
+          <div className="aspect-w-16 aspect-h-9">
+            <iframe 
+              src="https://www.youtube.com/embed/_VsH5NO9jyg" 
+              title="Your Future Self" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="w-full h-64 rounded border border-gray-200"
+            ></iframe>
+          </div>
         </div>
+        
+        <div className="bg-gray-50 p-6 rounded-lg border flex flex-col">
+          <div className="prose mb-4">
+            <h3 className="text-indigo-800 font-medium">Purpose</h3>
+            <p className="text-sm text-gray-700">
+              This exercise honors every participant's infinite capacity for growth. 
+              Whether someone is 22 or 82, the focus remains on continuing evolution, 
+              deepening wisdom, and creating one's masterpiece. The most meaningful 
+              futures are not constrained by time but expanded by purpose.
+            </p>
+            <p className="text-sm text-gray-700 mt-2">
+              Remember Hokusai's wisdom - every decade brings new insight, sharper vision, 
+              and deeper connection to your life's work. The canvas of your future self 
+              has no boundaries.
+            </p>
+          </div>
+          
+          <div className="flex gap-4 mt-auto">
+            <div className="w-1/2">
+              <img 
+                src={hokusaiWaveImage} 
+                alt="The Great Wave off Kanagawa by Hokusai" 
+                className="w-full h-auto rounded border border-gray-200"
+              />
+            </div>
+            <div className="w-1/2">
+              <img 
+                src={hokusaiPortraitImage} 
+                alt="Portrait of Hokusai" 
+                className="w-full h-auto rounded border border-gray-200"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-8">
+        <p className="text-sm text-indigo-800 italic">
+          "From the age of 6 I had a mania for drawing the shapes of things. When I was 50 I had published a universe of designs. 
+          But all I have done before the age of 70 is not worth bothering with. At 75 I'll have learned something of the pattern of nature... 
+          At 80 I shall have made still more progress. At 90 I shall penetrate the mystery of life itself. At
+          100, I shall be a marvelous artist. At 110, everything I create; a dot, a line, will jump to life as never before."
+          <span className="block mt-1 font-medium text-right">— Katsushika Hokusai</span>
+        </p>
       </div>
 
       <div className="space-y-6 mb-8">
