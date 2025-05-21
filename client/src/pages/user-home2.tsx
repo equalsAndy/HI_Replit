@@ -3,7 +3,10 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ChevronLeft, ChevronRight, StarIcon, BarChartIcon, Activity, Sparkles, Lock } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, StarIcon, BarChartIcon, 
+  Activity, Sparkles, Lock, BookOpen, ClipboardCheck, Edit, Star 
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -72,6 +75,7 @@ export default function UserHome2() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
+  const [currentContent, setCurrentContent] = useState<string>("welcome");
   
   // Fetch user profile data
   const { data: user } = useQuery<{
@@ -193,7 +197,19 @@ export default function UserHome2() {
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <div 
-                              onClick={() => accessible && navigate(step.path)}
+                              onClick={() => {
+                                if (accessible) {
+                                  // Handle navigation based on the specific step
+                                  if (step.id === '2-1') { 
+                                    // If it's "Intro to Strengths", show the content in-place
+                                    setCurrentContent("intro-strengths");
+                                    markStepCompleted(step.id);
+                                  } else {
+                                    // For other pages, navigate to their routes
+                                    navigate(step.path);
+                                  }
+                                }
+                              }}
                               className={cn(
                                 "flex items-center px-4 py-2 my-1 rounded-md text-sm",
                                 accessible 
@@ -233,71 +249,138 @@ export default function UserHome2() {
       {/* Main Content Area */}
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-6 py-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to All-Star Teams Workshop</h1>
-          
-          <div className="prose max-w-none">
-            <p className="text-lg text-gray-700 mb-6">
-              Welcome to the All-Star Teams workshop! Through this journey, you'll 
-              discover your unique strengths profile and learn how to leverage it in your 
-              professional life.
-            </p>
-            
-            <Card className="mb-8">
-              <CardContent className="p-0 overflow-hidden">
-                <div className="aspect-w-16 aspect-h-9">
+          {currentContent === "welcome" && (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Welcome to All-Star Teams Workshop</h1>
+              
+              <div className="prose max-w-none">
+                <p className="text-lg text-gray-700 mb-6">
+                  Welcome to the All-Star Teams workshop! Through this journey, you'll 
+                  discover your unique strengths profile and learn how to leverage it in your 
+                  professional life.
+                </p>
+                
+                <Card className="mb-8">
+                  <CardContent className="p-0 overflow-hidden">
+                    <div className="aspect-w-16 aspect-h-9">
+                      <iframe 
+                        src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
+                        title="AllStarTeams Workshop Introduction"
+                        className="w-full h-[400px]" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowFullScreen
+                      ></iframe>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
+                
+                <ul className="space-y-3 mb-8">
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Complete your profile information</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Take the Star Strengths Assessment (10-15 minutes)</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Review your Star Profile and strengths</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Explore your flow attributes</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Visualize your future potential</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
+                    <span>Integrate insights into your professional life</span>
+                  </li>
+                </ul>
+                
+                <div className="flex justify-start">
+                  <Button 
+                    onClick={() => {
+                      markStepCompleted('1-1');
+                      navigate('/intro/video');
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    size="lg"
+                  >
+                    Begin Your Learning Journey
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
+
+          {currentContent === "intro-strengths" && (
+            <>
+              <h1 className="text-3xl font-bold text-gray-900 mb-6">Intro to Strengths</h1>
+              
+              <div className="prose max-w-none">
+                <div className="aspect-w-16 aspect-h-9 mb-4">
                   <iframe 
-                    src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
-                    title="AllStarTeams Workshop Introduction"
-                    className="w-full h-[400px]" 
+                    src="https://www.youtube.com/embed/ao04eaeDIFQ" 
+                    title="Introduction to AllStarTeams" 
+                    frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                     allowFullScreen
+                    className="w-full h-80 rounded border border-gray-200"
                   ></iframe>
                 </div>
-              </CardContent>
-            </Card>
-            
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
-            
-            <ul className="space-y-3 mb-8">
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Complete your profile information</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Take the Star Strengths Assessment (10-15 minutes)</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Review your Star Profile and strengths</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Explore your flow attributes</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Visualize your future potential</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-                <span>Integrate insights into your professional life</span>
-              </li>
-            </ul>
-            
-            <div className="flex justify-start">
-              <Button 
-                onClick={() => {
-                  markStepCompleted('1-1');
-                  navigate('/intro/video');
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Begin Your Learning Journey
-              </Button>
-            </div>
-          </div>
+
+                <h2 className="text-2xl font-bold mt-8 mb-4">The Four Quadrants of Strengths</h2>
+                <p>
+                  The AllStarTeams framework identifies four key quadrants of strengths that every person possesses in different proportions:
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 my-8">
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h3 className="text-green-700 font-medium mb-2">Thinking</h3>
+                    <p className="text-sm">The ability to analyze, strategize, and process information logically. People strong in this quadrant excel at problem-solving and critical thinking.</p>
+                  </div>
+
+                  <div className="bg-red-50 p-4 rounded-lg border border-red-100">
+                    <h3 className="text-red-700 font-medium mb-2">Acting</h3>
+                    <p className="text-sm">The ability to take decisive action, implement plans, and get things done. People strong in this quadrant are proactive and results-oriented.</p>
+                  </div>
+
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 className="text-blue-700 font-medium mb-2">Feeling</h3>
+                    <p className="text-sm">The ability to connect with others, empathize, and build relationships. People strong in this quadrant excel in team environments and social settings.</p>
+                  </div>
+
+                  <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                    <h3 className="text-yellow-700 font-medium mb-2">Planning</h3>
+                    <p className="text-sm">The ability to organize, structure, and create systems. People strong in this quadrant excel at creating order and maintaining processes.</p>
+                  </div>
+                </div>
+
+                <h3 className="text-xl font-bold mb-4">Your Assessment Journey</h3>
+                <p>
+                  In the upcoming assessment, you'll answer a series of questions designed to identify your natural strengths across these four quadrants. For each scenario, you'll rank options from "most like me" to "least like me."
+                </p>
+                <p>
+                  Remember: There are no right or wrong answers. The goal is to identify your authentic strengths so you can leverage them more effectively.
+                </p>
+                
+                <div className="flex justify-end mt-6">
+                  <Button 
+                    onClick={() => navigate('/assessment')}
+                    className="bg-indigo-700 hover:bg-indigo-800"
+                  >
+                    Take Assessment
+                  </Button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
