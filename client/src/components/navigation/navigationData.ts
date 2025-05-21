@@ -1,9 +1,32 @@
 import { 
-  StarIcon, BarChartIcon, Activity, Sparkles, BookOpen
+  StarIcon, BarChartIcon, Activity, Sparkles, BookOpen,
+  LightbulbIcon, Braces, Users, Puzzle
 } from 'lucide-react';
 import { NavigationSection } from '@/shared/types';
 
-// Navigation sections based on the spreadsheet
+// Imaginal Agility navigation sections
+export const imaginalAgilityNavigationSections: NavigationSection[] = [
+  {
+    id: '1',
+    title: 'Imaginal Agility Program',
+    path: '/imaginal-agility/intro',
+    icon: LightbulbIcon,
+    totalSteps: 8,
+    completedSteps: 0,
+    steps: [
+      { id: '1-1', label: 'Introduction to Imaginal Agility', path: '/imaginal-agility/intro', type: 'Learning', contentKey: 'imaginal-intro' },
+      { id: '1-2', label: 'The Triple Challenge', path: '/imaginal-agility/triple-challenge', type: 'Learning', contentKey: 'triple-challenge' },
+      { id: '1-3', label: 'The Imaginal Agility Solution', path: '/imaginal-agility/solution', type: 'Learning', contentKey: 'imaginal-solution' },
+      { id: '1-4', label: 'Your 5 Capabilities (5Cs)', path: '/imaginal-agility/capabilities', type: 'Learning', contentKey: 'five-capabilities' },
+      { id: '1-5', label: 'Take the Imagination Assessment', path: '/imaginal-agility/imagination-assessment', type: 'Assessment', contentKey: 'imagination-assessment' },
+      { id: '1-6', label: 'Complete the 5Cs Assessment', path: '/imaginal-agility/5cs-assessment', type: 'Assessment', contentKey: 'five-c-assessment' },
+      { id: '1-7', label: 'Review Your Insights', path: '/imaginal-agility/insights', type: 'Learning', contentKey: 'insights-review' },
+      { id: '1-8', label: 'Team Workshop', path: '/imaginal-agility/team-workshop', type: 'Workshop', contentKey: 'team-workshop' }
+    ]
+  }
+];
+
+// AllStarTeams navigation sections based on the spreadsheet
 export const navigationSections: NavigationSection[] = [
   { 
     id: '1', 
