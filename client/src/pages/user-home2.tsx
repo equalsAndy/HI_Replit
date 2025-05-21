@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import StarCard from '@/components/starcard/StarCard';
+import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 
 // Navigation sections based on the spreadsheet
 const navigationSections = [
@@ -23,7 +24,7 @@ const navigationSections = [
     totalSteps: 1,
     completedSteps: 0,
     steps: [
-      { id: '1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning', required: true }
+      { id: '1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' }
     ]
   },
   { 
@@ -34,10 +35,10 @@ const navigationSections = [
     totalSteps: 4,
     completedSteps: 0,
     steps: [
-      { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning', required: true },
-      { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity', required: false },
-      { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning', required: true },
-      { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing', required: true }
+      { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
+      { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
+      { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
+      { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' }
     ]
   },
   { 
@@ -48,10 +49,10 @@ const navigationSections = [
     totalSteps: 4,
     completedSteps: 0,
     steps: [
-      { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', required: true },
-      { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity', required: true },
-      { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing', required: true },
-      { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity', required: true }
+      { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
+      { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
+      { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
+      { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity' }
     ]
   },
   { 
@@ -246,6 +247,10 @@ export default function UserHome2() {
                                   } else if (step.id === '2-3') {
                                     // If it's "Star Card Preview", show the star card preview content
                                     setCurrentContent("star-card-preview");
+                                    markStepCompleted(step.id);
+                                  } else if (step.id === '2-4') {
+                                    // If it's "Reflect", show the reflection content
+                                    setCurrentContent("reflection");
                                     markStepCompleted(step.id);
                                   } else {
                                     // For other pages, navigate to their routes
