@@ -41,7 +41,7 @@ export const navigationSections: NavigationSection[] = [
       { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
       { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow/assessment', type: 'Assessment' },
       { id: '3-3', label: 'Rounding Out', path: '/find-your-flow/rounding-out', type: 'Learning' },
-      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Learning' }
+      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Assessment' }
     ]
   },
   { 
