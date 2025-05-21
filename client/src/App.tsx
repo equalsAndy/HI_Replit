@@ -109,12 +109,7 @@ function Router() {
             </div>;
           }} />
           {/* Main learning routes - redirect for now until we have all pages */}
-          <Route path="/intro/video" component={() => {
-            useEffect(() => {
-              navigate('/navigation-demo');
-            }, []);
-            return <div>Loading...</div>;
-          }} />
+          <Route path="/intro/video" component={() => import('./pages/intro/video')} />
           <Route path="/discover-strengths/intro" component={() => {
             useEffect(() => {
               navigate('/navigation-demo');
