@@ -280,9 +280,32 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       console.error('Error saving answer:', error);
     }
     
+    // Check if we're at question 22 (index 21) and have demo data
+    const isAtQuestion22 = currentQuestionIndex === 21;
+    
+    // Count the total answered questions
+    const completedQuestionCount = Object.keys(answers).length + 1; // +1 for current question
+    
+    // Determine if we're using demo data - if we have exactly 22 questions answered and are at question 22
+    const isUsingDemoData = completedQuestionCount === 22 && isAtQuestion22;
+    
     // Move to next question or complete
     if (currentQuestionIndex < totalQuestions - 1) {
-      setCurrentQuestionIndex(prev => prev + 1);
+      // If we're at question 22 and using demo data, we should complete the assessment
+      if (isUsingDemoData) {
+        completeWithDemoData();
+      } else {
+        // Otherwise go to next question
+        setCurrentQuestionIndex(prev => prev + 1);
+        
+        // Clear rankings for the next question
+        setRankings({
+          mostLikeMe: null,
+          second: null,
+          third: null,
+          leastLikeMe: null
+        });
+      }
     } else {
       // This is the last question, complete the assessment
       completeAssessment();
