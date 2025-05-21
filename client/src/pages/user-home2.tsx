@@ -90,6 +90,23 @@ export default function UserHome2() {
     organization?: string;
   }>({ queryKey: ['/api/user/profile'] });
   
+  // Fetch star card data
+  const { data: starCard } = useQuery<{
+    id?: number;
+    userId: number;
+    thinking: number;
+    acting: number;
+    feeling: number;
+    planning: number;
+    state?: string;
+    createdAt?: string;
+    imageUrl?: string | null;
+  }>({
+    queryKey: ['/api/starcard'],
+    enabled: !!user,
+    staleTime: Infinity,
+  });
+  
   // Load progress from localStorage
   useEffect(() => {
     const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
