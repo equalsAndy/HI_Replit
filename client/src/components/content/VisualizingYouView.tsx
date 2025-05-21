@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
-import { ChevronRight, Brain, Eye, Heart, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
+import { ChevronRight, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
+import { searchUnsplash, searchImages } from '@/services/api-services';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -24,12 +25,9 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     
     setIsSearching(true);
     try {
-      // This would typically call an API endpoint
-      setSearchResults([
-        // Placeholder results
-        { id: '1', urls: { regular: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f' }, user: { name: 'Example User', links: { html: '#' } }, links: { html: '#' } },
-        { id: '2', urls: { regular: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0' }, user: { name: 'Example User', links: { html: '#' } }, links: { html: '#' } },
-      ]);
+      // Use the actual Unsplash API
+      const results = await searchUnsplash(searchQuery, 20);
+      setSearchResults(results);
     } catch (error) {
       console.error('Search error:', error);
     } finally {
@@ -65,26 +63,13 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
       
-      <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100 mb-8">
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
         {showInstructions && (
           <div className="prose max-w-none">
-            <p>
-              This exercise helps you turn your one-year vision into something visible. By choosing or creating images that 
-              represent your future self, you engage your imagination and activate your brain's visualization centers in powerful ways.
+            <p className="mb-2">
+              Select 1-5 images that represent your ideal future self one year from now. Choose images that evoke positive 
+              emotions, align with your ladder reflection, and represent different aspects of your future vision.
             </p>
-            
-            <p>
-              Select 1-5 images that represent your ideal future self one year from now. These might be symbolic, aspirational, or representative 
-              of specific achievements you're working toward.
-            </p>
-            
-            <p className="font-medium">Guidelines:</p>
-            <ul>
-              <li>Choose images that evoke positive emotions</li>
-              <li>Look for images that align with your ladder reflection</li>
-              <li>Select a variety of images that represent different aspects of your future vision</li>
-              <li>You can upload your own images or search for images from Unsplash</li>
-            </ul>
             
             <div className="flex justify-end">
               <Button
@@ -92,14 +77,14 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 size="sm"
                 onClick={() => setShowInstructions(!showInstructions)}
               >
-                {showInstructions ? "Hide Instructions" : "Show Instructions"}
+                Hide Instructions
               </Button>
             </div>
           </div>
         )}
         
         {!showInstructions && (
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-2">
             <Button
               variant="outline"
               size="sm"
