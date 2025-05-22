@@ -114,7 +114,7 @@ export function ProfileEditor({ user, onSaved, readOnly = false, isCurrentUser =
   // Profile update mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (profileData: ProfileFormValues) => {
-      const response = await apiRequest('PATCH', `/api/user/profile/${user.id}`, profileData);
+      const response = await apiRequest('PUT', `/api/user/profile`, profileData);
       return await response.json();
     },
     onSuccess: () => {
@@ -160,17 +160,13 @@ export function ProfileEditor({ user, onSaved, readOnly = false, isCurrentUser =
 
   // Handle form submission
   const onSubmit = async (values: ProfileFormValues) => {
-    // Update profile
-    updateProfileMutation.mutate(values);
-    
-    // Upload avatar if changed
-    if (avatarFile) {
-      setIsUploading(true);
-      try {
-        await uploadAvatarMutation.mutateAsync(avatarFile);
-      } finally {
-        setIsUploading(false);
-      }
+    try {
+      // Update profile without avatar for now
+      await updateProfileMutation.mutateAsync(values);
+      // Success toast and callback are handled in the mutation's onSuccess
+    } catch (error) {
+      console.error('Profile update error:', error);
+      // Error toast is handled in the mutation's onError
     }
   };
 
