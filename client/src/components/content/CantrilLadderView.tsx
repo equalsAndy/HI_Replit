@@ -12,31 +12,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Ladder Reflections</h1>
       
-      <div className="prose max-w-none mb-6">
-        <p className="text-lg text-gray-700">
-          This self-reflection helps you assess your current life satisfaction and envision realistic personal growth over the next year. 
-          Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
-          to be in one year, and the steps you'll take each quarter to climb toward that vision.
-        </p>
-        <p className="text-lg text-gray-700 mt-4">
-          The Cantril Ladder is simple but offers profound insights across all age groups and life stages. For younger participants, 
-          it helps establish positive growth trajectories. For mid-career individuals, it provides clarity during transitions. For 
-          experienced participants, it reveals new possibilities for contribution and legacy.
-        </p>
-      </div>
-
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         <div className="md:w-1/2">
-          <div className="aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/yidsMx8B678" 
-              title="Understanding the Cantril Ladder" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-              className="w-full h-64 rounded border border-gray-200"
-            ></iframe>
-          </div>
           
           <div className="mt-6 space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">

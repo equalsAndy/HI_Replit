@@ -38,17 +38,14 @@ const WellbeingView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Wellbeing</h1>
       
+      <div className="prose max-w-none mb-6">
+        <p className="text-lg text-gray-700">
+          Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
+          to be in one year, and the steps you'll take each quarter to climb toward that vision.
+        </p>
+      </div>
+      
       <div className="mb-8">
-        <div className="aspect-w-16 aspect-h-9 mb-8">
-          <iframe 
-            src="https://www.youtube.com/embed/yidsMx8B678" 
-            title="Cantril Ladder of Wellbeing" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-80 rounded border border-gray-200"
-          ></iframe>
-        </div>
         
         <div className="flex justify-center">
           <div className="flex max-w-3xl">
