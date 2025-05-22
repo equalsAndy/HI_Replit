@@ -1,20 +1,16 @@
 import { 
   User, InsertUser, 
-  Assessment, InsertAssessment,
-  Question, InsertQuestion,
-  Answer, InsertAnswer,
-  StarCard, InsertStarCard,
-  AssessmentResult, QuadrantData,
-  FlowAttributes, InsertFlowAttributes,
-  Visualization, InsertVisualization
+  UserRole, 
+  StarCard, 
+  FlowAttributesRecord
 } from "@shared/schema";
 import { nanoid } from 'nanoid';
 import { db } from './db';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, desc } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 import connectPg from 'connect-pg-simple';
 import session from 'express-session';
-import { Pool } from '@neondatabase/serverless';
+import { Pool } from 'pg';
 import createMemoryStore from 'memorystore';
 
 export interface IStorage {
@@ -27,40 +23,39 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  getUsersByRole(role: UserRole): Promise<User[]>;
   
   // Test user operations
   createTestUsers(): Promise<void>;
   getTestUsers(): Promise<User[]>;
-  resetUserData(userId: number): Promise<void>;
   
-  // Assessment operations
-  getQuestions(): Promise<Question[]>;
-  getAssessment(userId: number): Promise<Assessment | undefined>;
-  createAssessment(assessment: InsertAssessment): Promise<Assessment>;
-  updateAssessment(id: number, assessmentData: Partial<Assessment>): Promise<Assessment | undefined>;
-  deleteAssessment(userId: number): Promise<void>;
+  // User role operations
+  assignRole(userId: number, role: UserRole): Promise<void>;
+  removeRole(userId: number, role: UserRole): Promise<void>;
+  getUserRoles(userId: number): Promise<UserRole[]>;
   
-  // Answer operations
-  saveAnswer(answer: InsertAnswer): Promise<Answer>;
-  getAnswers(userId: number): Promise<Answer[]>;
-  deleteAnswers(userId: number): Promise<void>;
+  // Cohort operations
+  createCohort(cohortData: any): Promise<any>;
+  getCohort(id: number): Promise<any | undefined>;
+  updateCohort(id: number, cohortData: any): Promise<any | undefined>;
+  getAllCohorts(): Promise<any[]>;
+  getCohortsByFacilitator(facilitatorId: number): Promise<any[]>;
+  
+  // Cohort participant operations
+  addParticipantToCohort(cohortId: number, participantId: number): Promise<void>;
+  removeParticipantFromCohort(cohortId: number, participantId: number): Promise<void>;
+  getCohortParticipants(cohortId: number): Promise<User[]>;
+  getParticipantCohorts(participantId: number): Promise<any[]>;
   
   // Star Card operations
   getStarCard(userId: number): Promise<StarCard | undefined>;
-  createStarCard(starCard: InsertStarCard): Promise<StarCard>;
+  createStarCard(starCard: any): Promise<StarCard>;
   updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined>;
-  deleteStarCard(userId: number): Promise<void>;
   
   // Flow Attributes operations
-  getFlowAttributes(userId: number): Promise<FlowAttributes | undefined>;
-  createFlowAttributes(flowAttributes: InsertFlowAttributes): Promise<FlowAttributes>;
-  updateFlowAttributes(id: number, flowAttributesData: Partial<FlowAttributes>): Promise<FlowAttributes | undefined>;
-  deleteFlowAttributes(userId: number): Promise<void>;
-  
-  // Visualization operations
-  getVisualization(userId: number): Promise<Visualization | undefined>;
-  createVisualization(visualization: InsertVisualization): Promise<Visualization>;
-  updateVisualization(id: number, visualizationData: Partial<Visualization>): Promise<Visualization | undefined>;
+  getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
+  createFlowAttributes(flowAttributes: any): Promise<FlowAttributesRecord>;
+  updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined>;
 }
 
 // Import statements removed to fix duplicate declarations

@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useApplication } from "@/hooks/use-application";
 import { insertUserSchema } from "@shared/schema";
 import { TestUserPicker } from "@/components/test-users/TestUserPicker";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 import {
   Form,
@@ -191,54 +192,32 @@ export default function AuthPage() {
 
         {/* Login Form */}
         {isLogin && (
-          <Form {...loginForm}>
-            <form onSubmit={loginForm.handleSubmit(onLoginSubmit)} className="space-y-6">
-              <FormField
-                control={loginForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={loginForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+          <div className="space-y-6">
+            <div className="flex flex-col space-y-4">
               <Button 
-                type="button" // Changed from submit to button
-                className="w-full bg-gray-400 hover:bg-gray-500 cursor-not-allowed"
-                disabled={true}
+                type="button" 
+                onClick={() => setShowTestUsers(true)}
+                className="w-full"
+                variant="outline"
               >
-                Sign In Disabled
+                Log in with Test User
               </Button>
-            </form>
-          </Form>
+              
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <LoginForm />
+            </div>
+          </div>
         )}
 
         {/* Register Form */}
