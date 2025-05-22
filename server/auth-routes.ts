@@ -151,4 +151,49 @@ authRouter.get('/test-users', async (req, res) => {
   }
 });
 
+// Setup test users (create or update with standard password)
+authRouter.post('/setup-test-users', async (req, res) => {
+  try {
+    const standardPassword = 'password';
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(standardPassword, salt);
+    
+    // List of test users to create or update
+    const testUsers = [
+      { username: 'admin', name: 'Admin User', role: UserRole.Admin },
+      { username: 'facilitator', name: 'Facilitator User', role: UserRole.Facilitator },
+      { username: 'user1', name: 'Participant One', role: UserRole.Participant },
+      { username: 'user2', name: 'Participant Two', role: UserRole.Participant }
+    ];
+    
+    // Create or update each test user
+    for (const userData of testUsers) {
+      const existingUser = await storage.getUserByUsername(userData.username);
+      
+      if (existingUser) {
+        // Update existing user
+        await storage.updateUser(existingUser.id, {
+          ...userData,
+          password: hashedPassword
+        });
+        // Ensure role is set
+        await storage.setUserRole(existingUser.id, userData.role);
+      } else {
+        // Create new user
+        const newUser = await storage.createUser({
+          ...userData,
+          password: hashedPassword
+        });
+        // Set role for new user
+        await storage.setUserRole(newUser.id, userData.role);
+      }
+    }
+    
+    res.status(200).json({ message: 'Test users setup complete' });
+  } catch (error) {
+    console.error('Error setting up test users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export { authRouter };

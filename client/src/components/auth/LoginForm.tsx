@@ -182,6 +182,30 @@ export function LoginForm() {
           <p className="text-xs text-gray-500 mt-1">
             Password for all test users: "password"
           </p>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full mt-2"
+            onClick={async () => {
+              try {
+                await apiRequest('POST', '/api/auth/setup-test-users', {});
+                toast({
+                  title: 'Test Users Created',
+                  description: 'All test users have been created successfully.',
+                });
+              } catch (error) {
+                console.error('Failed to setup test users:', error);
+                toast({
+                  title: 'Setup Failed',
+                  description: 'Failed to create test users. Please try again.',
+                  variant: 'destructive',
+                });
+              }
+            }}
+          >
+            Setup Test Users
+          </Button>
         </div>
       </CardFooter>
     </Card>
