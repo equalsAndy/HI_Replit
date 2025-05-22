@@ -1,6 +1,5 @@
 import React, { useEffect, Suspense, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
-import UserHome2 from "./pages/user-home2";
 import AllStarTeams from "./pages/allstarteams";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
@@ -86,7 +85,6 @@ function Router() {
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
-          <Route path="/user-home2" component={UserHome2} />
           <Route path="/allstarteams" component={AllStarTeams} />
           <Route path="/user-home2-refactored" component={() => {
             const appType = localStorage.getItem('selectedApp');
