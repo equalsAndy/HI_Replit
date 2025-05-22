@@ -442,105 +442,97 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Your 5 Capabilities (5Cs)</h1>
           
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <iframe 
+              src="https://www.youtube.com/embed/8wXSL3om6Ig"
+              className="w-full h-[400px]" 
+              title="5 Capabilities (5Cs)"
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
+          </div>
+          
+          <div className="flex justify-end mb-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-4');
+                setCurrentContent("imagination-assessment");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Take the Imagination Assessment
+            </Button>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The 5Cs Framework</h2>
           <p className="text-lg text-gray-700 mb-6">
-            Understanding your 5Cs profile is the first step toward developing your Imaginal Agility. 
-            Each capability represents a distinct dimension of strategic imagination that can be 
-            strengthened through deliberate practice.
+            These five capabilities form the foundation of Imaginal Agility. While each is 
+            powerful independently, they create exponential impact when developed together. 
+            Think of them as different facets of the same diamond—each reflecting and 
+            amplifying the others.
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">Curiosity</h3>
-              <p className="text-gray-700 mb-4">
-                The ability to ask powerful questions, challenge assumptions, and maintain openness to new information.
-              </p>
-              <div className="bg-white p-3 rounded-lg text-sm">
-                <span className="font-semibold text-purple-800">Key practices:</span>
-                <ul className="mt-2 space-y-1">
-                  <li>Asking "what if" and "how might we" questions</li>
-                  <li>Seeking diverse perspectives</li>
-                  <li>Suspending judgment</li>
-                </ul>
+          <ul className="space-y-4 mb-8">
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
+              <div>
+                <span className="font-semibold text-purple-800">Imagination:</span>
+                <span className="text-gray-700"> The ability to envision new possibilities</span>
               </div>
-            </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">Courage</h3>
-              <p className="text-gray-700 mb-4">
-                The willingness to take intelligent risks, embrace uncertainty, and adapt in the face of challenges.
-              </p>
-              <div className="bg-white p-3 rounded-lg text-sm">
-                <span className="font-semibold text-purple-800">Key practices:</span>
-                <ul className="mt-2 space-y-1">
-                  <li>Experimenting with new approaches</li>
-                  <li>Learning from failures</li>
-                  <li>Persisting through ambiguity</li>
-                </ul>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
+              <div>
+                <span className="font-semibold text-purple-800">Curiosity:</span>
+                <span className="text-gray-700"> An openness to exploring and questioning</span>
               </div>
-            </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">Connection</h3>
-              <p className="text-gray-700 mb-4">
-                The capacity to build relationships, bridge disciplines, and integrate diverse perspectives.
-              </p>
-              <div className="bg-white p-3 rounded-lg text-sm">
-                <span className="font-semibold text-purple-800">Key practices:</span>
-                <ul className="mt-2 space-y-1">
-                  <li>Building collaborative networks</li>
-                  <li>Crossing disciplinary boundaries</li>
-                  <li>Creating psychological safety</li>
-                </ul>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
+              <div>
+                <span className="font-semibold text-purple-800">Empathy:</span>
+                <span className="text-gray-700"> Understanding perspectives beyond your own</span>
               </div>
-            </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">Creativity</h3>
-              <p className="text-gray-700 mb-4">
-                The ability to generate novel ideas, make unexpected connections, and envision new possibilities.
-              </p>
-              <div className="bg-white p-3 rounded-lg text-sm">
-                <span className="font-semibold text-purple-800">Key practices:</span>
-                <ul className="mt-2 space-y-1">
-                  <li>Ideation and divergent thinking</li>
-                  <li>Making surprising connections</li>
-                  <li>Generating multiple scenarios</li>
-                </ul>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
+              <div>
+                <span className="font-semibold text-purple-800">Creativity:</span>
+                <span className="text-gray-700"> Finding novel solutions to complex problems</span>
               </div>
-            </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg shadow-sm">
-              <div className="h-12 w-12 rounded-full bg-purple-600 text-white flex items-center justify-center mb-4 text-xl font-bold">C</div>
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">Clarity</h3>
-              <p className="text-gray-700 mb-4">
-                The skill to discern patterns, find signal in noise, and maintain focus on what matters most.
-              </p>
-              <div className="bg-white p-3 rounded-lg text-sm">
-                <span className="font-semibold text-purple-800">Key practices:</span>
-                <ul className="mt-2 space-y-1">
-                  <li>Strategic prioritization</li>
-                  <li>Pattern recognition</li>
-                  <li>Focused attention</li>
-                </ul>
+            </li>
+            <li className="flex items-start">
+              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
+              <div>
+                <span className="font-semibold text-purple-800">Courage:</span>
+                <span className="text-gray-700"> Taking bold action in the face of uncertainty</span>
               </div>
-            </div>
-          </div>
+            </li>
+          </ul>
           
-          <div className="bg-purple-100 p-6 rounded-lg mb-8">
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Everyone Has a Unique Profile</h2>
-            <p className="text-gray-700 mb-4">
-              While all five capabilities are important, most people naturally have stronger and weaker areas. 
-              Understanding your profile helps you build on your strengths while developing your areas for growth.
-            </p>
-            <p className="text-gray-700">
-              The assessments in this program will help you identify your current profile and track your development 
-              over time as you practice the techniques and apply the principles of Imaginal Agility.
-            </p>
-          </div>
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Capabilities in Context</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Unlike technical skills that may become obsolete, these capabilities grow more 
+            valuable over time. They enhance your ability to learn, adapt, and create meaning 
+            in any context—especially in collaboration with AI and other technologies.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Imagination Advantage</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Organizations with high Imaginal Agility don't just adapt to change—they envision 
+            and create preferred futures. By developing these capabilities, you become an 
+            architect of possibility rather than simply responding to circumstances.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Individual to Collective</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            As you strengthen these capabilities, you'll notice their impact extends beyond 
+            your individual work. Teams with high collective Imaginal Agility solve problems 
+            more creatively, navigate complexity more effectively, and find greater meaning 
+            in their shared purpose.
+          </p>
           
           <div className="flex justify-end mt-8">
             <Button 
