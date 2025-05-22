@@ -70,7 +70,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       icon: 'Target',
       steps: [
         { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
-        { id: '4-2', label: 'Cantril Ladder', path: '/cantril-ladder', type: 'Activity and Writing' },
+        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing' },
         { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
         { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
         { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },

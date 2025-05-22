@@ -76,7 +76,7 @@ export const navigationSections: NavigationSection[] = [
     completedSteps: 0,
     steps: [
       { id: '4-1', label: 'Ladder of Well-being', path: '/visualize-potential/wellbeing', type: 'Learning' },
-      { id: '4-2', label: 'Cantril Ladder', path: '/visualize-potential/cantril-ladder', type: 'Learning' },
+      { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning' },
       { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Learning' },
       { id: '4-4', label: 'Your Future Self', path: '/visualize-potential/future-self', type: 'Reflection' },
       { id: '4-5', label: 'Final Reflection', path: '/visualize-potential/your-statement', type: 'Reflection' }
