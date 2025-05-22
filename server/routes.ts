@@ -1,8 +1,7 @@
 import type { Express, Request, Response } from "express";
 import express from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
-import { dbStorage } from "./dbStorage";
+import { storage } from "./new-storage";
 import { insertUserSchema } from "@shared/schema";
 import { UserRole } from "@shared/types";
 import { z } from "zod";
@@ -133,7 +132,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Get user details
-      const user = await dbStorage.getUser(userId);
+      const user = await storage.getUser(userId);
       
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -170,7 +169,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userData = updateProfileSchema.parse(req.body);
       
       // Update user
-      const updatedUser = await dbStorage.updateUser(userId, userData);
+      const updatedUser = await storage.updateUser(userId, userData);
       
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });

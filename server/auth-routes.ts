@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { dbStorage } from './dbStorage';
+import { storage } from './new-storage';
 import { UserRole } from '../shared/types';
 
 // Create router for authentication routes

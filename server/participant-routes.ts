@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { dbStorage } from './dbStorage';
+import { storage } from './storage';
 import { UserRole } from '../shared/types';
 
 // Create router for participant management routes
@@ -17,7 +17,7 @@ const requireAdminOrFacilitator = async (req: Request, res: Response, next: Func
     }
     
     // Get user details
-    const user = await dbStorage.getUser(userId);
+    const user = await storage.getUser(userId);
     
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
@@ -52,14 +52,14 @@ participantRouter.get('/cohorts/:cohortId/participants', async (req: Request, re
     }
     
     // Get cohort to check if it exists
-    const cohort = await dbStorage.getCohort(cohortId);
+    const cohort = await storage.getCohort(cohortId);
     
     if (!cohort) {
       return res.status(404).json({ message: 'Cohort not found' });
     }
     
     // Get participants
-    const participants = await dbStorage.getCohortParticipants(cohortId);
+    const participants = await storage.getCohortParticipants(cohortId);
     
     // Return participants without passwords
     const participantsWithoutPasswords = participants.map(participant => {
@@ -91,21 +91,21 @@ participantRouter.post('/cohorts/:cohortId/participants', async (req: Request, r
     const { userId } = addParticipantSchema.parse(req.body);
     
     // Check if cohort exists
-    const cohort = await dbStorage.getCohort(cohortId);
+    const cohort = await storage.getCohort(cohortId);
     
     if (!cohort) {
       return res.status(404).json({ message: 'Cohort not found' });
     }
     
     // Check if user exists
-    const user = await dbStorage.getUser(userId);
+    const user = await storage.getUser(userId);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
     
     // Add participant to cohort
-    await dbStorage.addParticipantToCohort(cohortId, userId);
+    await storage.addParticipantToCohort(cohortId, userId);
     
     res.status(200).json({ message: 'Participant added to cohort successfully' });
   } catch (error) {
@@ -128,14 +128,14 @@ participantRouter.delete('/cohorts/:cohortId/participants/:userId', async (req: 
     }
     
     // Check if cohort exists
-    const cohort = await dbStorage.getCohort(cohortId);
+    const cohort = await storage.getCohort(cohortId);
     
     if (!cohort) {
       return res.status(404).json({ message: 'Cohort not found' });
     }
     
     // Remove participant from cohort
-    await dbStorage.removeParticipantFromCohort(cohortId, userId);
+    await storage.removeParticipantFromCohort(cohortId, userId);
     
     res.status(200).json({ message: 'Participant removed from cohort successfully' });
   } catch (error) {
