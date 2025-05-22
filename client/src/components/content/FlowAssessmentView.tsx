@@ -52,12 +52,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  // Check for existing flow score in local storage, but reset for testing
+  // Check for existing flow score in local storage
   const [hasCompletedAssessment, setHasCompletedAssessment] = useState(() => {
     try {
-      // Clear any saved assessment answers so we can start fresh
-      localStorage.removeItem('flowAssessmentAnswers');
-      return false;
+      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
+      return !!savedAnswers;
     } catch (e) {
       return false;
     }
@@ -65,8 +64,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
-    // Always start with empty answers for testing
-    return {};
+    try {
+      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
+      return savedAnswers ? JSON.parse(savedAnswers) : {};
+    } catch (e) {
+      return {};
+    }
   });
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
