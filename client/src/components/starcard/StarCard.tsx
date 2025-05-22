@@ -353,7 +353,7 @@ export default function StarCard({
                 right,
                 left,
                 backgroundColor: flowAttributes[index]?.text 
-                  ? getQuadrantDefaultColor(index)  // Always use quadrant color when attribute exists
+                  ? flowAttributes[index]?.color || getQuadrantDefaultColor(index)  // Use attribute's color when available
                   : 'rgb(229, 231, 235)' // Default light gray only when no attribute
               }}
             >
