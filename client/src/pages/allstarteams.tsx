@@ -61,9 +61,18 @@ export default function AllStarTeams() {
     if (savedProgressJSON) {
       try {
         const savedProgress = JSON.parse(savedProgressJSON);
-        setCompletedSteps(savedProgress);
+        // Ensure we only set completed steps if it's an array
+        if (Array.isArray(savedProgress)) {
+          setCompletedSteps(savedProgress);
+        } else {
+          console.error("Saved progress is not an array:", savedProgress);
+          // Initialize as empty array if not valid
+          setCompletedSteps([]);
+        }
       } catch (e) {
         console.error("Error parsing saved progress:", e);
+        // Initialize as empty array if parsing fails
+        setCompletedSteps([]);
       }
     }
   }, [progressStorageKey]);
@@ -120,13 +129,26 @@ export default function AllStarTeams() {
   
   // Function to mark a step as completed
   const markStepCompleted = (stepId: string) => {
-    if (!completedSteps.includes(stepId)) {
-      setCompletedSteps(prev => [...prev, stepId]);
+    console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
+    // Defensive check to ensure completedSteps is an array
+    if (Array.isArray(completedSteps)) {
+      if (!completedSteps.includes(stepId)) {
+        setCompletedSteps(prev => Array.isArray(prev) ? [...prev, stepId] : [stepId]);
+      }
+    } else {
+      console.error("completedSteps is not an array:", completedSteps);
+      setCompletedSteps([stepId]);
     }
   };
   
   // Function to determine if a step is accessible
   const isStepAccessible = (sectionId: string, stepId: string) => {
+    // Defensive check to ensure completedSteps is an array
+    if (!Array.isArray(completedSteps)) {
+      console.error("completedSteps is not an array in isStepAccessible:", completedSteps);
+      return sectionId === '1' && stepId === '1-1'; // Only allow first step if completedSteps is invalid
+    }
+    
     const sectionIndex = parseInt(sectionId) - 1;
     const stepIndex = parseInt(stepId.split('-')[1]) - 1;
     
@@ -142,7 +164,11 @@ export default function AllStarTeams() {
     
     // For the first step of other sections, check if all steps in previous section are completed
     if (stepIndex === 0 && sectionIndex > 0) {
-      const prevSection = navigationSections[sectionIndex - 1];
+      const prevSection = activeNavigationSections[sectionIndex - 1];
+      if (!prevSection || !prevSection.steps) {
+        console.error("Previous section or steps not found:", { sectionIndex, activeNavigationSections });
+        return false;
+      }
       return prevSection.steps.every(step => completedSteps.includes(step.id));
     }
     
