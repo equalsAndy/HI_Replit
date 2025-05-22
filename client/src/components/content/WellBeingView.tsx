@@ -66,6 +66,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           </div>
         </div>
         
+        {/* Cantril Ladder description moved above sliders */}
+        <div className="prose max-w-none mb-6">
+          <p className="text-lg text-gray-700">
+            Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
+            to be in one year, and the steps you'll take each quarter to climb toward that vision.
+          </p>
+        </div>
+        
         {/* Content below video */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
           {/* SVG Ladder */}
@@ -142,7 +150,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   className="bg-blue-600 hover:bg-blue-700 text-white"
                   disabled={saving}
                 >
-                  Lock In My Choices
+                  I'm Done
                 </Button>
               ) : (
                 <Button
