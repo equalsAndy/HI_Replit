@@ -46,11 +46,9 @@ export default function ProfileManagement() {
   } : undefined;
 
   // Fetch users (for admins/facilitators to manage)
-  const { data: users, isLoading: isUsersLoading } = useQuery<User[]>({
+  const { data: users = [], isLoading: isUsersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
     enabled: isAdmin || isFacilitator,
-    // Fallback to an empty array if the endpoint doesn't exist yet
-    onError: () => { return []; }
   });
 
   // Get initials for avatar fallback
@@ -123,10 +121,10 @@ export default function ProfileManagement() {
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    {/* For demo purposes, we'll show a few mock users since the endpoint may not exist yet */}
-                    {(users?.length || 0) > 0 ? (
+                    {/* Display users from the system */}
+                    {users.length > 0 ? (
                       <div className="grid gap-4">
-                        {users?.map(user => (
+                        {users.map((user: User) => (
                           <div 
                             key={user.id} 
                             className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"

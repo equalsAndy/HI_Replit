@@ -14,7 +14,14 @@ export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
   const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
-  const { data: user } = useQuery({ queryKey: ['/api/user/profile'] });
+  const { data: user } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    title?: string;
+    organization?: string;
+    role?: string;
+  }>({ queryKey: ['/api/user/profile'] });
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
@@ -43,14 +50,34 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-4">
+        {user?.id && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-md text-white hover:bg-yellow-400"
+            onClick={() => navigate('/profile')}
+          >
+            Profile
+          </Button>
+        )}
         <Button 
-              variant="outline" 
-              size="sm" 
-              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-              onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
-            >
-              Contact Us
-            </Button>
+          variant="outline" 
+          size="sm" 
+          className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
+          onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
+        >
+          Contact Us
+        </Button>
+        {user?.id && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-md text-white hover:bg-yellow-400"
+            onClick={() => navigate('/logout')}
+          >
+            Logout
+          </Button>
+        )}
       </div>
     </div>
   );
