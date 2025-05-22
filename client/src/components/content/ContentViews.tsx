@@ -370,104 +370,59 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
           
-          <div className="mb-8">
-            <img 
-              src="https://images.unsplash.com/photo-1500576992153-0271099def59?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2969&q=80" 
-              alt="Person looking at a vast horizon, representing imagination and possibility"
-              className="w-full rounded-lg object-cover h-64"
-            />
-          </div>
-          
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Strategic Imagination: The Human Advantage</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            Imaginal Agility is the human capacity to navigate complex, fast-changing environments by 
-            integrating imagination with strategic thinking. It's not just creative thinking, but the ability 
-            to envision possibilities and create practical pathways toward preferred futures.
-          </p>
-          
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">What It Is</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>A systematic approach to developing imagination as a strategic capability</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>A portfolio of practices that strengthen adaptability in changing contexts</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>A framework for integrating human creativity with technological capabilities</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl text-purple-800 font-semibold mb-3">What It Is Not</h3>
-              <ul className="space-y-2">
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>Generic creativity training or artistic expression</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>Unrealistic or impractical "blue sky" thinking</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-purple-600 font-bold mr-2">•</span>
-                  <span>A technical skill that can be replaced by AI</span>
-                </li>
-              </ul>
+          <div className="mb-8 rounded-lg overflow-hidden">
+            {/* Module 2 Video Placeholder */}
+            <div className="relative w-full h-[400px] bg-gradient-to-r from-orange-300 to-purple-400 rounded-lg overflow-hidden flex flex-col items-center justify-center text-white">
+              <div className="absolute inset-0 bg-black opacity-30"></div>
+              <div className="z-10 text-center px-6">
+                <h2 className="text-3xl font-semibold mb-2">Imaginal Agility Workshop Course</h2>
+                <div className="h-px w-16 bg-white mx-auto my-6"></div>
+                <h3 className="text-4xl font-light mb-2">MODULE 2</h3>
+                <p className="text-xl">From Challenge to Capability</p>
+              </div>
             </div>
           </div>
           
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The 5 Core Capabilities (5Cs)</h2>
+          <div className="flex justify-end mb-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-3');
+                setCurrentContent("five-capabilities");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Your 5 Capabilities (5Cs)
+            </Button>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Approach</h2>
           <p className="text-lg text-gray-700 mb-6">
-            Our research has identified five core capabilities that form the foundation of Imaginal Agility. 
-            Each capability can be strengthened through deliberate practice and integrated into your professional workflow:
+            Imaginal Agility is the ability to perceive complex situations clearly and respond effectively 
+            through intentional awareness. Unlike temporary skills that quickly become obsolete, 
+            this capacity becomes more valuable as change accelerates.
           </p>
           
-          <div className="bg-purple-100 p-6 rounded-lg mb-8">
-            <ul className="space-y-4">
-              <li className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
-                <div>
-                  <span className="font-semibold text-purple-800">Curiosity:</span>
-                  <span className="text-gray-700"> The ability to ask powerful questions, challenge assumptions, and maintain openness to new information</span>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
-                <div>
-                  <span className="font-semibold text-purple-800">Courage:</span>
-                  <span className="text-gray-700"> The willingness to take intelligent risks, embrace uncertainty, and adapt in the face of challenges</span>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
-                <div>
-                  <span className="font-semibold text-purple-800">Connection:</span>
-                  <span className="text-gray-700"> The capacity to build relationships, bridge disciplines, and integrate diverse perspectives</span>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
-                <div>
-                  <span className="font-semibold text-purple-800">Creativity:</span>
-                  <span className="text-gray-700"> The ability to generate novel ideas, make unexpected connections, and envision new possibilities</span>
-                </div>
-              </li>
-              <li className="flex items-start">
-                <div className="h-8 w-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">C</div>
-                <div>
-                  <span className="font-semibold text-purple-800">Clarity:</span>
-                  <span className="text-gray-700"> The skill to discern patterns, find signal in noise, and maintain focus on what matters most</span>
-                </div>
-              </li>
-            </ul>
-          </div>
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Technical Training</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            While most AI training focuses on technical adoption, Imaginal Agility addresses the 
+            deeper adaptive challenge: developing the human capabilities that complement—rather than 
+            compete with—artificial intelligence.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Research Foundation</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Research confirms that organizations that cultivate imagination and intentional thinking 
+            experience greater innovation, resilience, and employee engagement. This isn't just good 
+            for humans—it's good for business.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Challenge to Capability</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            By transforming potential AI-related disruptions into developmental opportunities, 
+            you'll build enduring human capacities that fuel innovation, resilience, and meaningful 
+            work—regardless of technological changes.
+          </p>
           
           <div className="flex justify-end mt-8">
             <Button 
