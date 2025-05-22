@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentViewProps } from '../../../shared/types';
+import { ContentViewProps, StarCard, User } from '../../../shared/types';
 import PlaceholderView from '../PlaceholderView';
 import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';

@@ -21,6 +21,16 @@ import PlaceholderView from '../PlaceholderView';
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
+  
+  // Explicitly defining props to avoid type errors
+  starCard?: StarCard;
+  user?: User;
+  flowAttributesData?: {
+    id?: number;
+    userId?: number;
+    flowScore?: number;
+    attributes?: Array<{ name: string; score: number; }>;
+  };
 }
 
 const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
