@@ -2,11 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCard from '@/components/starcard/StarCard';
-import { Gauge, ChevronRight, X } from 'lucide-react';
+import { Gauge, ChevronRight, X, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // Define the flow attribute type
 interface FlowAttribute {
@@ -42,7 +59,66 @@ const flowAttributes = [
   "Practical", "Resilient", "Spontaneous", "Vigorous"
 ];
 
-// Custom flow badge component
+// Sortable flow badge component for drag-and-drop reordering
+const SortableFlowBadge = ({ 
+  text, 
+  rank, 
+  rankBadgeColor, 
+  onRemove 
+}: { 
+  text: string; 
+  rank: number; 
+  rankBadgeColor: string;
+  onRemove: () => void;
+}) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: text });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : 1,
+    opacity: isDragging ? 0.8 : 1,
+  };
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      style={style} 
+      className="flex items-center"
+    >
+      <Badge 
+        variant="outline"
+        className="bg-indigo-100 text-indigo-800 cursor-move transition-colors flex items-center"
+      >
+        <span {...listeners} {...attributes} className="cursor-grab mr-1">
+          <GripVertical className="h-3 w-3 text-gray-500" />
+        </span>
+        {text}
+        <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${rankBadgeColor}`}>
+          {rank + 1}
+        </span>
+        <button 
+          className="ml-1 text-indigo-600 hover:text-indigo-800"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+        >
+          <X className="h-3 w-3" />
+        </button>
+      </Badge>
+    </div>
+  );
+};
+
+// Regular flow badge component for selections
 const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", onSelect, onRemove }: { 
   text: string; 
   rank?: number | null; // Allow null or undefined with a default value applied
@@ -302,6 +378,45 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     }
   };
   
+  // Handle drag end for reordering attributes
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (over && active.id !== over.id) {
+      setSelectedAttributes((items) => {
+        // Find the items we're reordering
+        const activeItem = items.find(item => item.text === active.id);
+        const overItem = items.find(item => item.text === over.id);
+        
+        if (!activeItem || !overItem || activeItem.rank === null || overItem.rank === null) {
+          return items;
+        }
+        
+        // Get the ordered array of items with ranks
+        const rankedItems = items
+          .filter(item => item.rank !== null)
+          .sort((a, b) => (a.rank || 0) - (b.rank || 0));
+        
+        // Find the indices for swapping
+        const activeIndex = rankedItems.findIndex(item => item.text === active.id);
+        const overIndex = rankedItems.findIndex(item => item.text === over.id);
+        
+        // Reorder the array
+        const newRankedItems = arrayMove(rankedItems, activeIndex, overIndex);
+        
+        // Update all ranks based on new positions
+        const updatedRankedItems = newRankedItems.map((item, index) => ({
+          ...item,
+          rank: index
+        }));
+        
+        // Merge ranked items with unranked items
+        const unrankedItems = items.filter(item => item.rank === null);
+        return [...updatedRankedItems, ...unrankedItems];
+      });
+    }
+  };
+  
   const saveFlowAttributes = () => {
     // Create a new version of the StarCard component with the flow attributes
     const rankedAttributes = selectedAttributes
@@ -420,20 +535,45 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                     </div>
                     
                     {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
-                      <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg min-h-[60px]">
-                        {selectedAttributes
-                          .filter(attr => attr.rank !== null)
-                          .sort((a, b) => (a.rank || 0) - (b.rank || 0))
-                          .map(attr => (
-                            <FlowBadge 
-                              key={attr.text} 
-                              text={attr.text} 
-                              rank={attr.rank || 0} 
-                              selected={true}
-                              rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
-                              onRemove={() => handleRemoveAttribute(attr.text)}
-                            />
-                          ))}
+                      <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                        <DndContext
+                          sensors={useSensors(
+                            useSensor(PointerSensor, {
+                              activationConstraint: {
+                                distance: 8,
+                              },
+                            }),
+                            useSensor(KeyboardSensor, {
+                              coordinateGetter: sortableKeyboardCoordinates,
+                            })
+                          )}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <SortableContext
+                            items={selectedAttributes
+                              .filter(attr => attr.rank !== null)
+                              .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                              .map(attr => attr.text)
+                            }
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="flex flex-wrap gap-2">
+                              {selectedAttributes
+                                .filter(attr => attr.rank !== null)
+                                .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                                .map(attr => (
+                                  <SortableFlowBadge 
+                                    key={attr.text} 
+                                    text={attr.text} 
+                                    rank={attr.rank || 0} 
+                                    rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
+                                    onRemove={() => handleRemoveAttribute(attr.text)}
+                                  />
+                                ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
                       </div>
                     ) : (
                       <p className="text-sm text-gray-500 italic p-3 border border-gray-200 rounded-lg min-h-[60px] flex items-center justify-center">
