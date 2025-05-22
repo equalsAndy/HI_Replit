@@ -19,6 +19,7 @@ import fs from "fs";
 import { nanoid } from "nanoid";
 import cookieParser from "cookie-parser";
 import { adminRouter } from "./admin-routes";
+import { testAdminRouter } from "./test-admin-routes";
 
 // Set up uploads directory
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -61,6 +62,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register admin routes under the /api/admin path
   app.use('/api/admin', adminRouter);
+  
+  // Register test routes for development purposes
+  app.use('/api/test', testAdminRouter);
 
   // Define cookie options for consistent use across endpoints
   const COOKIE_OPTIONS = {
