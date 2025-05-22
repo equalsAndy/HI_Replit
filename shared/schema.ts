@@ -1,304 +1,153 @@
-import { pgTable, text, serial, integer, boolean, jsonb, timestamp, primaryKey } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  integer,
+  primaryKey,
+  serial,
+  boolean,
+  json,
+  unique,
+  jsonb,
+  index
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
-import { relations } from "drizzle-orm";
 
-export const applications = pgTable("applications", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),  // "AllStarTeams" or "Imaginal Agility"
-  slug: text("slug").notNull(),  // "allstarteams" or "imaginal-agility"
-  description: text("description"),
-  logoUrl: text("logo_url"),
-  primaryColor: text("primary_color").default("indigo"),
-});
+// Session storage table for auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => ({
+    expireIdx: index("IDX_session_expire").on(table.expire),
+  })
+);
 
-// We define user roles in shared/types.ts
-
+// Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
-  password: text("password").notNull(),
-  name: text("name"),
-  title: text("title"),
-  organization: text("organization"),
-  avatarUrl: text("avatar_url"),
+  username: varchar("username").notNull().unique(),
+  password: varchar("password").notNull(),
+  name: varchar("name").notNull(),
+  email: varchar("email").unique(),
+  title: varchar("title"),
+  organization: varchar("organization"),
+  avatarUrl: varchar("avatar_url"),
   progress: integer("progress").default(0),
-  applicationId: integer("application_id").references(() => applications.id),
-  // Removed role field for now to avoid migration issues
-  // Working with existing database structure
-  // email: text("email"),
-  // These fields will be handled through UI logic for now, until we migrate the database
-  // role: text("role").default("participant"),
-  // bio: text("bio"),
-  // phone: text("phone"),
-  // createdAt: timestamp("created_at").defaultNow(),
-  // updatedAt: timestamp("updated_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const assessments = pgTable("assessments", {
+// User roles enum
+export enum UserRole {
+  Admin = 'admin',
+  Facilitator = 'facilitator',
+  Participant = 'participant'
+}
+
+// User roles table
+export const userRoles = pgTable("user_roles", {
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar("role").notNull().$type<UserRole>(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.role] }),
+}));
+
+// Cohorts table
+export const cohorts = pgTable("cohorts", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  completed: boolean("completed").default(false),
-  results: jsonb("results"),
-  createdAt: text("created_at"),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  status: varchar("status").notNull().default('upcoming'),
+  cohortType: varchar("cohort_type").notNull().default('standard'),
+  parentCohortId: integer("parent_cohort_id").references(() => cohorts.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const questions = pgTable("questions", {
-  id: serial("id").primaryKey(),
-  text: text("text").notNull(),
-  options: jsonb("options").notNull(),
-  category: text("category").notNull(),
-});
+// Cohort facilitators
+export const cohortFacilitators = pgTable("cohort_facilitators", {
+  cohortId: integer("cohort_id").notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  facilitatorId: integer("facilitator_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.cohortId, table.facilitatorId] }),
+}));
 
-export const answers = pgTable("answers", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  questionId: integer("question_id").notNull(),
-  ranking: jsonb("ranking").notNull(),
-});
+// Cohort participants
+export const cohortParticipants = pgTable("cohort_participants", {
+  cohortId: integer("cohort_id").notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  participantId: integer("participant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.cohortId, table.participantId] }),
+}));
 
+// Star Card table
 export const starCards = pgTable("star_cards", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   thinking: integer("thinking").default(0),
   acting: integer("acting").default(0),
   feeling: integer("feeling").default(0),
   planning: integer("planning").default(0),
-  createdAt: text("created_at"),
-  imageUrl: text("image_url"),
-  state: text("state").default('empty'),
+  imageUrl: varchar("image_url"),
+  state: varchar("state").default('incomplete'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Flow attributes table
 export const flowAttributes = pgTable("flow_attributes", {
   id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  attributes: jsonb("attributes").notNull(),
-  flowScore: integer("flow_score").default(0),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  attributes: json("attributes").default([]),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-export const visualizations = pgTable("visualizations", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull(),
-  wellbeingLevel: integer("wellbeing_level"),
-  wellbeingFactors: text("wellbeing_factors"),
-  oneYearVision: text("one_year_vision"),
-  specificChanges: text("specific_changes"),
-  quarterlyProgress: text("quarterly_progress"),
-  quarterlyActions: text("quarterly_actions"),
-  potentialImageUrls: jsonb("potential_image_urls"),
-  imageMeaning: text("image_meaning"),
-  futureVision: text("future_vision"),
-  optimizedFlow: text("optimized_flow"),
-  happyLifeAchievements: text("happy_life_achievements"),
-  futureStatement: text("future_statement"),
-  showInstructions: boolean("show_instructions").default(false),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
+// Define relationships
+export const usersRelations = relations(users, ({ many }) => ({
+  roles: many(userRoles),
+  participatingCohorts: many(cohortParticipants),
+  facilitatingCohorts: many(cohortFacilitators),
+  starCard: many(starCards),
+  flowAttributes: many(flowAttributes),
+}));
 
-// Define relations between tables
-export const usersRelations = relations(users, ({ one, many }) => ({
-  starCard: one(starCards, {
-    fields: [users.id],
-    references: [starCards.userId],
-  }),
-  assessments: many(assessments),
-  answers: many(answers),
-  flowAttributes: one(flowAttributes, {
-    fields: [users.id],
-    references: [flowAttributes.userId],
-  }),
-  visualization: one(visualizations, {
-    fields: [users.id],
-    references: [visualizations.userId],
+export const cohortsRelations = relations(cohorts, ({ many, one }) => ({
+  participants: many(cohortParticipants),
+  facilitators: many(cohortFacilitators),
+  parentCohort: one(cohorts, {
+    fields: [cohorts.parentCohortId],
+    references: [cohorts.id],
   }),
 }));
 
-export const assessmentsRelations = relations(assessments, ({ one }) => ({
-  user: one(users, {
-    fields: [assessments.userId],
-    references: [users.id],
-  }),
-}));
-
-export const answersRelations = relations(answers, ({ one }) => ({
-  user: one(users, {
-    fields: [answers.userId],
-    references: [users.id],
-  }),
-  question: one(questions, {
-    fields: [answers.questionId],
-    references: [questions.id],
-  }),
-}));
-
-export const starCardsRelations = relations(starCards, ({ one }) => ({
-  user: one(users, {
-    fields: [starCards.userId],
-    references: [users.id],
-  }),
-}));
-
-export const flowAttributesRelations = relations(flowAttributes, ({ one }) => ({
-  user: one(users, {
-    fields: [flowAttributes.userId],
-    references: [users.id],
-  }),
-}));
-
-export const visualizationsRelations = relations(visualizations, ({ one }) => ({
-  user: one(users, {
-    fields: [visualizations.userId],
-    references: [users.id],
-  }),
-}));
-
-// Insert schemas
-// We're now using the UserRole enum instead of a database table
-
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
-  name: true,
-  title: true,
-  organization: true,
-  avatarUrl: true,
-  progress: true,
-  applicationId: true,
+// Define schemas for inserting data
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
 });
 
-export const insertAssessmentSchema = createInsertSchema(assessments).pick({
-  userId: true,
-  completed: true,
-  results: true,
-  createdAt: true,
+export const insertCohortSchema = createInsertSchema(cohorts).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
 });
 
-export const insertQuestionSchema = createInsertSchema(questions).pick({
-  text: true,
-  options: true,
-  category: true,
-});
-
-export const insertAnswerSchema = createInsertSchema(answers).pick({
-  userId: true,
-  questionId: true,
-  ranking: true,
-});
-
-export const insertStarCardSchema = createInsertSchema(starCards).pick({
-  userId: true,
-  thinking: true,
-  acting: true,
-  feeling: true,
-  planning: true,
-  createdAt: true,
-  imageUrl: true,
-  state: true,
-});
-
-export const insertFlowAttributesSchema = createInsertSchema(flowAttributes).pick({
-  userId: true,
-  attributes: true,
-  flowScore: true,
-  createdAt: true,
-});
-
-export const insertVisualizationSchema = createInsertSchema(visualizations).pick({
-  userId: true,
-  wellbeingLevel: true,
-  wellbeingFactors: true,
-  oneYearVision: true,
-  specificChanges: true,
-  quarterlyProgress: true,
-  quarterlyActions: true,
-  potentialImageUrls: true,
-  imageMeaning: true,
-  futureVision: true,
-  optimizedFlow: true,
-  happyLifeAchievements: true,
-  futureStatement: true,
-  showInstructions: true,
-});
-
-// Types
-export type InsertUser = z.infer<typeof insertUserSchema>;
+// Define types
 export type User = typeof users.$inferSelect;
-
-// Note: We import the UserRole enum from shared/types.ts in components that need it
-
-// We import UserRole from shared/types.ts instead
-
-export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
-export type Assessment = typeof assessments.$inferSelect;
-
-export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
-export type Question = typeof questions.$inferSelect;
-
-export type InsertAnswer = z.infer<typeof insertAnswerSchema>;
-export type Answer = typeof answers.$inferSelect;
-
-export enum AssessmentState {
-  Empty = 'empty',        // No assessment data exists
-  Partial = 'partial',    // Has assessment data (quadrant scores)
-  Complete = 'complete'   // Has both assessment and flow attributes
-}
-
-export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
-export type StarCard = typeof starCards.$inferSelect & {
-  assessmentState?: AssessmentState;
-};
-
-export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
-export type FlowAttributes = typeof flowAttributes.$inferSelect;
-
-export type InsertVisualization = z.infer<typeof insertVisualizationSchema>;
-export type Visualization = typeof visualizations.$inferSelect;
-
-// Additional types for the frontend
-export type QuadrantData = {
-  thinking: number;
-  acting: number;
-  feeling: number;
-  planning: number;
-  state?: string; // 'empty', 'partial', or 'complete'
-};
-
-export type ProfileData = {
-  name: string;
-  title: string;
-  organization: string;
-  avatarUrl?: string;
-};
-
-export type AssessmentOption = {
-  id: string;
-  text: string;
-  category: 'thinking' | 'acting' | 'feeling' | 'planning';
-};
-
-export type AssessmentQuestion = {
-  id: number;
-  text: string;
-  options: AssessmentOption[];
-};
-
-export type RankedOption = {
-  optionId: string;
-  rank: number; // 1 = most like me, 4 = least like me
-};
-
-export type QuestionAnswer = {
-  questionId: number;
-  rankings: RankedOption[];
-};
-
-export type AssessmentResult = {
-  thinking: number;
-  acting: number;
-  feeling: number;
-  planning: number;
-  answers: QuestionAnswer[];
-};
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Cohort = typeof cohorts.$inferSelect;
+export type InsertCohort = z.infer<typeof insertCohortSchema>;
+export type StarCard = typeof starCards.$inferSelect;
+export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;

@@ -45,6 +45,8 @@ interface Cohort {
   facilitatorId?: number;
   facilitatorName?: string;
   memberCount: number;
+  cohortType: 'leadership' | 'team' | 'standard';
+  parentCohortId?: number; // For team cohorts linked to a leadership cohort
 }
 
 interface Facilitator {
@@ -295,6 +297,8 @@ function AddCohortDialog({ open, onOpenChange, onSuccess }: AddCohortDialogProps
     endDate: '',
     facilitatorId: '',
     status: 'upcoming',
+    cohortType: 'standard',
+    parentCohortId: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
