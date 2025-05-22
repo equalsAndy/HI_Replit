@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { storage } from './storage';
-import { UserRole } from '../shared/types';
+import { storage } from './new-storage';
+import { UserRole } from '@shared/types';
 
 // Create router for authentication routes
 const authRouter = Router();
@@ -61,7 +61,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     const userData = registerSchema.parse(req.body);
     
     // Check if username already exists
-    const existingUser = await dbStorage.getUserByUsername(userData.username);
+    const existingUser = await storage.getUserByUsername(userData.username);
     
     if (existingUser) {
       return res.status(400).json({ message: 'Username already exists' });
