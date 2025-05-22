@@ -119,19 +119,7 @@ function UserManagementTab() {
   return <UserManagement />;
 }
 
-// Placeholder component for Cohort Management Tab
+// Cohort Management Tab Component
 function CohortManagementTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Cohort Management</CardTitle>
-        <CardDescription>Manage workshop cohorts and participants</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center py-4">
-          <p>Cohort management functionality will be implemented here</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <CohortManagement />;
 }
