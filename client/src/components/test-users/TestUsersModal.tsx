@@ -107,7 +107,37 @@ export function TestUsersModal({
   // Progress tracking constants
   const PROGRESS_STORAGE_KEY = 'allstarteams-navigation-progress';
   
-  // Reset user data and progress mutation
+  // Clear user data only mutation (doesn't reset progress)
+  const clearUserData = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', `/api/test-users/reset/${userId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Don't remove local storage progress
+      // localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      
+      // Invalidate all queries to refresh data
+      queryClient.invalidateQueries();
+      
+      toast({
+        title: "User data cleared",
+        description: `Data for Test User ${userId} has been cleared, but navigation progress remains intact.`,
+      });
+      
+      // Close the modal
+      onClose();
+    },
+    onError: (error) => {
+      toast({
+        title: "Failed to clear user data",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Reset user data AND progress mutation
   const resetUserData = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', `/api/test-users/reset/${userId}`);
@@ -116,12 +146,13 @@ export function TestUsersModal({
     onSuccess: () => {
       // Clear local storage progress
       localStorage.removeItem(PROGRESS_STORAGE_KEY);
+      localStorage.removeItem('imaginal-agility-navigation-progress');
       
       // Invalidate all queries to refresh data
       queryClient.invalidateQueries();
       
       toast({
-        title: "User data cleared",
+        title: "Complete reset",
         description: `All data and navigation progress for Test User ${userId} has been reset.`,
       });
       
@@ -133,7 +164,7 @@ export function TestUsersModal({
     },
     onError: (error) => {
       toast({
-        title: "Failed to reset user data",
+        title: "Failed to reset user completely",
         description: String(error),
         variant: "destructive",
       });
@@ -226,24 +257,24 @@ export function TestUsersModal({
             </Button>
           )}
           
-          {/* Reset Progress button */}
+          {/* Clear Data Only button (doesn't reset progress) */}
           <Button 
             variant="outline"
-            className="bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-            onClick={() => resetUserProgress.mutate()}
-            disabled={resetUserProgress.isPending}
+            className="bg-yellow-50 text-yellow-700 hover:bg-yellow-100 border-yellow-300"
+            onClick={() => clearUserData.mutate()}
+            disabled={!hasData || clearUserData.isPending}
           >
-            <span className="mr-2">↻</span>
-            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
+            {clearUserData.isPending ? "Clearing..." : "Clear Data Only"}
           </Button>
-
-          {/* Clear All Data button */}
+          
+          {/* Reset Progress AND Data button */}
           <Button 
             variant="destructive" 
             onClick={() => resetUserData.mutate()}
-            disabled={!hasData || resetUserData.isPending}
+            disabled={resetUserData.isPending}
           >
-            {resetUserData.isPending ? "Clearing..." : "Clear All User Data"}
+            <span className="mr-2">↻</span>
+            {resetUserData.isPending ? "Resetting..." : "Reset Progress & Data"}
           </Button>
         </DialogFooter>
       </DialogContent>
