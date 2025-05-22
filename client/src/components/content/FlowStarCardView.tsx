@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StarCard from '@/components/starcard/StarCard';
@@ -235,6 +235,18 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(false);
+  
+  // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
   
   // Determine if card is already complete
   const isCardComplete = flowAttributesData?.attributes && 
@@ -539,16 +551,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext
-                          sensors={useSensors(
-                            useSensor(PointerSensor, {
-                              activationConstraint: {
-                                distance: 8,
-                              },
-                            }),
-                            useSensor(KeyboardSensor, {
-                              coordinateGetter: sortableKeyboardCoordinates,
-                            })
-                          )}
+                          sensors={sensors}
                           collisionDetection={closestCenter}
                           onDragEnd={handleDragEnd}
                         >
