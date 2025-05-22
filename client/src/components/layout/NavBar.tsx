@@ -60,6 +60,17 @@ export function NavBar() {
             Profile
           </Button>
         )}
+        {/* Admin button - only shown for user ID 1 */}
+        {user?.id === 1 && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-md text-white hover:bg-yellow-400"
+            onClick={() => navigate('/admin')}
+          >
+            Admin
+          </Button>
+        )}
         <Button 
           variant="outline" 
           size="sm" 
