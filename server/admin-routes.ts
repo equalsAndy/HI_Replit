@@ -48,19 +48,45 @@ adminRouter.use(requireAdmin);
 adminRouter.get('/users', async (req: Request, res: Response) => {
   try {
     const users = await storage.getAllUsers();
-    res.status(200).json(users);
+    
+    // Add virtual role properties based on user IDs for development
+    const usersWithRoles = users.map(user => {
+      let role = UserRole.Participant; // Default role
+      
+      // For development/demo purposes:
+      if (user.id === 1) {
+        role = UserRole.Admin;
+      } else if (user.id === 2 || user.id === 3) {
+        role = UserRole.Facilitator;
+      }
+      
+      return {
+        ...user,
+        role: role
+      };
+    });
+    
+    res.status(200).json(usersWithRoles);
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Get facilitators (users with Facilitator role)
+// Get facilitators (for development purposes, consider users with IDs 2 and 3 as facilitators)
 adminRouter.get('/facilitators', async (req: Request, res: Response) => {
   try {
     const users = await storage.getAllUsers();
-    const facilitators = users.filter(user => user.role === UserRole.Facilitator);
-    res.status(200).json(facilitators);
+    // For development, users with IDs 2 and 3 are considered facilitators
+    const facilitators = users.filter(user => user.id === 2 || user.id === 3);
+    
+    // Add a virtual "role" property to the response
+    const facilitatorsWithRoles = facilitators.map(user => ({
+      ...user,
+      role: UserRole.Facilitator  // Add a virtual role property for the frontend
+    }));
+    
+    res.status(200).json(facilitatorsWithRoles);
   } catch (error) {
     console.error('Error fetching facilitators:', error);
     res.status(500).json({ message: 'Server error' });
@@ -144,19 +170,34 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
       email: z.string().email('Invalid email address').optional(),
       title: z.string().optional(),
       organization: z.string().optional(),
-      role: z.nativeEnum(UserRole).optional(),
+      userType: z.string().optional(), // We use userType instead of role
       password: z.string().optional(),
     });
     
     const parsedData = UserUpdateSchema.parse(req.body);
     
-    // Update the user
-    const updatedUser = await storage.updateUser(userId, {
-      ...parsedData,
-      updatedAt: new Date().toISOString(),
-    });
+    // Build update object with only supported fields
+    const updateData: any = {};
+    if (parsedData.name) updateData.name = parsedData.name;
+    if (parsedData.title) updateData.title = parsedData.title;
+    if (parsedData.organization) updateData.organization = parsedData.organization;
+    if (parsedData.password) updateData.password = parsedData.password;
     
-    res.status(200).json(updatedUser);
+    // Update the user
+    const updatedUser = await storage.updateUser(userId, updateData);
+    
+    // For the response, add the virtual role based on user ID
+    let role = UserRole.Participant;
+    if (userId === 1) {
+      role = UserRole.Admin;
+    } else if (userId === 2 || userId === 3) {
+      role = UserRole.Facilitator;
+    }
+    
+    res.status(200).json({
+      ...updatedUser,
+      role: role
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ message: 'Invalid input', errors: error.errors });

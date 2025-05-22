@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { User } from '@/shared/types';
 
 // UI Components
 import {
@@ -744,9 +745,9 @@ function ManageMembersDialog({ cohort, open, onOpenChange, onSuccess }: ManageMe
         // This will be implemented on the backend
         // For now, return a placeholder array of available users
         return [
-          { id: 5, name: 'Test User 5', title: 'Product Manager' },
-          { id: 6, name: 'Test User 6', title: 'UX Designer' },
-          { id: 7, name: 'Test User 7', title: 'Fullstack Developer' }
+          { id: 5, name: 'Test User 5', title: 'Product Manager', email: 'user5@example.com' },
+          { id: 6, name: 'Test User 6', title: 'UX Designer', email: 'user6@example.com' },
+          { id: 7, name: 'Test User 7', title: 'Fullstack Developer', email: 'user7@example.com' }
         ] as User[];
       } catch (error) {
         console.error('Failed to fetch available users:', error);
