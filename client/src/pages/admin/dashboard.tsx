@@ -10,6 +10,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 
+// Admin Components
+import { UserManagement } from '@/components/admin/UserManagement';
+import { CohortManagement } from '@/components/admin/CohortManagement';
+
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -110,21 +114,9 @@ function StatsCard({ title, value }: StatsCardProps) {
   );
 }
 
-// Placeholder component for User Management Tab
+// User Management Tab Component
 function UserManagementTab() {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>User Management</CardTitle>
-        <CardDescription>View and manage all users in the system</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="text-center py-4">
-          <p>User management functionality will be implemented here</p>
-        </div>
-      </CardContent>
-    </Card>
-  );
+  return <UserManagement />;
 }
 
 // Placeholder component for Cohort Management Tab
