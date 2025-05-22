@@ -162,16 +162,6 @@ export function ProfileEditor({ user, onSaved, readOnly = false, isCurrentUser =
   const onSubmit = async (values: ProfileFormValues) => {
     // Update profile
     updateProfileMutation.mutate(values);
-    
-    // Upload avatar if changed
-    if (avatarFile) {
-      setIsUploading(true);
-      try {
-        await uploadAvatarMutation.mutateAsync(avatarFile);
-      } finally {
-        setIsUploading(false);
-      }
-    }
   };
 
   // Get initials for avatar fallback
@@ -213,27 +203,6 @@ export function ProfileEditor({ user, onSaved, readOnly = false, isCurrentUser =
                   <AvatarImage src={avatarPreview || undefined} alt={user.name} />
                   <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
                 </Avatar>
-                
-                {!readOnly && isCurrentUser && (
-                  <div className="flex flex-col items-center">
-                    <label
-                      htmlFor="avatar-upload"
-                      className="flex items-center space-x-2 cursor-pointer bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-2 rounded-md text-sm"
-                    >
-                      <Upload className="h-4 w-4" />
-                      <span>Upload photo</span>
-                    </label>
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarChange}
-                      disabled={isUploading}
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Max size: 5MB</p>
-                  </div>
-                )}
                 
                 {/* Role badge */}
                 <div className={`text-sm font-medium py-1 px-3 rounded-full border ${roleDisplay.color}`}>
