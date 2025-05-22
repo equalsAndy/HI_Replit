@@ -150,6 +150,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     setHasCompletedAssessment(true);
   };
   
+  // Function to manually reset assessment data
+  const resetAssessmentData = () => {
+    localStorage.removeItem('flowAssessmentAnswers');
+    setAnswers({});
+    setHasCompletedAssessment(false);
+    setCurrentQuestion(0);
+  };
+  
   // State to track which popover is open
   const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
   
@@ -491,6 +499,18 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       <p className="text-lg text-gray-600 mb-6">
         Learn about the flow and discover how to optimize your work experience
       </p>
+      
+      {/* Add reset button for testing */}
+      <div className="mb-4">
+        <Button 
+          variant="outline"
+          size="sm"
+          className="border-red-300 text-red-600 hover:bg-red-50"
+          onClick={resetAssessmentData}
+        >
+          Reset Assessment
+        </Button>
+      </div>
       
       {/* If assessment has been completed, show results */}
       {hasCompletedAssessment ? (
