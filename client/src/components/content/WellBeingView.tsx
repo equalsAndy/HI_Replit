@@ -195,14 +195,6 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             </div>
           </div>
         </div>
-        
-        {/* Description text */}
-        <div className="prose max-w-none mb-6">
-          <p className="text-lg text-gray-700">
-            Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
-            to be in one year, and the steps you'll take each quarter to climb toward that vision.
-          </p>
-        </div>
       </div>
       
       <div className="flex justify-end">
