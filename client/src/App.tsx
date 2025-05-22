@@ -10,7 +10,7 @@ import Landing from "@/pages/landing";
 import AuthPage from "@/pages/auth-page";
 import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
-import UserHome from "@/pages/user-home";
+import UserHome from "./pages/user-home2-refactored";
 import { TestUserBanner } from "@/components/test-users/TestUserBanner";
 import { Button } from "@/components/ui/button";
 

@@ -44,7 +44,7 @@ export function UserManagement() {
   const [filter, setFilter] = useState('');
   
   // Fetch all users
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, isError, refetch } = useQuery({
     queryKey: ['/api/admin/users'],
     queryFn: async () => {
       try {
@@ -57,7 +57,7 @@ export function UserManagement() {
           description: 'Failed to load users. Please try again.',
           variant: 'destructive',
         });
-        return [];
+        throw error;
       }
     },
   });
