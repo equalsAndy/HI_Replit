@@ -158,6 +158,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const queryClient = useQueryClient();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
+  const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(false);
   
   // Determine if card is already complete
   const isCardComplete = flowAttributesData?.attributes && 
@@ -353,76 +354,134 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
-          <div className="bg-white border border-gray-200 rounded-lg p-4">
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-4">
+          {isCardComplete && !showSelectionInterface ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Your Flow Attributes</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="mb-4">
+                  <p className="text-sm text-gray-600 mb-4">
+                    These attributes reflect how you work at your best when in flow state.
+                  </p>
+                  
+                  {/* Show selected attributes in a read-only display */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
+                    <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                      {selectedAttributes
+                        .filter(attr => attr.rank !== null)
+                        .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                        .map(attr => (
+                          <Badge 
+                            key={attr.text} 
+                            variant="outline"
+                            className="bg-indigo-100 text-indigo-800"
+                          >
+                            {attr.text}
+                            <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${getRankBadgeColor(attr.rank || 0)}`}>
+                              {(attr.rank || 0) + 1}
+                            </span>
+                          </Badge>
+                        ))}
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full border-indigo-200 text-indigo-600 hover:text-indigo-700"
+                    onClick={() => setShowSelectionInterface(true)}
+                  >
+                    I want to choose different attributes
+                  </Button>
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <h3 className="text-lg font-semibold mb-4">Select Your Flow Attributes</h3>
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <p className="text-sm text-gray-600">
+                      Choose 4 words that best describe your flow state. Click badges to select/deselect.
+                    </p>
+                  </div>
+                  
+                  {/* Selected attributes */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
+                    </div>
+                    
+                    {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
+                      <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                        {selectedAttributes
+                          .filter(attr => attr.rank !== null)
+                          .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                          .map(attr => (
+                            <FlowBadge 
+                              key={attr.text} 
+                              text={attr.text} 
+                              rank={attr.rank || 0} 
+                              selected={true}
+                              rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
+                              onRemove={() => handleRemoveAttribute(attr.text)}
+                            />
+                          ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-gray-500 italic p-3 border border-gray-200 rounded-lg min-h-[60px] flex items-center justify-center">
+                        Select a word below to add it to your flow attributes
+                      </p>
+                    )}
+                  </div>
+                  
+                  {/* Available attributes */}
+                  <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <h4 className="text-sm font-medium mb-2">Flow Attributes:</h4>
+                    <div className="flex flex-wrap gap-2">
+                      {flowAttributes.map((attr: string) => {
+                        const isSelected = selectedAttributes.some(selected => selected.text === attr);
+                        const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
+                        
+                        return (
+                          <FlowBadge 
+                            key={attr}
+                            text={attr}
+                            rank={rank || 0}
+                            selected={isSelected}
+                            rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
+                            onSelect={() => handleAttributeSelect(attr)}
+                          />
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
+                <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
                 <p className="text-sm text-gray-600">
-                  Choose 4 words that best describe your flow state. Click badges to select/deselect.
+                  Choose attributes that reflect how you feel and perform when you're deeply engaged in meaningful work. 
+                  These will appear in the four corners of your Star Card.
                 </p>
               </div>
               
-              {/* Selected attributes */}
-              <div className="mb-4">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
+              {isCardComplete && (
+                <div className="mb-4">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="w-full border-gray-200 text-gray-600"
+                    onClick={() => setShowSelectionInterface(false)}
+                  >
+                    Cancel and keep my current attributes
+                  </Button>
                 </div>
-                
-                {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
-                  <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg min-h-[60px]">
-                    {selectedAttributes
-                      .filter(attr => attr.rank !== null)
-                      .sort((a, b) => (a.rank || 0) - (b.rank || 0))
-                      .map(attr => (
-                        <FlowBadge 
-                          key={attr.text} 
-                          text={attr.text} 
-                          rank={attr.rank || 0} 
-                          selected={true}
-                          rankBadgeColor={getRankBadgeColor(attr.rank || 0)}
-                          onRemove={() => handleRemoveAttribute(attr.text)}
-                        />
-                      ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500 italic p-3 border border-gray-200 rounded-lg min-h-[60px] flex items-center justify-center">
-                    Select a word below to add it to your flow attributes
-                  </p>
-                )}
-              </div>
-              
-              {/* Available attributes */}
-              <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                <h4 className="text-sm font-medium mb-2">Flow Attributes:</h4>
-                <div className="flex flex-wrap gap-2">
-                  {flowAttributes.map((attr: string) => {
-                    const isSelected = selectedAttributes.some(selected => selected.text === attr);
-                    const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
-                    
-                    return (
-                      <FlowBadge 
-                        key={attr}
-                        text={attr}
-                        rank={rank || 0}
-                        selected={isSelected}
-                        rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
-                        onSelect={() => handleAttributeSelect(attr)}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
-            <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
-            <p className="text-sm text-gray-600">
-              Choose attributes that reflect how you feel and perform when you're deeply engaged in meaningful work. 
-              These will appear in the four corners of your Star Card.
-            </p>
-          </div>
-          
+              )}
+            </>
+          )}
         </div>
         
         <div>
@@ -443,15 +502,17 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           </div>
           
-          <div className="mt-2">
-            <Button
-              className="w-full bg-indigo-700 hover:bg-indigo-800"
-              disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || isCardComplete || flowAttributesMutation.isPending}
-              onClick={saveFlowAttributes}
-            >
-              {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
-            </Button>
-          </div>
+          {showSelectionInterface || !isCardComplete ? (
+            <div className="mt-2">
+              <Button
+                className="w-full bg-indigo-700 hover:bg-indigo-800"
+                disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || flowAttributesMutation.isPending}
+                onClick={saveFlowAttributes}
+              >
+                {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
+              </Button>
+            </div>
+          ) : null}
         </div>
       </div>
       
