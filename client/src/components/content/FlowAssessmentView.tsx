@@ -74,7 +74,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
-  const [showScoringInfo, setShowScoringInfo] = useState(false);
+  const [showScoringInfo, setShowScoringInfo] = useState(true);
   
   // Get current question
   const question = flowQuestions[currentQuestion];
