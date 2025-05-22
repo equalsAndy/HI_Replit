@@ -570,64 +570,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">5Cs Assessment</h1>
           
-          <div className="bg-purple-50 p-6 rounded-lg mb-8">
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Assess Your 5 Capabilities</h2>
-            <p className="text-lg text-gray-700 mb-4">
-              This assessment takes a deeper dive into each of the five core capabilities that form the foundation of Imaginal Agility.
-              Your responses will help create your personalized capability profile and identify areas for targeted development.
-            </p>
-            
-            <div className="grid md:grid-cols-5 gap-4 mt-6">
-              {['Curiosity', 'Courage', 'Connection', 'Creativity', 'Clarity'].map((capability, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <div className="h-16 w-16 rounded-full bg-purple-600 text-white flex items-center justify-center mb-3 text-xl font-bold">C</div>
-                  <span className="font-semibold text-purple-800">{capability}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">What to Expect</h2>
-          <ul className="space-y-3 mb-6">
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-              <span className="text-gray-700">25 carefully designed questions across the five capability areas</span>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-              <span className="text-gray-700">Approximately 10 minutes to complete</span>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-              <span className="text-gray-700">Personalized results showing your unique capability profile</span>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5">•</div>
-              <span className="text-gray-700">Specific recommendations for developing each capability</span>
-            </li>
-          </ul>
-          
-          <div className="bg-purple-100 p-6 rounded-lg mb-8">
-            <h3 className="text-xl font-semibold text-purple-800 mb-3">Why Your Profile Matters</h3>
-            <p className="text-gray-700">
-              Your unique capability profile will help you understand your natural strengths and identify areas 
-              where targeted practice can enhance your overall Imaginal Agility. The most effective leaders develop
-              all five capabilities while leveraging their distinctive strengths.
-            </p>
-          </div>
-          
-          <div className="flex justify-end mt-8">
-            <Button 
-              onClick={() => {
-                markStepCompleted('1-6');
-                setCurrentContent("insights-review");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Next: Review Your Insights
-            </Button>
-          </div>
+          {/* 5Cs Assessment component with questions and results functionality */}
+          <FiveCSAssessmentContent 
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
         </div>
       );
       
