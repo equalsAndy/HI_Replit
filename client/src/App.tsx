@@ -87,7 +87,11 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/allstarteams" component={AllStarTeams} />
-          <Route path="/profile" component={ProfileManagement} />
+          <Route path="/profile">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading profile...</div>}>
+              <ProfileManagement />
+            </Suspense>
+          </Route>
           <Route path="/user-home2-refactored" component={() => {
             const appType = localStorage.getItem('selectedApp');
             if (appType === 'imaginal-agility') {
@@ -156,9 +160,7 @@ function Router() {
           <Route path="/visualize-yourself" component={VisualizeYourself} />
           <Route path="/navigation-demo" component={NavigationDemo} />
           <Route path="/learning-overview" component={LearningOverview} />
-          <Route path="/user-home2" component={() => {
-            return <UserHome2 />;
-          }} />
+          <Route path="/user-home2" component={UserHome} />
 
           {/* Imaginal Agility Routes */}
           <Route path="/imaginal-agility">

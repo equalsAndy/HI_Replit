@@ -12,7 +12,12 @@ export const applications = pgTable("applications", {
   primaryColor: text("primary_color").default("indigo"),
 });
 
-// We'll implement these tables later with proper migrations
+// User roles table for role-based access control
+export const userRoles = pgTable("user_roles", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // Admin, Facilitator, Participant
+  description: text("description"),
+});
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -24,13 +29,12 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   progress: integer("progress").default(0),
   applicationId: integer("application_id").references(() => applications.id),
-  // We'll add these fields later with proper migrations
-  // roleId: integer("role_id").references(() => userRoles.id).default(3), 
-  // bio: text("bio"),
-  // email: text("email"),
-  // phone: text("phone"),
-  // createdAt: timestamp("created_at").defaultNow(),
-  // updatedAt: timestamp("updated_at").defaultNow(),
+  roleId: integer("role_id").references(() => userRoles.id).default(3), // Default to Participant
+  bio: text("bio"),
+  email: text("email"),
+  phone: text("phone"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const assessments = pgTable("assessments", {
@@ -98,6 +102,10 @@ export const visualizations = pgTable("visualizations", {
 
 // Define relations between tables
 export const usersRelations = relations(users, ({ one, many }) => ({
+  role: one(userRoles, {
+    fields: [users.roleId],
+    references: [userRoles.id],
+  }),
   starCard: one(starCards, {
     fields: [users.id],
     references: [starCards.userId],
@@ -112,6 +120,10 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [visualizations.userId],
   }),
+}));
+
+export const userRolesRelations = relations(userRoles, ({ many }) => ({
+  users: many(users),
 }));
 
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
@@ -154,6 +166,11 @@ export const visualizationsRelations = relations(visualizations, ({ one }) => ({
 }));
 
 // Insert schemas
+export const insertUserRoleSchema = createInsertSchema(userRoles).pick({
+  name: true,
+  description: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -163,6 +180,10 @@ export const insertUserSchema = createInsertSchema(users).pick({
   avatarUrl: true,
   progress: true,
   applicationId: true,
+  roleId: true,
+  bio: true,
+  email: true,
+  phone: true,
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).pick({
@@ -227,9 +248,6 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect & {
   role?: UserRole;
 };
-
-export type InsertUserFacilitator = z.infer<typeof insertUserFacilitatorSchema>;
-export type UserFacilitator = typeof userFacilitators.$inferSelect;
 
 // Enum for user roles
 export enum UserRoleType {
