@@ -371,16 +371,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
           
           <div className="mb-8 rounded-lg overflow-hidden">
-            {/* Module 2 Video Placeholder */}
-            <div className="relative w-full h-[400px] bg-gradient-to-r from-orange-300 to-purple-400 rounded-lg overflow-hidden flex flex-col items-center justify-center text-white">
-              <div className="absolute inset-0 bg-black opacity-30"></div>
-              <div className="z-10 text-center px-6">
-                <h2 className="text-3xl font-semibold mb-2">Imaginal Agility Workshop Course</h2>
-                <div className="h-px w-16 bg-white mx-auto my-6"></div>
-                <h3 className="text-4xl font-light mb-2">MODULE 2</h3>
-                <p className="text-xl">From Challenge to Capability</p>
-              </div>
-            </div>
+            <iframe 
+              src="https://www.youtube.com/embed/BLh502BlZLE"
+              className="w-full h-[400px]" 
+              title="Imaginal Agility Solution"
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
           </div>
           
           <div className="flex justify-end mb-8">
