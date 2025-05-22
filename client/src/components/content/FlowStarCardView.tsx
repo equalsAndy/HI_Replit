@@ -166,18 +166,26 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   
   useEffect(() => {
     if (isCardComplete && flowAttributesData?.attributes) {
-      // Map existing attributes to the local state
-      const mappedAttributes = flowAttributesData.attributes.map((attr: any, index: number) => ({
-        text: attr.name,
-        rank: index
-      }));
+      console.log("Flow attributes data:", flowAttributesData.attributes);
+      
+      // Map existing attributes to the local state - handle both possible data structures
+      const mappedAttributes = flowAttributesData.attributes.map((attr: any, index: number) => {
+        // Some attributes might have 'text' property, others might have 'name'
+        const attrText = attr.text || attr.name || (typeof attr === 'string' ? attr : '');
+        return {
+          text: attrText,
+          rank: index
+        };
+      });
+      
       setSelectedAttributes(mappedAttributes);
       
       // Also set the starcard attributes
       const coloredAttributes = mappedAttributes.map(attr => ({
-        text: attr.text || attr.name, // Use name as fallback if text is not available
-        color: getAttributeColor(attr.text || attr.name)
+        text: attr.text,
+        color: getAttributeColor(attr.text)
       }));
+      
       console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
     }
