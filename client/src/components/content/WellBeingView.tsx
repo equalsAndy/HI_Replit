@@ -52,16 +52,18 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
       
       <div className="mb-8">
-        {/* Video at the top, full width */}
+        {/* Video at the top, full width with proper aspect ratio */}
         <div className="mb-8">
-          <iframe 
-            src="https://www.youtube.com/embed/yidsMx8B678" 
-            title="Cantril Ladder of Well-Being" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-64 rounded border border-gray-200"
-          ></iframe>
+          <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded border border-gray-200">
+            <iframe 
+              src="https://www.youtube.com/embed/yidsMx8B678" 
+              title="Cantril Ladder of Well-Being" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="w-full h-full"
+            ></iframe>
+          </div>
         </div>
         
         {/* Content below video */}
