@@ -13,6 +13,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { 
   Tooltip,
   TooltipContent,
@@ -784,7 +789,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                         </div>
                         
                         <div className="text-center">
-                          <Popover open={openPopoverId === q.id} onOpenChange={(open) => {
+                          <Popover open={openPopoverId === q.id} onOpenChange={(open: boolean) => {
                             if (open) {
                               setOpenPopoverId(q.id);
                             } else {
@@ -872,7 +877,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           
           <div className="border-t p-4 bg-gray-50 flex justify-end">
             <Button 
-              onClick={handleComplete}
+              onClick={() => {
+                setShowResults(false);
+                markStepCompleted('3-2');
+                setCurrentContent("flow-rounding-out");
+              }}
               className="bg-indigo-600 hover:bg-indigo-700"
             >
               Continue to Rounding Out
