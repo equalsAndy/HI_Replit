@@ -29,6 +29,7 @@ import TeamWorkshop from "./pages/team-workshop";
 
 // Lazy-loaded components
 const ImaginalAgilityPage = lazy(() => import("./pages/imaginal-agility"));
+const ProfileManagement = lazy(() => import("./pages/profile-management"));
 
 // Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
@@ -86,6 +87,7 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/allstarteams" component={AllStarTeams} />
+          <Route path="/profile" component={ProfileManagement} />
           <Route path="/user-home2-refactored" component={() => {
             const appType = localStorage.getItem('selectedApp');
             if (appType === 'imaginal-agility') {
