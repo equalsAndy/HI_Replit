@@ -335,6 +335,14 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
       
+      <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+        <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
+        <p className="text-blue-700 mb-0">
+          Flow attributes represent how you work at your best. They complement your Star strengths profile which shows what you're naturally good at.
+          Together, they create a more complete picture of your professional identity and help others understand how to collaborate with you effectively.
+        </p>
+      </div>
+      
       <div className="prose max-w-none mb-6">
         <p className="text-lg text-gray-700">
           Now that you've completed the flow assessment and reflection, select four flow attributes 
@@ -407,15 +415,11 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           </div>
           
-          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6 mt-6">
-            <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
-            <p className="text-sm text-blue-700 mb-3">
-              Flow attributes represent how you work at your best. They complement your Star strengths 
-              profile which shows <strong>what</strong> you're naturally good at.
-            </p>
-            <p className="text-sm text-blue-700">
-              Together, they create a more complete picture of your professional identity and help
-              others understand how to collaborate with you effectively.
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
+            <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
+            <p className="text-sm text-gray-600">
+              Choose attributes that reflect how you feel and perform when you're deeply engaged in meaningful work. 
+              These will appear in the four corners of your Star Card.
             </p>
           </div>
           
