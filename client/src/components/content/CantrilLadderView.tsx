@@ -1,21 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { ChevronRight } from 'lucide-react';
+import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 
 const CantrilLadderView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
+  // Values will be retrieved from stored data in a real implementation
+  const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Well-Being Ladder Reflections</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
       
+      {/* SVG Ladder at the top */}
+      <div className="flex justify-center mb-8">
+        <WellBeingLadderSvg 
+          currentValue={wellBeingLevel}
+          futureValue={futureWellBeingLevel}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         <div className="md:w-1/2">
-          
-          <div className="mt-6 space-y-6">
+          <div className="space-y-6">
             <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
               <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
               <p className="text-gray-700 text-sm mb-2">

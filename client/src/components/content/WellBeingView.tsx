@@ -40,6 +40,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
       
       <div className="mb-8">
+        {/* Video component */}
         <div className="aspect-w-16 aspect-h-9 mb-8">
           <iframe 
             src="https://www.youtube.com/embed/yidsMx8B678" 
@@ -51,6 +52,42 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           ></iframe>
         </div>
         
+        {/* SVG Ladder right under the video */}
+        <div className="flex justify-center mb-8">
+          <WellBeingLadderSvg 
+            currentValue={wellBeingLevel}
+            futureValue={futureWellBeingLevel}
+          />
+        </div>
+        
+        {/* Interpretation section */}
+        <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
+          <h3 className="text-amber-800 font-medium mb-3">Interpreting Your Position on the Ladder</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2">Steps 0-4: Struggling</h4>
+              <p className="text-sm text-amber-700">
+                People in this range typically report high levels of worry, sadness, stress, and pain.
+                Daily challenges may feel overwhelming, and hope for the future may be limited.
+              </p>
+            </div>
+            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2">Steps 5-6: Getting By</h4>
+              <p className="text-sm text-amber-700">
+                This middle range represents moderate satisfaction with life. You likely have some 
+                important needs met but still face significant challenges or unfulfilled aspirations.
+              </p>
+            </div>
+            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2">Steps 7-10: Thriving</h4>
+              <p className="text-sm text-amber-700">
+                People in this range report high life satisfaction, with most basic needs met. They typically
+                experience a sense of purpose, strong social connections, and optimism.
+              </p>
+            </div>
+          </div>
+        </div>
+        
         <div className="prose max-w-none mb-6">
           <p className="text-lg text-gray-700">
             Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
@@ -60,15 +97,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         
         <div className="flex justify-center">
           <div className="flex flex-col md:flex-row max-w-4xl w-full">
-            {/* SVG Ladder */}
-            <div className="md:w-1/2">
-              <WellBeingLadderSvg 
-                currentValue={wellBeingLevel}
-                futureValue={futureWellBeingLevel}
-              />
-            </div>
-            
-            <div className="flex-1 space-y-6 md:ml-6">
+            <div className="md:w-1/2 flex-1 space-y-6">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
                 <div className="space-y-3">
@@ -94,7 +123,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   </div>
                 </div>
               </div>
-              
+            </div>
+            
+            <div className="md:w-1/2 flex-1 space-y-6 md:ml-6">
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                 <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
                 <div className="space-y-3">
