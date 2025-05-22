@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ProfileView } from '@/components/profile/ProfileView';
 import { ProfileEditor } from '@/components/profile/ProfileEditor';
 import { User, UserRole } from '@/shared/types';
+import '../shared/types'; // Make sure our types are available
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
