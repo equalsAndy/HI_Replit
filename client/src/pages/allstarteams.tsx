@@ -105,7 +105,10 @@ export default function AllStarTeams() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/test-users/reset/1', 'POST');
+      return await fetch('/api/test-users/reset/1', {
+        method: 'POST',
+        credentials: 'include'
+      });
     },
     onSuccess: () => {
       setCompletedSteps([]);
