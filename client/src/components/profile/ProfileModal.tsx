@@ -66,10 +66,11 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     try {
-      await apiRequest('/api/user/profile', {
-        method: 'PUT',
-        data: formData,
-      });
+      await apiRequest(
+        'PUT',
+        '/api/user/update',
+        formData
+      );
       
       // Invalidate user profile cache to trigger a refetch
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
