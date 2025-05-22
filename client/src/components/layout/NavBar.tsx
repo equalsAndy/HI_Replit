@@ -9,11 +9,13 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useState } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
+import ProfileModal from "../profile/ProfileModal";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
   const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { data: user } = useQuery<{
     id: number;
     name: string;
@@ -51,14 +53,20 @@ export function NavBar() {
 
       <div className="flex items-center gap-4">
         {user?.id && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="rounded-md text-white hover:bg-yellow-400"
-            onClick={() => navigate('/profile')}
-          >
-            Profile
-          </Button>
+          <>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-md text-white hover:bg-yellow-400"
+              onClick={() => setIsProfileModalOpen(true)}
+            >
+              Profile
+            </Button>
+            <ProfileModal 
+              isOpen={isProfileModalOpen} 
+              onClose={() => setIsProfileModalOpen(false)} 
+            />
+          </>
         )}
         {/* Admin button - only shown for user ID 1 */}
         {user?.id === 1 && (
