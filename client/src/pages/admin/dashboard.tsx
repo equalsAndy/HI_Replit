@@ -1,0 +1,140 @@
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import { UserRole } from '@/shared/types';
+import { useNavigate } from 'wouter';
+
+// Components
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Loader2 } from 'lucide-react';
+
+export default function AdminDashboard() {
+  const { toast } = useToast();
+  const [, navigate] = useNavigate();
+  
+  // Fetch current user to check permissions
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+    queryKey: ['/api/user/profile'],
+    retry: false,
+  });
+  
+  // Redirect non-admin users
+  React.useEffect(() => {
+    if (currentUser && currentUser.role !== UserRole.Admin) {
+      toast({
+        title: 'Access denied',
+        description: 'You do not have permission to access the admin dashboard.',
+        variant: 'destructive',
+      });
+      navigate('/');
+    }
+  }, [currentUser, navigate, toast]);
+
+  if (isLoadingUser) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!currentUser || currentUser.role !== UserRole.Admin) {
+    return null; // Will redirect via useEffect
+  }
+
+  return (
+    <div className="container mx-auto py-10 space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <Button variant="outline" onClick={() => navigate('/')}>
+          Return to Dashboard
+        </Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>System Overview</CardTitle>
+          <CardDescription>
+            View and manage your application's key components
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatsCard title="Total Users" value="..." />
+            <StatsCard title="Active Cohorts" value="..." />
+            <StatsCard title="Completed Assessments" value="..." />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="grid grid-cols-2 w-[400px]">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users" className="mt-6">
+          <UserManagementTab />
+        </TabsContent>
+        
+        <TabsContent value="cohorts" className="mt-6">
+          <CohortManagementTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+interface StatsCardProps {
+  title: string;
+  value: string;
+}
+
+function StatsCard({ title, value }: StatsCardProps) {
+  return (
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex flex-col space-y-2">
+          <span className="text-sm text-muted-foreground">{title}</span>
+          <span className="text-3xl font-bold">{value}</span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Placeholder component for User Management Tab
+function UserManagementTab() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>User Management</CardTitle>
+        <CardDescription>View and manage all users in the system</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-center py-4">
+          <p>User management functionality will be implemented here</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Placeholder component for Cohort Management Tab
+function CohortManagementTab() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cohort Management</CardTitle>
+        <CardDescription>Manage workshop cohorts and participants</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="text-center py-4">
+          <p>Cohort management functionality will be implemented here</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
