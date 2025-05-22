@@ -54,9 +54,9 @@ export default function AuthPage() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
-  
+
   // We don't need to fetch test users here anymore, that's done in the TestUserPicker component
-  
+
   // Debug current application state
   console.log('Auth page - currentApp:', currentApp, 'appName:', appName);
 
@@ -69,7 +69,7 @@ export default function AuthPage() {
   // Use useEffect for navigation to avoid React hook violations
   useEffect(() => {
     if (!isLoading && user) {
-      navigate('/user-home');
+      navigate('/user-home2-refactored');
     }
   }, [isLoading, user, navigate]);
 
@@ -101,13 +101,13 @@ export default function AuthPage() {
     mutationFn: async (data: LoginValues) => {
       try {
         const res = await apiRequest('POST', '/api/auth/login', data);
-        
+
         // Check if the response is OK
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || "Invalid credentials");
         }
-        
+
         return await res.json();
       } catch (err) {
         // Rethrow the error with a clear message
@@ -116,7 +116,7 @@ export default function AuthPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      navigate('/user-home');
+      navigate('/user-home2-refactored');
     },
     onError: (error) => {
       toast({
@@ -138,7 +138,7 @@ export default function AuthPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      navigate('/user-home');
+      navigate('/user-home2-refactored');
     },
     onError: (error) => {
       toast({
@@ -180,7 +180,7 @@ export default function AuthPage() {
             }
           </p>
         </div>
-        
+
         {/* Information Message */}
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
           <h3 className="font-medium text-blue-800 mb-1">Test Environment</h3>
@@ -188,7 +188,7 @@ export default function AuthPage() {
             This is a test environment. Please use the "Select Test User" button below to log in.
           </p>
         </div>
-        
+
         {/* Login Form */}
         {isLogin && (
           <Form {...loginForm}>
@@ -240,7 +240,7 @@ export default function AuthPage() {
             </form>
           </Form>
         )}
-        
+
         {/* Register Form */}
         {!isLogin && (
           <Form {...registerForm}>
@@ -365,7 +365,7 @@ export default function AuthPage() {
             </form>
           </Form>
         )}
-        
+
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
@@ -376,7 +376,7 @@ export default function AuthPage() {
               {isLogin ? "Create one" : "Sign in"}
             </button>
           </p>
-          
+
           <div className="mt-4 pt-4 border-t">
             <Button 
               variant="outline" 
@@ -388,7 +388,7 @@ export default function AuthPage() {
             </Button>
           </div>
         </div>
-        
+
         {/* Test User Picker - only shown when needed */}
         {showTestUsers && (
           <TestUserPicker
@@ -397,7 +397,7 @@ export default function AuthPage() {
           />
         )}
       </div>
-      
+
       {/* Right side - Hero */}
       <div className={`hidden lg:block lg:w-1/2 ${currentApp === 'allstarteams' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
         <div className="h-full flex flex-col justify-center p-16 text-white">

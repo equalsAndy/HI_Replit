@@ -22,7 +22,7 @@ export default function Landing() {
               />
             </a>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             <Link href="/auth">
               <Button variant="outline" size="sm" className="rounded-md">Login</Button>
@@ -30,7 +30,7 @@ export default function Landing() {
           </div>
         </div>
       </header>
-      
+
       <main className="flex-1 flex flex-col justify-center">
         <div className="container mx-auto px-4 py-12 max-w-6xl">
           <div className="text-center mb-12">
@@ -41,7 +41,7 @@ export default function Landing() {
               Select one of our transformative learning programs to begin your journey
             </p>
           </div>
-          
+
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* AllStarTeams Card */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
@@ -70,7 +70,7 @@ export default function Landing() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 px-8 py-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
@@ -88,7 +88,7 @@ export default function Landing() {
                 </div>
               </div>
             </div>
-            
+
             {/* Imaginal Agility Card */}
             <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
               <div className="p-8">
@@ -116,7 +116,7 @@ export default function Landing() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 px-8 py-4">
                 <div className="grid grid-cols-3 gap-4">
                   <div className="text-center">
@@ -135,7 +135,7 @@ export default function Landing() {
               </div>
             </div>
           </div>
-          
+
           {/* Video Introduction Section */}
           <div className="mb-16">
             <div className="text-center mb-8">
@@ -144,7 +144,7 @@ export default function Landing() {
                 Experience the transformative power of our workshops and discover how they can help unlock your team's full potential.
               </p>
             </div>
-            
+
             <div className="max-w-4xl mx-auto">
               {/* Using the official Vimeo embed code */}
               <div style={{padding:'56.25% 0 0 0', position:'relative'}} className="rounded-lg shadow-lg overflow-hidden">
@@ -158,7 +158,7 @@ export default function Landing() {
               </div>
             </div>
           </div>
-          
+
           <div className="text-center">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">Why Choose Heliotrope Imaginal's Platform?</h3>
             <p className="text-gray-600 max-w-3xl mx-auto mb-8">
@@ -168,7 +168,7 @@ export default function Landing() {
           </div>
         </div>
       </main>
-      
+
       <footer className="bg-gray-50 border-t border-gray-200 py-8">
         <div className="container mx-auto px-4 text-center text-gray-500">
           <p>&copy; 2025 Heliotrope Imaginal. All rights reserved.</p>
