@@ -11,12 +11,14 @@ import {
   Answer,
   QuadrantData
 } from "@shared/schema";
+import { UserRole } from "@shared/types";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
 import { nanoid } from "nanoid";
 import cookieParser from "cookie-parser";
+import { adminRouter } from "./admin-routes";
 
 // Set up uploads directory
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -56,6 +58,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Add cookie parser middleware to parse cookies from requests
   app.use(cookieParser());
+  
+  // Register admin routes under the /api/admin path
+  app.use('/api/admin', adminRouter);
 
   // Define cookie options for consistent use across endpoints
   const COOKIE_OPTIONS = {

@@ -6,13 +6,28 @@ export enum UserRole {
   Participant = 'participant'
 }
 
+export interface User {
+  id: number;
+  name: string;
+  username?: string;
+  email?: string;
+  title?: string;
+  organization?: string;
+  avatarUrl?: string | null;
+  role?: UserRole;
+  createdAt?: string;
+  updatedAt?: string;
+  facilitatorId?: number; // ID of the facilitator assigned to this user
+  lastLogin?: string;
+  progress?: number;
+}
+
 export interface ProfileUpdateRequest {
   name?: string;
   title?: string;
   organization?: string;
-  bio?: string;
   email?: string;
-  phone?: string;
+  role?: UserRole;
 }
 
 export interface Cohort {

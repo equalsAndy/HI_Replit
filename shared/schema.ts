@@ -24,10 +24,11 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   progress: integer("progress").default(0),
   applicationId: integer("application_id").references(() => applications.id),
+  // Added role field as text to avoid migration
+  role: text("role").default("participant"),
+  email: text("email"),
   // These fields will be handled through UI logic for now, until we migrate the database
-  // roleId: integer("role_id").references(() => userRoles.id).default(3),
   // bio: text("bio"),
-  // email: text("email"),
   // phone: text("phone"),
   // createdAt: timestamp("created_at").defaultNow(),
   // updatedAt: timestamp("updated_at").defaultNow(),

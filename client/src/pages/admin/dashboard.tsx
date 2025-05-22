@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/shared/types';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,10 +12,16 @@ import { Loader2 } from 'lucide-react';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
-  const [, navigate] = useNavigate();
+  const [, navigate] = useLocation();
   
   // Fetch current user to check permissions
-  const { data: currentUser, isLoading: isLoadingUser } = useQuery({
+  const { data: currentUser, isLoading: isLoadingUser } = useQuery<{
+    id: number;
+    name: string;
+    role?: UserRole;
+    title?: string;
+    organization?: string;
+  }>({
     queryKey: ['/api/user/profile'],
     retry: false,
   });
