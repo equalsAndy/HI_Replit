@@ -297,71 +297,85 @@ export default function AllStarTeams() {
     return hasStarCardData;
   }, [starCard, flowAttributesData]);
   
+  // Function to toggle the drawer
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  
+  // Update navigation sections with completion information
+  const updatedNavigationSections = activeNavigationSections.map(section => {
+    // Skip resource section which doesn't have completion tracking
+    if (section.id === '5') return section;
+    
+    // Count completed steps in this section
+    const completedStepsInSection = section.steps.filter(step => 
+      Array.isArray(completedSteps) && completedSteps.includes(step.id)
+    ).length;
+    
+    return {
+      ...section,
+      completedSteps: completedStepsInSection,
+      totalSteps: section.steps.length
+    };
+  });
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        {/* Optional reset button */}
-        <div className="flex justify-end mb-4">
-          <Button 
-            variant="outline" 
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Header */}
+      <header className="bg-white border-b border-gray-200 py-3 px-4 flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl font-bold text-gray-800">All-Star Teams Workshop</h1>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
             size="sm"
             onClick={() => resetUserProgress.mutate()}
             disabled={resetUserProgress.isPending}
             className="text-xs"
           >
-            {resetUserProgress.isPending ? (
-              <>
-                <RefreshCw className="mr-1 h-3 w-3 animate-spin" />
-                Resetting...
-              </>
-            ) : (
-              <>
-                <RefreshCw className="mr-1 h-3 w-3" />
-                Reset Progress
-              </>
-            )}
+            <RefreshCw className="h-4 w-4 mr-1" />
+            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
           </Button>
         </div>
+      </header>
+      
+      {/* Main Content */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Assessment Modal */}
+        <AssessmentModal 
+          isOpen={isAssessmentModalOpen} 
+          onClose={() => setIsAssessmentModalOpen(false)}
+          onComplete={handleAssessmentComplete}
+        />
         
-        {/* Main content area with sidebar */}
-        <div className="flex flex-col md:flex-row gap-6 min-h-[80vh]">
-          {/* Navigation Sidebar */}
-          <UserHomeNavigation 
-            navigationSections={activeNavigationSections}
-            drawerOpen={drawerOpen}
-            toggleDrawer={() => setDrawerOpen(!drawerOpen)}
-            completedSteps={completedSteps}
-            isStepAccessible={isStepAccessible}
-            handleStepClick={handleStepClick}
-            starCard={starCard}
-            flowAttributesData={flowAttributesData}
+        {/* Left Navigation Drawer */}
+        <UserHomeNavigation
+          drawerOpen={drawerOpen}
+          toggleDrawer={toggleDrawer}
+          navigationSections={updatedNavigationSections}
+          completedSteps={completedSteps}
+          isStepAccessible={isStepAccessible}
+          handleStepClick={handleStepClick}
+          starCard={starCard}
+          flowAttributesData={flowAttributesData}
+          currentContent={currentContent}
+          isImaginalAgility={currentApp === 'imaginal-agility'}
+        />
+        
+        {/* Content Area */}
+        <div className="flex-1 overflow-auto p-6">
+          <ContentViews
             currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+            starCard={starCard}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
             isImaginalAgility={currentApp === 'imaginal-agility'}
           />
-          
-          {/* Content Area */}
-          <div className="flex-1 overflow-auto p-6">
-            <ContentViews
-              currentContent={currentContent}
-              navigate={navigate}
-              markStepCompleted={markStepCompleted}
-              setCurrentContent={setCurrentContent}
-              starCard={starCard}
-              user={user}
-              flowAttributesData={flowAttributesData}
-              setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-              isImaginalAgility={currentApp === 'imaginal-agility'}
-            />
-          </div>
         </div>
       </div>
-      
-      {/* Assessment Modal */}
-      <AssessmentModal 
-        isOpen={isAssessmentModalOpen} 
-        onClose={() => setIsAssessmentModalOpen(false)}
-        onComplete={handleAssessmentComplete}
-      />
     </div>
   );
 }
