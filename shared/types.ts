@@ -1,24 +1,9 @@
-// Enhanced User Profile Types
+// Enhanced user profile types
 
 export enum UserRole {
   Admin = 'admin',
   Facilitator = 'facilitator',
   Participant = 'participant'
-}
-
-export interface User {
-  id: number;
-  username: string;
-  name: string;
-  title?: string;
-  organization?: string;
-  avatarUrl?: string;
-  progress?: number;
-  // Enhanced profile fields (UI only)
-  bio?: string;
-  email?: string;
-  phone?: string;
-  role?: UserRole;
 }
 
 export interface ProfileUpdateRequest {
