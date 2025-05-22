@@ -10,7 +10,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 }) => {
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Ladder Reflections</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Well-Being Ladder Reflections</h1>
       
       <div className="flex flex-col md:flex-row gap-8 mb-8">
         <div className="md:w-1/2">

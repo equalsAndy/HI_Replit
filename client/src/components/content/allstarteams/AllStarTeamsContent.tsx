@@ -10,7 +10,7 @@ import IntroToFlowView from '../IntroToFlowView';
 import FlowAssessmentView from '../FlowAssessmentView';
 import FlowRoundingOutView from '../FlowRoundingOutView';
 import FlowStarCardView from '../FlowStarCardView';
-import WellbeingView from '../WellbeingView';
+import WellBeingView from '../WellBeingView';
 import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
 import FutureSelfView from '../FutureSelfView';
@@ -149,7 +149,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     // Visualize your Potential
     case 'wellbeing':
       return (
-        <WellbeingView 
+        <WellBeingView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
