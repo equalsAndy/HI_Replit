@@ -261,8 +261,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       
       setSelectedAttributes(updatedAttrs);
     } else {
-      // If it's not selected, add it to the list
-      // If we have less than 4 ranked attributes, assign the next available rank
+      // If it's not selected, add it to the list only if we have less than 4 ranked attributes
       const rankedAttrs = selectedAttributes.filter(attr => attr.rank !== null);
       if (rankedAttrs.length < 4) {
         setSelectedAttributes([
@@ -270,11 +269,12 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           { text, rank: rankedAttrs.length }
         ]);
       } else {
-        // Otherwise just add it without a rank
-        setSelectedAttributes([
-          ...selectedAttributes,
-          { text, rank: null }
-        ]);
+        // If we already have 4 attributes, show a notification
+        toast({
+          title: "Maximum attributes selected",
+          description: "You can only select 4 flow attributes. Remove one before adding another.",
+          variant: "default"
+        });
       }
     }
   };
