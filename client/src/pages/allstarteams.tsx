@@ -25,7 +25,12 @@ export default function AllStarTeams() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
-  const { currentApp } = useApplication();
+  const { currentApp, setCurrentApp } = useApplication();
+  
+  // Set app to AllStarTeams on component mount
+  useEffect(() => {
+    setCurrentApp('allstarteams');
+  }, []);
   
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
@@ -91,7 +96,7 @@ export default function AllStarTeams() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      return await apiRequest('/api/test-users/reset/1', { method: 'POST' });
+      return await apiRequest('/api/test-users/reset/1', 'POST');
     },
     onSuccess: () => {
       setCompletedSteps([]);
@@ -296,9 +301,9 @@ export default function AllStarTeams() {
         <div className="flex flex-col md:flex-row gap-6 min-h-[80vh]">
           {/* Navigation Sidebar */}
           <UserHomeNavigation 
-            sections={navigationSections}
+            navigationSections={activeNavigationSections}
             drawerOpen={drawerOpen}
-            setDrawerOpen={setDrawerOpen}
+            toggleDrawer={() => setDrawerOpen(!drawerOpen)}
             completedSteps={completedSteps}
             isStepAccessible={isStepAccessible}
             handleStepClick={handleStepClick}
