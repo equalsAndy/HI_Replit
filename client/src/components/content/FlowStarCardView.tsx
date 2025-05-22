@@ -419,20 +419,11 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </p>
           </div>
           
-          <div className="mt-6">
-            <Button
-              className="w-full bg-indigo-700 hover:bg-indigo-800"
-              disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || isCardComplete || flowAttributesMutation.isPending}
-              onClick={saveFlowAttributes}
-            >
-              {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
-            </Button>
-          </div>
         </div>
         
         <div>
           <h3 className="text-lg font-semibold mb-4">Your Star Card</h3>
-          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6">
+          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-4">
             <div className="p-4 flex justify-center">
               <div className="w-full">
                 <StarCard 
@@ -446,6 +437,16 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                 />
               </div>
             </div>
+          </div>
+          
+          <div className="mt-2">
+            <Button
+              className="w-full bg-indigo-700 hover:bg-indigo-800"
+              disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || isCardComplete || flowAttributesMutation.isPending}
+              onClick={saveFlowAttributes}
+            >
+              {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
+            </Button>
           </div>
         </div>
       </div>
