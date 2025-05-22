@@ -233,7 +233,7 @@ export function TestUsersModal({
             onClick={() => resetUserProgress.mutate()}
             disabled={resetUserProgress.isPending}
           >
-            <RefreshCw className="h-4 w-4 mr-2" />
+            <span className="mr-2">↻</span>
             {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
           </Button>
 
