@@ -134,10 +134,8 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     // Log for debugging
     console.log(`Updated answer for question #${questionId} to ${newValue}`);
     
-    // Close the popover after 3 seconds
-    setTimeout(() => {
-      setOpenPopoverId(null);
-    }, 3000);
+    // Close the popover immediately after selection
+    setOpenPopoverId(null);
   };
   
   // Get interpretation based on score
