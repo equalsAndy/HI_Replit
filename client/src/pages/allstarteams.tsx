@@ -260,9 +260,12 @@ export default function AllStarTeams() {
       markStepCompleted(stepId);
     }
     
-    // For the flow assessment, open the modal
+    // For the flow assessment, navigate to the flow assessment page instead of opening modal
     if (stepId === '3-2') {
-      setIsAssessmentModalOpen(true);
+      // Mark it as completed directly
+      markStepCompleted('3-2');
+      // Go to flow-assessment content
+      setCurrentContent('flow-assessment');
     }
   };
   
