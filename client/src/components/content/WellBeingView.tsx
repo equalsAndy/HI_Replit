@@ -66,7 +66,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           </div>
         </div>
         
-        {/* Cantril Ladder description moved above sliders */}
+        {/* Cantril Ladder description moved above ladder */}
         <div className="prose max-w-none mb-6">
           <p className="text-lg text-gray-700">
             Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
@@ -76,17 +76,19 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         
         {/* Content below video */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
-          {/* SVG Ladder */}
-          <div className="lg:col-span-4 flex justify-center">
-            <WellBeingLadderSvg 
-              currentValue={wellBeingLevel}
-              futureValue={futureWellBeingLevel}
-            />
+          {/* SVG Ladder - larger on bigger screens */}
+          <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
+            <div className="w-full xl:w-11/12 2xl:w-full">
+              <WellBeingLadderSvg 
+                currentValue={wellBeingLevel}
+                futureValue={futureWellBeingLevel}
+              />
+            </div>
           </div>
           
-          {/* Sliders and controls */}
-          <div className="lg:col-span-8 space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Sliders and controls - stacked */}
+          <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
+            <div className="grid grid-cols-1 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
                 <div className="space-y-3">
