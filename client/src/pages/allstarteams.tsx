@@ -182,12 +182,19 @@ export default function AllStarTeams() {
 
   // Handle assessment completion
   const handleAssessmentComplete = (result: any) => {
+    console.log("Assessment completed with result:", result);
+    
     // When assessment is completed, make sure previous steps are also marked as completed
     markStepCompleted('1-1'); // Introduction Video
     markStepCompleted('2-1'); // Intro to Strengths
     markStepCompleted('2-2'); // The assessment itself
 
-    // You may want to update other state or navigate after assessment completes
+    // Check if we need to navigate to the Star Card Preview directly
+    if (result?.navigateToStarCardPreview) {
+      console.log("Navigating to star card preview");
+      markStepCompleted('2-3'); // Star card preview step
+      setCurrentContent('star-card-preview'); // Navigate to Star Card Preview
+    }
   };
 
   // Define a structure to map stepIds to navigation sequence for automatic progress

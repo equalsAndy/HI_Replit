@@ -553,11 +553,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     // Close the modal
     onClose();
     
-    // Set a navigation flag in sessionStorage
-    sessionStorage.setItem('navigateToStarCardPreview', 'true');
-    
-    // Refresh the page to trigger the navigation
-    window.location.href = '/user-home2-refactored';
+    // If we have an onComplete handler, call it with a special flag to navigate
+    if (onComplete) {
+      onComplete({ 
+        quadrantData: assessmentResults,
+        demoData: true,
+        navigateToStarCardPreview: true
+      });
+    }
   };
 
   // Render the intro screen
