@@ -174,11 +174,11 @@ export function TestUsersModal({
   // Clear flow data only mutation
   const clearFlowData = useMutation({
     mutationFn: async () => {
-      // First get current flow attributes
-      const flowData = { 
-        ...flowAttributesData,
+      // Create a completely new flow data object with empty attributes
+      const flowData = {
+        userId,
         flowScore: 0,
-        attributes: []
+        attributes: [] // Completely empty attributes array
       };
       
       // Update the flow attributes to clear the data
@@ -186,16 +186,19 @@ export function TestUsersModal({
       return res.json();
     },
     onSuccess: () => {
-      // Only invalidate flow-related queries
-      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      // Invalidate all queries to ensure data is refreshed everywhere
+      queryClient.invalidateQueries();
       
       toast({
         title: "Flow data cleared",
         description: `Flow assessment data for Test User ${userId} has been cleared.`,
       });
       
-      // Don't close the modal so user can see the updated data
-      queryClient.invalidateQueries();
+      // Close the modal to refresh the view
+      onClose();
+      
+      // Optional: Force a reload to ensure all components see the changes
+      setTimeout(() => window.location.reload(), 500);
     },
     onError: (error) => {
       toast({
