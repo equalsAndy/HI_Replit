@@ -138,7 +138,11 @@ export default function ImaginalAgilityHome() {
       {/* Header with Reset Button */}
       <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
         <div className="flex justify-between items-center h-full">
-          <div className="text-lg font-medium">Imaginal Agility Workshop</div>
+          <img 
+            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+            alt="Imaginal Agility Workshop"
+            className="h-10 w-auto" 
+          />
           <Button 
             variant="outline" 
             size="sm"
