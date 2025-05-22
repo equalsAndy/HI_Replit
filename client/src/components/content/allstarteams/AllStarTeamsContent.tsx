@@ -22,15 +22,10 @@ interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
   
-  // Explicitly defining props to avoid type errors
-  starCard?: StarCard;
-  user?: User;
-  flowAttributesData?: {
-    id?: number;
-    userId?: number;
-    flowScore?: number;
-    attributes?: Array<{ name: string; score: number; }>;
-  };
+  // Use any type to avoid compatibility issues temporarily
+  starCard?: any;
+  user?: any;
+  flowAttributesData?: any;
 }
 
 const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({

@@ -10,6 +10,11 @@ import { Button } from '@/components/ui/button';
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
+  
+  // Use any type to avoid compatibility issues temporarily
+  starCard?: any;
+  user?: any;
+  flowAttributesData?: any;
 }
 
 const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
