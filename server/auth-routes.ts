@@ -133,4 +133,22 @@ authRouter.get('/user', async (req: Request, res: Response) => {
   }
 });
 
+// Get test users for development
+authRouter.get('/test-users', async (req, res) => {
+  try {
+    // Return a list of test users with their roles
+    const testUsers = [
+      { username: 'admin', role: 'Admin', name: 'Admin User' },
+      { username: 'facilitator', role: 'Facilitator', name: 'Facilitator User' },
+      { username: 'user1', role: 'Participant', name: 'Participant One' },
+      { username: 'user2', role: 'Participant', name: 'Participant Two' }
+    ];
+    
+    res.json(testUsers);
+  } catch (error) {
+    console.error('Error getting test users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export { authRouter };
