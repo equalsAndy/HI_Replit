@@ -266,8 +266,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
           
-          <div className="mb-8 bg-black p-6 rounded-lg">
-            {/* This is a placeholder for the black box that could be an image or video */}
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <iframe 
+              src="https://www.youtube.com/embed/zIFGKPMN9t8"
+              className="w-full h-[400px]" 
+              title="AI Triple Cognitive Challenge"
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+            ></iframe>
           </div>
           
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">AI Triple Cognitive Challenge</h2>
@@ -304,8 +311,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             </div>
           </div>
           
-          <div className="mb-8 bg-black p-6 rounded-lg">
-            {/* This is a placeholder for the second black box that could be an image or video */}
+          <div className="mb-8 bg-purple-100 p-6 rounded-lg">
+            <p className="text-center text-lg font-medium text-purple-800">
+              Recognizing and addressing these challenges is essential for thriving in the AI era
+            </p>
           </div>
           
           <div className="flex justify-end mb-8">
