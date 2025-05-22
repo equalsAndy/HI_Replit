@@ -1,7 +1,7 @@
 import React, { useEffect, Suspense, lazy } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import UserHome2 from "./pages/user-home2";
-import UserHome2Refactored from "./pages/user-home2-refactored";
+import AllStarTeams from "./pages/allstarteams";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider, useQuery } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -104,7 +104,7 @@ function Router() {
               </div>;
             }
             // Otherwise show regular AllStarTeams version
-            return <UserHome2Refactored />;
+            return <AllStarTeams />;
           }} />
           <Route path="/logout" component={() => {
             // Simplified logout page
