@@ -175,9 +175,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       
       // Also set the starcard attributes
       const coloredAttributes = mappedAttributes.map(attr => ({
-        text: attr.text,
-        color: getAttributeColor(attr.text)
+        text: attr.text || attr.name, // Use name as fallback if text is not available
+        color: getAttributeColor(attr.text || attr.name)
       }));
+      console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
     }
   }, [flowAttributesData, isCardComplete]);
