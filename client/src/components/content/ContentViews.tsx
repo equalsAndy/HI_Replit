@@ -266,48 +266,80 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
           
-          <div className="mb-8 bg-purple-50 p-6 rounded-lg">
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Today's Leaders Face Three Interconnected Challenges</h2>
+          <div className="mb-8 bg-black p-6 rounded-lg">
+            {/* This is a placeholder for the black box that could be an image or video */}
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-gray-800 mb-4">AI Triple Cognitive Challenge</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
+          </p>
+          
+          <div className="grid gap-4 mb-8">
+            <div className="flex">
+              <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                <h3 className="text-xl font-semibold">Metacognitive Laziness</h3>
+              </div>
+              <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                <p className="text-gray-700">• Outsourcing thinking and sense-making</p>
+              </div>
+            </div>
             
-            <div className="grid md:grid-cols-3 gap-6 mt-6">
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-xl text-purple-800 font-semibold mb-2">Complexity</h3>
-                <p className="text-gray-700">
-                  We operate in environments with countless interdependent variables, where cause and effect are often distant in time and space.
-                </p>
+            <div className="flex">
+              <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                <h3 className="text-xl font-semibold">Imagination Deficit</h3>
               </div>
-              
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-xl text-purple-800 font-semibold mb-2">Velocity</h3>
-                <p className="text-gray-700">
-                  The pace of change continues to accelerate, requiring faster adaptation and more agile thinking than ever before.
-                </p>
+              <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                <p className="text-gray-700">• Diminishing the generative core of human potential</p>
               </div>
-              
-              <div className="bg-white p-4 rounded-lg shadow-sm">
-                <h3 className="text-xl text-purple-800 font-semibold mb-2">Uncertainty</h3>
-                <p className="text-gray-700">
-                  We must make decisions with incomplete information in contexts of increasing unpredictability and risk.
-                </p>
+            </div>
+            
+            <div className="flex">
+              <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                <h3 className="text-xl font-semibold">Psychological Debt</h3>
+              </div>
+              <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                <p className="text-gray-700">• Fatigue, disconnection, and loss of purpose</p>
               </div>
             </div>
           </div>
           
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Why Traditional Approaches Fall Short</h2>
+          <div className="mb-8 bg-black p-6 rounded-lg">
+            {/* This is a placeholder for the second black box that could be an image or video */}
+          </div>
+          
+          <div className="flex justify-end mb-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('1-2');
+                setCurrentContent("imaginal-solution");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: The Imaginal Agility Solution
+            </Button>
+          </div>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Understanding the Challenge</h2>
           <p className="text-lg text-gray-700 mb-6">
-            Linear thinking, rigid planning, and top-down management are increasingly inadequate for today's environment. 
-            As technology advances, we need to develop uniquely human capabilities that complement rather than compete 
-            with artificial intelligence.
+            The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
           </p>
           
-          <div className="bg-purple-100 p-6 rounded-lg mb-8">
-            <h3 className="text-xl font-semibold text-purple-800 mb-4">The Collaboration Gap</h3>
-            <p className="text-gray-700">
-              Many organizations struggle to bridge disciplinary silos and connect diverse perspectives. 
-              True innovation emerges from the intersections between different domains of knowledge, requiring 
-              new forms of collaboration and knowledge integration.
-            </p>
-          </div>
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Efficiency</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing the capabilities that AI cannot replicate—beginning with imagination.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Hidden Costs</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement. These are symptoms of Psychological Debt—a deficit that grows when efficiency is prioritized over imagination.
+          </p>
+          
+          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Challenge as Opportunity</h2>
+          <p className="text-lg text-gray-700 mb-6">
+            These challenges aren't reasons to reject technology, but invitations to develop the distinctly human capabilities that give technology meaning and direction. The most successful individuals and organizations will be those who balance both.
+          </p>
           
           <div className="flex justify-end mt-8">
             <Button 
