@@ -6,7 +6,7 @@ import {
 } from "@shared/schema";
 import { nanoid } from 'nanoid';
 import { db } from './db';
-import { eq, and, sql, desc } from 'drizzle-orm';
+import { eq, and, sql, desc, inArray } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 import connectPg from 'connect-pg-simple';
 import session from 'express-session';
@@ -58,9 +58,486 @@ export interface IStorage {
   updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined>;
 }
 
-// Import statements removed to fix duplicate declarations
+// Database storage implementation
+export class DatabaseStorage implements IStorage {
+  public sessionStore: any;
 
-export class MemStorage implements IStorage {
+  constructor() {
+    // Create PostgreSQL session store
+    const pgStore = connectPg(session);
+    this.sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+      tableName: 'sessions',
+      ttl: 7 * 24 * 60 * 60 // 1 week
+    });
+
+    // Create admin user if it doesn't exist
+    this.createAdminUser()
+      .then(() => console.log("Admin user created or verified successfully"))
+      .catch(err => console.error("Error creating admin user:", err));
+  }
+
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(schema.users).where(eq(schema.users.id, id));
+      return user;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return undefined;
+    }
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    try {
+      const [user] = await db.select().from(schema.users).where(eq(schema.users.username, username));
+      return user;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      return undefined;
+    }
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    try {
+      const [user] = await db.insert(schema.users).values(insertUser).returning();
+      return user;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
+    try {
+      const [user] = await db
+        .update(schema.users)
+        .set({ ...userData, updatedAt: new Date() })
+        .where(eq(schema.users.id, id))
+        .returning();
+      return user;
+    } catch (error) {
+      console.error('Error updating user:', error);
+      return undefined;
+    }
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    try {
+      return await db.select().from(schema.users);
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return [];
+    }
+  }
+
+  async getUsersByRole(role: UserRole): Promise<User[]> {
+    try {
+      const usersWithRole = await db.select()
+        .from(schema.users)
+        .innerJoin(schema.userRoles, eq(schema.users.id, schema.userRoles.userId))
+        .where(eq(schema.userRoles.role, role));
+      
+      return usersWithRole.map(ur => ur.users);
+    } catch (error) {
+      console.error(`Error getting users by role ${role}:`, error);
+      return [];
+    }
+  }
+
+  // User role operations
+  async assignRole(userId: number, role: UserRole): Promise<void> {
+    try {
+      await db.insert(schema.userRoles)
+        .values({ userId, role })
+        .onConflictDoNothing({ target: [schema.userRoles.userId, schema.userRoles.role] });
+    } catch (error) {
+      console.error(`Error assigning role ${role} to user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  async removeRole(userId: number, role: UserRole): Promise<void> {
+    try {
+      await db.delete(schema.userRoles)
+        .where(and(
+          eq(schema.userRoles.userId, userId),
+          eq(schema.userRoles.role, role)
+        ));
+    } catch (error) {
+      console.error(`Error removing role ${role} from user ${userId}:`, error);
+      throw error;
+    }
+  }
+
+  async getUserRoles(userId: number): Promise<UserRole[]> {
+    try {
+      const roles = await db.select({ role: schema.userRoles.role })
+        .from(schema.userRoles)
+        .where(eq(schema.userRoles.userId, userId));
+      
+      return roles.map(r => r.role);
+    } catch (error) {
+      console.error(`Error getting roles for user ${userId}:`, error);
+      return [];
+    }
+  }
+
+  // Cohort operations
+  async createCohort(cohortData: any): Promise<any> {
+    try {
+      const [cohort] = await db.insert(schema.cohorts).values(cohortData).returning();
+      
+      // If facilitatorId is provided, add it to the facilitators table
+      if (cohortData.facilitatorId) {
+        await db.insert(schema.cohortFacilitators).values({
+          cohortId: cohort.id,
+          facilitatorId: cohortData.facilitatorId
+        }).onConflictDoNothing();
+      }
+      
+      return cohort;
+    } catch (error) {
+      console.error('Error creating cohort:', error);
+      throw error;
+    }
+  }
+
+  async getCohort(id: number): Promise<any | undefined> {
+    try {
+      const [cohort] = await db.select().from(schema.cohorts).where(eq(schema.cohorts.id, id));
+      
+      if (cohort) {
+        // Get facilitators
+        const facilitators = await db.select({ facilitatorId: schema.cohortFacilitators.facilitatorId })
+          .from(schema.cohortFacilitators)
+          .where(eq(schema.cohortFacilitators.cohortId, id));
+        
+        // Get participant count
+        const participantCount = await db.select({ count: sql<number>`count(*)` })
+          .from(schema.cohortParticipants)
+          .where(eq(schema.cohortParticipants.cohortId, id));
+        
+        return {
+          ...cohort,
+          facilitators: facilitators.map(f => f.facilitatorId),
+          memberCount: participantCount[0]?.count || 0
+        };
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error(`Error getting cohort ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async updateCohort(id: number, cohortData: any): Promise<any | undefined> {
+    try {
+      const [cohort] = await db
+        .update(schema.cohorts)
+        .set({ ...cohortData, updatedAt: new Date() })
+        .where(eq(schema.cohorts.id, id))
+        .returning();
+      
+      return cohort;
+    } catch (error) {
+      console.error(`Error updating cohort ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  async getAllCohorts(): Promise<any[]> {
+    try {
+      const cohorts = await db.select().from(schema.cohorts);
+      
+      // Enhance cohorts with member counts
+      const enhancedCohorts = await Promise.all(cohorts.map(async (cohort) => {
+        const participantCount = await db.select({ count: sql<number>`count(*)` })
+          .from(schema.cohortParticipants)
+          .where(eq(schema.cohortParticipants.cohortId, cohort.id));
+        
+        return {
+          ...cohort,
+          memberCount: participantCount[0]?.count || 0
+        };
+      }));
+      
+      return enhancedCohorts;
+    } catch (error) {
+      console.error('Error getting all cohorts:', error);
+      return [];
+    }
+  }
+
+  async getCohortsByFacilitator(facilitatorId: number): Promise<any[]> {
+    try {
+      const facilitated = await db.select({ cohortId: schema.cohortFacilitators.cohortId })
+        .from(schema.cohortFacilitators)
+        .where(eq(schema.cohortFacilitators.facilitatorId, facilitatorId));
+      
+      if (facilitated.length === 0) return [];
+      
+      const cohortIds = facilitated.map(f => f.cohortId);
+      
+      const cohorts = await db.select()
+        .from(schema.cohorts)
+        .where(inArray(schema.cohorts.id, cohortIds));
+      
+      return cohorts;
+    } catch (error) {
+      console.error(`Error getting cohorts for facilitator ${facilitatorId}:`, error);
+      return [];
+    }
+  }
+
+  // Cohort participant operations
+  async addParticipantToCohort(cohortId: number, participantId: number): Promise<void> {
+    try {
+      await db.insert(schema.cohortParticipants)
+        .values({ cohortId, participantId })
+        .onConflictDoNothing();
+    } catch (error) {
+      console.error(`Error adding participant ${participantId} to cohort ${cohortId}:`, error);
+      throw error;
+    }
+  }
+
+  async removeParticipantFromCohort(cohortId: number, participantId: number): Promise<void> {
+    try {
+      await db.delete(schema.cohortParticipants)
+        .where(and(
+          eq(schema.cohortParticipants.cohortId, cohortId),
+          eq(schema.cohortParticipants.participantId, participantId)
+        ));
+    } catch (error) {
+      console.error(`Error removing participant ${participantId} from cohort ${cohortId}:`, error);
+      throw error;
+    }
+  }
+
+  async getCohortParticipants(cohortId: number): Promise<User[]> {
+    try {
+      const participants = await db.select()
+        .from(schema.cohortParticipants)
+        .innerJoin(schema.users, eq(schema.cohortParticipants.participantId, schema.users.id))
+        .where(eq(schema.cohortParticipants.cohortId, cohortId));
+      
+      return participants.map(p => p.users);
+    } catch (error) {
+      console.error(`Error getting participants for cohort ${cohortId}:`, error);
+      return [];
+    }
+  }
+
+  async getParticipantCohorts(participantId: number): Promise<any[]> {
+    try {
+      const userCohorts = await db.select({ cohortId: schema.cohortParticipants.cohortId })
+        .from(schema.cohortParticipants)
+        .where(eq(schema.cohortParticipants.participantId, participantId));
+      
+      if (userCohorts.length === 0) return [];
+      
+      const cohortIds = userCohorts.map(uc => uc.cohortId);
+      
+      const cohorts = await db.select()
+        .from(schema.cohorts)
+        .where(inArray(schema.cohorts.id, cohortIds));
+      
+      return cohorts;
+    } catch (error) {
+      console.error(`Error getting cohorts for participant ${participantId}:`, error);
+      return [];
+    }
+  }
+
+  // StarCard operations
+  async getStarCard(userId: number): Promise<StarCard | undefined> {
+    try {
+      const [starCard] = await db.select()
+        .from(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+      
+      return starCard;
+    } catch (error) {
+      console.error(`Error getting star card for user ${userId}:`, error);
+      return undefined;
+    }
+  }
+
+  async createStarCard(starCardData: any): Promise<StarCard> {
+    try {
+      const [starCard] = await db.insert(schema.starCards)
+        .values(starCardData)
+        .returning();
+      
+      return starCard;
+    } catch (error) {
+      console.error('Error creating star card:', error);
+      throw error;
+    }
+  }
+
+  async updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined> {
+    try {
+      const [starCard] = await db.update(schema.starCards)
+        .set({ ...starCardData, updatedAt: new Date() })
+        .where(eq(schema.starCards.id, id))
+        .returning();
+      
+      return starCard;
+    } catch (error) {
+      console.error(`Error updating star card ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  // Flow attributes operations
+  async getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined> {
+    try {
+      const [flowAttributes] = await db.select()
+        .from(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+      
+      return flowAttributes;
+    } catch (error) {
+      console.error(`Error getting flow attributes for user ${userId}:`, error);
+      return undefined;
+    }
+  }
+
+  async createFlowAttributes(flowAttributesData: any): Promise<FlowAttributesRecord> {
+    try {
+      const [flowAttributes] = await db.insert(schema.flowAttributes)
+        .values(flowAttributesData)
+        .returning();
+      
+      return flowAttributes;
+    } catch (error) {
+      console.error('Error creating flow attributes:', error);
+      throw error;
+    }
+  }
+
+  async updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined> {
+    try {
+      const [flowAttributes] = await db.update(schema.flowAttributes)
+        .set({ ...flowAttributesData, updatedAt: new Date() })
+        .where(eq(schema.flowAttributes.id, id))
+        .returning();
+      
+      return flowAttributes;
+    } catch (error) {
+      console.error(`Error updating flow attributes ${id}:`, error);
+      return undefined;
+    }
+  }
+
+  // Test user operations
+  async createTestUsers(): Promise<void> {
+    try {
+      // Create 5 test users if they don't exist
+      const testUsers = [
+        {
+          username: 'user1',
+          password: 'password', // In a real app, this would be hashed
+          name: 'Test User 1',
+          title: 'Software Engineer',
+          organization: 'Tech Company',
+          progress: 0
+        },
+        {
+          username: 'user2',
+          password: 'password',
+          name: 'Test User 2',
+          title: 'Product Manager',
+          organization: 'Innovation Inc',
+          progress: 0
+        },
+        {
+          username: 'user3',
+          password: 'password',
+          name: 'Test User 3',
+          title: 'Data Scientist',
+          organization: 'Analytics Co',
+          progress: 0
+        },
+        {
+          username: 'user4',
+          password: 'password',
+          name: 'Test User 4',
+          title: 'UX Designer',
+          organization: 'Design Studio',
+          progress: 0
+        },
+        {
+          username: 'user5',
+          password: 'password',
+          name: 'Test User 5',
+          title: 'Marketing Director',
+          organization: 'Brand Agency',
+          progress: 0
+        }
+      ];
+      
+      for (const userData of testUsers) {
+        const existingUser = await this.getUserByUsername(userData.username);
+        if (!existingUser) {
+          const user = await this.createUser(userData);
+          await this.assignRole(user.id, UserRole.Participant);
+        }
+      }
+    } catch (error) {
+      console.error('Error creating test users:', error);
+      throw error;
+    }
+  }
+
+  async getTestUsers(): Promise<User[]> {
+    try {
+      return await db.select()
+        .from(schema.users)
+        .where(sql`${schema.users.username} LIKE 'user%'`);
+    } catch (error) {
+      console.error('Error getting test users:', error);
+      return [];
+    }
+  }
+
+  // Helper to create admin user on startup
+  private async createAdminUser(): Promise<void> {
+    try {
+      const adminUser = {
+        username: 'admin',
+        password: 'admin123', // In a real app, this would be hashed
+        name: 'Admin User',
+        title: 'System Administrator',
+        organization: 'AllStarTeams'
+      };
+
+      // Check if admin user exists
+      const existingAdmin = await this.getUserByUsername(adminUser.username);
+      
+      if (!existingAdmin) {
+        // Create admin user
+        const user = await this.createUser(adminUser);
+        
+        // Assign admin role
+        await this.assignRole(user.id, UserRole.Admin);
+      }
+    } catch (error) {
+      console.error('Error creating admin user:', error);
+      throw error;
+    }
+  }
+}
+
+// Export DatabaseStorage as the default storage implementation
+export const storage = new DatabaseStorage();
+
+// In-memory storage implementation for reference
+class MemStorage implements Partial<IStorage> {
   private users: Map<number, User>;
   private assessments: Map<number, Assessment>;
   private questions: Map<number, Question>;
