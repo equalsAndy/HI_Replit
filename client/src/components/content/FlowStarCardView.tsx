@@ -484,22 +484,24 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                   {/* Show selected attributes in a read-only display */}
                   <div className="mb-4">
                     <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
-                    <div className="flex flex-wrap gap-2 p-3 border border-gray-200 rounded-lg min-h-[60px]">
-                      {selectedAttributes
-                        .filter(attr => attr.rank !== null)
-                        .sort((a, b) => (a.rank || 0) - (b.rank || 0))
-                        .map(attr => (
-                          <Badge 
-                            key={attr.text} 
-                            variant="outline"
-                            className="bg-indigo-100 text-indigo-800"
-                          >
-                            {attr.text}
-                            <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${getRankBadgeColor(attr.rank || 0)}`}>
-                              {(attr.rank || 0) + 1}
-                            </span>
-                          </Badge>
-                        ))}
+                    <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedAttributes
+                          .filter(attr => attr.rank !== null)
+                          .sort((a, b) => (a.rank || 0) - (b.rank || 0))
+                          .map(attr => (
+                            <Badge 
+                              key={attr.text} 
+                              variant="outline"
+                              className="bg-indigo-100 text-indigo-800"
+                            >
+                              {attr.text}
+                              <span className={`ml-1 inline-flex items-center justify-center rounded-full h-5 w-5 text-xs text-white ${getRankBadgeColor(attr.rank || 0)}`}>
+                                {(attr.rank || 0) + 1}
+                              </span>
+                            </Badge>
+                          ))}
+                      </div>
                     </div>
                   </div>
                   
@@ -534,8 +536,8 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
                     </div>
                     
-                    {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
-                      <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                    <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
+                      {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext
                           sensors={useSensors(
                             useSensor(PointerSensor, {
@@ -574,12 +576,12 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                             </div>
                           </SortableContext>
                         </DndContext>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-gray-500 italic p-3 border border-gray-200 rounded-lg min-h-[60px] flex items-center justify-center">
-                        Select a word below to add it to your flow attributes
-                      </p>
-                    )}
+                      ) : (
+                        <p className="text-sm text-gray-500 italic flex items-center justify-center">
+                          Select a word below to add it to your flow attributes
+                        </p>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Available attributes */}
