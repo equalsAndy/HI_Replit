@@ -32,6 +32,35 @@ export function TestUsersModal({
 }: TestUsersModalProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Reset user progress mutation
+  const resetUserProgress = useMutation({
+    mutationFn: async () => {
+      if (!userId) return null;
+      const res = await apiRequest('POST', `/api/test-users/reset/${userId}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      // Clear local storage
+      localStorage.removeItem('allstarteams-navigation-progress');
+      localStorage.removeItem('imaginal-agility-navigation-progress');
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries();
+      
+      toast({
+        title: "Progress Reset",
+        description: "Your progress has been reset successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to reset progress: " + String(error),
+        variant: "destructive"
+      });
+    }
+  });
 
   // Determine if user has any data that can be cleared
   const hasData = (
