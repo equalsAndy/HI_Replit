@@ -68,7 +68,7 @@ export const cohorts = pgTable("cohorts", {
   endDate: timestamp("end_date"),
   status: varchar("status").notNull().default('upcoming'),
   cohortType: varchar("cohort_type").notNull().default('standard'),
-  parentCohortId: integer("parent_cohort_id").references(() => cohorts.id),
+  parentCohortId: integer("parent_cohort_id").references((): any => cohorts.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

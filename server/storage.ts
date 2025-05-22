@@ -236,7 +236,7 @@ export class DatabaseStorage implements IStorage {
         organization: 'Organization'
       });
       
-      await this.assignRole(admin.id, 'admin');
+      await this.assignRole(admin.id, UserRole.Admin);
     }
     
     // Create 5 test users if they don't exist
@@ -256,9 +256,9 @@ export class DatabaseStorage implements IStorage {
         
         // Make user 1 a facilitator
         if (i === 1) {
-          await this.assignRole(user.id, 'facilitator');
+          await this.assignRole(user.id, UserRole.Facilitator);
         } else {
-          await this.assignRole(user.id, 'participant');
+          await this.assignRole(user.id, UserRole.Participant);
         }
       }
     }
@@ -364,14 +364,14 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(schema.cohortParticipants.cohortId, cohortId),
-          eq(schema.cohortParticipants.userId, userId)
+          eq(schema.cohortParticipants.participantId, userId)
         )
       );
   }
   
   async getParticipantCohorts(participantId: number): Promise<any[]> {
     const cohortParticipants = await db.query.cohortParticipants.findMany({
-      where: eq(schema.cohortParticipants.userId, participantId)
+      where: eq(schema.cohortParticipants.participantId, participantId)
     });
     
     if (!cohortParticipants.length) {
