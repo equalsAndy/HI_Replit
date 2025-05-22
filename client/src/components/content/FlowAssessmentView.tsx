@@ -396,12 +396,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               <h2 className="text-xl font-bold text-gray-900">Your Flow Assessment Results</h2>
               <p className="text-gray-500 text-sm">Based on your responses to all {flowQuestions.length} questions.</p>
             </div>
-            <button 
-              onClick={() => setShowResults(false)}
-              className="text-gray-400 hover:text-gray-500"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            {/* Close button removed to avoid duplicate X in corner */}
           </div>
           
           <div className="p-6 overflow-y-auto max-h-[80vh]">
