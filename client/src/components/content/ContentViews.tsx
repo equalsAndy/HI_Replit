@@ -17,6 +17,7 @@ import FutureSelfView from './FutureSelfView';
 import FinalReflectionView from './FinalReflectionView';
 import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
+import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 
@@ -554,61 +555,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination Assessment</h1>
           
-          <div className="mb-8">
-            <img 
-              src="https://images.unsplash.com/photo-1555212697-194d092e3b8f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2187&q=80" 
-              alt="Creative workspace representing imagination"
-              className="w-full rounded-lg object-cover h-64"
-            />
-          </div>
-          
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Why Assess Your Imagination?</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            The Imagination Assessment provides you with insights into your natural imaginative tendencies
-            and helps identify areas where targeted practice can enhance your strategic imagination capabilities.
-            This self-assessment is the first step in developing your personalized Imaginal Agility profile.
-          </p>
-          
-          <div className="bg-purple-50 p-6 rounded-lg mb-8">
-            <h3 className="text-xl font-semibold text-purple-800 mb-3">Assessment Overview</h3>
-            <ul className="space-y-3">
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">1</div>
-                <span className="text-gray-700">30 scenario-based questions that explore how you think and respond in various situations</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">2</div>
-                <span className="text-gray-700">10-15 minutes to complete</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">3</div>
-                <span className="text-gray-700">No right or wrong answers - focus on what feels most natural to you</span>
-              </li>
-              <li className="flex items-start">
-                <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-0.5 flex-shrink-0">4</div>
-                <span className="text-gray-700">Personalized results showing your unique imagination profile</span>
-              </li>
-            </ul>
-          </div>
-          
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Preparing for the Assessment</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            For the most accurate results, find a quiet space where you can reflect honestly without 
-            distractions. Answer based on how you naturally think and act, not how you think you should respond.
-          </p>
-          
-          <div className="flex justify-end mt-8">
-            <Button 
-              onClick={() => {
-                markStepCompleted('1-5');
-                setCurrentContent("five-c-assessment");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Next: Complete the 5Cs Assessment
-            </Button>
-          </div>
+          {/* Assessment component with scenarios and response functionality */}
+          <ImaginationAssessmentContent 
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
         </div>
       );
       
