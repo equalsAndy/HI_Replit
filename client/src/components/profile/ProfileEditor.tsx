@@ -35,8 +35,6 @@ const profileSchema = z.object({
   title: z.string().optional(),
   organization: z.string().optional(),
   email: z.string().email({ message: 'Invalid email address' }).optional().or(z.literal('')),
-  bio: z.string().max(500, { message: 'Bio cannot exceed 500 characters' }).optional(),
-  phone: z.string().optional(),
 });
 
 type ProfileFormValues = z.infer<typeof profileSchema>;
