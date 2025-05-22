@@ -87,15 +87,13 @@ function Router() {
           <Route path="/auth" component={AuthPage} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/user-home2" component={UserHome2} />
+          <Route path="/allstarteams" component={AllStarTeams} />
           <Route path="/user-home2-refactored" component={() => {
-            // Check if we should show the Imaginal Agility version instead
             const appType = localStorage.getItem('selectedApp');
             if (appType === 'imaginal-agility') {
-              // Use effect to navigate to the imaginal-agility page
               useEffect(() => {
                 navigate('/imaginal-agility');
               }, []);
-              // Show loading state while navigating
               return <div className="flex items-center justify-center h-screen">
                 <div className="text-center">
                   <h2 className="text-xl mb-4">Loading Imaginal Agility Workshop...</h2>
@@ -103,8 +101,11 @@ function Router() {
                 </div>
               </div>;
             }
-            // Otherwise show regular AllStarTeams version
-            return <AllStarTeams />;
+            // Redirect to allstarteams instead
+            useEffect(() => {
+              navigate('/allstarteams');
+            }, []);
+            return null;
           }} />
           <Route path="/logout" component={() => {
             // Simplified logout page
