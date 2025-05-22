@@ -8,11 +8,8 @@ import {
   insertAssessmentSchema,
   insertStarCardSchema,
   insertVisualizationSchema,
-  insertUserRoleSchema,
-  insertUserFacilitatorSchema,
   Answer,
-  QuadrantData,
-  UserRoleType
+  QuadrantData
 } from "@shared/schema";
 import { z } from "zod";
 import multer from "multer";

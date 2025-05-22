@@ -12,11 +12,7 @@ export const applications = pgTable("applications", {
   primaryColor: text("primary_color").default("indigo"),
 });
 
-export const userRoles = pgTable("user_roles", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull().unique(), // "admin", "facilitator", "participant"
-  description: text("description"),
-});
+// We'll implement these tables later with proper migrations
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -28,24 +24,13 @@ export const users = pgTable("users", {
   avatarUrl: text("avatar_url"),
   progress: integer("progress").default(0),
   applicationId: integer("application_id").references(() => applications.id),
-  roleId: integer("role_id").references(() => userRoles.id).default(3), // Default to participant (id: 3)
-  bio: text("bio"),
-  email: text("email"),
-  phone: text("phone"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
-});
-
-// User-facilitator relationship table
-export const userFacilitators = pgTable("user_facilitators", {
-  id: serial("id").primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id),
-  facilitatorId: integer("facilitator_id").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-}, (table) => {
-  return {
-    unq: primaryKey({ columns: [table.userId, table.facilitatorId] }),
-  };
+  // We'll add these fields later with proper migrations
+  // roleId: integer("role_id").references(() => userRoles.id).default(3), 
+  // bio: text("bio"),
+  // email: text("email"),
+  // phone: text("phone"),
+  // createdAt: timestamp("created_at").defaultNow(),
+  // updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const assessments = pgTable("assessments", {
@@ -127,12 +112,6 @@ export const usersRelations = relations(users, ({ one, many }) => ({
     fields: [users.id],
     references: [visualizations.userId],
   }),
-  role: one(userRoles, {
-    fields: [users.roleId],
-    references: [userRoles.id],
-  }),
-  assignedFacilitator: many(userFacilitators, { relationName: "user_facilitator" }),
-  assignedUsers: many(userFacilitators, { relationName: "facilitator_users" }),
 }));
 
 export const assessmentsRelations = relations(assessments, ({ one }) => ({
@@ -174,29 +153,7 @@ export const visualizationsRelations = relations(visualizations, ({ one }) => ({
   }),
 }));
 
-export const userRolesRelations = relations(userRoles, ({ many }) => ({
-  users: many(users),
-}));
-
-export const userFacilitatorsRelations = relations(userFacilitators, ({ one }) => ({
-  user: one(users, {
-    fields: [userFacilitators.userId],
-    references: [users.id],
-    relationName: "user_facilitator"
-  }),
-  facilitator: one(users, {
-    fields: [userFacilitators.facilitatorId],
-    references: [users.id],
-    relationName: "facilitator_users"
-  }),
-}));
-
 // Insert schemas
-export const insertUserRoleSchema = createInsertSchema(userRoles).pick({
-  name: true,
-  description: true,
-});
-
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -206,15 +163,6 @@ export const insertUserSchema = createInsertSchema(users).pick({
   avatarUrl: true,
   progress: true,
   applicationId: true,
-  roleId: true,
-  bio: true,
-  email: true,
-  phone: true,
-});
-
-export const insertUserFacilitatorSchema = createInsertSchema(userFacilitators).pick({
-  userId: true,
-  facilitatorId: true,
 });
 
 export const insertAssessmentSchema = createInsertSchema(assessments).pick({

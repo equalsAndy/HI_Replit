@@ -34,6 +34,13 @@ export interface StarCard {
   state?: string | null;
 }
 
+// Role types for user profiles
+export enum UserRole {
+  Admin = 'admin',
+  Facilitator = 'facilitator',
+  Participant = 'participant'
+}
+
 // User type
 export interface User {
   id: number;
@@ -42,6 +49,12 @@ export interface User {
   organization?: string;
   progress?: number;
   avatarUrl?: string;
+  // New fields for enhanced profiles - will be handled in UI until DB is updated
+  role?: UserRole;
+  email?: string;
+  bio?: string;
+  phone?: string;
+  facilitatorId?: number; // ID of the facilitator assigned to this user
 }
 
 // Base props for content view components
