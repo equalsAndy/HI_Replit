@@ -18,6 +18,7 @@ import FinalReflectionView from './FinalReflectionView';
 import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
+import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 
