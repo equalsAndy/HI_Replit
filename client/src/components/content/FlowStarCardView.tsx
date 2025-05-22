@@ -192,6 +192,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     }
   }, [flowAttributesData, isCardComplete]);
   
+  // Tracks if we're updating existing attributes rather than creating new ones
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
     mutationFn: async (attributes: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
@@ -230,8 +233,8 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
-    // Don't allow selection if card is already complete
-    if (isCardComplete) {
+    // Only check for completion if we're not in update mode
+    if (isCardComplete && !isUpdating) {
       toast({
         title: "Card already complete",
         description: "Your Star Card already has flow attributes. You can continue to the next section.",
@@ -389,7 +392,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                     variant="outline" 
                     size="sm"
                     className="w-full border-indigo-200 text-indigo-600 hover:text-indigo-700"
-                    onClick={() => setShowSelectionInterface(true)}
+                    onClick={() => {
+                      setShowSelectionInterface(true);
+                      setIsUpdating(true);
+                    }}
                   >
                     I want to choose different attributes
                   </Button>
@@ -474,7 +480,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                     variant="outline" 
                     size="sm"
                     className="w-full border-gray-200 text-gray-600"
-                    onClick={() => setShowSelectionInterface(false)}
+                    onClick={() => {
+                      setShowSelectionInterface(false);
+                      setIsUpdating(false);
+                    }}
                   >
                     Cancel and keep my current attributes
                   </Button>
@@ -509,7 +518,8 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                 disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || flowAttributesMutation.isPending}
                 onClick={saveFlowAttributes}
               >
-                {flowAttributesMutation.isPending ? "Saving..." : "Add Flow Attributes to Star Card"}
+                {flowAttributesMutation.isPending ? "Saving..." : 
+                 isUpdating ? "Update Flow Attributes" : "Add Flow Attributes to Star Card"}
               </Button>
             </div>
           ) : null}
