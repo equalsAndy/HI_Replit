@@ -332,7 +332,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
-    const participantIds = cohortParticipants.map(cp => cp.userId);
+    const participantIds = cohortParticipants.map(cp => cp.participantId);
     
     const users = await db.query.users.findMany({
       where: inArray(schema.users.id, participantIds)
@@ -346,14 +346,14 @@ export class DatabaseStorage implements IStorage {
     const existingParticipant = await db.query.cohortParticipants.findFirst({
       where: and(
         eq(schema.cohortParticipants.cohortId, cohortId),
-        eq(schema.cohortParticipants.userId, userId)
+        eq(schema.cohortParticipants.participantId, userId)
       )
     });
     
     if (!existingParticipant) {
       await db.insert(schema.cohortParticipants).values({
         cohortId,
-        userId
+        participantId: userId
       });
     }
   }

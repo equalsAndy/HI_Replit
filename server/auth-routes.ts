@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { storage } from './new-storage';
+import { storage } from './storage';
 import { UserRole } from '../shared/types';
 
 // Create router for authentication routes
@@ -19,7 +19,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     const { username, password } = loginSchema.parse(req.body);
     
     // Authenticate user
-    const user = await dbStorage.authenticateUser(username, password);
+    const user = await storage.authenticateUser(username, password);
     
     if (!user) {
       return res.status(401).json({ message: 'Invalid username or password' });
