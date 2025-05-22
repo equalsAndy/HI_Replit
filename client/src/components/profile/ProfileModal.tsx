@@ -12,7 +12,6 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { User } from '@shared/schema';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -23,7 +22,15 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const { data: user, isLoading } = useQuery({
+  const { data: user, isLoading } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    email: string | null;
+    title: string | null;
+    organization: string | null;
+    role?: string;
+  }>({
     queryKey: ['/api/user/profile'],
     enabled: isOpen,
   });
@@ -59,7 +66,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     e.preventDefault();
     
     try {
-      await apiRequest('/api/user/update', {
+      await apiRequest('/api/user/profile', {
         method: 'PUT',
         data: formData,
       });
