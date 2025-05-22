@@ -30,6 +30,7 @@ import TeamWorkshop from "./pages/team-workshop";
 // Lazy-loaded components
 const ImaginalAgilityPage = lazy(() => import("./pages/imaginal-agility"));
 const ProfileManagement = lazy(() => import("./pages/profile-management"));
+const AdminDashboard = lazy(() => import("./pages/admin/dashboard"));
 
 // Import providers
 import { DemoModeProvider } from "@/hooks/use-demo-mode";
@@ -90,6 +91,11 @@ function Router() {
           <Route path="/profile">
             <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading profile...</div>}>
               <ProfileManagement />
+            </Suspense>
+          </Route>
+          <Route path="/admin">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading admin dashboard...</div>}>
+              <AdminDashboard />
             </Suspense>
           </Route>
           <Route path="/user-home2-refactored" component={() => {
