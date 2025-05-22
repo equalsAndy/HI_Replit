@@ -1,5 +1,7 @@
 import React from 'react';
-import { ContentViewProps, StarCard, User } from '../../../shared/types';
+import { ContentViewProps } from '../../../shared/types';
+// Import types but use type-only imports to avoid conflicts
+import type { StarCard, User } from '../../../shared/types';
 import PlaceholderView from '../PlaceholderView';
 import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';
