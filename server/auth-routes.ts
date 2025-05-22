@@ -117,7 +117,7 @@ authRouter.get('/user', async (req: Request, res: Response) => {
     }
     
     // Get user details
-    const user = await dbStorage.getUser(userId);
+    const user = await storage.getUser(userId);
     
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

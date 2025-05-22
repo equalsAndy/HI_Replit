@@ -218,7 +218,11 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserRoles(userId: number): Promise<UserRole[]> {
-    return await getUserRoles(userId);
+    const userRoles = await db.query.userRoles.findMany({
+      where: eq(schema.userRoles.userId, userId)
+    });
+    
+    return userRoles.map(ur => ur.role as UserRole);
   }
   
   // Test user operations
