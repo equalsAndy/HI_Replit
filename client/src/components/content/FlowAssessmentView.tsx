@@ -132,9 +132,9 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     // Mark step as completed
     markStepCompleted('3-2');
     
-    // Navigate to next step
-    setShowResults(false);
-    setCurrentContent("flow-rounding-out");
+    // Save assessment to localStorage
+    localStorage.setItem('flowAssessmentAnswers', JSON.stringify(answers));
+    setHasCompletedAssessment(true);
   };
   
   // State to track which popover is open
@@ -229,94 +229,65 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           <h2 className="text-xl font-semibold mb-3">Your Flow State Results</h2>
           
           <p className="mb-4">
-            You've already completed the flow state assessment. Here are your results:
+            You've completed the flow state assessment. Here's what your results reveal about your flow experience:
           </p>
           
-          <Card className="border border-gray-200 p-6 mb-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-medium">Your Flow Profile</h3>
+          {/* Score display */}
+          <div className="text-center my-6">
+            <div className="text-4xl font-bold text-indigo-600 mb-2">
+              {totalScore} / {flowQuestions.length * 5}
+            </div>
+            <div className="text-xl font-semibold text-gray-800">
+              {interpretation.level}
+            </div>
+          </div>
+          
+          {/* Interpretation box */}
+          <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
+            <p>{interpretation.description}</p>
+          </div>
+          
+          {/* Scoring info accordion */}
+          <div 
+            className="border rounded-md p-4 cursor-pointer" 
+            onClick={() => setShowScoringInfo(!showScoringInfo)}
+          >
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium">Scoring & Interpretation</h4>
+              <ChevronRight 
+                className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} 
+              />
             </div>
             
-            {/* Score display */}
-            <div className="text-center my-6">
-              <div className="text-4xl font-bold text-indigo-600 mb-2">
-                {totalScore} / {flowQuestions.length * 5}
+            {showScoringInfo && (
+              <div className="mt-4 space-y-2 text-sm text-gray-600">
+                <p className="font-medium">Flow Score Interpretation:</p>
+                <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
+                <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
+                <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
+                <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
               </div>
-              <div className="text-xl font-semibold text-gray-800">
-                {interpretation.level}
-              </div>
-            </div>
-            
-            {/* Interpretation box */}
-            <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
-              <p>{interpretation.description}</p>
-            </div>
-            
-            {/* Scoring info accordion */}
-            <div 
-              className="border rounded-md p-4 cursor-pointer" 
-              onClick={() => setShowScoringInfo(!showScoringInfo)}
+            )}
+          </div>
+          
+          <div className="mt-6">
+            <h3 className="text-lg font-medium mb-3">Next Steps</h3>
+            <p className="mb-4">
+              Now that you understand your flow profile, you can use these insights to create more optimal conditions for flow in your work and personal life.
+            </p>
+          </div>
+          
+          <div className="mt-6 flex justify-end">
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700"
+              onClick={() => {
+                markStepCompleted('3-2');
+                setCurrentContent("flow-rounding-out");
+              }}
             >
-              <div className="flex justify-between items-center">
-                <h4 className="font-medium">Scoring & Interpretation</h4>
-                <ChevronRight 
-                  className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} 
-                />
-              </div>
-              
-              {showScoringInfo && (
-                <div className="mt-4 space-y-2 text-sm text-gray-600">
-                  <p className="font-medium">Flow Score Interpretation:</p>
-                  <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
-                  <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
-                  <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
-                  <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
-                </div>
-              )}
-            </div>
-            
-            {/* Your answers summary in read-only format */}
-            <div className="mt-6">
-              <h4 className="font-medium mb-3">Your Answers Summary (Read-only)</h4>
-              <div className="border rounded-md divide-y">
-                <div className="grid grid-cols-[1fr,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
-                  <div>QUESTION</div>
-                  <div>YOUR ANSWER</div>
-                </div>
-                
-                {flowQuestions.map((q) => {
-                  const answerValue = answers[q.id] || 0;
-                  
-                  return (
-                    <div key={q.id} className="grid grid-cols-[1fr,auto] p-3 items-center hover:bg-gray-50">
-                      <div className="text-sm pr-2">
-                        <span className="font-medium text-gray-900">Question #{q.id}:</span> {q.text}
-                      </div>
-                      <div className="flex justify-end items-center gap-2">
-                        <div 
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}
-                        >
-                          {valueToLabel(answerValue)}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="mt-6 flex justify-end">
-              <Button 
-                className="bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => {
-                  markStepCompleted('3-2');
-                  setCurrentContent("flow-rounding-out");
-                }}
-              >
-                Continue to Rounding Out
-              </Button>
-            </div>
-          </Card>
+              Continue to Rounding Out
+            </Button>
+          </div>
         </Card>
       );
     } else {
