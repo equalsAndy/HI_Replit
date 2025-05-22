@@ -59,15 +59,6 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="bg-white text-indigo-600 border-indigo-200 hover:bg-indigo-50"
-            onClick={() => window.location.href = '/user-home2-refactored'}
-          >
-            Go to Refactored App
-          </Button>
-          
           <Button
             variant="outline"
             size="sm"

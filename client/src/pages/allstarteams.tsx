@@ -26,35 +26,35 @@ export default function AllStarTeams() {
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
-  
+
   // Set app to AllStarTeams on component mount
   useEffect(() => {
     setCurrentApp('allstarteams');
   }, []);
-  
+
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
     ? imaginalAgilityNavigationSections 
     : navigationSections;
-    
+
   // Get the appropriate progress storage key based on the selected app
   const progressStorageKey = APP_PROGRESS_KEYS[currentApp];
-  
+
   // Check for Star Card Preview navigation flag
   useEffect(() => {
     const navigateFlag = sessionStorage.getItem('navigateToStarCardPreview');
     if (navigateFlag === 'true') {
       // Clear the flag
       sessionStorage.removeItem('navigateToStarCardPreview');
-      
+
       // Navigate to Star Card Preview
       setCurrentContent('star-card-preview');
-      
+
       // Mark the assessment step as completed
       markStepCompleted('2-2');
     }
   }, []);
-  
+
   // Load completed steps from localStorage
   useEffect(() => {
     const savedProgressJSON = localStorage.getItem(progressStorageKey);
@@ -76,32 +76,32 @@ export default function AllStarTeams() {
       }
     }
   }, [progressStorageKey]);
-  
+
   // Save completed steps to localStorage whenever it changes
   useEffect(() => {
     if (completedSteps.length > 0) {
       localStorage.setItem(progressStorageKey, JSON.stringify(completedSteps));
     }
   }, [completedSteps, progressStorageKey]);
-  
+
   // Fetch user profile data
   const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ['/api/user/profile'],
     refetchOnWindowFocus: false
   });
-  
+
   // Fetch star card data 
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCard>({ 
     queryKey: ['/api/starcard'],
     refetchOnWindowFocus: false
   });
-  
+
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery<FlowAttributesResponse>({
     queryKey: ['/api/flow-attributes'],
     refetchOnWindowFocus: false
   });
-  
+
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
@@ -129,7 +129,7 @@ export default function AllStarTeams() {
       console.error("Reset error:", error);
     }
   });
-  
+
   // Function to mark a step as completed
   const markStepCompleted = (stepId: string) => {
     console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
@@ -143,7 +143,7 @@ export default function AllStarTeams() {
       setCompletedSteps([stepId]);
     }
   };
-  
+
   // Function to determine if a step is accessible
   const isStepAccessible = (sectionId: string, stepId: string) => {
     // Defensive check to ensure completedSteps is an array
@@ -151,20 +151,20 @@ export default function AllStarTeams() {
       console.error("completedSteps is not an array in isStepAccessible:", completedSteps);
       return sectionId === '1' && stepId === '1-1'; // Only allow first step if completedSteps is invalid
     }
-    
+
     const sectionIndex = parseInt(sectionId) - 1;
     const stepIndex = parseInt(stepId.split('-')[1]) - 1;
-    
+
     // If it's the first step of the first section, it's always accessible
     if (sectionIndex === 0 && stepIndex === 0) return true;
-    
+
     // If it's the Intro to Flow step (3-1), check if reflection step (2-4) is completed
     if (sectionId === '3' && stepId === '3-1') {
       // Make it accessible if either the previous section is complete
       // or if we've specifically completed the reflection step
       return completedSteps.includes('2-4') || completedSteps.includes('2-3');
     }
-    
+
     // For the first step of other sections, check if all steps in previous section are completed
     if (stepIndex === 0 && sectionIndex > 0) {
       const prevSection = activeNavigationSections[sectionIndex - 1];
@@ -174,7 +174,7 @@ export default function AllStarTeams() {
       }
       return prevSection.steps.every(step => completedSteps.includes(step.id));
     }
-    
+
     // For other steps, check if the previous step in the same section is completed
     const prevStepId = `${sectionId}-${stepIndex}`;
     return completedSteps.includes(prevStepId);
@@ -186,27 +186,27 @@ export default function AllStarTeams() {
     markStepCompleted('1-1'); // Introduction Video
     markStepCompleted('2-1'); // Intro to Strengths
     markStepCompleted('2-2'); // The assessment itself
-    
+
     // You may want to update other state or navigate after assessment completes
   };
-  
+
   // Define a structure to map stepIds to navigation sequence for automatic progress
   const navigationSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
     // Section 1
     '1-1': { prev: null, next: '2-1', contentKey: 'welcome' },
-    
+
     // Section 2
     '2-1': { prev: '1-1', next: '2-2', contentKey: 'intro-strengths' },
     '2-2': { prev: '2-1', next: '2-3', contentKey: 'strengths-assessment' }, // Assessment doesn't auto-complete
     '2-3': { prev: '2-2', next: '2-4', contentKey: 'star-card-preview' },
     '2-4': { prev: '2-3', next: '3-1', contentKey: 'reflection' },
-    
+
     // Section 3
     '3-1': { prev: '2-4', next: '3-2', contentKey: 'intro-to-flow' },
     '3-2': { prev: '3-1', next: '3-3', contentKey: 'flow-assessment' }, // Assessment doesn't auto-complete
     '3-3': { prev: '3-2', next: '3-4', contentKey: 'flow-rounding-out' },
     '3-4': { prev: '3-3', next: '4-1', contentKey: 'flow-star-card' },
-    
+
     // Section 4
     '4-1': { prev: '3-4', next: '4-2', contentKey: 'wellbeing' },
     '4-2': { prev: '4-1', next: '4-3', contentKey: 'cantril-ladder' },
@@ -223,12 +223,12 @@ export default function AllStarTeams() {
         return stepId;
       }
     }
-    
+
     // Special case for intro-to-flow which might be referred to as intro-flow
     if (contentKey === 'intro-to-flow') {
       return '3-1';
     }
-    
+
     return null;
   };
 
@@ -236,30 +236,30 @@ export default function AllStarTeams() {
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Get navigation info for this step
     const navInfo = navigationSequence[stepId];
-    
+
     if (!navInfo) {
       // For steps not defined in the sequence (like resource items)
       setCurrentContent(`placeholder-${stepId}`);
       markStepCompleted(stepId);
       return;
     }
-    
+
     // Handle assessments specially - don't mark as completed yet
     const isAssessment = stepId === '2-2' || stepId === '3-2';
-    
+
     // Set the content based on the navigation mapping
     setCurrentContent(navInfo.contentKey);
-    
+
     // Mark previous step as completed if it exists
     if (navInfo.prev && !completedSteps.includes(navInfo.prev)) {
       markStepCompleted(navInfo.prev);
     }
-    
+
     // For non-assessment steps, mark as completed when clicked
     if (!isAssessment) {
       markStepCompleted(stepId);
     }
-    
+
     // For the flow assessment, navigate to the flow assessment page instead of opening modal
     if (stepId === '3-2') {
       // Mark it as completed directly
@@ -268,7 +268,7 @@ export default function AllStarTeams() {
       setCurrentContent('flow-assessment');
     }
   };
-  
+
   // Data check for debugging
   const hasData = React.useMemo(() => {
     const hasStarCardData = starCard && (
@@ -277,12 +277,12 @@ export default function AllStarTeams() {
       (starCard.acting && starCard.acting > 0) || 
       (starCard.planning && starCard.planning > 0)
     );
-    
+
     const hasFlowData = flowAttributesData && 
                         flowAttributesData.attributes && 
                         Array.isArray(flowAttributesData.attributes) && 
                         flowAttributesData.attributes.length > 0;
-    
+
     const starCardData = {
       thinking: starCard?.thinking || 0,
       acting: starCard?.acting || 0,
@@ -290,32 +290,32 @@ export default function AllStarTeams() {
       planning: starCard?.planning || 0,
       imageUrl: !!starCard?.imageUrl
     };
-    
+
     const flowAttributes = {
       hasAttributes: !!flowAttributesData?.attributes,
       attributesLength: flowAttributesData?.attributes?.length || 0,
       flowScore: flowAttributesData?.flowScore || 0
     };
-    
+
     // Debug log for data checking
     console.log("Has data condition:", { hasData: !!hasStarCardData, hasFlowData, starCardData, flowAttributes });
-    
+
     return hasStarCardData;
   }, [starCard, flowAttributesData]);
-  
+
   // Function to toggle the drawer
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
-  
+
   // Update navigation sections with completion information
   const updatedNavigationSections = activeNavigationSections.map(section => {
     // Skip resource section which doesn't have completion tracking
     if (section.id === '5') return section;
-    
+
     // Count completed steps in this section
     const completedStepsInSection = section.steps.filter(step => 
       Array.isArray(completedSteps) && completedSteps.includes(step.id)
     ).length;
-    
+
     return {
       ...section,
       completedSteps: completedStepsInSection,
@@ -335,19 +335,10 @@ export default function AllStarTeams() {
           />
         </div>
         <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => resetUserProgress.mutate()}
-            disabled={resetUserProgress.isPending}
-            className="text-xs"
-          >
-            <RefreshCw className="h-4 w-4 mr-1" />
-            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
-          </Button>
+          
         </div>
       </header>
-      
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Assessment Modal */}
@@ -356,7 +347,7 @@ export default function AllStarTeams() {
           onClose={() => setIsAssessmentModalOpen(false)}
           onComplete={handleAssessmentComplete}
         />
-        
+
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
           drawerOpen={drawerOpen}
@@ -370,7 +361,7 @@ export default function AllStarTeams() {
           currentContent={currentContent}
           isImaginalAgility={currentApp === 'imaginal-agility'}
         />
-        
+
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
           <ContentViews

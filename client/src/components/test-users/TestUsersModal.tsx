@@ -197,6 +197,17 @@ export function TestUsersModal({
             </Button>
           )}
           
+          {/* Reset Progress button */}
+          <Button 
+            variant="outline"
+            className="bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
+            onClick={() => resetUserProgress.mutate()}
+            disabled={resetUserProgress.isPending}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
+          </Button>
+
           {/* Clear All Data button */}
           <Button 
             variant="destructive" 
