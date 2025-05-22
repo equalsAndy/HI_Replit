@@ -15,6 +15,18 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  const [adjusting, setAdjusting] = useState(false);
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    setAdjusting(false);
+  };
+  
+  const handleAdjust = () => {
+    setAdjusting(true);
+    setSubmitted(false);
+  };
 
   const handleSave = async () => {
     setSaving(true);
@@ -40,24 +52,106 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
       
       <div className="mb-8">
-        {/* Video component */}
-        <div className="aspect-w-16 aspect-h-9 mb-8">
-          <iframe 
-            src="https://www.youtube.com/embed/yidsMx8B678" 
-            title="Cantril Ladder of Well-Being" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-80 rounded border border-gray-200"
-          ></iframe>
+        {/* Video and ladder side by side */}
+        <div className="flex flex-col md:flex-row gap-6 mb-8">
+          {/* Video component - smaller */}
+          <div className="md:w-1/2">
+            <iframe 
+              src="https://www.youtube.com/embed/yidsMx8B678" 
+              title="Cantril Ladder of Well-Being" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="w-full h-64 rounded border border-gray-200"
+            ></iframe>
+          </div>
+          
+          {/* SVG Ladder next to video */}
+          <div className="md:w-1/2 flex justify-center items-center">
+            <WellBeingLadderSvg 
+              currentValue={wellBeingLevel}
+              futureValue={futureWellBeingLevel}
+            />
+          </div>
         </div>
         
-        {/* SVG Ladder right under the video */}
-        <div className="flex justify-center mb-8">
-          <WellBeingLadderSvg 
-            currentValue={wellBeingLevel}
-            futureValue={futureWellBeingLevel}
-          />
+        {/* Sliders directly under the video and ladder */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
+            <div className="space-y-3">
+              <p className="text-gray-700 text-sm">
+                On which step of the ladder would you say you stand today?
+              </p>
+              <div className="py-2">
+                <div className="flex justify-between mb-2 text-xs text-gray-600">
+                  <span>Worst (0)</span>
+                  <span>Best (10)</span>
+                </div>
+                <Slider
+                  value={[wellBeingLevel]} 
+                  min={0}
+                  max={10}
+                  step={1}
+                  onValueChange={(values) => setWellBeingLevel(values[0])}
+                  className="py-2"
+                  disabled={submitted && !adjusting}
+                />
+                <div className="text-center mt-1">
+                  <span className="font-medium text-lg text-blue-700">{wellBeingLevel}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+            <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
+            <div className="space-y-3">
+              <p className="text-gray-700 text-sm">
+                Where would you realistically like to be in one year?
+              </p>
+              <div className="py-2">
+                <div className="flex justify-between mb-2 text-xs text-gray-600">
+                  <span>Worst (0)</span>
+                  <span>Best (10)</span>
+                </div>
+                <Slider
+                  value={[futureWellBeingLevel]} 
+                  min={0}
+                  max={10}
+                  step={1}
+                  onValueChange={(values) => setFutureWellBeingLevel(values[0])}
+                  className="py-2"
+                  disabled={submitted && !adjusting}
+                />
+                <div className="text-center mt-1">
+                  <span className="font-medium text-lg text-green-700">{futureWellBeingLevel}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Submit/Adjust button section */}
+        <div className="flex justify-center gap-4 mb-8">
+          {!submitted || adjusting ? (
+            <Button 
+              onClick={handleSubmit}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              disabled={saving}
+            >
+              Lock In My Choices
+            </Button>
+          ) : (
+            <Button
+              onClick={handleAdjust}
+              variant="outline"
+              size="sm"
+              className="text-blue-600 border-blue-300"
+            >
+              I want to adjust my ladder
+            </Button>
+          )}
         </div>
         
         {/* Interpretation section */}
@@ -94,72 +188,12 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             to be in one year, and the steps you'll take each quarter to climb toward that vision.
           </p>
         </div>
-        
-        <div className="flex justify-center">
-          <div className="flex flex-col md:flex-row max-w-4xl w-full">
-            <div className="md:w-1/2 flex-1 space-y-6">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
-                <div className="space-y-3">
-                  <p className="text-gray-700 text-sm">
-                    On which step of the ladder would you say you stand today?
-                  </p>
-                  <div className="py-2">
-                    <div className="flex justify-between mb-2 text-xs text-gray-600">
-                      <span>Worst (0)</span>
-                      <span>Best (10)</span>
-                    </div>
-                    <Slider
-                      value={[wellBeingLevel]} 
-                      min={0}
-                      max={10}
-                      step={1}
-                      onValueChange={(values) => setWellBeingLevel(values[0])}
-                      className="py-2"
-                    />
-                    <div className="text-center mt-1">
-                      <span className="font-medium text-lg text-blue-700">{wellBeingLevel}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="md:w-1/2 flex-1 space-y-6 md:ml-6">
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
-                <div className="space-y-3">
-                  <p className="text-gray-700 text-sm">
-                    Where would you realistically like to be in one year?
-                  </p>
-                  <div className="py-2">
-                    <div className="flex justify-between mb-2 text-xs text-gray-600">
-                      <span>Worst (0)</span>
-                      <span>Best (10)</span>
-                    </div>
-                    <Slider
-                      value={[futureWellBeingLevel]} 
-                      min={0}
-                      max={10}
-                      step={1}
-                      onValueChange={(values) => setFutureWellBeingLevel(values[0])}
-                      className="py-2"
-                    />
-                    <div className="text-center mt-1">
-                      <span className="font-medium text-lg text-green-700">{futureWellBeingLevel}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
       
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || !submitted}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {saving ? 'Saving...' : 'Continue'} <ChevronRight className="ml-2 h-4 w-4" />
