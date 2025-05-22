@@ -6,11 +6,16 @@ import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';
 import PlaceholderView from '../PlaceholderView';
 
-const ImaginalAgilityContent: React.FC<ContentViewProps> = ({
+interface ImaginalAgilityContentProps extends ContentViewProps {
+  setIsAssessmentModalOpen: (isOpen: boolean) => void;
+}
+
+const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   currentContent,
   navigate,
   markStepCompleted,
-  setCurrentContent
+  setCurrentContent,
+  setIsAssessmentModalOpen
 }) => {
   switch (currentContent) {
     case 'imaginal-intro':
@@ -28,7 +33,6 @@ const ImaginalAgilityContent: React.FC<ContentViewProps> = ({
             ></iframe>
           </div>
           
-          {/* Rest of imaginal-intro content */}
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
