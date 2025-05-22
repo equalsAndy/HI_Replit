@@ -52,11 +52,28 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
+  // Check for existing flow score in local storage
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(() => {
+    try {
+      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
+      return !!savedAnswers;
+    } catch (e) {
+      return false;
+    }
+  });
+  
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>({});
+  const [answers, setAnswers] = useState<Record<number, number>>(() => {
+    try {
+      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
+      return savedAnswers ? JSON.parse(savedAnswers) : {};
+    } catch (e) {
+      return {};
+    }
+  });
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showResults, setShowResults] = useState(false);
+  const [showResults, setShowResults] = useState(hasCompletedAssessment);
   const [showScoringInfo, setShowScoringInfo] = useState(false);
   
   // Get current question
@@ -203,6 +220,287 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     setCurrentQuestion(flowQuestions.length - 1);
   };
   
+  // Determine if we should show the assessment or results
+  const renderContent = () => {
+    if (hasCompletedAssessment) {
+      // Show results summary if assessment was already completed
+      return (
+        <Card className="border border-gray-200 p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-3">Your Flow State Results</h2>
+          
+          <p className="mb-4">
+            You've already completed the flow state assessment. Here are your results:
+          </p>
+          
+          <Card className="border border-gray-200 p-6 mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Your Flow Profile</h3>
+            </div>
+            
+            {/* Score display */}
+            <div className="text-center my-6">
+              <div className="text-4xl font-bold text-indigo-600 mb-2">
+                {totalScore} / {flowQuestions.length * 5}
+              </div>
+              <div className="text-xl font-semibold text-gray-800">
+                {interpretation.level}
+              </div>
+            </div>
+            
+            {/* Interpretation box */}
+            <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
+              <p>{interpretation.description}</p>
+            </div>
+            
+            {/* Scoring info accordion */}
+            <div 
+              className="border rounded-md p-4 cursor-pointer" 
+              onClick={() => setShowScoringInfo(!showScoringInfo)}
+            >
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">Scoring & Interpretation</h4>
+                <ChevronRight 
+                  className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} 
+                />
+              </div>
+              
+              {showScoringInfo && (
+                <div className="mt-4 space-y-2 text-sm text-gray-600">
+                  <p className="font-medium">Flow Score Interpretation:</p>
+                  <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
+                  <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
+                  <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
+                  <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
+                </div>
+              )}
+            </div>
+            
+            {/* Your answers summary in read-only format */}
+            <div className="mt-6">
+              <h4 className="font-medium mb-3">Your Answers Summary (Read-only)</h4>
+              <div className="border rounded-md divide-y">
+                <div className="grid grid-cols-[1fr,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
+                  <div>QUESTION</div>
+                  <div>YOUR ANSWER</div>
+                </div>
+                
+                {flowQuestions.map((q) => {
+                  const answerValue = answers[q.id] || 0;
+                  
+                  return (
+                    <div key={q.id} className="grid grid-cols-[1fr,auto] p-3 items-center hover:bg-gray-50">
+                      <div className="text-sm pr-2">
+                        <span className="font-medium text-gray-900">Question #{q.id}:</span> {q.text}
+                      </div>
+                      <div className="flex justify-end items-center gap-2">
+                        <div 
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}
+                        >
+                          {valueToLabel(answerValue)}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => {
+                  markStepCompleted('3-2');
+                  setCurrentContent("flow-rounding-out");
+                }}
+              >
+                Continue to Rounding Out
+              </Button>
+            </div>
+          </Card>
+        </Card>
+      );
+    } else {
+      // Show original assessment
+      return (
+        <Card className="border border-gray-200 p-6 mb-8">
+          <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
+          
+          <p className="mb-4">
+            Purpose: This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
+          </p>
+          
+          <p className="mb-6">
+            Instructions: Rate your agreement with each of the following statements on a scale from 1 (Never) to 5 (Always). Answer with a specific activity or task in mind where you most often seek or experience flow.
+          </p>
+          
+          <Card className="border border-gray-200 p-6 mb-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-medium">Flow State Self-Assessment</h3>
+              <Button 
+                variant="outline" 
+                onClick={fillDemoAnswers}
+                className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
+              >
+                Fill Demo Answers
+              </Button>
+            </div>
+            
+            <div className="mb-8">
+              <p className="font-medium mb-4">
+                <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
+              </p>
+              
+              <div className="mb-8 relative">
+                <div className="h-16 relative">
+                  {/* Main track background */}
+                  <div className="absolute h-3 rounded-full bg-gray-200 w-full top-6 z-0 shadow-inner overflow-hidden">
+                    {/* Gradient fill - animated for smoother transitions */}
+                    <div 
+                      className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
+                      style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
+                    ></div>
+                  </div>
+                  
+                  {/* Circle markers - perfectly aligned on the track */}
+                  <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
+                    {[1, 2, 3, 4, 5].map((value) => {
+                      // Determine the styling based on whether this value is selected
+                      const isSelected = value <= currentValue;
+                      let bgColor = "bg-white";
+                      let textColor = "text-gray-800";
+                      let borderStyle = "border-2 border-gray-300 hover:border-indigo-300";
+                      
+                      if (isSelected) {
+                        switch (value) {
+                          case 1:
+                            bgColor = "bg-red-500";
+                            textColor = "text-white";
+                            borderStyle = "border-red-400";
+                            break;
+                          case 2:
+                            bgColor = "bg-orange-500";
+                            textColor = "text-white";
+                            borderStyle = "border-orange-400";
+                            break;
+                          case 3:
+                            bgColor = "bg-yellow-500";
+                            textColor = "text-white";
+                            borderStyle = "border-yellow-400";
+                            break;
+                          case 4:
+                            bgColor = "bg-green-500";
+                            textColor = "text-white";
+                            borderStyle = "border-green-400";
+                            break;
+                          case 5:
+                            bgColor = "bg-purple-600";
+                            textColor = "text-white";
+                            borderStyle = "border-purple-400";
+                            break;
+                        }
+                      }
+                      
+                      return (
+                        <div
+                          key={value}
+                          onClick={() => handleAnswerSelect(value)}
+                          className={`
+                            cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
+                            ${bgColor} ${textColor} ${borderStyle}
+                            ${isSelected ? 'shadow-md transform hover:scale-110 transition-transform' : 'transition-colors'}
+                          `}
+                        >
+                          <span className="text-xs font-medium">{value}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="flex justify-between text-sm mt-2">
+                  <span className="text-red-500">Never</span>
+                  <span className="text-orange-500">Rarely</span>
+                  <span className="text-yellow-500">Sometimes</span>
+                  <span className="text-green-500">Often</span>
+                  <span className="text-purple-600">Always</span>
+                </div>
+              </div>
+              
+              <div className="text-center">
+                {currentValue > 0 ? (
+                  <p className="text-indigo-600 font-medium">
+                    Please select your answer
+                  </p>
+                ) : null}
+              </div>
+            </div>
+            
+            <div className="flex flex-col items-center justify-center mb-4 space-y-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox 
+                  id="auto-advance" 
+                  checked={autoAdvance}
+                  onCheckedChange={(checked) => setAutoAdvance(!!checked)}
+                  className="data-[state=checked]:bg-indigo-600"
+                />
+                <label
+                  htmlFor="auto-advance"
+                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  Auto Advance
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <div>
+                        <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-xs">
+                      <p>Check the box to advance to the next question after you select an answer. You can always go back and adjust your answers.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+            </div>
+            
+            <div className="flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={handleBack}
+                disabled={currentQuestion === 0}
+                className="px-4"
+              >
+                Go Back
+              </Button>
+              
+              <div className="text-center">
+                <div className="flex flex-col items-center">
+                  <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
+                    <div 
+                      className="h-full bg-indigo-600 rounded-full" 
+                      style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="text-sm text-gray-500">
+                    Question {currentQuestion + 1} of {flowQuestions.length}
+                  </span>
+                </div>
+              </div>
+              
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700"
+                onClick={handleNext}
+              >
+                {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Finish'}
+              </Button>
+            </div>
+          </Card>
+        </Card>
+      );
+    }
+  };
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Finding Your Flow State</h1>
@@ -210,181 +508,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
         Learn about the flow and discover how to optimize your work experience
       </p>
       
-      <Card className="border border-gray-200 p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
-        
-        <p className="mb-4">
-          Purpose: This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
-        </p>
-        
-        <p className="mb-6">
-          Instructions: Rate your agreement with each of the following statements on a scale from 1 (Never) to 5 (Always). Answer with a specific activity or task in mind where you most often seek or experience flow.
-        </p>
-        
-        <Card className="border border-gray-200 p-6 mb-4">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium">Flow State Self-Assessment</h3>
-            <Button 
-              variant="outline" 
-              onClick={fillDemoAnswers}
-              className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
-            >
-              Fill Demo Answers
-            </Button>
-          </div>
-          
-          <div className="mb-8">
-            <p className="font-medium mb-4">
-              <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
-            </p>
-            
-            <div className="mb-8 relative">
-              <div className="h-16 relative">
-                {/* Main track background */}
-                <div className="absolute h-3 rounded-full bg-gray-200 w-full top-6 z-0 shadow-inner overflow-hidden">
-                  {/* Gradient fill - animated for smoother transitions */}
-                  <div 
-                    className="absolute h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-indigo-600 transition-all duration-300 ease-out" 
-                    style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
-                  ></div>
-                </div>
-                
-                {/* Circle markers - perfectly aligned on the track */}
-                <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
-                  {[1, 2, 3, 4, 5].map((value) => {
-                    // Determine the styling based on whether this value is selected
-                    const isSelected = value <= currentValue;
-                    let bgColor = "bg-white";
-                    let textColor = "text-gray-800";
-                    let borderStyle = "border-2 border-gray-300 hover:border-indigo-300";
-                    
-                    if (isSelected) {
-                      switch (value) {
-                        case 1:
-                          bgColor = "bg-red-500";
-                          textColor = "text-white";
-                          borderStyle = "border-red-400";
-                          break;
-                        case 2:
-                          bgColor = "bg-orange-500";
-                          textColor = "text-white";
-                          borderStyle = "border-orange-400";
-                          break;
-                        case 3:
-                          bgColor = "bg-yellow-500";
-                          textColor = "text-white";
-                          borderStyle = "border-yellow-400";
-                          break;
-                        case 4:
-                          bgColor = "bg-green-500";
-                          textColor = "text-white";
-                          borderStyle = "border-green-400";
-                          break;
-                        case 5:
-                          bgColor = "bg-purple-600";
-                          textColor = "text-white";
-                          borderStyle = "border-purple-400";
-                          break;
-                      }
-                    }
-                    
-                    return (
-                      <div
-                        key={value}
-                        onClick={() => handleAnswerSelect(value)}
-                        className={`
-                          cursor-pointer w-6 h-6 rounded-full flex items-center justify-center
-                          ${bgColor} ${textColor} ${borderStyle}
-                          ${isSelected ? 'shadow-md transform hover:scale-110 transition-transform' : 'transition-colors'}
-                        `}
-                      >
-                        <span className="text-xs font-medium">{value}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-              
-              <div className="flex justify-between text-sm mt-2">
-                <span className="text-red-500">Never</span>
-                <span className="text-orange-500">Rarely</span>
-                <span className="text-yellow-500">Sometimes</span>
-                <span className="text-green-500">Often</span>
-                <span className="text-purple-600">Always</span>
-              </div>
-            </div>
-            
-            <div className="text-center">
-              {currentValue > 0 ? (
-                <p className="text-indigo-600 font-medium">
-                  Please select your answer
-                </p>
-              ) : null}
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-center justify-center mb-4 space-y-2">
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="auto-advance" 
-                checked={autoAdvance}
-                onCheckedChange={(checked) => setAutoAdvance(!!checked)}
-                className="data-[state=checked]:bg-indigo-600"
-              />
-              <label
-                htmlFor="auto-advance"
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-              >
-                Auto Advance
-              </label>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div>
-                      <HelpCircle className="h-4 w-4 text-gray-400 cursor-help" />
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Check the box to advance to the next question after you select an answer. You can always go back and adjust your answers.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-          
-          <div className="flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={handleBack}
-              disabled={currentQuestion === 0}
-              className="px-4"
-            >
-              Go Back
-            </Button>
-            
-            <div className="text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
-                  <div 
-                    className="h-full bg-indigo-600 rounded-full" 
-                    style={{ width: `${((currentQuestion + 1) / flowQuestions.length) * 100}%` }}
-                  ></div>
-                </div>
-                <span className="text-sm text-gray-500">
-                  Question {currentQuestion + 1} of {flowQuestions.length}
-                </span>
-              </div>
-            </div>
-            
-            <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
-              onClick={handleNext}
-            >
-              {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Finish'}
-            </Button>
-          </div>
-        </Card>
-      </Card>
+      {renderContent()}
       
       {/* Results Modal */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
