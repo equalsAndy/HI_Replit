@@ -72,7 +72,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(userData.password, salt);
     
     // Create user
-    const newUser = await dbStorage.createUser({
+    const newUser = await storage.createUser({
       ...userData,
       password: hashedPassword,
       role: UserRole.Participant, // Default role for new users
