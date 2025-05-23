@@ -40,7 +40,7 @@ export function UserManagement() {
   const queryClient = useQueryClient();
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [isEditUserOpen, setIsEditUserOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<UserWithRole | null>(null);
   const [filter, setFilter] = useState('');
   
   // Fetch all users
@@ -63,14 +63,14 @@ export function UserManagement() {
   });
 
   // Filter users based on search input
-  const filteredUsers = users?.filter((user: User) => 
+  const filteredUsers = (users as UserWithRole[] | undefined)?.filter((user) => 
     user.name?.toLowerCase().includes(filter.toLowerCase()) ||
     user.email?.toLowerCase().includes(filter.toLowerCase()) ||
     user.organization?.toLowerCase().includes(filter.toLowerCase())
   ) || [];
 
   // Handle selecting a user for editing
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: UserWithRole) => {
     setSelectedUser(user);
     setIsEditUserOpen(true);
   };

@@ -159,5 +159,7 @@ export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
 
 // Define a UserWithRole type for API responses
 export type UserWithRole = User & {
-  role: UserRole;
+  role: UserRole; 
+  // This is the role that gets added to the user object in API responses
+  // but isn't part of the database schema (it comes from a join with userRoles)
 };
