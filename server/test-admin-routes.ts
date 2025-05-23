@@ -62,7 +62,7 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`Resetting data for user ${userId}`);
+    console.log(`=== RESET START: Resetting data for user ${userId} ===`);
     
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
