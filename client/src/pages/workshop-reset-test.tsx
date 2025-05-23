@@ -268,7 +268,7 @@ export default function WorkshopResetTest() {
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Local Storage Data</CardTitle>
+            <CardTitle>Browser Storage (localStorage)</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="bg-slate-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
@@ -282,6 +282,27 @@ export default function WorkshopResetTest() {
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Database Data (Server)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-blue-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
+              <pre className="text-xs">{JSON.stringify(serverData, null, 2)}</pre>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={refreshServerData}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh Server Data
               </Button>
             </div>
           </CardContent>
