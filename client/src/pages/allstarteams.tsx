@@ -115,10 +115,36 @@ export default function AllStarTeams() {
       if (!user?.id) {
         throw new Error("User ID is required to reset progress");
       }
-      return await fetch(`/api/test-users/reset/${user.id}`, {
+      
+      const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
-        credentials: 'include'
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json'
+        }
       });
+      
+      // Check if response is OK before trying to parse JSON
+      if (!response.ok) {
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          // Try to get JSON error if available
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Server error');
+        } else {
+          // Handle non-JSON error responses
+          const text = await response.text();
+          throw new Error(`Server error: ${response.status}`);
+        }
+      }
+      
+      // Try to parse response as JSON (if possible)
+      try {
+        return await response.json();
+      } catch (e) {
+        // If JSON parsing fails but response was OK, consider it a success
+        return { success: true };
+      }
     },
     onSuccess: () => {
       setCompletedSteps([]);
@@ -142,7 +168,7 @@ export default function AllStarTeams() {
     onError: (error) => {
       toast({
         title: "Reset Failed",
-        description: "There was an error resetting your progress.",
+        description: "There was an error resetting your progress: " + (error instanceof Error ? error.message : String(error)),
         variant: "destructive",
       });
       console.error("Reset error:", error);
