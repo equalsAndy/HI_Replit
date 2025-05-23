@@ -69,6 +69,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register participant management routes
   app.use('/api/participants', participantRouter);
+  
+  // Register data reset routes
+  app.use('/api/reset', resetRouter);
 
   // Define cookie options for consistent use across endpoints
   const COOKIE_OPTIONS = {

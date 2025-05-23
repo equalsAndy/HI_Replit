@@ -22,7 +22,14 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     
     // Only allow users to reset their own data
     // Unless they are admin (userId 1)
-    const currentUserId = req.session?.passport?.user?.id;
+    const currentUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
     
     if (currentUserId !== userId && currentUserId !== 1) {
       return res.status(403).json({
@@ -66,7 +73,14 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
     
     // Only allow users to reset their own data
     // Unless they are admin (userId 1)
-    const currentUserId = req.session?.passport?.user?.id;
+    const currentUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
     
     if (currentUserId !== userId && currentUserId !== 1) {
       return res.status(403).json({
@@ -109,7 +123,14 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
     
     // Only allow users to reset their own data
     // Unless they are admin (userId 1)
-    const currentUserId = req.session?.passport?.user?.id;
+    const currentUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
     
     if (currentUserId !== userId && currentUserId !== 1) {
       return res.status(403).json({
@@ -142,7 +163,14 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
 resetRouter.post('/all-users', async (req: Request, res: Response) => {
   try {
     // Check if the current user is an admin
-    const currentUserId = req.session?.passport?.user?.id;
+    const currentUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    
+    if (!currentUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
     
     if (currentUserId !== 1) {
       return res.status(403).json({
