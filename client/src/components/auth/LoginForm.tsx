@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,8 +11,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, User } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InfoIcon } from 'lucide-react';
 
 // Login form schema
 const loginSchema = z.object({
@@ -25,17 +26,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  const [testUsers, setTestUsers] = useState<{username: string; role: string; name: string}[]>([]);
-  
-  // Fetch test users
-  const { data: testUsersData, isLoading: isLoadingTestUsers } = useQuery({
-    queryKey: ['/api/auth/test-users'],
-    onSuccess: (data) => {
-      if (data) {
-        setTestUsers(data);
-      }
-    },
-  });
+  const [showTestInfo, setShowTestInfo] = useState(false);
   
   // Initialize react-hook-form
   const form = useForm<LoginFormValues>({
@@ -45,12 +36,6 @@ export function LoginForm() {
       password: '',
     },
   });
-  
-  // Function to select a test user
-  const selectTestUser = (username: string) => {
-    form.setValue('username', username);
-    form.setValue('password', 'password'); // Default password for test users
-  };
   
   // Login mutation
   const loginMutation = useMutation({
@@ -89,15 +74,49 @@ export function LoginForm() {
     loginMutation.mutate(data);
   };
   
+  // Set up test users if needed
+  const setupTestUsers = async () => {
+    try {
+      await apiRequest('POST', '/api/auth/setup-test-users', {});
+      toast({
+        title: 'Test Users Created',
+        description: 'All test users have been created successfully.',
+      });
+      setShowTestInfo(true);
+    } catch (error) {
+      console.error('Failed to setup test users:', error);
+      toast({
+        title: 'Setup Failed',
+        description: 'Failed to create test users. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+  
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl">Login</CardTitle>
+        <CardTitle className="text-2xl">Sign in to continue your journey</CardTitle>
         <CardDescription>
           Enter your username and password to access your account
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {showTestInfo && (
+          <Alert className="mb-4 bg-blue-50">
+            <InfoIcon className="h-4 w-4 text-blue-700" />
+            <AlertTitle className="font-medium text-blue-700">Test Environment</AlertTitle>
+            <AlertDescription className="text-blue-800">
+              <p className="mt-1">All test accounts use the password <strong>password</strong></p>
+              <ul className="list-disc pl-5 mt-2 space-y-1">
+                <li><strong>Admin:</strong> username: admin</li>
+                <li><strong>Facilitator:</strong> username: facilitator</li>
+                <li><strong>Participant:</strong> username: user1 or user2</li>
+              </ul>
+            </AlertDescription>
+          </Alert>
+        )}
+        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -150,7 +169,7 @@ export function LoginForm() {
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col">
-        <div className="text-sm text-center mt-2">
+        <div className="text-sm text-center">
           Don't have an account?{' '}
           <a
             href="/register"
@@ -164,47 +183,17 @@ export function LoginForm() {
           </a>
         </div>
         
-        {/* Test Users Section */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-medium mb-2">Quick Login (Test Users)</h4>
-          <Select onValueChange={selectTestUser}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select a test user" />
-            </SelectTrigger>
-            <SelectContent>
-              {testUsers.map((user) => (
-                <SelectItem key={user.username} value={user.username}>
-                  {user.name} ({user.role})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-gray-500 mt-1">
-            Password for all test users: "password"
-          </p>
-          
+        {/* Simplified Test User Button */}
+        <div className="w-full mt-6">
           <Button 
             variant="outline" 
-            size="sm" 
-            className="w-full mt-2"
-            onClick={async () => {
-              try {
-                await apiRequest('POST', '/api/auth/setup-test-users', {});
-                toast({
-                  title: 'Test Users Created',
-                  description: 'All test users have been created successfully.',
-                });
-              } catch (error) {
-                console.error('Failed to setup test users:', error);
-                toast({
-                  title: 'Setup Failed',
-                  description: 'Failed to create test users. Please try again.',
-                  variant: 'destructive',
-                });
-              }
+            className="w-full"
+            onClick={() => {
+              setupTestUsers();
+              setShowTestInfo(!showTestInfo);
             }}
           >
-            Setup Test Users
+            {showTestInfo ? "Hide Test User Info" : "Log in with Test User"}
           </Button>
         </div>
       </CardFooter>
