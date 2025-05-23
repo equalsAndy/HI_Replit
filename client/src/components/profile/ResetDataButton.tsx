@@ -37,20 +37,39 @@ export function ResetDataButton({
   // Define the reset mutation
   const resetMutation = useMutation({
     mutationFn: async () => {
+      // We'll include a simple dummy payload to ensure proper content-type header
       const response = await fetch(`/api/reset/user/${userId}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include',
+        body: JSON.stringify({ confirm: true })
       });
       
+      let errorMessage = 'Reset failed';
+      
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Reset failed');
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (e) {
+          // If we can't parse JSON, we might have received HTML
+          const text = await response.text();
+          if (text.includes('<!DOCTYPE html>')) {
+            errorMessage = 'Server responded with HTML instead of JSON. Please try again.';
+          }
+        }
+        throw new Error(errorMessage);
       }
       
-      return response.json();
+      // Parse the response
+      try {
+        return await response.json();
+      } catch (e) {
+        throw new Error('Server returned invalid JSON response');
+      }
     },
     onSuccess: (data) => {
       toast({
