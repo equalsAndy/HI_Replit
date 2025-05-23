@@ -104,7 +104,18 @@ export function LoginForm() {
         <Button 
           variant="outline" 
           type="button"
-          onClick={() => setShowTestInfo(!showTestInfo)}
+          onClick={() => {
+            setShowTestInfo(!showTestInfo);
+            if (!showTestInfo) {
+              // Open test user picker when button is clicked
+              const modal = document.querySelector('[role="dialog"]');
+              if (!modal) {
+                const testUserPickerModal = document.createElement('div');
+                testUserPickerModal.setAttribute('role', 'dialog');
+                document.body.appendChild(testUserPickerModal);
+              }
+            }
+          }}
           className="text-sm"
         >
           {showTestInfo ? "Hide Test User Info" : "Login with Test User"}

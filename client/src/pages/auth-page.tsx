@@ -162,7 +162,7 @@ export default function AuthPage() {
     <div className="min-h-screen flex">
       {/* Left side - Form */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16">
-        <div className="mb-8">
+        <div>
           <img 
             src={appLogo}
             alt={appName}
@@ -181,7 +181,7 @@ export default function AuthPage() {
           </p>
         </div>
 
-        <div className="mt-4 pt-4 border-t">
+        {/* <div className="mt-4 pt-4 border-t">
           <Button 
             variant="outline" 
             type="button"
@@ -190,8 +190,8 @@ export default function AuthPage() {
           >
             {showTestUsers ? "Hide Test User Info" : "Login with Test User"}
           </Button>
-        </div>
-        
+        </div> */}
+
         {/* Login Form */}
         {isLogin && (
           <div className="space-y-6">
@@ -336,7 +336,7 @@ export default function AuthPage() {
             </button>
           </p>
 
-          
+
         </div>
 
         {/* Test User Picker - only shown when needed */}
