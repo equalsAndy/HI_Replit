@@ -32,24 +32,45 @@ export function NavBar() {
     if (!user?.id) return;
     
     try {
-      // Use the direct POST endpoint instead which is working more reliably
-      const response = await fetch(`/api/test-users/reset/${user.id}`, {
+      // Show loading toast
+      toast({
+        title: "Resetting Data",
+        description: "Please wait while your data is being reset...",
+        variant: "default",
+      });
+      
+      // Use the new reset endpoint
+      const response = await fetch(`/api/test/reset/${user.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         }
       });
       
-      toast({
-        title: "Reset Successful",
-        description: "Your assessment data has been reset. Refreshing the page to show changes.",
-        variant: "default",
-      });
+      const data = await response.json();
       
-      // Force reload to show reset state after a brief delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
+      if (data.success) {
+        toast({
+          title: "Reset Successful",
+          description: "Your assessment data has been reset. The page will refresh now.",
+          variant: "default",
+        });
+        
+        // Invalidate queries to force refetch
+        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+        
+        // Force reload to show reset state after a brief delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        toast({
+          title: "Reset Failed",
+          description: data.message || "Failed to reset your data. Please try again.",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       toast({
         title: "Reset Failed",

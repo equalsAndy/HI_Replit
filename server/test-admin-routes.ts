@@ -54,7 +54,7 @@ testAdminRouter.get('/login-as/:userId', async (req: Request, res: Response) => 
 });
 
 // Reset user data endpoint - for development testing
-testAdminRouter.post('/reset-data/:userId', async (req: Request, res: Response) => {
+testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
     
@@ -64,29 +64,102 @@ testAdminRouter.post('/reset-data/:userId', async (req: Request, res: Response) 
     
     console.log(`Resetting data for user ${userId}`);
     
-    // Delete star card data
-    await db
-      .delete(schema.starCards)
+    // Step 1: Delete or reset star card
+    // First check if star card exists
+    const [starCard] = await db
+      .select()
+      .from(schema.starCards)
       .where(eq(schema.starCards.userId, userId));
+      
+    if (starCard) {
+      console.log(`Found star card for user ${userId}, deleting it`);
+      await db
+        .delete(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+      
+      // Create a new empty star card for the user
+      await db
+        .insert(schema.starCards)
+        .values({
+          userId: userId,
+          thinking: 0,
+          feeling: 0,
+          acting: 0,
+          planning: 0,
+          state: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      console.log(`Created new empty star card for user ${userId}`);
+    } else {
+      // Create a new empty star card for the user
+      await db
+        .insert(schema.starCards)
+        .values({
+          userId: userId,
+          thinking: 0,
+          feeling: 0,
+          acting: 0,
+          planning: 0,
+          state: 'pending',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      console.log(`Created new empty star card for user ${userId}`);
+    }
     
-    // Delete flow attributes data
-    await db
-      .delete(schema.flowAttributes)
+    // Step 2: Reset flow attributes
+    // Check if flow attributes exist
+    const [flowAttrs] = await db
+      .select()
+      .from(schema.flowAttributes)
       .where(eq(schema.flowAttributes.userId, userId));
+      
+    if (flowAttrs) {
+      console.log(`Found flow attributes for user ${userId}, resetting them`);
+      await db
+        .delete(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+      
+      // Create new empty flow attributes
+      await db
+        .insert(schema.flowAttributes)
+        .values({
+          userId: userId,
+          attributes: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+    } else {
+      // Create new empty flow attributes
+      await db
+        .insert(schema.flowAttributes)
+        .values({
+          userId: userId,
+          attributes: [],
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+    }
     
-    // Reset user progress
+    // Step 3: Reset user progress
     await db
       .update(schema.users)
       .set({ progress: 0 })
       .where(eq(schema.users.id, userId));
     
     res.status(200).json({ 
+      success: true,
       message: 'User data reset successfully',
       userId: userId
     });
   } catch (error) {
     console.error('Error resetting user data:', error);
-    res.status(500).json({ message: 'Error resetting user data' });
+    res.status(500).json({ 
+      success: false,
+      message: 'Error resetting user data',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 });
 
