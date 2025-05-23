@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LocalStorage Progress Test</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      line-height: 1.5;
+    }
+    
+    pre {
+      background: #f4f4f4;
+      padding: 10px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    
+    button {
+      background: #4a5568;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    
+    .error {
+      color: red;
+      font-weight: bold;
+    }
+    
+    .success {
+      color: green;
+      font-weight: bold;
+    }
+    
+    .result-container {
+      margin-top: 20px;
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Workshop Progress Reset Test</h1>
+  
+  <h2>Current LocalStorage State</h2>
+  <div id="current-state">Loading...</div>
+  
+  <h2>Test Actions</h2>
+  <div>
+    <button id="test-format1">Test Array Format</button>
+    <button id="test-format2">Test Object Format</button>
+    <button id="clear-storage">Clear All Storage</button>
+    <button id="reset-test">Reset with Fix</button>
+  </div>
+  
+  <div class="result-container">
+    <h2>Test Results</h2>
+    <div id="results"></div>
+  </div>
+  
+  <script>
+    // Constants for the storage keys used in the application
+    const STORAGE_KEYS = {
+      ALLSTAR_TEAMS: 'allstarteams-navigation-progress',
+      IMAGINAL_AGILITY: 'imaginal-agility-navigation-progress',
+      LEGACY: 'allstar_navigation_progress'
+    };
+    
+    // Function to display the current localStorage state
+    function displayCurrentState() {
+      const currentState = document.getElementById('current-state');
+      currentState.innerHTML = '';
+      
+      let hasData = false;
+      
+      // Check each storage key
+      for (const [key, value] of Object.entries(STORAGE_KEYS)) {
+        try {
+          const data = localStorage.getItem(value);
+          if (data) {
+            hasData = true;
+            const parsed = JSON.parse(data);
+            
+            const pre = document.createElement('pre');
+            pre.textContent = `${key}: ${JSON.stringify(parsed, null, 2)}`;
+            currentState.appendChild(pre);
+          }
+        } catch (error) {
+          const pre = document.createElement('pre');
+          pre.className = 'error';
+          pre.textContent = `${key}: ERROR - ${error.message}`;
+          currentState.appendChild(pre);
+        }
+      }
+      
+      if (!hasData) {
+        currentState.textContent = 'No workshop progress data found in localStorage.';
+      }
+    }
+    
+    // Function to log results
+    function logResult(message, isError = false) {
+      const results = document.getElementById('results');
+      const resultItem = document.createElement('div');
+      resultItem.textContent = message;
+      resultItem.className = isError ? 'error' : 'success';
+      
+      // Prepend (add to top)
+      results.insertBefore(resultItem, results.firstChild);
+    }
+    
+    // Function to test loading progress with array format
+    function testArrayFormat() {
+      try {
+        // Set test data in array format
+        const testData = ['1-1', '1-2', '1-3', '1-4'];
+        localStorage.setItem(STORAGE_KEYS.ALLSTAR_TEAMS, JSON.stringify(testData));
+        
+        // Test loading data using allstarteams.tsx logic
+        const savedProgressJSON = localStorage.getItem(STORAGE_KEYS.ALLSTAR_TEAMS);
+        if (savedProgressJSON) {
+          const savedProgress = JSON.parse(savedProgressJSON);
+          // Ensure we only set completed steps if it's an array
+          if (Array.isArray(savedProgress)) {
+            logResult('✅ Array format parsed successfully as: ' + JSON.stringify(savedProgress));
+          } else {
+            logResult('❌ Array format not correctly detected', true);
+          }
+        }
+        
+        displayCurrentState();
+      } catch (error) {
+        logResult('❌ Error testing array format: ' + error.message, true);
+      }
+    }
+    
+    // Function to test loading progress with object format
+    function testObjectFormat() {
+      try {
+        // Set test data in object format
+        const testData = { 
+          completed: ['1-1', '1-2', '1-3', '1-4'],
+          expandedSections: ['section1']
+        };
+        localStorage.setItem(STORAGE_KEYS.ALLSTAR_TEAMS, JSON.stringify(testData));
+        
+        // Test using allstarteams.tsx logic
+        const savedProgressJSON = localStorage.getItem(STORAGE_KEYS.ALLSTAR_TEAMS);
+        if (savedProgressJSON) {
+          try {
+            const savedProgress = JSON.parse(savedProgressJSON);
+            // Ensure we only set completed steps if it's an array
+            if (Array.isArray(savedProgress)) {
+              logResult('✅ Object format parsed as array: ' + JSON.stringify(savedProgress));
+            } else {
+              logResult('❌ Object format incorrectly handled - expected array but got object', true);
+              
+              // Correct handling would be:
+              if (savedProgress && typeof savedProgress === 'object' && 'completed' in savedProgress) {
+                logResult('✅ Fixed parser would extract: ' + JSON.stringify(savedProgress.completed));
+              }
+            }
+          } catch (e) {
+            logResult('❌ Error parsing: ' + e.message, true);
+          }
+        }
+        
+        displayCurrentState();
+      } catch (error) {
+        logResult('❌ Error testing object format: ' + error.message, true);
+      }
+    }
+    
+    // Function to test the fixed reset logic
+    function testResetWithFix() {
+      try {
+        // Set test data in both formats
+        localStorage.setItem(STORAGE_KEYS.ALLSTAR_TEAMS, JSON.stringify(['1-1', '1-2']));
+        localStorage.setItem(STORAGE_KEYS.IMAGINAL_AGILITY, JSON.stringify({ 
+          completed: ['1-1', '1-2'] 
+        }));
+        
+        // The fixed reset logic should handle both formats
+        const resetProgress = () => {
+          for (const key of Object.values(STORAGE_KEYS)) {
+            localStorage.removeItem(key);
+          }
+          logResult('✅ Reset successful - all progress keys cleared');
+        };
+        
+        resetProgress();
+        displayCurrentState();
+      } catch (error) {
+        logResult('❌ Error in reset with fix: ' + error.message, true);
+      }
+    }
+    
+    // Function to clear all workshop data from localStorage
+    function clearAllStorage() {
+      try {
+        for (const key of Object.values(STORAGE_KEYS)) {
+          localStorage.removeItem(key);
+        }
+        
+        logResult('✅ All storage keys cleared');
+        displayCurrentState();
+      } catch (error) {
+        logResult('❌ Error clearing storage: ' + error.message, true);
+      }
+    }
+    
+    // Initialize the page
+    function initialize() {
+      displayCurrentState();
+      
+      // Set up event listeners
+      document.getElementById('test-format1').addEventListener('click', testArrayFormat);
+      document.getElementById('test-format2').addEventListener('click', testObjectFormat);
+      document.getElementById('clear-storage').addEventListener('click', clearAllStorage);
+      document.getElementById('reset-test').addEventListener('click', testResetWithFix);
+    }
+    
+    // Initialize when the page loads
+    window.addEventListener('DOMContentLoaded', initialize);
+  </script>
+</body>
+</html>

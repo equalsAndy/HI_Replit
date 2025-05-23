@@ -61,12 +61,19 @@ export default function AllStarTeams() {
     if (savedProgressJSON) {
       try {
         const savedProgress = JSON.parse(savedProgressJSON);
-        // Ensure we only set completed steps if it's an array
+        // Handle both formats: array and object with completed property
         if (Array.isArray(savedProgress)) {
           setCompletedSteps(savedProgress);
+        } else if (savedProgress && typeof savedProgress === 'object' && 'completed' in savedProgress) {
+          // Handle object format: { completed: [...] }
+          if (Array.isArray(savedProgress.completed)) {
+            setCompletedSteps(savedProgress.completed);
+          } else {
+            console.error("Saved progress has invalid completed property:", savedProgress);
+            setCompletedSteps([]);
+          }
         } else {
-          console.error("Saved progress is not an array:", savedProgress);
-          // Initialize as empty array if not valid
+          console.error("Saved progress has unsupported format:", savedProgress);
           setCompletedSteps([]);
         }
       } catch (e) {
@@ -105,16 +112,28 @@ export default function AllStarTeams() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      return await fetch('/api/test-users/reset/1', {
+      if (!user?.id) {
+        throw new Error("User ID is required to reset progress");
+      }
+      return await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
         credentials: 'include'
       });
     },
     onSuccess: () => {
       setCompletedSteps([]);
+      
+      // Clear all possible localStorage keys for maximum compatibility
       localStorage.removeItem(progressStorageKey);
+      localStorage.removeItem('allstarteams-navigation-progress');
+      localStorage.removeItem('imaginal-agility-navigation-progress');
+      localStorage.removeItem('allstar_navigation_progress');
+      
+      // Refresh data from server
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      
       toast({
         title: "Progress Reset",
         description: "Your progress has been reset successfully.",
