@@ -18,6 +18,7 @@ const safeParseJSON = (json: string | null) => {
 export default function WorkshopResetTest() {
   const [location, navigate] = useLocation();
   const [storageData, setStorageData] = useState<Record<string, any>>({});
+  const [serverData, setServerData] = useState<Record<string, any>>({});
   const [resetResult, setResetResult] = useState<string>('');
   const [isResetting, setIsResetting] = useState(false);
 
@@ -42,6 +43,7 @@ export default function WorkshopResetTest() {
   // Load local storage data on component mount
   useEffect(() => {
     refreshStorageData();
+    refreshServerData();
   }, []);
 
   // Refresh the local storage data
@@ -54,6 +56,52 @@ export default function WorkshopResetTest() {
     });
     
     setStorageData(data);
+  };
+
+  // Refresh server data
+  const refreshServerData = async () => {
+    const data: Record<string, any> = {};
+    
+    try {
+      // Fetch star card data
+      const starCardResponse = await fetch('/api/starcard', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (starCardResponse.ok) {
+        data.starCard = await starCardResponse.json();
+      }
+    } catch (e) {
+      data.starCard = { error: 'Failed to fetch' };
+    }
+
+    try {
+      // Fetch flow attributes
+      const flowResponse = await fetch('/api/flow-attributes', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (flowResponse.ok) {
+        data.flowAttributes = await flowResponse.json();
+      }
+    } catch (e) {
+      data.flowAttributes = { error: 'Failed to fetch' };
+    }
+
+    try {
+      // Fetch user profile
+      const profileResponse = await fetch('/api/user/profile', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      if (profileResponse.ok) {
+        data.userProfile = await profileResponse.json();
+      }
+    } catch (e) {
+      data.userProfile = { error: 'Failed to fetch' };
+    }
+
+    setServerData(data);
   };
 
   // Display current user's actual data summary
@@ -76,31 +124,54 @@ export default function WorkshopResetTest() {
   const showDataBreakdown = () => {
     const { summary, totalItems } = getCurrentDataSummary();
     
-    if (totalItems === 0) {
-      setResetResult('No workshop data found in localStorage. You may need to complete some assessments first.');
-      return;
+    let breakdown = `=== YOUR WORKSHOP DATA BREAKDOWN ===\n\n`;
+    
+    // Show server data first
+    breakdown += `SERVER DATA (Database):\n`;
+    if (Object.keys(serverData).length > 0) {
+      Object.entries(serverData).forEach(([key, value]) => {
+        breakdown += `${key}:\n`;
+        if (value && typeof value === 'object' && !Array.isArray(value)) {
+          const objKeys = Object.keys(value);
+          breakdown += `  Properties: ${objKeys.join(', ')}\n`;
+          if (key === 'starCard') {
+            breakdown += `  Star Values: thinking=${value.thinking}, acting=${value.acting}, feeling=${value.feeling}, planning=${value.planning}\n`;
+          }
+          if (key === 'flowAttributes' && value.attributes) {
+            breakdown += `  Flow Attributes: ${value.attributes.length} items\n`;
+          }
+        }
+        breakdown += '\n';
+      });
+    } else {
+      breakdown += `  No server data loaded yet\n\n`;
     }
     
-    let breakdown = `Current User Data Summary (${totalItems} items found):\n\n`;
-    
-    Object.entries(summary).forEach(([key, value]) => {
-      breakdown += `${key}:\n`;
-      if (Array.isArray(value)) {
-        breakdown += `  Type: Array with ${value.length} items\n`;
-        breakdown += `  Items: ${JSON.stringify(value)}\n`;
-      } else if (typeof value === 'object') {
-        breakdown += `  Type: Object\n`;
-        const objKeys = Object.keys(value);
-        breakdown += `  Properties: ${objKeys.join(', ')}\n`;
-        if (value.completed && Array.isArray(value.completed)) {
-          breakdown += `  Completed items: ${value.completed.length}\n`;
+    // Show localStorage data
+    breakdown += `BROWSER STORAGE (localStorage):\n`;
+    if (totalItems === 0) {
+      breakdown += `  No workshop data found in localStorage\n\n`;
+    } else {
+      breakdown += `Found ${totalItems} items:\n`;
+      Object.entries(summary).forEach(([key, value]) => {
+        breakdown += `${key}:\n`;
+        if (Array.isArray(value)) {
+          breakdown += `  Type: Array with ${value.length} items\n`;
+          breakdown += `  Items: ${JSON.stringify(value)}\n`;
+        } else if (typeof value === 'object') {
+          breakdown += `  Type: Object\n`;
+          const objKeys = Object.keys(value);
+          breakdown += `  Properties: ${objKeys.join(', ')}\n`;
+          if (value.completed && Array.isArray(value.completed)) {
+            breakdown += `  Completed items: ${value.completed.length}\n`;
+          }
+        } else {
+          breakdown += `  Type: ${typeof value}\n`;
+          breakdown += `  Value: ${String(value)}\n`;
         }
-      } else {
-        breakdown += `  Type: ${typeof value}\n`;
-        breakdown += `  Value: ${String(value)}\n`;
-      }
-      breakdown += '\n';
-    });
+        breakdown += '\n';
+      });
+    }
     
     setResetResult(breakdown);
   };
