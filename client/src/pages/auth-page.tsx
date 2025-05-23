@@ -193,31 +193,8 @@ export default function AuthPage() {
         {/* Login Form */}
         {isLogin && (
           <div className="space-y-6">
-            <div className="flex flex-col space-y-4">
-              <Button 
-                type="button" 
-                onClick={() => setShowTestUsers(true)}
-                className="w-full"
-                variant="outline"
-              >
-                Log in with Test User
-              </Button>
-              
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-4">
               <LoginForm />
             </div>
-          </div>
         )}
 
         {/* Register Form */}
@@ -347,10 +324,11 @@ export default function AuthPage() {
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
-            {isLogin ? "Don't have an account? " : "Already have an account? "}
+            {isLogin ? "" : "Already have an account? "}
             <button 
               onClick={() => setIsLogin(!isLogin)} 
-              className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium`}
+              className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium ${isLogin ? 'hidden' : ''}`}
+              style={{ display: isLogin ? 'none' : 'inline' }}
             >
               {isLogin ? "Create one" : "Sign in"}
             </button>

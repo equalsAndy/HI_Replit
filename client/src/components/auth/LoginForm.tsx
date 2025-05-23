@@ -102,21 +102,6 @@ export function LoginForm() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {showTestInfo && (
-          <Alert className="mb-4 bg-blue-50">
-            <InfoIcon className="h-4 w-4 text-blue-700" />
-            <AlertTitle className="font-medium text-blue-700">Test Environment</AlertTitle>
-            <AlertDescription className="text-blue-800">
-              <p className="mt-1">All test accounts use the password <strong>password</strong></p>
-              <p className="mt-1 text-sm italic">You can now log in using either username or email</p>
-              <ul className="list-disc pl-5 mt-2 space-y-1">
-                <li><strong>Admin:</strong> username: admin</li>
-                <li><strong>Facilitator:</strong> username: facilitator</li>
-                <li><strong>Participant:</strong> username: user1 or user2</li>
-              </ul>
-            </AlertDescription>
-          </Alert>
-        )}
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -170,32 +155,8 @@ export function LoginForm() {
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col">
-        <div className="text-sm text-center">
-          Don't have an account?{' '}
-          <a
-            href="/register"
-            className="underline text-primary"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate('/register');
-            }}
-          >
-            Register
-          </a>
-        </div>
-        
-        {/* Simplified Test User Button */}
-        <div className="w-full mt-6">
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => {
-              setupTestUsers();
-              setShowTestInfo(!showTestInfo);
-            }}
-          >
-            {showTestInfo ? "Hide Test User Info" : "Log in with Test User"}
-          </Button>
+        <div className="text-sm text-center text-gray-500">
+          Authentication managed by administrator
         </div>
       </CardFooter>
     </Card>
