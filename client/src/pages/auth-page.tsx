@@ -338,10 +338,10 @@ export default function AuthPage() {
             <Button 
               variant="outline" 
               type="button"
-              onClick={() => setShowTestUsers(true)}
+              onClick={() => setShowTestUsers(!showTestUsers)}
               className="text-sm"
             >
-              Select Test User
+              {showTestUsers ? "Hide Test User Info" : "Login with Test User"}
             </Button>
           </div>
         </div>
