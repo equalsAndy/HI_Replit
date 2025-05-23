@@ -3,7 +3,7 @@ import { storage } from './new-storage';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 import * as schema from '../shared/schema';
-import { ResetService } from './services/reset-service';
+import { DirectReset } from './direct-reset';
 
 // Create a router for test admin routes
 const testAdminRouter = Router();
@@ -68,116 +68,18 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
-    // Manually reset the data since the service approach appears to have issues
-    let deletedStarCard = false;
-    let deletedFlowAttrs = false;
-    let resetUserProgress = false;
+    // Use the DirectReset utility to ensure complete data deletion
+    console.log(`Using DirectReset for user ${userId}`);
+    const result = await DirectReset.resetUserData(userId);
     
-    // 1. Reset star card data
-    try {
-      const [starCard] = await db
-        .select()
-        .from(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
-      
-      if (starCard) {
-        console.log(`Found star card for user ${userId}:`, starCard);
-        
-        await db
-          .delete(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
-          
-        // Verify deletion
-        const [checkCard] = await db
-          .select()
-          .from(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
-          
-        if (!checkCard) {
-          deletedStarCard = true;
-          console.log(`Star card deleted successfully for user ${userId}`);
-        } else {
-          console.error(`Failed to delete star card for user ${userId}`);
-        }
-      } else {
-        deletedStarCard = true; // Nothing to delete
-        console.log(`No star card found for user ${userId}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting star card:`, error);
-    }
-    
-    // 2. Reset flow attributes
-    try {
-      const [flowAttrs] = await db
-        .select()
-        .from(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
-      
-      if (flowAttrs) {
-        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
-        
-        await db
-          .delete(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
-          
-        // Verify deletion
-        const [checkAttrs] = await db
-          .select()
-          .from(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
-          
-        if (!checkAttrs) {
-          deletedFlowAttrs = true;
-          console.log(`Flow attributes deleted successfully for user ${userId}`);
-        } else {
-          console.error(`Failed to delete flow attributes for user ${userId}`);
-        }
-      } else {
-        deletedFlowAttrs = true; // Nothing to delete
-        console.log(`No flow attributes found for user ${userId}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting flow attributes:`, error);
-    }
-    
-    // 3. Reset user progress
-    try {
-      await db
-        .update(schema.users)
-        .set({ progress: 0 })
-        .where(eq(schema.users.id, userId));
-        
-      // Verify reset
-      const [user] = await db
-        .select()
-        .from(schema.users)
-        .where(eq(schema.users.id, userId));
-        
-      if (user && user.progress === 0) {
-        resetUserProgress = true;
-        console.log(`User progress reset successfully for user ${userId}`);
-      } else {
-        console.error(`Failed to reset progress for user ${userId}`);
-      }
-    } catch (error) {
-      console.error(`Error resetting user progress:`, error);
-    }
-    
-    // Determine overall success
-    const success = deletedStarCard && deletedFlowAttrs && resetUserProgress;
-    
-    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
+    console.log(`Reset operation completed for user ${userId}:`, result);
     
     return res.status(200).json({ 
-      success: success,
-      message: success ? 'User data reset successfully' : 'User data reset partially failed',
+      success: result.success,
+      message: result.success ? 'User data reset successfully' : 'User data reset partially failed',
       userId: userId,
-      deletions: {
-        starCard: deletedStarCard,
-        flowAttributes: deletedFlowAttrs,
-        userProgress: resetUserProgress
-      }
+      operations: result.operations,
+      error: result.error
     });
   } catch (error) {
     console.error('Error in reset endpoint:', error);
