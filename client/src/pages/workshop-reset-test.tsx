@@ -262,7 +262,7 @@ export default function WorkshopResetTest() {
       
       // Step 3: Clear local storage data
       setResetResult(`Step 3/4: Clearing browser local storage data...`);
-      const localStorageItemsCleared = clearAllData();
+      const localStorageItemsCleared: number = clearAllData();
       
       // Step 4: Verify the reset
       setResetResult(`Step 4/4: Verifying reset completion...`);
@@ -375,7 +375,7 @@ export default function WorkshopResetTest() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Test Actions</CardTitle>
+            <CardTitle>Workshop Data Reset Tool</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -393,10 +393,13 @@ export default function WorkshopResetTest() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={refreshStorageData}
+                  onClick={() => {
+                    refreshStorageData();
+                    refreshServerData();
+                  }}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Data
+                  Refresh All Data
                 </Button>
                 <Button 
                   variant="outline" 
@@ -404,33 +407,55 @@ export default function WorkshopResetTest() {
                   onClick={clearAllData}
                 >
                   <Trash className="h-4 w-4 mr-2" />
-                  Clear All
+                  Clear LocalStorage Only
                 </Button>
               </div>
             </div>
             
-            <div className="pt-2 border-t">
-              <h3 className="font-medium mb-2">Server Reset</h3>
+            <div className="pt-4 border-t">
+              <h3 className="font-medium mb-2">Complete Workshop Reset</h3>
+              <p className="text-sm text-slate-500 mb-3">
+                This will completely reset all your workshop data, including:
+              </p>
+              <ul className="text-sm text-slate-600 list-disc pl-5 mb-4 space-y-1">
+                <li>Star Card attributes (thinking, acting, feeling, planning)</li>
+                <li>Flow attributes and personal strengths</li>
+                <li>Workshop navigation progress</li>
+                <li>All locally saved preferences and data</li>
+              </ul>
+              
+              <div className="bg-amber-50 p-3 rounded-md mb-4 border border-amber-200">
+                <p className="text-sm text-amber-800">
+                  <strong>Note:</strong> This action cannot be undone. All your workshop progress will be permanently deleted.
+                </p>
+              </div>
+              
               <Button 
                 onClick={resetUserData}
                 disabled={isResetting}
-                className="bg-red-500 hover:bg-red-600 text-white mb-4"
+                className="bg-red-500 hover:bg-red-600 text-white mb-4 w-full"
               >
                 {isResetting ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Resetting...
+                    Resetting Workshop Data...
                   </>
                 ) : (
                   <>
                     <Trash className="h-4 w-4 mr-2" />
-                    Reset User Data
+                    Reset All Workshop Data
                   </>
                 )}
               </Button>
               
               {resetResult && (
-                <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
+                <div className={`p-4 rounded-md overflow-auto max-h-[300px] border ${
+                  resetResult.includes('SUCCESSFUL ✅') 
+                    ? 'bg-green-50 border-green-200' 
+                    : resetResult.includes('ERROR') 
+                      ? 'bg-red-50 border-red-200'
+                      : 'bg-blue-50 border-blue-200'
+                }`}>
                   <pre className="text-xs whitespace-pre-wrap">{resetResult}</pre>
                 </div>
               )}
@@ -441,22 +466,45 @@ export default function WorkshopResetTest() {
       
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>Instructions</CardTitle>
+          <CardTitle>How to Use This Reset Tool</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="list-decimal pl-6 space-y-2">
-            <li>First, make sure you're logged in to test the reset functionality</li>
-            <li>Click "Show My Data" to see a detailed breakdown of your actual workshop progress and data</li>
-            <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
-            <li>Check the response to see if there are any errors</li>
-            <li>The reset is working correctly if:
-              <ul className="list-disc pl-6 mt-1">
-                <li>Your localStorage data is cleared</li>
-                <li>The server response shows success</li>
-                <li>When you go back to the workshop, your progress is reset</li>
+          <div className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">Before Using</h3>
+              <ol className="list-decimal pl-6 space-y-2">
+                <li>Make sure you're logged in (your user data appears in the "Database Data" panel)</li>
+                <li>Click "Show My Data" to see a detailed breakdown of your current workshop data</li>
+                <li>Take note of which data you currently have (star card, flow attributes, progress)</li>
+              </ol>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-2">Reset Process</h3>
+              <ol className="list-decimal pl-6 space-y-2">
+                <li>Click "Reset All Workshop Data" to start the complete reset process</li>
+                <li>The system will delete all your data from both server database and browser storage</li>
+                <li>A detailed reset report will show the results of each operation</li>
+                <li>After reset, the panels will automatically refresh to show your current data state</li>
+              </ol>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-2">Verification</h3>
+              <p className="text-sm mb-2">The reset is successful when:</p>
+              <ul className="list-disc pl-6">
+                <li>The reset report shows "OVERALL RESET STATUS: SUCCESSFUL ✅"</li>
+                <li>Both database panels show empty or reset data</li>
+                <li>When you return to the workshop, you begin from the first step</li>
               </ul>
-            </li>
-          </ol>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
+              <p className="text-sm text-blue-800">
+                <strong>Troubleshooting:</strong> If you experience any issues with the reset process, try logging out and logging back in, or contact technical support for assistance.
+              </p>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
