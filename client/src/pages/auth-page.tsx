@@ -183,12 +183,12 @@ export default function AuthPage() {
         </div>
 
         {/* Information Message */}
-        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
+        {/* <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
           <h3 className="font-medium text-blue-800 mb-1">Test Environment</h3>
           <p className="text-sm text-blue-600">
             This is a test environment. Please use the "Select Test User" button below to log in.
           </p>
-        </div>
+        </div> */}
 
         {/* Login Form */}
         {isLogin && (
@@ -198,7 +198,7 @@ export default function AuthPage() {
         )}
 
         {/* Register Form */}
-        {!isLogin && (
+        {/* {!isLogin && (
           <Form {...registerForm}>
             <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
               <FormField
@@ -320,7 +320,7 @@ export default function AuthPage() {
               </Button>
             </form>
           </Form>
-        )}
+        )} */}
 
         <div className="mt-6 text-center">
           <p className="text-gray-600">
