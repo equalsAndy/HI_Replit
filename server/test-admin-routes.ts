@@ -1,5 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { storage } from './storage';
+import { storage } from './new-storage';
+import { db } from './db';
+import { eq } from 'drizzle-orm';
+import * as schema from '../shared/schema';
 
 // Create a router for test admin routes
 const testAdminRouter = Router();
@@ -47,6 +50,43 @@ testAdminRouter.get('/login-as/:userId', async (req: Request, res: Response) => 
   } catch (error) {
     console.error('Error in login-as route:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reset user data endpoint - for development testing
+testAdminRouter.post('/reset-data/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    console.log(`Resetting data for user ${userId}`);
+    
+    // Delete star card data
+    await db
+      .delete(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+    
+    // Delete flow attributes data
+    await db
+      .delete(schema.flowAttributes)
+      .where(eq(schema.flowAttributes.userId, userId));
+    
+    // Reset user progress
+    await db
+      .update(schema.users)
+      .set({ progress: 0 })
+      .where(eq(schema.users.id, userId));
+    
+    res.status(200).json({ 
+      message: 'User data reset successfully',
+      userId: userId
+    });
+  } catch (error) {
+    console.error('Error resetting user data:', error);
+    res.status(500).json({ message: 'Error resetting user data' });
   }
 });
 
