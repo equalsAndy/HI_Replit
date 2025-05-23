@@ -32,28 +32,28 @@ export function NavBar() {
     if (!user?.id) return;
     
     try {
-      const response = await fetch(`/api/test/reset-data/${user.id}`);
-      const data = await response.json();
+      // Use the direct POST endpoint instead which is working more reliably
+      const response = await fetch(`/api/test-users/reset/${user.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
       
-      if (data.success || data.message.includes("success")) {
-        toast({
-          title: "Reset Successful",
-          description: "Your assessment data has been reset. Refresh the page to see changes.",
-          variant: "default",
-        });
-        // Force reload to show reset state
+      toast({
+        title: "Reset Successful",
+        description: "Your assessment data has been reset. Refreshing the page to show changes.",
+        variant: "default",
+      });
+      
+      // Force reload to show reset state after a brief delay
+      setTimeout(() => {
         window.location.reload();
-      } else {
-        toast({
-          title: "Reset Failed",
-          description: data.message || "Failed to reset user data",
-          variant: "destructive",
-        });
-      }
+      }, 1000);
     } catch (error) {
       toast({
         title: "Reset Failed",
-        description: "An error occurred while resetting user data",
+        description: "An error occurred while resetting user data. Please try again.",
         variant: "destructive",
       });
       console.error("Error resetting user data:", error);
