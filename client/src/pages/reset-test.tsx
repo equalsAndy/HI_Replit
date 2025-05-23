@@ -7,6 +7,21 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshCw, ArrowLeft } from 'lucide-react';
 
+// Define basic types
+interface User {
+  id: number;
+  username: string;
+  name: string;
+  title?: string;
+  organization?: string;
+}
+
+// Define response type for error handling
+interface ApiErrorResponse {
+  message?: string;
+  error?: string;
+}
+
 // Storage keys used across the application
 const STORAGE_KEYS = {
   ALLSTAR_TEAMS: 'allstarteams-navigation-progress',
@@ -20,7 +35,7 @@ export default function ResetTest() {
   const [storageState, setStorageState] = useState<Record<string, any>>({});
   
   // Fetch user profile data
-  const { data: user, isLoading: userLoading } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery<User>({
     queryKey: ['/api/user/profile'],
     refetchOnWindowFocus: false
   });

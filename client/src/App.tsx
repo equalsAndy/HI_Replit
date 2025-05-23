@@ -178,7 +178,12 @@ function Router() {
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />
           <Route path="/team-workshop" component={TeamWorkshop} />
-          <Route path="/reset-test" component={lazy(() => import("./pages/reset-test"))} />
+          <Route path="/reset-test">
+            <Suspense fallback={<div className="flex items-center justify-center h-screen">Loading Reset Test...</div>}>
+              {React.createElement(lazy(() => import('./pages/reset-test')))}
+            </Suspense>
+          </Route>
+          <Route path="/workshop-reset-test" component={lazy(() => import('./pages/workshop-reset-test'))} />
           <Route component={NotFound} />
         </Switch>
       </div>

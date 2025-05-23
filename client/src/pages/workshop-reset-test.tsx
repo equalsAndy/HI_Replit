@@ -1,0 +1,256 @@
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeft, RefreshCw, Save, Trash } from 'lucide-react';
+
+// Helper function to safely parse JSON
+const safeParseJSON = (json: string | null) => {
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    console.error("JSON parse error:", e);
+    return null;
+  }
+};
+
+export default function WorkshopResetTest() {
+  const [location, navigate] = useLocation();
+  const [storageData, setStorageData] = useState<Record<string, any>>({});
+  const [resetResult, setResetResult] = useState<string>('');
+  const [isResetting, setIsResetting] = useState(false);
+
+  // Storage keys to check and clear
+  const storageKeys = [
+    'allstarteams-navigation-progress',
+    'imaginal-agility-navigation-progress',
+    'allstar_navigation_progress'
+  ];
+
+  // Load local storage data on component mount
+  useEffect(() => {
+    refreshStorageData();
+  }, []);
+
+  // Refresh the local storage data
+  const refreshStorageData = () => {
+    const data: Record<string, any> = {};
+    
+    storageKeys.forEach(key => {
+      const rawData = localStorage.getItem(key);
+      data[key] = safeParseJSON(rawData);
+    });
+    
+    setStorageData(data);
+  };
+
+  // Set test data in specified format
+  const setTestData = (format: 'array' | 'object') => {
+    try {
+      if (format === 'array') {
+        localStorage.setItem('allstarteams-navigation-progress', JSON.stringify(['1-1', '1-2', '1-3']));
+      } else {
+        localStorage.setItem('allstarteams-navigation-progress', JSON.stringify({ 
+          completed: ['1-1', '1-2', '1-3'],
+          lastVisited: Date.now()
+        }));
+      }
+      refreshStorageData();
+    } catch (error) {
+      console.error("Error setting test data:", error);
+    }
+  };
+
+  // Clear all local storage data
+  const clearAllData = () => {
+    storageKeys.forEach(key => {
+      localStorage.removeItem(key);
+    });
+    refreshStorageData();
+  };
+
+  // Reset user data via API
+  const resetUserData = async () => {
+    setIsResetting(true);
+    setResetResult('');
+    
+    try {
+      // Get current user ID from API
+      const userResponse = await fetch('/api/user/profile', {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!userResponse.ok) {
+        setResetResult('Error: Failed to get user profile. Please log in first.');
+        return;
+      }
+      
+      const userData = await userResponse.json();
+      const userId = userData.id;
+      
+      if (!userId) {
+        setResetResult('Error: Could not determine user ID.');
+        return;
+      }
+      
+      // Call the reset API
+      const resetResponse = await fetch(`/api/test-users/reset/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      // Get response as text first to inspect
+      const responseText = await resetResponse.text();
+      
+      // Attempt to parse as JSON if possible
+      try {
+        const responseData = JSON.parse(responseText);
+        setResetResult(`Reset API Response: ${JSON.stringify(responseData, null, 2)}`);
+      } catch (e) {
+        // Not valid JSON, show as text
+        setResetResult(`Reset API Response (not JSON): ${responseText}`);
+      }
+      
+      // Clear local storage
+      clearAllData();
+      
+    } catch (error) {
+      setResetResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsResetting(false);
+    }
+  };
+
+  return (
+    <div className="container py-8 max-w-4xl">
+      <div className="flex items-center mb-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/')}
+          className="mr-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Home
+        </Button>
+        <h1 className="text-3xl font-bold">Workshop Reset Test Tool</h1>
+      </div>
+      
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Local Storage Data</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="bg-slate-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
+              <pre className="text-xs">{JSON.stringify(storageData, null, 2)}</pre>
+            </div>
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={refreshStorageData}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Test Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <h3 className="font-medium mb-2">Test Data</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setTestData('array')}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Set Array Format
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setTestData('object')}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Set Object Format
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={clearAllData}
+                >
+                  <Trash className="h-4 w-4 mr-2" />
+                  Clear All
+                </Button>
+              </div>
+            </div>
+            
+            <div className="pt-2 border-t">
+              <h3 className="font-medium mb-2">Server Reset</h3>
+              <Button 
+                onClick={resetUserData}
+                disabled={isResetting}
+                className="bg-red-500 hover:bg-red-600 text-white mb-4"
+              >
+                {isResetting ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Resetting...
+                  </>
+                ) : (
+                  <>
+                    <Trash className="h-4 w-4 mr-2" />
+                    Reset User Data
+                  </>
+                )}
+              </Button>
+              
+              {resetResult && (
+                <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
+                  <pre className="text-xs whitespace-pre-wrap">{resetResult}</pre>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Instructions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>First, make sure you're logged in to test the reset functionality</li>
+            <li>Use the "Set Array Format" or "Set Object Format" buttons to create test data</li>
+            <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
+            <li>Check the response to see if there are any errors</li>
+            <li>The reset is working correctly if:
+              <ul className="list-disc pl-6 mt-1">
+                <li>The localStorage is cleared</li>
+                <li>The server response shows success</li>
+                <li>When you go back to the app, your progress is reset</li>
+              </ul>
+            </li>
+          </ol>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
