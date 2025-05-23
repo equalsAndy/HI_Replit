@@ -63,34 +63,122 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`=== RESET ENDPOINT: Resetting data for user ${userId} ===`);
+    console.log(`=== RESET ENDPOINT: Starting data reset for user ${userId} ===`);
     
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
-    // Use the reset service to handle all reset operations
-    const resetService = new ResetService();
-    const result = await resetService.resetAllUserData(userId);
+    // Manually reset the data since the service approach appears to have issues
+    let deletedStarCard = false;
+    let deletedFlowAttrs = false;
+    let resetUserProgress = false;
     
-    console.log(`Reset operation completed with result:`, result);
-    
-    if (result.success) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'User data reset successfully',
-        userId: userId,
-        deletions: result.deletions
-      });
-    } else {
-      return res.status(500).json({ 
-        success: false,
-        message: 'User data reset partially failed',
-        userId: userId,
-        deletions: result.deletions,
-        dataRemaining: result.dataRemaining,
-        error: result.error
-      });
+    // 1. Reset star card data
+    try {
+      const [starCard] = await db
+        .select()
+        .from(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+      
+      if (starCard) {
+        console.log(`Found star card for user ${userId}:`, starCard);
+        
+        await db
+          .delete(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        // Verify deletion
+        const [checkCard] = await db
+          .select()
+          .from(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        if (!checkCard) {
+          deletedStarCard = true;
+          console.log(`Star card deleted successfully for user ${userId}`);
+        } else {
+          console.error(`Failed to delete star card for user ${userId}`);
+        }
+      } else {
+        deletedStarCard = true; // Nothing to delete
+        console.log(`No star card found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting star card:`, error);
     }
+    
+    // 2. Reset flow attributes
+    try {
+      const [flowAttrs] = await db
+        .select()
+        .from(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+      
+      if (flowAttrs) {
+        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
+        
+        await db
+          .delete(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        // Verify deletion
+        const [checkAttrs] = await db
+          .select()
+          .from(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        if (!checkAttrs) {
+          deletedFlowAttrs = true;
+          console.log(`Flow attributes deleted successfully for user ${userId}`);
+        } else {
+          console.error(`Failed to delete flow attributes for user ${userId}`);
+        }
+      } else {
+        deletedFlowAttrs = true; // Nothing to delete
+        console.log(`No flow attributes found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting flow attributes:`, error);
+    }
+    
+    // 3. Reset user progress
+    try {
+      await db
+        .update(schema.users)
+        .set({ progress: 0 })
+        .where(eq(schema.users.id, userId));
+        
+      // Verify reset
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, userId));
+        
+      if (user && user.progress === 0) {
+        resetUserProgress = true;
+        console.log(`User progress reset successfully for user ${userId}`);
+      } else {
+        console.error(`Failed to reset progress for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error resetting user progress:`, error);
+    }
+    
+    // Determine overall success
+    const success = deletedStarCard && deletedFlowAttrs && resetUserProgress;
+    
+    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
+    
+    return res.status(200).json({ 
+      success: success,
+      message: success ? 'User data reset successfully' : 'User data reset partially failed',
+      userId: userId,
+      deletions: {
+        starCard: deletedStarCard,
+        flowAttributes: deletedFlowAttrs,
+        userProgress: resetUserProgress
+      }
+    });
   } catch (error) {
     console.error('Error in reset endpoint:', error);
     
@@ -114,34 +202,122 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`=== RESET ENDPOINT: Resetting data for user ${userId} via GET ===`);
+    console.log(`=== RESET ENDPOINT: Starting data reset for user ${userId} via GET ===`);
     
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');
     
-    // Use the reset service to handle all reset operations
-    const resetService = new ResetService();
-    const result = await resetService.resetAllUserData(userId);
+    // Manually reset the data since the service approach appears to have issues
+    let deletedStarCard = false;
+    let deletedFlowAttrs = false;
+    let resetUserProgress = false;
     
-    console.log(`Reset operation completed with result:`, result);
-    
-    if (result.success) {
-      return res.status(200).json({ 
-        success: true,
-        message: 'User data reset successfully',
-        userId: userId,
-        deletions: result.deletions
-      });
-    } else {
-      return res.status(500).json({ 
-        success: false,
-        message: 'User data reset partially failed',
-        userId: userId,
-        deletions: result.deletions,
-        dataRemaining: result.dataRemaining,
-        error: result.error
-      });
+    // 1. Reset star card data
+    try {
+      const [starCard] = await db
+        .select()
+        .from(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+      
+      if (starCard) {
+        console.log(`Found star card for user ${userId}:`, starCard);
+        
+        await db
+          .delete(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        // Verify deletion
+        const [checkCard] = await db
+          .select()
+          .from(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        if (!checkCard) {
+          deletedStarCard = true;
+          console.log(`Star card deleted successfully for user ${userId}`);
+        } else {
+          console.error(`Failed to delete star card for user ${userId}`);
+        }
+      } else {
+        deletedStarCard = true; // Nothing to delete
+        console.log(`No star card found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting star card:`, error);
     }
+    
+    // 2. Reset flow attributes
+    try {
+      const [flowAttrs] = await db
+        .select()
+        .from(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+      
+      if (flowAttrs) {
+        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
+        
+        await db
+          .delete(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        // Verify deletion
+        const [checkAttrs] = await db
+          .select()
+          .from(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        if (!checkAttrs) {
+          deletedFlowAttrs = true;
+          console.log(`Flow attributes deleted successfully for user ${userId}`);
+        } else {
+          console.error(`Failed to delete flow attributes for user ${userId}`);
+        }
+      } else {
+        deletedFlowAttrs = true; // Nothing to delete
+        console.log(`No flow attributes found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting flow attributes:`, error);
+    }
+    
+    // 3. Reset user progress
+    try {
+      await db
+        .update(schema.users)
+        .set({ progress: 0 })
+        .where(eq(schema.users.id, userId));
+        
+      // Verify reset
+      const [user] = await db
+        .select()
+        .from(schema.users)
+        .where(eq(schema.users.id, userId));
+        
+      if (user && user.progress === 0) {
+        resetUserProgress = true;
+        console.log(`User progress reset successfully for user ${userId}`);
+      } else {
+        console.error(`Failed to reset progress for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error resetting user progress:`, error);
+    }
+    
+    // Determine overall success
+    const success = deletedStarCard && deletedFlowAttrs && resetUserProgress;
+    
+    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
+    
+    return res.status(200).json({ 
+      success: success,
+      message: success ? 'User data reset successfully' : 'User data reset partially failed',
+      userId: userId,
+      deletions: {
+        starCard: deletedStarCard,
+        flowAttributes: deletedFlowAttrs,
+        userProgress: resetUserProgress
+      }
+    });
   } catch (error) {
     console.error('Error in reset endpoint:', error);
     
