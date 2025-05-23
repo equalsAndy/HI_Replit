@@ -124,6 +124,7 @@ adminRouter.post('/users', async (req: Request, res: Response) => {
     const newUser = await storage.createUser({
       name: parsedData.name,
       username: parsedData.username,
+      email: parsedData.email, // Save email
       title: parsedData.title,
       organization: parsedData.organization,
       // We'll handle role/userType via frontend logic since
@@ -179,6 +180,7 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
     // Build update object with only supported fields
     const updateData: any = {};
     if (parsedData.name) updateData.name = parsedData.name;
+    if (parsedData.email) updateData.email = parsedData.email; // Make sure email is included in updates
     if (parsedData.title) updateData.title = parsedData.title;
     if (parsedData.organization) updateData.organization = parsedData.organization;
     if (parsedData.password) updateData.password = parsedData.password;
