@@ -21,11 +21,22 @@ export default function WorkshopResetTest() {
   const [resetResult, setResetResult] = useState<string>('');
   const [isResetting, setIsResetting] = useState(false);
 
-  // Storage keys to check and clear
+  // Storage keys to check and clear - comprehensive list for all workshop data
   const storageKeys = [
     'allstarteams-navigation-progress',
     'imaginal-agility-navigation-progress',
-    'allstar_navigation_progress'
+    'allstar_navigation_progress',
+    'allstarteams_starCard',
+    'allstarteams_flowAttributes',
+    'allstarteams_progress',
+    'allstarteams_completedActivities',
+    'allstarteams_strengths',
+    'allstarteams_values',
+    'allstarteams_passions',
+    'allstarteams_growthAreas',
+    'user-preferences',
+    'workshop-progress',
+    'assessment-data'
   ];
 
   // Load local storage data on component mount
@@ -45,58 +56,53 @@ export default function WorkshopResetTest() {
     setStorageData(data);
   };
 
-  // Set test data in specified format
-  const setTestData = (format: 'array' | 'object') => {
-    try {
-      if (format === 'array') {
-        // Set a more complete array of completed steps
-        localStorage.setItem('allstarteams-navigation-progress', 
-          JSON.stringify(['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1'])
-        );
-      } else {
-        // Set a more complete object with various properties
-        localStorage.setItem('allstarteams-navigation-progress', JSON.stringify({ 
-          completed: ['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1'],
-          expandedSections: ['section1', 'section2', 'section3'],
-          lastVisited: Date.now(),
-          currentStepId: '3-1'
-        }));
+  // Display current user's actual data summary
+  const getCurrentDataSummary = () => {
+    const summary: Record<string, any> = {};
+    let totalItems = 0;
+    
+    storageKeys.forEach(key => {
+      const data = storageData[key];
+      if (data !== null && data !== undefined) {
+        summary[key] = data;
+        totalItems++;
       }
-      
-      // Also set data for other app formats
-      localStorage.setItem('imaginal-agility-navigation-progress', JSON.stringify({
-        completed: ['ia-1-1', 'ia-1-2', 'ia-1-3'],
-        lastVisited: Date.now()
-      }));
-      
-      refreshStorageData();
-    } catch (error) {
-      console.error("Error setting test data:", error);
-    }
+    });
+    
+    return { summary, totalItems };
   };
   
-  // Set complete real-world test data
-  const setCompleteTestData = () => {
-    try {
-      // Full workshop progress data with completed assessments
-      localStorage.setItem('allstarteams-navigation-progress', JSON.stringify({
-        completed: ['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3'],
-        expandedSections: ['section1', 'section2', 'section3', 'section4'],
-        lastVisited: Date.now(),
-        currentStepId: '3-3'
-      }));
-      
-      // Set user preferences
-      localStorage.setItem('user-preferences', JSON.stringify({
-        theme: 'light',
-        notifications: true,
-        lastActivity: Date.now()
-      }));
-      
-      refreshStorageData();
-    } catch (error) {
-      console.error("Error setting complete test data:", error);
+  // Show detailed breakdown of user's current data
+  const showDataBreakdown = () => {
+    const { summary, totalItems } = getCurrentDataSummary();
+    
+    if (totalItems === 0) {
+      setResetResult('No workshop data found in localStorage. You may need to complete some assessments first.');
+      return;
     }
+    
+    let breakdown = `Current User Data Summary (${totalItems} items found):\n\n`;
+    
+    Object.entries(summary).forEach(([key, value]) => {
+      breakdown += `${key}:\n`;
+      if (Array.isArray(value)) {
+        breakdown += `  Type: Array with ${value.length} items\n`;
+        breakdown += `  Items: ${JSON.stringify(value)}\n`;
+      } else if (typeof value === 'object') {
+        breakdown += `  Type: Object\n`;
+        const objKeys = Object.keys(value);
+        breakdown += `  Properties: ${objKeys.join(', ')}\n`;
+        if (value.completed && Array.isArray(value.completed)) {
+          breakdown += `  Completed items: ${value.completed.length}\n`;
+        }
+      } else {
+        breakdown += `  Type: ${typeof value}\n`;
+        breakdown += `  Value: ${String(value)}\n`;
+      }
+      breakdown += '\n';
+    });
+    
+    setResetResult(breakdown);
   };
 
   // Clear all local storage data
@@ -209,32 +215,24 @@ export default function WorkshopResetTest() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <h3 className="font-medium mb-2">Test Data</h3>
+              <h3 className="font-medium mb-2">Current User Data</h3>
               <div className="flex flex-wrap gap-2">
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => setTestData('array')}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Set Array Format
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setTestData('object')}
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Set Object Format
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={setCompleteTestData}
+                  onClick={showDataBreakdown}
                   className="bg-blue-50"
                 >
                   <Save className="h-4 w-4 mr-2" />
-                  Complete Test Data
+                  Show My Data
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={refreshStorageData}
+                >
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Data
                 </Button>
                 <Button 
                   variant="outline" 
@@ -284,14 +282,14 @@ export default function WorkshopResetTest() {
         <CardContent>
           <ol className="list-decimal pl-6 space-y-2">
             <li>First, make sure you're logged in to test the reset functionality</li>
-            <li>Use the "Set Array Format" or "Set Object Format" buttons to create test data</li>
+            <li>Click "Show My Data" to see a detailed breakdown of your actual workshop progress and data</li>
             <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
             <li>Check the response to see if there are any errors</li>
             <li>The reset is working correctly if:
               <ul className="list-disc pl-6 mt-1">
-                <li>The localStorage is cleared</li>
+                <li>Your localStorage data is cleared</li>
                 <li>The server response shows success</li>
-                <li>When you go back to the app, your progress is reset</li>
+                <li>When you go back to the workshop, your progress is reset</li>
               </ul>
             </li>
           </ol>
