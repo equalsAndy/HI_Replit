@@ -81,48 +81,78 @@ export default function WorkshopReset() {
 
   // Refresh server data
   const refreshServerData = async () => {
-    const data: Record<string, any> = {};
-    
     try {
+      // Show a fetching state
+      setServerData({ fetching: true });
+      
+      const data: Record<string, any> = {};
+      
       // Fetch star card data
-      const starCardResponse = await fetch('/api/starcard', {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (starCardResponse.ok) {
-        data.starCard = await starCardResponse.json();
+      try {
+        const starCardResponse = await fetch('/api/starcard', {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (starCardResponse.ok) {
+          data.starCard = await starCardResponse.json();
+        } else {
+          data.starCard = { error: `Failed with status: ${starCardResponse.status}` };
+        }
+      } catch (e) {
+        data.starCard = { error: 'Failed to fetch' };
       }
-    } catch (e) {
-      data.starCard = { error: 'Failed to fetch' };
-    }
 
-    try {
       // Fetch flow attributes
-      const flowResponse = await fetch('/api/flow-attributes', {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (flowResponse.ok) {
-        data.flowAttributes = await flowResponse.json();
+      try {
+        const flowResponse = await fetch('/api/flow-attributes', {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (flowResponse.ok) {
+          data.flowAttributes = await flowResponse.json();
+        } else {
+          data.flowAttributes = { error: `Failed with status: ${flowResponse.status}` };
+        }
+      } catch (e) {
+        data.flowAttributes = { error: 'Failed to fetch' };
       }
-    } catch (e) {
-      data.flowAttributes = { error: 'Failed to fetch' };
-    }
 
-    try {
       // Fetch user profile
-      const profileResponse = await fetch('/api/user/profile', {
-        credentials: 'include',
-        headers: { 'Accept': 'application/json' }
-      });
-      if (profileResponse.ok) {
-        data.userProfile = await profileResponse.json();
+      try {
+        const profileResponse = await fetch('/api/user/profile', {
+          credentials: 'include',
+          headers: { 'Accept': 'application/json' }
+        });
+        if (profileResponse.ok) {
+          data.userProfile = await profileResponse.json();
+        } else {
+          data.userProfile = { error: `Failed with status: ${profileResponse.status}` };
+        }
+      } catch (e) {
+        data.userProfile = { error: 'Failed to fetch' };
       }
-    } catch (e) {
-      data.userProfile = { error: 'Failed to fetch' };
-    }
 
-    setServerData(data);
+      // Update the state with the new data
+      setServerData(data);
+      
+      // Show success toast
+      toast({
+        title: "Server Data Refreshed",
+        description: "The latest data has been loaded from the server.",
+      });
+      
+    } catch (error) {
+      // If something goes wrong overall
+      console.error('Error fetching server data:', error);
+      setServerData({ error: 'Failed to refresh server data' });
+      
+      // Show error toast
+      toast({
+        title: "Refresh Failed",
+        description: "Could not refresh server data. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Clear all local storage data
