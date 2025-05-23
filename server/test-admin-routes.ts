@@ -90,4 +90,47 @@ testAdminRouter.post('/reset-data/:userId', async (req: Request, res: Response) 
   }
 });
 
+// Accessible API endpoint for reset
+testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    console.log(`Resetting data for user ${userId} via GET`);
+    
+    // Delete star card data
+    await db
+      .delete(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+    
+    // Delete flow attributes data
+    await db
+      .delete(schema.flowAttributes)
+      .where(eq(schema.flowAttributes.userId, userId));
+    
+    // Reset user progress
+    await db
+      .update(schema.users)
+      .set({ progress: 0 })
+      .where(eq(schema.users.id, userId));
+    
+    // Return JSON response
+    return res.status(200).json({ 
+      success: true,
+      message: 'User data reset successfully',
+      userId: userId
+    });
+  } catch (error) {
+    console.error('Error resetting user data:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Error resetting user data',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export { testAdminRouter };
