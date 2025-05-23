@@ -85,8 +85,20 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
           .where(eq(schema.starCards.userId, userId));
           
         console.log(`Delete star card result:`, deleteResult);
-        deletedStarCard = true;
-        console.log(`Successfully deleted star card data for user ${userId}`);
+        
+        // Verify deletion by checking if record still exists
+        const [verifyStarCard] = await db
+          .select()
+          .from(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        if (verifyStarCard) {
+          console.error(`ERROR: Star card still exists after delete for user ${userId}:`, verifyStarCard);
+          throw new Error('Star card deletion failed - record still exists');
+        } else {
+          deletedStarCard = true;
+          console.log(`Successfully verified star card deletion for user ${userId}`);
+        }
       } else {
         console.log(`No star card found for user ${userId}`);
       }
@@ -110,8 +122,20 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
           .where(eq(schema.flowAttributes.userId, userId));
           
         console.log(`Delete flow attributes result:`, deleteResult);
-        deletedFlowAttrs = true;
-        console.log(`Successfully deleted flow attributes data for user ${userId}`);
+        
+        // Verify deletion by checking if record still exists
+        const [verifyFlowAttrs] = await db
+          .select()
+          .from(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        if (verifyFlowAttrs) {
+          console.error(`ERROR: Flow attributes still exist after delete for user ${userId}:`, verifyFlowAttrs);
+          throw new Error('Flow attributes deletion failed - record still exists');
+        } else {
+          deletedFlowAttrs = true;
+          console.log(`Successfully verified flow attributes deletion for user ${userId}`);
+        }
       } else {
         console.log(`No flow attributes found for user ${userId}`);
       }
