@@ -39,8 +39,8 @@ export function NavBar() {
         variant: "default",
       });
       
-      // Use the new reset endpoint
-      const response = await fetch(`/api/test/reset/${user.id}`, {
+      // Use the correct reset endpoint that exists in the code
+      const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
