@@ -49,16 +49,53 @@ export default function WorkshopResetTest() {
   const setTestData = (format: 'array' | 'object') => {
     try {
       if (format === 'array') {
-        localStorage.setItem('allstarteams-navigation-progress', JSON.stringify(['1-1', '1-2', '1-3']));
+        // Set a more complete array of completed steps
+        localStorage.setItem('allstarteams-navigation-progress', 
+          JSON.stringify(['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1'])
+        );
       } else {
+        // Set a more complete object with various properties
         localStorage.setItem('allstarteams-navigation-progress', JSON.stringify({ 
-          completed: ['1-1', '1-2', '1-3'],
-          lastVisited: Date.now()
+          completed: ['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1'],
+          expandedSections: ['section1', 'section2', 'section3'],
+          lastVisited: Date.now(),
+          currentStepId: '3-1'
         }));
       }
+      
+      // Also set data for other app formats
+      localStorage.setItem('imaginal-agility-navigation-progress', JSON.stringify({
+        completed: ['ia-1-1', 'ia-1-2', 'ia-1-3'],
+        lastVisited: Date.now()
+      }));
+      
       refreshStorageData();
     } catch (error) {
       console.error("Error setting test data:", error);
+    }
+  };
+  
+  // Set complete real-world test data
+  const setCompleteTestData = () => {
+    try {
+      // Full workshop progress data with completed assessments
+      localStorage.setItem('allstarteams-navigation-progress', JSON.stringify({
+        completed: ['1-1', '1-2', '1-3', '1-4', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3'],
+        expandedSections: ['section1', 'section2', 'section3', 'section4'],
+        lastVisited: Date.now(),
+        currentStepId: '3-3'
+      }));
+      
+      // Set user preferences
+      localStorage.setItem('user-preferences', JSON.stringify({
+        theme: 'light',
+        notifications: true,
+        lastActivity: Date.now()
+      }));
+      
+      refreshStorageData();
+    } catch (error) {
+      console.error("Error setting complete test data:", error);
     }
   };
 
@@ -189,6 +226,15 @@ export default function WorkshopResetTest() {
                 >
                   <Save className="h-4 w-4 mr-2" />
                   Set Object Format
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={setCompleteTestData}
+                  className="bg-blue-50"
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Complete Test Data
                 </Button>
                 <Button 
                   variant="outline" 
