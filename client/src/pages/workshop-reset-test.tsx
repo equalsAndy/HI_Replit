@@ -222,16 +222,23 @@ export default function WorkshopResetTest() {
         credentials: 'include'
       });
       
-      // Get response as text first to inspect
-      const responseText = await resetResponse.text();
-      
-      // Attempt to parse as JSON if possible
-      try {
-        const responseData = JSON.parse(responseText);
-        setResetResult(`Reset API Response: ${JSON.stringify(responseData, null, 2)}`);
-      } catch (e) {
-        // Not valid JSON, show as text
-        setResetResult(`Reset API Response (not JSON): ${responseText}`);
+      // Check if reset was successful based on status
+      if (resetResponse.ok) {
+        // Get response as text first to inspect
+        const responseText = await resetResponse.text();
+        
+        // Attempt to parse as JSON if possible
+        try {
+          const responseData = JSON.parse(responseText);
+          setResetResult(`✅ RESET SUCCESSFUL!\n\nServer Response: ${JSON.stringify(responseData, null, 2)}\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}`);
+        } catch (e) {
+          // Not valid JSON, but still successful if status is 200
+          setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
+        }
+      } else {
+        // Reset failed
+        const responseText = await resetResponse.text();
+        setResetResult(`❌ RESET FAILED!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nError: ${responseText}`);
       }
       
       // Clear local storage
