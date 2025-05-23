@@ -3,6 +3,9 @@ import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { storage } from './new-storage';
 import { UserRole } from '@shared/types';
+import { db } from './db';
+import * as schema from '../shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Create router for authentication routes
 const authRouter = Router();
@@ -155,8 +158,6 @@ authRouter.get('/test-users', async (req, res) => {
 authRouter.post('/setup-test-users', async (req, res) => {
   try {
     const standardPassword = 'password';
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(standardPassword, salt);
     
     // List of test users to create or update
     const testUsers = [
@@ -171,21 +172,56 @@ authRouter.post('/setup-test-users', async (req, res) => {
       const existingUser = await storage.getUserByUsername(userData.username);
       
       if (existingUser) {
+        console.log(`Updating existing user: ${userData.username} with role ${userData.role}`);
+        
+        // Hash the password directly
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(standardPassword, salt);
+        
         // Update existing user
-        await storage.updateUser(existingUser.id, {
-          ...userData,
-          password: hashedPassword
-        });
-        // Ensure role is set
-        await storage.setUserRole(existingUser.id, userData.role);
+        await db.update(schema.users)
+          .set({
+            name: userData.name,
+            password: hashedPassword,
+            updatedAt: new Date()
+          })
+          .where(eq(schema.users.id, existingUser.id));
+          
+        // Delete existing roles
+        await db.delete(schema.userRoles)
+          .where(eq(schema.userRoles.userId, existingUser.id));
+          
+        // Add new role
+        await db.insert(schema.userRoles)
+          .values({
+            userId: existingUser.id,
+            role: userData.role
+          });
+          
       } else {
-        // Create new user
-        const newUser = await storage.createUser({
-          ...userData,
-          password: hashedPassword
-        });
-        // Set role for new user
-        await storage.setUserRole(newUser.id, userData.role);
+        console.log(`Creating new user: ${userData.username} with role ${userData.role}`);
+        
+        // Hash the password directly
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(standardPassword, salt);
+        
+        // Insert user directly
+        const [newUser] = await db.insert(schema.users)
+          .values({
+            username: userData.username,
+            password: hashedPassword,
+            name: userData.name,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+          .returning();
+        
+        // Insert role directly
+        await db.insert(schema.userRoles)
+          .values({
+            userId: newUser.id,
+            role: userData.role
+          });
       }
     }
     

@@ -34,6 +34,7 @@ export interface IStorage {
   assignRole(userId: number, role: UserRole): Promise<void>;
   removeRole(userId: number, role: UserRole): Promise<void>;
   getUserRoles(userId: number): Promise<UserRole[]>;
+  setUserRole(userId: number, role: UserRole): Promise<void>;
   
   // Cohort operations
   createCohort(cohortData: any): Promise<any>;
@@ -269,6 +270,16 @@ export class DatabaseStorage implements IStorage {
   
   async getUserRoles(userId: number): Promise<UserRole[]> {
     return getUserRoles(userId);
+  }
+  
+  async setUserRole(userId: number, role: UserRole): Promise<void> {
+    // Delete existing roles first
+    await db.delete(schema.userRoles)
+      .where(eq(schema.userRoles.userId, userId));
+      
+    // Add the new role
+    await db.insert(schema.userRoles)
+      .values({ userId, role });
   }
   
   // Test user operations
