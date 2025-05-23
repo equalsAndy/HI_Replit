@@ -16,7 +16,7 @@ export default function ResetAllUsers() {
       const userIds = [2, 3, 4, 5, 6];
       
       for (const userId of userIds) {
-        const response = await fetch(`/api/test/reset/${userId}`, {
+        const response = await fetch(`/api/test-users/reset/${userId}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
