@@ -21,12 +21,40 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     
     const { username, password } = loginSchema.parse(req.body);
     
-    // Authenticate user
-    const user = await storage.authenticateUser(username, password);
+    console.log(`Login attempt for username: ${username}`);
+    
+    // Get user from database
+    const [user] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.username, username));
     
     if (!user) {
+      console.log(`User not found: ${username}`);
       return res.status(401).json({ message: 'Invalid username or password' });
     }
+    
+    // Verify password
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
+    if (!passwordMatch) {
+      console.log(`Invalid password for user: ${username}`);
+      return res.status(401).json({ message: 'Invalid username or password' });
+    }
+    
+    // Get user roles
+    const roles = await db
+      .select({ role: schema.userRoles.role })
+      .from(schema.userRoles)
+      .where(eq(schema.userRoles.userId, user.id));
+    
+    console.log(`Found roles for ${username}:`, roles);
+    
+    // Add role to user object
+    const userWithRole = {
+      ...user,
+      role: roles.length > 0 ? roles[0].role : UserRole.Participant
+    };
     
     // Set cookie with user ID
     res.cookie('userId', user.id.toString(), {
@@ -36,8 +64,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     });
     
     // Return user data (excluding password)
-    const { password: _, ...userDataWithoutPassword } = user;
+    const { password: _, ...userDataWithoutPassword } = userWithRole;
     
+    console.log(`Login successful for ${username} with role: ${userDataWithoutPassword.role}`);
     res.status(200).json(userDataWithoutPassword);
   } catch (error) {
     if (error instanceof z.ZodError) {
