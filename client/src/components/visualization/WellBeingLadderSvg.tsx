@@ -79,14 +79,14 @@ const WellBeingLadderSvg: React.FC<WellBeingLadderSvgProps> = ({ currentValue, f
       
       {/* Current marker */}
       <g>
-        <circle cx="175" cy={currentY} r="10" fill="#3b82f6" stroke="#fff" strokeWidth="2"></circle>
-        <text x="140" y={currentY+5} fontSize="12" textAnchor="end" fontWeight="bold" fill="#3b82f6">NOW</text>
+        <circle cx="175" cy={currentY} r="12" fill="#3b82f6"></circle>
+        <text x="160" y={currentY+35} fontSize="14" textAnchor="middle" fill="#3b82f6">Current</text>
       </g>
       
       {/* Future marker */}
       <g>
-        <circle cx="325" cy={futureY} r="10" fill="#10b981" stroke="#fff" strokeWidth="2"></circle>
-        <text x="345" y={futureY+5} fontSize="12" textAnchor="start" fontWeight="bold" fill="#10b981">GOAL</text>
+        <circle cx="325" cy={futureY} r="12" fill="#10b981"></circle>
+        <text x="325" y={futureY+35} fontSize="14" textAnchor="middle" fill="#10b981">1 year from now</text>
       </g>
       
       {/* Legend */}
