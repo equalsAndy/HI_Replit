@@ -147,9 +147,17 @@ export const insertCohortSchema = createInsertSchema(cohorts).omit({
 });
 
 // Define types
-export type User = typeof users.$inferSelect;
+export type User = typeof users.$inferSelect & {
+  // Include roles information that gets joined in queries
+  roles?: { role: UserRole }[];
+};
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type Cohort = typeof cohorts.$inferSelect;
 export type InsertCohort = z.infer<typeof insertCohortSchema>;
 export type StarCard = typeof starCards.$inferSelect;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
+
+// Define a UserWithRole type for API responses
+export type UserWithRole = User & {
+  role: UserRole;
+};

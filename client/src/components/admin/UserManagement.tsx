@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { User, UserRole } from '@/shared/types';
+import { User, UserRole, UserWithRole } from '@shared/schema';
 
 // UI Components
 import {
@@ -63,7 +63,7 @@ export function UserManagement() {
   });
 
   // Filter users based on search input
-  const filteredUsers = users?.filter(user => 
+  const filteredUsers = users?.filter((user: User) => 
     user.name?.toLowerCase().includes(filter.toLowerCase()) ||
     user.email?.toLowerCase().includes(filter.toLowerCase()) ||
     user.organization?.toLowerCase().includes(filter.toLowerCase())
@@ -131,7 +131,7 @@ export function UserManagement() {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredUsers.map((user) => (
+                filteredUsers.map((user: UserWithRole) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email || '-'}</TableCell>
