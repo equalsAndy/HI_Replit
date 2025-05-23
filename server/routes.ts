@@ -301,64 +301,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Not authenticated' });
       }
       
-      // Validate request body with number coercion
-      const completeAssessmentSchema = z.object({
-        quadrantData: z.object({
-          thinking: z.coerce.number().min(0),
-          acting: z.coerce.number().min(0),
-          feeling: z.coerce.number().min(0),
-          planning: z.coerce.number().min(0),
-        }),
-        answers: z.array(
-          z.object({
-            questionId: z.coerce.number(),
-            rankings: z.array(
-              z.object({
-                optionId: z.coerce.number(),
-                rank: z.coerce.number(),
-              })
-            ).optional(),
+      // Log incoming data for debugging
+      console.log("Assessment completion request data:", JSON.stringify(req.body));
+      
+      // Extract and sanitize quadrant data - handle either a direct object or nested
+      let quadrantData = req.body.quadrantData || req.body;
+      
+      // Ensure all values are numbers
+      const thinking = Number(quadrantData.thinking) || 0;
+      const acting = Number(quadrantData.acting) || 0;
+      const feeling = Number(quadrantData.feeling) || 0;
+      const planning = Number(quadrantData.planning) || 0;
+      
+      // Log processed data
+      console.log("Processed quadrant data:", { thinking, acting, feeling, planning });
+      
+      // Get existing star card
+      const existingStarCard = await storage.getStarCard(userId);
+      
+      if (existingStarCard) {
+        // Update existing star card
+        const updatedStarCard = await db
+          .update(schema.starCards)
+          .set({
+            thinking,
+            acting, 
+            feeling,
+            planning,
+            state: 'complete',
+            updatedAt: new Date()
           })
-        ).optional(),
-      });
-      
-      const { quadrantData, answers } = completeAssessmentSchema.parse(req.body);
-      
-      // Update star card with assessment results
-      const updatedStarCard = await storage.updateStarCard(userId, {
-        ...quadrantData,
-        state: 'complete',
-      });
-      
-      if (!updatedStarCard) {
-        // If update failed, create a new star card
-        const [newStarCard] = await db
+          .where(eq(schema.starCards.userId, userId))
+          .returning();
+          
+        console.log("Updated star card:", updatedStarCard[0]);
+        return res.status(200).json(updatedStarCard[0]);
+      } else {
+        // Create new star card
+        const newStarCard = await db
           .insert(schema.starCards)
           .values({
             userId,
-            thinking: quadrantData.thinking,
-            acting: quadrantData.acting,
-            feeling: quadrantData.feeling,
-            planning: quadrantData.planning,
+            thinking,
+            acting,
+            feeling,
+            planning,
             state: 'complete',
             createdAt: new Date(),
             updatedAt: new Date(),
           })
           .returning();
-        
-        return res.status(200).json(newStarCard);
+          
+        console.log("Created new star card:", newStarCard[0]);
+        return res.status(200).json(newStarCard[0]);
       }
-      
-      // Return updated star card
-      res.status(200).json(updatedStarCard);
     } catch (error) {
       console.error('Error completing assessment:', error);
       
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
-      }
-      
-      res.status(500).json({ message: 'Server error' });
+      // Send a more helpful error response
+      res.status(500).json({ 
+        message: 'Error processing star card data',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
   });
   
