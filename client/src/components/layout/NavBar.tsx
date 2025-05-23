@@ -10,12 +10,14 @@ import { useState } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
+import { useToast } from "@/hooks/use-toast";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
   const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const { toast } = useToast();
   const { data: user } = useQuery<{
     id: number;
     name: string;
@@ -24,6 +26,39 @@ export function NavBar() {
     organization?: string;
     role?: string;
   }>({ queryKey: ['/api/user/profile'] });
+  
+  // Function to reset user data
+  const handleResetUserData = async () => {
+    if (!user?.id) return;
+    
+    try {
+      const response = await fetch(`/api/test/reset-data/${user.id}`);
+      const data = await response.json();
+      
+      if (data.success || data.message.includes("success")) {
+        toast({
+          title: "Reset Successful",
+          description: "Your assessment data has been reset. Refresh the page to see changes.",
+          variant: "default",
+        });
+        // Force reload to show reset state
+        window.location.reload();
+      } else {
+        toast({
+          title: "Reset Failed",
+          description: data.message || "Failed to reset user data",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Reset Failed",
+        description: "An error occurred while resetting user data",
+        variant: "destructive",
+      });
+      console.error("Error resetting user data:", error);
+    }
+  };
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
@@ -68,8 +103,8 @@ export function NavBar() {
             />
           </>
         )}
-        {/* Admin button - only shown for user ID 1 */}
-        {user?.id === 1 && (
+        {/* Admin button - only shown for admin users */}
+        {user?.role === 'admin' && (
           <Button 
             variant="ghost" 
             size="sm" 
@@ -77,6 +112,17 @@ export function NavBar() {
             onClick={() => navigate('/admin')}
           >
             Admin
+          </Button>
+        )}
+        {/* Reset Data button - for development testing */}
+        {user?.id && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="rounded-md text-white hover:bg-yellow-400 border border-white"
+            onClick={handleResetUserData}
+          >
+            Reset Data
           </Button>
         )}
         <Button 

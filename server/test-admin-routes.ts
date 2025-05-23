@@ -90,7 +90,7 @@ testAdminRouter.post('/reset-data/:userId', async (req: Request, res: Response) 
   }
 });
 
-// Accessible API endpoint for reset
+// Direct reset API endpoint with proper headers
 testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
@@ -101,21 +101,46 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
     
     console.log(`Resetting data for user ${userId} via GET`);
     
-    // Delete star card data
-    await db
-      .delete(schema.starCards)
+    // First check if star card exists
+    const [starCard] = await db
+      .select()
+      .from(schema.starCards)
       .where(eq(schema.starCards.userId, userId));
+      
+    if (starCard) {
+      console.log(`Found and deleting star card for user ${userId}:`, starCard);
+      // Delete star card data
+      await db
+        .delete(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+    } else {
+      console.log(`No star card found for user ${userId}`);
+    }
     
-    // Delete flow attributes data
-    await db
-      .delete(schema.flowAttributes)
+    // Check if flow attributes exist
+    const [flowAttrs] = await db
+      .select()
+      .from(schema.flowAttributes)
       .where(eq(schema.flowAttributes.userId, userId));
+      
+    if (flowAttrs) {
+      console.log(`Found and deleting flow attributes for user ${userId}:`, flowAttrs);
+      // Delete flow attributes data
+      await db
+        .delete(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+    } else {
+      console.log(`No flow attributes found for user ${userId}`);
+    }
     
     // Reset user progress
     await db
       .update(schema.users)
       .set({ progress: 0 })
       .where(eq(schema.users.id, userId));
+    
+    // Set proper content type header
+    res.setHeader('Content-Type', 'application/json');
     
     // Return JSON response
     return res.status(200).json({ 
@@ -125,6 +150,10 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
     });
   } catch (error) {
     console.error('Error resetting user data:', error);
+    
+    // Set proper content type header
+    res.setHeader('Content-Type', 'application/json');
+    
     return res.status(500).json({ 
       success: false,
       message: 'Error resetting user data',
