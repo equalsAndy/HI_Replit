@@ -301,21 +301,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Not authenticated' });
       }
       
-      // Validate request body
+      // Validate request body with number coercion
       const completeAssessmentSchema = z.object({
         quadrantData: z.object({
-          thinking: z.number().min(0),
-          acting: z.number().min(0),
-          feeling: z.number().min(0),
-          planning: z.number().min(0),
+          thinking: z.coerce.number().min(0),
+          acting: z.coerce.number().min(0),
+          feeling: z.coerce.number().min(0),
+          planning: z.coerce.number().min(0),
         }),
         answers: z.array(
           z.object({
-            questionId: z.number(),
+            questionId: z.coerce.number(),
             rankings: z.array(
               z.object({
-                optionId: z.number(),
-                rank: z.number(),
+                optionId: z.coerce.number(),
+                rank: z.coerce.number(),
               })
             ).optional(),
           })
