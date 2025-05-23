@@ -56,7 +56,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       .from(schema.userRoles)
       .where(eq(schema.userRoles.userId, user.id));
     
-    console.log(`Found roles for ${username}:`, roles);
+    console.log(`Found roles for user ID ${user.id}:`, roles);
     
     // Add role to user object
     const userWithRole = {
