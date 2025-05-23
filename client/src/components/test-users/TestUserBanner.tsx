@@ -48,15 +48,6 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
           Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
         </Button>
 
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
-          onClick={() => window.location.href = '/workshop-reset'}
-        >
-          Reset Data
-        </Button>
-
         <Badge variant="outline" className="bg-yellow-100">
           {userName || `TEST USER ${userId}`}
         </Badge>
