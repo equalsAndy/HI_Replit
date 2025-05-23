@@ -99,6 +99,8 @@ adminRouter.post('/users', async (req: Request, res: Response) => {
     const UserSchema = z.object({
       name: z.string().min(2, 'Name must be at least 2 characters'),
       username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
       email: z.string().email('Invalid email address').optional(),
       title: z.string().optional(),
       organization: z.string().optional(),
@@ -124,7 +126,9 @@ adminRouter.post('/users', async (req: Request, res: Response) => {
     const newUser = await storage.createUser({
       name: parsedData.name,
       username: parsedData.username,
-      email: parsedData.email, // Save email
+      firstName: parsedData.firstName,
+      lastName: parsedData.lastName,
+      email: parsedData.email,
       title: parsedData.title,
       organization: parsedData.organization,
       // We'll handle role/userType via frontend logic since
@@ -168,6 +172,9 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
     
     const UserUpdateSchema = z.object({
       name: z.string().min(2, 'Name must be at least 2 characters').optional(),
+      username: z.string().min(3, 'Username must be at least 3 characters').optional(),
+      firstName: z.string().optional(),
+      lastName: z.string().optional(),
       email: z.string().email('Invalid email address').optional(),
       title: z.string().optional(),
       organization: z.string().optional(),
@@ -180,7 +187,10 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
     // Build update object with only supported fields
     const updateData: any = {};
     if (parsedData.name) updateData.name = parsedData.name;
-    if (parsedData.email) updateData.email = parsedData.email; // Make sure email is included in updates
+    if (parsedData.username) updateData.username = parsedData.username;
+    if (parsedData.firstName) updateData.firstName = parsedData.firstName;
+    if (parsedData.lastName) updateData.lastName = parsedData.lastName;
+    if (parsedData.email) updateData.email = parsedData.email;
     if (parsedData.title) updateData.title = parsedData.title;
     if (parsedData.organization) updateData.organization = parsedData.organization;
     if (parsedData.password) updateData.password = parsedData.password;

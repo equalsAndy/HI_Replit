@@ -411,6 +411,8 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   const [formData, setFormData] = useState({
     name: user.name || '',
     username: user.username || '',
+    firstName: user.firstName || '',
+    lastName: user.lastName || '',
     email: user.email || '',
     organization: user.organization || '',
     title: user.title || '',
@@ -425,6 +427,8 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
     setFormData({
       name: user.name || '',
       username: user.username || '',
+      firstName: user.firstName || '',
+      lastName: user.lastName || '',
       email: user.email || '',
       organization: user.organization || '',
       title: user.title || '',
@@ -488,7 +492,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="edit-name" className="text-sm font-medium">
-                Name
+                Full Name
               </label>
               <Input
                 id="edit-name"
@@ -499,17 +503,53 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="edit-email" className="text-sm font-medium">
-                Email
+              <label htmlFor="edit-username" className="text-sm font-medium">
+                Username
               </label>
               <Input
-                id="edit-email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                id="edit-username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                 required
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-first-name" className="text-sm font-medium">
+                First Name
+              </label>
+              <Input
+                id="edit-first-name"
+                value={formData.firstName || ''}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="edit-last-name" className="text-sm font-medium">
+                Last Name
+              </label>
+              <Input
+                id="edit-last-name"
+                value={formData.lastName || ''}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label htmlFor="edit-email" className="text-sm font-medium">
+              Email
+            </label>
+            <Input
+              id="edit-email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

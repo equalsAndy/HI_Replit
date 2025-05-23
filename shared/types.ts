@@ -11,6 +11,8 @@ export interface User {
   username: string;
   password: string;
   name: string;
+  firstName?: string | null;
+  lastName?: string | null;
   email?: string | null;
   title?: string | null;
   organization?: string | null;
@@ -23,6 +25,9 @@ export interface User {
 
 export interface ProfileUpdateRequest {
   name?: string;
+  username?: string;
+  firstName?: string | null;
+  lastName?: string | null;
   title?: string | null;
   organization?: string | null;
   email?: string | null;
