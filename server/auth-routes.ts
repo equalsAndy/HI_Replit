@@ -15,31 +15,39 @@ authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     // Validate request body
     const loginSchema = z.object({
-      username: z.string().min(1, 'Username is required'),
+      identifier: z.string().min(1, 'Username or email is required'),
       password: z.string().min(1, 'Password is required'),
     });
     
-    const { username, password } = loginSchema.parse(req.body);
+    const { identifier, password } = loginSchema.parse(req.body);
     
-    console.log(`Login attempt for username: ${username}`);
+    console.log(`Login attempt for identifier: ${identifier}`);
     
-    // Get user from database
-    const [user] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.username, username));
+    // Try to find user by username or email
+    const isEmail = identifier.includes('@');
+    
+    // Get user from database based on identifier (username or email)
+    const [user] = isEmail 
+      ? await db
+          .select()
+          .from(schema.users)
+          .where(eq(schema.users.email, identifier))
+      : await db
+          .select()
+          .from(schema.users)
+          .where(eq(schema.users.username, identifier));
     
     if (!user) {
-      console.log(`User not found: ${username}`);
-      return res.status(401).json({ message: 'Invalid username or password' });
+      console.log(`User not found: ${identifier}`);
+      return res.status(401).json({ message: 'Invalid username/email or password' });
     }
     
     // Verify password
     const passwordMatch = await bcrypt.compare(password, user.password);
     
     if (!passwordMatch) {
-      console.log(`Invalid password for user: ${username}`);
-      return res.status(401).json({ message: 'Invalid username or password' });
+      console.log(`Invalid password for user: ${identifier}`);
+      return res.status(401).json({ message: 'Invalid username/email or password' });
     }
     
     // Get user roles
@@ -66,7 +74,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     // Return user data (excluding password)
     const { password: _, ...userDataWithoutPassword } = userWithRole;
     
-    console.log(`Login successful for ${username} with role: ${userDataWithoutPassword.role}`);
+    console.log(`Login successful for ${user.username} with role: ${userDataWithoutPassword.role}`);
     res.status(200).json(userDataWithoutPassword);
   } catch (error) {
     if (error instanceof z.ZodError) {

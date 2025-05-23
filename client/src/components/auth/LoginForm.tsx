@@ -17,7 +17,7 @@ import { InfoIcon } from 'lucide-react';
 
 // Login form schema
 const loginSchema = z.object({
-  username: z.string().min(1, 'Username is required'),
+  identifier: z.string().min(1, 'Username or email is required'),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -32,7 +32,7 @@ export function LoginForm() {
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
+      identifier: '',
       password: '',
     },
   });
@@ -108,6 +108,7 @@ export function LoginForm() {
             <AlertTitle className="font-medium text-blue-700">Test Environment</AlertTitle>
             <AlertDescription className="text-blue-800">
               <p className="mt-1">All test accounts use the password <strong>password</strong></p>
+              <p className="mt-1 text-sm italic">You can now log in using either username or email</p>
               <ul className="list-disc pl-5 mt-2 space-y-1">
                 <li><strong>Admin:</strong> username: admin</li>
                 <li><strong>Facilitator:</strong> username: facilitator</li>
@@ -121,12 +122,12 @@ export function LoginForm() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="username"
+              name="identifier"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username</FormLabel>
+                  <FormLabel>Username or Email</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter your username" {...field} />
+                    <Input placeholder="Enter your username or email" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
