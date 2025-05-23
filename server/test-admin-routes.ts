@@ -3,7 +3,6 @@ import { storage } from './new-storage';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 import * as schema from '../shared/schema';
-import { DirectReset } from './direct-reset';
 
 // Create a router for test admin routes
 const testAdminRouter = Router();
@@ -68,18 +67,52 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
-    // Use the DirectReset utility to ensure complete data deletion
-    console.log(`Using DirectReset for user ${userId}`);
-    const result = await DirectReset.resetUserData(userId);
+    // Execute direct SQL deletion operations
+    let starCardDeleted = false;
+    let flowAttributesDeleted = false;
+    let progressReset = false;
     
-    console.log(`Reset operation completed for user ${userId}:`, result);
+    try {
+      // 1. Delete star card with direct SQL
+      console.log(`Executing direct SQL to delete star card for user ${userId}`);
+      await db.execute(`DELETE FROM star_cards WHERE user_id = ${userId}`);
+      starCardDeleted = true;
+    } catch (err) {
+      console.error(`Error deleting star card for user ${userId}:`, err);
+    }
+    
+    try {
+      // 2. Delete flow attributes with direct SQL
+      console.log(`Executing direct SQL to delete flow attributes for user ${userId}`);
+      await db.execute(`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
+      flowAttributesDeleted = true;
+    } catch (err) {
+      console.error(`Error deleting flow attributes for user ${userId}:`, err);
+    }
+    
+    try {
+      // 3. Reset user progress with direct SQL
+      console.log(`Executing direct SQL to reset progress for user ${userId}`);
+      await db.execute(`UPDATE users SET progress = 0 WHERE id = ${userId}`);
+      progressReset = true;
+    } catch (err) {
+      console.error(`Error resetting user progress for user ${userId}:`, err);
+    }
+    
+    // Verify the deletion worked
+    const success = starCardDeleted && flowAttributesDeleted && progressReset;
+    
+    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
     
     return res.status(200).json({ 
-      success: result.success,
-      message: result.success ? 'User data reset successfully' : 'User data reset partially failed',
+      success: success,
+      message: success ? 'User data reset successfully' : 'User data reset partially failed',
       userId: userId,
-      operations: result.operations,
-      error: result.error
+      operations: {
+        starCard: starCardDeleted,
+        flowAttributes: flowAttributesDeleted,
+        userProgress: progressReset
+      }
     });
   } catch (error) {
     console.error('Error in reset endpoint:', error);
@@ -109,18 +142,52 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');
     
-    // Use the DirectReset utility to ensure complete data deletion
-    console.log(`Using DirectReset for user ${userId}`);
-    const result = await DirectReset.resetUserData(userId);
+    // Execute direct SQL deletion operations
+    let starCardDeleted = false;
+    let flowAttributesDeleted = false;
+    let progressReset = false;
     
-    console.log(`Reset operation completed for user ${userId}:`, result);
+    try {
+      // 1. Delete star card with direct SQL
+      console.log(`Executing direct SQL to delete star card for user ${userId}`);
+      await db.execute(`DELETE FROM star_cards WHERE user_id = ${userId}`);
+      starCardDeleted = true;
+    } catch (err) {
+      console.error(`Error deleting star card for user ${userId}:`, err);
+    }
+    
+    try {
+      // 2. Delete flow attributes with direct SQL
+      console.log(`Executing direct SQL to delete flow attributes for user ${userId}`);
+      await db.execute(`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
+      flowAttributesDeleted = true;
+    } catch (err) {
+      console.error(`Error deleting flow attributes for user ${userId}:`, err);
+    }
+    
+    try {
+      // 3. Reset user progress with direct SQL
+      console.log(`Executing direct SQL to reset progress for user ${userId}`);
+      await db.execute(`UPDATE users SET progress = 0 WHERE id = ${userId}`);
+      progressReset = true;
+    } catch (err) {
+      console.error(`Error resetting user progress for user ${userId}:`, err);
+    }
+    
+    // Verify the deletion worked
+    const success = starCardDeleted && flowAttributesDeleted && progressReset;
+    
+    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
     
     return res.status(200).json({ 
-      success: result.success,
-      message: result.success ? 'User data reset successfully' : 'User data reset partially failed',
+      success: success,
+      message: success ? 'User data reset successfully' : 'User data reset partially failed',
       userId: userId,
-      operations: result.operations,
-      error: result.error
+      operations: {
+        starCard: starCardDeleted,
+        flowAttributes: flowAttributesDeleted,
+        userProgress: progressReset
+      }
     });
   } catch (error) {
     console.error('Error in reset endpoint:', error);
