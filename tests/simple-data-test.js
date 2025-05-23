@@ -54,7 +54,7 @@ async function resetUserData(userId, cookies) {
   try {
     console.log(`Resetting data for user ${userId}...`);
     
-    const response = await fetch(`${BASE_URL}/api/reset`, {
+    const response = await fetch(`${BASE_URL}/api/test-users/reset/${userId}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
