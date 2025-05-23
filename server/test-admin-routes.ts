@@ -67,40 +67,57 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
+    let deletedStarCard = false;
+    let deletedFlowAttrs = false;
+    
     // Step 1: Completely delete star card data
-    const [starCard] = await db
-      .select()
-      .from(schema.starCards)
-      .where(eq(schema.starCards.userId, userId));
-      
-    if (starCard) {
-      console.log(`Found star card for user ${userId}, deleting completely`);
-      
-      await db
-        .delete(schema.starCards)
+    try {
+      const [starCard] = await db
+        .select()
+        .from(schema.starCards)
         .where(eq(schema.starCards.userId, userId));
         
-      console.log(`Deleted star card data for user ${userId}`);
-    } else {
-      console.log(`No star card found for user ${userId}`);
+      if (starCard) {
+        console.log(`Found star card for user ${userId}:`, starCard);
+        
+        const deleteResult = await db
+          .delete(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        console.log(`Delete star card result:`, deleteResult);
+        deletedStarCard = true;
+        console.log(`Successfully deleted star card data for user ${userId}`);
+      } else {
+        console.log(`No star card found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting star card for user ${userId}:`, error);
+      throw error;
     }
     
     // Step 2: Completely delete flow attributes
-    const [flowAttrs] = await db
-      .select()
-      .from(schema.flowAttributes)
-      .where(eq(schema.flowAttributes.userId, userId));
-      
-    if (flowAttrs) {
-      console.log(`Found flow attributes for user ${userId}, deleting completely`);
-      
-      await db
-        .delete(schema.flowAttributes)
+    try {
+      const [flowAttrs] = await db
+        .select()
+        .from(schema.flowAttributes)
         .where(eq(schema.flowAttributes.userId, userId));
         
-      console.log(`Deleted flow attributes data for user ${userId}`);
-    } else {
-      console.log(`No flow attributes found for user ${userId}`);
+      if (flowAttrs) {
+        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
+        
+        const deleteResult = await db
+          .delete(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        console.log(`Delete flow attributes result:`, deleteResult);
+        deletedFlowAttrs = true;
+        console.log(`Successfully deleted flow attributes data for user ${userId}`);
+      } else {
+        console.log(`No flow attributes found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting flow attributes for user ${userId}:`, error);
+      throw error;
     }
     
     // Step 3: Reset user progress
@@ -114,7 +131,12 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     return res.status(200).json({ 
       success: true,
       message: 'User data reset successfully',
-      userId: userId
+      userId: userId,
+      deletedData: {
+        starCard: deletedStarCard,
+        flowAttributes: deletedFlowAttrs,
+        userProgress: true
+      }
     });
   } catch (error) {
     console.error('Error resetting user data:', error);
