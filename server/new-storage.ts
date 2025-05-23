@@ -36,6 +36,14 @@ export interface IStorage {
   getUserRoles(userId: number): Promise<UserRole[]>;
   setUserRole(userId: number, role: UserRole): Promise<void>;
   
+  // Star Card operations
+  getStarCard(userId: number): Promise<StarCard | undefined>;
+  updateStarCard(userId: number, data: Partial<StarCard>): Promise<StarCard | undefined>;
+  
+  // Flow attributes operations
+  getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
+  updateFlowAttributes(userId: number, data: Partial<FlowAttributesRecord>): Promise<FlowAttributesRecord | undefined>;
+  
   // Cohort operations
   createCohort(cohortData: any): Promise<any>;
   getCohort(id: number): Promise<any | undefined>;
@@ -704,14 +712,55 @@ export class DatabaseStorage implements IStorage {
     return flowAttributes;
   }
   
-  async updateFlowAttributes(userId: number, attributes: any[]): Promise<FlowAttributesRecord | undefined> {
+  async updateFlowAttributes(userId: number, data: Partial<FlowAttributesRecord>): Promise<FlowAttributesRecord | undefined> {
+    // Ensure userId isn't being updated
+    const { userId: _, id: __, ...updateData } = data as any;
+    
     const [updatedFlowAttributes] = await db
       .update(schema.flowAttributes)
-      .set({ attributes, updatedAt: new Date() })
+      .set({ ...updateData, updatedAt: new Date() })
       .where(eq(schema.flowAttributes.userId, userId))
       .returning();
     
     return updatedFlowAttributes;
+  }
+  
+  // Star Card operations
+  async getStarCard(userId: number): Promise<StarCard | undefined> {
+    const [starCard] = await db
+      .select()
+      .from(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+    
+    return starCard;
+  }
+  
+  async updateStarCard(userId: number, data: Partial<StarCard>): Promise<StarCard | undefined> {
+    // Ensure userId isn't being updated
+    const { userId: _, id: __, ...updateData } = data as any;
+    
+    const [updatedStarCard] = await db
+      .update(schema.starCards)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(schema.starCards.userId, userId))
+      .returning();
+    
+    if (!updatedStarCard) {
+      // If there's no existing star card, create a new one
+      const [newStarCard] = await db
+        .insert(schema.starCards)
+        .values({
+          userId,
+          ...updateData,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .returning();
+      
+      return newStarCard;
+    }
+    
+    return updatedStarCard;
   }
 }
 

@@ -14,6 +14,9 @@ import { adminRouter } from "./admin-routes";
 import { testAdminRouter } from "./test-admin-routes";
 import { authRouter } from "./auth-routes";
 import { participantRouter } from "./participant-routes";
+import { db } from "./db";
+import * as schema from "../shared/schema";
+import { eq } from "drizzle-orm";
 
 // Set up uploads directory
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -184,6 +187,304 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid input', errors: error.errors });
       }
       console.error('Error updating user profile:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  // StarCard API endpoints
+  app.get('/api/starcard', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Get user's star card
+      const starCard = await storage.getStarCard(userId);
+      
+      // If star card doesn't exist, create an empty one
+      if (!starCard) {
+        const newStarCard = await db
+          .insert(schema.starCards)
+          .values({
+            userId,
+            thinking: 0,
+            acting: 0,
+            feeling: 0,
+            planning: 0,
+            state: 'incomplete',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        
+        return res.status(200).json(newStarCard[0]);
+      }
+      
+      // Return star card
+      res.status(200).json(starCard);
+    } catch (error) {
+      console.error('Error getting star card:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  // Assessment endpoints
+  app.post('/api/assessment/start', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Get existing star card
+      const starCard = await storage.getStarCard(userId);
+      
+      // If star card exists with scores, return 409
+      if (starCard && 
+          (starCard.thinking !== null && starCard.thinking > 0 || 
+           starCard.acting !== null && starCard.acting > 0 || 
+           starCard.feeling !== null && starCard.feeling > 0 || 
+           starCard.planning !== null && starCard.planning > 0)) {
+        return res.status(409).json({ message: 'Assessment already completed' });
+      }
+      
+      // Initialize or reset the star card
+      if (starCard) {
+        // Reset the star card
+        await db
+          .update(schema.starCards)
+          .set({
+            thinking: 0,
+            acting: 0,
+            feeling: 0,
+            planning: 0,
+            state: 'in-progress',
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.starCards.userId, userId));
+      } else {
+        // Create a new star card
+        await db
+          .insert(schema.starCards)
+          .values({
+            userId,
+            thinking: 0,
+            acting: 0,
+            feeling: 0,
+            planning: 0,
+            state: 'in-progress',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          });
+      }
+      
+      // Return success
+      res.status(200).json({ message: 'Assessment started' });
+    } catch (error) {
+      console.error('Error starting assessment:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  // Complete assessment
+  app.post('/api/assessment/complete', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Validate request body
+      const completeAssessmentSchema = z.object({
+        quadrantData: z.object({
+          thinking: z.number().min(0),
+          acting: z.number().min(0),
+          feeling: z.number().min(0),
+          planning: z.number().min(0),
+        }),
+        answers: z.array(
+          z.object({
+            questionId: z.number(),
+            rankings: z.array(
+              z.object({
+                optionId: z.number(),
+                rank: z.number(),
+              })
+            ).optional(),
+          })
+        ).optional(),
+      });
+      
+      const { quadrantData, answers } = completeAssessmentSchema.parse(req.body);
+      
+      // Update star card with assessment results
+      const updatedStarCard = await storage.updateStarCard(userId, {
+        ...quadrantData,
+        state: 'complete',
+      });
+      
+      if (!updatedStarCard) {
+        // If update failed, create a new star card
+        const [newStarCard] = await db
+          .insert(schema.starCards)
+          .values({
+            userId,
+            thinking: quadrantData.thinking,
+            acting: quadrantData.acting,
+            feeling: quadrantData.feeling,
+            planning: quadrantData.planning,
+            state: 'complete',
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        
+        return res.status(200).json(newStarCard);
+      }
+      
+      // Return updated star card
+      res.status(200).json(updatedStarCard);
+    } catch (error) {
+      console.error('Error completing assessment:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Flow attributes endpoints
+  app.get('/api/flow-attributes', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Get user's flow attributes
+      const flowAttributes = await storage.getFlowAttributes(userId);
+      
+      // If flow attributes don't exist, create empty ones
+      if (!flowAttributes) {
+        const [newFlowAttributes] = await db
+          .insert(schema.flowAttributes)
+          .values({
+            userId,
+            attributes: [],
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        
+        return res.status(200).json(newFlowAttributes);
+      }
+      
+      // Return flow attributes
+      res.status(200).json(flowAttributes);
+    } catch (error) {
+      console.error('Error getting flow attributes:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+  
+  // Update flow attributes
+  app.post('/api/flow-attributes', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Validate request body
+      const updateFlowAttributesSchema = z.object({
+        attributes: z.array(z.any()),
+      });
+      
+      const { attributes } = updateFlowAttributesSchema.parse(req.body);
+      
+      // Update flow attributes
+      const updatedFlowAttributes = await storage.updateFlowAttributes(userId, {
+        attributes,
+      });
+      
+      if (!updatedFlowAttributes) {
+        // If update failed, create new flow attributes
+        const [newFlowAttributes] = await db
+          .insert(schema.flowAttributes)
+          .values({
+            userId,
+            attributes,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          })
+          .returning();
+        
+        return res.status(200).json(newFlowAttributes);
+      }
+      
+      // Return updated flow attributes
+      res.status(200).json(updatedFlowAttributes);
+    } catch (error) {
+      console.error('Error updating flow attributes:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+  // Update user progress
+  app.put('/api/user/progress', async (req: Request, res: Response) => {
+    try {
+      // Get user ID from cookie
+      const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+      
+      if (!userId) {
+        return res.status(401).json({ message: 'Not authenticated' });
+      }
+      
+      // Validate request body
+      const updateProgressSchema = z.object({
+        progress: z.number().min(0).max(100),
+      });
+      
+      const { progress } = updateProgressSchema.parse(req.body);
+      
+      // Update user's progress
+      const [updatedUser] = await db
+        .update(schema.users)
+        .set({ progress, updatedAt: new Date() })
+        .where(eq(schema.users.id, userId))
+        .returning();
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Return success
+      res.status(200).json({ message: 'Progress updated successfully' });
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+      }
+      
       res.status(500).json({ message: 'Server error' });
     }
   });
