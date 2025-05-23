@@ -178,6 +178,7 @@ function Router() {
           <Route path="/5cs-assessment" component={FiveCsAssessment} />
           <Route path="/insights-dashboard" component={InsightsDashboard} />
           <Route path="/team-workshop" component={TeamWorkshop} />
+          <Route path="/reset-test" component={lazy(() => import("./pages/reset-test"))} />
           <Route component={NotFound} />
         </Switch>
       </div>
