@@ -37,15 +37,25 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
       </div>
 
       <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
-          onClick={toggleApplication}
-        >
-          <Repeat className="h-4 w-4 mr-1" />
-          Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
-        </Button>
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
+      onClick={toggleApplication}
+    >
+      <Repeat className="h-4 w-4 mr-1" />
+      Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
+      onClick={() => window.location.href = '/workshop-reset'}
+    >
+      Reset Data
+    </Button>
+  </div>
 
         <Badge variant="outline" className="bg-yellow-100">
             {userName || `TEST USER ${userId}`}
