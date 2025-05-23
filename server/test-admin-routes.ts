@@ -62,60 +62,108 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`=== RESET ENDPOINT: Starting data reset for user ${userId} ===`);
+    console.log(`=== RESET START: Resetting data for user ${userId} ===`);
     
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
-    // Execute direct SQL deletion operations
-    let starCardDeleted = false;
-    let flowAttributesDeleted = false;
-    let progressReset = false;
+    let deletedStarCard = false;
+    let deletedFlowAttrs = false;
     
+    // Step 1: Completely delete star card data
     try {
-      // 1. Delete star card with direct SQL
-      console.log(`Executing direct SQL to delete star card for user ${userId}`);
-      await db.execute(`DELETE FROM star_cards WHERE user_id = ${userId}`);
-      starCardDeleted = true;
-    } catch (err) {
-      console.error(`Error deleting star card for user ${userId}:`, err);
+      const [starCard] = await db
+        .select()
+        .from(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+        
+      if (starCard) {
+        console.log(`Found star card for user ${userId}:`, starCard);
+        
+        const deleteResult = await db
+          .delete(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        console.log(`Delete star card result:`, deleteResult);
+        
+        // Verify deletion by checking if record still exists
+        const [verifyStarCard] = await db
+          .select()
+          .from(schema.starCards)
+          .where(eq(schema.starCards.userId, userId));
+          
+        if (verifyStarCard) {
+          console.error(`ERROR: Star card still exists after delete for user ${userId}:`, verifyStarCard);
+          throw new Error('Star card deletion failed - record still exists');
+        } else {
+          deletedStarCard = true;
+          console.log(`Successfully verified star card deletion for user ${userId}`);
+        }
+      } else {
+        console.log(`No star card found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting star card for user ${userId}:`, error);
+      throw error;
     }
     
+    // Step 2: Completely delete flow attributes
     try {
-      // 2. Delete flow attributes with direct SQL
-      console.log(`Executing direct SQL to delete flow attributes for user ${userId}`);
-      await db.execute(`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
-      flowAttributesDeleted = true;
-    } catch (err) {
-      console.error(`Error deleting flow attributes for user ${userId}:`, err);
+      const [flowAttrs] = await db
+        .select()
+        .from(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+        
+      if (flowAttrs) {
+        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
+        
+        const deleteResult = await db
+          .delete(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        console.log(`Delete flow attributes result:`, deleteResult);
+        
+        // Verify deletion by checking if record still exists
+        const [verifyFlowAttrs] = await db
+          .select()
+          .from(schema.flowAttributes)
+          .where(eq(schema.flowAttributes.userId, userId));
+          
+        if (verifyFlowAttrs) {
+          console.error(`ERROR: Flow attributes still exist after delete for user ${userId}:`, verifyFlowAttrs);
+          throw new Error('Flow attributes deletion failed - record still exists');
+        } else {
+          deletedFlowAttrs = true;
+          console.log(`Successfully verified flow attributes deletion for user ${userId}`);
+        }
+      } else {
+        console.log(`No flow attributes found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting flow attributes for user ${userId}:`, error);
+      throw error;
     }
     
-    try {
-      // 3. Reset user progress with direct SQL
-      console.log(`Executing direct SQL to reset progress for user ${userId}`);
-      await db.execute(`UPDATE users SET progress = 0 WHERE id = ${userId}`);
-      progressReset = true;
-    } catch (err) {
-      console.error(`Error resetting user progress for user ${userId}:`, err);
-    }
+    // Step 3: Reset user progress
+    await db
+      .update(schema.users)
+      .set({ progress: 0 })
+      .where(eq(schema.users.id, userId));
     
-    // Verify the deletion worked
-    const success = starCardDeleted && flowAttributesDeleted && progressReset;
-    
-    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
+    console.log(`Reset complete for user ${userId}`);
     
     return res.status(200).json({ 
-      success: success,
-      message: success ? 'User data reset successfully' : 'User data reset partially failed',
+      success: true,
+      message: 'User data reset successfully',
       userId: userId,
-      operations: {
-        starCard: starCardDeleted,
-        flowAttributes: flowAttributesDeleted,
-        userProgress: progressReset
+      deletedData: {
+        starCard: deletedStarCard,
+        flowAttributes: deletedFlowAttrs,
+        userProgress: true
       }
     });
   } catch (error) {
-    console.error('Error in reset endpoint:', error);
+    console.error('Error resetting user data:', error);
     
     // Set content type to ensure JSON response
     res.setHeader('Content-Type', 'application/json');
@@ -137,60 +185,57 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`=== RESET ENDPOINT: Starting data reset for user ${userId} via GET ===`);
+    console.log(`Resetting data for user ${userId} via GET`);
+    
+    // First check if star card exists
+    const [starCard] = await db
+      .select()
+      .from(schema.starCards)
+      .where(eq(schema.starCards.userId, userId));
+      
+    if (starCard) {
+      console.log(`Found and deleting star card for user ${userId}:`, starCard);
+      // Delete star card data
+      await db
+        .delete(schema.starCards)
+        .where(eq(schema.starCards.userId, userId));
+    } else {
+      console.log(`No star card found for user ${userId}`);
+    }
+    
+    // Check if flow attributes exist
+    const [flowAttrs] = await db
+      .select()
+      .from(schema.flowAttributes)
+      .where(eq(schema.flowAttributes.userId, userId));
+      
+    if (flowAttrs) {
+      console.log(`Found and deleting flow attributes for user ${userId}:`, flowAttrs);
+      // Delete flow attributes data
+      await db
+        .delete(schema.flowAttributes)
+        .where(eq(schema.flowAttributes.userId, userId));
+    } else {
+      console.log(`No flow attributes found for user ${userId}`);
+    }
+    
+    // Reset user progress
+    await db
+      .update(schema.users)
+      .set({ progress: 0 })
+      .where(eq(schema.users.id, userId));
     
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');
     
-    // Execute direct SQL deletion operations
-    let starCardDeleted = false;
-    let flowAttributesDeleted = false;
-    let progressReset = false;
-    
-    try {
-      // 1. Delete star card with direct SQL
-      console.log(`Executing direct SQL to delete star card for user ${userId}`);
-      await db.execute(`DELETE FROM star_cards WHERE user_id = ${userId}`);
-      starCardDeleted = true;
-    } catch (err) {
-      console.error(`Error deleting star card for user ${userId}:`, err);
-    }
-    
-    try {
-      // 2. Delete flow attributes with direct SQL
-      console.log(`Executing direct SQL to delete flow attributes for user ${userId}`);
-      await db.execute(`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
-      flowAttributesDeleted = true;
-    } catch (err) {
-      console.error(`Error deleting flow attributes for user ${userId}:`, err);
-    }
-    
-    try {
-      // 3. Reset user progress with direct SQL
-      console.log(`Executing direct SQL to reset progress for user ${userId}`);
-      await db.execute(`UPDATE users SET progress = 0 WHERE id = ${userId}`);
-      progressReset = true;
-    } catch (err) {
-      console.error(`Error resetting user progress for user ${userId}:`, err);
-    }
-    
-    // Verify the deletion worked
-    const success = starCardDeleted && flowAttributesDeleted && progressReset;
-    
-    console.log(`Reset operation completed for user ${userId}. Success: ${success}`);
-    
+    // Return JSON response
     return res.status(200).json({ 
-      success: success,
-      message: success ? 'User data reset successfully' : 'User data reset partially failed',
-      userId: userId,
-      operations: {
-        starCard: starCardDeleted,
-        flowAttributes: flowAttributesDeleted,
-        userProgress: progressReset
-      }
+      success: true,
+      message: 'User data reset successfully',
+      userId: userId
     });
   } catch (error) {
-    console.error('Error in reset endpoint:', error);
+    console.error('Error resetting user data:', error);
     
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');

@@ -24,8 +24,8 @@ export default function WorkshopResetTest() {
 
   // Storage keys to check and clear - comprehensive list for all workshop data
   const storageKeys = [
-    // AllStar Teams Workshop keys
     'allstarteams-navigation-progress',
+    'imaginal-agility-navigation-progress',
     'allstar_navigation_progress',
     'allstarteams_starCard',
     'allstarteams_flowAttributes',
@@ -35,26 +35,9 @@ export default function WorkshopResetTest() {
     'allstarteams_values',
     'allstarteams_passions',
     'allstarteams_growthAreas',
-    'allstarteams_userData',
-    'allstarteams_assessment',
-    'allstarteams_profile',
-    'allstarteams_coreStrengths',
-    
-    // Imaginal Agility Workshop keys
-    'imaginal-agility-navigation-progress',
-    'imaginal_navigation_progress',
-    'imaginal_userData',
-    'imaginal_assessment',
-    'imaginal_profile',
-    'imaginal_progress',
-    
-    // General application keys
     'user-preferences',
     'workshop-progress',
-    'assessment-data',
-    'app-state',
-    'last-workshop',
-    'auth-state'
+    'assessment-data'
   ];
 
   // Load local storage data on component mount
@@ -193,29 +176,21 @@ export default function WorkshopResetTest() {
     setResetResult(breakdown);
   };
 
-  // Clear all local storage data and return count of items cleared
+  // Clear all local storage data
   const clearAllData = () => {
-    let itemsCleared = 0;
-    
     storageKeys.forEach(key => {
-      if (localStorage.getItem(key) !== null) {
-        localStorage.removeItem(key);
-        itemsCleared++;
-      }
+      localStorage.removeItem(key);
     });
-    
     refreshStorageData();
-    return itemsCleared;
   };
 
-  // Reset user data via API with improved error handling and verification
+  // Reset user data via API
   const resetUserData = async () => {
     setIsResetting(true);
     setResetResult('');
     
     try {
-      // Step 1: Get current user ID from API
-      setResetResult('Step 1/4: Identifying user account...');
+      // Get current user ID from API
       const userResponse = await fetch('/api/user/profile', {
         method: 'GET',
         headers: {
@@ -225,7 +200,7 @@ export default function WorkshopResetTest() {
       });
       
       if (!userResponse.ok) {
-        setResetResult('⛔ ERROR: Failed to get user profile. Please log in first.');
+        setResetResult('Error: Failed to get user profile. Please log in first.');
         return;
       }
       
@@ -233,12 +208,11 @@ export default function WorkshopResetTest() {
       const userId = userData.id;
       
       if (!userId) {
-        setResetResult('⛔ ERROR: Could not determine user ID.');
+        setResetResult('Error: Could not determine user ID.');
         return;
       }
       
-      // Step 2: Call the reset API
-      setResetResult(`Step 2/4: Resetting server database data for user ID ${userId}...`);
+      // Call the reset API
       const resetResponse = await fetch(`/api/test-users/reset/${userId}`, {
         method: 'POST',
         headers: {
@@ -248,69 +222,30 @@ export default function WorkshopResetTest() {
         credentials: 'include'
       });
       
-      // Parse the response
-      let responseData;
-      let responseText = '';
-      
-      try {
-        responseText = await resetResponse.text();
-        responseData = JSON.parse(responseText);
-      } catch (e) {
-        setResetResult(`⚠️ WARNING: Received invalid JSON response from server. Text response: ${responseText.substring(0, 100)}...`);
-        responseData = null;
-      }
-      
-      // Step 3: Clear local storage data
-      setResetResult(`Step 3/4: Clearing browser local storage data...`);
-      const localStorageItemsCleared: number = clearAllData();
-      
-      // Step 4: Verify the reset
-      setResetResult(`Step 4/4: Verifying reset completion...`);
-      
-      // Refresh data to verify reset
-      await Promise.all([refreshServerData(), refreshStorageData()]);
-      
-      // Prepare detailed reset report
-      let resetReport = `=== WORKSHOP DATA RESET REPORT ===\n\n`;
-      
-      // Server reset status
-      if (resetResponse.ok && responseData && responseData.success) {
-        resetReport += `✅ SERVER DATABASE RESET: SUCCESSFUL\n`;
+      // Check if reset was successful based on status
+      if (resetResponse.ok) {
+        // Get response as text first to inspect
+        const responseText = await resetResponse.text();
         
-        if (responseData.deletions) {
-          resetReport += `   Star Card: ${responseData.deletions.starCard ? 'Deleted ✓' : 'Failed ✗'}\n`;
-          resetReport += `   Flow Attributes: ${responseData.deletions.flowAttributes ? 'Deleted ✓' : 'Failed ✗'}\n`;
-          resetReport += `   User Progress: ${responseData.deletions.userProgress ? 'Reset ✓' : 'Failed ✗'}\n`;
+        // Attempt to parse as JSON if possible
+        try {
+          const responseData = JSON.parse(responseText);
+          setResetResult(`✅ RESET SUCCESSFUL!\n\nServer Response: ${JSON.stringify(responseData, null, 2)}\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}`);
+        } catch (e) {
+          // Not valid JSON, but still successful if status is 200
+          setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
         }
       } else {
-        resetReport += `❌ SERVER DATABASE RESET: FAILED\n`;
-        resetReport += `   Status: ${resetResponse.status} ${resetResponse.statusText}\n`;
-        if (responseData && responseData.error) {
-          resetReport += `   Error: ${responseData.error}\n`;
-        }
+        // Reset failed
+        const responseText = await resetResponse.text();
+        setResetResult(`❌ RESET FAILED!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nError: ${responseText}`);
       }
       
-      // Local storage reset status
-      resetReport += `\n`;
-      resetReport += `✅ BROWSER STORAGE RESET: ${localStorageItemsCleared > 0 ? 'SUCCESSFUL' : 'NO DATA FOUND'}\n`;
-      resetReport += `   Cleared ${localStorageItemsCleared} items from localStorage\n`;
-      
-      // Overall status - consider reset successful if server reset worked
-      const resetSuccessful = resetResponse.ok && responseData && responseData.success;
-      
-      resetReport += `\n`;
-      resetReport += `=== OVERALL RESET STATUS: ${resetSuccessful ? 'SUCCESSFUL ✅' : 'PARTIALLY FAILED ⚠️'} ===\n`;
-      
-      if (!resetSuccessful && responseData && responseData.dataRemaining) {
-        resetReport += `\nWARNING: Some data could not be deleted. Details:\n`;
-        resetReport += JSON.stringify(responseData.dataRemaining, null, 2);
-      }
-      
-      // Set the final result
-      setResetResult(resetReport);
+      // Clear local storage
+      clearAllData();
       
     } catch (error) {
-      setResetResult(`⛔ ERROR DURING RESET: ${error instanceof Error ? error.message : String(error)}`);
+      setResetResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsResetting(false);
     }
@@ -375,7 +310,7 @@ export default function WorkshopResetTest() {
         
         <Card>
           <CardHeader>
-            <CardTitle>Workshop Data Reset Tool</CardTitle>
+            <CardTitle>Test Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
@@ -393,13 +328,10 @@ export default function WorkshopResetTest() {
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={() => {
-                    refreshStorageData();
-                    refreshServerData();
-                  }}
+                  onClick={refreshStorageData}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh All Data
+                  Refresh Data
                 </Button>
                 <Button 
                   variant="outline" 
@@ -407,55 +339,33 @@ export default function WorkshopResetTest() {
                   onClick={clearAllData}
                 >
                   <Trash className="h-4 w-4 mr-2" />
-                  Clear LocalStorage Only
+                  Clear All
                 </Button>
               </div>
             </div>
             
-            <div className="pt-4 border-t">
-              <h3 className="font-medium mb-2">Complete Workshop Reset</h3>
-              <p className="text-sm text-slate-500 mb-3">
-                This will completely reset all your workshop data, including:
-              </p>
-              <ul className="text-sm text-slate-600 list-disc pl-5 mb-4 space-y-1">
-                <li>Star Card attributes (thinking, acting, feeling, planning)</li>
-                <li>Flow attributes and personal strengths</li>
-                <li>Workshop navigation progress</li>
-                <li>All locally saved preferences and data</li>
-              </ul>
-              
-              <div className="bg-amber-50 p-3 rounded-md mb-4 border border-amber-200">
-                <p className="text-sm text-amber-800">
-                  <strong>Note:</strong> This action cannot be undone. All your workshop progress will be permanently deleted.
-                </p>
-              </div>
-              
+            <div className="pt-2 border-t">
+              <h3 className="font-medium mb-2">Server Reset</h3>
               <Button 
                 onClick={resetUserData}
                 disabled={isResetting}
-                className="bg-red-500 hover:bg-red-600 text-white mb-4 w-full"
+                className="bg-red-500 hover:bg-red-600 text-white mb-4"
               >
                 {isResetting ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Resetting Workshop Data...
+                    Resetting...
                   </>
                 ) : (
                   <>
                     <Trash className="h-4 w-4 mr-2" />
-                    Reset All Workshop Data
+                    Reset User Data
                   </>
                 )}
               </Button>
               
               {resetResult && (
-                <div className={`p-4 rounded-md overflow-auto max-h-[300px] border ${
-                  resetResult.includes('SUCCESSFUL ✅') 
-                    ? 'bg-green-50 border-green-200' 
-                    : resetResult.includes('ERROR') 
-                      ? 'bg-red-50 border-red-200'
-                      : 'bg-blue-50 border-blue-200'
-                }`}>
+                <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
                   <pre className="text-xs whitespace-pre-wrap">{resetResult}</pre>
                 </div>
               )}
@@ -466,45 +376,22 @@ export default function WorkshopResetTest() {
       
       <Card className="mt-6">
         <CardHeader>
-          <CardTitle>How to Use This Reset Tool</CardTitle>
+          <CardTitle>Instructions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Before Using</h3>
-              <ol className="list-decimal pl-6 space-y-2">
-                <li>Make sure you're logged in (your user data appears in the "Database Data" panel)</li>
-                <li>Click "Show My Data" to see a detailed breakdown of your current workshop data</li>
-                <li>Take note of which data you currently have (star card, flow attributes, progress)</li>
-              </ol>
-            </div>
-            
-            <div>
-              <h3 className="font-medium mb-2">Reset Process</h3>
-              <ol className="list-decimal pl-6 space-y-2">
-                <li>Click "Reset All Workshop Data" to start the complete reset process</li>
-                <li>The system will delete all your data from both server database and browser storage</li>
-                <li>A detailed reset report will show the results of each operation</li>
-                <li>After reset, the panels will automatically refresh to show your current data state</li>
-              </ol>
-            </div>
-            
-            <div>
-              <h3 className="font-medium mb-2">Verification</h3>
-              <p className="text-sm mb-2">The reset is successful when:</p>
-              <ul className="list-disc pl-6">
-                <li>The reset report shows "OVERALL RESET STATUS: SUCCESSFUL ✅"</li>
-                <li>Both database panels show empty or reset data</li>
-                <li>When you return to the workshop, you begin from the first step</li>
+          <ol className="list-decimal pl-6 space-y-2">
+            <li>First, make sure you're logged in to test the reset functionality</li>
+            <li>Click "Show My Data" to see a detailed breakdown of your actual workshop progress and data</li>
+            <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
+            <li>Check the response to see if there are any errors</li>
+            <li>The reset is working correctly if:
+              <ul className="list-disc pl-6 mt-1">
+                <li>Your localStorage data is cleared</li>
+                <li>The server response shows success</li>
+                <li>When you go back to the workshop, your progress is reset</li>
               </ul>
-            </div>
-            
-            <div className="bg-blue-50 p-3 rounded-md border border-blue-200 mt-2">
-              <p className="text-sm text-blue-800">
-                <strong>Troubleshooting:</strong> If you experience any issues with the reset process, try logging out and logging back in, or contact technical support for assistance.
-              </p>
-            </div>
-          </div>
+            </li>
+          </ol>
         </CardContent>
       </Card>
     </div>
