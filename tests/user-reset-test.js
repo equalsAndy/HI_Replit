@@ -77,17 +77,27 @@ async function resetUserData(userId, cookies) {
     const response = await fetch(`${BASE_URL}/api/test-users/reset/${userId}`, {
       method: 'POST',
       headers: {
+        'Content-Type': 'application/json',
         'Cookie': cookies
       }
     });
 
+    // Check response
     if (!response.ok) {
       console.error(`Reset API returned status: ${response.status}`);
       return false;
     }
     
-    // Force reload of data with a delay, similar to what the UI does
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    try {
+      const resetResult = await response.json();
+      console.log('Reset result:', resetResult);
+    } catch (e) {
+      console.log('Note: Could not parse reset response as JSON');
+    }
+    
+    // Give the server time to process the reset
+    console.log('Waiting for reset to complete...');
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     return true;
   } catch (error) {
