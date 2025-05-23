@@ -204,6 +204,9 @@ function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogProps) {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: '',
+    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     organization: '',
     title: '',
@@ -243,6 +246,9 @@ function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogProps) {
   const resetForm = () => {
     setFormData({
       name: '',
+      username: '',
+      firstName: '',
+      lastName: '',
       email: '',
       organization: '',
       title: '',
@@ -277,7 +283,7 @@ function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="name" className="text-sm font-medium">
-                Name
+                Full Name
               </label>
               <Input
                 id="name"
@@ -288,17 +294,52 @@ function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogProps) {
             </div>
             
             <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
+              <label htmlFor="username" className="text-sm font-medium">
+                Username
               </label>
               <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
+                id="username"
+                value={formData.username}
+                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
               />
             </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <label htmlFor="firstName" className="text-sm font-medium">
+                First Name
+              </label>
+              <Input
+                id="firstName"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label htmlFor="lastName" className="text-sm font-medium">
+                Last Name
+              </label>
+              <Input
+                id="lastName"
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <label htmlFor="email" className="text-sm font-medium">
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
