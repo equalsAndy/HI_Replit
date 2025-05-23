@@ -14,6 +14,7 @@ import { adminRouter } from "./admin-routes";
 import { testAdminRouter } from "./test-admin-routes";
 import { authRouter } from "./auth-routes";
 import { participantRouter } from "./participant-routes";
+import { resetRouter } from "./routes/reset-routes";
 import { db } from "./db";
 import * as schema from "../shared/schema";
 import { eq } from "drizzle-orm";
