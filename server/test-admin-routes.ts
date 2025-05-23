@@ -64,7 +64,10 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     
     console.log(`Resetting data for user ${userId}`);
     
-    // Step 1: Delete or reset star card
+    // Set response content type to JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Step 1: Update star card to reset values (instead of delete/insert)
     // First check if star card exists
     const [starCard] = await db
       .select()
@@ -72,25 +75,22 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       .where(eq(schema.starCards.userId, userId));
       
     if (starCard) {
-      console.log(`Found star card for user ${userId}, deleting it`);
-      await db
-        .delete(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
+      console.log(`Found star card for user ${userId}, resetting values`);
       
-      // Create a new empty star card for the user
+      // Update the existing star card with reset values
       await db
-        .insert(schema.starCards)
-        .values({
-          userId: userId,
+        .update(schema.starCards)
+        .set({
           thinking: 0,
           feeling: 0,
           acting: 0,
           planning: 0,
           state: 'pending',
-          createdAt: new Date(),
           updatedAt: new Date()
-        });
-      console.log(`Created new empty star card for user ${userId}`);
+        })
+        .where(eq(schema.starCards.userId, userId));
+        
+      console.log(`Reset star card values for user ${userId}`);
     } else {
       // Create a new empty star card for the user
       await db
@@ -117,19 +117,17 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       
     if (flowAttrs) {
       console.log(`Found flow attributes for user ${userId}, resetting them`);
-      await db
-        .delete(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
       
-      // Create new empty flow attributes
+      // Update existing flow attributes instead of delete/insert
       await db
-        .insert(schema.flowAttributes)
-        .values({
-          userId: userId,
+        .update(schema.flowAttributes)
+        .set({
           attributes: [],
-          createdAt: new Date(),
           updatedAt: new Date()
-        });
+        })
+        .where(eq(schema.flowAttributes.userId, userId));
+        
+      console.log(`Reset flow attributes for user ${userId}`);
     } else {
       // Create new empty flow attributes
       await db
@@ -140,6 +138,7 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
           createdAt: new Date(),
           updatedAt: new Date()
         });
+      console.log(`Created new flow attributes for user ${userId}`);
     }
     
     // Step 3: Reset user progress
@@ -148,14 +147,20 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       .set({ progress: 0 })
       .where(eq(schema.users.id, userId));
     
-    res.status(200).json({ 
+    console.log(`Reset complete for user ${userId}`);
+    
+    return res.status(200).json({ 
       success: true,
       message: 'User data reset successfully',
       userId: userId
     });
   } catch (error) {
     console.error('Error resetting user data:', error);
-    res.status(500).json({ 
+    
+    // Set content type to ensure JSON response
+    res.setHeader('Content-Type', 'application/json');
+    
+    return res.status(500).json({ 
       success: false,
       message: 'Error resetting user data',
       error: error instanceof Error ? error.message : 'Unknown error'
