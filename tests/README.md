@@ -4,6 +4,43 @@ This directory contains testing utilities to help verify the functionality of th
 
 ## Available Test Scripts
 
+### Quick Reset Test (`reset-test.js`)
+
+This simple script provides a quick way to test the reset functionality:
+- Logs in as a test user
+- Resets the user's assessment data
+- Verifies the reset was successful
+
+**To run:**
+```
+node tests/reset-test.js
+```
+
+### Simple Admin Reset Test (`simple-admin-reset.js`)
+
+This script tests the admin reset functionality:
+- Shows star card data before and after reset
+- Uses admin credentials to perform the reset
+- Provides detailed verification of reset success
+
+**To run:**
+```
+node tests/simple-admin-reset.js
+```
+
+### Login Testing (`login-test.js`)
+
+This script verifies that users can log in with different credentials:
+- Tests login with username
+- Tests login with email
+- Verifies login failures with invalid credentials
+- Checks that correct user roles are returned
+
+**To run:**
+```
+node tests/login-test.js
+```
+
 ### Data Management Tests (`test-data-utils.js`)
 
 This script helps test data-related features:
@@ -59,3 +96,14 @@ The system has several preconfigured test users:
 - **Participants**: Usernames: `user1`, `user2`, etc., Password: `password`
 
 These test users can be quickly set up using the "Setup Test Users" option in the user management test script.
+
+## Reset Functionality
+
+The system includes a "Reset Data" button in the navigation bar that allows users to clear their assessment data for testing purposes. This functionality:
+
+1. Resets the star card values (thinking, acting, feeling, planning) to zero
+2. Sets the star card state back to "pending"
+3. Clears any flow attributes
+4. Resets user progress tracking
+
+The test scripts in this directory can help verify that this functionality is working correctly.
