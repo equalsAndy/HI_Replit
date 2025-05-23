@@ -37,7 +37,20 @@ export function ResetDataButton({
   // Define the reset mutation
   const resetMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/reset/user/${userId}`, 'POST');
+      const response = await fetch(`/api/reset/user/${userId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Reset failed');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
       toast({

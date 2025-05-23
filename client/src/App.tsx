@@ -27,6 +27,7 @@ import FiveCsAssessment from "./pages/5cs-assessment";
 import InsightsDashboard from "./pages/insights-dashboard";
 import TeamWorkshop from "./pages/team-workshop";
 import WorkshopResetTest from "./pages/workshop-reset-test";
+import WorkshopReset from "./pages/workshop-reset";
 
 // Lazy-loaded components
 const ImaginalAgilityPage = lazy(() => import("./pages/imaginal-agility"));
@@ -185,6 +186,7 @@ function Router() {
             </Suspense>
           </Route>
           <Route path="/workshop-reset-test" component={WorkshopResetTest} />
+          <Route path="/workshop-reset" component={WorkshopReset} />
           <Route component={NotFound} />
         </Switch>
       </div>
