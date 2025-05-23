@@ -8,8 +8,8 @@
  * - Test progress tracking
  */
 
-const fetch = require('node-fetch');
-const readline = require('readline');
+import fetch from 'node-fetch';
+import readline from 'readline';
 
 const BASE_URL = 'http://localhost:5000';
 
