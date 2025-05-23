@@ -11,14 +11,14 @@ interface TestUserBannerProps {
 
 export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
   const { currentApp, setCurrentApp } = useApplication();
-  
+
   // Function to toggle between applications
   const toggleApplication = () => {
     // Toggle to the other application
     const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
     setCurrentApp(newApp);
     localStorage.setItem('selectedApp', newApp);
-    
+
     // Navigate to the appropriate page
     if (newApp === 'allstarteams') {
       window.location.href = '/user-home2-refactored';
@@ -35,7 +35,7 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
           You are using a test account. Any data entered will be temporary.
         </span>
       </div>
-      
+
       <div className="flex items-center space-x-2">
         <Button
           variant="outline"
@@ -46,10 +46,10 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
           <Repeat className="h-4 w-4 mr-1" />
           Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
         </Button>
-        
+
         <Badge variant="outline" className="bg-yellow-100">
-          TEST USER {userId}
-        </Badge>
+            {userName || `TEST USER ${userId}`}
+          </Badge>
       </div>
     </div>
   );
