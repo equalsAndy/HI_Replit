@@ -178,11 +178,11 @@ export default function WorkshopResetTest() {
       <div className="flex items-center mb-8">
         <Button 
           variant="ghost" 
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/allstarteams')}
           className="mr-4"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
+          Back to Workshop
         </Button>
         <h1 className="text-3xl font-bold">Workshop Reset Test Tool</h1>
       </div>
