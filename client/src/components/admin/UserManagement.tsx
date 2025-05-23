@@ -410,6 +410,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     name: user.name || '',
+    username: user.username || '',
     email: user.email || '',
     organization: user.organization || '',
     title: user.title || '',
@@ -423,6 +424,7 @@ function EditUserDialog({ user, open, onOpenChange, onSuccess }: EditUserDialogP
   React.useEffect(() => {
     setFormData({
       name: user.name || '',
+      username: user.username || '',
       email: user.email || '',
       organization: user.organization || '',
       title: user.title || '',

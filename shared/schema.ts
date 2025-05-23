@@ -35,6 +35,8 @@ export const users = pgTable("users", {
   username: varchar("username").notNull().unique(),
   password: varchar("password").notNull(),
   name: varchar("name").notNull(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
   email: varchar("email").unique(),
   title: varchar("title"),
   organization: varchar("organization"),
