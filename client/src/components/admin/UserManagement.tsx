@@ -441,7 +441,7 @@ function AddUserDialog({ open, onOpenChange, onSuccess }: AddUserDialogProps) {
 
 // Edit User Dialog Component
 interface EditUserDialogProps {
-  user: User;
+  user: UserWithRole;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
