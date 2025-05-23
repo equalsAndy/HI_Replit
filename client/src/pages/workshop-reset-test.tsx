@@ -24,8 +24,8 @@ export default function WorkshopResetTest() {
 
   // Storage keys to check and clear - comprehensive list for all workshop data
   const storageKeys = [
+    // AllStar Teams Workshop keys
     'allstarteams-navigation-progress',
-    'imaginal-agility-navigation-progress',
     'allstar_navigation_progress',
     'allstarteams_starCard',
     'allstarteams_flowAttributes',
@@ -35,9 +35,26 @@ export default function WorkshopResetTest() {
     'allstarteams_values',
     'allstarteams_passions',
     'allstarteams_growthAreas',
+    'allstarteams_userData',
+    'allstarteams_assessment',
+    'allstarteams_profile',
+    'allstarteams_coreStrengths',
+    
+    // Imaginal Agility Workshop keys
+    'imaginal-agility-navigation-progress',
+    'imaginal_navigation_progress',
+    'imaginal_userData',
+    'imaginal_assessment',
+    'imaginal_profile',
+    'imaginal_progress',
+    
+    // General application keys
     'user-preferences',
     'workshop-progress',
-    'assessment-data'
+    'assessment-data',
+    'app-state',
+    'last-workshop',
+    'auth-state'
   ];
 
   // Load local storage data on component mount
@@ -176,21 +193,29 @@ export default function WorkshopResetTest() {
     setResetResult(breakdown);
   };
 
-  // Clear all local storage data
+  // Clear all local storage data and return count of items cleared
   const clearAllData = () => {
+    let itemsCleared = 0;
+    
     storageKeys.forEach(key => {
-      localStorage.removeItem(key);
+      if (localStorage.getItem(key) !== null) {
+        localStorage.removeItem(key);
+        itemsCleared++;
+      }
     });
+    
     refreshStorageData();
+    return itemsCleared;
   };
 
-  // Reset user data via API
+  // Reset user data via API with improved error handling and verification
   const resetUserData = async () => {
     setIsResetting(true);
     setResetResult('');
     
     try {
-      // Get current user ID from API
+      // Step 1: Get current user ID from API
+      setResetResult('Step 1/4: Identifying user account...');
       const userResponse = await fetch('/api/user/profile', {
         method: 'GET',
         headers: {
@@ -200,7 +225,7 @@ export default function WorkshopResetTest() {
       });
       
       if (!userResponse.ok) {
-        setResetResult('Error: Failed to get user profile. Please log in first.');
+        setResetResult('⛔ ERROR: Failed to get user profile. Please log in first.');
         return;
       }
       
@@ -208,11 +233,12 @@ export default function WorkshopResetTest() {
       const userId = userData.id;
       
       if (!userId) {
-        setResetResult('Error: Could not determine user ID.');
+        setResetResult('⛔ ERROR: Could not determine user ID.');
         return;
       }
       
-      // Call the reset API
+      // Step 2: Call the reset API
+      setResetResult(`Step 2/4: Resetting server database data for user ID ${userId}...`);
       const resetResponse = await fetch(`/api/test-users/reset/${userId}`, {
         method: 'POST',
         headers: {
@@ -222,30 +248,69 @@ export default function WorkshopResetTest() {
         credentials: 'include'
       });
       
-      // Check if reset was successful based on status
-      if (resetResponse.ok) {
-        // Get response as text first to inspect
-        const responseText = await resetResponse.text();
-        
-        // Attempt to parse as JSON if possible
-        try {
-          const responseData = JSON.parse(responseText);
-          setResetResult(`✅ RESET SUCCESSFUL!\n\nServer Response: ${JSON.stringify(responseData, null, 2)}\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}`);
-        } catch (e) {
-          // Not valid JSON, but still successful if status is 200
-          setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
-        }
-      } else {
-        // Reset failed
-        const responseText = await resetResponse.text();
-        setResetResult(`❌ RESET FAILED!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nError: ${responseText}`);
+      // Parse the response
+      let responseData;
+      let responseText = '';
+      
+      try {
+        responseText = await resetResponse.text();
+        responseData = JSON.parse(responseText);
+      } catch (e) {
+        setResetResult(`⚠️ WARNING: Received invalid JSON response from server. Text response: ${responseText.substring(0, 100)}...`);
+        responseData = null;
       }
       
-      // Clear local storage
-      clearAllData();
+      // Step 3: Clear local storage data
+      setResetResult(`Step 3/4: Clearing browser local storage data...`);
+      const localStorageItemsCleared = clearAllData();
+      
+      // Step 4: Verify the reset
+      setResetResult(`Step 4/4: Verifying reset completion...`);
+      
+      // Refresh data to verify reset
+      await Promise.all([refreshServerData(), refreshStorageData()]);
+      
+      // Prepare detailed reset report
+      let resetReport = `=== WORKSHOP DATA RESET REPORT ===\n\n`;
+      
+      // Server reset status
+      if (resetResponse.ok && responseData && responseData.success) {
+        resetReport += `✅ SERVER DATABASE RESET: SUCCESSFUL\n`;
+        
+        if (responseData.deletions) {
+          resetReport += `   Star Card: ${responseData.deletions.starCard ? 'Deleted ✓' : 'Failed ✗'}\n`;
+          resetReport += `   Flow Attributes: ${responseData.deletions.flowAttributes ? 'Deleted ✓' : 'Failed ✗'}\n`;
+          resetReport += `   User Progress: ${responseData.deletions.userProgress ? 'Reset ✓' : 'Failed ✗'}\n`;
+        }
+      } else {
+        resetReport += `❌ SERVER DATABASE RESET: FAILED\n`;
+        resetReport += `   Status: ${resetResponse.status} ${resetResponse.statusText}\n`;
+        if (responseData && responseData.error) {
+          resetReport += `   Error: ${responseData.error}\n`;
+        }
+      }
+      
+      // Local storage reset status
+      resetReport += `\n`;
+      resetReport += `✅ BROWSER STORAGE RESET: ${localStorageItemsCleared > 0 ? 'SUCCESSFUL' : 'NO DATA FOUND'}\n`;
+      resetReport += `   Cleared ${localStorageItemsCleared} items from localStorage\n`;
+      
+      // Overall status - consider reset successful if server reset worked
+      const resetSuccessful = resetResponse.ok && responseData && responseData.success;
+      
+      resetReport += `\n`;
+      resetReport += `=== OVERALL RESET STATUS: ${resetSuccessful ? 'SUCCESSFUL ✅' : 'PARTIALLY FAILED ⚠️'} ===\n`;
+      
+      if (!resetSuccessful && responseData && responseData.dataRemaining) {
+        resetReport += `\nWARNING: Some data could not be deleted. Details:\n`;
+        resetReport += JSON.stringify(responseData.dataRemaining, null, 2);
+      }
+      
+      // Set the final result
+      setResetResult(resetReport);
       
     } catch (error) {
-      setResetResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
+      setResetResult(`⛔ ERROR DURING RESET: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setIsResetting(false);
     }

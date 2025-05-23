@@ -3,6 +3,7 @@ import { storage } from './new-storage';
 import { db } from './db';
 import { eq } from 'drizzle-orm';
 import * as schema from '../shared/schema';
+import { ResetService } from './services/reset-service';
 
 // Create a router for test admin routes
 const testAdminRouter = Router();
@@ -62,108 +63,36 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`=== RESET START: Resetting data for user ${userId} ===`);
+    console.log(`=== RESET ENDPOINT: Resetting data for user ${userId} ===`);
     
     // Set response content type to JSON
     res.setHeader('Content-Type', 'application/json');
     
-    let deletedStarCard = false;
-    let deletedFlowAttrs = false;
+    // Use the reset service to handle all reset operations
+    const resetService = new ResetService();
+    const result = await resetService.resetAllUserData(userId);
     
-    // Step 1: Completely delete star card data
-    try {
-      const [starCard] = await db
-        .select()
-        .from(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
-        
-      if (starCard) {
-        console.log(`Found star card for user ${userId}:`, starCard);
-        
-        const deleteResult = await db
-          .delete(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
-          
-        console.log(`Delete star card result:`, deleteResult);
-        
-        // Verify deletion by checking if record still exists
-        const [verifyStarCard] = await db
-          .select()
-          .from(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
-          
-        if (verifyStarCard) {
-          console.error(`ERROR: Star card still exists after delete for user ${userId}:`, verifyStarCard);
-          throw new Error('Star card deletion failed - record still exists');
-        } else {
-          deletedStarCard = true;
-          console.log(`Successfully verified star card deletion for user ${userId}`);
-        }
-      } else {
-        console.log(`No star card found for user ${userId}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting star card for user ${userId}:`, error);
-      throw error;
+    console.log(`Reset operation completed with result:`, result);
+    
+    if (result.success) {
+      return res.status(200).json({ 
+        success: true,
+        message: 'User data reset successfully',
+        userId: userId,
+        deletions: result.deletions
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false,
+        message: 'User data reset partially failed',
+        userId: userId,
+        deletions: result.deletions,
+        dataRemaining: result.dataRemaining,
+        error: result.error
+      });
     }
-    
-    // Step 2: Completely delete flow attributes
-    try {
-      const [flowAttrs] = await db
-        .select()
-        .from(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
-        
-      if (flowAttrs) {
-        console.log(`Found flow attributes for user ${userId}:`, flowAttrs);
-        
-        const deleteResult = await db
-          .delete(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
-          
-        console.log(`Delete flow attributes result:`, deleteResult);
-        
-        // Verify deletion by checking if record still exists
-        const [verifyFlowAttrs] = await db
-          .select()
-          .from(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
-          
-        if (verifyFlowAttrs) {
-          console.error(`ERROR: Flow attributes still exist after delete for user ${userId}:`, verifyFlowAttrs);
-          throw new Error('Flow attributes deletion failed - record still exists');
-        } else {
-          deletedFlowAttrs = true;
-          console.log(`Successfully verified flow attributes deletion for user ${userId}`);
-        }
-      } else {
-        console.log(`No flow attributes found for user ${userId}`);
-      }
-    } catch (error) {
-      console.error(`Error deleting flow attributes for user ${userId}:`, error);
-      throw error;
-    }
-    
-    // Step 3: Reset user progress
-    await db
-      .update(schema.users)
-      .set({ progress: 0 })
-      .where(eq(schema.users.id, userId));
-    
-    console.log(`Reset complete for user ${userId}`);
-    
-    return res.status(200).json({ 
-      success: true,
-      message: 'User data reset successfully',
-      userId: userId,
-      deletedData: {
-        starCard: deletedStarCard,
-        flowAttributes: deletedFlowAttrs,
-        userProgress: true
-      }
-    });
   } catch (error) {
-    console.error('Error resetting user data:', error);
+    console.error('Error in reset endpoint:', error);
     
     // Set content type to ensure JSON response
     res.setHeader('Content-Type', 'application/json');
@@ -185,57 +114,36 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
       return res.status(400).json({ message: 'Invalid user ID' });
     }
     
-    console.log(`Resetting data for user ${userId} via GET`);
-    
-    // First check if star card exists
-    const [starCard] = await db
-      .select()
-      .from(schema.starCards)
-      .where(eq(schema.starCards.userId, userId));
-      
-    if (starCard) {
-      console.log(`Found and deleting star card for user ${userId}:`, starCard);
-      // Delete star card data
-      await db
-        .delete(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
-    } else {
-      console.log(`No star card found for user ${userId}`);
-    }
-    
-    // Check if flow attributes exist
-    const [flowAttrs] = await db
-      .select()
-      .from(schema.flowAttributes)
-      .where(eq(schema.flowAttributes.userId, userId));
-      
-    if (flowAttrs) {
-      console.log(`Found and deleting flow attributes for user ${userId}:`, flowAttrs);
-      // Delete flow attributes data
-      await db
-        .delete(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
-    } else {
-      console.log(`No flow attributes found for user ${userId}`);
-    }
-    
-    // Reset user progress
-    await db
-      .update(schema.users)
-      .set({ progress: 0 })
-      .where(eq(schema.users.id, userId));
+    console.log(`=== RESET ENDPOINT: Resetting data for user ${userId} via GET ===`);
     
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');
     
-    // Return JSON response
-    return res.status(200).json({ 
-      success: true,
-      message: 'User data reset successfully',
-      userId: userId
-    });
+    // Use the reset service to handle all reset operations
+    const resetService = new ResetService();
+    const result = await resetService.resetAllUserData(userId);
+    
+    console.log(`Reset operation completed with result:`, result);
+    
+    if (result.success) {
+      return res.status(200).json({ 
+        success: true,
+        message: 'User data reset successfully',
+        userId: userId,
+        deletions: result.deletions
+      });
+    } else {
+      return res.status(500).json({ 
+        success: false,
+        message: 'User data reset partially failed',
+        userId: userId,
+        deletions: result.deletions,
+        dataRemaining: result.dataRemaining,
+        error: result.error
+      });
+    }
   } catch (error) {
-    console.error('Error resetting user data:', error);
+    console.error('Error in reset endpoint:', error);
     
     // Set proper content type header
     res.setHeader('Content-Type', 'application/json');
