@@ -118,9 +118,23 @@ export function LoginForm() {
           }}
           className="text-sm"
         >
-          {showTestInfo ? "Hide Test User Info" : "Login with Test User"}
+          {showTestInfo ? "Hide Test User Info" : "Test User Info"}
         </Button>
       </CardHeader>
+
+      {showTestInfo && (
+        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <h3 className="font-medium text-blue-800">Test Environment</h3>
+          <p className="mt-2 text-blue-700">All test accounts use the password <strong>password</strong></p>
+          <p className="mt-2 text-blue-700 italic">You can now log in using either username or email</p>
+          <ul className="mt-2 space-y-1 text-blue-700">
+            <li><strong>Admin:</strong> username: admin</li>
+            <li><strong>Facilitator:</strong> username: facilitator</li>
+            <li><strong>Participant:</strong> username: user1 or user2</li>
+          </ul>
+        </div>
+      )}
+
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -174,9 +188,6 @@ export function LoginForm() {
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col">
-        <div className="text-sm text-center text-gray-500">
-          Authentication managed by administrator
-        </div>
       </CardFooter>
     </Card>
   );
