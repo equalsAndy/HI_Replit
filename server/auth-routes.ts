@@ -5,7 +5,7 @@ import { storage } from './new-storage';
 import { UserRole } from '@shared/types';
 import { db } from './db';
 import * as schema from '../shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 
 // Create router for authentication routes
 const authRouter = Router();
@@ -228,6 +228,78 @@ authRouter.post('/setup-test-users', async (req, res) => {
     res.status(200).json({ message: 'Test users setup complete' });
   } catch (error) {
     console.error('Error setting up test users:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Test endpoint to check user roles
+authRouter.get('/check-roles', async (req, res) => {
+  try {
+    // Get all users
+    const users = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+      })
+      .from(schema.users);
+    
+    // Get all roles
+    const roles = await db
+      .select()
+      .from(schema.userRoles);
+    
+    // Map users with their roles
+    const userRoles = users.map(user => {
+      const userRoleRecords = roles.filter(role => role.userId === user.id);
+      return {
+        id: user.id,
+        username: user.username,
+        roles: userRoleRecords.map(r => r.role),
+      };
+    });
+    
+    console.log('User roles from database:', userRoles);
+    
+    res.json(userRoles);
+  } catch (error) {
+    console.error('Error checking roles:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get available test users
+authRouter.get('/test-users', async (req, res) => {
+  try {
+    // Get all test users directly from the database
+    const users = await db
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        name: schema.users.name
+      })
+      .from(schema.users)
+      .where(inArray(schema.users.username, ['admin', 'facilitator', 'user1', 'user2']));
+    
+    // Get all roles
+    const userIds = users.map(user => user.id);
+    const roles = await db
+      .select()
+      .from(schema.userRoles)
+      .where(inArray(schema.userRoles.userId, userIds));
+    
+    // Map users with their roles
+    const simplifiedUsers = users.map(user => {
+      const userRole = roles.find(role => role.userId === user.id);
+      return {
+        username: user.username,
+        role: userRole ? userRole.role : 'participant',
+        name: user.name
+      };
+    });
+    
+    res.json(simplifiedUsers);
+  } catch (error) {
+    console.error('Error fetching test users:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

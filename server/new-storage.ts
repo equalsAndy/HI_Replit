@@ -119,6 +119,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
+    // Get user from database
     const [user] = await db
       .select()
       .from(schema.users)
@@ -126,12 +127,18 @@ export class DatabaseStorage implements IStorage {
     
     if (!user) return undefined;
     
-    // Get user roles
-    const roles = await getUserRoles(user.id);
+    // Get roles directly from database
+    const userRoles = await db
+      .select({ role: schema.userRoles.role })
+      .from(schema.userRoles)
+      .where(eq(schema.userRoles.userId, user.id));
     
+    console.log(`User ${username} (ID: ${user.id}) has roles:`, userRoles);
+    
+    // Return user with role
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
+      role: userRoles.length > 0 ? userRoles[0].role as UserRole : UserRole.Participant
     };
   }
   
