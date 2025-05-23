@@ -56,7 +56,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       .from(schema.userRoles)
       .where(eq(schema.userRoles.userId, user.id));
     
-    console.log(`Found roles for user ID ${user.id}:`, roles);
+    console.log(`Found roles for user:`, roles);
     
     // Add role to user object
     const userWithRole = {
@@ -74,7 +74,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     // Return user data (excluding password)
     const { password: _, ...userDataWithoutPassword } = userWithRole;
     
-    console.log(`Login successful for user ID: ${user.id} with role: ${userDataWithoutPassword.role}`);
+    console.log(`Login successful for user with role: ${userDataWithoutPassword.role}`);
     res.status(200).json(userDataWithoutPassword);
   } catch (error) {
     if (error instanceof z.ZodError) {
