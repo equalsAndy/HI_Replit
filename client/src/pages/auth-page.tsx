@@ -10,7 +10,6 @@ import { useApplication } from "@/hooks/use-application";
 import { insertUserSchema } from "@shared/schema";
 import { TestUserPicker } from "@/components/test-users/TestUserPicker";
 import { LoginForm } from "@/components/auth/LoginForm";
-
 import {
   Form,
   FormControl,
@@ -182,19 +181,22 @@ export default function AuthPage() {
           </p>
         </div>
 
-        {/* Information Message */}
-        {/* <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-md">
-          <h3 className="font-medium text-blue-800 mb-1">Test Environment</h3>
-          <p className="text-sm text-blue-600">
-            This is a test environment. Please use the "Select Test User" button below to log in.
-          </p>
-        </div> */}
-
+        <div className="mt-4 pt-4 border-t">
+          <Button 
+            variant="outline" 
+            type="button"
+            onClick={() => setShowTestUsers(!showTestUsers)}
+            className="text-sm"
+          >
+            {showTestUsers ? "Hide Test User Info" : "Login with Test User"}
+          </Button>
+        </div>
+        
         {/* Login Form */}
         {isLogin && (
           <div className="space-y-6">
-              <LoginForm />
-            </div>
+            <LoginForm />
+          </div>
         )}
 
         {/* Register Form */}
@@ -334,16 +336,7 @@ export default function AuthPage() {
             </button>
           </p>
 
-          <div className="mt-4 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              type="button"
-              onClick={() => setShowTestUsers(!showTestUsers)}
-              className="text-sm"
-            >
-              {showTestUsers ? "Hide Test User Info" : "Login with Test User"}
-            </Button>
-          </div>
+          
         </div>
 
         {/* Test User Picker - only shown when needed */}

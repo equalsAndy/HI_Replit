@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { useForm } from 'react-hook-form';
@@ -100,9 +101,16 @@ export function LoginForm() {
         <CardDescription>
           Enter your username and password to access your account
         </CardDescription>
+        <Button 
+          variant="outline" 
+          type="button"
+          onClick={() => setShowTestInfo(!showTestInfo)}
+          className="text-sm"
+        >
+          {showTestInfo ? "Hide Test User Info" : "Login with Test User"}
+        </Button>
       </CardHeader>
       <CardContent>
-        
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
