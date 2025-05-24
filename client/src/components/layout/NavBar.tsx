@@ -190,17 +190,7 @@ export function NavBar() {
               Admin
             </Button>
           )}
-          {/* Reset Data button - for development testing */}
-          {user?.id && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="rounded-md text-white hover:bg-yellow-400 border border-white"
-              onClick={handleResetUserData}
-            >
-              Reset Data
-            </Button>
-          )}
+          
           <Button 
             variant="outline" 
             size="sm" 
