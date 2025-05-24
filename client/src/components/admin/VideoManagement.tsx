@@ -569,7 +569,7 @@ export function VideoManagement() {
                     <TableCell>{video.section}</TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {video.url}
+                        {video.editableId}
                       </a>
                     </TableCell>
                     <TableCell className="text-right">
