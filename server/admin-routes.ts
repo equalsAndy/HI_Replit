@@ -253,4 +253,136 @@ adminRouter.get('/cohorts', async (req: Request, res: Response) => {
   }
 });
 
+// Video Management Routes
+// Get all videos
+adminRouter.get('/videos', async (req: Request, res: Response) => {
+  try {
+    const videos = await storage.getAllVideos();
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get videos by workshop type
+adminRouter.get('/videos/workshop/:workshopType', async (req: Request, res: Response) => {
+  try {
+    const { workshopType } = req.params;
+    const videos = await storage.getVideosByWorkshop(workshopType);
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos by workshop:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get video by ID
+adminRouter.get('/videos/:id', async (req: Request, res: Response) => {
+  try {
+    const videoId = parseInt(req.params.id);
+    
+    if (isNaN(videoId)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+    
+    const video = await storage.getVideo(videoId);
+    
+    if (!video) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    
+    res.status(200).json(video);
+  } catch (error) {
+    console.error('Error fetching video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Create new video
+adminRouter.post('/videos', async (req: Request, res: Response) => {
+  try {
+    const VideoSchema = z.object({
+      title: z.string().min(2, 'Title must be at least 2 characters'),
+      description: z.string().optional(),
+      url: z.string().url('Invalid URL format'),
+      workshopType: z.string(),
+      section: z.string(),
+      sortOrder: z.number().default(0)
+    });
+    
+    const parsedData = VideoSchema.parse(req.body);
+    
+    const newVideo = await storage.createVideo(parsedData);
+    
+    res.status(201).json(newVideo);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    console.error('Error creating video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update video by ID
+adminRouter.put('/videos/:id', async (req: Request, res: Response) => {
+  try {
+    const videoId = parseInt(req.params.id);
+    
+    if (isNaN(videoId)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+    
+    const existingVideo = await storage.getVideo(videoId);
+    
+    if (!existingVideo) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    
+    const VideoUpdateSchema = z.object({
+      title: z.string().min(2, 'Title must be at least 2 characters').optional(),
+      description: z.string().optional(),
+      url: z.string().url('Invalid URL format').optional(),
+      workshopType: z.string().optional(),
+      section: z.string().optional(),
+      sortOrder: z.number().optional()
+    });
+    
+    const parsedData = VideoUpdateSchema.parse(req.body);
+    
+    const updatedVideo = await storage.updateVideo(videoId, parsedData);
+    
+    res.status(200).json(updatedVideo);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ message: 'Invalid input', errors: error.errors });
+    }
+    console.error('Error updating video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete video by ID
+adminRouter.delete('/videos/:id', async (req: Request, res: Response) => {
+  try {
+    const videoId = parseInt(req.params.id);
+    
+    if (isNaN(videoId)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+    
+    const result = await storage.deleteVideo(videoId);
+    
+    if (!result) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    
+    res.status(200).json({ message: 'Video deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export { adminRouter };

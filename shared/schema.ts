@@ -146,6 +146,26 @@ export const insertCohortSchema = createInsertSchema(cohorts).omit({
   updatedAt: true 
 });
 
+// Videos table for workshop content management
+export const videos = pgTable("videos", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  url: varchar("url").notNull(),
+  workshopType: varchar("workshop_type").notNull(), // e.g., 'allstarteams', 'imaginal-agility'
+  section: varchar("section").notNull(), // e.g., 'introduction', 'team-workshop'
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Define insert schema for videos
+export const insertVideoSchema = createInsertSchema(videos).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
 // Define types
 export type User = typeof users.$inferSelect & {
   // Include roles information that gets joined in queries
@@ -156,6 +176,8 @@ export type Cohort = typeof cohorts.$inferSelect;
 export type InsertCohort = z.infer<typeof insertCohortSchema>;
 export type StarCard = typeof starCards.$inferSelect;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
 
 // Define a UserWithRole type for API responses
 export type UserWithRole = User & {

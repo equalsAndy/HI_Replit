@@ -9,7 +9,9 @@ import {
   User, InsertUser, 
   UserRole, 
   StarCard, 
-  FlowAttributesRecord
+  FlowAttributesRecord,
+  Video,
+  InsertVideo
 } from "@shared/schema";
 
 // Define the storage interface
@@ -59,6 +61,14 @@ export interface IStorage {
   getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
   createFlowAttributes(flowAttributes: any): Promise<FlowAttributesRecord>;
   updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined>;
+  
+  // Video management operations
+  getAllVideos(): Promise<Video[]>;
+  getVideosByWorkshop(workshopType: string): Promise<Video[]>;
+  getVideo(id: number): Promise<Video | undefined>;
+  createVideo(videoData: InsertVideo): Promise<Video>;
+  updateVideo(id: number, videoData: Partial<Video>): Promise<Video | undefined>;
+  deleteVideo(id: number): Promise<boolean>;
 }
 
 // Get user roles helper function
@@ -128,10 +138,13 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Set created and updated dates
-    userData.createdAt = new Date();
-    userData.updatedAt = new Date();
+    const dataToInsert = {
+      ...userData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
     
-    const [user] = await db.insert(schema.users).values(userData).returning();
+    const [user] = await db.insert(schema.users).values(dataToInsert).returning();
     
     return user;
   }
@@ -319,8 +332,19 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getCohortsByFacilitator(facilitatorId: number): Promise<any[]> {
+    // Get cohorts where this user is a facilitator using the cohortFacilitators relation
+    const facilitatorCohorts = await db.query.cohortFacilitators.findMany({
+      where: eq(schema.cohortFacilitators.facilitatorId, facilitatorId)
+    });
+    
+    if (!facilitatorCohorts.length) {
+      return [];
+    }
+    
+    const cohortIds = facilitatorCohorts.map(fc => fc.cohortId);
+    
     const cohorts = await db.query.cohorts.findMany({
-      where: eq(schema.cohorts.facilitatorId, facilitatorId)
+      where: inArray(schema.cohorts.id, cohortIds)
     });
     
     return cohorts;
@@ -467,6 +491,78 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedFlowAttributes;
+  }
+
+  // Video management operations
+  async getAllVideos(): Promise<Video[]> {
+    const videos = await db.query.videos.findMany({
+      orderBy: [schema.videos.workshopType, schema.videos.sortOrder]
+    });
+    return videos;
+  }
+
+  async getVideosByWorkshop(workshopType: string): Promise<Video[]> {
+    const videos = await db.query.videos.findMany({
+      where: eq(schema.videos.workshopType, workshopType),
+      orderBy: [schema.videos.section, schema.videos.sortOrder]
+    });
+    return videos;
+  }
+
+  async getVideo(id: number): Promise<Video | undefined> {
+    const video = await db.query.videos.findFirst({
+      where: eq(schema.videos.id, id)
+    });
+    return video;
+  }
+
+  async createVideo(videoData: InsertVideo): Promise<Video> {
+    // Set created and updated dates
+    const dataWithDates = {
+      ...videoData,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    const [video] = await db.insert(schema.videos).values(dataWithDates).returning();
+    return video;
+  }
+
+  async updateVideo(id: number, videoData: Partial<Video>): Promise<Video | undefined> {
+    // Check if video exists
+    const existingVideo = await this.getVideo(id);
+    
+    if (!existingVideo) {
+      return undefined;
+    }
+    
+    // Set updated date
+    const dataWithDate = {
+      ...videoData,
+      updatedAt: new Date()
+    };
+    
+    const [updatedVideo] = await db
+      .update(schema.videos)
+      .set(dataWithDate)
+      .where(eq(schema.videos.id, id))
+      .returning();
+    
+    return updatedVideo;
+  }
+
+  async deleteVideo(id: number): Promise<boolean> {
+    const existingVideo = await this.getVideo(id);
+    
+    if (!existingVideo) {
+      return false;
+    }
+    
+    const result = await db
+      .delete(schema.videos)
+      .where(eq(schema.videos.id, id));
+    
+    return true;
   }
 }
 

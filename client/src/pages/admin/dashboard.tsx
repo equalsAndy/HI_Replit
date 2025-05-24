@@ -79,9 +79,10 @@ export default function AdminDashboard() {
       </Card>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid grid-cols-2 w-[400px]">
+        <TabsList className="grid grid-cols-3 w-[600px]">
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
+          <TabsTrigger value="videos">Video Management</TabsTrigger>
         </TabsList>
         
         <TabsContent value="users" className="mt-6">
@@ -90,6 +91,10 @@ export default function AdminDashboard() {
         
         <TabsContent value="cohorts" className="mt-6">
           <CohortManagementTab />
+        </TabsContent>
+
+        <TabsContent value="videos" className="mt-6">
+          <VideoManagementTab />
         </TabsContent>
       </Tabs>
     </div>
