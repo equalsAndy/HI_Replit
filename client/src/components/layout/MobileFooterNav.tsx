@@ -71,7 +71,7 @@ export function MobileFooterNav() {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-yellow-500 text-white p-2 flex justify-between items-center z-50 md:hidden">
+    <div className="fixed bottom-0 left-0 right-0 bg-yellow-500 text-white p-2 flex justify-around items-center z-50 md:hidden">
       {user?.id && (
         <Button 
           variant="ghost" 

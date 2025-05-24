@@ -145,7 +145,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         // Mobile styles - use fixed position when open, hide when closed
         // Add padding at the bottom for mobile to account for the footer bar
         isMobile ? cn(
-          "fixed top-[calc(var(--header-height,44px))] left-0 bottom-12 z-30 pb-4",
+          "fixed top-[calc(var(--header-height,44px))] left-0 bottom-14 z-30 pb-4",
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         ) : cn(
           "h-full relative",
