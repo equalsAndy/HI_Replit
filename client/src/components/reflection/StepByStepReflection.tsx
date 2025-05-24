@@ -346,8 +346,28 @@ export default function StepByStepReflection({
             </div>
           </div>
 
-          <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
-            <label htmlFor={`strength-${step}-reflection`} className="block text-lg font-semibold text-indigo-800 mb-2">
+          <div className={`mt-4 p-4 ${
+            step <= 4 
+              ? sortedQuadrants[step-1].label === 'THINKING' 
+                ? 'bg-green-50 border-2 border-green-200'
+                : sortedQuadrants[step-1].label === 'ACTING'
+                ? 'bg-red-50 border-2 border-red-200'
+                : sortedQuadrants[step-1].label === 'FEELING'
+                ? 'bg-blue-50 border-2 border-blue-200'
+                : 'bg-yellow-50 border-2 border-yellow-200'
+              : 'bg-gray-50 border-2 border-gray-200'
+          } rounded-lg shadow-sm`}>
+            <label htmlFor={`strength-${step}-reflection`} className={`block text-lg font-semibold ${
+              step <= 4
+                ? sortedQuadrants[step-1].label === 'THINKING'
+                  ? 'text-green-800'
+                  : sortedQuadrants[step-1].label === 'ACTING'
+                  ? 'text-red-800'
+                  : sortedQuadrants[step-1].label === 'FEELING'
+                  ? 'text-blue-800'
+                  : 'text-yellow-800'
+                : 'text-gray-800'
+            } mb-2`}>
               Your Reflection Space
             </label>
             <p className="text-gray-700 mb-3 text-sm italic">
@@ -371,7 +391,17 @@ export default function StepByStepReflection({
                   : step === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
-                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+                className={`min-h-[140px] w-full ${
+                  step <= 4
+                    ? sortedQuadrants[step-1].label === 'THINKING'
+                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                      : sortedQuadrants[step-1].label === 'ACTING'
+                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                      : sortedQuadrants[step-1].label === 'FEELING'
+                      ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
+                      : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
+                    : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500'
+                } rounded-md bg-white`}
               />
           </div>
         </div>
