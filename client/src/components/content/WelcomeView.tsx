@@ -49,11 +49,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         <Card className="mb-8">
           <CardContent className="p-0 overflow-hidden">
-            <div className="aspect-w-16 aspect-h-9">
+            <div className="w-full aspect-video">
               <iframe 
                 src={videoSrc}
                 title={videoTitle}
-                className="w-full h-[400px] rounded-lg border-0" 
+                className="w-full h-full rounded-lg border-0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
                 style={{ pointerEvents: 'auto', position: 'relative' }}
