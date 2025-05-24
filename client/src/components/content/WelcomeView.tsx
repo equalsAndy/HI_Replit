@@ -56,7 +56,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
                 className="w-full h-[400px] rounded-lg border-0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                style={{ pointerEvents: 'auto', zIndex: 1 }}
+                style={{ pointerEvents: 'auto', position: 'relative' }}
               ></iframe>
             </div>
           </CardContent>
