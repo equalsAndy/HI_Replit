@@ -60,6 +60,7 @@ interface Video {
   title: string;
   description: string | null;
   url: string;
+  editableId: string;
   workshopType: string;
   section: string;
   sortOrder: number;
