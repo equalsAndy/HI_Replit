@@ -40,6 +40,7 @@ import { ApplicationProvider } from "@/hooks/use-application";
 
 // Import NavBar
 import { NavBar } from "./components/layout/NavBar";
+import { MobileFooterNav } from "./components/layout/MobileFooterNav";
 
 function Router() {
   const [, navigate] = useLocation();
@@ -83,6 +84,8 @@ function Router() {
         />
       )}
       <NavBar />
+      {/* Mobile Footer Navigation */}
+      <MobileFooterNav />
       {/* Removed floating button */}
       <div className="flex-1">
         <Switch>

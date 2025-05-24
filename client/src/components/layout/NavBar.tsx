@@ -107,7 +107,8 @@ export function NavBar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      {/* Only show these controls on desktop */}
+      <div className="hidden md:flex items-center gap-4">
         {user?.id && (
           <>
             <Button 
