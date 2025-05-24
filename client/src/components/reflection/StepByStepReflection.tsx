@@ -693,7 +693,7 @@ export default function StepByStepReflection({
                   : currentStep === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
-                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
               />
 
               <div className="mt-3">
@@ -709,9 +709,47 @@ export default function StepByStepReflection({
                   <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                     <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
                     <div className="text-sm text-gray-700">
-                      <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
-                      <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
-                    </div>
+                        {currentStep <= 4 && (
+                          <>
+                            {sortedQuadrants[currentStep-1].label === 'ACTING' && (
+                              <>
+                                <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
+                                <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
+                              </>
+                            )}
+                            {sortedQuadrants[currentStep-1].label === 'THINKING' && (
+                              <>
+                                <p className="mb-2 italic">"I apply my analytical skills when solving complex problems. Recently, I developed a systematic approach to evaluate our team's workflow bottlenecks, which led to a 30% improvement in efficiency."</p>
+                                <p className="italic">"My strategic thinking helps in planning phases. When our team needed to reimagine our product roadmap, I created a framework that helped us identify new opportunities and potential risks."</p>
+                              </>
+                            )}
+                            {sortedQuadrants[currentStep-1].label === 'FEELING' && (
+                              <>
+                                <p className="mb-2 italic">"I use my empathetic approach to build strong team relationships. Recently, I noticed a colleague struggling with a project and created a supportive environment where they felt comfortable asking for help."</p>
+                                <p className="italic">"My relationship-building skills help during team conflicts. When two team members had different views on project direction, I facilitated a conversation that helped them find common ground."</p>
+                              </>
+                            )}
+                            {sortedQuadrants[currentStep-1].label === 'PLANNING' && (
+                              <>
+                                <p className="mb-2 italic">"I use my organizational skills to keep projects on track. Recently, I created a detailed project timeline that helped everyone understand their responsibilities and deadlines."</p>
+                                <p className="italic">"My structured approach helps with complex initiatives. When our team started a new project, I developed a clear framework for tracking progress and managing dependencies."</p>
+                              </>
+                            )}
+                          </>
+                        )}
+                        {currentStep === 5 && (
+                          <>
+                            <p className="mb-2 italic">"I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change."</p>
+                            <p className="italic">"I value team environments where open communication is prioritized and every member's contributions are recognized. I work best when there's a culture of constructive feedback."</p>
+                          </>
+                        )}
+                        {currentStep === 6 && (
+                          <>
+                            <p className="mb-2 italic">"I bring value through my combination of planning and empathy. I create structured processes while ensuring everyone feels heard and supported throughout implementation."</p>
+                            <p className="italic">"My unique contribution comes from balancing analytical thinking with relationship building. This helps me develop solutions that are both technically sound and people-focused."</p>
+                          </>
+                        )}
+                      </div>
                   </div>
                 )}
               </div>
