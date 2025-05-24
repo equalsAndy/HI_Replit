@@ -232,7 +232,7 @@ export function VideoManagement() {
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
   allowFullScreen>
 </iframe>`;
-    
+
     navigator.clipboard.writeText(iframeCode).then(
       () => {
         toast({
@@ -408,18 +408,34 @@ export function VideoManagement() {
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
-                control={editForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Video title" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  control={editForm.control}
+                  name="editableId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Unique video ID (e.g. lcjao1ob55A)" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This ID will be used to identify the video in the workshop
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Video title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <FormField
                 control={editForm.control}
                 name="description"
@@ -434,21 +450,21 @@ export function VideoManagement() {
                 )}
               />
               <FormField
-                control={editForm.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Video URL (YouTube embed or similar)" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                  control={editForm.control}
+                  name="url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Video URL (YouTube embed or similar)" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
