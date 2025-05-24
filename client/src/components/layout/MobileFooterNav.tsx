@@ -3,12 +3,9 @@ import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { queryClient } from "@/lib/queryClient";
-import { useState } from "react";
-import ProfileModal from "../profile/ProfileModal";
 
 export function MobileFooterNav() {
   const [, navigate] = useLocation();
-  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const { toast } = useToast();
   const { data: user } = useQuery<{
     id: number;
@@ -80,16 +77,6 @@ export function MobileFooterNav() {
           variant="ghost" 
           size="sm" 
           className="rounded-md text-white hover:bg-yellow-400"
-          onClick={() => setIsProfileModalOpen(true)}
-        >
-          Profile
-        </Button>
-      )}
-      {user?.id && (
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="rounded-md text-white hover:bg-yellow-400"
           onClick={handleResetUserData}
         >
           Reset Data
@@ -113,10 +100,6 @@ export function MobileFooterNav() {
           Logout
         </Button>
       )}
-      <ProfileModal 
-        isOpen={isProfileModalOpen} 
-        onClose={() => setIsProfileModalOpen(false)} 
-      />
     </div>
   );
 }

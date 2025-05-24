@@ -11,12 +11,23 @@ import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
 import { useToast } from "@/hooks/use-toast";
+import { InfoIcon, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode } = useDemoMode();
   const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
   const { toast } = useToast();
   const { data: user } = useQuery<{
     id: number;
@@ -93,6 +104,18 @@ export function NavBar() {
     window.location.href = '/';
   };
 
+  // Function to toggle between applications
+  const toggleApplication = () => {
+    // Toggle to the other application
+    const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
+    
+    if (newApp === 'allstarteams') {
+      window.location.href = '/user-home2-refactored';
+    } else {
+      window.location.href = '/imaginal-agility';
+    }
+  };
+
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       <div className="flex-1">
@@ -107,64 +130,96 @@ export function NavBar() {
         </div>
       </div>
 
-      {/* Only show these controls on desktop */}
-      <div className="hidden md:flex items-center gap-4">
+      <div className="flex items-center gap-2">
+        {/* Test User Info button - only shown on mobile */}
         {user?.id && (
-          <>
+          <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="md:hidden rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
+              >
+                <InfoIcon className="h-4 w-4" />
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Test User Information</DialogTitle>
+                <DialogDescription>
+                  You are using a test account. Any data entered will be temporary.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col space-y-3 p-4">
+                <Badge variant="outline" className="bg-yellow-100 self-start">
+                  {user?.name || `TEST USER ${user?.id}`}
+                </Badge>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center self-start"
+                  onClick={toggleApplication}
+                >
+                  Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center self-start"
+                  onClick={() => window.location.href = '/workshop-reset'}
+                >
+                  Reset All Data
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {/* Only show these controls on desktop */}
+        <div className="hidden md:flex items-center gap-4">
+          {/* Admin button - only shown for admin users */}
+          {user?.role === 'admin' && (
             <Button 
               variant="ghost" 
               size="sm" 
               className="rounded-md text-white hover:bg-yellow-400"
-              onClick={() => setIsProfileModalOpen(true)}
+              onClick={() => navigate('/admin')}
             >
-              Profile
+              Admin
             </Button>
-            <ProfileModal 
-              isOpen={isProfileModalOpen} 
-              onClose={() => setIsProfileModalOpen(false)} 
-            />
-          </>
-        )}
-        {/* Admin button - only shown for admin users */}
-        {user?.role === 'admin' && (
+          )}
+          {/* Reset Data button - for development testing */}
+          {user?.id && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-md text-white hover:bg-yellow-400 border border-white"
+              onClick={handleResetUserData}
+            >
+              Reset Data
+            </Button>
+          )}
           <Button 
-            variant="ghost" 
+            variant="outline" 
             size="sm" 
-            className="rounded-md text-white hover:bg-yellow-400"
-            onClick={() => navigate('/admin')}
+            className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
+            onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
           >
-            Admin
+            Contact Us
           </Button>
-        )}
-        {/* Reset Data button - for development testing */}
-        {user?.id && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="rounded-md text-white hover:bg-yellow-400 border border-white"
-            onClick={handleResetUserData}
-          >
-            Reset Data
-          </Button>
-        )}
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-          onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
-        >
-          Contact Us
-        </Button>
-        {user?.id && (
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="rounded-md text-white hover:bg-yellow-400"
-            onClick={() => navigate('/logout')}
-          >
-            Logout
-          </Button>
-        )}
+          {user?.id && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="rounded-md text-white hover:bg-yellow-400"
+              onClick={() => navigate('/logout')}
+            >
+              Logout
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );

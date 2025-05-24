@@ -29,7 +29,7 @@ export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
   };
 
   return (
-    <div className="bg-yellow-300 text-yellow-900 py-2 px-4 text-sm flex items-center justify-between">
+    <div className="bg-yellow-300 text-yellow-900 py-2 px-4 text-sm flex items-center justify-between md:flex hidden">
       <div className="flex items-center space-x-2">
         <InfoIcon className="h-4 w-4" />
         <span>
