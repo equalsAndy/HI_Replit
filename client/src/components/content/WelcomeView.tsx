@@ -49,7 +49,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         <Card className="mb-8">
           <CardContent className="p-0 overflow-hidden">
-            <div className="w-full aspect-video">
+            <div className="w-full aspect-video md:w-4/5 mx-auto">
               <iframe 
                 src={videoSrc}
                 title={videoTitle}
