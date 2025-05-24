@@ -6,7 +6,7 @@ async function addWorkshopVideos() {
     {
       title: "Welcome to AllStarTeams",
       description: "Introduction to the AllStarTeams workshop journey",
-      url: "https://www.youtube.com/embed/welcome-ast",
+      url: "https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1",
       workshopType: "allstarteams",
       section: "introduction",
       sortOrder: 1
