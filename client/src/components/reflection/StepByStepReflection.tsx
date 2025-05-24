@@ -357,9 +357,16 @@ export default function StepByStepReflection({
               id={`strength-${step}-reflection`}
               value={step === 1 ? reflections.strength1 : 
                      step === 2 ? reflections.strength2 : 
-                     step === 3 ? reflections.strength3 : reflections.strength4}
+                     step === 3 ? reflections.strength3 : 
+                     step === 4 ? reflections.strength4 :
+                     step === 5 ? reflections.teamValues :
+                     reflections.uniqueContribution}
               onChange={(e) => handleReflectionChange(step, e.target.value)}
-              placeholder={`Describe specific moments when you've used your ${strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} strength effectively...`}
+              placeholder={step <= 4 
+                ? `Describe specific moments when you've used your ${strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} strength effectively...`
+                : step === 5 
+                ? "Describe the team environment where you perform at your best..."
+                : "Describe your unique contribution to the team..."}
               className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
             />
           </div>
