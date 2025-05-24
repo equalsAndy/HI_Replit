@@ -49,10 +49,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         <div className="mb-8">
           <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm">
-            <div className="p-4 border-b border-gray-200 bg-gray-50">
-              <h3 className="text-xl font-bold text-center">Welcome Video</h3>
-            </div>
-            <div className="p-2">
+            <div className="p-0">
               <div className="w-full aspect-video">
                 <iframe 
                   src={videoSrc}
