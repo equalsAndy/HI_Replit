@@ -15,16 +15,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       <Card className="mb-8">
         <CardContent className="p-0 overflow-hidden">
           <div className="aspect-w-16 aspect-h-9 mb-4">
-            <div className="bg-gradient-to-b from-gray-900 to-transparent absolute top-0 left-0 right-0 h-16 z-10"></div>
-            <div className="absolute top-2 left-4 text-white z-20 flex items-center">
-              <div className="h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center mr-3">
-                <img src="/public/assets/HI_Logo_horizontal.png" alt="HI Logo" className="h-6 w-6" />
-              </div>
-              <div>
-                <div className="font-medium">FLOW VIDEO V3</div>
-                <div className="text-sm opacity-80">Heliotrope Imaginal Micro Course</div>
-              </div>
-            </div>
             <iframe 
               src="https://www.youtube.com/embed/JxdhWd8agmE"
               title="Flow Video"
