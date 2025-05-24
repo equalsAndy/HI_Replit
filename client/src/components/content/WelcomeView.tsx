@@ -17,23 +17,23 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
-    
+
   const description = isImaginalAgility
     ? "Welcome to the Imaginal Agility workshop! This program will help you develop strategic imagination and navigate the Triple Challenge facing organizations today."
     : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
-    
+
   const videoSrc = isImaginalAgility
     ? "https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1" // Placeholder - replace with actual Imaginal Agility video
     : "https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1";
-    
+
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"
     : "AllStarTeams Workshop Introduction";
-    
+
   const nextButton = isImaginalAgility
     ? "Next: The Triple Challenge →"
     : "Next: Intro to Strengths →";
-    
+
   const nextContentId = isImaginalAgility
     ? "triple-challenge"
     : "intro-strengths";
@@ -41,28 +41,29 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
-      
+
       <div className="prose max-w-none">
         <p className="text-lg text-gray-700 mb-6">
           {description}
         </p>
-        
+
         <Card className="mb-8">
           <CardContent className="p-0 overflow-hidden">
             <div className="aspect-w-16 aspect-h-9">
               <iframe 
                 src={videoSrc}
                 title={videoTitle}
-                className="w-full h-[400px] rounded-lg" 
+                className="w-full h-[400px] rounded-lg border-0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
+                style={{ pointerEvents: 'auto', zIndex: 1 }}
               ></iframe>
             </div>
           </CardContent>
         </Card>
-        
+
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
-        
+
         {isImaginalAgility ? (
           <ul className="space-y-3 mb-8">
             <li className="flex items-start">
@@ -118,7 +119,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             </li>
           </ul>
         )}
-        
+
         <div className="flex justify-end">
           <Button 
             onClick={() => {
