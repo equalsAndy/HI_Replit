@@ -23,7 +23,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
   const videoSrc = isImaginalAgility
-    ? "https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1" // Placeholder - replace with actual Imaginal Agility video
+    ? "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1"
     : "https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1";
 
   const videoTitle = isImaginalAgility
