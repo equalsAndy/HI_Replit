@@ -47,20 +47,25 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           {description}
         </p>
 
-        <Card className="mb-8">
-          <CardContent className="p-0 overflow-hidden">
-            <div className="w-full aspect-video md:w-4/5 mx-auto">
-              <iframe 
-                src={videoSrc}
-                title={videoTitle}
-                className="w-full h-full rounded-lg border-0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                style={{ pointerEvents: 'auto', position: 'relative' }}
-              ></iframe>
+        <div className="mb-8">
+          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm">
+            <div className="p-4 border-b border-gray-200 bg-gray-50">
+              <h3 className="text-xl font-bold text-center">Welcome Video</h3>
             </div>
-          </CardContent>
-        </Card>
+            <div className="p-6">
+              <div className="w-full aspect-video md:w-4/5 mx-auto">
+                <iframe 
+                  src={videoSrc}
+                  title={videoTitle}
+                  className="w-full h-full rounded-lg border border-gray-100" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                  style={{ pointerEvents: 'auto', position: 'relative' }}
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <h2 className="text-2xl font-semibold text-gray-800 mb-4">The workshop has these main components:</h2>
 
