@@ -673,17 +673,26 @@ export default function StepByStepReflection({
                 Your Reflection Space
               </label>
               <p className="text-gray-700 mb-3 text-sm italic">
-                {step <= 4 
-                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively`
-                  : step === 5 
+                {currentStep <= 4 
+                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively`
+                  : currentStep === 5 
                   ? "Write 2-3 sentences about your ideal team environment"
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
               <Textarea 
-                id="strength-1-reflection"
-                value={reflections.strength1}
-                onChange={(e) => handleReflectionChange(1, e.target.value)}
-                placeholder="Describe specific moments when you've used your Acting strength effectively..."
+                id={`strength-${currentStep}-reflection`}
+                value={currentStep === 1 ? reflections.strength1 : 
+                       currentStep === 2 ? reflections.strength2 : 
+                       currentStep === 3 ? reflections.strength3 : 
+                       currentStep === 4 ? reflections.strength4 :
+                       currentStep === 5 ? reflections.teamValues :
+                       reflections.uniqueContribution}
+                onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
+                placeholder={currentStep <= 4 
+                  ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
+                  : currentStep === 5 
+                  ? "Describe the team environment where you perform at your best..."
+                  : "Describe your unique contribution to the team..."}
                 className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
               />
 
