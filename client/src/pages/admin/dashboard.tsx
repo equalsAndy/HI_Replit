@@ -13,6 +13,7 @@ import { Loader2 } from 'lucide-react';
 // Admin Components
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CohortManagement } from '@/components/admin/CohortManagement';
+import { VideoManagement } from '@/components/admin/VideoManagement';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -127,4 +128,23 @@ function UserManagementTab() {
 // Cohort Management Tab Component
 function CohortManagementTab() {
   return <CohortManagement />;
+}
+
+// Video Management Tab Component
+function VideoManagementTab() {
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Video Management</CardTitle>
+          <CardDescription>
+            Manage videos for all workshops. Add, edit, and view videos used throughout the platform.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <VideoManagement />
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
