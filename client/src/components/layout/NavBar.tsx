@@ -190,15 +190,6 @@ export function NavBar() {
               Admin
             </Button>
           )}
-          
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-            onClick={() => window.location.href = 'mailto:esbin@5x5teams.com'}
-          >
-            Contact Us
-          </Button>
           {user?.id && (
             <Button 
               variant="ghost" 
