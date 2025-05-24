@@ -38,7 +38,7 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
-  
+
   // State for saving user reflections
   const [reflections, setReflections] = useState({
     strength1: '',
@@ -48,7 +48,7 @@ export default function StepByStepReflection({
     teamValues: '',
     uniqueContribution: ''
   });
-  
+
   // Function to populate reflections with demo lorem ipsum text
   const fillWithDemoData = () => {
     const loremTexts = [
@@ -59,7 +59,7 @@ export default function StepByStepReflection({
       "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
       "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni."
     ];
-    
+
     // Get random lorem ipsum paragraph
     const getRandomLorem = () => {
       const idx1 = Math.floor(Math.random() * loremTexts.length);
@@ -69,7 +69,7 @@ export default function StepByStepReflection({
       }
       return loremTexts[idx1] + " " + loremTexts[idx2];
     };
-    
+
     // Fill all reflection fields
     setReflections({
       strength1: getRandomLorem(),
@@ -79,14 +79,14 @@ export default function StepByStepReflection({
       teamValues: getRandomLorem(),
       uniqueContribution: getRandomLorem()
     });
-    
+
     // Jump to the final question immediately
     setCurrentStep(totalSteps);
   };
-  
+
   // Helper function to determine current progress percentage
   const progressPercentage = Math.round((currentStep / totalSteps) * 100);
-  
+
   // Sort quadrants by score to determine strength order (highest first)
   const sortedQuadrants = [
     { key: 'planning', label: 'PLANNING', color: QUADRANT_COLORS.planning, score: starCard?.planning || 0 },
@@ -94,17 +94,17 @@ export default function StepByStepReflection({
     { key: 'feeling', label: 'FEELING', color: QUADRANT_COLORS.feeling, score: starCard?.feeling || 0 },
     { key: 'thinking', label: 'THINKING', color: QUADRANT_COLORS.thinking, score: starCard?.thinking || 0 }
   ].sort((a, b) => b.score - a.score);
-  
+
   // Get current top strength
   const topStrength = sortedQuadrants[0];
   const secondStrength = sortedQuadrants[1];
   const thirdStrength = sortedQuadrants[2];
   const fourthStrength = sortedQuadrants[3];
-  
+
   // Update reflection handler
   const handleReflectionChange = (step: number, value: string) => {
     const newReflections = { ...reflections };
-    
+
     switch(step) {
       case 1: newReflections.strength1 = value; break;
       case 2: newReflections.strength2 = value; break;
@@ -113,10 +113,10 @@ export default function StepByStepReflection({
       case 5: newReflections.teamValues = value; break;
       case 6: newReflections.uniqueContribution = value; break;
     }
-    
+
     setReflections(newReflections);
   };
-  
+
   // Colors based on quadrant
   const strengthColors: Record<string, {
     bg: string,
@@ -154,7 +154,7 @@ export default function StepByStepReflection({
       text: 'text-green-800'
     }
   };
-  
+
   // Helper to get strength description
   const getStrengthDescription = (strengthLabel: string) => {
     switch(strengthLabel) {
@@ -170,7 +170,7 @@ export default function StepByStepReflection({
         return "";
     }
   };
-  
+
   // Helper to get strength reflection prompt
   const getStrengthPrompt = (strengthLabel: string) => {
     switch(strengthLabel) {
@@ -238,7 +238,7 @@ export default function StepByStepReflection({
         };
     }
   };
-  
+
   // Next/previous step handlers
   const handleNext = () => {
     if (currentStep < totalSteps) {
@@ -249,7 +249,7 @@ export default function StepByStepReflection({
       if (markStepCompleted) {
         markStepCompleted('2-3'); // Mark reflection step as completed
       }
-      
+
       // Navigate to Intro to Flow
       if (setCurrentContent) {
         setCurrentContent('intro-flow');
@@ -257,19 +257,19 @@ export default function StepByStepReflection({
       }
     }
   };
-  
+
   const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
       setShowExamples(false);
     }
   };
-  
+
   // Render strength reflection step (steps 1-4)
   const renderStrengthReflection = (step: number) => {
     let strength;
     let ordinal;
-    
+
     switch(step) {
       case 1: 
         strength = sortedQuadrants[0];
@@ -291,10 +291,10 @@ export default function StepByStepReflection({
         strength = sortedQuadrants[0];
         ordinal = "1st";
     }
-    
+
     const colors = strengthColors[strength.label];
     const prompt = getStrengthPrompt(strength.label);
-    
+
     return (
       <div className="mb-8">
         <div className="flex items-center mb-4">
@@ -307,12 +307,12 @@ export default function StepByStepReflection({
             Your {ordinal} Strength: {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.score}%)
           </h3>
         </div>
-        
+
         <div className="ml-16 mb-6">
           <p className="text-gray-700 mb-3">
             {getStrengthDescription(strength.label)}
           </p>
-          
+
           <div className={`${colors.lightBg} border ${colors.border} rounded-lg p-4 mb-4`}>
             <h4 className={`font-medium ${colors.text} mb-3`}>{prompt.question}</h4>
             <p className="text-gray-700 text-sm mb-3">
@@ -323,7 +323,7 @@ export default function StepByStepReflection({
                 <li key={index}>{bullet}</li>
               ))}
             </ul>
-            
+
             <div className="mb-2">
               <button 
                 onClick={() => setShowExamples(!showExamples)}
@@ -332,7 +332,7 @@ export default function StepByStepReflection({
                 {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
                 {showExamples ? "Hide example responses" : "Show example responses"}
               </button>
-              
+
               {showExamples && (
                 <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                   <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
@@ -345,36 +345,40 @@ export default function StepByStepReflection({
               )}
             </div>
           </div>
-          
+
           <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
             <label htmlFor={`strength-${step}-reflection`} className="block text-lg font-semibold text-indigo-800 mb-2">
               Your Reflection Space
             </label>
             <p className="text-gray-700 mb-3 text-sm italic">
-              Write 2-3 sentences about when you've used this strength effectively
-            </p>
-            <Textarea 
-              id={`strength-${step}-reflection`}
-              value={step === 1 ? reflections.strength1 : 
+                {step <= 4 
+                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively`
+                  : step === 5 
+                  ? "Write 2-3 sentences about your ideal team environment"
+                  : "Write 2-3 sentences about your unique contribution"}
+              </p>
+              <Textarea 
+                id={`strength-${step}-reflection`}
+                value={step === 1 ? reflections.strength1 : 
                      step === 2 ? reflections.strength2 : 
                      step === 3 ? reflections.strength3 : 
                      step === 4 ? reflections.strength4 :
                      step === 5 ? reflections.teamValues :
                      reflections.uniqueContribution}
-              onChange={(e) => handleReflectionChange(step, e.target.value)}
-              placeholder={step <= 4 
-                ? `Describe specific moments when you've used your ${strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} strength effectively...`
-                : step === 5 
-                ? "Describe the team environment where you perform at your best..."
-                : "Describe your unique contribution to the team..."}
-              className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
-            />
+                onChange={(e) => handleReflectionChange(step, e.target.value)}
+                placeholder={step <= 4 
+                  ? `Describe specific moments when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively...`
+                  : step === 5 
+                  ? "Describe the team environment where you perform at your best..."
+                  : "Describe your unique contribution to the team..."}
+                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+              />
           </div>
         </div>
       </div>
     );
   };
-  
+
   // Render team values reflection (step 5)
   const renderTeamValuesReflection = () => {
     return (
@@ -387,13 +391,13 @@ export default function StepByStepReflection({
           </div>
           <h3 className="text-xl font-bold text-gray-800">What You Value Most in Team Environments</h3>
         </div>
-        
+
         <div className="ml-16 mb-6">
           <p className="text-gray-700 mb-3">
             Based on your strengths profile, certain team environments will help you perform at your best. 
             Consider what team qualities or behaviors would complement your unique strengths distribution.
           </p>
-          
+
           <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
             <h4 className="font-medium text-indigo-800 mb-2">Consider what you value in team environments:</h4>
             <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
@@ -402,7 +406,7 @@ export default function StepByStepReflection({
               <li>What kinds of roles or responsibilities energize you?</li>
               <li>How do you prefer to receive feedback?</li>
             </ul>
-            
+
             <div className="mb-2">
               <button 
                 onClick={() => setShowExamples(!showExamples)}
@@ -411,7 +415,7 @@ export default function StepByStepReflection({
                 {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
                 {showExamples ? "Hide example responses" : "Show example responses"}
               </button>
-              
+
               {showExamples && (
                 <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                   <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
@@ -423,7 +427,7 @@ export default function StepByStepReflection({
               )}
             </div>
           </div>
-          
+
           <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
             <label htmlFor="team-values-reflection" className="block text-lg font-semibold text-indigo-800 mb-2">
               Your Reflection Space
@@ -443,7 +447,7 @@ export default function StepByStepReflection({
       </div>
     );
   };
-  
+
   // Render unique contribution reflection (step 6)
   const renderUniqueContributionReflection = () => {
     return (
@@ -456,20 +460,20 @@ export default function StepByStepReflection({
           </div>
           <h3 className="text-xl font-bold text-gray-800">Your Unique Contribution</h3>
         </div>
-        
+
         <div className="ml-16 mb-6">
           <p className="text-gray-700 mb-3">
             Your particular strengths profile creates a unique combination that you bring to your team. 
             Think about how your top strengths work together to create value.
           </p>
-          
+
           <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
             <h4 className="font-medium text-green-800 mb-2">Consider your unique combination of strengths:</h4>
             <p className="text-gray-700 text-sm mb-3">
               Your top two strengths are {topStrength.label.toLowerCase()} ({topStrength.score}%) and {secondStrength.label.toLowerCase()} ({secondStrength.score}%). 
               How do these work together to create a unique perspective or approach?
             </p>
-            
+
             <div className="mb-2">
               <button 
                 onClick={() => setShowExamples(!showExamples)}
@@ -478,7 +482,7 @@ export default function StepByStepReflection({
                 {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
                 {showExamples ? "Hide example responses" : "Show example responses"}
               </button>
-              
+
               {showExamples && (
                 <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                   <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
@@ -489,7 +493,7 @@ export default function StepByStepReflection({
               )}
             </div>
           </div>
-          
+
           <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg shadow-sm">
             <label htmlFor="unique-contribution-reflection" className="block text-lg font-semibold text-green-800 mb-2">
               Your Reflection Space
@@ -509,7 +513,7 @@ export default function StepByStepReflection({
       </div>
     );
   };
-  
+
   return (
     <>
       {/* Progress indicator */}
@@ -522,7 +526,7 @@ export default function StepByStepReflection({
           <span className="text-xs font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
         </div>
       </div>
-      
+
       <div className="bg-white rounded-lg overflow-hidden shadow-md border border-indigo-100">
         {/* Responsive grid layout with purple area and strengths */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
@@ -536,7 +540,7 @@ export default function StepByStepReflection({
                   Let's explore one strength at a time.
                 </p>
               </div>
-              
+
               <Button 
                 variant="outline" 
                 size="sm"
@@ -548,19 +552,19 @@ export default function StepByStepReflection({
                 Add Demo Data
               </Button>
             </div>
-            
+
             {/* Strengths Distribution */}
             <div className="mt-4 bg-white/30 rounded-lg p-4">
               <div className="flex flex-col items-center">
                 <h3 className="text-white font-bold text-center mb-3">Your Strengths Distribution</h3>
-                
+
                 <div className="flex flex-col gap-2 mb-2 w-full max-w-md">
                   {sortedQuadrants.map((quadrant, index) => {
                     let bgColor = '';
                     let textColor = 'text-gray-900';
                     let borderColor = '';
                     let isHighlighted = currentStep <= 4 && index === currentStep - 1;
-                    
+
                     switch(quadrant.label) {
                       case 'PLANNING':
                         bgColor = 'bg-yellow-400';
@@ -579,7 +583,7 @@ export default function StepByStepReflection({
                         borderColor = isHighlighted ? 'border-2 border-green-700' : '';
                         break;
                     }
-                    
+
                     return (
                       <div 
                         key={quadrant.label}
@@ -617,11 +621,11 @@ export default function StepByStepReflection({
                     Your {currentStep === 1 ? '1st' : currentStep === 2 ? '2nd' : currentStep === 3 ? '3rd' : '4th'} Strength: {sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} ({sortedQuadrants[currentStep-1].score}%)
                   </h3>
                 </div>
-                
+
                 <p className="text-gray-700 mb-4">
                   {getStrengthDescription(sortedQuadrants[currentStep-1].label)}
                 </p>
-                
+
                 <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].lightBg} border ${strengthColors[sortedQuadrants[currentStep-1].label].border} rounded-lg p-4 mb-4`}>
                   <h4 className={`font-medium ${strengthColors[sortedQuadrants[currentStep-1].label].text} mb-3`}>
                     {getStrengthPrompt(sortedQuadrants[currentStep-1].label).question}
@@ -637,7 +641,7 @@ export default function StepByStepReflection({
                 </div>
               </>
             )}
-            
+
             {/* Show other content for steps 5-6 */}
             {currentStep === 5 && (
               <>
@@ -648,7 +652,7 @@ export default function StepByStepReflection({
                 </p>
               </>
             )}
-            
+
             {currentStep === 6 && (
               <>
                 <h3 className="text-xl font-bold text-gray-800 mb-4">Your Unique Contribution</h3>
@@ -660,7 +664,7 @@ export default function StepByStepReflection({
             )}
           </div>
         </div>
-        
+
         {/* Reflection Space - Full Width Section */}
         <div className="p-6 bg-gray-50 border-t border-gray-200">
           <div className="max-w-4xl mx-auto">
@@ -669,7 +673,11 @@ export default function StepByStepReflection({
                 Your Reflection Space
               </label>
               <p className="text-gray-700 mb-3 text-sm italic">
-                Write 2-3 sentences about when you've used this strength effectively
+                {step <= 4 
+                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively`
+                  : step === 5 
+                  ? "Write 2-3 sentences about your ideal team environment"
+                  : "Write 2-3 sentences about your unique contribution"}
               </p>
               <Textarea 
                 id="strength-1-reflection"
@@ -678,7 +686,7 @@ export default function StepByStepReflection({
                 placeholder="Describe specific moments when you've used your Acting strength effectively..."
                 className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
               />
-              
+
               <div className="mt-3">
                 <button 
                   onClick={() => setShowExamples(!showExamples)}
@@ -687,7 +695,7 @@ export default function StepByStepReflection({
                   {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
                   {showExamples ? "Hide example responses" : "Show example responses"}
                 </button>
-                
+
                 {showExamples && (
                   <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
                     <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
@@ -701,7 +709,7 @@ export default function StepByStepReflection({
             </div>
           </div>
         </div>
-        
+
         {/* Navigation controls */}
         <div className="p-6 border-t border-gray-200">
           <div className="flex justify-between mt-2">
@@ -712,7 +720,7 @@ export default function StepByStepReflection({
             >
               Previous
             </Button>
-            
+
             <Button 
               onClick={handleNext}
               variant="default"
