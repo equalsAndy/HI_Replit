@@ -31,7 +31,7 @@ export default function IntroductionVideo() {
               <iframe 
                 src="https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1"
                 title="AllStarTeams Workshop Introduction"
-                className="w-full h-full" 
+                className="w-full h-full rounded-lg" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
               ></iframe>

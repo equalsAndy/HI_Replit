@@ -53,7 +53,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
               <iframe 
                 src={videoSrc}
                 title={videoTitle}
-                className="w-full h-[400px]" 
+                className="w-full h-[400px] rounded-lg" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
               ></iframe>
