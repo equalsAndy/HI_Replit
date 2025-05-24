@@ -23,10 +23,19 @@ export default function Landing() {
             </a>
           </div>
 
+          {/* Auto-redirect to workshop on login */}
           <div className="flex items-center space-x-3">
-            <Link href="/auth">
-              <Button variant="outline" size="sm" className="rounded-md">Login</Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-md"
+              onClick={() => {
+                const currentApp = localStorage.getItem('selectedApp') || 'allstarteams';
+                window.location.href = `/auth?app=${currentApp === 'allstarteams' ? 'ast' : 'imaginal-agility'}`;
+              }}
+            >
+              Get Started
+            </Button>
           </div>
         </div>
       </header>
