@@ -36,10 +36,8 @@ router.get('/profile', requireAuth, async (req, res) => {
       isTestUser: result.user?.isTestUser || false, // Ensure isTestUser field is included
     };
 
-    res.json({
-      success: true,
-      user: userProfile
-    });
+    // Return user data directly (not wrapped in success object) for frontend compatibility
+    res.json(userProfile);
   } catch (error) {
     console.error('Error getting user profile:', error);
     res.status(500).json({
