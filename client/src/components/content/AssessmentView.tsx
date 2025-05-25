@@ -23,20 +23,60 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  // Check if the starCard is complete (has non-zero values)
-  const isAssessmentComplete = starCard && 
-                              (Number(starCard.thinking) > 0 || 
-                               Number(starCard.acting) > 0 || 
-                               Number(starCard.feeling) > 0 || 
-                               Number(starCard.planning) > 0);
+  // Fetch the latest assessment data from server using fetch instead of relying on passed props
+  const [assessmentData, setAssessmentData] = React.useState<any>(null);
+  const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
+  
+  // Load assessment data directly from the API when component mounts
+  React.useEffect(() => {
+    const fetchAssessmentData = async () => {
+      setIsLoadingAssessment(true);
+      try {
+        const response = await fetch('/api/workshop-data/userAssessments', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Assessment API response:", data);
+          
+          // Look for star card assessment in the response
+          if (data?.currentUser?.assessments?.starCard) {
+            setAssessmentData(data.currentUser.assessments.starCard);
+          }
+        } else {
+          console.error("Failed to fetch assessment data:", response.status);
+        }
+      } catch (error) {
+        console.error("Error fetching assessment data:", error);
+      } finally {
+        setIsLoadingAssessment(false);
+      }
+    };
+    
+    fetchAssessmentData();
+  }, []);
+  
+  // Use the fetched data or fall back to the prop
+  const assessmentResults = assessmentData?.formattedResults || starCard;
+  
+  // Check if assessment is complete based on our data
+  const isAssessmentComplete = 
+    (assessmentResults && (
+      Number(assessmentResults.thinking) > 0 || 
+      Number(assessmentResults.acting) > 0 || 
+      Number(assessmentResults.feeling) > 0 || 
+      Number(assessmentResults.planning) > 0
+    )) || false;
   
   // Debug log to check assessment completion status                              
   console.log("Assessment completion check:", {
     hasStarCard: !!starCard,
-    thinking: starCard?.thinking,
-    acting: starCard?.acting,
-    feeling: starCard?.feeling,
-    planning: starCard?.planning,
+    hasAssessmentData: !!assessmentData,
+    thinking: assessmentResults?.thinking,
+    acting: assessmentResults?.acting,
+    feeling: assessmentResults?.feeling,
+    planning: assessmentResults?.planning,
     isComplete: isAssessmentComplete
   });
 
@@ -133,10 +173,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-center items-center my-4 w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
-                  thinking={starCard.thinking || 0}
-                  acting={starCard.acting || 0}
-                  feeling={starCard.feeling || 0}
-                  planning={starCard.planning || 0}
+                  thinking={assessmentResults?.thinking || 0}
+                  acting={assessmentResults?.acting || 0}
+                  feeling={assessmentResults?.feeling || 0}
+                  planning={assessmentResults?.planning || 0}
                 />
               </div>
             </div>
@@ -145,14 +185,14 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               <div className="space-y-3">
                 {(() => {
                   // Calculate total score for proper percentage calculation
-                  const thinking = Number(starCard.thinking) || 0;
-                  const planning = Number(starCard.planning) || 0;
-                  const feeling = Number(starCard.feeling) || 0;
-                  const acting = Number(starCard.acting) || 0;
+                  const thinking = Number(assessmentResults?.thinking) || 0;
+                  const planning = Number(assessmentResults?.planning) || 0;
+                  const feeling = Number(assessmentResults?.feeling) || 0;
+                  const acting = Number(assessmentResults?.acting) || 0;
                   const total = thinking + planning + feeling + acting;
                   
                   // Calculate percentages
-                  const normalizeValue = (value: number) => Math.round((value / total) * 100);
+                  const normalizeValue = (value: number) => total === 0 ? 25 : Math.round((value / total) * 100);
                   
                   // Create and sort data
                   return [

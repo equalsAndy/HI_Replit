@@ -139,10 +139,17 @@ export default function AllStarTeams() {
     }
   }, [user, starCardData, starCardError]);
 
-  // Fetch star card data 
+  // Fetch star card data with better error handling and logging
   const { data: starCard, isLoading: starCardLoading1 } = useQuery<StarCard>({ 
     queryKey: ['/api/starcard'],
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    refetchInterval: 30000, // Refresh every 30 seconds to ensure data consistency
+    onSuccess: (data) => {
+      console.log("Star Card data loaded successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Error loading Star Card data:", error);
+    }
   });
 
   // Fetch flow attributes data
