@@ -102,7 +102,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Start the server on port 5000
-server.listen(5000, '0.0.0.0', () => {
+// Start the server on port 5000 to match Replit config
+server.listen(5000, () => {
   console.log(`Server running on port 5000`);
 });
