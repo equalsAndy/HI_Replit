@@ -770,7 +770,11 @@ export function VideoDirectManagement() {
                 videos.map((video) => (
                   <TableRow key={video.id}>
                     <TableCell className="font-medium">{video.title}</TableCell>
-                    <TableCell>{video.workshop_type}</TableCell>
+                    <TableCell>
+                      {video.workshop_type === 'allstarteams' ? 'AllStarTeams' : 
+                       video.workshop_type === 'imaginal-agility' ? 'Imaginal Agility' : 
+                       video.workshop_type}
+                    </TableCell>
                     <TableCell>{video.section}</TableCell>
                     <TableCell className="font-mono">
                       {video.editableId || extractYouTubeId(video.url)}
