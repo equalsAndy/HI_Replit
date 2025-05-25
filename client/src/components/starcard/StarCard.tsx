@@ -290,9 +290,13 @@ export default function StarCard({
             )}
           </div>
           <div>
-            <p className="font-medium text-gray-800">Name: {derivedProfile.name || 'Your Name'}</p>
-            <p className="text-sm text-gray-600">Title: {derivedProfile.title || 'Your Title'}</p>
-            <p className="text-sm text-gray-600">Organization: {derivedProfile.organization || 'Your Organization'}</p>
+            <p className="font-medium text-gray-800">{derivedProfile.name || 'Your Name'}</p>
+            {derivedProfile.title && (
+              <p className="text-sm text-gray-600">{derivedProfile.title}</p>
+            )}
+            {derivedProfile.organization && (
+              <p className="text-sm text-gray-600">{derivedProfile.organization}</p>
+            )}
           </div>
         </div>
 
