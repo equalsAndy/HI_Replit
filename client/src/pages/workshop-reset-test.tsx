@@ -252,8 +252,11 @@ export default function WorkshopResetTest() {
           setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
         }
         
-        // Refresh server data to show changes
-        refreshServerData();
+        // Wait a moment to allow the server to fully process the reset
+        setTimeout(() => {
+          // Then refresh the server data to show changes
+          refreshServerData();
+        }, 1000);
       } else {
         // Reset failed
         const responseText = await resetResponse.text();
