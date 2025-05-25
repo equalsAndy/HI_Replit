@@ -18,8 +18,9 @@ export function TestUserBanner({
   showInHeader = false,
   user
 }: TestUserBannerProps) {
-  // If no user data is provided or the user is not a test user, don't show the banner
-  if (!user?.id || user.isTestUser !== true) return null;
+  // For testing purposes, we'll always show the banner
+  // Uncomment this line when done testing:
+  // if (!user?.id || user.isTestUser !== true) return null;
   
   // Style based on role
   const getBadgeStyle = () => {
