@@ -1,192 +1,207 @@
 import { db } from '../db';
-import * as schema from '../../shared/schema';
+import * as schema from '@shared/schema';
+import { generateInviteCode, isValidInviteCodeFormat } from '../utils/invite-code';
 import { eq, and, isNull } from 'drizzle-orm';
-import { generateInviteCode } from '../utils/invite-code';
+import { userManagementService } from './user-management-service';
 
 interface CreateInviteParams {
-  name: string;
+  name?: string;
   email: string;
   role: 'admin' | 'facilitator' | 'participant';
   createdBy: number;
-  cohortId?: number | null;
-  expiresAt?: Date | null;
+  cohortId?: number;
+  expiresAt?: string; // ISO date string
+}
+
+interface InviteVerificationResult {
+  valid: boolean;
+  error?: string;
+  invite?: {
+    id: number;
+    inviteCode: string;
+    name?: string;
+    email: string;
+    role: string;
+    cohortId?: number;
+  };
 }
 
 class InviteService {
   /**
-   * Create a new invite
+   * Create a new invite code
    */
   async createInvite(params: CreateInviteParams) {
-    const inviteCode = generateInviteCode();
+    const { name, email, role, createdBy, cohortId, expiresAt } = params;
     
-    // Default expiration to 7 days if not specified
-    const expiresAt = params.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    // Generate a unique invite code
+    let inviteCode = generateInviteCode();
+    let isUnique = false;
     
-    const result = await db.insert(schema.invites).values({
-      inviteCode,
-      email: params.email,
-      name: params.name,
-      role: params.role,
-      createdBy: params.createdBy,
-      cohortId: params.cohortId || null,
-      createdAt: new Date(),
-      expiresAt,
-    }).returning();
-    
-    return result[0];
-  }
-  
-  /**
-   * Generate multiple invite codes at once
-   */
-  async generateBatchInvites(count: number, params: {
-    role: 'admin' | 'facilitator' | 'participant',
-    createdBy: number,
-    cohortId?: number | null,
-    expiresAt?: Date | null
-  }) {
-    const invites = [];
-    
-    for (let i = 0; i < count; i++) {
-      const inviteCode = generateInviteCode();
-      
-      // Default expiration to 7 days if not specified
-      const expiresAt = params.expiresAt || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-      
-      invites.push({
-        inviteCode,
-        email: '', // To be filled later
-        name: '', // To be filled later
-        role: params.role,
-        createdBy: params.createdBy,
-        cohortId: params.cohortId || null,
-        createdAt: new Date(),
-        expiresAt,
+    // Keep generating until we get a unique code
+    while (!isUnique) {
+      const existingInvite = await db.query.invites.findFirst({
+        where: eq(schema.invites.inviteCode, inviteCode),
       });
+      
+      if (!existingInvite) {
+        isUnique = true;
+      } else {
+        inviteCode = generateInviteCode();
+      }
     }
     
-    const result = await db.insert(schema.invites).values(invites).returning();
-    return result;
+    // Create the invite
+    const invite = await db.insert(schema.invites).values({
+      inviteCode,
+      name,
+      email,
+      role,
+      createdBy,
+      cohortId,
+      expiresAt: expiresAt ? new Date(expiresAt) : null,
+      createdAt: new Date(),
+    }).returning();
+    
+    return invite[0];
   }
   
   /**
-   * Verify an invite code is valid and unused
+   * Verify an invite code
    */
-  async verifyInviteCode(inviteCode: string) {
+  async verifyInviteCode(inviteCode: string): Promise<InviteVerificationResult> {
+    // Validate format
+    if (!isValidInviteCodeFormat(inviteCode)) {
+      return {
+        valid: false,
+        error: 'Invalid invite code format',
+      };
+    }
+    
+    // Check if the invite exists
     const invite = await db.query.invites.findFirst({
-      where: and(
-        eq(schema.invites.inviteCode, inviteCode),
-        isNull(schema.invites.usedAt)
-      )
+      where: eq(schema.invites.inviteCode, inviteCode),
     });
     
     if (!invite) {
-      return { valid: false, message: 'Invalid or expired invite code' };
+      return {
+        valid: false,
+        error: 'Invite code not found',
+      };
     }
     
-    // Check if invite is expired
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
-      return { valid: false, message: 'Invite code has expired' };
+    // Check if the invite has already been used
+    if (invite.usedAt) {
+      return {
+        valid: false,
+        error: 'This invite code has already been used',
+      };
     }
     
-    return { valid: true, invite };
+    // Check if the invite has expired
+    if (invite.expiresAt && new Date() > invite.expiresAt) {
+      return {
+        valid: false,
+        error: 'This invite code has expired',
+      };
+    }
+    
+    // Check if there's already a user with the same email
+    const existingUser = await userManagementService.getUserByEmail(invite.email);
+    
+    if (existingUser) {
+      return {
+        valid: false,
+        error: 'A user with this email already exists',
+      };
+    }
+    
+    // Invite is valid
+    return {
+      valid: true,
+      invite: {
+        id: invite.id,
+        inviteCode: invite.inviteCode,
+        name: invite.name ?? undefined,
+        email: invite.email,
+        role: invite.role,
+        cohortId: invite.cohortId ?? undefined,
+      },
+    };
   }
   
   /**
    * Mark an invite as used
    */
   async markInviteAsUsed(inviteCode: string, userId: number) {
-    return await db
-      .update(schema.invites)
-      .set({
-        usedAt: new Date(),
-        usedBy: userId
-      })
-      .where(eq(schema.invites.inviteCode, inviteCode))
-      .returning();
+    try {
+      await db.update(schema.invites)
+        .set({
+          usedAt: new Date(),
+          usedBy: userId,
+        })
+        .where(eq(schema.invites.inviteCode, inviteCode));
+      
+      return true;
+    } catch (error) {
+      console.error('Error marking invite as used:', error);
+      return false;
+    }
   }
   
   /**
    * Get all invites
    */
   async getAllInvites() {
-    return await db.query.invites.findMany({
-      with: {
-        creator: {
-          columns: {
-            id: true,
-            username: true,
-            name: true,
-          }
-        }
-      },
-      orderBy: (invites, { desc }) => [desc(invites.createdAt)]
+    const invites = await db.query.invites.findMany({
+      orderBy: (invites, { desc }) => [desc(invites.createdAt)],
     });
+    
+    return invites;
   }
   
   /**
-   * Get all unused invites
+   * Get invites created by a specific user
    */
-  async getUnusedInvites() {
-    return await db.query.invites.findMany({
-      where: isNull(schema.invites.usedAt),
-      with: {
-        creator: {
-          columns: {
-            id: true,
-            username: true,
-            name: true,
-          }
-        }
-      },
-      orderBy: (invites, { desc }) => [desc(invites.createdAt)]
+  async getInvitesByCreator(userId: number) {
+    const invites = await db.query.invites.findMany({
+      where: eq(schema.invites.createdBy, userId),
+      orderBy: (invites, { desc }) => [desc(invites.createdAt)],
     });
+    
+    return invites;
   }
   
   /**
-   * Get invite by ID
+   * Get an invite by ID
    */
   async getInviteById(id: number) {
-    return await db.query.invites.findFirst({
+    const invite = await db.query.invites.findFirst({
       where: eq(schema.invites.id, id),
-      with: {
-        creator: {
-          columns: {
-            id: true,
-            username: true,
-            name: true,
-          }
-        }
-      }
     });
+    
+    return invite;
   }
   
   /**
-   * Get invite by code
+   * Revoke an invite (Delete it)
    */
-  async getInviteByCode(inviteCode: string) {
-    return await db.query.invites.findFirst({
-      where: eq(schema.invites.inviteCode, inviteCode),
-      with: {
-        creator: {
-          columns: {
-            id: true,
-            username: true,
-            name: true,
-          }
-        }
-      }
-    });
-  }
-  
-  /**
-   * Delete an invite
-   */
-  async deleteInvite(id: number) {
-    return await db
-      .delete(schema.invites)
-      .where(eq(schema.invites.id, id))
-      .returning();
+  async revokeInvite(id: number) {
+    try {
+      // Only revoke if the invite hasn't been used
+      const result = await db.delete(schema.invites)
+        .where(
+          and(
+            eq(schema.invites.id, id),
+            isNull(schema.invites.usedAt)
+          )
+        )
+        .returning({ id: schema.invites.id });
+      
+      return result.length > 0;
+    } catch (error) {
+      console.error('Error revoking invite:', error);
+      return false;
+    }
   }
 }
 

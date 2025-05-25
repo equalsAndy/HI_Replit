@@ -1,138 +1,130 @@
 import express from 'express';
 import { inviteService } from '../services/invite-service';
-import { userManagementService } from '../services/user-management-service';
-import { isFacilitatorOrAdmin } from '../middleware/roles';
-import { isAuthenticated } from '../middleware/auth';
-import { normalizeInviteCode } from '../utils/invite-code';
+import { isAdmin, isFacilitator, isAuthenticated } from '../middleware/auth';
+import { z } from 'zod';
 
-const router = express.Router();
+export const inviteRouter = express.Router();
 
-// All invite routes require authentication
-router.use(isAuthenticated);
-
-// Get all invites (for admins/facilitators)
-router.get('/invites', isFacilitatorOrAdmin, async (req, res) => {
+// Verify invite code
+inviteRouter.post('/verify', async (req, res) => {
   try {
-    const invites = await inviteService.getAllInvites();
-    return res.status(200).json({ invites });
+    const { inviteCode } = req.body;
+    
+    if (!inviteCode) {
+      return res.status(400).json({ error: 'Invite code is required' });
+    }
+    
+    const verification = await inviteService.verifyInviteCode(inviteCode);
+    
+    if (verification.valid) {
+      return res.status(200).json({
+        inviteCode,
+        name: verification.invite?.name,
+        email: verification.invite?.email,
+        role: verification.invite?.role,
+        cohortId: verification.invite?.cohortId,
+      });
+    } else {
+      return res.status(400).json({ error: verification.error });
+    }
   } catch (error) {
-    console.error('Error fetching invites:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching invites' });
+    console.error('Invite verification error:', error);
+    return res.status(500).json({ error: 'An error occurred while verifying the invite code' });
   }
 });
 
-// Get unused invites (for admins/facilitators)
-router.get('/invites/unused', isFacilitatorOrAdmin, async (req, res) => {
+// Create invite - Admin only
+inviteRouter.post('/create', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const invites = await inviteService.getUnusedInvites();
-    return res.status(200).json({ invites });
-  } catch (error) {
-    console.error('Error fetching unused invites:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching unused invites' });
-  }
-});
-
-// Create a new invite (for admins/facilitators)
-router.post('/invites', isFacilitatorOrAdmin, async (req, res) => {
-  try {
-    const { name, email, role, cohortId } = req.body;
-    
-    // Validate required fields
-    if (!name || !email || !role) {
-      return res.status(400).json({ error: 'Name, email, and role are required' });
-    }
-    
-    // Only admins can create admin/facilitator invites
-    if ((role === 'admin' || role === 'facilitator') && req.session.userRole !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can create admin or facilitator invites' });
-    }
-    
-    // Create the invite
-    const invite = await inviteService.createInvite({
-      name,
-      email,
-      role,
-      createdBy: req.session.userId,
-      cohortId: cohortId || null,
+    const inviteSchema = z.object({
+      name: z.string().optional(),
+      email: z.string().email(),
+      role: z.enum(['admin', 'facilitator', 'participant']),
+      cohortId: z.number().optional(),
+      expiresAt: z.string().optional(), // ISO date string
     });
     
-    return res.status(201).json({ invite });
+    const validation = inviteSchema.safeParse(req.body);
+    
+    if (!validation.success) {
+      return res.status(400).json({ 
+        error: 'Invalid invite data', 
+        details: validation.error.format() 
+      });
+    }
+    
+    const inviteData = validation.data;
+    
+    // Add created by info
+    const createdBy = req.session.userId!;
+    
+    const invite = await inviteService.createInvite({
+      ...inviteData,
+      createdBy,
+    });
+    
+    return res.status(201).json(invite);
   } catch (error) {
-    console.error('Error creating invite:', error);
+    console.error('Invite creation error:', error);
     return res.status(500).json({ error: 'An error occurred while creating the invite' });
   }
 });
 
-// Generate batch invites (for admins/facilitators)
-router.post('/invites/batch', isFacilitatorOrAdmin, async (req, res) => {
+// Get all invites - Admin only
+inviteRouter.get('/', isAuthenticated, isAdmin, async (req, res) => {
   try {
-    const { count, role, cohortId } = req.body;
-    
-    // Validate required fields
-    if (!count || !role) {
-      return res.status(400).json({ error: 'Count and role are required' });
-    }
-    
-    // Only admins can create admin/facilitator invites
-    if ((role === 'admin' || role === 'facilitator') && req.session.userRole !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can create admin or facilitator invites' });
-    }
-    
-    // Generate batch invites
-    const invites = await inviteService.generateBatchInvites(count, {
-      role,
-      createdBy: req.session.userId,
-      cohortId: cohortId || null,
-    });
-    
-    return res.status(201).json({ invites });
+    const invites = await inviteService.getAllInvites();
+    return res.status(200).json(invites);
   } catch (error) {
-    console.error('Error generating batch invites:', error);
-    return res.status(500).json({ error: 'An error occurred while generating batch invites' });
+    console.error('Get invites error:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching invites' });
   }
 });
 
-// Get invite by ID (for admins/facilitators)
-router.get('/invites/:id', isFacilitatorOrAdmin, async (req, res) => {
+// Get invites created by current user - Admin or Facilitator
+inviteRouter.get('/my-invites', isAuthenticated, async (req, res) => {
   try {
-    const { id } = req.params;
+    const userId = req.session.userId!;
+    const invites = await inviteService.getInvitesByCreator(userId);
+    return res.status(200).json(invites);
+  } catch (error) {
+    console.error('Get my invites error:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching your invites' });
+  }
+});
+
+// Revoke invite - Admin only or the creator of the invite
+inviteRouter.post('/revoke/:id', isAuthenticated, async (req, res) => {
+  try {
+    const inviteId = Number(req.params.id);
     
-    const invite = await inviteService.getInviteById(Number(id));
+    if (isNaN(inviteId)) {
+      return res.status(400).json({ error: 'Invalid invite ID' });
+    }
+    
+    const userId = req.session.userId!;
+    const userRole = req.session.userRole!;
+    
+    // Check if user is admin or the creator of the invite
+    const invite = await inviteService.getInviteById(inviteId);
     
     if (!invite) {
       return res.status(404).json({ error: 'Invite not found' });
     }
     
-    return res.status(200).json({ invite });
-  } catch (error) {
-    console.error('Error fetching invite:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching the invite' });
-  }
-});
-
-// Delete invite (for admins/facilitators)
-router.delete('/invites/:id', isFacilitatorOrAdmin, async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const invite = await inviteService.getInviteById(Number(id));
-    
-    if (!invite) {
-      return res.status(404).json({ error: 'Invite not found' });
+    if (userRole !== 'admin' && invite.createdBy !== userId) {
+      return res.status(403).json({ error: 'You do not have permission to revoke this invite' });
     }
     
-    // Check if this user has permission to delete this invite
-    if (req.session.userRole !== 'admin' && invite.createdBy !== req.session.userId) {
-      return res.status(403).json({ error: 'You do not have permission to delete this invite' });
+    const revoked = await inviteService.revokeInvite(inviteId);
+    
+    if (revoked) {
+      return res.status(200).json({ message: 'Invite revoked successfully' });
+    } else {
+      return res.status(400).json({ error: 'Failed to revoke invite' });
     }
-    
-    await inviteService.deleteInvite(Number(id));
-    
-    return res.status(200).json({ message: 'Invite deleted successfully' });
   } catch (error) {
-    console.error('Error deleting invite:', error);
-    return res.status(500).json({ error: 'An error occurred while deleting the invite' });
+    console.error('Revoke invite error:', error);
+    return res.status(500).json({ error: 'An error occurred while revoking the invite' });
   }
 });
-
-export default router;
