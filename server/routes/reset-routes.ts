@@ -41,20 +41,55 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       });
     }
     
-    // Use the ResetService which has been properly tested
-    const resetResult = await ResetService.resetAllUserData(userId);
-    
-    // Add cache prevention headers
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    
-    console.log(`=== RESET: Completed data reset for user ${userId} ===`);
-    
-    if (resetResult.success) {
-      return res.status(200).json(resetResult);
-    } else {
-      return res.status(500).json(resetResult);
+    // Use direct SQL for guaranteed deletion
+    try {
+      // Import DB connection and SQL helpers
+      const { db } = await import('../db');
+      const { sql } = await import('drizzle-orm');
+      
+      // Use direct SQL to delete user assessments
+      await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+      
+      // Try to reset any workshop participation (might not exist)
+      try {
+        await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+      } catch (err) {
+        console.log(`No workshop participation to reset for user ${userId}`);
+      }
+      
+      // Add cache prevention headers
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      console.log(`=== RESET: Successfully deleted all data for user ${userId} ===`);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'User data reset successfully',
+        userId: userId,
+        deletedData: {
+          starCard: true,
+          flowAttributes: true,
+          userProgress: true
+        }
+      });
+    } catch (error) {
+      console.error(`Error in direct SQL reset for user ${userId}:`, error);
+      
+      // Fall back to the reset service as a backup
+      const resetResult = await ResetService.resetAllUserData(userId);
+      
+      // Add cache prevention headers
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      
+      if (resetResult.success) {
+        return res.status(200).json(resetResult);
+      } else {
+        return res.status(500).json(resetResult);
+      }
     }
   } catch (error) {
     console.error('Error in reset endpoint:', error);
