@@ -73,6 +73,7 @@ const videoFormSchema = z.object({
   title: z.string().min(2, 'Title must be at least 2 characters'),
   description: z.string().optional(),
   url: z.string().url('Must be a valid URL'),
+  editableId: z.string().optional(),
   workshopType: z.string().min(1, 'Workshop type is required'),
   section: z.string().min(1, 'Section is required'),
   sortOrder: z.number().int().nonnegative().default(0),
@@ -87,6 +88,33 @@ export function VideoManagement() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Function to extract YouTube video ID from URL
+  const extractYouTubeId = (url: string): string => {
+    // Handle youtube.com/embed/VIDEO_ID format
+    const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
+    const embedMatch = url.match(embedRegex);
+    if (embedMatch && embedMatch[1]) {
+      return embedMatch[1];
+    }
+    
+    // Handle youtube.com/watch?v=VIDEO_ID format
+    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+    const watchMatch = url.match(watchRegex);
+    if (watchMatch && watchMatch[1]) {
+      return watchMatch[1];
+    }
+    
+    // Handle youtu.be/VIDEO_ID format
+    const shortRegex = /youtu\.be\/([^?&/]+)/;
+    const shortMatch = url.match(shortRegex);
+    if (shortMatch && shortMatch[1]) {
+      return shortMatch[1];
+    }
+    
+    // If no matches found, return the original string as it might be just the ID
+    return url;
+  };
 
   // Fetch videos
   const { data: videos, isLoading } = useQuery<Video[]>({
@@ -166,6 +194,7 @@ export function VideoManagement() {
       title: '',
       description: '',
       url: '',
+      editableId: '',
       workshopType: 'allstarteams',
       section: 'introduction',
       sortOrder: 0,
@@ -179,6 +208,7 @@ export function VideoManagement() {
       title: '',
       description: '',
       url: '',
+      editableId: '',
       workshopType: '',
       section: '',
       sortOrder: 0,
@@ -187,13 +217,27 @@ export function VideoManagement() {
 
   // Handle create submit
   const onCreateSubmit = (values: VideoFormValues) => {
-    createVideoMutation.mutate(values);
+    // Extract video ID from URL if not provided
+    const extractedId = values.editableId || extractYouTubeId(values.url);
+    const dataToSubmit = {
+      ...values,
+      editableId: extractedId
+    };
+    
+    createVideoMutation.mutate(dataToSubmit);
   };
 
   // Handle edit submit
   const onEditSubmit = (values: VideoFormValues) => {
     if (selectedVideo) {
-      updateVideoMutation.mutate({ id: selectedVideo.id, data: values });
+      // Extract video ID from URL if not provided
+      const extractedId = values.editableId || extractYouTubeId(values.url);
+      const dataToSubmit = {
+        ...values,
+        editableId: extractedId
+      };
+      
+      updateVideoMutation.mutate({ id: selectedVideo.id, data: dataToSubmit });
     }
   };
 

@@ -152,6 +152,7 @@ export const videos = pgTable("videos", {
   title: varchar("title").notNull(),
   description: text("description"),
   url: varchar("url").notNull(),
+  editableId: varchar("editable_id"), // Stores just the video ID for easier management
   workshopType: varchar("workshop_type").notNull(), // e.g., 'allstarteams', 'imaginal-agility'
   section: varchar("section").notNull(), // e.g., 'introduction', 'team-workshop'
   sortOrder: integer("sort_order").default(0),
