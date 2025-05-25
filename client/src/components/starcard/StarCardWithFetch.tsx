@@ -11,10 +11,20 @@ interface StarCardWithFetchProps {
     planning: number;
     imageUrl: string | null;
   };
+  flowAttributes?: Array<{
+    text: string;
+    color: string;
+  }>;
+  downloadable?: boolean;
 }
 
 // Component that fetches the latest Star Card data and renders the StarCard
-const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({ userId, fallbackData }) => {
+const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({ 
+  userId, 
+  fallbackData,
+  flowAttributes,
+  downloadable = false
+}) => {
   // Use React Query to fetch the latest star card data
   const { data: starCardData, isLoading } = useQuery<any>({
     queryKey: ['/api/starcard'],
@@ -170,6 +180,8 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({ userId, fallbackD
       planning={finalData.planning}
       imageUrl={finalData.imageUrl}
       state={finalData.state} // Important: pass the state to force quadrant display
+      flowAttributes={flowAttributes}
+      downloadable={downloadable}
     />
   );
 };
