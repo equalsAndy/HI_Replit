@@ -177,8 +177,8 @@ export function NavBar() {
           <TestUserBanner className="p-0" />
         )}
         
-        {/* User Controls Menu */}
-        {user?.id && (
+        {/* User Controls Menu for authenticated users */}
+        {user?.id ? (
           <div className="flex items-center gap-2">
             {/* Info/Settings Button */}
             <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
@@ -257,6 +257,13 @@ export function NavBar() {
               className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
             />
           </div>
+        ) : (
+          /* Show logout button for all users regardless of login status */
+          <LogoutButton 
+            variant="outline" 
+            size="sm" 
+            className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
+          />
         )}
       </div>
       
