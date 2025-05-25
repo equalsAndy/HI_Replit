@@ -58,8 +58,10 @@ export default function Landing() {
                   <Button 
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
+                      // Store the selection in sessionStorage
                       sessionStorage.setItem('selectedApp', 'ast');
-                      navigate('/auth?app=ast');
+                      // Use window.location for more reliable navigation with query params
+                      window.location.href = '/auth?app=ast';
                     }}
                   >
                     Start AllStarTeams
@@ -104,8 +106,10 @@ export default function Landing() {
                   <Button 
                     className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
+                      // Store the selection in sessionStorage
                       sessionStorage.setItem('selectedApp', 'imaginal-agility');
-                      navigate('/auth?app=imaginal-agility');
+                      // Use window.location for more reliable navigation with query params
+                      window.location.href = '/auth?app=imaginal-agility';
                     }}
                   >
                     Start Imaginal Agility

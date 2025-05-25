@@ -17,41 +17,14 @@ import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
 
-// Create a custom history object that safely handles browser navigation
-const useHashLocation = () => {
-  const [loc, setLoc] = React.useState(window.location.pathname);
-  
-  React.useEffect(() => {
-    // Handle navigation events (back/forward)
-    const handleNavigation = () => {
-      setLoc(window.location.pathname);
-    };
-
-    // Listen for navigation events
-    window.addEventListener('popstate', handleNavigation);
-    
-    // Clean up event listeners
-    return () => {
-      window.removeEventListener('popstate', handleNavigation);
-    };
-  }, []);
-  
-  // Return location and a navigation function
-  return [
-    loc,
-    (to: string) => {
-      window.history.pushState(null, '', to);
-      setLoc(to);
-    }
-  ];
-};
+// No need for a custom history hook, we'll use the default wouter behavior
 
 const App: React.FC = () => {
   // Use error boundary to catch any rendering or navigation errors
   return (
     <ErrorBoundary>
-      {/* Use our custom Router with more reliable history handling */}
-      <Router hook={useHashLocation}>
+      {/* Use standard router */}
+      <Router>
         <QueryClientProvider client={queryClient}>
           <ApplicationProvider>
             <DemoModeProvider>
