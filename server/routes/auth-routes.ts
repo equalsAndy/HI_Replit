@@ -1,84 +1,72 @@
 import express from 'express';
-import bcrypt from 'bcryptjs';
-import { userManagementService } from '../services/user-management-service';
-import { inviteService } from '../services/invite-service';
-import { isValidInviteCodeFormat } from '../utils/invite-code';
 import { z } from 'zod';
+import { userManagementService } from '../services/user-management-service';
 
+// Create the auth router
 export const authRouter = express.Router();
 
 // Login route
 authRouter.post('/login', async (req, res) => {
+  const schema = z.object({
+    username: z.string(),
+    password: z.string()
+  });
+  
   try {
-    const { username, password } = req.body;
+    const { username, password } = schema.parse(req.body);
     
-    if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-    }
+    // Verify credentials
+    const verification = await userManagementService.verifyPassword(username, password);
     
-    // Validate credentials
-    const user = await userManagementService.validateCredentials(username, password);
-    
-    if (!user) {
+    if (!verification.valid || !verification.user) {
       return res.status(401).json({ error: 'Invalid username or password' });
     }
     
-    // Set up session
-    req.session.userId = user.id;
-    req.session.username = user.username;
-    req.session.userRole = user.role;
+    // Set session data
+    req.session.userId = verification.user.id;
+    req.session.username = verification.user.username;
+    req.session.userRole = verification.user.role;
     
-    // Return user info (excluding password)
-    const { password: _, ...userWithoutPassword } = user;
-    
-    return res.status(200).json({ 
+    // Return user data
+    return res.status(200).json({
       message: 'Login successful',
-      user: userWithoutPassword 
+      user: verification.user
     });
   } catch (error) {
-    console.error('Login error:', error);
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: error.errors });
+    }
+    console.error('Error during login:', error);
     return res.status(500).json({ error: 'An error occurred during login' });
   }
 });
 
 // Logout route
 authRouter.post('/logout', (req, res) => {
+  // Destroy session
   req.session.destroy((err) => {
     if (err) {
-      return res.status(500).json({ error: 'Failed to logout' });
+      console.error('Error destroying session:', err);
+      return res.status(500).json({ error: 'An error occurred during logout' });
     }
     
     res.clearCookie('connect.sid');
-    return res.status(200).json({ message: 'Logged out successfully' });
+    return res.status(200).json({ message: 'Logout successful' });
   });
 });
 
-// Get current user info
-authRouter.get('/me', async (req, res) => {
-  try {
-    if (!req.session.userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-    
-    const user = await userManagementService.getUserById(req.session.userId);
-    
-    if (!user) {
-      // Session exists but user doesn't - clear the invalid session
-      req.session.destroy((err) => {
-        if (err) {
-          console.error('Error destroying invalid session:', err);
-        }
-      });
-      
-      return res.status(401).json({ error: 'User not found' });
-    }
-    
-    // Don't return the password
-    const { password, ...userWithoutPassword } = user;
-    
-    return res.status(200).json(userWithoutPassword);
-  } catch (error) {
-    console.error('Get current user error:', error);
-    return res.status(500).json({ error: 'An error occurred while fetching user data' });
+// Check authentication status
+authRouter.get('/status', (req, res) => {
+  if (!req.session.userId) {
+    return res.status(200).json({ 
+      authenticated: false 
+    });
   }
+  
+  return res.status(200).json({
+    authenticated: true,
+    userId: req.session.userId,
+    username: req.session.username,
+    role: req.session.userRole
+  });
 });

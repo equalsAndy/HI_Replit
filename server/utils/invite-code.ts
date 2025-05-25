@@ -1,52 +1,70 @@
 /**
- * Utility functions for handling invite codes
- * 
- * Invite codes are 12-character alphanumeric strings.
- * We avoid potentially confusing characters:
- * - No lowercase (to avoid confusion with uppercase)
- * - No 0 (zero) to avoid confusion with O
- * - No 1 (one) to avoid confusion with I
- * - No O to avoid confusion with 0
- * - No I to avoid confusion with 1
- * - No L to avoid confusion with 1
+ * Utility functions for generating and validating invite codes
+ * Invite codes are 12 characters long and exclude confusing characters
  */
 
-// Character set for invite codes: A-Z (minus confusing chars) and 2-9
-const INVITE_CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+// Character set for invite codes (excludes confusing characters like O, 0, I, 1, L)
+const INVITE_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
 const INVITE_CODE_LENGTH = 12;
 
 /**
- * Generate a random invite code
+ * Generates a random invite code
  * @returns A 12-character invite code
  */
 export function generateInviteCode(): string {
   let result = '';
-  const charsetLength = INVITE_CHARSET.length;
+  const charactersLength = INVITE_CODE_CHARS.length;
   
   for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
-    const randomIndex = Math.floor(Math.random() * charsetLength);
-    result += INVITE_CHARSET.charAt(randomIndex);
+    result += INVITE_CODE_CHARS.charAt(Math.floor(Math.random() * charactersLength));
   }
   
   return result;
 }
 
 /**
- * Validate that a string matches the expected invite code format
+ * Formats an invite code with hyphens for better readability
+ * @param code The invite code to format
+ * @returns Formatted invite code with hyphens (e.g., ABCD-EFGH-IJKL)
+ */
+export function formatInviteCode(code: string): string {
+  if (!code || code.length !== INVITE_CODE_LENGTH) {
+    return code;
+  }
+  
+  return `${code.substring(0, 4)}-${code.substring(4, 8)}-${code.substring(8, 12)}`;
+}
+
+/**
+ * Validates if a string matches the invite code format
  * @param code The code to validate
- * @returns boolean indicating if the code matches the required format
+ * @returns True if the code is valid
  */
 export function isValidInviteCodeFormat(code: string): boolean {
-  if (!code || typeof code !== 'string') {
+  if (!code || code.length !== INVITE_CODE_LENGTH) {
     return false;
   }
   
-  // Check length
-  if (code.length !== INVITE_CODE_LENGTH) {
-    return false;
+  // Check if the code only contains allowed characters
+  for (let i = 0; i < code.length; i++) {
+    if (!INVITE_CODE_CHARS.includes(code[i])) {
+      return false;
+    }
   }
   
-  // Check that it only contains characters from our charset
-  const regex = new RegExp(`^[${INVITE_CHARSET}]+$`);
-  return regex.test(code);
+  return true;
+}
+
+/**
+ * Normalizes an invite code by removing hyphens and converting to uppercase
+ * @param code The invite code to normalize
+ * @returns Normalized invite code
+ */
+export function normalizeInviteCode(code: string): string {
+  if (!code) {
+    return '';
+  }
+  
+  // Remove any hyphens and convert to uppercase
+  return code.replace(/-/g, '').toUpperCase();
 }

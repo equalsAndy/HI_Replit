@@ -1,155 +1,209 @@
-import { Invite, NewInvite, invites } from '@shared/schema';
 import { db } from '../db';
-import { generateInviteCode, isValidInviteCodeFormat } from '../utils/invite-code';
-import { eq, and, isNull } from 'drizzle-orm';
+import { invites } from '@shared/schema';
+import { generateInviteCode, normalizeInviteCode } from '../utils/invite-code';
+import { eq, and, isNull, desc } from 'drizzle-orm';
 
-export interface InviteVerificationResult {
-  valid: boolean;
-  invite?: Invite;
-  error?: string;
-}
-
-export class InviteService {
+class InviteService {
   /**
-   * Create a new invite for a user
+   * Create a new invite
    */
-  async createInvite(data: Omit<NewInvite, 'inviteCode'>): Promise<Invite> {
-    // Generate a unique invite code
-    const inviteCode = generateInviteCode();
-    
-    // Insert into database
-    const result = await db.insert(invites)
-      .values({
-        ...data,
-        inviteCode,
-      })
-      .returning();
-    
-    return result[0];
+  async createInvite(data: {
+    email: string;
+    role: 'admin' | 'facilitator' | 'participant';
+    name?: string | null;
+    createdBy: number;
+    expiresAt?: Date | null;
+  }) {
+    try {
+      // Generate a unique invite code
+      const inviteCode = generateInviteCode();
+      
+      // Insert the invite into the database
+      const result = await db.insert(invites).values({
+        email: data.email.toLowerCase(),
+        role: data.role,
+        name: data.name || null,
+        inviteCode: inviteCode,
+        createdBy: data.createdBy,
+        expiresAt: data.expiresAt || null,
+      }).returning();
+      
+      return {
+        success: true,
+        invite: result[0]
+      };
+    } catch (error) {
+      console.error('Error creating invite:', error);
+      return {
+        success: false,
+        error: 'Failed to create invite'
+      };
+    }
   }
-
+  
   /**
-   * Get an invite by its code
+   * Verify if an invite code is valid
    */
-  async getInviteByCode(inviteCode: string): Promise<Invite | null> {
-    if (!isValidInviteCodeFormat(inviteCode)) {
-      return null;
+  async verifyInvite(code: string) {
+    try {
+      // Normalize the code
+      const normalizedCode = normalizeInviteCode(code);
+      
+      // Check if the invite exists and is not used
+      const result = await db.select()
+        .from(invites)
+        .where(
+          and(
+            eq(invites.inviteCode, normalizedCode),
+            isNull(invites.usedAt)
+          )
+        );
+      
+      if (!result || result.length === 0) {
+        return {
+          valid: false,
+          error: 'Invite code is invalid or has already been used'
+        };
+      }
+      
+      const invite = result[0];
+      
+      // Check if the invite has expired
+      if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+        return {
+          valid: false,
+          error: 'Invite code has expired'
+        };
+      }
+      
+      return {
+        valid: true,
+        invite
+      };
+    } catch (error) {
+      console.error('Error verifying invite:', error);
+      return {
+        valid: false,
+        error: 'Failed to verify invite'
+      };
     }
-
-    const result = await db.select()
-      .from(invites)
-      .where(eq(invites.inviteCode, inviteCode));
-    
-    return result[0] || null;
   }
-
-  /**
-   * Check if an invite is valid (exists and not used)
-   */
-  async verifyInvite(inviteCode: string): Promise<InviteVerificationResult> {
-    // Check format first
-    if (!isValidInviteCodeFormat(inviteCode)) {
-      return {
-        valid: false,
-        error: 'Invalid invite code format'
-      };
-    }
-
-    // Check if the invite exists
-    const invite = await this.getInviteByCode(inviteCode);
-    
-    if (!invite) {
-      return {
-        valid: false,
-        error: 'Invite code not found'
-      };
-    }
-
-    // Check if the invite has been used
-    if (invite.usedAt) {
-      return {
-        valid: false,
-        error: 'This invite has already been used'
-      };
-    }
-
-    // Check if the invite has expired
-    if (invite.expiresAt && invite.expiresAt < new Date()) {
-      return {
-        valid: false,
-        error: 'This invite has expired'
-      };
-    }
-
-    return {
-      valid: true,
-      invite
-    };
-  }
-
+  
   /**
    * Mark an invite as used
    */
-  async markInviteAsUsed(inviteCode: string, userId: number): Promise<boolean> {
-    // Check if the invite exists and is valid
-    const verification = await this.verifyInvite(inviteCode);
-    
-    if (!verification.valid || !verification.invite) {
-      return false;
+  async markInviteAsUsed(code: string, userId: number) {
+    try {
+      // Normalize the code
+      const normalizedCode = normalizeInviteCode(code);
+      
+      // Update the invite
+      await db.update(invites)
+        .set({
+          usedAt: new Date(),
+          usedBy: userId
+        })
+        .where(eq(invites.inviteCode, normalizedCode));
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error marking invite as used:', error);
+      return {
+        success: false,
+        error: 'Failed to mark invite as used'
+      };
     }
-    
-    // Mark as used
-    await db.update(invites)
-      .set({
-        usedAt: new Date(),
-        usedBy: userId
-      })
-      .where(eq(invites.id, verification.invite.id));
-    
-    return true;
   }
-
+  
   /**
    * Get all invites
    */
-  async getAllInvites(): Promise<Invite[]> {
-    return db.select().from(invites);
+  async getAllInvites() {
+    try {
+      const result = await db.select()
+        .from(invites)
+        .orderBy(desc(invites.createdAt));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting all invites:', error);
+      throw new Error('Failed to get all invites');
+    }
   }
-
+  
   /**
    * Get all unused invites
    */
-  async getUnusedInvites(): Promise<Invite[]> {
-    return db.select().from(invites)
-      .where(isNull(invites.usedAt));
-  }
-
-  /**
-   * Get invites created by a specific user
-   */
-  async getInvitesByCreator(userId: number): Promise<Invite[]> {
-    return db.select().from(invites)
-      .where(eq(invites.createdBy, userId));
-  }
-
-  /**
-   * Delete an invite (if it hasn't been used)
-   */
-  async deleteInvite(inviteId: number): Promise<boolean> {
-    const invite = await db.select()
-      .from(invites)
-      .where(eq(invites.id, inviteId));
-    
-    if (!invite[0] || invite[0].usedAt) {
-      return false; // Can't delete used invites
+  async getUnusedInvites() {
+    try {
+      const result = await db.select()
+        .from(invites)
+        .where(isNull(invites.usedAt))
+        .orderBy(desc(invites.createdAt));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting unused invites:', error);
+      throw new Error('Failed to get unused invites');
     }
-    
-    await db.delete(invites)
-      .where(eq(invites.id, inviteId));
-    
-    return true;
+  }
+  
+  /**
+   * Get all invites created by a user
+   */
+  async getInvitesByCreator(creatorId: number) {
+    try {
+      const result = await db.select()
+        .from(invites)
+        .where(eq(invites.createdBy, creatorId))
+        .orderBy(desc(invites.createdAt));
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting invites by creator:', error);
+      throw new Error('Failed to get invites');
+    }
+  }
+  
+  /**
+   * Delete an invite
+   */
+  async deleteInvite(id: number) {
+    try {
+      // First check if the invite exists and is not used
+      const existingInvite = await db.select()
+        .from(invites)
+        .where(
+          and(
+            eq(invites.id, id),
+            isNull(invites.usedAt)
+          )
+        );
+      
+      if (!existingInvite || existingInvite.length === 0) {
+        return {
+          success: false,
+          error: 'Invite not found or already used'
+        };
+      }
+      
+      // Delete the invite
+      await db.delete(invites)
+        .where(eq(invites.id, id));
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error deleting invite:', error);
+      return {
+        success: false,
+        error: 'Failed to delete invite'
+      };
+    }
   }
 }
 
-// Export a singleton instance
 export const inviteService = new InviteService();

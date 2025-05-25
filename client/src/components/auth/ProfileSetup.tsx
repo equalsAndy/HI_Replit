@@ -1,143 +1,150 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useMutation } from '@tanstack/react-query';
-
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { apiRequest } from '@/lib/queryClient';
+import { useNavigate } from 'wouter';
 
-// Schema for profile setup validation
-const profileSchema = z.object({
-  username: z.string()
-    .min(3, "Username must be at least 3 characters")
-    .max(20, "Username cannot exceed 20 characters"),
-  password: z.string()
-    .min(8, "Password must be at least 8 characters"),
+// Form schema for profile setup
+const profileSetupSchema = z.object({
+  username: z.string().min(3, 'Username must be at least 3 characters').max(50, 'Username cannot exceed 50 characters'),
+  password: z.string().min(8, 'Password must be at least 8 characters'),
   confirmPassword: z.string(),
-  name: z.string()
-    .min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
+  name: z.string().min(2, 'Name must be at least 2 characters'),
   organization: z.string().optional(),
   jobTitle: z.string().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords do not match",
-  path: ["confirmPassword"],
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 });
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
+type ProfileSetupValues = z.infer<typeof profileSetupSchema>;
 
 interface ProfileSetupProps {
   inviteData: {
-    id: number;
     email: string;
     role: string;
     name?: string;
     inviteCode: string;
   };
-  onComplete: (userData: any) => void;
+  onComplete?: () => void;
 }
 
-export function ProfileSetup({ inviteData, onComplete }: ProfileSetupProps) {
+export const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) => {
   const [error, setError] = useState<string | null>(null);
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const navigate = useNavigate();
 
-  // Form setup
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+  // Form initialization with pre-filled name if available
+  const form = useForm<ProfileSetupValues>({
+    resolver: zodResolver(profileSetupSchema),
     defaultValues: {
       username: '',
       password: '',
       confirmPassword: '',
       name: inviteData.name || '',
-      email: inviteData.email, // Pre-fill from invite data and make readonly
       organization: '',
       jobTitle: '',
     },
   });
 
-  // Check username availability with debounce
-  const checkUsername = async (username: string) => {
-    if (username.length < 3) {
-      return;
-    }
-
-    setIsCheckingUsername(true);
-    setUsernameAvailable(null);
-
+  // Check if username is available
+  const checkUsernameAvailability = async (username: string): Promise<boolean> => {
     try {
-      const response = await fetch('/api/auth/check-username', {
+      const response = await apiRequest('/api/auth/check-username', {
         method: 'POST',
         body: JSON.stringify({ username }),
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      
+
+      if (!response.ok) {
+        throw new Error('Failed to check username availability');
+      }
+
       const data = await response.json();
-      setUsernameAvailable(data.available);
+      return data.available;
     } catch (err) {
-      console.error('Error checking username:', err);
-    } finally {
-      setIsCheckingUsername(false);
+      console.error('Error checking username availability:', err);
+      return false;
     }
   };
 
-  // Register with invite code mutation
-  const registerMutation = useMutation({
-    mutationFn: async (data: ProfileFormValues) => {
-      // Remove confirmPassword before sending to API
-      const { confirmPassword, ...registerData } = data;
-      
-      const response = await fetch('/api/auth/register-with-invite', {
+  // Handle form submission
+  const onSubmit = async (values: ProfileSetupValues) => {
+    setIsRegistering(true);
+    setError(null);
+
+    try {
+      // Check if username is available
+      const isUsernameAvailable = await checkUsernameAvailability(values.username);
+
+      if (!isUsernameAvailable) {
+        setError('This username is already taken. Please choose another one.');
+        setIsRegistering(false);
+        return;
+      }
+
+      // Register with the invite code
+      const response = await apiRequest('/api/auth/register-with-invite', {
         method: 'POST',
         body: JSON.stringify({
-          ...registerData,
-          inviteCode: inviteData.inviteCode,
+          username: values.username,
+          password: values.password,
+          name: values.name,
+          email: inviteData.email,
           role: inviteData.role,
+          organization: values.organization || undefined,
+          jobTitle: values.jobTitle || undefined,
+          inviteCode: inviteData.inviteCode,
         }),
         headers: {
           'Content-Type': 'application/json',
         },
       });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Registration failed');
-      }
-      
-      const responseData = await response.json();
-      return responseData.user;
-    },
-    onSuccess: (userData) => {
-      onComplete(userData);
-    },
-    onError: (error: Error) => {
-      setError(error.message || 'An error occurred during registration');
-    },
-  });
 
-  // Form submission handler
-  const onSubmit = (data: ProfileFormValues) => {
-    setError(null);
-    registerMutation.mutate(data);
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Registration failed');
+      }
+
+      // Success - redirect to home or call onComplete
+      if (onComplete) {
+        onComplete();
+      } else {
+        navigate('/');
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+    } finally {
+      setIsRegistering(false);
+    }
   };
 
   return (
-    <Card className="w-full max-w-lg mx-auto">
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold">Create Your Account</CardTitle>
+        <CardTitle className="text-xl font-bold">Complete Your Profile</CardTitle>
         <CardDescription>
-          Complete your profile information to create your account.
+          You're joining as: <span className="font-medium">{inviteData.role}</span>
+          <br />
+          Email: <span className="font-medium">{inviteData.email}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="username"
@@ -145,71 +152,13 @@ export function ProfileSetup({ inviteData, onComplete }: ProfileSetupProps) {
                 <FormItem>
                   <FormLabel>Username</FormLabel>
                   <FormControl>
-                    <div className="relative">
-                      <Input 
-                        placeholder="Choose a username" 
-                        {...field} 
-                        onChange={(e) => {
-                          field.onChange(e);
-                          checkUsername(e.target.value);
-                        }}
-                      />
-                      {field.value.length >= 3 && (
-                        <div className="absolute right-3 top-2.5 text-xs">
-                          {isCheckingUsername ? (
-                            <span className="text-gray-400">Checking...</span>
-                          ) : usernameAvailable === true ? (
-                            <span className="text-green-600">Available</span>
-                          ) : usernameAvailable === false ? (
-                            <span className="text-red-600">Taken</span>
-                          ) : null}
-                        </div>
-                      )}
-                    </div>
+                    <Input placeholder="username" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password"
-                        placeholder="Create a password" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password"
-                        placeholder="Confirm your password" 
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
+            
             <FormField
               control={form.control}
               name="name"
@@ -217,35 +166,14 @@ export function ProfileSetup({ inviteData, onComplete }: ProfileSetupProps) {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Enter your full name" 
-                      {...field} 
-                    />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="Your email address" 
-                      {...field} 
-                      disabled // Email from invite cannot be changed
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="organization"
@@ -253,16 +181,13 @@ export function ProfileSetup({ inviteData, onComplete }: ProfileSetupProps) {
                   <FormItem>
                     <FormLabel>Organization (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Your organization" 
-                        {...field} 
-                      />
+                      <Input placeholder="Company Name" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
+              
               <FormField
                 control={form.control}
                 name="jobTitle"
@@ -270,38 +195,53 @@ export function ProfileSetup({ inviteData, onComplete }: ProfileSetupProps) {
                   <FormItem>
                     <FormLabel>Job Title (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        placeholder="Your job title" 
-                        {...field} 
-                      />
+                      <Input placeholder="Job Title" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={registerMutation.isPending || usernameAvailable === false}
-            >
-              {registerMutation.isPending ? "Creating Account..." : "Create Account"}
-            </Button>
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="••••••••" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </form>
         </Form>
       </CardContent>
-      <CardFooter className="flex flex-col">
-        <p className="text-sm text-muted-foreground text-center">
-          Your account will be created with {inviteData.role} access.
-        </p>
+      <CardFooter>
+        <Button 
+          className="w-full" 
+          onClick={form.handleSubmit(onSubmit)}
+          disabled={isRegistering}
+        >
+          {isRegistering ? 'Creating Account...' : 'Complete Registration'}
+        </Button>
       </CardFooter>
     </Card>
   );
-}
+};

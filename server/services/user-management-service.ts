@@ -1,176 +1,210 @@
-import { User, NewUser, users } from '@shared/schema';
 import { db } from '../db';
-import bcrypt from 'bcryptjs';
+import { users } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import bcrypt from 'bcryptjs';
 
-export interface CreateUserParams {
-  username: string;
-  password: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'facilitator' | 'participant';
-  organization?: string;
-  jobTitle?: string;
-  profilePicture?: string;
-}
-
-export class UserManagementService {
-  /**
-   * Create a new user
-   */
-  async createUser(userData: CreateUserParams): Promise<User> {
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
-    
-    // Insert the user
-    const result = await db.insert(users)
-      .values({
-        username: userData.username,
-        password: hashedPassword,
-        name: userData.name,
-        email: userData.email,
-        role: userData.role as 'admin' | 'facilitator' | 'participant',
-        organization: userData.organization || null,
-        jobTitle: userData.jobTitle || null,
-        profilePicture: userData.profilePicture || null
-      })
-      .returning();
-    
-    return result[0];
-  }
-
-  /**
-   * Get a user by ID
-   */
-  async getUserById(id: number): Promise<User | null> {
-    const result = await db.select()
-      .from(users)
-      .where(eq(users.id, id));
-    
-    return result[0] || null;
-  }
-
-  /**
-   * Get a user by username
-   */
-  async getUserByUsername(username: string): Promise<User | null> {
-    const result = await db.select()
-      .from(users)
-      .where(eq(users.username, username));
-    
-    return result[0] || null;
-  }
-
-  /**
-   * Get a user by email
-   */
-  async getUserByEmail(email: string): Promise<User | null> {
-    const result = await db.select()
-      .from(users)
-      .where(eq(users.email, email));
-    
-    return result[0] || null;
-  }
-
+class UserManagementService {
   /**
    * Check if a username is available
    */
   async isUsernameAvailable(username: string): Promise<boolean> {
-    const user = await this.getUserByUsername(username);
-    return !user;
-  }
-
-  /**
-   * Check if an email is available
-   */
-  async isEmailAvailable(email: string): Promise<boolean> {
-    const user = await this.getUserByEmail(email);
-    return !user;
-  }
-
-  /**
-   * Validate user credentials
-   */
-  async validateCredentials(username: string, password: string): Promise<User | null> {
-    const user = await this.getUserByUsername(username);
-    
-    if (!user) {
-      return null;
+    try {
+      const result = await db.select({ id: users.id })
+        .from(users)
+        .where(eq(users.username, username));
+      
+      return result.length === 0;
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      throw new Error('Failed to check username availability');
     }
-    
-    const isValid = await bcrypt.compare(password, user.password);
-    
-    return isValid ? user : null;
-  }
-
-  /**
-   * Update a user's profile
-   */
-  async updateUser(id: number, userData: Partial<User>): Promise<User | null> {
-    // Don't allow updating certain fields
-    if (userData.id) delete userData.id;
-    if (userData.createdAt) delete userData.createdAt;
-    
-    // If updating password, hash it
-    if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
-    }
-    
-    // Set the updated timestamp
-    userData.updatedAt = new Date();
-    
-    // Update the user
-    const result = await db.update(users)
-      .set(userData)
-      .where(eq(users.id, id))
-      .returning();
-    
-    return result[0] || null;
-  }
-
-  /**
-   * Get all users
-   */
-  async getAllUsers(): Promise<User[]> {
-    return db.select().from(users);
   }
   
   /**
-   * Get users by role
+   * Create a new user
    */
-  async getUsersByRole(role: 'admin' | 'facilitator' | 'participant'): Promise<User[]> {
-    return db.select()
-      .from(users)
-      .where(eq(users.role, role));
-  }
-
-  /**
-   * Change a user's role
-   */
-  async changeUserRole(id: number, newRole: 'admin' | 'facilitator' | 'participant'): Promise<User | null> {
-    const result = await db.update(users)
-      .set({ 
-        role: newRole,
+  async createUser(data: {
+    username: string;
+    password: string;
+    name: string;
+    email: string;
+    role: 'admin' | 'facilitator' | 'participant';
+    organization?: string;
+    jobTitle?: string;
+  }) {
+    try {
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(data.password, 10);
+      
+      // Insert the user into the database
+      const result = await db.insert(users).values({
+        username: data.username,
+        password: hashedPassword,
+        name: data.name,
+        email: data.email.toLowerCase(),
+        role: data.role,
+        organization: data.organization || null,
+        jobTitle: data.jobTitle || null,
+        createdAt: new Date(),
         updatedAt: new Date()
-      })
-      .where(eq(users.id, id))
-      .returning();
-    
-    return result[0] || null;
+      }).returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw new Error('Failed to create user');
+    }
   }
-
+  
   /**
-   * Delete a user
-   * Note: This is a hard delete, consider soft deletes for production
+   * Get a user by email
    */
-  async deleteUser(id: number): Promise<boolean> {
-    const result = await db.delete(users)
-      .where(eq(users.id, id))
-      .returning({ id: users.id });
+  async getUserByEmail(email: string) {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.email, email.toLowerCase()));
+      
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      throw new Error('Failed to get user by email');
+    }
+  }
+  
+  /**
+   * Get a user by username
+   */
+  async getUserByUsername(username: string) {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.username, username));
+      
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error('Error getting user by username:', error);
+      throw new Error('Failed to get user by username');
+    }
+  }
+  
+  /**
+   * Get a user by ID
+   */
+  async getUserById(id: number) {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.id, id));
+      
+      return result.length > 0 ? result[0] : null;
+    } catch (error) {
+      console.error('Error getting user by ID:', error);
+      throw new Error('Failed to get user by ID');
+    }
+  }
+  
+  /**
+   * Update a user
+   */
+  async updateUser(id: number, data: Partial<{
+    name: string;
+    email: string;
+    role: 'admin' | 'facilitator' | 'participant';
+    organization: string | null;
+    jobTitle: string | null;
+    profilePicture: string | null;
+  }>) {
+    try {
+      const updateData = {
+        ...data,
+        updatedAt: new Date()
+      };
+      
+      if (data.email) {
+        updateData.email = data.email.toLowerCase();
+      }
+      
+      const result = await db.update(users)
+        .set(updateData)
+        .where(eq(users.id, id))
+        .returning();
+      
+      return result[0];
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw new Error('Failed to update user');
+    }
+  }
+  
+  /**
+   * Verify a user's password
+   */
+  async verifyPassword(username: string, password: string) {
+    try {
+      const user = await this.getUserByUsername(username);
+      
+      if (!user) {
+        return { valid: false, user: null };
+      }
+      
+      const isValid = await bcrypt.compare(password, user.password);
+      
+      if (!isValid) {
+        return { valid: false, user: null };
+      }
+      
+      // Don't send the password back
+      const { password: _, ...userWithoutPassword } = user;
+      
+      return { valid: true, user: userWithoutPassword };
+    } catch (error) {
+      console.error('Error verifying password:', error);
+      throw new Error('Failed to verify password');
+    }
+  }
+  
+  /**
+   * Generate a secure random password
+   */
+  generateSecurePassword(length = 12) {
+    const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+';
+    let password = '';
     
-    return result.length > 0;
+    for (let i = 0; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
+    }
+    
+    return password;
+  }
+  
+  /**
+   * Get all users
+   */
+  async getAllUsers() {
+    try {
+      const result = await db.select({
+        id: users.id,
+        username: users.username,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        organization: users.organization,
+        jobTitle: users.jobTitle,
+        profilePicture: users.profilePicture,
+        createdAt: users.createdAt,
+        updatedAt: users.updatedAt
+      })
+      .from(users)
+      .orderBy(users.createdAt);
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      throw new Error('Failed to get all users');
+    }
   }
 }
 
-// Export a singleton instance
 export const userManagementService = new UserManagementService();
