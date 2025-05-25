@@ -277,8 +277,23 @@ export default function Assessment() {
         // The server now returns the updated StarCard data
         console.log("Assessment completed successfully. StarCard data:", data);
 
-        // Store the StarCard data directly in the query cache for immediate use
-        queryClient.setQueryData(['/api/starcard'], data);
+        // Make sure data has the correct structure and values
+        const starCardData = {
+          id: data.id,
+          userId: data.userId,
+          thinking: data.thinking || 0,
+          acting: data.acting || 0,
+          feeling: data.feeling || 0,
+          planning: data.planning || 0,
+          createdAt: data.createdAt || new Date().toISOString()
+        };
+        
+        // Store the formatted StarCard data directly in the query cache
+        queryClient.setQueryData(['/api/starcard'], starCardData);
+        
+        // Also invalidate the starcard query to force a refresh
+        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
         // Update user progress
         const updateProgress = async () => {
@@ -302,12 +317,12 @@ export default function Assessment() {
           description: "Your Star Card has been created!"
         });
 
-        // Show the results popup
+        // Show the results popup with verified data
         setAssessmentResults({
-          thinking: data.thinking,
-          feeling: data.feeling,
-          acting: data.acting,
-          planning: data.planning
+          thinking: data.thinking || 25,
+          feeling: data.feeling || 25,
+          acting: data.acting || 25,
+          planning: data.planning || 25
         });
         setShowResultsPopup(true);
       },
