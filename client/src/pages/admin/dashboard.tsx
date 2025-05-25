@@ -13,7 +13,7 @@ import { Loader2 } from 'lucide-react';
 // Admin Components
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CohortManagement } from '@/components/admin/CohortManagement';
-import { VideoManagement } from '@/components/admin/VideoManagement';
+import { VideoDirectManagement } from '@/components/admin/VideoDirectManagement';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -142,7 +142,7 @@ function VideoManagementTab() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <VideoManagement />
+          <VideoDirectManagement />
         </CardContent>
       </Card>
     </div>
