@@ -67,6 +67,26 @@ export default function WorkshopResetTest() {
     setServerData({ status: "Loading data from server..." });
     
     try {
+      // Fetch raw userAssessments data to show in the database view
+      const userAssessmentsResponse = await fetch('/api/user/assessments', {
+        credentials: 'include',
+        headers: { 'Accept': 'application/json' }
+      });
+      
+      if (userAssessmentsResponse.ok) {
+        const assessmentsData = await userAssessmentsResponse.json();
+        data.userAssessments = assessmentsData;
+        console.log("Raw user assessments data:", assessmentsData);
+      } else {
+        console.log("User assessments fetch failed with status:", userAssessmentsResponse.status);
+        data.userAssessments = { status: `Error: ${userAssessmentsResponse.status}`, error: true };
+      }
+    } catch (e) {
+      console.error("User assessments fetch error:", e);
+      data.userAssessments = { error: 'Failed to fetch', message: e instanceof Error ? e.message : String(e) };
+    }
+    
+    try {
       // Fetch star card data from the correct endpoint
       const starCardResponse = await fetch('/api/starcard', {
         credentials: 'include',
