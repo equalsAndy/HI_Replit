@@ -286,8 +286,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
     mutationFn: async (attributes: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
-      const response = await apiRequest('POST', '/api/flow-attributes', attributes);
-      return await response.json();
+      return await apiRequest('/api/flow-attributes', {
+        method: 'POST',
+        body: attributes
+      });
     },
     onSuccess: () => {
       // Invalidate flow attributes query to refresh data
