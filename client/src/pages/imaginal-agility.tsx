@@ -160,32 +160,30 @@ export default function ImaginalAgilityHome() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Test User Banner - Fixed at the top */}
-      {user?.isTestUser && (
-        <div className="w-full bg-blue-100 text-blue-800 px-4 py-2 flex justify-between items-center">
-          <span className="font-medium">TEST MODE: All actions and data are for testing purposes only</span>
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center"
-              onClick={() => navigate('/allstarteams')}
-            >
-              <span>Switch to AllStarTeams</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
-              onClick={() => navigate('/workshop-reset-test')}
-            >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              <span>Reset Data</span>
-            </Button>
-          </div>
+      {/* Test User Banner - Always visible regardless of user status */}
+      <div className="w-full bg-blue-100 text-blue-800 px-4 py-2 flex justify-between items-center">
+        <span className="font-medium">TEST MODE: All actions and data are for testing purposes only</span>
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center"
+            onClick={() => navigate('/allstarteams')}
+          >
+            <span>Switch to AllStarTeams</span>
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
+            onClick={() => navigate('/workshop-reset-test')}
+          >
+            <RefreshCw className="h-4 w-4 mr-1" />
+            <span>Reset Data</span>
+          </Button>
         </div>
-      )}
+      </div>
       
       {/* Yellow NavBar - Just like in AllStarTeams */}
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
