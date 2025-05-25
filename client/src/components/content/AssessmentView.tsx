@@ -25,10 +25,20 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
 }) => {
   // Check if the starCard is complete (has non-zero values)
   const isAssessmentComplete = starCard && 
-                              (starCard.thinking > 0 || 
-                               starCard.acting > 0 || 
-                               starCard.feeling > 0 || 
-                               starCard.planning > 0);
+                              (Number(starCard.thinking) > 0 || 
+                               Number(starCard.acting) > 0 || 
+                               Number(starCard.feeling) > 0 || 
+                               Number(starCard.planning) > 0);
+  
+  // Debug log to check assessment completion status                              
+  console.log("Assessment completion check:", {
+    hasStarCard: !!starCard,
+    thinking: starCard?.thinking,
+    acting: starCard?.acting,
+    feeling: starCard?.feeling,
+    planning: starCard?.planning,
+    isComplete: isAssessmentComplete
+  });
 
   const continueToNextStep = () => {
     markStepCompleted('2-2');
