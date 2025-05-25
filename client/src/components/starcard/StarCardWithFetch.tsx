@@ -49,19 +49,33 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({ userId, fallbackD
   }, [starCardData]);
 
   // Determine which data source to use
-  const effectiveData = starCardData && 
-                      (starCardData.thinking > 0 || 
-                       starCardData.acting > 0 || 
-                       starCardData.feeling > 0 || 
-                       starCardData.planning > 0) 
-                      ? starCardData
-                      : directData && 
-                        (directData.thinking > 0 || 
-                         directData.acting > 0 || 
-                         directData.feeling > 0 || 
-                         directData.planning > 0) 
-                        ? directData
-                        : fallbackData;
+  // First check if we have React Query data
+  const hasReactQueryData = starCardData && 
+                        (starCardData.thinking > 0 || 
+                        starCardData.acting > 0 || 
+                        starCardData.feeling > 0 || 
+                        starCardData.planning > 0);
+                        
+  // Then check direct fetch data
+  const hasDirectData = directData && 
+                      (directData.thinking > 0 || 
+                       directData.acting > 0 || 
+                       directData.feeling > 0 || 
+                       directData.planning > 0);
+                       
+  // Check if we have success property in direct data (API response format)
+  const hasSuccessDirectData = directData && 
+                              directData.success === true &&
+                              (Number(directData.thinking) > 0 ||
+                               Number(directData.acting) > 0 ||
+                               Number(directData.feeling) > 0 ||
+                               Number(directData.planning) > 0);
+                               
+  // Use the best available data source
+  const effectiveData = hasReactQueryData ? starCardData :
+                        hasDirectData ? directData :
+                        hasSuccessDirectData ? directData :
+                        fallbackData;
 
   if (isLoading || isDirectLoading) {
     return <div className="p-8 text-center">Loading your Star Card...</div>;
@@ -72,12 +86,15 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({ userId, fallbackD
 
   // Ensure we have valid data
   const validatedData = {
-    thinking: Number(effectiveData?.thinking) || 0,
-    acting: Number(effectiveData?.acting) || 0, 
-    feeling: Number(effectiveData?.feeling) || 0,
-    planning: Number(effectiveData?.planning) || 0,
+    thinking: effectiveData?.success ? Number(effectiveData.thinking) : Number(effectiveData?.thinking) || 0,
+    acting: effectiveData?.success ? Number(effectiveData.acting) : Number(effectiveData?.acting) || 0, 
+    feeling: effectiveData?.success ? Number(effectiveData.feeling) : Number(effectiveData?.feeling) || 0,
+    planning: effectiveData?.success ? Number(effectiveData.planning) : Number(effectiveData?.planning) || 0,
     imageUrl: effectiveData?.imageUrl || null
   };
+  
+  // Log the data we're validating
+  console.log("StarCardWithFetch validating data:", effectiveData, "Results:", validatedData);
 
   // Create a profile object for the star card
   const profile = {
