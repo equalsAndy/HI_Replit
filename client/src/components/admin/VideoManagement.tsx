@@ -124,7 +124,7 @@ export function VideoManagement() {
   // Create video mutation
   const createVideoMutation = useMutation({
     mutationFn: (newVideo: VideoFormValues) => 
-      apiRequest('/api/admin/videos', { method: 'POST', data: newVideo }),
+      apiRequest('/api/admin/videos', { method: 'POST', data: newVideo }) as Promise<any>,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -146,7 +146,7 @@ export function VideoManagement() {
   // Update video mutation
   const updateVideoMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<VideoFormValues> }) =>
-      apiRequest(`/api/admin/videos/${id}`, { method: 'PUT', data }),
+      apiRequest(`/api/admin/videos/${id}`, { method: 'PUT', data }) as Promise<any>,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -169,7 +169,7 @@ export function VideoManagement() {
   // Delete video mutation
   const deleteVideoMutation = useMutation({
     mutationFn: (id: number) =>
-      apiRequest(`/api/admin/videos/${id}`, { method: 'DELETE' }),
+      apiRequest(`/api/admin/videos/${id}`, { method: 'DELETE' }) as Promise<any>,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -244,10 +244,15 @@ export function VideoManagement() {
   // Handle edit button click
   const handleEditClick = (video: Video) => {
     setSelectedVideo(video);
+    
+    // Use the stored editableId or extract it from the URL
+    const videoId = video.editableId || extractYouTubeId(video.url);
+    
     editForm.reset({
       title: video.title,
       description: video.description || '',
       url: video.url,
+      editableId: videoId,
       workshopType: video.workshopType,
       section: video.section,
       sortOrder: video.sortOrder,
@@ -356,10 +361,37 @@ export function VideoManagement() {
                     <FormItem>
                       <FormLabel>URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="Video URL (YouTube embed or similar)" {...field} />
+                        <Input 
+                          placeholder="Video URL (YouTube embed or similar)" 
+                          {...field} 
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Auto-extract video ID when URL changes
+                            const extractedId = extractYouTubeId(e.target.value);
+                            if (extractedId) {
+                              createForm.setValue('editableId', extractedId);
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormDescription>
                         Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={createForm.control}
+                  name="editableId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Video ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Video ID (e.g., lcjao1ob55A)" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        This ID is automatically extracted from the URL and can be edited manually
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -500,7 +532,18 @@ export function VideoManagement() {
                     <FormItem>
                       <FormLabel>URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="Video URL (YouTube embed or similar)" {...field} />
+                        <Input 
+                          placeholder="Video URL (YouTube embed or similar)" 
+                          {...field}
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Auto-extract video ID when URL changes
+                            const extractedId = extractYouTubeId(e.target.value);
+                            if (extractedId) {
+                              editForm.setValue('editableId', extractedId);
+                            }
+                          }}
+                        />
                       </FormControl>
                       <FormDescription>
                         Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
@@ -616,6 +659,7 @@ export function VideoManagement() {
                 <TableHead>Title</TableHead>
                 <TableHead>Workshop</TableHead>
                 <TableHead>Section</TableHead>
+                <TableHead>Video ID</TableHead>
                 <TableHead>URL</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -627,9 +671,12 @@ export function VideoManagement() {
                     <TableCell className="font-medium">{video.title}</TableCell>
                     <TableCell>{video.workshopType}</TableCell>
                     <TableCell>{video.section}</TableCell>
+                    <TableCell className="font-mono">
+                      {video.editableId || extractYouTubeId(video.url)}
+                    </TableCell>
                     <TableCell className="max-w-[200px] truncate">
                       <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {video.editableId}
+                        {video.url}
                       </a>
                     </TableCell>
                     <TableCell className="text-right">
