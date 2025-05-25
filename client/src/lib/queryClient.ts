@@ -11,6 +11,7 @@ export async function apiRequest(
       'Content-Type': 'application/json',
       ...headers,
     },
+    credentials: 'include', // Include cookies/session in requests
     body: body ? JSON.stringify(body) : undefined,
   });
 
