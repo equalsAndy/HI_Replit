@@ -155,12 +155,19 @@ export function LoginForm() {
       {showTestInfo && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-medium text-blue-800">Test Environment</h3>
-          <p className="mt-2 text-blue-700">All test accounts use the password <strong>password</strong></p>
-          <p className="mt-2 text-blue-700 italic">You can now log in using either username or email</p>
-          <ul className="mt-2 space-y-1 text-blue-700">
+          <p className="mt-2 text-blue-700">All test accounts use the password <strong>password123</strong></p>
+          <p className="mt-2 text-blue-700 italic">You can use either username or email to login</p>
+          <Alert className="mt-2 bg-amber-50 border-amber-200">
+            <InfoIcon className="h-4 w-4 text-amber-600" />
+            <AlertTitle className="text-amber-700">Important Note</AlertTitle>
+            <AlertDescription className="text-amber-700">
+              Make sure to use <strong>password123</strong> (not just "password") for all test accounts.
+            </AlertDescription>
+          </Alert>
+          <ul className="mt-4 space-y-1 text-blue-700">
             <li><strong>Admin:</strong> username: admin</li>
-            <li><strong>Facilitator:</strong> username: facilitator</li>
-            <li><strong>Participant:</strong> username: user1 or user2</li>
+            <li><strong>Facilitators:</strong> username: facilitator1, facilitator2</li>
+            <li><strong>Participants:</strong> username: participant1, participant2, participant3</li>
           </ul>
         </div>
       )}
