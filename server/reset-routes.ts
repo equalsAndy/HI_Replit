@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { db } from './db';
-import { eq } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import * as schema from '../shared/schema';
 
 // Create a router for data reset operations
@@ -72,8 +72,10 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         await db
           .delete(schema.userAssessments)
           .where(
-            eq(schema.userAssessments.userId, userId) && 
-            eq(schema.userAssessments.assessmentType, 'starCard')
+            and(
+              eq(schema.userAssessments.userId, userId),
+              eq(schema.userAssessments.assessmentType, 'starCard')
+            )
           );
         
         // Verify deletion
@@ -81,8 +83,10 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
           .select()
           .from(schema.userAssessments)
           .where(
-            eq(schema.userAssessments.userId, userId) && 
-            eq(schema.userAssessments.assessmentType, 'starCard')
+            and(
+              eq(schema.userAssessments.userId, userId),
+              eq(schema.userAssessments.assessmentType, 'starCard')
+            )
           );
         
         if (!verifyCards || verifyCards.length === 0) {
@@ -106,8 +110,10 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         .select()
         .from(schema.userAssessments)
         .where(
-          eq(schema.userAssessments.userId, userId) && 
-          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          )
         );
       
       if (flowAttrs && flowAttrs.length > 0) {
@@ -117,8 +123,10 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         await db
           .delete(schema.userAssessments)
           .where(
-            eq(schema.userAssessments.userId, userId) && 
-            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+            and(
+              eq(schema.userAssessments.userId, userId),
+              eq(schema.userAssessments.assessmentType, 'flowAttributes')
+            )
           );
         
         // Verify deletion
@@ -126,8 +134,10 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
           .select()
           .from(schema.userAssessments)
           .where(
-            eq(schema.userAssessments.userId, userId) && 
-            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+            and(
+              eq(schema.userAssessments.userId, userId),
+              eq(schema.userAssessments.assessmentType, 'flowAttributes')
+            )
           );
         
         if (!verifyAttrs || verifyAttrs.length === 0) {
@@ -230,8 +240,10 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
       .select()
       .from(schema.userAssessments)
       .where(
-        eq(schema.userAssessments.userId, userId) && 
-        eq(schema.userAssessments.assessmentType, 'starCard')
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'starCard')
+        )
       );
     
     let success = false;
@@ -241,8 +253,10 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
       await db
         .delete(schema.userAssessments)
         .where(
-          eq(schema.userAssessments.userId, userId) && 
-          eq(schema.userAssessments.assessmentType, 'starCard')
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'starCard')
+          )
         );
       
       // Verify deletion
@@ -250,8 +264,10 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
         .select()
         .from(schema.userAssessments)
         .where(
-          eq(schema.userAssessments.userId, userId) && 
-          eq(schema.userAssessments.assessmentType, 'starCard')
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'starCard')
+          )
         );
       
       success = !verifyCards || verifyCards.length === 0;
