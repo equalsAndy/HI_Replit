@@ -1,188 +1,180 @@
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, isNull, lt, gte, sql } from 'drizzle-orm';
-import { generateInviteCode } from '../utils/invite-code';
+import { eq, and, isNull, not, lt, sql } from 'drizzle-orm';
+import { generateInviteCodeNode } from '../utils/invite-code';
 import { UserRole } from '../../shared/types';
 
-// Default invite expiration (30 days)
-const DEFAULT_EXPIRATION_DAYS = 30;
-
-export interface InviteCreateOptions {
-  email: string;
-  name: string;
-  role: UserRole;
-  cohortId?: number;
-  expiresInDays?: number;
-}
-
-export interface InviteWithCode {
-  inviteCode: string;
-  invite: {
-    id: number;
-    email: string;
-    name: string;
-    expiresAt: Date;
-    createdAt: Date;
-    role: UserRole;
-  };
-}
-
+/**
+ * Service for managing invite codes
+ */
 export class InviteService {
   /**
-   * Create a new invite
-   * @param createdById The ID of the user creating the invite
-   * @param options Invite creation options
-   * @returns The created invite with its code
+   * Default expiration time for invite codes (30 days)
    */
-  static async createInvite(createdById: number, options: InviteCreateOptions): Promise<InviteWithCode> {
-    // Generate expiration date (default 30 days)
-    const expirationDays = options.expiresInDays || DEFAULT_EXPIRATION_DAYS;
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expirationDays);
-    
-    // Generate a unique invite code
-    const inviteCode = generateInviteCode();
-    
-    // Create the invite
-    const [invite] = await db
-      .insert(schema.pendingInvites)
-      .values({
-        email: options.email,
-        name: options.name,
-        inviteCode: inviteCode,
-        role: options.role,
-        createdBy: createdById,
-        cohortId: options.cohortId,
-        expiresAt: expiresAt,
-      })
-      .returning();
-    
-    return {
-      inviteCode,
-      invite: {
-        id: invite.id,
-        email: invite.email,
-        name: invite.name,
-        expiresAt: invite.expiresAt,
-        createdAt: invite.createdAt,
-        role: invite.role,
-      }
-    };
-  }
-  
+  private static DEFAULT_EXPIRATION_DAYS = 30;
+
   /**
-   * Regenerate an invite code for an existing invite
-   * @param inviteId The ID of the invite
-   * @returns The updated invite with new code
+   * Creates a new invite code
+   * @param email Email address for the invited user
+   * @param name Name of the invited user
+   * @param role Role to assign upon registration
+   * @param createdById ID of the user creating the invite
+   * @param cohortId Optional cohort ID to associate with the invite
+   * @returns The created invite with code
    */
-  static async regenerateInviteCode(inviteId: number): Promise<InviteWithCode> {
-    // Generate a new invite code
-    const inviteCode = generateInviteCode();
+  public static async createInvite(
+    email: string,
+    name: string,
+    role: 'admin' | 'facilitator' | 'participant',
+    createdById: number,
+    cohortId?: number
+  ) {
+    // Generate a unique invite code
+    const inviteCode = generateInviteCodeNode();
     
-    // Update expiration date to 30 days from now
+    // Calculate expiration date (30 days from now)
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + DEFAULT_EXPIRATION_DAYS);
+    expiresAt.setDate(expiresAt.getDate() + this.DEFAULT_EXPIRATION_DAYS);
     
-    // Update the invite
-    const [invite] = await db
-      .update(schema.pendingInvites)
-      .set({ 
-        inviteCode,
-        expiresAt,
-        updatedAt: new Date()
-      })
-      .where(eq(schema.pendingInvites.id, inviteId))
-      .returning();
+    // Insert the invite into the database
+    const [invite] = await db.insert(schema.invites).values({
+      email,
+      name,
+      inviteCode,
+      role: role as UserRole,
+      createdBy: createdById,
+      expiresAt,
+      cohortId: cohortId || null,
+    }).returning();
     
-    if (!invite) {
-      throw new Error('Invite not found');
+    return invite;
+  }
+
+  /**
+   * Verifies if an invite code is valid and usable
+   * @param inviteCode The code to verify
+   * @returns The invite information if valid, null otherwise
+   */
+  public static async verifyInvite(inviteCode: string) {
+    if (!inviteCode) {
+      return null;
     }
     
-    return {
-      inviteCode,
-      invite: {
-        id: invite.id,
-        email: invite.email,
-        name: invite.name,
-        expiresAt: invite.expiresAt,
-        createdAt: invite.createdAt,
-        role: invite.role,
-      }
-    };
-  }
-  
-  /**
-   * Get an invite by its code
-   * @param inviteCode The invite code
-   * @returns The invite or null if not found or expired
-   */
-  static async getInviteByCode(inviteCode: string): Promise<{
-    id: number;
-    email: string;
-    name: string;
-    expiresAt: string;
-    role: UserRole;
-    isExpired: boolean;
-  } | null> {
-    // Find the invite
-    const [invite] = await db
-      .select()
-      .from(schema.pendingInvites)
-      .where(eq(schema.pendingInvites.inviteCode, inviteCode));
+    const now = new Date();
+    
+    // Find the invite with the given code
+    const [invite] = await db.select()
+      .from(schema.invites)
+      .where(and(
+        eq(schema.invites.inviteCode, inviteCode),
+        isNull(schema.invites.usedAt),
+        sql`${schema.invites.expiresAt} > ${now}`
+      ));
     
     if (!invite) {
       return null;
     }
     
-    // Check if expired
-    const now = new Date();
-    const isExpired = new Date(invite.expiresAt) < now;
-    
     return {
       id: invite.id,
       email: invite.email,
       name: invite.name,
-      expiresAt: invite.expiresAt.toISOString(),
-      role: invite.role,
-      isExpired
+      role: invite.role as 'admin' | 'facilitator' | 'participant',
     };
   }
-  
+
   /**
-   * Get all invites created by a specific user
-   * @param createdById The ID of the user who created the invites
-   * @returns Array of invites
+   * Marks an invite as used
+   * @param inviteCode The code that was used
+   * @param userId The ID of the user who used the code
+   * @returns Whether the operation was successful
    */
-  static async getInvitesByCreator(createdById: number): Promise<Array<{
-    id: number;
-    email: string;
-    name: string;
-    inviteCode: string;
-    expiresAt: Date;
-    createdAt: Date;
-    role: UserRole;
-    isExpired: boolean;
-    isUsed: boolean;
-  }>> {
-    // Find all invites created by this user
-    const invites = await db
-      .select({
-        id: schema.pendingInvites.id,
-        email: schema.pendingInvites.email,
-        name: schema.pendingInvites.name,
-        inviteCode: schema.pendingInvites.inviteCode,
-        expiresAt: schema.pendingInvites.expiresAt,
-        createdAt: schema.pendingInvites.createdAt,
-        role: schema.pendingInvites.role,
-        usedAt: schema.pendingInvites.usedAt
-      })
-      .from(schema.pendingInvites)
-      .where(eq(schema.pendingInvites.createdBy, createdById))
-      .orderBy(schema.pendingInvites.createdAt);
+  public static async markInviteAsUsed(inviteCode: string, userId: number) {
+    if (!inviteCode || !userId) {
+      return false;
+    }
     
+    // Update the invite to mark it as used
+    const result = await db.update(schema.invites)
+      .set({
+        usedAt: new Date(),
+        usedBy: userId
+      })
+      .where(and(
+        eq(schema.invites.inviteCode, inviteCode),
+        isNull(schema.invites.usedAt)
+      ));
+    
+    return result.rowCount > 0;
+  }
+
+  /**
+   * Regenerates a new invite code for an existing invite
+   * @param inviteId ID of the invite to regenerate
+   * @returns The updated invite with new code
+   */
+  public static async regenerateInviteCode(inviteId: number) {
+    if (!inviteId) {
+      return null;
+    }
+    
+    // Generate a new unique invite code
+    const newInviteCode = generateInviteCodeNode();
+    
+    // Reset expiration date (30 days from now)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + this.DEFAULT_EXPIRATION_DAYS);
+    
+    // Update the invite with the new code
+    const [updatedInvite] = await db.update(schema.invites)
+      .set({
+        inviteCode: newInviteCode,
+        expiresAt,
+        usedAt: null,
+        usedBy: null
+      })
+      .where(and(
+        eq(schema.invites.id, inviteId),
+        isNull(schema.invites.usedAt)
+      ))
+      .returning();
+    
+    return updatedInvite;
+  }
+
+  /**
+   * Deletes an invite
+   * @param inviteId ID of the invite to delete
+   * @returns Whether the deletion was successful
+   */
+  public static async deleteInvite(inviteId: number) {
+    if (!inviteId) {
+      return false;
+    }
+    
+    const result = await db.delete(schema.invites)
+      .where(eq(schema.invites.id, inviteId));
+    
+    return result.rowCount > 0;
+  }
+
+  /**
+   * Gets all invites with calculated status fields
+   * @param createdBy Optional user ID to filter by creator
+   * @returns List of invites with additional status fields
+   */
+  public static async getAllInvites(createdBy?: number) {
     const now = new Date();
     
-    // Process and return invites with expired/used status
+    // Select query with condition based on createdBy parameter
+    const query = createdBy 
+      ? db.select().from(schema.invites).where(eq(schema.invites.createdBy, createdBy))
+      : db.select().from(schema.invites);
+    
+    // Execute the query
+    const invites = await query;
+    
+    // Add calculated fields for client-side display
     return invites.map(invite => ({
       id: invite.id,
       email: invite.email,
@@ -190,55 +182,60 @@ export class InviteService {
       inviteCode: invite.inviteCode,
       expiresAt: invite.expiresAt,
       createdAt: invite.createdAt,
-      role: invite.role,
+      role: invite.role as 'admin' | 'facilitator' | 'participant',
       isExpired: invite.expiresAt < now,
       isUsed: invite.usedAt !== null
     }));
   }
-  
+
   /**
-   * Delete an invite
-   * @param inviteId The ID of the invite to delete
-   * @returns True if successful
+   * Gets invites created by facilitators for participants
+   * @param facilitatorId ID of the facilitator
+   * @returns List of participant invites created by the facilitator
    */
-  static async deleteInvite(inviteId: number): Promise<boolean> {
-    const result = await db
-      .delete(schema.pendingInvites)
-      .where(eq(schema.pendingInvites.id, inviteId));
+  public static async getFacilitatorInvites(facilitatorId: number) {
+    if (!facilitatorId) {
+      return [];
+    }
     
-    return true;
-  }
-  
-  /**
-   * Mark an invite as used
-   * @param inviteId The ID of the invite
-   * @returns True if successful
-   */
-  static async markInviteAsUsed(inviteId: number): Promise<boolean> {
-    const result = await db
-      .update(schema.pendingInvites)
-      .set({ usedAt: new Date() })
-      .where(eq(schema.pendingInvites.id, inviteId));
-    
-    return true;
-  }
-  
-  /**
-   * Clean up expired invites
-   * @returns Number of invites deleted
-   */
-  static async cleanupExpiredInvites(): Promise<number> {
     const now = new Date();
     
-    const result = await db
-      .delete(schema.pendingInvites)
-      .where(
-        and(
-          lt(schema.pendingInvites.expiresAt, now),
-          isNull(schema.pendingInvites.usedAt)
-        )
-      );
+    // Get invites created by this facilitator for participants only
+    const invites = await db.select()
+      .from(schema.invites)
+      .where(and(
+        eq(schema.invites.createdBy, facilitatorId),
+        eq(schema.invites.role, 'participant' as UserRole)
+      ));
     
-    return result.rowCount || 0;
+    // Add calculated fields for client-side display
+    return invites.map(invite => ({
+      id: invite.id,
+      email: invite.email,
+      name: invite.name,
+      inviteCode: invite.inviteCode,
+      expiresAt: invite.expiresAt,
+      createdAt: invite.createdAt,
+      role: invite.role as 'admin' | 'facilitator' | 'participant',
+      isExpired: invite.expiresAt < now,
+      isUsed: invite.usedAt !== null
+    }));
+  }
+
+  /**
+   * Gets an invite by ID
+   * @param inviteId ID of the invite to retrieve
+   * @returns The invite if found, null otherwise
+   */
+  public static async getInviteById(inviteId: number) {
+    if (!inviteId) {
+      return null;
+    }
+    
+    const [invite] = await db.select()
+      .from(schema.invites)
+      .where(eq(schema.invites.id, inviteId));
+    
+    return invite || null;
   }
 }

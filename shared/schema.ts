@@ -38,7 +38,7 @@ export const userRoles = pgTable('user_roles', {
   userRoleUnique: unique().on(table.userId, table.role),
 }));
 
-export const pendingInvites = pgTable('pending_invites', {
+export const invites = pgTable('invites', {
   id: serial('id').primaryKey(),
   inviteCode: varchar('invite_code', { length: 12 }).notNull().unique(),
   email: varchar('email', { length: 100 }).notNull(),
@@ -47,6 +47,7 @@ export const pendingInvites = pgTable('pending_invites', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at').notNull(),
   usedAt: timestamp('used_at'),
+  usedBy: integer('used_by').references(() => users.id),
   role: userRoleEnum('role').notNull().default('participant'),
   cohortId: integer('cohort_id').references(() => cohorts.id),
 });
@@ -182,7 +183,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   progress: many(userProgress),
   facilitatedCohorts: many(cohorts, { relationName: 'facilitator' }),
   participatedCohorts: many(cohortParticipants, { relationName: 'participant' }),
-  createdInvites: many(pendingInvites, { relationName: 'creator' }),
+  createdInvites: many(invites, { relationName: 'creator' }),
 }));
 
 export const cohortsRelations = relations(cohorts, ({ one, many }) => ({
@@ -233,14 +234,14 @@ export const cohortParticipantsRelations = relations(cohortParticipants, ({ one 
   }),
 }));
 
-export const pendingInvitesRelations = relations(pendingInvites, ({ one }) => ({
+export const invitesRelations = relations(invites, ({ one }) => ({
   creator: one(users, {
-    fields: [pendingInvites.createdBy],
+    fields: [invites.createdBy],
     references: [users.id],
     relationName: 'creator',
   }),
   cohort: one(cohorts, {
-    fields: [pendingInvites.cohortId],
+    fields: [invites.cohortId],
     references: [cohorts.id],
   }),
 }));
@@ -252,10 +253,10 @@ export const insertUserSchema = createInsertSchema(users, {
   password: (schema) => schema.password.min(8, 'Password must be at least 8 characters'),
 }).omit({ id: true, createdAt: true, updatedAt: true, deletedAt: true, lastLogin: true });
 
-export const insertPendingInviteSchema = createInsertSchema(pendingInvites, {
+export const insertInviteSchema = createInsertSchema(invites, {
   email: (schema) => schema.email.email('Invalid email format'),
   inviteCode: (schema) => schema.inviteCode.length(12, 'Invite code must be 12 characters'),
-}).omit({ id: true, createdAt: true, usedAt: true });
+}).omit({ id: true, createdAt: true, usedAt: true, usedBy: true });
 
 export const insertUserRoleSchema = createInsertSchema(userRoles).omit({ id: true, createdAt: true, updatedAt: true });
 
@@ -270,7 +271,7 @@ export type User = typeof users.$inferSelect;
 export type UserRole = z.infer<typeof userRoleEnum.enum>;
 export type WorkshopType = z.infer<typeof workshopTypeEnum.enum>;
 export type VideoType = z.infer<typeof videoTypeEnum.enum>;
-export type PendingInvite = typeof pendingInvites.$inferSelect;
+export type Invite = typeof invites.$inferSelect;
 export type Workshop = typeof workshops.$inferSelect;
 export type Cohort = typeof cohorts.$inferSelect;
 export type Video = typeof videos.$inferSelect;
