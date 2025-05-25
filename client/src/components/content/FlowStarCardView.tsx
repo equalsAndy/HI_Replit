@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
-import StarCard from '@/components/starcard/StarCard';
+import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { Gauge, ChevronRight, X, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
@@ -645,12 +645,14 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-4">
             <div className="p-4 flex justify-center">
               <div className="w-full">
-                <StarCard 
-                  thinking={starCard?.thinking || 0}
-                  acting={starCard?.acting || 0}
-                  feeling={starCard?.feeling || 0}
-                  planning={starCard?.planning || 0}
-                  imageUrl={starCard?.imageUrl || null}
+                <StarCardWithFetch 
+                  fallbackData={{
+                    thinking: starCard?.thinking || 0,
+                    acting: starCard?.acting || 0,
+                    feeling: starCard?.feeling || 0,
+                    planning: starCard?.planning || 0,
+                    imageUrl: starCard?.imageUrl || null
+                  }}
                   flowAttributes={starCardFlowAttributes}
                   downloadable={false}
                 />
