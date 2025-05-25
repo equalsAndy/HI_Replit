@@ -52,49 +52,40 @@ async function addWorkshopVideos() {
 
   const imaginalAgilityVideos = [
     {
-      title: "Welcome to Imaginal Agility",
+      title: "IAWS Orientation Video",
       description: "Introduction to the Imaginal Agility workshop",
       url: "https://www.youtube.com/embed/1Belekdly70?enablejsapi=1",
-      editableId: "1Belekdly70",
+      editableId: "1Belekdly70", 
       workshopType: "imaginal-agility",
       section: "introduction",
       sortOrder: 1
     },
     {
-      title: "The Triple Challenge",
+      title: "AI Triple Challenge",
       description: "Understanding the challenges ahead",
-      url: "https://www.youtube.com/embed/triple-challenge",
-      editableId: "triple-challenge",
-      workshopType: "imaginal-agility",
+      url: "https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1",
+      editableId: "zIFGKPMN9t8",
+      workshopType: "imaginal-agility", 
       section: "workshop",
       sortOrder: 2
     },
     {
-      title: "5Cs Assessment Guide",
-      description: "Guide to completing the 5Cs assessment",
-      url: "https://www.youtube.com/embed/5cs-guide",
-      editableId: "5cs-guide",
+      title: "Imaginal Agility Solution",
+      description: "Core solution framework",
+      url: "https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1",
+      editableId: "BLh502BlZLE",
       workshopType: "imaginal-agility",
-      section: "assessment",
+      section: "workshop",
       sortOrder: 3
     },
     {
-      title: "Imagination in Action",
-      description: "Applying imagination to organizational challenges",
-      url: "https://www.youtube.com/embed/imagination-action",
-      editableId: "imagination-action",
+      title: "5 Capabilities (5Cs)",
+      description: "Guide to the five core capabilities",
+      url: "https://www.youtube.com/embed/8wXSL3om6Ig?enablejsapi=1",
+      editableId: "8wXSL3om6Ig",
       workshopType: "imaginal-agility",
-      section: "workshop",
+      section: "assessment",
       sortOrder: 4
-    },
-    {
-      title: "Team Workshop Overview",
-      description: "Preview of the team workshop phase",
-      url: "https://www.youtube.com/embed/team-overview",
-      editableId: "team-overview",
-      workshopType: "imaginal-agility",
-      section: "team-workshop",
-      sortOrder: 5
     }
   ];
 
