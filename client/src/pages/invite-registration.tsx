@@ -1,114 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { InviteVerification } from '@/components/auth/InviteVerification';
-import { ProfileSetup } from '@/components/auth/ProfileSetup';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { useState } from "react";
+import { useLocation } from "wouter";
+import { useMutation } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { useApplication } from "@/hooks/use-application";
 
-export function InviteRegistration() {
-  const [location, setLocation] = useLocation();
-  const [currentStep, setCurrentStep] = useState<'verification' | 'profile'>('verification');
-  const [inviteCode, setInviteCode] = useState<string>('');
-  const [inviteData, setInviteData] = useState<{
-    id: number;
-    email: string;
-    name: string;
-    role: string;
-  } | null>(null);
-  
-  // Check for invite code in URL
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get('code');
-    
-    if (code) {
-      setInviteCode(code);
-    }
-  }, []);
-  
-  // Handle successful verification
-  const handleVerification = (data: {
-    id: number;
-    email: string;
-    name: string;
-    role: string;
-  }) => {
-    setInviteData(data);
-    setCurrentStep('profile');
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { InviteVerification } from "@/components/auth/InviteVerification";
+import { ProfileSetup } from "@/components/auth/ProfileSetup";
+
+// Step 1: Verify invite code
+const inviteCodeSchema = z.object({
+  inviteCode: z.string().min(12, {
+    message: "Invite code must be at least 12 characters.",
+  }),
+});
+
+// Step 2: Set up password and complete profile
+const registerWithInviteSchema = z.object({
+  inviteId: z.number(),
+  username: z.string().min(3, {
+    message: "Username must be at least 3 characters.",
+  }),
+  password: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+  confirmPassword: z.string().min(6, {
+    message: "Password must be at least 6 characters.",
+  }),
+  title: z.string().optional(),
+  organization: z.string().optional(),
+  profilePicture: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type InviteCodeValues = z.infer<typeof inviteCodeSchema>;
+type RegisterWithInviteValues = z.infer<typeof registerWithInviteSchema>;
+
+export default function InviteRegistration() {
+  const [step, setStep] = useState(1);
+  const [verifiedInvite, setVerifiedInvite] = useState<any>(null);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  const { appName, appLogo, appPrimaryColor } = useApplication();
+
+  // Step 1: Verify invite code
+  const handleInviteVerified = (invite: any) => {
+    setVerifiedInvite(invite);
+    setStep(2);
   };
-  
+
+  // Step 2: Register with invite code
+  const registerForm = useForm<RegisterWithInviteValues>({
+    resolver: zodResolver(registerWithInviteSchema),
+    defaultValues: {
+      inviteId: 0,
+      username: "",
+      password: "",
+      confirmPassword: "",
+      title: "",
+      organization: "",
+      profilePicture: "",
+    },
+  });
+
+  // Update form when invite is verified
+  useState(() => {
+    if (verifiedInvite) {
+      registerForm.setValue("inviteId", verifiedInvite.id);
+    }
+  });
+
+  // Register mutation
+  const registerMutation = useMutation({
+    mutationFn: async (data: RegisterWithInviteValues) => {
+      const { confirmPassword, ...userData } = data;
+      const res = await apiRequest('POST', '/api/auth/register-with-invite', userData);
+      return res.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Registration successful",
+        description: "Your account has been created. You can now log in.",
+      });
+      navigate('/auth');
+    },
+    onError: (error) => {
+      toast({
+        title: "Registration failed",
+        description: String(error),
+        variant: "destructive",
+      });
+    }
+  });
+
+  const onRegisterSubmit = (data: RegisterWithInviteValues) => {
+    registerMutation.mutate(data);
+  };
+
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-muted/40">
-      <div className="w-full max-w-3xl mx-auto">
-        <div className="flex items-center mb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="mr-2"
-            onClick={() => setLocation('/')}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Home
-          </Button>
-        </div>
-        
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
-          <div className="p-6 bg-primary text-primary-foreground">
-            <h1 className="text-2xl font-bold text-center">
-              Welcome to Heliotrope Imaginal Workshops
-            </h1>
-            <p className="text-center mt-2 text-primary-foreground/80">
-              Complete your registration to access your workshop content
-            </p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <div className="flex justify-center mb-4">
+            <img 
+              src={appLogo}
+              alt={appName}
+              className="h-10 w-auto"
+            />
           </div>
-          
-          <Tabs
-            defaultValue="verification"
-            value={currentStep}
-            className="w-full"
-            onValueChange={(value) => {
-              // Only allow going to profile if invite is verified
-              if (value === 'profile' && !inviteData) {
-                return;
-              }
-              setCurrentStep(value as 'verification' | 'profile');
-            }}
-          >
-            <div className="px-6 pt-6">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="verification" disabled={currentStep === 'profile'}>
-                  1. Verify Invite
-                </TabsTrigger>
-                <TabsTrigger value="profile" disabled={!inviteData}>
-                  2. Complete Profile
-                </TabsTrigger>
-              </TabsList>
+          <CardTitle className="text-2xl font-bold text-center">
+            {step === 1 ? "Enter Your Invite Code" : "Complete Your Registration"}
+          </CardTitle>
+          <CardDescription className="text-center">
+            {step === 1 
+              ? "Please enter the invite code you received" 
+              : `Welcome, ${verifiedInvite?.name || "New User"}! Complete your profile to get started.`
+            }
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {step === 1 ? (
+            <InviteVerification onInviteVerified={handleInviteVerified} />
+          ) : (
+            <ProfileSetup 
+              inviteData={verifiedInvite}
+              onSubmit={onRegisterSubmit}
+              isPending={registerMutation.isPending}
+            />
+          )}
+        </CardContent>
+        <CardFooter className="flex flex-col space-y-2">
+          <div className="text-sm text-gray-500 text-center">
+            {step === 1 ? (
+              "Don't have an invite code? Contact your administrator."
+            ) : (
+              "By completing registration, you agree to our Terms of Service and Privacy Policy."
+            )}
+          </div>
+          {step === 1 && (
+            <div className="text-sm text-center">
+              <a href="/auth" className="text-blue-600 hover:underline">
+                Back to login
+              </a>
             </div>
-            
-            <TabsContent value="verification" className="p-6">
-              <InviteVerification onVerified={handleVerification} />
-            </TabsContent>
-            
-            <TabsContent value="profile" className="p-6">
-              {inviteData && (
-                <ProfileSetup inviteCode={inviteCode} inviteData={inviteData} />
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-        
-        <div className="mt-8 text-center text-sm text-muted-foreground">
-          <p>
-            Already have an account? <a href="/login" className="text-primary underline hover:text-primary/80">Log in</a>
-          </p>
-          <p className="mt-2">
-            Need help? Contact your workshop facilitator or <a href="mailto:support@heliotropeimaginal.com" className="text-primary underline hover:text-primary/80">support@heliotropeimaginal.com</a>
-          </p>
-        </div>
-      </div>
+          )}
+        </CardFooter>
+      </Card>
     </div>
   );
 }
-
-export default InviteRegistration;

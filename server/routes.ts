@@ -15,6 +15,7 @@ import { testAdminRouter } from "./test-admin-routes";
 import { authRouter } from "./auth-routes";
 import { participantRouter } from "./participant-routes";
 import { resetRouter } from "./reset-routes";
+import inviteRoutes from "./routes/invite-routes";
 import { db } from "./db";
 import * as schema from "../shared/schema";
 import { eq } from "drizzle-orm";
@@ -66,6 +67,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Register authentication routes
   app.use('/api/auth', authRouter);
+  
+  // Register invite management routes
+  app.use('/api', inviteRoutes);
   
   // Register participant management routes
   app.use('/api/participants', participantRouter);
