@@ -161,8 +161,35 @@ export default function UserHome2() {
     // Mark the assessment step as completed
     markStepCompleted('2-2');
     
+    // Log the results we received for debugging
+    console.log("Assessment completed with results:", result);
+    
     // Check if we need to navigate to the star card preview
     if (result && result.navigateToStarCardPreview) {
+      // If we have quadrant data in the result, update the local cache
+      if (result.quadrantData) {
+        // Create a temporary star card if needed
+        const updatedStarCard = starCard ? {
+          ...starCard,
+          thinking: result.quadrantData.thinking,
+          acting: result.quadrantData.acting,
+          feeling: result.quadrantData.feeling,
+          planning: result.quadrantData.planning
+        } : {
+          id: 0,
+          userId: user?.id || 0,
+          thinking: result.quadrantData.thinking,
+          acting: result.quadrantData.acting,
+          feeling: result.quadrantData.feeling,
+          planning: result.quadrantData.planning,
+          createdAt: new Date().toISOString(),
+          state: 'partial'
+        };
+        
+        // Update query cache directly to ensure data is available immediately
+        queryClient.setQueryData(['/api/starcard'], updatedStarCard);
+      }
+      
       // Change content to star card preview
       setCurrentContent("star-card-preview");
       // Also mark the star card preview step as viewed

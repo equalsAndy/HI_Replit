@@ -550,16 +550,46 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
   // Continue assessment button - directs to Star Card Preview
   const continueAssessment = () => {
+    // Make sure we have valid assessment results
+    if (!assessmentResults) {
+      toast({
+        title: "Assessment results not available",
+        description: "Please complete the assessment first.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     // Close the modal
     onClose();
     
-    // If we have an onComplete handler, call it with a special flag to navigate
+    // If we have an onComplete handler, call it with the assessment results
     if (onComplete) {
-      onComplete({ 
-        quadrantData: assessmentResults,
-        demoData: true,
+      // Clone the results to make sure we don't have any reference issues
+      const quadrantData = {
+        thinking: assessmentResults.thinking,
+        feeling: assessmentResults.feeling,
+        acting: assessmentResults.acting,
+        planning: assessmentResults.planning
+      };
+      
+      // Pass the data and navigation flag to the parent component
+      onComplete({
+        quadrantData,
         navigateToStarCardPreview: true
       });
+      
+      // Also update query cache to ensure the star card data is available
+      if (starCard) {
+        const updatedStarCard = {
+          ...starCard,
+          thinking: quadrantData.thinking,
+          acting: quadrantData.acting,
+          feeling: quadrantData.feeling,
+          planning: quadrantData.planning
+        };
+        queryClient.setQueryData(['/api/starcard'], updatedStarCard);
+      }
     }
   };
 
