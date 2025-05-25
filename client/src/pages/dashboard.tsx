@@ -177,7 +177,7 @@ const DashboardPage: React.FC = () => {
                   contribute effectively in team environments.
                 </p>
                 <Button asChild>
-                  <Link href="/workshop/allstar">Access Workshop</Link>
+                  <Link href="/workshop/allstarteams">Access Workshop</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -193,7 +193,7 @@ const DashboardPage: React.FC = () => {
                   and cultivate a growth mindset for professional success.
                 </p>
                 <Button asChild>
-                  <Link href="/workshop/imaginal">Access Workshop</Link>
+                  <Link href="/workshop/imaginalagility">Access Workshop</Link>
                 </Button>
               </CardContent>
             </Card>
