@@ -63,20 +63,32 @@ export default function WorkshopResetTest() {
   const refreshServerData = async () => {
     const data: Record<string, any> = {};
     
+    // First, display a clear "loading" state
+    setServerData({ status: "Loading data from server..." });
+    
     try {
-      // Fetch star card data - workshop data routes are registered at root level
+      // Fetch star card data from the correct endpoint
       const starCardResponse = await fetch('/api/starcard', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
+      
       if (starCardResponse.ok) {
-        data.starCard = await starCardResponse.json();
+        const responseData = await starCardResponse.json();
+        // Check if this is empty data
+        if (responseData.isEmpty) {
+          data.starCard = { status: "No star card data found", isEmpty: true };
+        } else {
+          data.starCard = responseData;
+        }
+        console.log("Star card data:", responseData);
       } else {
         console.log("Star card fetch failed with status:", starCardResponse.status);
+        data.starCard = { status: `Error: ${starCardResponse.status}`, error: true };
       }
     } catch (e) {
       console.error("Star card fetch error:", e);
-      data.starCard = { error: 'Failed to fetch' };
+      data.starCard = { error: 'Failed to fetch', message: e instanceof Error ? e.message : String(e) };
     }
 
     try {
@@ -85,14 +97,23 @@ export default function WorkshopResetTest() {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
+      
       if (flowResponse.ok) {
-        data.flowAttributes = await flowResponse.json();
+        const responseData = await flowResponse.json();
+        // Check if this is empty data
+        if (responseData.isEmpty) {
+          data.flowAttributes = { status: "No flow attributes found", isEmpty: true };
+        } else {
+          data.flowAttributes = responseData;
+        }
+        console.log("Flow attributes data:", responseData);
       } else {
         console.log("Flow attributes fetch failed with status:", flowResponse.status);
+        data.flowAttributes = { status: `Error: ${flowResponse.status}`, error: true };
       }
     } catch (e) {
       console.error("Flow attributes fetch error:", e);
-      data.flowAttributes = { error: 'Failed to fetch' };
+      data.flowAttributes = { error: 'Failed to fetch', message: e instanceof Error ? e.message : String(e) };
     }
 
     try {
