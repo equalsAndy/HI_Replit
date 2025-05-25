@@ -103,7 +103,29 @@ app.get('*', (req, res, next) => {
   });
 });
 
-// Start the server on port 5000 for Replit workflow
-const server = app.listen(5000, '0.0.0.0', () => {
-  console.log(`Server running on port 5000 for Replit workflow`);
-});
+// Create HTTP server for Vite
+const httpServer = createServer(app);
+
+// Configure server startup based on environment
+async function startServer() {
+  if (process.env.NODE_ENV === 'production') {
+    // In production, serve static files
+    httpServer.listen(5000, '0.0.0.0', () => {
+      console.log(`Server running in production mode on port 5000`);
+    });
+  } else {
+    // In development, use Vite for hot module reloading
+    try {
+      await setupVite(app, httpServer);
+      httpServer.listen(5000, '0.0.0.0', () => {
+        console.log(`Server running in development mode on port 5000`);
+      });
+    } catch (error) {
+      console.error('Error setting up Vite:', error);
+      process.exit(1);
+    }
+  }
+}
+
+// Start the server
+startServer();
