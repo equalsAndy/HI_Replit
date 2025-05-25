@@ -429,16 +429,17 @@ export default function FindYourFlow() {
   };
 
   // Get user profile data
-  const { data: user, isLoading: userLoading } = useQuery<UserType>({
+  const { data: user, isLoading: userLoading, error: userError } = useQuery<UserType>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
-    onSuccess: (data) => {
-      console.log('FindYourFlow - User profile data loaded:', data);
-    },
-    onError: (error) => {
-      console.error('FindYourFlow - Error loading user profile:', error);
-    }
   });
+
+  // Debug user data
+  React.useEffect(() => {
+    console.log('FindYourFlow - User data:', user);
+    console.log('FindYourFlow - User loading:', userLoading);
+    console.log('FindYourFlow - User error:', userError);
+  }, [user, userLoading, userError]);
 
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType>({
@@ -809,9 +810,9 @@ export default function FindYourFlow() {
                     <div className="flex flex-col items-center">
                       <StarCard 
                         profile={{
-                          name: user.name || '',
-                          title: user.title || '',
-                          organization: user.organization || ''
+                          name: user?.name || 'Your Name',
+                          title: user?.title || '',
+                          organization: user?.organization || ''
                         }}
                         quadrantData={{
                           thinking: starCard.thinking || 0,

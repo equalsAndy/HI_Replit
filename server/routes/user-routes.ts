@@ -9,21 +9,29 @@ const router = express.Router();
 /**
  * Get the current user's profile
  */
-router.get('/profile', requireAuth, async (req, res) => {
+router.get('/profile', async (req, res) => {
   try {
-    if (!req.session.userId) {
+    // Check session or cookie authentication
+    let userId = req.session?.userId;
+    
+    // If no session, try cookie fallback (for compatibility)
+    if (!userId && req.cookies?.userId) {
+      userId = parseInt(req.cookies.userId);
+    }
+    
+    if (!userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
     
-    console.log(`Fetching user profile for session user ID: ${req.session.userId}`);
+    console.log(`Fetching user profile for user ID: ${userId}`);
     
-    const result = await userManagementService.getUserById(req.session.userId);
+    const result = await userManagementService.getUserById(userId);
 
     if (!result.success) {
-      console.log(`User profile not found for ID: ${req.session.userId}`);
+      console.log(`User profile not found for ID: ${userId}`);
       return res.status(404).json({
         success: false,
         error: 'User profile not found'
