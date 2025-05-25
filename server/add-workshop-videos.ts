@@ -15,8 +15,8 @@ async function addWorkshopVideos() {
     {
       title: "Understanding Your STAR Assessment",
       description: "Guide to completing your STAR self-assessment",
-      url: "https://www.youtube.com/embed/star-assessment",
-      editableId: "star-assessment",
+      url: "https://www.youtube.com/embed/1Belekdly70?enablejsapi=1",
+      editableId: "1Belekdly70",
       workshopType: "allstarteams", 
       section: "assessment",
       sortOrder: 2
@@ -24,8 +24,8 @@ async function addWorkshopVideos() {
     {
       title: "Flow and Performance",
       description: "Introduction to flow states and peak performance",
-      url: "https://www.youtube.com/embed/flow-intro",
-      editableId: "flow-intro",
+      url: "https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1",
+      editableId: "zIFGKPMN9t8",
       workshopType: "allstarteams",
       section: "workshop",
       sortOrder: 3
@@ -33,8 +33,8 @@ async function addWorkshopVideos() {
     {
       title: "Creating Your Star Card",
       description: "Guide to completing your personal Star Card", 
-      url: "https://www.youtube.com/embed/star-card",
-      editableId: "star-card",
+      url: "https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1",
+      editableId: "BLh502BlZLE",
       workshopType: "allstarteams",
       section: "workshop",
       sortOrder: 4
@@ -42,8 +42,8 @@ async function addWorkshopVideos() {
     {
       title: "Team Workshop Preview",
       description: "Overview of the upcoming team workshop phase",
-      url: "https://www.youtube.com/embed/team-preview",
-      editableId: "team-preview", 
+      url: "https://www.youtube.com/embed/8wXSL3om6Ig?enablejsapi=1",
+      editableId: "8wXSL3om6Ig", 
       workshopType: "allstarteams",
       section: "team-workshop",
       sortOrder: 5
@@ -54,8 +54,8 @@ async function addWorkshopVideos() {
     {
       title: "Welcome to Imaginal Agility",
       description: "Introduction to the Imaginal Agility workshop",
-      url: "https://www.youtube.com/embed/welcome-ia",
-      editableId: "welcome-ia",
+      url: "https://www.youtube.com/embed/1Belekdly70?enablejsapi=1",
+      editableId: "1Belekdly70",
       workshopType: "imaginal-agility",
       section: "introduction",
       sortOrder: 1
