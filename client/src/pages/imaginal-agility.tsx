@@ -160,7 +160,7 @@ export default function ImaginalAgilityHome() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Test User Banner */}
+      {/* Test User Banner - Fixed at the top */}
       {user?.isTestUser && (
         <div className="w-full bg-blue-100 text-blue-800 px-4 py-2 flex justify-between items-center">
           <span className="font-medium">TEST MODE: All actions and data are for testing purposes only</span>
@@ -168,7 +168,7 @@ export default function ImaginalAgilityHome() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
+              className="bg-white text-blue-600 border-blue-200 hover:bg-blue-50 flex items-center"
               onClick={() => navigate('/allstarteams')}
             >
               <span>Switch to AllStarTeams</span>
@@ -187,7 +187,26 @@ export default function ImaginalAgilityHome() {
         </div>
       )}
       
-      {/* Header with Reset Button */}
+      {/* Yellow NavBar - Just like in AllStarTeams */}
+      <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
+        <div className="flex items-center">
+          <img 
+            src="/src/assets/HI_Logo_horizontal.png" 
+            alt="Heliotrope Imaginal"
+            className="h-8 w-auto" 
+          />
+          <span className="ml-2 font-semibold">Imaginal Agility</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          <LogoutButton 
+            variant="outline" 
+            size="sm" 
+            className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
+          />
+        </div>
+      </div>
+      
+      {/* Sub Header with Reset Button - specifically for Imaginal Agility */}
       <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
         <div className="flex justify-between items-center h-full">
           <img 
@@ -195,23 +214,16 @@ export default function ImaginalAgilityHome() {
             alt="Imaginal Agility Workshop"
             className="h-10 w-auto" 
           />
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="flex items-center gap-1 text-gray-700"
-              onClick={() => resetUserProgress.mutate()}
-              disabled={resetUserProgress.isPending}
-            >
-              <RefreshCw className="h-4 w-4" />
-              {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
-            </Button>
-            <LogoutButton 
-              variant="outline" 
-              size="sm" 
-              className="rounded-md bg-white text-gray-700 hover:bg-gray-100 flex items-center"
-            />
-          </div>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="flex items-center gap-1 text-gray-700"
+            onClick={() => resetUserProgress.mutate()}
+            disabled={resetUserProgress.isPending}
+          >
+            <RefreshCw className="h-4 w-4" />
+            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
+          </Button>
         </div>
       </header>
       
