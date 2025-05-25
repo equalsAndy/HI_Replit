@@ -78,6 +78,37 @@ export default function AllStarTeams() {
     }
   }, []);
 
+  // Add user session tracking to refresh data when user changes
+  useEffect(() => {
+    let lastUserId: number | null = null;
+    
+    const checkUserAndRefresh = async () => {
+      try {
+        const response = await fetch('/api/user/me', { credentials: 'include' });
+        if (response.ok) {
+          const userData = await response.json();
+          const currentUserId = userData.user?.id;
+          
+          // If user changed, clear all cached data and refresh
+          if (lastUserId !== null && lastUserId !== currentUserId) {
+            queryClient.clear();
+            queryClient.invalidateQueries();
+            // Clear progress for new user
+            setCompletedSteps([]);
+            localStorage.removeItem(progressStorageKey);
+          }
+          lastUserId = currentUserId;
+        }
+      } catch (error) {
+        // Silently handle errors
+      }
+    };
+    
+    checkUserAndRefresh();
+    const interval = setInterval(checkUserAndRefresh, 1500);
+    return () => clearInterval(interval);
+  }, [progressStorageKey]);
+
   // Load completed steps from localStorage
   useEffect(() => {
     const savedProgressJSON = localStorage.getItem(progressStorageKey);

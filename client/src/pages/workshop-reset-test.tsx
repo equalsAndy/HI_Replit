@@ -72,10 +72,29 @@ export default function WorkshopResetTest() {
     'reflections'
   ];
 
-  // Load local storage data on component mount
+  // Load local storage data on component mount and when user changes
   useEffect(() => {
     refreshStorageData();
     refreshServerData();
+    
+    // Clear React Query cache to ensure fresh data for new user
+    queryClient.clear();
+  }, []);
+  
+  // Add effect to refresh data when page becomes visible (handles user switching)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Page became visible, refresh data to handle user switching
+        setTimeout(() => {
+          refreshServerData();
+          queryClient.clear();
+        }, 100);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
 
   // Refresh the local storage data
