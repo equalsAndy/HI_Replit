@@ -1,48 +1,77 @@
+import { User, NewUser, users } from '@shared/schema';
 import { db } from '../db';
-import * as schema from '@shared/schema';
-import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { eq } from 'drizzle-orm';
 
-interface CreateUserParams {
+export interface CreateUserParams {
   username: string;
   password: string;
   name: string;
   email: string;
-  role: string;
+  role: 'admin' | 'facilitator' | 'participant';
   organization?: string;
   jobTitle?: string;
   profilePicture?: string;
-  cohortId?: number;
 }
 
-class UserManagementService {
+export class UserManagementService {
   /**
    * Create a new user
    */
-  async createUser(params: CreateUserParams) {
-    const { username, password, name, email, role, organization, jobTitle, profilePicture, cohortId } = params;
-    
+  async createUser(userData: CreateUserParams): Promise<User> {
     // Hash the password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
     
-    // Create the user
-    const user = await db.insert(schema.users).values({
-      username,
-      password: hashedPassword,
-      name,
-      email,
-      role,
-      organization: organization || null,
-      jobTitle: jobTitle || null,
-      profilePicture: profilePicture || null,
-      cohortId: cohortId || null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    }).returning();
+    // Insert the user
+    const result = await db.insert(users)
+      .values({
+        username: userData.username,
+        password: hashedPassword,
+        name: userData.name,
+        email: userData.email,
+        role: userData.role as 'admin' | 'facilitator' | 'participant',
+        organization: userData.organization || null,
+        jobTitle: userData.jobTitle || null,
+        profilePicture: userData.profilePicture || null
+      })
+      .returning();
     
-    return user[0];
+    return result[0];
   }
-  
+
+  /**
+   * Get a user by ID
+   */
+  async getUserById(id: number): Promise<User | null> {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.id, id));
+    
+    return result[0] || null;
+  }
+
+  /**
+   * Get a user by username
+   */
+  async getUserByUsername(username: string): Promise<User | null> {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.username, username));
+    
+    return result[0] || null;
+  }
+
+  /**
+   * Get a user by email
+   */
+  async getUserByEmail(email: string): Promise<User | null> {
+    const result = await db.select()
+      .from(users)
+      .where(eq(users.email, email));
+    
+    return result[0] || null;
+  }
+
   /**
    * Check if a username is available
    */
@@ -50,126 +79,98 @@ class UserManagementService {
     const user = await this.getUserByUsername(username);
     return !user;
   }
-  
+
   /**
-   * Get a user by username
+   * Check if an email is available
    */
-  async getUserByUsername(username: string) {
-    const user = await db.query.users.findFirst({
-      where: eq(schema.users.username, username),
-    });
-    
-    return user;
+  async isEmailAvailable(email: string): Promise<boolean> {
+    const user = await this.getUserByEmail(email);
+    return !user;
   }
-  
-  /**
-   * Get a user by email
-   */
-  async getUserByEmail(email: string) {
-    const user = await db.query.users.findFirst({
-      where: eq(schema.users.email, email),
-    });
-    
-    return user;
-  }
-  
-  /**
-   * Get a user by ID
-   */
-  async getUserById(id: number) {
-    const user = await db.query.users.findFirst({
-      where: eq(schema.users.id, id),
-    });
-    
-    return user;
-  }
-  
+
   /**
    * Validate user credentials
    */
-  async validateCredentials(username: string, password: string) {
+  async validateCredentials(username: string, password: string): Promise<User | null> {
     const user = await this.getUserByUsername(username);
     
     if (!user) {
       return null;
     }
     
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isValid = await bcrypt.compare(password, user.password);
     
-    if (!isPasswordValid) {
-      return null;
+    return isValid ? user : null;
+  }
+
+  /**
+   * Update a user's profile
+   */
+  async updateUser(id: number, userData: Partial<User>): Promise<User | null> {
+    // Don't allow updating certain fields
+    if (userData.id) delete userData.id;
+    if (userData.createdAt) delete userData.createdAt;
+    
+    // If updating password, hash it
+    if (userData.password) {
+      userData.password = await bcrypt.hash(userData.password, 10);
     }
     
-    return user;
-  }
-  
-  /**
-   * Update user profile
-   */
-  async updateUserProfile(userId: number, updates: {
-    name?: string;
-    email?: string;
-    organization?: string;
-    jobTitle?: string;
-    profilePicture?: string;
-  }) {
-    const result = await db.update(schema.users)
-      .set({
-        ...updates,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.users.id, userId))
+    // Set the updated timestamp
+    userData.updatedAt = new Date();
+    
+    // Update the user
+    const result = await db.update(users)
+      .set(userData)
+      .where(eq(users.id, id))
       .returning();
     
-    return result[0];
+    return result[0] || null;
+  }
+
+  /**
+   * Get all users
+   */
+  async getAllUsers(): Promise<User[]> {
+    return db.select().from(users);
   }
   
   /**
-   * Change user password
+   * Get users by role
    */
-  async changePassword(userId: number, newPassword: string) {
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
-    const result = await db.update(schema.users)
-      .set({
-        password: hashedPassword,
-        updatedAt: new Date(),
-      })
-      .where(eq(schema.users.id, userId))
-      .returning();
-    
-    return result[0];
+  async getUsersByRole(role: 'admin' | 'facilitator' | 'participant'): Promise<User[]> {
+    return db.select()
+      .from(users)
+      .where(eq(users.role, role));
   }
-  
+
   /**
-   * Update user role (admin only)
+   * Change a user's role
    */
-  async updateUserRole(userId: number, newRole: string) {
-    const result = await db.update(schema.users)
-      .set({
+  async changeUserRole(id: number, newRole: 'admin' | 'facilitator' | 'participant'): Promise<User | null> {
+    const result = await db.update(users)
+      .set({ 
         role: newRole,
-        updatedAt: new Date(),
+        updatedAt: new Date()
       })
-      .where(eq(schema.users.id, userId))
+      .where(eq(users.id, id))
       .returning();
     
-    return result[0];
+    return result[0] || null;
   }
-  
+
   /**
-   * Get all users (admin only)
+   * Delete a user
+   * Note: This is a hard delete, consider soft deletes for production
    */
-  async getAllUsers() {
-    const users = await db.query.users.findMany({
-      orderBy: (users, { asc }) => [asc(users.name)],
-    });
+  async deleteUser(id: number): Promise<boolean> {
+    const result = await db.delete(users)
+      .where(eq(users.id, id))
+      .returning({ id: users.id });
     
-    // Don't return password hashes
-    return users.map(user => {
-      const { password, ...userWithoutPassword } = user;
-      return userWithoutPassword;
-    });
+    return result.length > 0;
   }
 }
 
+// Export a singleton instance
 export const userManagementService = new UserManagementService();

@@ -1,5 +1,5 @@
-import { InferSelectModel, relations, sql } from 'drizzle-orm';
-import { boolean, date, integer, pgTable, primaryKey, text, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
+import { InferSelectModel, relations } from 'drizzle-orm';
+import { boolean, date, integer, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -31,10 +31,10 @@ export const invites = pgTable('invites', {
   email: varchar('email', { length: 100 }).notNull(),
   role: varchar('role', { length: 20 }).notNull().$type<'admin' | 'facilitator' | 'participant'>(),
   createdAt: timestamp('created_at').notNull().defaultNow(),
-  createdBy: integer('created_by').notNull().references(() => users.id),
+  createdBy: integer('created_by').notNull(), // Reference will be added later
   expiresAt: timestamp('expires_at'),
   usedAt: timestamp('used_at'),
-  usedBy: integer('used_by').references(() => users.id)
+  usedBy: integer('used_by')
 });
 
 // ==================== COHORT RELATED SCHEMAS ====================
@@ -55,8 +55,8 @@ export const cohortsRelations = relations(cohorts, ({ many }) => ({
 }));
 
 export const cohortParticipants = pgTable('cohort_participants', {
-  cohortId: integer('cohort_id').notNull().references(() => cohorts.id),
-  userId: integer('user_id').notNull().references(() => users.id),
+  cohortId: integer('cohort_id').notNull(),
+  userId: integer('user_id').notNull(),
   addedAt: timestamp('added_at').notNull().defaultNow(),
 }, (table) => {
   return {
@@ -76,8 +76,8 @@ export const cohortParticipantsRelations = relations(cohortParticipants, ({ one 
 }));
 
 export const cohortFacilitators = pgTable('cohort_facilitators', {
-  cohortId: integer('cohort_id').notNull().references(() => cohorts.id),
-  userId: integer('user_id').notNull().references(() => users.id),
+  cohortId: integer('cohort_id').notNull(),
+  userId: integer('user_id').notNull(),
   addedAt: timestamp('added_at').notNull().defaultNow(),
 }, (table) => {
   return {
@@ -98,7 +98,7 @@ export const cohortFacilitatorsRelations = relations(cohortFacilitators, ({ one 
 
 export const userRoles = pgTable('user_roles', {
   id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull().references(() => users.id),
+  userId: integer('user_id').notNull(),
   role: varchar('role', { length: 20 }).notNull().$type<'admin' | 'facilitator' | 'participant'>(),
   createdAt: timestamp('created_at').notNull().defaultNow()
 });
@@ -136,20 +136,16 @@ export const sessions = pgTable('sessions', {
 
 // User types
 export type User = InferSelectModel<typeof users>;
-export type NewUser = z.infer<typeof insertUserSchema>;
 export type UserRole = InferSelectModel<typeof userRoles>;
 
 // Invite types
 export type Invite = InferSelectModel<typeof invites>;
-export type NewInvite = z.infer<typeof insertInviteSchema>;
 
 // Cohort types
 export type Cohort = InferSelectModel<typeof cohorts>;
-export type NewCohort = z.infer<typeof insertCohortSchema>;
 
 // Video types
 export type Video = InferSelectModel<typeof videos>;
-export type NewVideo = z.infer<typeof insertVideoSchema>;
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users, {
@@ -167,3 +163,8 @@ export const insertInviteSchema = createInsertSchema(invites, {
 export const insertCohortSchema = createInsertSchema(cohorts).omit({ id: true, createdAt: true, updatedAt: true });
 
 export const insertVideoSchema = createInsertSchema(videos).omit({ id: true, createdAt: true, updatedAt: true });
+
+export type NewUser = z.infer<typeof insertUserSchema>;
+export type NewInvite = z.infer<typeof insertInviteSchema>;
+export type NewCohort = z.infer<typeof insertCohortSchema>;
+export type NewVideo = z.infer<typeof insertVideoSchema>;
