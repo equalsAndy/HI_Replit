@@ -324,7 +324,7 @@ export default function AuthPage() {
           </Form>
         )} */}
 
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center space-y-3">
           <p className="text-gray-600">
             {isLogin ? "" : "Already have an account? "}
             <button 
@@ -336,7 +336,17 @@ export default function AuthPage() {
             </button>
           </p>
 
-
+          {isLogin && (
+            <p className="text-gray-600">
+              Have an invite code?{" "}
+              <a 
+                href="/invite-registration" 
+                className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium`}
+              >
+                Register here
+              </a>
+            </p>
+          )}
         </div>
 
         {/* Test User Picker - only shown when needed */}

@@ -11,6 +11,7 @@ import AuthPage from "@/pages/auth-page";
 import Assessment from "@/pages/assessment";
 import Report from "@/pages/report";
 import UserHome from "./pages/user-home2-refactored";
+import InviteRegistration from "./pages/invite-registration";
 import { TestUserBanner } from "@/components/test-users/TestUserBanner";
 import { Button } from "@/components/ui/button";
 
@@ -58,7 +59,11 @@ function Router() {
     if (!isLoading) {
       const path = window.location.pathname;
       // If not logged in and not on allowed public pages, redirect to auth
-      if (!user && path !== '/auth' && path !== '/' && path !== '/logout') {
+      if (!user && 
+          path !== '/auth' && 
+          path !== '/' && 
+          path !== '/logout' && 
+          !path.startsWith('/invite-registration')) {
         navigate('/auth');
       }
       // If logged in and on auth page, go to user home
@@ -91,6 +96,7 @@ function Router() {
         <Switch>
           <Route path="/" component={Landing} />
           <Route path="/auth" component={AuthPage} />
+          <Route path="/invite-registration" component={InviteRegistration} />
           <Route path="/user-home" component={UserHome} />
           <Route path="/allstarteams" component={AllStarTeams} />
           <Route path="/profile">
