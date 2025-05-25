@@ -272,13 +272,16 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
     // In a real implementation, we'd calculate the results based on all answers
     // For this implementation, we'll use demo data since we're fixing an issue
     
-    // Demo quadrant data - would normally be calculated from answers
-    const quadrantData = {
+    // Get quadrant data from request or use demo data if not provided
+    let quadrantData = req.body.quadrantData || {
       thinking: 28,
       feeling: 25,
       acting: 24,
       planning: 23
     };
+    
+    // Log the data we're saving
+    console.log('Saving star card data:', quadrantData);
     
     // Check if user already has an assessment
     const existingAssessment = await db
@@ -296,25 +299,29 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
       await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(quadrantData),
-          updatedAt: new Date()
+          results: JSON.stringify(quadrantData)
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id));
     } else {
       // Create new assessment record
       await db.insert(schema.userAssessments).values({
-        userId,
+        userId: userId,
         assessmentType: 'starCard',
-        results: JSON.stringify(quadrantData),
-        createdAt: new Date(),
-        updatedAt: new Date()
+        results: JSON.stringify(quadrantData)
       });
     }
     
+    // Return the full star card data in the format expected by the client
     return res.status(200).json({
       success: true,
       message: 'Assessment completed',
-      results: quadrantData
+      id: existingAssessment.length > 0 ? existingAssessment[0].id : null,
+      userId: userId,
+      thinking: quadrantData.thinking,
+      feeling: quadrantData.feeling,
+      acting: quadrantData.acting,
+      planning: quadrantData.planning,
+      createdAt: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error completing assessment:', error);

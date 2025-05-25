@@ -245,12 +245,12 @@ export default function Assessment() {
 
       console.log("Submitting formatted answers:", formattedAnswers);
 
-      // Save to server - now returns the complete StarCard object
+      // Save to server - send the quadrant data
       const res = await apiRequest('POST', '/api/assessment/complete', {
-        quadrantData: results,
-        answers: formattedAnswers
+        quadrantData: results
       });
 
+      // This will return the updated star card data
       return await res.json();
     },
     onSuccess: (data) => {
