@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
 import { useToast } from "@/hooks/use-toast";
-import { InfoIcon, User } from "lucide-react";
+import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import LogoutButton from "../auth/LogoutButton";
+import TestUserBanner from "../auth/TestUserBanner";
 import {
   Dialog,
   DialogContent,
@@ -134,11 +136,13 @@ export function NavBar() {
         {/* Test User Badge - shown for all test users */}
         {user?.id && (
           <>
-            <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 hidden md:flex">
-              {user?.role === 'admin' && 'Admin'}
-              {user?.role === 'facilitator' && 'Facilitator'}
-              {user?.role === 'participant' && 'Participant'}
-              : {user?.name || user?.username}
+            <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 flex px-3 py-1">
+              <span className="font-medium">
+                {user?.role === 'admin' && 'Admin'}
+                {user?.role === 'facilitator' && 'Facilitator'}
+                {user?.role === 'participant' && 'Participant'}
+                : {user?.name || user?.username}
+              </span>
             </Badge>
           
             <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
@@ -216,23 +220,11 @@ export function NavBar() {
           
           {/* Logout button */}
           {user?.id && (
-            <Button 
+            <LogoutButton 
               variant="outline" 
               size="sm" 
-              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-              onClick={async () => {
-                try {
-                  await apiRequest('/api/auth/logout', { method: 'POST' });
-                  queryClient.clear();
-                  navigate('/');
-                  window.location.reload(); // Ensure a full refresh to clear all state
-                } catch (error) {
-                  console.error('Logout error:', error);
-                }
-              }}
-            >
-              Logout
-            </Button>
+              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
+            />
           )}
         </div>
       </div>
