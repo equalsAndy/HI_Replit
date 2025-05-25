@@ -57,13 +57,15 @@ export class ResetService {
           deletedData.flowAttributes = true;
         }
         
-        // Delete all assessments for this user
+        // Delete all assessments for this user using raw SQL query for more reliability
         if (assessments.length > 0) {
-          const result = await db
-            .delete(schema.userAssessments)
-            .where(eq(schema.userAssessments.userId, userId));
+          // Use SQL query through drizzle's SQL template for compatibility
+          const { sql } = await import('drizzle-orm');
+          const result = await db.execute(
+            sql`DELETE FROM user_assessments WHERE user_id = ${userId}`
+          );
           
-          console.log(`Deleted user assessments for user ${userId}:`, result);
+          console.log(`Deleted user assessments for user ${userId} using direct SQL`);
         }
         
         // Verify deletion

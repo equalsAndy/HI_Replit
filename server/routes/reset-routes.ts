@@ -41,67 +41,20 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       });
     }
     
-    // Direct database approach to delete user assessments
-    try {
-      // Import necessary database objects
-      const { db } = await import('../db');
-      const { userAssessments } = await import('../../shared/schema');
-      const { eq } = await import('drizzle-orm');
-      
-      // Track what was reset
-      const resetDetails = {
-        userId: userId,
-        success: true,
-        message: 'User data reset successfully',
-        deletedData: {
-          userAssessments: false
-        }
-      };
-      
-      // 1. Delete all assessments (including star card and flow attributes)
-      console.log(`Deleting all assessments for user ${userId}`);
-      
-      // Find assessments first to log what we're deleting
-      const assessments = await db.select().from(userAssessments)
-        .where(eq(userAssessments.userId, userId));
-      
-      console.log(`Found ${assessments.length} assessments to delete for user ${userId}`);
-      
-      if (assessments.length > 0) {
-        // Delete all assessments
-        await db.delete(userAssessments)
-          .where(eq(userAssessments.userId, userId));
-        
-        // Verify deletion
-        const remainingAssessments = await db.select().from(userAssessments)
-          .where(eq(userAssessments.userId, userId));
-        
-        resetDetails.deletedData.userAssessments = remainingAssessments.length === 0;
-        
-        if (remainingAssessments.length > 0) {
-          console.error(`Failed to delete all assessments for user ${userId}. ${remainingAssessments.length} remain.`);
-          resetDetails.success = false;
-          resetDetails.message = 'Some user data could not be reset';
-        } else {
-          console.log(`Successfully deleted all assessments for user ${userId}`);
-        }
-      } else {
-        console.log(`No assessments found for user ${userId}`);
-        resetDetails.deletedData.userAssessments = true;
-      }
-      
-      return res.status(resetDetails.success ? 200 : 500).json(resetDetails);
-    } catch (dbError) {
-      console.error('Database error during reset:', dbError);
-      
-      // Fall back to the reset service if direct DB approach fails
-      const resetResult = await ResetService.resetAllUserData(userId);
-      
-      if (resetResult.success) {
-        return res.status(200).json(resetResult);
-      } else {
-        return res.status(500).json(resetResult);
-      }
+    // Use the ResetService which has been properly tested
+    const resetResult = await ResetService.resetAllUserData(userId);
+    
+    // Add cache prevention headers
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    
+    console.log(`=== RESET: Completed data reset for user ${userId} ===`);
+    
+    if (resetResult.success) {
+      return res.status(200).json(resetResult);
+    } else {
+      return res.status(500).json(resetResult);
     }
   } catch (error) {
     console.error('Error in reset endpoint:', error);

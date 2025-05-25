@@ -242,11 +242,35 @@ export default function WorkshopResetTest() {
     setResetResult(breakdown);
   };
 
-  // Clear all local storage data
+  // Clear all local storage and session storage data
   const clearAllData = () => {
+    // Clear all defined storage keys from localStorage
     storageKeys.forEach(key => {
       localStorage.removeItem(key);
+      sessionStorage.removeItem(key);
     });
+    
+    // Also clear any direct assessment cache items
+    localStorage.removeItem('star-card');
+    localStorage.removeItem('flow-attributes');
+    localStorage.removeItem('strengths-assessment');
+    localStorage.removeItem('flow-assessment');
+    localStorage.removeItem('workshop-progress');
+    localStorage.removeItem('cached_assessments');
+    localStorage.removeItem('cached_star_card');
+    localStorage.removeItem('cached_flow_data');
+    
+    // Clear the same from sessionStorage
+    sessionStorage.removeItem('star-card');
+    sessionStorage.removeItem('flow-attributes');
+    sessionStorage.removeItem('strengths-assessment');
+    sessionStorage.removeItem('flow-assessment');
+    sessionStorage.removeItem('workshop-progress');
+    sessionStorage.removeItem('cached_assessments');
+    sessionStorage.removeItem('cached_star_card');
+    sessionStorage.removeItem('cached_flow_data');
+    
+    console.log("Cleared all browser storage data");
     refreshStorageData();
   };
 
@@ -294,23 +318,7 @@ export default function WorkshopResetTest() {
       // Clear any data in memory 
       setServerData({ status: "Resetting data..." });
 
-      // Special handling for user 1 if needed (specifically delete starCard and flowAttributes)
-      if (userId === 1) {
-        // First, directly delete the star card for this user
-        const deleteStarCardResponse = await fetch(`/api/test-users/reset/user/${userId}/starcard`, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include',
-          cache: 'no-store'
-        });
-        
-        if (!deleteStarCardResponse.ok) {
-          console.error("Error deleting star card:", await deleteStarCardResponse.text());
-        }
-      }
+      // No special handling needed now that we've fixed the server-side reset
       
       // Call the reset API with the correct endpoint
       const resetResponse = await fetch(`/api/test-users/reset/user/${userId}`, {
