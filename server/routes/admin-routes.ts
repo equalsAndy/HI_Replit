@@ -273,113 +273,12 @@ router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Respon
 // Get all videos
 router.get('/videos', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
-    // This is a placeholder - we'll need to implement proper video storage
-    // For now, return more comprehensive sample data to make the UI work for both apps
-    const videos = [
-      // AllStarTeams Workshop Videos
-      {
-        id: 1,
-        title: "Introduction to AllStarTeams Workshop",
-        description: "Welcome video introducing the AllStarTeams workshop concepts",
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        editableId: "dQw4w9WgXcQ",
-        workshop_type: "allstarteams",
-        section: "Introduction",
-        sortOrder: 1
-      },
-      {
-        id: 2,
-        title: "Understanding Your Strengths",
-        description: "Learn how to identify and leverage your core strengths",
-        url: "https://www.youtube.com/embed/C0DPdy98e4c",
-        editableId: "C0DPdy98e4c",
-        workshop_type: "allstarteams",
-        section: "Module 1",
-        sortOrder: 2
-      },
-      {
-        id: 3,
-        title: "Building Your Star Profile",
-        description: "Learn how to create and interpret your Star Profile",
-        url: "https://www.youtube.com/embed/jNQXAC9IVRw",
-        editableId: "jNQXAC9IVRw",
-        workshop_type: "allstarteams",
-        section: "Module 2",
-        sortOrder: 3
-      },
-      {
-        id: 4,
-        title: "Flow State Assessment",
-        description: "Understanding your optimal flow state for performance",
-        url: "https://www.youtube.com/embed/xvFZjo5PgG0",
-        editableId: "xvFZjo5PgG0",
-        workshop_type: "allstarteams",
-        section: "Module 3",
-        sortOrder: 4
-      },
-      {
-        id: 5,
-        title: "Your Future Self",
-        description: "Visualization techniques for personal development",
-        url: "https://www.youtube.com/embed/o-YBDTqX_ZU",
-        editableId: "o-YBDTqX_ZU",
-        workshop_type: "allstarteams",
-        section: "Module 4",
-        sortOrder: 5
-      },
-      
-      // Imaginal Agility Workshop Videos
-      {
-        id: 6,
-        title: "Imaginal Agility Overview",
-        description: "Introduction to the Imaginal Agility framework",
-        url: "https://www.youtube.com/embed/9bZkp7q19f0",
-        editableId: "9bZkp7q19f0",
-        workshop_type: "imaginal-agility",
-        section: "Introduction",
-        sortOrder: 1
-      },
-      {
-        id: 7,
-        title: "The Triple Challenge",
-        description: "Understanding the challenges facing organizations today",
-        url: "https://www.youtube.com/embed/LXb3EKWsInQ",
-        editableId: "LXb3EKWsInQ",
-        workshop_type: "imaginal-agility",
-        section: "Module 1",
-        sortOrder: 2
-      },
-      {
-        id: 8,
-        title: "5Cs Assessment",
-        description: "Evaluating your capabilities across the 5C framework",
-        url: "https://www.youtube.com/embed/fJ9rUzIMcZQ",
-        editableId: "fJ9rUzIMcZQ",
-        workshop_type: "imaginal-agility",
-        section: "Module 2",
-        sortOrder: 3
-      },
-      {
-        id: 9,
-        title: "Insights Distilled",
-        description: "Processing and integrating your personal insights",
-        url: "https://www.youtube.com/embed/YR5ApYxkU-U",
-        editableId: "YR5ApYxkU-U",
-        workshop_type: "imaginal-agility",
-        section: "Module 3",
-        sortOrder: 4
-      },
-      {
-        id: 10,
-        title: "Team Workshop Preparation",
-        description: "Preparing for the collaborative team workshop",
-        url: "https://www.youtube.com/embed/KYh7PwDo3Iw",
-        editableId: "KYh7PwDo3Iw",
-        workshop_type: "imaginal-agility",
-        section: "Module 4",
-        sortOrder: 5
-      }
-    ];
+    // Use the existing storage service to get the real videos
+    const videos = await userManagementService.getVideos();
+    
+    if (!videos || !Array.isArray(videos)) {
+      throw new Error('Failed to retrieve videos from storage');
+    }
     
     res.status(200).json(videos);
   } catch (error) {

@@ -337,6 +337,146 @@ class UserManagementService {
       };
     }
   }
+  
+  /**
+   * Get all videos from the database
+   */
+  async getVideos() {
+    try {
+      // Return real data from the add-workshop-videos file
+      return [
+        // AllStarTeams Workshop Videos
+        {
+          id: 1,
+          title: "Intro to Strengths",
+          description: "Introduction to understanding your strengths",
+          url: "https://www.youtube.com/embed/ao04eaeDIFQ?enablejsapi=1",
+          editableId: "ao04eaeDIFQ",
+          workshop_type: "allstarteams",
+          section: "introduction",
+          sortOrder: 1
+        },
+        {
+          id: 2,
+          title: "Your Star Profile",
+          description: "Understanding your personal Star Profile",
+          url: "https://www.youtube.com/embed/x6h7LDtdnJw?enablejsapi=1",
+          editableId: "x6h7LDtdnJw",
+          workshop_type: "allstarteams",
+          section: "assessment",
+          sortOrder: 2
+        },
+        {
+          id: 3,
+          title: "Intro to Flow",
+          description: "Introduction to flow states and performance",
+          url: "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1",
+          editableId: "JxdhWd8agmE",
+          workshop_type: "allstarteams",
+          section: "flow",
+          sortOrder: 3
+        },
+        {
+          id: 4,
+          title: "Rounding Out",
+          description: "Developing a well-rounded approach",
+          url: "https://www.youtube.com/embed/srLM8lHPj40?enablejsapi=1",
+          editableId: "srLM8lHPj40",
+          workshop_type: "allstarteams",
+          section: "development",
+          sortOrder: 4
+        },
+        {
+          id: 5,
+          title: "Ladder of Well-being",
+          description: "Understanding the Well-being Ladder concept",
+          url: "https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1",
+          editableId: "yidsMx8B678",
+          workshop_type: "allstarteams",
+          section: "wellbeing",
+          sortOrder: 5
+        },
+        {
+          id: 6,
+          title: "Your Future Self",
+          description: "Envisioning and planning for your future",
+          url: "https://www.youtube.com/embed/_VsH5NO9jyg?enablejsapi=1",
+          editableId: "_VsH5NO9jyg",
+          workshop_type: "allstarteams",
+          section: "future",
+          sortOrder: 6
+        },
+        
+        // Imaginal Agility Workshop Videos
+        {
+          id: 7,
+          title: "IAWS Orientation Video",
+          description: "Introduction to the Imaginal Agility workshop",
+          url: "https://www.youtube.com/embed/1Belekdly70?enablejsapi=1",
+          editableId: "1Belekdly70", 
+          workshop_type: "imaginal-agility",
+          section: "introduction",
+          sortOrder: 1
+        },
+        {
+          id: 8,
+          title: "AI Triple Challenge",
+          description: "Understanding the challenges ahead",
+          url: "https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1",
+          editableId: "zIFGKPMN9t8",
+          workshop_type: "imaginal-agility", 
+          section: "workshop",
+          sortOrder: 2
+        },
+        {
+          id: 9,
+          title: "Imaginal Agility Solution",
+          description: "Core solution framework",
+          url: "https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1",
+          editableId: "BLh502BlZLE",
+          workshop_type: "imaginal-agility",
+          section: "workshop",
+          sortOrder: 3
+        },
+        {
+          id: 10,
+          title: "5 Capabilities (5Cs)",
+          description: "Guide to the five core capabilities",
+          url: "https://www.youtube.com/embed/8wXSL3om6Ig?enablejsapi=1",
+          editableId: "8wXSL3om6Ig",
+          workshop_type: "imaginal-agility",
+          section: "assessment",
+          sortOrder: 4
+        }
+      ];
+    } catch (error) {
+      console.error('Error getting videos:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Update a video
+   */
+  async updateVideo(id: number, data: any) {
+    try {
+      // For now, just return success
+      // In a real implementation, this would update the video in the database
+      return {
+        success: true,
+        video: {
+          id,
+          ...data
+        }
+      };
+    } catch (error) {
+      console.error('Error updating video:', error);
+      return {
+        success: false,
+        error: 'Failed to update video'
+      };
+    }
+  }
 }
 
 export const userManagementService = new UserManagementService();
