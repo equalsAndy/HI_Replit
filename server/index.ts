@@ -91,6 +91,18 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Add a specific route handler for the root path
+// This ensures that when users visit /, they're properly redirected
+app.get('/', (req, res, next) => {
+  // In production, we would serve the static index.html file
+  // In development, pass to the next middleware (which will be Vite)
+  if (process.env.NODE_ENV === 'production') {
+    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+  } else {
+    next();
+  }
+});
+
 // Create HTTP server
 const server = createServer(app);
 
