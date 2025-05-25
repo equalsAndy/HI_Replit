@@ -142,24 +142,13 @@ export function NavBar() {
     }
   };
 
-  // Determine if this is a test user from the database flag
-  const isTestUser = user?.isTestUser === true;
-  
-  // Log for debugging
-  console.log("User data in NavBar:", user);
-  console.log("Is test user:", isTestUser);
-
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
   
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
-      {/* Directly show test banner at the top when user is a test user */}
-      {isTestUser && (
-        <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
-          TEST MODE: All actions and data are for testing purposes only
-        </div>
-      )}
+      {/* Pass the user object directly to TestUserBanner */}
+      <TestUserBanner showInHeader={true} user={user} />
       
       <div className="flex-1">
         <div className="flex items-center">

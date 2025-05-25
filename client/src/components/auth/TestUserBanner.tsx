@@ -1,42 +1,26 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
 
 interface TestUserBannerProps {
   className?: string;
   showInHeader?: boolean;
+  user?: {
+    id?: number;
+    name?: string;
+    username?: string;
+    role?: string;
+    isTestUser?: boolean;
+  }
 }
 
 export function TestUserBanner({ 
   className = '', 
-  showInHeader = false 
+  showInHeader = false,
+  user
 }: TestUserBannerProps) {
-  // Fetch the current user profile
-  const { data } = useQuery<{
-    success: boolean;
-    user: {
-      id: number;
-      name: string;
-      username: string;
-      email: string | null;
-      title: string | null;
-      organization: string | null;
-      role: string;
-      isTestUser: boolean;
-    }
-  }>({
-    queryKey: ['/api/user/profile'],
-    refetchOnWindowFocus: false,
-  });
-
-  const user = data?.user;
+  // If no user data is provided or the user is not a test user, don't show the banner
+  if (!user?.id || user.isTestUser !== true) return null;
   
-  // If no user data is available or it's not loaded yet, don't show the banner
-  if (!user?.id) return null;
-
-  // Check the database field isTestUser to determine if this is a test user
-  if (user.isTestUser !== true) return null;
-
   // Style based on role
   const getBadgeStyle = () => {
     switch(user.role?.toLowerCase()) {
