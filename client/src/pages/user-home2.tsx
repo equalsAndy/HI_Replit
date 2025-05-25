@@ -160,7 +160,14 @@ export default function UserHome2() {
   const handleAssessmentComplete = (result: any) => {
     // Mark the assessment step as completed
     markStepCompleted('2-2');
-    // You may want to update other state or navigate after assessment completes
+    
+    // Check if we need to navigate to the star card preview
+    if (result && result.navigateToStarCardPreview) {
+      // Change content to star card preview
+      setCurrentContent("star-card-preview");
+      // Also mark the star card preview step as viewed
+      markStepCompleted('2-3');
+    }
   };
 
   return (
