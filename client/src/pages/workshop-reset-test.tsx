@@ -25,8 +25,8 @@ export default function WorkshopResetTest() {
 
   // Storage keys to check and clear - comprehensive list for all workshop data
   const storageKeys = [
+    // AllStarTeams Workshop specific storage items
     'allstarteams-navigation-progress',
-    'imaginal-agility-navigation-progress',
     'allstar_navigation_progress',
     'allstarteams_starCard',
     'allstarteams_flowAttributes',
@@ -36,9 +36,36 @@ export default function WorkshopResetTest() {
     'allstarteams_values',
     'allstarteams_passions',
     'allstarteams_growthAreas',
+    'allstarteams_insights',
+    'allstarteams_reflection',
+    
+    // Imaginal Agility Workshop specific storage items
+    'imaginal-agility-navigation-progress',
+    'imaginal_agility_progress',
+    'imaginal_agility_assessments',
+    'imaginal_agility_reflections',
+    'imaginal_agility_5Cs',
+    'imaginal_agility_insights',
+    
+    // Shared storage items across workshops
     'user-preferences',
     'workshop-progress',
-    'assessment-data'
+    'assessment-data',
+    'active-workshop',
+    'current-workshop',
+    'workshop-state',
+    'cached-assessments',
+    'cached-reflections',
+    'cached-star-card',
+    'cached-flow-attributes',
+    'cached-user-progress',
+    
+    // Legacy and common items
+    'star-card',
+    'flow-attributes',
+    'flow-assessment',
+    'strengths-assessment',
+    'reflections'
   ];
 
   // Load local storage data on component mount
@@ -284,7 +311,11 @@ export default function WorkshopResetTest() {
       const userResponse = await fetch('/api/user/profile', {
         method: 'GET',
         headers: {
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          // Add cache control headers to prevent browser caching
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
         credentials: 'include'
       });
@@ -311,25 +342,26 @@ export default function WorkshopResetTest() {
       // Log the user ID for debugging
       console.log("User ID for reset:", userId);
       
-      // Clear browser memory data BEFORE reset to avoid using cached data
-      // Clear localStorage
+      // STEP 1: Clear ALL browser data (localStorage and sessionStorage)
       clearAllData();
       
-      // Clear any data in memory 
-      setServerData({ status: "Resetting data..." });
-
-      // No special handling needed now that we've fixed the server-side reset
+      // STEP 2: Clear any data in memory 
+      setServerData({ status: "Resetting data on server..." });
       
-      // Call the reset API with the correct endpoint
-      const resetResponse = await fetch(`/api/test-users/reset/user/${userId}`, {
+      // STEP 3: Call the reset API to clear all server-side data
+      // Use a timestamp to prevent browser from reusing cached responses
+      const timestamp = new Date().getTime();
+      const resetResponse = await fetch(`/api/test-users/reset/user/${userId}?t=${timestamp}`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          // Add cache control headers to prevent browser caching
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
         },
-        credentials: 'include',
-        // Disable cache to ensure we get fresh data after reset
-        cache: 'no-store'
+        credentials: 'include'
       });
       
       // Check if reset was successful based on status

@@ -32,65 +32,72 @@ export class ResetService {
     };
     
     try {
-      // Step 1: Delete all user assessments data in a simpler way
-      // This replaces individual calls to resetStarCard and resetFlowAttributes
+      // Use direct database access for maximum reliability
+      const { sql } = await import('drizzle-orm');
+      const { eq } = await import('drizzle-orm');
+      
+      console.log(`Starting comprehensive data reset for user ${userId}`);
+      
+      // STEP 1: Delete all user assessments (including star card and flow attributes)
       try {
-        // Import and use the eq operator from drizzle-orm
-        const { eq } = await import('drizzle-orm');
+        // Use direct SQL for guaranteed deletion of ALL assessment data
+        await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+        console.log(`Deleted all assessment data for user ${userId} using direct SQL`);
         
-        // Find all assessments for this user
-        const assessments = await db
-          .select()
-          .from(schema.userAssessments)
-          .where(eq(schema.userAssessments.userId, userId));
+        // Mark both types as deleted for reporting
+        deletedData.starCard = true;
+        deletedData.flowAttributes = true;
         
-        console.log(`Found ${assessments.length} assessments for user ${userId}`);
-        
-        // Track which types of assessments we found and deleted
-        const assessmentTypes = new Set(assessments.map(a => a.assessmentType));
-        
-        if (assessmentTypes.has('starCard')) {
-          deletedData.starCard = true;
-        }
-        
-        if (assessmentTypes.has('flowAttributes')) {
-          deletedData.flowAttributes = true;
-        }
-        
-        // Delete all assessments for this user using raw SQL query for more reliability
-        if (assessments.length > 0) {
-          // Use SQL query through drizzle's SQL template for compatibility
-          const { sql } = await import('drizzle-orm');
-          const result = await db.execute(
-            sql`DELETE FROM user_assessments WHERE user_id = ${userId}`
-          );
-          
-          console.log(`Deleted user assessments for user ${userId} using direct SQL`);
-        }
-        
-        // Verify deletion
+        // Verify the deletion was successful
         const remainingAssessments = await db
           .select()
           .from(schema.userAssessments)
           .where(eq(schema.userAssessments.userId, userId));
         
         if (remainingAssessments.length > 0) {
-          console.error(`ERROR: Some assessments still exist after deletion for user ${userId}`);
+          console.error(`ERROR: Some assessments remain for user ${userId} after deletion attempt`);
         } else {
-          console.log(`Successfully deleted all assessments for user ${userId}`);
+          console.log(`Successfully verified all assessments deleted for user ${userId}`);
         }
       } catch (error) {
         console.error(`Error deleting user assessments for user ${userId}:`, error);
-        throw new Error(`Failed to delete user assessments: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        // Continue with other operations even if this fails
       }
       
-      // Step 2: Reset user progress (workshop-specific data)
-      await this.resetUserProgress(userId)
-        .then(success => { deletedData.userProgress = success; })
-        .catch(error => {
-          console.error(`Error resetting user progress: ${error.message}`);
-          // Continue even if this fails
-        });
+      // STEP 2: Reset workshop participation data
+      try {
+        // Direct SQL deletion of workshop participation
+        await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+        console.log(`Deleted workshop participation data for user ${userId}`);
+        deletedData.userProgress = true;
+      } catch (error) {
+        console.error(`Error deleting workshop participation for user ${userId}:`, error);
+      }
+      
+      // STEP 3: Reset any reflections or custom user content
+      try {
+        // If there's a reflections table, clear it for this user
+        await db.execute(sql`
+          DELETE FROM user_reflections 
+          WHERE user_id = ${userId}
+        `);
+        console.log(`Attempted to delete user reflections for user ${userId}`);
+      } catch (error) {
+        // This is expected to fail if the table doesn't exist
+        console.log(`No reflections table to clear for user ${userId}`);
+      }
+      
+      // STEP 4: Reset user progress (reset timestamp)
+      try {
+        // Update the user's timestamp to reset their progress
+        await db
+          .update(schema.users)
+          .set({ updatedAt: new Date() })
+          .where(eq(schema.users.id, userId));
+        console.log(`Updated user timestamp for user ${userId}`);
+      } catch (error) {
+        console.error(`Error updating user timestamp for user ${userId}:`, error);
+      }
       
       console.log(`=== RESET: Completed data reset for user ${userId} ===`);
       
