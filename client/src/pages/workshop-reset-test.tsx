@@ -4,6 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw, Save, Trash } from 'lucide-react';
 import TestUserBanner from '@/components/auth/TestUserBanner';
+import { ResetUserDataButton } from '@/components/admin/ResetUserDataButton';
+import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 // Helper function to safely parse JSON
 const safeParseJSON = (json: string | null) => {
@@ -22,6 +25,7 @@ export default function WorkshopResetTest() {
   const [serverData, setServerData] = useState<Record<string, any>>({});
   const [resetResult, setResetResult] = useState<string>('');
   const [isResetting, setIsResetting] = useState(false);
+  const { toast } = useToast();
 
   // Storage keys to check and clear - comprehensive list for all workshop data
   const storageKeys = [
@@ -525,23 +529,53 @@ export default function WorkshopResetTest() {
               
               <div className="pt-2 border-t">
                 <h3 className="font-medium mb-2">Server Reset</h3>
-                <Button 
-                  onClick={resetUserData}
-                  disabled={isResetting}
-                  className="bg-red-500 hover:bg-red-600 text-white mb-4"
-                >
-                  {isResetting ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                      Resetting...
-                    </>
-                  ) : (
-                    <>
-                      <Trash className="h-4 w-4 mr-2" />
-                      Reset User Data
-                    </>
-                  )}
-                </Button>
+                <div className="flex flex-col space-y-2">
+                  {/* Original legacy reset button */}
+                  <Button 
+                    onClick={resetUserData}
+                    disabled={isResetting}
+                    className="bg-red-500 hover:bg-red-600 text-white"
+                  >
+                    {isResetting ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Resetting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash className="h-4 w-4 mr-2" />
+                        Reset User Data (Legacy)
+                      </>
+                    )}
+                  </Button>
+                  
+                  {/* New fixed reset button using ResetUserDataButton component */}
+                  <div className="mt-2">
+                    <ResetUserDataButton 
+                      userId={serverData.userProfile?.id || 15} 
+                      onSuccess={() => {
+                        // Invalidate all queries
+                        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+                        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+                        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+                        queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+                        
+                        // Refresh UI data
+                        refreshServerData();
+                        refreshStorageData();
+                        
+                        // Show success message
+                        toast({
+                          title: 'Reset Complete',
+                          description: 'User data has been reset successfully with improved reset method!',
+                        });
+                        
+                        // Clear local storage too
+                        clearAllData();
+                      }} 
+                    />
+                  </div>
+                </div>
                 
                 {resetResult && (
                   <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
