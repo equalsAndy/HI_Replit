@@ -37,8 +37,12 @@ export async function initializeDatabase() {
     console.log('Initializing database connection...');
     
     // Test the connection
-    const testQuery = await db.select({ now: sql`NOW()` }).execute();
-    console.log('Database connection successful:', testQuery[0].now);
+    try {
+      await queryClient.unsafe('SELECT 1');
+      console.log('Database connection successful');
+    } catch (err) {
+      console.error('Database connection error:', err);
+    }
     
     return true;
   } catch (error) {

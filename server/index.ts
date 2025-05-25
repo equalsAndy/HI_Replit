@@ -6,7 +6,6 @@ import { router } from './routes';
 import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
-import { createServer } from 'http';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -51,6 +50,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure static file serving for uploads
+import { fileURLToPath } from 'url';
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
@@ -79,9 +82,6 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
-// Create HTTP server for the app
-const server = createServer(app);
-
 // In development or production mode, serve the client files
 if (process.env.NODE_ENV === 'production') {
   // In production, serve the built client files
@@ -91,14 +91,6 @@ if (process.env.NODE_ENV === 'production') {
   // For SPA, send index.html for any unmatched routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(clientDir, 'index.html'));
-  });
-} else {
-  // In development, serve from the client directory
-  app.use(express.static(path.join(__dirname, '..', 'client')));
-  
-  // For SPA, send index.html for any unmatched routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 }
 
