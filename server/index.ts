@@ -6,9 +6,15 @@ import { router } from './routes';
 import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
+import { fileURLToPath } from 'url';
 
+// Set up dirname for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Initialize Express app
 const app = express();
-const port = process.env.PORT || 3000;
+const port = parseInt(process.env.PORT || '3000');
 
 // Initialize database connection
 initializeDatabase()
@@ -50,10 +56,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure static file serving for uploads
-import { fileURLToPath } from 'url';
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
@@ -82,19 +84,24 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
-// In development or production mode, serve the client files
-if (process.env.NODE_ENV === 'production') {
-  // In production, serve the built client files
-  const clientDir = path.join(__dirname, '..', 'client', 'dist');
-  app.use(express.static(clientDir));
-  
-  // For SPA, send index.html for any unmatched routes
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(clientDir, 'index.html'));
+// Serve static files from the client directory
+const clientDir = path.join(__dirname, '..', 'client');
+app.use(express.static(clientDir));
+
+// For SPA, send index.html for any non-API routes
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(clientDir, 'index.html'), err => {
+    if (err) {
+      console.error('Error serving client:', err);
+      res.status(500).send('Error serving client application');
+    }
   });
-}
+});
 
 // Start the server
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on port ${port}`);
 });
