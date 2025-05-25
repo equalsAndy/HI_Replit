@@ -33,13 +33,17 @@ export function NavBar() {
   const { toast } = useToast();
   
   // Fetch the current user's profile
-  const { data: user, isLoading: isUserLoading } = useQuery<{
-    id: number;
-    name: string;
-    username: string;
-    title?: string;
-    organization?: string;
-    role?: string;
+  const { data, isLoading: isUserLoading } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      title?: string;
+      organization?: string;
+      role?: string;
+      isTestUser: boolean;
+    }
   }>({ 
     queryKey: ['/api/user/profile'],
     // Only refetch on window focus or when explicitly invalidated
@@ -47,6 +51,9 @@ export function NavBar() {
     staleTime: 60 * 1000, // 1 minute
     retry: 2
   });
+  
+  // Extract user data from the response
+  const user = data?.user;
   
   useEffect(() => {
     // Log user data for debugging

@@ -12,24 +12,30 @@ export function TestUserBanner({
   showInHeader = false 
 }: TestUserBannerProps) {
   // Fetch the current user profile
-  const { data: user } = useQuery<{
-    id: number;
-    name: string;
-    username: string;
-    email: string | null;
-    title: string | null;
-    organization: string | null;
-    role: string;
-    isTestUser: boolean;
+  const { data } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      email: string | null;
+      title: string | null;
+      organization: string | null;
+      role: string;
+      isTestUser: boolean;
+    }
   }>({
     queryKey: ['/api/user/profile'],
     refetchOnWindowFocus: false,
   });
 
+  const user = data?.user;
+  
+  // If no user data is available or it's not loaded yet, don't show the banner
   if (!user?.id) return null;
 
   // Check the database field isTestUser to determine if this is a test user
-  if (!user.isTestUser) return null;
+  if (user.isTestUser !== true) return null;
 
   // Style based on role
   const getBadgeStyle = () => {
