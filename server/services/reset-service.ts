@@ -84,21 +84,34 @@ export class ResetService {
     try {
       console.log(`Resetting star card for user ${userId}`);
       
-      // Check if star card exists
+      // First check the original starCards table
       const [starCard] = await db
         .select()
         .from(schema.starCards)
         .where(eq(schema.starCards.userId, userId));
       
+      // Also check userAssessments table where star card data is now stored
+      const assessments = await db
+        .select()
+        .from(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId)
+        );
+      
+      const starCardAssessment = assessments.find(a => a.assessmentType === 'starCard');
+      
+      let deletedStarCard = false;
+      let deletedAssessment = false;
+      
+      // Delete from starCards table if exists
       if (starCard) {
-        console.log(`Found existing star card for user ${userId}:`, starCard);
+        console.log(`Found existing star card in starCards table for user ${userId}:`, starCard);
         
-        // Delete the star card
         await db
           .delete(schema.starCards)
           .where(eq(schema.starCards.userId, userId));
         
-        // Verify deletion by checking if record still exists
+        // Verify deletion
         const [verifyStarCard] = await db
           .select()
           .from(schema.starCards)
@@ -106,15 +119,44 @@ export class ResetService {
         
         if (verifyStarCard) {
           console.error(`ERROR: Star card still exists after deletion for user ${userId}`);
-          throw new Error('Star card deletion verification failed');
+        } else {
+          deletedStarCard = true;
+          console.log(`Successfully deleted star card from starCards table for user ${userId}`);
         }
-        
-        console.log(`Successfully deleted star card for user ${userId}`);
-        return true;
-      } else {
-        console.log(`No star card found for user ${userId}, nothing to delete`);
-        return true; // Still counts as success since there's nothing to delete
       }
+      
+      // Delete from userAssessments table if exists
+      if (starCardAssessment) {
+        console.log(`Found existing star card in userAssessments table for user ${userId}, ID ${starCardAssessment.id}`);
+        
+        await db
+          .delete(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.id, starCardAssessment.id)
+          );
+        
+        // Verify deletion
+        const verifyAssessment = await db
+          .select()
+          .from(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.id, starCardAssessment.id)
+          );
+        
+        if (verifyAssessment.length > 0) {
+          console.error(`ERROR: Star card assessment still exists after deletion for user ${userId}`);
+        } else {
+          deletedAssessment = true;
+          console.log(`Successfully deleted star card from userAssessments table for user ${userId}`);
+        }
+      }
+      
+      if (!starCard && !starCardAssessment) {
+        console.log(`No star card found in any table for user ${userId}, nothing to delete`);
+        return true;
+      }
+      
+      return deletedStarCard || deletedAssessment;
     } catch (error) {
       console.error(`Error in resetStarCard for user ${userId}:`, error);
       throw error;
@@ -130,21 +172,34 @@ export class ResetService {
     try {
       console.log(`Resetting flow attributes for user ${userId}`);
       
-      // Check if flow attributes exist
+      // Check original flowAttributes table
       const [flowAttributes] = await db
         .select()
         .from(schema.flowAttributes)
         .where(eq(schema.flowAttributes.userId, userId));
       
+      // Also check userAssessments table where flow attributes are now stored
+      const assessments = await db
+        .select()
+        .from(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId)
+        );
+      
+      const flowAssessment = assessments.find(a => a.assessmentType === 'flowAttributes');
+      
+      let deletedFlowAttributes = false;
+      let deletedAssessment = false;
+      
+      // Delete from flowAttributes table if exists
       if (flowAttributes) {
-        console.log(`Found existing flow attributes for user ${userId}:`, flowAttributes);
+        console.log(`Found existing flow attributes in flowAttributes table for user ${userId}:`, flowAttributes);
         
-        // Delete the flow attributes
         await db
           .delete(schema.flowAttributes)
           .where(eq(schema.flowAttributes.userId, userId));
         
-        // Verify deletion by checking if record still exists
+        // Verify deletion
         const [verifyFlowAttributes] = await db
           .select()
           .from(schema.flowAttributes)
@@ -152,15 +207,44 @@ export class ResetService {
         
         if (verifyFlowAttributes) {
           console.error(`ERROR: Flow attributes still exist after deletion for user ${userId}`);
-          throw new Error('Flow attributes deletion verification failed');
+        } else {
+          deletedFlowAttributes = true;
+          console.log(`Successfully deleted flow attributes from flowAttributes table for user ${userId}`);
         }
-        
-        console.log(`Successfully deleted flow attributes for user ${userId}`);
-        return true;
-      } else {
-        console.log(`No flow attributes found for user ${userId}, nothing to delete`);
-        return true; // Still counts as success since there's nothing to delete
       }
+      
+      // Delete from userAssessments table if exists
+      if (flowAssessment) {
+        console.log(`Found existing flow attributes in userAssessments table for user ${userId}, ID ${flowAssessment.id}`);
+        
+        await db
+          .delete(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.id, flowAssessment.id)
+          );
+        
+        // Verify deletion
+        const verifyAssessment = await db
+          .select()
+          .from(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.id, flowAssessment.id)
+          );
+        
+        if (verifyAssessment.length > 0) {
+          console.error(`ERROR: Flow attributes assessment still exists after deletion for user ${userId}`);
+        } else {
+          deletedAssessment = true;
+          console.log(`Successfully deleted flow attributes from userAssessments table for user ${userId}`);
+        }
+      }
+      
+      if (!flowAttributes && !flowAssessment) {
+        console.log(`No flow attributes found in any table for user ${userId}, nothing to delete`);
+        return true;
+      }
+      
+      return deletedFlowAttributes || deletedAssessment;
     } catch (error) {
       console.error(`Error in resetFlowAttributes for user ${userId}:`, error);
       throw error;
