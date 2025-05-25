@@ -3,6 +3,10 @@ import postgres from 'postgres';
 import * as schema from './shared/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 // Get the database URL from environment variables
 const databaseUrl = process.env.DATABASE_URL;
@@ -15,8 +19,8 @@ if (!databaseUrl) {
 async function main() {
   console.log('Connecting to PostgreSQL database...');
   
-  // Create a Postgres client
-  const queryClient = postgres(databaseUrl);
+  // Create a Postgres client with explicit URL string
+  const queryClient = postgres(databaseUrl, { ssl: { rejectUnauthorized: false } });
   
   // Create a Drizzle client
   const db = drizzle(queryClient, { schema });

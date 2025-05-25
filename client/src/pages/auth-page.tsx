@@ -1,425 +1,174 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { useApplication } from "@/hooks/use-application";
-import { insertUserSchema } from "@shared/schema";
-import { TestUserPicker } from "@/components/test-users/TestUserPicker";
-import { LoginForm } from "@/components/auth/LoginForm";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useLocation } from 'wouter';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Link } from 'wouter';
+import { Loader2 } from 'lucide-react';
 
-const loginSchema = z.object({
-  username: z.string().min(1, {
-    message: "Username is required.",
-  }),
-  password: z.string().min(1, {
-    message: "Password is required.",
-  }),
+// Define the login form schema
+const loginFormSchema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-const registerSchema = insertUserSchema
-  .omit({ progress: true })
-  .extend({
-    password: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
-    }),
-    confirmPassword: z.string().min(6, {
-      message: "Password must be at least 6 characters.",
-    }),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ["confirmPassword"],
-  });
+type LoginFormValues = z.infer<typeof loginFormSchema>;
 
-type LoginValues = z.infer<typeof loginSchema>;
-type RegisterValues = z.infer<typeof registerSchema>;
-
-export default function AuthPage() {
-  const [isLogin, setIsLogin] = useState(true);
-  const [showTestUsers, setShowTestUsers] = useState(false);
-  const [, navigate] = useLocation();
+const AuthPage: React.FC = () => {
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const { currentApp, appName, appLogo, appPrimaryColor } = useApplication();
 
-  // We don't need to fetch test users here anymore, that's done in the TestUserPicker component
-
-  // Debug current application state
-  console.log('Auth page - currentApp:', currentApp, 'appName:', appName);
-
-  // Check if user is already logged in
-  const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
-    staleTime: Infinity,
-  });
-
-  // Use useEffect for navigation to avoid React hook violations
-  useEffect(() => {
-    if (!isLoading && user) {
-      navigate('/user-home2-refactored');
-    }
-  }, [isLoading, user, navigate]);
-
-  // Login form
-  const loginForm = useForm<LoginValues>({
-    resolver: zodResolver(loginSchema),
+  // Initialize form
+  const form = useForm<LoginFormValues>({
+    resolver: zodResolver(loginFormSchema),
     defaultValues: {
-      username: "user1", // Set default username to first test user
-      password: "password", // Set default password for test accounts
+      username: '',
+      password: '',
     },
   });
 
-  // Register form
-  const registerForm = useForm<RegisterValues>({
-    resolver: zodResolver(registerSchema),
-    defaultValues: {
-      name: "",
-      username: "",
-      title: "",
-      organization: "",
-      applicationId: currentApp === 'allstarteams' ? 1 : 2, // Set application ID based on current app
-      password: "",
-      confirmPassword: "",
-    },
-  });
-
-  // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginValues) => {
-      try {
-        const res = await apiRequest('POST', '/api/auth/login', data);
-
-        // Check if the response is OK
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Invalid credentials");
-        }
-
-        return await res.json();
-      } catch (err) {
-        // Rethrow the error with a clear message
-        throw new Error(err instanceof Error ? err.message : "Login failed. Please check your credentials.");
+  // Handle form submission
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsLoggingIn(true);
+    
+    try {
+      // Authenticate with the API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({
+          username: data.username,
+          password: data.password,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Login failed',
+          description: result.error || 'Invalid username or password',
+        });
+        setIsLoggingIn(false);
+        return;
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      navigate('/user-home2-refactored');
-    },
-    onError: (error) => {
+      
+      // Redirect based on user role
       toast({
-        title: "Login failed",
-        description: String(error),
-        variant: "destructive",
+        title: 'Login successful',
+        description: `Welcome back, ${result.user.name}!`,
       });
-    }
-  });
-
-  // Register mutation
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterValues) => {
-      const { confirmPassword, ...userData } = data;
-      // Ensure applicationId is set based on current selection
-      userData.applicationId = currentApp === 'allstarteams' ? 1 : 2;
-      const res = await apiRequest('POST', '/api/auth/register', userData);
-      return res.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      navigate('/user-home2-refactored');
-    },
-    onError: (error) => {
+      
+      // Redirect to the appropriate dashboard based on user role
+      if (result.user.role === 'admin') {
+        setLocation('/admin');
+      } else {
+        setLocation('/dashboard');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
       toast({
-        title: "Registration failed",
-        description: String(error),
-        variant: "destructive",
+        variant: 'destructive',
+        title: 'Login failed',
+        description: 'There was a problem logging in. Please try again.',
       });
+    } finally {
+      setIsLoggingIn(false);
     }
-  });
-
-  // Form submit handlers
-  const onLoginSubmit = (data: LoginValues) => {
-    loginMutation.mutate(data);
-  };
-
-  const onRegisterSubmit = (data: RegisterValues) => {
-    registerMutation.mutate(data);
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-16">
-        <div>
-          <img 
-            src={appLogo}
-            alt={appName}
-            className="h-10 w-auto mb-8"
-          />
-          <h1 className="text-3xl font-bold mb-2">
-            {isLogin ? "Welcome back" : "Create an account"}
-          </h1>
-          <p className="text-gray-600">
-            {isLogin 
-              ? "Sign in to continue your journey" 
-              : currentApp === 'allstarteams'
-                ? "Start discovering your strengths today"
-                : "Begin your Imaginal Agility journey"
-            }
-          </p>
+    <div className="flex flex-col min-h-screen">
+      <header className="container mx-auto py-6">
+        <div className="flex items-center space-x-2">
+          <Link href="/">
+            <Button variant="ghost" className="font-semibold text-lg">
+              Heliotrope Imaginal Workshops
+            </Button>
+          </Link>
         </div>
-
-        {/* <div className="mt-4 pt-4 border-t">
-          <Button 
-            variant="outline" 
-            type="button"
-            onClick={() => setShowTestUsers(!showTestUsers)}
-            className="text-sm"
-          >
-            {showTestUsers ? "Hide Test User Info" : "Login with Test User"}
-          </Button>
-        </div> */}
-
-        {/* Login Form */}
-        {isLogin && (
-          <div className="space-y-6">
-            <LoginForm />
-          </div>
-        )}
-
-        {/* Register Form */}
-        {/* {!isLogin && (
-          <Form {...registerForm}>
-            <form onSubmit={registerForm.handleSubmit(onRegisterSubmit)} className="space-y-4">
-              <FormField
-                control={registerForm.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="username"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Username</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Job Title</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="organization"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Organization</FormLabel>
-                    <FormControl>
-                      <Input 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={registerForm.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <Input 
-                        type="password" 
-                        placeholder="Select a test user instead" 
-                        {...field} 
-                        disabled={true}
-                        className="bg-gray-100 text-gray-500 cursor-not-allowed"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button 
-                type="button"
-                className="w-full bg-gray-400 hover:bg-gray-500 cursor-not-allowed"
-                disabled={true}
-              >
-                Registration Disabled
+      </header>
+      
+      <div className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle className="text-2xl text-center">Log In</CardTitle>
+            <CardDescription className="text-center">
+              Enter your credentials to access your workshop
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          placeholder="Enter your username"
+                          disabled={isLoggingIn}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          placeholder="••••••••"
+                          disabled={isLoggingIn}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Log in'
+                  )}
+                </Button>
+              </form>
+            </Form>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-2 text-center text-sm text-muted-foreground">
+            <div className="flex items-center justify-center">
+              <p>Don't have an account?</p>
+              <Button variant="link" asChild className="p-0 pl-2 h-auto">
+                <Link href="/register">Register with an invite code</Link>
               </Button>
-            </form>
-          </Form>
-        )} */}
-
-        <div className="mt-6 text-center space-y-3">
-          <p className="text-gray-600">
-            {isLogin ? "" : "Already have an account? "}
-            <button 
-              onClick={() => setIsLogin(!isLogin)} 
-              className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium ${isLogin ? 'hidden' : ''}`}
-              style={{ display: isLogin ? 'none' : 'inline' }}
-            >
-              {isLogin ? "Create one" : "Sign in"}
-            </button>
-          </p>
-
-          {isLogin && (
-            <p className="text-gray-600">
-              Have an invite code?{" "}
-              <a 
-                href="/invite-registration" 
-                className={`${currentApp === 'allstarteams' ? 'text-indigo-600 hover:text-indigo-800' : 'text-purple-600 hover:text-purple-800'} font-medium`}
-              >
-                Register here
-              </a>
-            </p>
-          )}
-        </div>
-
-        {/* Test User Picker - only shown when needed */}
-        {showTestUsers && (
-          <TestUserPicker
-            open={showTestUsers}
-            onClose={() => setShowTestUsers(false)}
-          />
-        )}
-      </div>
-
-      {/* Right side - Hero */}
-      <div className={`hidden lg:block lg:w-1/2 ${currentApp === 'allstarteams' ? 'bg-indigo-600' : 'bg-purple-600'}`}>
-        <div className="h-full flex flex-col justify-center p-16 text-white">
-          {currentApp === 'allstarteams' ? (
-            <>
-              <h2 className="text-4xl font-bold mb-6">Discover your strengths and transform your team</h2>
-              <p className="text-lg mb-8">
-                The AllStarTeams platform helps you identify your natural talents and how they 
-                combine with others to create high-performing teams.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Personalized strengths assessment</span>
-                </li>
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Interactive team dynamics visualization</span>
-                </li>
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Action-oriented development plans</span>
-                </li>
-              </ul>
-            </>
-          ) : (
-            <>
-              <h2 className="text-4xl font-bold mb-6">Develop your imagination and transform your work</h2>
-              <p className="text-lg mb-8">
-                Imaginal Agility helps you cultivate essential human capabilities to navigate 
-                complexity and create innovative solutions to challenging problems.
-              </p>
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Interactive 5Cs capability assessment</span>
-                </li>
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Detailed data visualizations and insights</span>
-                </li>
-                <li className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 mr-2 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                  <span>Collaborative team workshop materials</span>
-                </li>
-              </ul>
-            </>
-          )}
-        </div>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );
-}
+};
+
+export default AuthPage;
