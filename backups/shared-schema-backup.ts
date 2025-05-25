@@ -1,0 +1,222 @@
+import {
+  pgTable,
+  text,
+  varchar,
+  timestamp,
+  integer,
+  primaryKey,
+  serial,
+  boolean,
+  json,
+  unique,
+  jsonb,
+  index
+} from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
+import { createInsertSchema } from "drizzle-zod";
+import { z } from "zod";
+
+// Session storage table for auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => ({
+    expireIdx: index("IDX_session_expire").on(table.expire),
+  })
+);
+
+// Users table
+export const users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  username: varchar("username").notNull().unique(),
+  password: varchar("password").notNull(),
+  name: varchar("name").notNull(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  email: varchar("email").unique(),
+  title: varchar("title"),
+  organization: varchar("organization", { length: 30 }),
+  jobTitle: varchar("job_title", { length: 30 }),
+  avatarUrl: varchar("avatar_url"),
+  profilePicture: text("profile_picture"), // URL or base64
+  inviteCode: varchar("invite_code", { length: 12 }),
+  codeUsed: boolean("code_used").default(false),
+  createdByFacilitator: integer("created_by_facilitator"),
+  progress: integer("progress").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
+});
+
+// User roles enum
+export enum UserRole {
+  Admin = 'admin',
+  Facilitator = 'facilitator',
+  Participant = 'participant'
+}
+
+// User roles table
+export const userRoles = pgTable("user_roles", {
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  role: varchar("role").notNull().$type<UserRole>(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.userId, table.role] }),
+}));
+
+// Cohorts table
+export const cohorts = pgTable("cohorts", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  startDate: timestamp("start_date"),
+  endDate: timestamp("end_date"),
+  status: varchar("status").notNull().default('upcoming'),
+  cohortType: varchar("cohort_type").notNull().default('standard'),
+  parentCohortId: integer("parent_cohort_id").references((): any => cohorts.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Cohort facilitators
+export const cohortFacilitators = pgTable("cohort_facilitators", {
+  cohortId: integer("cohort_id").notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  facilitatorId: integer("facilitator_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.cohortId, table.facilitatorId] }),
+}));
+
+// Cohort participants
+export const cohortParticipants = pgTable("cohort_participants", {
+  cohortId: integer("cohort_id").notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  participantId: integer("participant_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  joinedAt: timestamp("joined_at").defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.cohortId, table.participantId] }),
+}));
+
+// Star Card table
+export const starCards = pgTable("star_cards", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  thinking: integer("thinking").default(0),
+  acting: integer("acting").default(0),
+  feeling: integer("feeling").default(0),
+  planning: integer("planning").default(0),
+  imageUrl: varchar("image_url"),
+  state: varchar("state").default('incomplete'),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Flow attributes table
+export const flowAttributes = pgTable("flow_attributes", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
+  attributes: json("attributes").default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Add pending invites tracking
+export const pendingInvites = pgTable("pending_invites", {
+  id: serial("id").primaryKey(),
+  inviteCode: varchar("invite_code", { length: 12 }).unique(),
+  email: varchar("email", { length: 255 }),
+  name: varchar("name", { length: 100 }),
+  createdBy: integer("created_by").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  expiresAt: timestamp("expires_at"),
+  cohortId: integer("cohort_id").references(() => cohorts.id),
+});
+
+// Define relationships
+export const usersRelations = relations(users, ({ many }) => ({
+  roles: many(userRoles),
+  participatingCohorts: many(cohortParticipants),
+  facilitatingCohorts: many(cohortFacilitators),
+  starCard: many(starCards),
+  flowAttributes: many(flowAttributes)
+}));
+
+export const pendingInvitesRelations = relations(pendingInvites, ({ one }) => ({
+  creator: one(users, {
+    fields: [pendingInvites.createdBy],
+    references: [users.id]
+  }),
+  cohort: one(cohorts, {
+    fields: [pendingInvites.cohortId],
+    references: [cohorts.id]
+  })
+}));
+
+export const cohortsRelations = relations(cohorts, ({ many, one }) => ({
+  participants: many(cohortParticipants),
+  facilitators: many(cohortFacilitators),
+  parentCohort: one(cohorts, {
+    fields: [cohorts.parentCohortId],
+    references: [cohorts.id],
+  }),
+}));
+
+// Define schemas for inserting data
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+export const insertCohortSchema = createInsertSchema(cohorts).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+// Videos table for workshop content management
+export const videos = pgTable("videos", {
+  id: serial("id").primaryKey(),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  url: varchar("url").notNull(),
+  editableId: varchar("editable_id"), // Stores just the video ID for easier management
+  workshopType: varchar("workshop_type").notNull(), // e.g., 'allstarteams', 'imaginal-agility'
+  section: varchar("section").notNull(), // e.g., 'introduction', 'team-workshop'
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Define insert schema for videos
+export const insertVideoSchema = createInsertSchema(videos).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
+
+// Create insert schema for pending invites
+export const insertPendingInviteSchema = createInsertSchema(pendingInvites);
+
+// Define types
+export type User = typeof users.$inferSelect & {
+  // Include roles information that gets joined in queries
+  roles?: { role: UserRole }[];
+};
+export type InsertUser = z.infer<typeof insertUserSchema>;
+export type Cohort = typeof cohorts.$inferSelect;
+export type InsertCohort = z.infer<typeof insertCohortSchema>;
+export type StarCard = typeof starCards.$inferSelect;
+export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
+export type PendingInvite = typeof pendingInvites.$inferSelect;
+export type InsertPendingInvite = z.infer<typeof insertPendingInviteSchema>;
+
+// Define a UserWithRole type for API responses
+export type UserWithRole = User & {
+  role: UserRole; 
+  // This is the role that gets added to the user object in API responses
+  // but isn't part of the database schema (it comes from a join with userRoles)
+};
