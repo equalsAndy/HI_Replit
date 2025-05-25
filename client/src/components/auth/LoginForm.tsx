@@ -41,25 +41,55 @@ export function LoginForm() {
   // Login mutation
   const loginMutation = useMutation({
     mutationFn: async (data: LoginFormValues) => {
-      const response = await apiRequest('POST', '/api/auth/login', data);
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Login failed');
+      try {
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Login failed');
+        }
+        
+        return await response.json();
+      } catch (error) {
+        console.error('Login error:', error);
+        throw error;
       }
-      return response.json();
     },
     onSuccess: (data) => {
       // Update authentication state
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       
       // Show success message
       toast({
         title: 'Login successful',
-        description: `Welcome back, ${data.name}!`,
+        description: `Welcome back, ${data.user.name || 'User'}!`,
       });
       
-      // Redirect to home page
-      navigate('/');
+      // Check if we should redirect to a specific workshop
+      const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
+      
+      if (selectedWorkshop) {
+        // Clear the stored selection
+        sessionStorage.removeItem('selectedWorkshop');
+        
+        // Redirect to the appropriate workshop
+        if (selectedWorkshop === 'allstarteams') {
+          navigate('/workshop/allstarteams');
+        } else if (selectedWorkshop === 'imaginalagility') {
+          navigate('/workshop/imaginalagility');
+        } else {
+          navigate('/dashboard');
+        }
+      } else {
+        // No stored workshop selection, go to dashboard
+        navigate('/dashboard');
+      }
     },
     onError: (error: Error) => {
       toast({

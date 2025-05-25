@@ -19,9 +19,9 @@ const WorkshopPage: React.FC = () => {
       
       // Simulate loading workshop data
       setTimeout(() => {
-        if (workshopId === 'allstar') {
+        if (workshopId === 'allstar' || workshopId === 'allstarteams') {
           setWorkshopData({
-            id: 'allstar',
+            id: 'allstarteams',
             title: 'AllStar Teams Workshop',
             description: 'Discover your unique strengths and leadership style',
             modules: [
@@ -37,9 +37,9 @@ const WorkshopPage: React.FC = () => {
               { id: 10, title: 'Recap Your Insights', completed: false }
             ]
           });
-        } else if (workshopId === 'imaginal') {
+        } else if (workshopId === 'imaginal' || workshopId === 'imaginalagility') {
           setWorkshopData({
-            id: 'imaginal',
+            id: 'imaginalagility',
             title: 'Imaginal Agility Workshop',
             description: 'Enhance your creative thinking and adaptability',
             modules: [

@@ -1,78 +1,215 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
+import allStarTeamsLogo from "@assets/all-star-teams-logo-250px.png";
+import imaginalAgilityLogo from "@assets/HI_Logo_horizontal.png";
+import logoHorizontal from "@assets/HI_Logo_horizontal.png";
 
 export default function Home() {
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
   // Fetch user profile
   const { data: userData } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
-    refetchInterval: 60000 // Refetch every minute to keep progress updated
+    refetchInterval: false, // We don't need constant updates on landing page
+    retry: false // Don't retry if authentication fails
   });
   
   const user = userData?.user;
+  const isAuthenticated = !!user;
+
+  // Handle workshop selection
+  const handleWorkshopSelection = (workshopType: 'allstarteams' | 'imaginalagility') => {
+    // If user is not logged in, redirect to login page with return path
+    if (!isAuthenticated) {
+      // Store the selected workshop in session storage to retrieve after login
+      sessionStorage.setItem('selectedWorkshop', workshopType);
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to access the workshop.",
+      });
+      setLocation("/auth/login");
+      return;
+    }
+    
+    // If logged in, redirect to the appropriate workshop
+    if (workshopType === 'allstarteams') {
+      setLocation("/workshop/allstarteams");
+    } else {
+      setLocation("/workshop/imaginalagility");
+    }
+  };
 
   return (
-    <div className="container max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl md:text-5xl font-bold text-gray-800 mb-8">Welcome</h1>
-        
-        <div className="max-w-3xl mx-auto">
-          <p className="text-lg md:text-xl mb-6">
-            This experience is designed to help you unlock and apply your <span className="font-bold">core strengths</span>, with a special focus on 
-            <span className="font-bold"> imagination</span> — so you can show up more fully, align more clearly, and collaborate more powerfully.
-          </p>
-  
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">PART I: INDIVIDUAL MICRO COURSE</h2>
-              <p className="mb-4">
-                Build your personal foundation through a 90-minute self-guided
-                journey. You'll deepen self-awareness and gain new insight into
-                how your strengths work — and how to grow them.
-              </p>
-              <ul className="list-disc pl-5 mb-4">
-                <li>Star Self-Assessment</li>
-                <li>Scaffolded Reflection Exercises</li>
-                <li>Personal Insights & Takeaways</li>
-              </ul>
-            </Card>
-            
-            <Card className="p-6">
-              <h2 className="text-xl font-bold mb-4">PART 2: TEAM PRACTICE WORKSHOP</h2>
-              <p className="mb-4">
-                Put your insights into motion in a 3-hour guided session with your
-                team. You'll practice applying your strengths in real collaboration,
-                building trust, clarity, and alignment.
-              </p>
-              <ul className="list-disc pl-5 mb-4">
-                <li>Facilitated Group Session</li>
-                <li>Team-Based Reflection & Fusion</li>
-                <li>Shared Outcomes & Collective Takeaways</li>
-              </ul>
-            </Card>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header with Logo and Login Button */}
+      <header className="bg-white py-4 shadow-sm">
+        <div className="container mx-auto px-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <img 
+              src={logoHorizontal} 
+              alt="Heliotrope Imaginal" 
+              className="h-10" 
+            />
           </div>
-          
-          <div className="my-8 aspect-video">
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-              title="AllStarTeams Workshop Orientation" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen>
-            </iframe>
-          </div>
-          
-          <div className="mt-10">
-            <Link href="/foundations">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-2 rounded">
-                BEGIN WORKSHOP
-              </Button>
-            </Link>
+          <div>
+            {isAuthenticated ? (
+              <div className="flex items-center gap-4">
+                <span className="text-gray-700">Welcome, {user.name}</span>
+                <Link href="/dashboard">
+                  <Button variant="outline">Dashboard</Button>
+                </Link>
+              </div>
+            ) : (
+              <Link href="/auth/login">
+                <Button variant="ghost">Login</Button>
+              </Link>
+            )}
           </div>
         </div>
-      </div>
+      </header>
+
+      {/* Main content */}
+      <main>
+        {/* Hero Section */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto">
+            <div className="text-center mb-12">
+              <h1 className="text-4xl font-bold mb-4">Choose Your Learning Experience</h1>
+              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+                Select one of our transformative learning programs to begin your journey
+              </p>
+            </div>
+
+            {/* Workshop Cards */}
+            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              {/* AllStarTeams Card */}
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={allStarTeamsLogo} 
+                      alt="AllStarTeams" 
+                      className="h-16" 
+                    />
+                  </div>
+                  <h2 className="text-2xl font-bold text-center mb-4">AllStarTeams</h2>
+                  <p className="text-gray-600 mb-6">
+                    Discover your star potential and understand your unique strengths to leverage them for personal growth and team success.
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <h3 className="text-sm text-blue-700 font-medium">Self-Discovery</h3>
+                      <p className="text-xs mt-1">Identify your natural talents</p>
+                    </div>
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <h3 className="text-sm text-blue-700 font-medium">Team Dynamics</h3>
+                      <p className="text-xs mt-1">Understand how strengths combine</p>
+                    </div>
+                    <div className="text-center p-2 bg-blue-50 rounded">
+                      <h3 className="text-sm text-blue-700 font-medium">Growth Insights</h3>
+                      <p className="text-xs mt-1">Develop action strategies</p>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-blue-600 hover:bg-blue-700" 
+                    onClick={() => handleWorkshopSelection('allstarteams')}
+                  >
+                    Start AllStarTeams
+                  </Button>
+                </div>
+              </Card>
+              
+              {/* Imaginal Agility Card */}
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  <div className="flex justify-center mb-4">
+                    <img 
+                      src={imaginalAgilityLogo} 
+                      alt="Imaginal Agility" 
+                      className="h-16" 
+                    />
+                  </div>
+                  <h2 className="text-2xl font-bold text-center mb-4">Imaginal Agility</h2>
+                  <p className="text-gray-600 mb-6">
+                    Cultivate your imaginal agility and learn how the 5Cs (Curiosity, Empathy, Creativity, and Courage) can transform your approach to challenges.
+                  </p>
+                  
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <h3 className="text-sm text-purple-700 font-medium">5Cs Assessment</h3>
+                      <p className="text-xs mt-1">Map your capabilities</p>
+                    </div>
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <h3 className="text-sm text-purple-700 font-medium">AI Insights</h3>
+                      <p className="text-xs mt-1">Personalized feedback</p>
+                    </div>
+                    <div className="text-center p-2 bg-purple-50 rounded">
+                      <h3 className="text-sm text-purple-700 font-medium">Team Workshops</h3>
+                      <p className="text-xs mt-1">Collaborative exercises</p>
+                    </div>
+                  </div>
+                  
+                  <Button 
+                    className="w-full bg-purple-600 hover:bg-purple-700" 
+                    onClick={() => handleWorkshopSelection('imaginalagility')}
+                  >
+                    Start Imaginal Agility
+                  </Button>
+                </div>
+              </Card>
+            </div>
+          </div>
+        </section>
+        
+        {/* Workshop Video Section */}
+        <section className="py-12 px-4 bg-white">
+          <div className="container mx-auto">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">See what our workshops are all about!</h2>
+              <p className="text-gray-600 max-w-3xl mx-auto">
+                Experience the transformative power of our workshops and discover how they can help unlock your team's full potential.
+              </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
+              <iframe 
+                className="w-full h-full"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="Heliotrope Imaginal Workshops Overview" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen>
+              </iframe>
+            </div>
+          </div>
+        </section>
+        
+        {/* Why Choose Section */}
+        <section className="py-12 px-4">
+          <div className="container mx-auto">
+            <div className="text-center max-w-3xl mx-auto">
+              <h2 className="text-3xl font-bold mb-6">Why Choose Heliotrope Imaginal's Platform?</h2>
+              <p className="text-lg text-gray-600">
+                Our science-backed assessments and workshops have helped thousands of professionals and teams 
+                unlock their full potential through personalized insights and guided growth.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-100 py-6">
+        <div className="container mx-auto px-4 text-center text-gray-600">
+          <p>© 2025 Heliotrope Imaginal. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 }
