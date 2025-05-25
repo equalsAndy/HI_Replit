@@ -170,6 +170,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
     const starCardData = currentUserAssessments.starCard?.formattedResults || null;
     
     // Return formatted data that's easy to read in the UI
+    // Only include current user's data for privacy/clarity
     res.json({
       success: true,
       userInfo: {
@@ -180,12 +181,12 @@ router.get('/assessments', requireAuth, async (req, res) => {
         assessments: currentUserAssessments,
         starCard: starCardData
       },
-      // Include all assessments grouped by user for a complete view
-      allUsers: assessmentsByUser,
-      // Raw data for developers
+      // Only include current user's assessments in allUsers
+      allUsers: { [sessionUserId]: assessmentsByUser[sessionUserId] || [] },
+      // Limited raw data for developers - only current user
       raw: {
-        assessmentCount: allAssessments.length,
-        allAssessments: formattedAssessments
+        assessmentCount: formattedAssessments.filter(a => a.userId === sessionUserId).length,
+        allAssessments: formattedAssessments.filter(a => a.userId === sessionUserId)
       }
     });
   } catch (error) {

@@ -67,7 +67,7 @@ export default function WorkshopResetTest() {
     setServerData({ status: "Loading data from server..." });
     
     try {
-      // Fetch raw userAssessments data to show in the database view
+      // Fetch raw userAssessments data to show in the database view - only for current user
       const userAssessmentsResponse = await fetch('/api/user/assessments', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
@@ -75,8 +75,26 @@ export default function WorkshopResetTest() {
       
       if (userAssessmentsResponse.ok) {
         const assessmentsData = await userAssessmentsResponse.json();
-        data.userAssessments = assessmentsData;
-        console.log("Raw user assessments data:", assessmentsData);
+        
+        // Filter to only show current user's data
+        if (assessmentsData.userInfo && assessmentsData.currentUser) {
+          // Extract only current user's data
+          const currentUserId = assessmentsData.userInfo.sessionUserId;
+          const currentUserData = {
+            success: assessmentsData.success,
+            userInfo: assessmentsData.userInfo,
+            currentUser: assessmentsData.currentUser,
+            // Only include current user's data, not other users
+            myAssessments: assessmentsData.currentUser.assessments || {}
+          };
+          
+          data.userAssessments = currentUserData;
+        } else {
+          // Keep original data structure if unexpected format
+          data.userAssessments = assessmentsData;
+        }
+        
+        console.log("Raw user assessments data:", data.userAssessments);
       } else {
         console.log("User assessments fetch failed with status:", userAssessmentsResponse.status);
         data.userAssessments = { status: `Error: ${userAssessmentsResponse.status}`, error: true };
