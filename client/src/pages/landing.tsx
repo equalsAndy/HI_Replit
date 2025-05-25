@@ -7,7 +7,23 @@ import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 export default function Landing() {
   return (
     <div className="min-h-screen flex flex-col">
-      
+      <header className="bg-white border-b border-gray-200">
+        <div className="container mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="logo flex items-center">
+            <img 
+              src={HiLogo} 
+              alt="Heliotrope Imaginal"
+              className="h-10 w-auto"
+            />
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <Link href="/auth">
+              <Button variant="outline" size="sm" className="rounded-md">Login</Button>
+            </Link>
+          </div>
+        </div>
+      </header>
 
       <main className="flex-1 flex flex-col justify-center">
         <div className="container mx-auto px-4 py-12 max-w-6xl">

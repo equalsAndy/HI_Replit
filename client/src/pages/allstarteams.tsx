@@ -27,10 +27,31 @@ export default function AllStarTeams() {
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
 
-  // Set app to AllStarTeams on component mount
+  // Set app to AllStarTeams on component mount and check authentication
   useEffect(() => {
     setCurrentApp('allstarteams');
-  }, []);
+    
+    // Check if user is authenticated
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.status === 401) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to access this workshop.",
+          });
+          // Save the workshop selection before redirecting
+          localStorage.setItem('selectedApp', 'ast');
+          navigate('/auth?app=ast');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        navigate('/auth?app=ast');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 

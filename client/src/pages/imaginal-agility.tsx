@@ -20,6 +20,29 @@ export default function ImaginalAgilityHome() {
   const [currentContent, setCurrentContent] = useState("imaginal-intro");
   const { toast } = useToast();
   
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('/api/user/profile');
+        if (response.status === 401) {
+          toast({
+            title: "Authentication Required",
+            description: "Please log in to access this workshop.",
+          });
+          // Save the workshop selection before redirecting
+          localStorage.setItem('selectedApp', 'imaginal-agility');
+          navigate('/auth?app=imaginal-agility');
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        navigate('/auth?app=imaginal-agility');
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
+  
   // Fetch user profile data
   const { data: user } = useQuery<User>({
     queryKey: ['/api/user/profile'],
