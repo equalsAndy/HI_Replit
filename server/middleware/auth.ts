@@ -1,45 +1,53 @@
 import { Request, Response, NextFunction } from 'express';
+import { userManagementService } from '../services/user-management-service';
 
-/**
- * Middleware to check if a user is authenticated
- */
+// Check if user is authenticated
 export const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
-  // Check if session exists and has userId
+  // Check if user is logged in
   if (!req.session || !req.session.userId) {
     return res.status(401).json({ error: 'Authentication required' });
   }
   
-  // User is authenticated, continue
   next();
 };
 
-/**
- * Add user data to request object for convenience
- */
-export const populateUserData = (req: Request, res: Response, next: NextFunction) => {
-  if (req.session && req.session.userId) {
-    // Add user data to request object
-    req.user = {
-      id: req.session.userId,
-      username: req.session.username,
-      role: req.session.userRole
-    };
+// Check if user is admin
+export const isAdmin = async (req: Request, res: Response, next: NextFunction) => {
+  // First check if authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // Then check if admin
+  if (req.session.userRole !== 'admin') {
+    return res.status(403).json({ error: 'Admin privileges required' });
   }
   
   next();
 };
 
-/**
- * Type definition for Express Request with user data
- */
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: number;
-        username: string;
-        role: string;
-      };
-    }
+// Check if user is facilitator
+export const isFacilitator = async (req: Request, res: Response, next: NextFunction) => {
+  // First check if authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
-}
+  
+  // Then check if facilitator or admin (admins can do everything facilitators can)
+  if (req.session.userRole !== 'facilitator' && req.session.userRole !== 'admin') {
+    return res.status(403).json({ error: 'Facilitator privileges required' });
+  }
+  
+  next();
+};
+
+// Check if user is participant
+export const isParticipant = async (req: Request, res: Response, next: NextFunction) => {
+  // First check if authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // All authenticated users are at least participants, so this is just a sanity check
+  next();
+};

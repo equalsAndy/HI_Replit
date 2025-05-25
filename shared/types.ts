@@ -1,23 +1,53 @@
-/**
- * Shared types across the application
- */
+export type UserRole = 'admin' | 'facilitator' | 'participant';
+export type WorkshopType = 'star_teams' | 'imaginal_agility';
+export type VideoType = 'intro' | 'guide' | 'instruction' | 'activity' | 'reflection' | 'conclusion';
 
-export enum UserRole {
-  Admin = 'admin',
-  Facilitator = 'facilitator',
-  Participant = 'participant'
+export interface User {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  organization?: string | null;
+  jobTitle?: string | null;
+  profilePicture?: string | null;
+  cohortId?: number | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export enum WorkshopType {
-  StarTeams = 'star_teams',
-  ImaginalAgility = 'imaginal_agility'
+export interface Invite {
+  id: number;
+  inviteCode: string;
+  name?: string | null;
+  email: string;
+  role: UserRole;
+  createdBy: number;
+  cohortId?: number | null;
+  createdAt: Date;
+  expiresAt?: Date | null;
+  usedAt?: Date | null;
+  usedBy?: number | null;
 }
 
-export enum VideoType {
-  Intro = 'intro',
-  Guide = 'guide',
-  Instruction = 'instruction',
-  Activity = 'activity',
-  Reflection = 'reflection',
-  Conclusion = 'conclusion'
+export interface InviteVerificationResult {
+  valid: boolean;
+  error?: string;
+  invite?: {
+    id: number;
+    inviteCode: string;
+    name?: string;
+    email: string;
+    role: string;
+    cohortId?: number;
+  };
+}
+
+// Extended session type
+declare module 'express-session' {
+  interface SessionData {
+    userId: number;
+    username: string;
+    userRole: UserRole;
+  }
 }

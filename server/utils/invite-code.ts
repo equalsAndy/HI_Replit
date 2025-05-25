@@ -1,46 +1,58 @@
 /**
- * Utility functions for handling invite codes
- * 
- * Invite codes are 12 characters long and use a specific set of characters
- * to avoid confusion (e.g., no 0/O, 1/I, etc.)
+ * Utility functions for generating and validating invite codes
  */
 
-// Character set for invite codes - avoiding easily confused characters
-const INVITE_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-const INVITE_CODE_LENGTH = 12;
+// Character set for invite codes (excluding similar-looking characters like O/0, I/l/1)
+const CODE_CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 12;
 
 /**
  * Generate a random invite code
- * @returns A 12-character invite code
+ * Format: XXXX-XXXX-XXXX (12 characters, excluding confusing characters)
  */
 export function generateInviteCode(): string {
   let code = '';
-  const charSetLength = INVITE_CODE_CHARS.length;
   
-  for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
-    const randomIndex = Math.floor(Math.random() * charSetLength);
-    code += INVITE_CODE_CHARS.charAt(randomIndex);
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    // Add a hyphen after every 4 characters
+    if (i > 0 && i % 4 === 0) {
+      code += '-';
+    }
+    
+    const randomIndex = Math.floor(Math.random() * CODE_CHARSET.length);
+    code += CODE_CHARSET[randomIndex];
   }
   
   return code;
 }
 
 /**
- * Validate the format of an invite code
- * @param code The invite code to validate
- * @returns Whether the invite code is valid
+ * Validate invite code format
  */
 export function isValidInviteCodeFormat(code: string): boolean {
-  if (!code || typeof code !== 'string') {
-    return false;
-  }
+  // Format with hyphens: XXXX-XXXX-XXXX
+  const formattedRegex = /^[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/;
   
-  // Check length
-  if (code.length !== INVITE_CODE_LENGTH) {
-    return false;
-  }
+  // Format without hyphens: XXXXXXXXXXXX
+  const plainRegex = /^[A-HJ-NP-Z2-9]{12}$/;
   
-  // Check characters
-  const validCharsRegex = new RegExp(`^[${INVITE_CODE_CHARS}]+$`);
-  return validCharsRegex.test(code);
+  return formattedRegex.test(code) || plainRegex.test(code);
+}
+
+/**
+ * Normalize invite code (remove hyphens)
+ */
+export function normalizeInviteCode(code: string): string {
+  return code.replace(/-/g, '');
+}
+
+/**
+ * Format invite code with hyphens (XXXX-XXXX-XXXX)
+ */
+export function formatInviteCode(code: string): string {
+  // Remove any existing hyphens first
+  const normalized = normalizeInviteCode(code);
+  
+  // Add hyphens after every 4 characters
+  return normalized.replace(/(.{4})(.{4})(.{4})/, '$1-$2-$3');
 }
