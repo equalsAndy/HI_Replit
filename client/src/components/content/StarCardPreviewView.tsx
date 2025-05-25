@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
-import StarCard from '@/components/starcard/StarCard';
+import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
 
 const StarCardPreviewView: React.FC<ContentViewProps> = ({
@@ -42,12 +42,14 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
             </div>
             <div className="p-4 flex justify-center">
               <div className="w-full">
-                <StarCard 
-                  thinking={starCard?.thinking || 0}
-                  acting={starCard?.acting || 0}
-                  feeling={starCard?.feeling || 0}
-                  planning={starCard?.planning || 0}
-                  imageUrl={starCard?.imageUrl || null}
+                <StarCardWithFetch 
+                  fallbackData={{
+                    thinking: starCard?.thinking || 0,
+                    acting: starCard?.acting || 0,
+                    feeling: starCard?.feeling || 0,
+                    planning: starCard?.planning || 0,
+                    imageUrl: starCard?.imageUrl || null
+                  }}
                 />
               </div>
             </div>
