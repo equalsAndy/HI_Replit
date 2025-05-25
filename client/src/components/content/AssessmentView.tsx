@@ -133,20 +133,33 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="space-y-3">
-                {[
-                  { name: 'Thinking', value: starCard.thinking || 0, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
-                  { name: 'Planning', value: starCard.planning || 0, color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
-                  { name: 'Feeling', value: starCard.feeling || 0, color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
-                  { name: 'Acting', value: starCard.acting || 0, color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
-                ]
-                  .sort((a, b) => b.value - a.value)
-                  .map(strength => (
-                    <div key={strength.name} className="flex items-center">
-                      <div className="w-5 h-5 rounded mr-3" style={{ backgroundColor: strength.color }}></div>
-                      <span className="font-semibold">{strength.name}: {strength.value}%</span>
-                      <span className="ml-3 text-gray-600 text-sm"> - {strength.desc}</span>
-                    </div>
-                  ))
+                {(() => {
+                  // Calculate total score for proper percentage calculation
+                  const thinking = Number(starCard.thinking) || 0;
+                  const planning = Number(starCard.planning) || 0;
+                  const feeling = Number(starCard.feeling) || 0;
+                  const acting = Number(starCard.acting) || 0;
+                  const total = thinking + planning + feeling + acting;
+                  
+                  // Calculate percentages
+                  const normalizeValue = (value: number) => Math.round((value / total) * 100);
+                  
+                  // Create and sort data
+                  return [
+                    { name: 'Thinking', value: thinking, percentage: normalizeValue(thinking), color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
+                    { name: 'Planning', value: planning, percentage: normalizeValue(planning), color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
+                    { name: 'Feeling', value: feeling, percentage: normalizeValue(feeling), color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
+                    { name: 'Acting', value: acting, percentage: normalizeValue(acting), color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
+                  ]
+                    .sort((a, b) => b.value - a.value)
+                    .map(strength => (
+                      <div key={strength.name} className="flex items-center">
+                        <div className="w-5 h-5 rounded mr-3" style={{ backgroundColor: strength.color }}></div>
+                        <span className="font-semibold">{strength.name}: {strength.percentage}%</span>
+                        <span className="ml-3 text-gray-600 text-sm"> - {strength.desc}</span>
+                      </div>
+                    ));
+                })()
                 }
               </div>
             </div>

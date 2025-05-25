@@ -42,15 +42,33 @@ const renderCustomizedLabel = (props: any) => {
 };
 
 export function AssessmentPieChart({ thinking, acting, feeling, planning }: AssessmentPieChartProps) {
+  // Ensure we're using numbers
+  const thinkingValue = Number(thinking) || 0;
+  const actingValue = Number(acting) || 0;
+  const feelingValue = Number(feeling) || 0;
+  const planningValue = Number(planning) || 0;
+  
+  // Calculate total for percentages
+  const total = thinkingValue + actingValue + feelingValue + planningValue;
+  
+  // Calculate percentages
+  const calculatePercentage = (value: number) => 
+    total === 0 ? 25 : Math.round((value / total) * 100);
+  
   const data = [
-    { name: 'Acting', value: acting, color: COLORS.acting },
-    { name: 'Feeling', value: feeling, color: COLORS.feeling },
-    { name: 'Planning', value: planning, color: COLORS.planning },
-    { name: 'Thinking', value: thinking, color: COLORS.thinking }
+    { name: 'Acting', value: calculatePercentage(actingValue), rawValue: actingValue, color: COLORS.acting },
+    { name: 'Feeling', value: calculatePercentage(feelingValue), rawValue: feelingValue, color: COLORS.feeling },
+    { name: 'Planning', value: calculatePercentage(planningValue), rawValue: planningValue, color: COLORS.planning },
+    { name: 'Thinking', value: calculatePercentage(thinkingValue), rawValue: thinkingValue, color: COLORS.thinking }
   ];
+  
+  console.log("Assessment Pie Chart Data:", { 
+    raw: { thinking: thinkingValue, acting: actingValue, feeling: feelingValue, planning: planningValue, total },
+    percentages: data.map(d => ({ name: d.name, percentage: d.value }))
+  });
 
   // Filter out any attributes with 0 value
-  const filteredData = data.filter(item => item.value > 0);
+  const filteredData = data.filter(item => item.rawValue > 0);
 
   // If all values are 0, show equal distribution
   const chartData = filteredData.length === 0 
