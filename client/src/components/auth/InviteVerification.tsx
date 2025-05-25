@@ -1,128 +1,141 @@
-import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
+import React, { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Loader2 } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 
-// Invite code schema
-const inviteCodeSchema = z.object({
-  inviteCode: z.string().min(12, {
-    message: "Invite code must be at least 12 characters.",
-  }),
+// Schema for invite code validation
+const inviteSchema = z.object({
+  inviteCode: z
+    .string()
+    .min(12, "Invite code must be 12 characters")
+    .max(12, "Invite code must be 12 characters")
+    .refine(
+      (value) => /^[ABCDEFGHJKMNPQRSTUVWXYZ23456789]+$/.test(value),
+      "Invalid invite code format"
+    ),
 });
 
-type InviteCodeValues = z.infer<typeof inviteCodeSchema>;
+type InviteVerificationValues = z.infer<typeof inviteSchema>;
 
 interface InviteVerificationProps {
-  onInviteVerified: (invite: any) => void;
+  onVerified: (inviteData: any) => void;
 }
 
-export function InviteVerification({ onInviteVerified }: InviteVerificationProps) {
-  const { toast } = useToast();
-  
-  // Form setup
-  const form = useForm<InviteCodeValues>({
-    resolver: zodResolver(inviteCodeSchema),
+export function InviteVerification({ onVerified }: InviteVerificationProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Define form
+  const form = useForm<InviteVerificationValues>({
+    resolver: zodResolver(inviteSchema),
     defaultValues: {
       inviteCode: "",
     },
   });
 
-  // Verify invite code mutation
+  // Setup verification mutation
   const verifyInviteMutation = useMutation({
-    mutationFn: async (data: InviteCodeValues) => {
-      const res = await apiRequest('POST', '/api/verify-invite', data);
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Invalid invite code");
-      }
-      return res.json();
-    },
+    mutationFn: (values: InviteVerificationValues) =>
+      apiRequest("/api/invites/verify", {
+        method: "POST",
+        data: values,
+      }),
     onSuccess: (data) => {
-      toast({
-        title: "Invite code verified",
-        description: `Welcome, ${data.name}!`,
-      });
-      onInviteVerified(data);
+      setIsLoading(false);
+      if (data.valid) {
+        toast({
+          title: "Valid invite code",
+          description: "Your invite code has been verified successfully.",
+        });
+        onVerified(data);
+      } else {
+        toast({
+          title: "Invalid invite code",
+          description: data.message || "Please check your invite code and try again.",
+          variant: "destructive",
+        });
+      }
     },
-    onError: (error) => {
+    onError: (error: any) => {
+      setIsLoading(false);
       toast({
         title: "Verification failed",
-        description: String(error),
+        description: error.message || "Please check your invite code and try again.",
         variant: "destructive",
       });
-    }
+    },
   });
 
-  const onSubmit = (data: InviteCodeValues) => {
-    verifyInviteMutation.mutate(data);
+  // Handle form submission
+  const onSubmit = (values: InviteVerificationValues) => {
+    setIsLoading(true);
+    verifyInviteMutation.mutate(values);
   };
 
-  // Format invite code as it's typed (uppercase, remove spaces, limit to valid characters)
+  // Format invite code while typing (removes spaces and converts to uppercase)
   const formatInviteCode = (value: string) => {
-    // Remove any characters that aren't in our allowed set
-    const formatted = value
-      .toUpperCase()
-      .replace(/[^ABCDEFGHJKMNPQRSTUVWXYZ23456789]/g, '')
-      .slice(0, 12); // Limit to 12 characters
-    
-    return formatted;
+    // Remove spaces and convert to uppercase
+    return value.replace(/\s+/g, "").toUpperCase();
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="inviteCode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Invite Code</FormLabel>
-              <FormControl>
-                <Input 
-                  placeholder="Enter your 12-character invite code" 
-                  {...field} 
-                  value={field.value}
-                  onChange={(e) => {
-                    field.onChange(formatInviteCode(e.target.value));
-                  }}
-                  className="font-mono text-center tracking-wider uppercase"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="space-y-6">
+      <div className="space-y-2 text-center">
+        <h1 className="text-3xl font-bold">Verify Invite Code</h1>
+        <p className="text-muted-foreground">
+          Enter your invite code to create your account
+        </p>
+      </div>
 
-        <Button 
-          type="submit" 
-          className="w-full" 
-          disabled={verifyInviteMutation.isPending}
-        >
-          {verifyInviteMutation.isPending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Verifying...
-            </>
-          ) : (
-            "Verify Invite Code"
-          )}
-        </Button>
-      </form>
-    </Form>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="inviteCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Invite Code</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ABCD3456WXYZ"
+                    onChange={(e) => {
+                      const formatted = formatInviteCode(e.target.value);
+                      field.onChange(formatted);
+                    }}
+                    disabled={isLoading}
+                    className="uppercase"
+                    maxLength={12}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Verifying...
+              </>
+            ) : (
+              "Verify Code"
+            )}
+          </Button>
+        </form>
+      </Form>
+      
+      <div className="text-center text-sm text-muted-foreground">
+        <p>
+          Please contact your administrator if you don't have an invite code.
+        </p>
+      </div>
+    </div>
   );
 }
