@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, FileText } from "lucide-react";
@@ -30,7 +30,7 @@ interface StepByStepReflectionProps {
 }
 
 export default function StepByStepReflection({ 
-  starCard, 
+  starCard: initialStarCard, 
   setCurrentContent,
   markStepCompleted 
 }: StepByStepReflectionProps) {
@@ -38,6 +38,52 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
+  
+  // State for star card data with proper initialization
+  const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
+  
+  // Fetch star card data on component mount
+  useEffect(() => {
+    const fetchStarCardData = async () => {
+      try {
+        console.log("Reflection: Fetching latest star card data...");
+        const response = await fetch('/api/starcard', {
+          credentials: 'include',
+          cache: 'no-cache'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Reflection: Fetched star card data:", data);
+          
+          // Check if we have a success response format
+          if (data.success) {
+            setStarCard({
+              userId: 0,
+              thinking: Number(data.thinking) || 0,
+              acting: Number(data.acting) || 0,
+              feeling: Number(data.feeling) || 0,
+              planning: Number(data.planning) || 0
+            });
+          } else if (data.thinking !== undefined) {
+            // Direct JSON format
+            setStarCard({
+              userId: 0,
+              thinking: Number(data.thinking) || 0,
+              acting: Number(data.acting) || 0,
+              feeling: Number(data.feeling) || 0,
+              planning: Number(data.planning) || 0
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching star card data for reflection:", error);
+      }
+    };
+    
+    // Fetch updated data regardless of initial data
+    fetchStarCardData();
+  }, []);
 
   // State for saving user reflections
   const [reflections, setReflections] = useState({
