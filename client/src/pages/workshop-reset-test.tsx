@@ -64,28 +64,34 @@ export default function WorkshopResetTest() {
     const data: Record<string, any> = {};
     
     try {
-      // Fetch star card data
-      const starCardResponse = await fetch('/api/workshop-data/starcard', {
+      // Fetch star card data - workshop data routes are registered at root level
+      const starCardResponse = await fetch('/api/starcard', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
       if (starCardResponse.ok) {
         data.starCard = await starCardResponse.json();
+      } else {
+        console.log("Star card fetch failed with status:", starCardResponse.status);
       }
     } catch (e) {
+      console.error("Star card fetch error:", e);
       data.starCard = { error: 'Failed to fetch' };
     }
 
     try {
       // Fetch flow attributes
-      const flowResponse = await fetch('/api/workshop-data/flow-attributes', {
+      const flowResponse = await fetch('/api/flow-attributes', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
       if (flowResponse.ok) {
         data.flowAttributes = await flowResponse.json();
+      } else {
+        console.log("Flow attributes fetch failed with status:", flowResponse.status);
       }
     } catch (e) {
+      console.error("Flow attributes fetch error:", e);
       data.flowAttributes = { error: 'Failed to fetch' };
     }
 
