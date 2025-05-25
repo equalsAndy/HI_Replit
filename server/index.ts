@@ -6,7 +6,7 @@ import { router } from './routes';
 import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
-import { createViteServer } from './vite';
+import { createServer } from 'http';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -79,10 +79,11 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
-// Create Vite server in middleware mode and configure app
-if (process.env.NODE_ENV !== 'production') {
-  createViteServer(app);
-} else {
+// Create HTTP server for the app
+const server = createServer(app);
+
+// In development or production mode, serve the client files
+if (process.env.NODE_ENV === 'production') {
   // In production, serve the built client files
   const clientDir = path.join(__dirname, '..', 'client', 'dist');
   app.use(express.static(clientDir));
@@ -90,6 +91,14 @@ if (process.env.NODE_ENV !== 'production') {
   // For SPA, send index.html for any unmatched routes
   app.get('*', (req, res) => {
     res.sendFile(path.join(clientDir, 'index.html'));
+  });
+} else {
+  // In development, serve from the client directory
+  app.use(express.static(path.join(__dirname, '..', 'client')));
+  
+  // For SPA, send index.html for any unmatched routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
   });
 }
 
