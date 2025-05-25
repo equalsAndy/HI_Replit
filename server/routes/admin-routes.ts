@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { userManagementService } from '../services/user-management-service';
 import { inviteService } from '../services/invite-service';
 import { requireAuth } from '../middleware/auth';
-import { requireAdmin, requireFacilitatorOrAdmin } from '../middleware/roles';
+import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
 import { formatInviteCode } from '../utils/invite-code';
 
 const router = express.Router();
@@ -11,7 +11,7 @@ const router = express.Router();
 /**
  * Get all users (admin only)
  */
-router.get('/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.get('/users', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const result = await userManagementService.getAllUsers();
     
@@ -32,7 +32,7 @@ router.get('/users', requireAuth, requireAdmin, async (req: Request, res: Respon
 /**
  * Create a new user with specified role (admin only)
  */
-router.post('/users', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const userSchema = z.object({
       email: z.string().email(),
@@ -81,7 +81,7 @@ router.post('/users', isAuthenticated, isAdmin, async (req: Request, res: Respon
 /**
  * Get all invites (admin only)
  */
-router.get('/invites', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.get('/invites', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     // Get all invites
     const invites = await InviteService.getInvitesByCreator(req.user.id);
@@ -157,7 +157,7 @@ router.post('/invites/batch', isAuthenticated, isAdmin, async (req: Request, res
 /**
  * Change a user's role (admin only)
  */
-router.put('/users/:id/role', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.put('/users/:id/role', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -205,7 +205,7 @@ router.put('/users/:id/role', requireAuth, requireAdmin, async (req: Request, re
 /**
  * Toggle a user's test status (admin only)
  */
-router.put('/users/:id/test-status', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.put('/users/:id/test-status', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
