@@ -365,7 +365,31 @@ adminRouter.put('/videos/:id', async (req: Request, res: Response) => {
   }
 });
 
-// Delete video by ID
+// Delete user by ID
+adminRouter.delete('/users/:id', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.id);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // First delete related data
+    await db.delete(schema.userRoles).where(eq(schema.userRoles.userId, userId));
+    await db.delete(schema.starCards).where(eq(schema.starCards.userId, userId));
+    await db.delete(schema.flowAttributes).where(eq(schema.flowAttributes.userId, userId));
+    
+    // Then delete the user
+    await db.delete(schema.users).where(eq(schema.users.id, userId));
+
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete video by ID  
 adminRouter.delete('/videos/:id', async (req: Request, res: Response) => {
   try {
     const videoId = parseInt(req.params.id);
