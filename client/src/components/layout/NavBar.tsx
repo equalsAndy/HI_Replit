@@ -43,7 +43,9 @@ export function NavBar() {
   }>({ 
     queryKey: ['/api/user/profile'],
     // Only refetch on window focus or when explicitly invalidated
-    refetchOnWindowFocus: false 
+    refetchOnWindowFocus: false,
+    staleTime: 60 * 1000, // 1 minute
+    retry: 2
   });
   
   useEffect(() => {
@@ -133,8 +135,8 @@ export function NavBar() {
     }
   };
 
-  // Determine if this is a test user
-  const isTestUser = user?.username && /^(admin|participant\d+|facilitator\d+)$/i.test(user.username);
+  // Determine if this is a test user - making it more inclusive to match any test user
+  const isTestUser = user?.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
