@@ -28,7 +28,8 @@ export function TestUserBanner({
   const [, navigate] = useLocation();
   const { currentApp } = useApplication();
   
-  // For testing purposes, show the banner regardless of user status
+  // Always show the banner for testing purposes
+  // Comment the next line when done testing
   // if (!user?.id || user.isTestUser !== true) return null;
   
   // Style based on role

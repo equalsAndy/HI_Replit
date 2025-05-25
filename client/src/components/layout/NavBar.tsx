@@ -148,12 +148,14 @@ export function NavBar() {
   const bgColorClass = 'bg-yellow-500';
   
   return (
-    <div>
+    <div className="relative">
       {/* Test Banner at the top */}
-      <TestUserBanner showInHeader={true} user={user} />
+      <div className="w-full fixed top-0 left-0 right-0 z-50">
+        <TestUserBanner showInHeader={true} user={{isTestUser: true}} />
+      </div>
       
       {/* Regular NavBar */}
-      <div className={`${bgColorClass} text-white p-2 sticky top-10 z-40 flex justify-between items-center`}>
+      <div className={`${bgColorClass} text-white p-2 sticky top-10 z-40 flex justify-between items-center mt-12`}>
         <div className="flex-1">
           <div className="flex items-center">
             <a href="/" onClick={handleLogoClick}>
