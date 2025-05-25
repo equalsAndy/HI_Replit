@@ -49,6 +49,7 @@ const App: React.FC = () => {
                   
                   {/* Reset and test routes */}
                   <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
+                  <Route path="/reset-test" component={() => import('@/pages/reset-test').then(mod => mod.default)} />
                   
                   {/* Fallback route */}
                   <Route component={NotFoundPage} />
