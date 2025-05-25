@@ -225,10 +225,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-center items-center my-4 w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
-                  thinking={assessmentResults?.thinking || 0}
-                  acting={assessmentResults?.acting || 0}
-                  feeling={assessmentResults?.feeling || 0}
-                  planning={assessmentResults?.planning || 0}
+                  thinking={effectiveData?.thinking || 0}
+                  acting={effectiveData?.acting || 0}
+                  feeling={effectiveData?.feeling || 0}
+                  planning={effectiveData?.planning || 0}
                 />
               </div>
             </div>
@@ -237,10 +237,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               <div className="space-y-3">
                 {(() => {
                   // Calculate total score for proper percentage calculation
-                  const thinking = Number(assessmentResults?.thinking) || 0;
-                  const planning = Number(assessmentResults?.planning) || 0;
-                  const feeling = Number(assessmentResults?.feeling) || 0;
-                  const acting = Number(assessmentResults?.acting) || 0;
+                  const thinking = Number(effectiveData?.thinking) || 0;
+                  const planning = Number(effectiveData?.planning) || 0;
+                  const feeling = Number(effectiveData?.feeling) || 0;
+                  const acting = Number(effectiveData?.acting) || 0;
                   const total = thinking + planning + feeling + acting;
                   
                   // Calculate percentages
