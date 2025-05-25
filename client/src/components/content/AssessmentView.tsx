@@ -60,23 +60,75 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   // Use the fetched data or fall back to the prop
   const assessmentResults = assessmentData?.formattedResults || starCard;
   
-  // Check if assessment is complete based on our data
-  const isAssessmentComplete = 
-    (assessmentResults && (
-      Number(assessmentResults.thinking) > 0 || 
-      Number(assessmentResults.acting) > 0 || 
-      Number(assessmentResults.feeling) > 0 || 
-      Number(assessmentResults.planning) > 0
-    )) || false;
+  // Check if the starCard data directly passed as prop has valid scores
+  const hasValidStarCardProp = starCard && (
+    Number(starCard.thinking) > 0 || 
+    Number(starCard.acting) > 0 || 
+    Number(starCard.feeling) > 0 || 
+    Number(starCard.planning) > 0
+  );
+  
+  // Check if the assessment data we fetched has valid scores
+  const hasValidAssessmentData = assessmentData && assessmentData.formattedResults && (
+    Number(assessmentData.formattedResults.thinking) > 0 || 
+    Number(assessmentData.formattedResults.acting) > 0 || 
+    Number(assessmentData.formattedResults.feeling) > 0 || 
+    Number(assessmentData.formattedResults.planning) > 0
+  );
+  
+  // Check if direct API call to starcard returns valid data
+  const [directStarCardData, setDirectStarCardData] = React.useState<any>(null);
+  
+  React.useEffect(() => {
+    // Directly fetch star card data as a fallback
+    const fetchStarCardData = async () => {
+      try {
+        const response = await fetch('/api/starcard', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Direct StarCard API response:", data);
+          setDirectStarCardData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching direct star card data:", error);
+      }
+    };
+    
+    if (!hasValidStarCardProp && !hasValidAssessmentData) {
+      fetchStarCardData();
+    }
+  }, [hasValidStarCardProp, hasValidAssessmentData]);
+  
+  // Check if direct star card API call returned valid data
+  const hasValidDirectData = directStarCardData && (
+    Number(directStarCardData.thinking) > 0 || 
+    Number(directStarCardData.acting) > 0 || 
+    Number(directStarCardData.feeling) > 0 || 
+    Number(directStarCardData.planning) > 0
+  );
+  
+  // Determine which data source to use
+  const effectiveData = hasValidDirectData ? directStarCardData : 
+                       hasValidAssessmentData ? assessmentData.formattedResults : 
+                       hasValidStarCardProp ? starCard : null;
+                       
+  // Final assessment completion check
+  const isAssessmentComplete = hasValidStarCardProp || hasValidAssessmentData || hasValidDirectData;
   
   // Debug log to check assessment completion status                              
   console.log("Assessment completion check:", {
     hasStarCard: !!starCard,
     hasAssessmentData: !!assessmentData,
-    thinking: assessmentResults?.thinking,
-    acting: assessmentResults?.acting,
-    feeling: assessmentResults?.feeling,
-    planning: assessmentResults?.planning,
+    hasValidStarCardProp,
+    hasValidAssessmentData,
+    hasValidDirectData,
+    thinking: effectiveData?.thinking,
+    acting: effectiveData?.acting,
+    feeling: effectiveData?.feeling,
+    planning: effectiveData?.planning,
     isComplete: isAssessmentComplete
   });
 
