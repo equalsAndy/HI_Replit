@@ -19,16 +19,14 @@ async function createAdminUser() {
     const adminUser = {
       username: 'admin',
       password: await bcrypt.hash('Heliotrope@2025', 10), // Strong default password
-      first_name: 'System',
-      last_name: 'Administrator',
       name: 'System Administrator',
       email: 'admin@heliotropeimaginal.com',
-      organization: 'Heliotrope Imaginal Workshops',
-      title: 'System Administrator',
       role: 'admin',
-      job_title: 'System Administrator',
-      created_at: new Date(),
-      updated_at: new Date()
+      organization: 'Heliotrope Imaginal Workshops',
+      jobTitle: 'System Administrator',
+      profilePicture: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
     
     // Insert the admin user

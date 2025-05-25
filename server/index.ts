@@ -7,6 +7,8 @@ import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
+import { setupVite } from './vite';
+import { createServer } from 'http';
 
 // Set up dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -101,7 +103,7 @@ app.get('*', (req, res, next) => {
   });
 });
 
-// Start the server
-app.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
+// Start the server on port 5000 for Replit workflow
+const server = app.listen(5000, '0.0.0.0', () => {
+  console.log(`Server running on port 5000 for Replit workflow`);
 });
