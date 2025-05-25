@@ -20,6 +20,7 @@ export function TestUserBanner({
     title: string | null;
     organization: string | null;
     role: string;
+    isTestUser: boolean;
   }>({
     queryKey: ['/api/user/profile'],
     refetchOnWindowFocus: false,
@@ -27,10 +28,8 @@ export function TestUserBanner({
 
   if (!user?.id) return null;
 
-  // Determine if this is a test user
-  const isTestUser = user.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
-  
-  if (!isTestUser) return null;
+  // Check the database field isTestUser to determine if this is a test user
+  if (!user.isTestUser) return null;
 
   // Style based on role
   const getBadgeStyle = () => {

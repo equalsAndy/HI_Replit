@@ -40,6 +40,7 @@ interface User {
   jobTitle?: string;
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant';
+  isTestUser: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -229,6 +230,31 @@ export function UserManagement() {
     },
   });
   
+  // Mutation for toggling test user status
+  const toggleTestUserMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest('PUT', `/api/admin/users/${userId}/test-status`);
+      return response.json();
+    },
+    onSuccess: (data) => {
+      const isNowTestUser = data.user?.isTestUser;
+      toast({
+        title: 'Test user status updated',
+        description: `User is ${isNowTestUser ? 'now' : 'no longer'} a test user.`,
+      });
+      
+      // Refresh users list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error updating test user status',
+        description: error.message || 'Failed to update test user status. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+  
   // Handler for creating a new user
   const onCreateSubmit = (values: CreateUserFormValues) => {
     createUserMutation.mutate(values);
@@ -255,6 +281,11 @@ export function UserManagement() {
     });
     
     setEditDialogOpen(true);
+  };
+  
+  // Handler for toggling test user status
+  const handleToggleTestUser = (userId: number) => {
+    toggleTestUserMutation.mutate(userId);
   };
   
   // Helper to determine role badge color
@@ -326,6 +357,7 @@ export function UserManagement() {
                         <TableHead>Username</TableHead>
                         <TableHead>Organization</TableHead>
                         <TableHead>Role</TableHead>
+                        <TableHead>Test User</TableHead>
                         <TableHead>Created</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Actions</TableHead>
@@ -366,6 +398,14 @@ export function UserManagement() {
                             <Badge className={getRoleBadgeColor(user.role)}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Switch 
+                              checked={user.isTestUser} 
+                              onCheckedChange={() => handleToggleTestUser(user.id)}
+                              aria-label={`Toggle test user status for ${user.name}`}
+                              className="data-[state=checked]:bg-amber-500"
+                            />
                           </TableCell>
                           <TableCell>
                             {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
