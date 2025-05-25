@@ -47,58 +47,10 @@ export function TestUserBanner({
     }
   };
   
-  // Function to reset user data
-  const handleResetUserData = async () => {
-    if (!user?.id) return;
-    
-    try {
-      // Show loading toast
-      toast({
-        title: "Resetting Data",
-        description: "Please wait while your data is being reset...",
-        variant: "default",
-      });
-      
-      // Use the workshop reset endpoint
-      const response = await fetch(`/api/test-users/reset/${user.id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      const data = await response.json();
-      
-      if (data.success) {
-        toast({
-          title: "Reset Successful",
-          description: "Your assessment data has been reset. The page will refresh now.",
-          variant: "default",
-        });
-        
-        // Invalidate queries to force refetch
-        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-        
-        // Force reload to show reset state after a brief delay
-        setTimeout(() => {
-          window.location.reload();
-        }, 1500);
-      } else {
-        toast({
-          title: "Reset Failed",
-          description: data.message || "Failed to reset your data. Please try again.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Reset Failed",
-        description: "An error occurred while resetting user data. Please try again.",
-        variant: "destructive",
-      });
-      console.error("Error resetting user data:", error);
-    }
+  // Function to reset user data - navigate to workshop reset page
+  const handleResetUserData = () => {
+    // Navigate to the workshop reset page
+    window.location.href = '/workshop-reset-test';
   };
 
   // Function to toggle between applications
