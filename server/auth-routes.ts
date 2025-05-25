@@ -336,4 +336,91 @@ authRouter.get('/test-users', async (req, res) => {
   }
 });
 
+// Reset a test user's data
+authRouter.post('/test-users/reset/:userId', async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    console.log(`Attempting to reset data for user ID: ${userId}`);
+    
+    // Get the user to verify they exist
+    const [user] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId));
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    // Reset user assessments data
+    try {
+      await db
+        .delete(schema.userAssessments)
+        .where(eq(schema.userAssessments.userId, userId));
+      console.log(`Deleted user assessments data for user ${userId}`);
+    } catch (error) {
+      console.error('Error resetting user assessments data:', error);
+    }
+    
+    // Reset workshop participation data
+    try {
+      await db
+        .delete(schema.workshopParticipation)
+        .where(eq(schema.workshopParticipation.userId, userId));
+      console.log(`Deleted workshop participation data for user ${userId}`);
+    } catch (error) {
+      console.error('Error resetting workshop participation data:', error);
+    }
+    
+    // Find and delete any user-specific data in other tables not defined in schema
+    // This uses a more generic approach to reset other possible tables
+    try {
+      // Execute a direct SQL query to find all tables that have a userId column
+      const query = `
+        SELECT table_name 
+        FROM information_schema.columns 
+        WHERE column_name = 'user_id' 
+        AND table_schema = 'public'
+      `;
+      
+      // We use a direct db.execute() call to run custom SQL
+      const tables = await db.execute(query);
+      
+      console.log('Found tables with user_id column:', tables);
+      
+      // For each table found, try to delete records with the user's ID
+      for (const table of tables) {
+        const tableName = table.table_name;
+        try {
+          await db.execute(`DELETE FROM "${tableName}" WHERE user_id = ${userId}`);
+          console.log(`Deleted data from ${tableName} for user ${userId}`);
+        } catch (tableError) {
+          console.error(`Error deleting from ${tableName}:`, tableError);
+        }
+      }
+    } catch (sqlError) {
+      console.error('Error finding or deleting from user-related tables:', sqlError);
+    }
+    
+    res.status(200).json({ 
+      message: 'User data reset successful',
+      userId: userId,
+      username: user.username,
+      resetTime: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error resetting user data:', error);
+    res.status(500).json({ 
+      message: 'Server error during reset', 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    });
+  }
+});
+
 export { authRouter };

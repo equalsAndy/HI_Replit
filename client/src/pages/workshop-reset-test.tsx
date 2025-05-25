@@ -202,10 +202,12 @@ export default function WorkshopResetTest() {
       
       if (!userResponse.ok) {
         setResetResult('Error: Failed to get user profile. Please log in first.');
+        setIsResetting(false);
         return;
       }
       
       const userData = await userResponse.json();
+      console.log("User profile data:", userData);
       
       // Extract userId using multiple fallbacks to handle different response formats
       const userId = userData?.id || userData?.user?.id;
@@ -213,6 +215,7 @@ export default function WorkshopResetTest() {
       // Check if we have a valid user ID
       if (!userId) {
         setResetResult('Error: Could not determine user ID. Please make sure you are logged in.');
+        setIsResetting(false);
         return;
       }
       
@@ -242,6 +245,9 @@ export default function WorkshopResetTest() {
           // Not valid JSON, but still successful if status is 200
           setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
         }
+        
+        // Refresh server data to show changes
+        refreshServerData();
       } else {
         // Reset failed
         const responseText = await resetResponse.text();
