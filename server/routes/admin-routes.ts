@@ -94,7 +94,7 @@ router.get('/invites', requireAuth, isAdmin, async (req: Request, res: Response)
     const invitesList = invitesResult.success ? invitesResult.invites : [];
     
     // Format invite codes for display
-    const formattedInvites = invitesList?.map(invite => ({
+    const formattedInvites = invitesList.map(invite => ({
       ...invite,
       formattedCode: formatInviteCode(invite.inviteCode)
     }));
