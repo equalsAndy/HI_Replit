@@ -11,6 +11,8 @@ import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useApplication } from '@/hooks/use-application';
+import { NavBar } from '@/components/layout/NavBar';
+import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 
 // Constants for different apps
 const APP_PROGRESS_KEYS = {
@@ -398,19 +400,16 @@ export default function AllStarTeams() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 py-3 px-4 flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <img 
-            src="/src/assets/all-star-teams-logo-250px.png" 
-            alt="All-Star Teams Workshop"
-            className="h-10 w-auto" 
-          />
-        </div>
-        <div className="flex items-center space-x-2">
-          
-        </div>
-      </header>
+      {/* Navigation */}
+      <NavBar />
+      
+      {/* Test User Banner */}
+      {user?.id && (
+        <TestUserBanner 
+          userId={user.id} 
+          userName={user.name || `TEST USER ${user.id}`} 
+        />
+      )}
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
