@@ -21,21 +21,36 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
       });
     }
     
+    console.log(`Fetching star card for user ${userId}`);
+    
     // Try to find star card data for this user
     const starCards = await db
       .select()
       .from(schema.userAssessments)
-      .where(eq(schema.userAssessments.userId, userId));
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'starCard')
+        )
+      );
       
-    // Filter for star card assessment type
-    const starCard = starCards.find(a => a.assessmentType === 'starCard');
-    
-    if (starCard) {
+    // Check if we found a star card
+    if (starCards && starCards.length > 0) {
+      const starCard = starCards[0]; // Get the first (and should be only) star card
+      console.log(`Found star card for user ${userId}:`, starCard);
+      
       // If we found data, parse the JSON results and return it
       try {
         const starCardData = JSON.parse(starCard.results);
+        console.log(`Parsed star card data for user ${userId}:`, starCardData);
+        
         return res.status(200).json({
           success: true,
+          thinking: starCardData.thinking || 0,
+          feeling: starCardData.feeling || 0,
+          acting: starCardData.acting || 0,
+          planning: starCardData.planning || 0,
+          // Include any other fields from the results
           ...starCardData
         });
       } catch (parseError) {
@@ -46,6 +61,8 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
         });
       }
     } else {
+      console.log(`No star card found for user ${userId}`);
+      
       // If no data found, return empty star card
       return res.status(200).json({
         success: true,
@@ -259,8 +276,8 @@ workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response
 // Complete assessment
 workshopDataRouter.post('/assessment/complete', async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (primary) or cookie (fallback) for better reliability
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -294,28 +311,41 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
         )
       );
     
+    let updatedId = null;
+    
     if (existingAssessment.length > 0) {
       // Update existing assessment
-      await db
+      const updated = await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(quadrantData)
+          results: JSON.stringify(quadrantData),
+          // Update the timestamp to ensure we know this was updated
+          createdAt: new Date()
         })
-        .where(eq(schema.userAssessments.id, existingAssessment[0].id));
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id))
+        .returning();
+      
+      // Get the updated record ID
+      updatedId = updated.length > 0 ? updated[0].id : existingAssessment[0].id;
+      console.log('Updated existing star card assessment:', updated);
     } else {
       // Create new assessment record
-      await db.insert(schema.userAssessments).values({
+      const inserted = await db.insert(schema.userAssessments).values({
         userId: userId,
         assessmentType: 'starCard',
         results: JSON.stringify(quadrantData)
-      });
+      }).returning();
+      
+      // Get the new record ID
+      updatedId = inserted.length > 0 ? inserted[0].id : null;
+      console.log('Created new star card assessment:', inserted);
     }
     
     // Return the full star card data in the format expected by the client
     return res.status(200).json({
       success: true,
       message: 'Assessment completed',
-      id: existingAssessment.length > 0 ? existingAssessment[0].id : null,
+      id: updatedId,
       userId: userId,
       thinking: quadrantData.thinking,
       feeling: quadrantData.feeling,
