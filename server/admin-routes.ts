@@ -306,6 +306,7 @@ adminRouter.post('/videos', async (req: Request, res: Response) => {
       title: z.string().min(2, 'Title must be at least 2 characters'),
       description: z.string().optional(),
       url: z.string().url('Invalid URL format'),
+      editableId: z.string().optional(),
       workshopType: z.string(),
       section: z.string(),
       sortOrder: z.number().default(0)
@@ -344,6 +345,7 @@ adminRouter.put('/videos/:id', async (req: Request, res: Response) => {
       title: z.string().min(2, 'Title must be at least 2 characters').optional(),
       description: z.string().optional(),
       url: z.string().url('Invalid URL format').optional(),
+      editableId: z.string().optional(),
       workshopType: z.string().optional(),
       section: z.string().optional(),
       sortOrder: z.number().optional()
