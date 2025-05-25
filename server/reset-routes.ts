@@ -334,8 +334,10 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
       .select()
       .from(schema.userAssessments)
       .where(
-        eq(schema.userAssessments.userId, userId) && 
-        eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        )
       );
     
     let success = false;
@@ -345,8 +347,10 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
       await db
         .delete(schema.userAssessments)
         .where(
-          eq(schema.userAssessments.userId, userId) && 
-          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          )
         );
       
       // Verify deletion
@@ -354,8 +358,10 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
         .select()
         .from(schema.userAssessments)
         .where(
-          eq(schema.userAssessments.userId, userId) && 
-          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          )
         );
       
       success = !verifyAttrs || verifyAttrs.length === 0;
