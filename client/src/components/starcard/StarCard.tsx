@@ -95,12 +95,19 @@ export default function StarCard({
 
   // Check if assessment has been completed (at least one score > 0)
   const hasScores = useMemo(() => {
-    return (
-      (derivedQuadrantData.thinking || 0) > 0 || 
-      (derivedQuadrantData.acting || 0) > 0 || 
-      (derivedQuadrantData.feeling || 0) > 0 || 
-      (derivedQuadrantData.planning || 0) > 0
-    );
+    // Debug log for quadrant data
+    console.log("StarCard checking scores, quadrantData:", derivedQuadrantData);
+    
+    // Force non-zero values (fix for false zero issue)
+    const thinking = Number(derivedQuadrantData.thinking) || 0;
+    const acting = Number(derivedQuadrantData.acting) || 0;
+    const feeling = Number(derivedQuadrantData.feeling) || 0;
+    const planning = Number(derivedQuadrantData.planning) || 0;
+    
+    // Debug the actual values being checked
+    console.log("StarCard checking scores with values:", {thinking, acting, feeling, planning});
+    
+    return thinking > 0 || acting > 0 || feeling > 0 || planning > 0;
   }, [derivedQuadrantData]);
 
   // Check if flow attributes are provided and valid
@@ -112,6 +119,18 @@ export default function StarCard({
 
   // Determine the card state based on props or data
   const cardState = useMemo(() => {
+    // Log the calculated state values
+    console.log("StarCard state calculation:", {
+      hasScores,
+      hasFlowAttributes,
+      explicitState: state,
+      quadrantState: (derivedQuadrantData as any).state,
+      pending
+    });
+    
+    // Override if explicitly marked as pending
+    if (pending) return 'empty';
+    
     // First check if state is explicitly provided in props
     if (state) return state;
 
@@ -122,7 +141,7 @@ export default function StarCard({
     if (hasFlowAttributes && hasScores) return 'complete';
     if (hasScores) return 'partial';
     return 'empty';
-  }, [derivedQuadrantData, state, hasScores, hasFlowAttributes]);
+  }, [derivedQuadrantData, state, hasScores, hasFlowAttributes, pending]);
 
   // Helper function to get default color based on position
   const getQuadrantDefaultColor = (index: number): string => {
@@ -138,12 +157,18 @@ export default function StarCard({
 
   // Sort quadrants by score and assign positions
   const sortedQuadrants = useMemo(() => {
-    // Filter out non-quadrant fields
+    // Ensure numeric values for all quadrants by explicitly converting
+    const thinking = Number(derivedQuadrantData.thinking) || 0;
+    const acting = Number(derivedQuadrantData.acting) || 0;
+    const feeling = Number(derivedQuadrantData.feeling) || 0;
+    const planning = Number(derivedQuadrantData.planning) || 0;
+    
+    // Create quadrant objects with proper typing
     const quadrants = [
-      { key: 'thinking' as const, score: derivedQuadrantData.thinking || 0 },
-      { key: 'acting' as const, score: derivedQuadrantData.acting || 0 },
-      { key: 'feeling' as const, score: derivedQuadrantData.feeling || 0 },
-      { key: 'planning' as const, score: derivedQuadrantData.planning || 0 }
+      { key: 'thinking' as const, score: thinking },
+      { key: 'acting' as const, score: acting },
+      { key: 'feeling' as const, score: feeling },
+      { key: 'planning' as const, score: planning }
     ].map(q => ({
       key: q.key,
       label: q.key.toUpperCase(),
@@ -152,14 +177,24 @@ export default function StarCard({
       position: 0 // Will be assigned based on sort order
     }));
 
-    console.log("StarCard Raw quadrant data:", derivedQuadrantData);
+    console.log("StarCard Raw quadrant data:", {thinking, acting, feeling, planning});
     console.log("StarCard Quadrants before sorting:", quadrants);
 
+    // If any score is greater than 0, use them for sorting
+    const hasAnyScores = quadrants.some(q => q.score > 0);
+    
     // If all scores are equal, maintain consistent ordering
-    const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score && q.score > 0);
-
+    const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score);
+    
     let sorted;
-    if (allScoresEqual) {
+    if (!hasAnyScores) {
+      // If no scores, use default order
+      const defaultOrder = ['thinking', 'acting', 'feeling', 'planning'];
+      sorted = [...defaultOrder.map(key => 
+        quadrants.find(q => q.key === key)!
+      )];
+      console.log("StarCard: No scores, using default order:", sorted);
+    } else if (allScoresEqual && quadrants[0].score > 0) {
       // Use a fixed order for equal scores
       const defaultOrder = ['thinking', 'acting', 'feeling', 'planning'];
       sorted = [...defaultOrder.map(key => 
