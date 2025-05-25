@@ -51,10 +51,13 @@ export default function UserHome() {
   });
 
   // Get user profile
-  const { data: user, isLoading: userLoading } = useQuery<UserType | undefined>({
+  const { data: userData, isLoading: userLoading } = useQuery<{success: boolean, user: UserType} | undefined>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
   });
+  
+  // Extract user from response
+  const user = userData?.user;
 
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType | undefined>({

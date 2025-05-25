@@ -26,7 +26,7 @@ const DashboardPage: React.FC = () => {
     // Fetch the user profile on component mount
     const fetchUserProfile = async () => {
       try {
-        const response = await fetch('/api/auth/profile');
+        const response = await fetch('/api/user/profile');
         
         // If not authenticated, redirect to login
         if (response.status === 401) {

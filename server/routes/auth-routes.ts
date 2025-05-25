@@ -82,6 +82,40 @@ router.get('/me', requireAuth, async (req, res) => {
 });
 
 /**
+ * Get the current user profile
+ */
+router.get('/profile', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    const result = await userManagementService.getUserById(req.session.userId);
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'User profile not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error getting user profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load user profile. Please try again later.'
+    });
+  }
+});
+
+/**
  * Check if a username is available
  */
 router.post('/check-username', async (req, res) => {

@@ -5,6 +5,7 @@ import { attachUser } from './middleware/auth';
 import authRoutes from './routes/auth-routes';
 import inviteRoutes from './routes/invite-routes';
 import fixedInviteRoutes from './routes/fixed-invite-routes';
+import userRoutes from './routes/user-routes';
 
 // Create a router
 export const router = express.Router();
@@ -16,6 +17,7 @@ router.use(attachUser);
 router.use('/auth', authRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/admin/invites', fixedInviteRoutes);
+router.use('/user', userRoutes);
 
 // Base API route to check if the API is running
 router.get('/', (req, res) => {
