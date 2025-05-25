@@ -43,9 +43,9 @@ export const users = pgTable("users", {
   jobTitle: varchar("job_title", { length: 30 }),
   avatarUrl: varchar("avatar_url"),
   profilePicture: text("profile_picture"), // URL or base64
-  inviteCode: varchar("invite_code", { length: 12 }).unique(),
+  inviteCode: varchar("invite_code", { length: 12 }),
   codeUsed: boolean("code_used").default(false),
-  createdByFacilitator: integer("created_by_facilitator").references(() => users.id),
+  createdByFacilitator: integer("created_by_facilitator"),
   progress: integer("progress").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -139,7 +139,18 @@ export const usersRelations = relations(users, ({ many }) => ({
   participatingCohorts: many(cohortParticipants),
   facilitatingCohorts: many(cohortFacilitators),
   starCard: many(starCards),
-  flowAttributes: many(flowAttributes),
+  flowAttributes: many(flowAttributes)
+}));
+
+export const pendingInvitesRelations = relations(pendingInvites, ({ one }) => ({
+  creator: one(users, {
+    fields: [pendingInvites.createdBy],
+    references: [users.id]
+  }),
+  cohort: one(cohorts, {
+    fields: [pendingInvites.cohortId],
+    references: [cohorts.id]
+  })
 }));
 
 export const cohortsRelations = relations(cohorts, ({ many, one }) => ({
