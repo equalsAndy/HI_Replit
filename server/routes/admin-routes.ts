@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { UserRole } from '@shared/types';
+import { UserRole } from '../../shared/types';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, isNull } from 'drizzle-orm';

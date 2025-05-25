@@ -2,7 +2,7 @@ import { db } from '../db';
 import * as schema from '../../shared/schema';
 import { eq, and, isNull, lt, gte, sql } from 'drizzle-orm';
 import { generateInviteCode } from '../utils/invite-code';
-import { UserRole } from '@shared/schema';
+import { UserRole } from '../../shared/types';
 
 // Default invite expiration (30 days)
 const DEFAULT_EXPIRATION_DAYS = 30;

@@ -1,8 +1,8 @@
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, isNull, and, not } from 'drizzle-orm';
+import { eq, isNull, and, not, sql, inArray } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
-import { UserRole } from '@shared/types';
+import { UserRole } from '../../shared/types';
 import { InviteService } from './invite-service';
 
 // Password salt rounds for bcrypt

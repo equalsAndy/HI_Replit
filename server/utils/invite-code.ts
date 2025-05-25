@@ -1,73 +1,88 @@
 /**
- * Utility functions for generating and validating invite codes
+ * Utility functions for invite code generation and validation
  */
 
-// Characters to use for invite codes (avoiding confusing characters like O/0, I/l/1)
+// Character set for invite codes (excluding potentially confusing characters like 0, O, 1, I, L)
 const INVITE_CODE_CHARSET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+
+// Length of generated invite codes
 const INVITE_CODE_LENGTH = 12;
 
 /**
- * Generate a secure invite code
- * Uses a character set that avoids confusing characters (O/0, I/l/1)
- * @returns A 12-character invite code
+ * Generates a secure random invite code
+ * Uses characters that are less likely to be confused with each other
+ * @returns A 12-character random invite code
  */
 export function generateInviteCode(): string {
-  let code = '';
+  let result = '';
   const charsetLength = INVITE_CODE_CHARSET.length;
   
-  // Generate 12 random characters from our charset
+  // Create a random array of values
+  const randomValues = new Uint8Array(INVITE_CODE_LENGTH);
+  window.crypto.getRandomValues(randomValues);
+  
+  // Map random values to our charset
   for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
-    const randomIndex = Math.floor(Math.random() * charsetLength);
-    code += INVITE_CODE_CHARSET.charAt(randomIndex);
+    // Use modulo to get index within the charset range
+    const randomIndex = randomValues[i] % charsetLength;
+    result += INVITE_CODE_CHARSET.charAt(randomIndex);
   }
   
-  return code;
+  return result;
 }
 
 /**
- * Validates that a string matches our invite code format
+ * Server-side implementation of generateInviteCode that works in Node.js
+ * Uses the crypto module for randomness
+ * @returns A 12-character random invite code
+ */
+export function generateInviteCodeNode(): string {
+  let result = '';
+  const crypto = require('crypto');
+  const charsetLength = INVITE_CODE_CHARSET.length;
+  
+  // Generate random bytes
+  const randomBytes = crypto.randomBytes(INVITE_CODE_LENGTH);
+  
+  // Map random values to our charset
+  for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
+    // Use modulo to get index within the charset range
+    const randomIndex = randomBytes[i] % charsetLength;
+    result += INVITE_CODE_CHARSET.charAt(randomIndex);
+  }
+  
+  return result;
+}
+
+/**
+ * Validates that a string matches the format of an invite code
  * @param code The code to validate
- * @returns boolean indicating if the code is valid format
+ * @returns True if the code has the correct format
  */
 export function isValidInviteCodeFormat(code: string): boolean {
   if (!code || typeof code !== 'string') {
     return false;
   }
   
-  // Must be exactly 12 characters
   if (code.length !== INVITE_CODE_LENGTH) {
     return false;
   }
   
-  // Must only contain characters from our charset
-  const validChars = new RegExp(`^[${INVITE_CODE_CHARSET}]+$`);
-  return validChars.test(code);
+  // Check that all characters are from our allowed charset
+  const validCharRegex = new RegExp(`^[${INVITE_CODE_CHARSET}]+$`);
+  return validCharRegex.test(code);
 }
 
 /**
- * Formats an invite code for display (adds hyphens every 4 characters)
+ * Format an invite code with separators for better readability
  * @param code The raw invite code
- * @returns Formatted invite code (e.g., ABCD-EFGH-IJKL)
+ * @returns Formatted code with separators (e.g., ABCD-EFGH-IJKL)
  */
 export function formatInviteCode(code: string): string {
-  if (!code || typeof code !== 'string' || code.length !== INVITE_CODE_LENGTH) {
-    return code; // Return as-is if invalid
+  if (!code || code.length !== INVITE_CODE_LENGTH) {
+    return code;
   }
   
-  // Insert hyphens every 4 characters
+  // Insert hyphens after every 4 characters
   return code.match(/.{1,4}/g)?.join('-') || code;
-}
-
-/**
- * Normalizes an invite code by removing hyphens and converting to uppercase
- * @param code The possibly formatted invite code
- * @returns Normalized invite code
- */
-export function normalizeInviteCode(code: string): string {
-  if (!code || typeof code !== 'string') {
-    return '';
-  }
-  
-  // Remove all non-alphanumeric characters and convert to uppercase
-  return code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
 }
