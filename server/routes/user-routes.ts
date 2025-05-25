@@ -199,6 +199,50 @@ router.get('/assessments', requireAuth, async (req, res) => {
 });
 
 /**
+ * Save user assessment data (flow assessment, etc.)
+ */
+router.post('/assessments', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { assessmentType, results } = req.body;
+    
+    if (!assessmentType || !results) {
+      return res.status(400).json({
+        success: false,
+        error: 'Assessment type and results are required'
+      });
+    }
+
+    // Save the assessment to the userAssessments table
+    const newAssessment = await db.insert(schema.userAssessments).values({
+      userId: req.session.userId,
+      assessmentType,
+      results: JSON.stringify(results),
+      createdAt: new Date()
+    }).returning();
+
+    console.log(`Saved ${assessmentType} assessment for user ${req.session.userId}:`, results);
+
+    res.json({
+      success: true,
+      assessment: newAssessment[0]
+    });
+  } catch (error) {
+    console.error('Error saving user assessment:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to save assessment. Please try again later.'
+    });
+  }
+});
+
+/**
  * Update user progress
  */
 router.put('/progress', requireAuth, async (req, res) => {

@@ -80,6 +80,37 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   const question = flowQuestions[currentQuestion];
   const currentValue = answers[question?.id] || 0;
   
+  // Save flow assessment to server
+  const saveFlowAssessmentToServer = async (flowScore: number, answersData: Record<number, number>) => {
+    try {
+      const response = await fetch('/api/user/assessments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          assessmentType: 'flowAssessment',
+          results: {
+            flowScore,
+            answers: answersData,
+            totalQuestions: flowQuestions.length,
+            maxScore: flowQuestions.length * 5
+          }
+        }),
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Flow assessment saved to server:", result);
+      } else {
+        console.error("Failed to save flow assessment to server:", response.status);
+      }
+    } catch (error) {
+      console.error("Error saving flow assessment to server:", error);
+    }
+  };
+  
   // Handle answer selection
   const handleAnswerSelect = (value: number) => {
     // Update answers
@@ -112,8 +143,10 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       // Calculate flow score
       const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
       
-      // Save to API in a real implementation
       console.log("Flow assessment completed with score:", flowScore);
+      
+      // Save to server database
+      saveFlowAssessmentToServer(flowScore, answers);
       
       // Mark step as completed
       markStepCompleted('3-2');
@@ -139,8 +172,10 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     // Calculate flow score
     const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
     
-    // Save to API in a real implementation
     console.log("Flow assessment completed with score:", flowScore);
+    
+    // Save to server database
+    saveFlowAssessmentToServer(flowScore, answers);
     
     // Mark step as completed
     markStepCompleted('3-2');
