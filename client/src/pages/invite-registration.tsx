@@ -1,172 +1,103 @@
 import React, { useState } from 'react';
-import { useRoute } from 'wouter';
-import { InviteVerification } from '@/components/auth/InviteVerification';
-import { ProfileSetup } from '@/components/auth/ProfileSetup';
+import { useLocation } from 'wouter';
+import InviteVerification from '@/components/auth/InviteVerification';
+import ProfileSetup from '@/components/auth/ProfileSetup';
+import { Steps } from '@/components/ui/steps';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
+import { CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
-// Steps for the registration process
-const STEPS = [
-  {
-    id: 'verify-invite',
-    title: 'Verify Invite',
-    description: 'Verify your invitation code'
-  },
-  {
-    id: 'create-profile',
-    title: 'Create Profile',
-    description: 'Set up your account information'
-  },
-  {
-    id: 'complete',
-    title: 'Complete',
-    description: 'Registration complete'
-  }
-];
+type InviteData = {
+  inviteCode: string;
+  email: string;
+  role: string;
+  name?: string;
+};
 
-export default function InviteRegistrationPage() {
-  // Get invite code from URL if available
-  const [, params] = useRoute('/register/:inviteCode?');
-  const initialCode = params?.inviteCode || '';
-  
-  // Track current step and invite data
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [inviteData, setInviteData] = useState<{
-    email: string;
-    role: string;
-    name?: string;
-    inviteCode: string;
-  } | null>(null);
-  
-  // Handle verification success
-  const handleInviteVerified = (data: {
-    email: string;
-    role: string;
-    name?: string;
-    inviteCode: string;
-  }) => {
+const InviteRegistrationPage: React.FC = () => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const [inviteData, setInviteData] = useState<InviteData | null>(null);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+
+  // Define the steps in the registration process
+  const steps = [
+    {
+      title: 'Verify Invitation',
+      description: 'Enter your invitation code',
+    },
+    {
+      title: 'Create Profile',
+      description: 'Set up your account details',
+    },
+    {
+      title: 'Complete',
+      description: 'Registration complete',
+    },
+  ];
+
+  // Handle successful invite verification
+  const handleInviteVerified = (data: InviteData) => {
     setInviteData(data);
     setCurrentStep(1);
   };
-  
-  // Handle registration completion
-  const handleRegistrationComplete = () => {
+
+  // Handle completion of profile setup
+  const handleProfileComplete = () => {
     setCurrentStep(2);
+    toast({
+      title: 'Registration complete!',
+      description: 'Your account has been successfully created. You can now log in.',
+    });
   };
-  
+
+  // Handle redirecting to login page
+  const handleGoToLogin = () => {
+    setLocation('/login');
+  };
+
   return (
-    <div className="container flex flex-col items-center justify-center min-h-screen py-12">
-      <div className="max-w-md w-full mx-auto mb-8">
-        <h1 className="text-3xl font-bold text-center mb-2">
-          Welcome to Heliotrope Imaginal
-        </h1>
-        <p className="text-muted-foreground text-center mb-8">
-          Join our workshops and collaborative learning platform
-        </p>
-        
-        {/* Registration steps indicator */}
-        <div className="mb-8">
-          <div className="flex flex-col space-y-2">
-            {STEPS.map((step, index) => (
-              <div key={step.id} className="flex items-start">
-                <div className="flex-shrink-0 mr-3">
-                  <div
-                    className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
-                      index === currentStep || index < currentStep 
-                        ? "border-primary bg-primary text-white" 
-                        : "border-gray-300 bg-white text-gray-500"
-                    }`}
-                  >
-                    {index < currentStep ? (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    ) : (
-                      <span>{index === currentStep ? "•" : ""}</span>
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col">
-                  <span
-                    className={`text-sm font-medium ${
-                      index === currentStep || index < currentStep 
-                        ? "text-primary" 
-                        : "text-gray-900"
-                    }`}
-                  >
-                    {step.title}
-                  </span>
-                  {step.description && (
-                    <span
-                      className={`text-xs ${
-                        index !== currentStep 
-                          ? "text-gray-500" 
-                          : "text-primary/80"
-                      }`}
-                    >
-                      {step.description}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+    <div className="container mx-auto px-4 py-8 max-w-5xl">
+      <div className="flex flex-col md:flex-row gap-8">
+        {/* Left sidebar with steps */}
+        <div className="md:w-1/4 py-6">
+          <Steps steps={steps} currentStep={currentStep} />
         </div>
-        
-        {/* Step content */}
-        <div className="mt-6">
+
+        {/* Main content area */}
+        <div className="md:w-3/4">
           {currentStep === 0 && (
-            <InviteVerification 
-              onVerified={handleInviteVerified} 
-            />
+            <InviteVerification onVerified={handleInviteVerified} />
           )}
-          
+
           {currentStep === 1 && inviteData && (
             <ProfileSetup 
               inviteData={inviteData} 
-              onComplete={handleRegistrationComplete} 
+              onComplete={handleProfileComplete} 
             />
           )}
-          
+
           {currentStep === 2 && (
-            <div className="text-center p-8 bg-white rounded-lg shadow-md">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  className="h-8 w-8 text-green-600" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M5 13l4 4L19 7" 
-                  />
-                </svg>
-              </div>
-              <h2 className="text-2xl font-bold mb-2">Registration Complete!</h2>
-              <p className="text-gray-600 mb-6">
-                Your account has been created successfully.
-              </p>
-              <a 
-                href="/" 
-                className="inline-block px-6 py-3 bg-primary text-white rounded-md font-medium hover:bg-primary/90 transition-colors"
-              >
-                Go to Dashboard
-              </a>
-            </div>
+            <Card className="w-full max-w-md mx-auto">
+              <CardHeader>
+                <div className="flex flex-col items-center space-y-2">
+                  <CheckCircle className="h-16 w-16 text-green-500" />
+                  <CardTitle className="text-2xl text-center">Registration Complete!</CardTitle>
+                  <CardDescription className="text-center">
+                    Your account has been successfully created. You can now log in to access the workshop platform.
+                  </CardDescription>
+                </div>
+              </CardHeader>
+              <CardContent className="flex justify-center">
+                <Button onClick={handleGoToLogin}>Go to Login</Button>
+              </CardContent>
+            </Card>
           )}
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default InviteRegistrationPage;
