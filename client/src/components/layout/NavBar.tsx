@@ -131,54 +131,64 @@ export function NavBar() {
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Test User Info button - only shown on mobile */}
+        {/* Test User Badge - shown for all test users */}
         {user?.id && (
-          <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
-            <DialogTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="md:hidden rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-              >
-                <InfoIcon className="h-4 w-4" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle>Test User Information</DialogTitle>
-                <DialogDescription>
-                  You are using a test account. Any data entered will be temporary.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="flex flex-col space-y-3 p-4">
-                <Badge variant="outline" className="bg-yellow-100 self-start">
-                  {user?.name || `TEST USER ${user?.id}`}
-                </Badge>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center self-start"
-                  onClick={toggleApplication}
+          <>
+            <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 hidden md:flex">
+              {user?.role === 'admin' && 'Admin'}
+              {user?.role === 'facilitator' && 'Facilitator'}
+              {user?.role === 'participant' && 'Participant'}
+              : {user?.name || user?.username}
+            </Badge>
+          
+            <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
                 >
-                  Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                  <InfoIcon className="h-4 w-4 mr-1 md:mr-0" />
+                  <span className="md:hidden">Info</span>
                 </Button>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center self-start"
-                  onClick={() => window.location.href = '/workshop-reset'}
-                >
-                  Reset All Data
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Test User Information</DialogTitle>
+                  <DialogDescription>
+                    You are using a test account. Any data entered will be temporary.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="flex flex-col space-y-3 p-4">
+                  <Badge variant="outline" className="bg-yellow-100 self-start">
+                    {user?.name || `TEST USER ${user?.id}`} ({user?.role})
+                  </Badge>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center self-start"
+                    onClick={toggleApplication}
+                  >
+                    Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center self-start"
+                    onClick={() => window.location.href = '/workshop-reset'}
+                  >
+                    Reset All Data
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </>
         )}
 
-        {/* Only show these controls on desktop */}
-        <div className="hidden md:flex items-center gap-4">
+        {/* Navigation controls */}
+        <div className="flex items-center gap-2">
           {/* Admin button - only shown for admin users */}
           {user?.role === 'admin' && (
             <Button 
@@ -190,12 +200,36 @@ export function NavBar() {
               Admin
             </Button>
           )}
+          
+          {/* Profile button */}
           {user?.id && (
             <Button 
               variant="ghost" 
               size="sm" 
               className="rounded-md text-white hover:bg-yellow-400"
-              onClick={() => navigate('/logout')}
+              onClick={() => setIsProfileModalOpen(true)}
+            >
+              <User className="h-4 w-4 mr-1" />
+              <span className="hidden md:inline">Profile</span>
+            </Button>
+          )}
+          
+          {/* Logout button */}
+          {user?.id && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
+              onClick={async () => {
+                try {
+                  await apiRequest('/api/auth/logout', { method: 'POST' });
+                  queryClient.clear();
+                  navigate('/');
+                  window.location.reload(); // Ensure a full refresh to clear all state
+                } catch (error) {
+                  console.error('Logout error:', error);
+                }
+              }}
             >
               Logout
             </Button>
