@@ -432,6 +432,12 @@ export default function FindYourFlow() {
   const { data: user, isLoading: userLoading } = useQuery<UserType>({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
+    onSuccess: (data) => {
+      console.log('FindYourFlow - User profile data loaded:', data);
+    },
+    onError: (error) => {
+      console.error('FindYourFlow - Error loading user profile:', error);
+    }
   });
 
   // Get star card data
