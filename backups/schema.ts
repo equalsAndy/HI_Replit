@@ -39,17 +39,11 @@ export const users = pgTable("users", {
   lastName: varchar("last_name"),
   email: varchar("email").unique(),
   title: varchar("title"),
-  organization: varchar("organization", { length: 30 }),
-  jobTitle: varchar("job_title", { length: 30 }),
+  organization: varchar("organization"),
   avatarUrl: varchar("avatar_url"),
-  profilePicture: text("profile_picture"), // URL or base64
-  inviteCode: varchar("invite_code", { length: 12 }).unique(),
-  codeUsed: boolean("code_used").default(false),
-  createdByFacilitator: integer("created_by_facilitator").references(() => users.id),
   progress: integer("progress").default(0),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
-  deletedAt: timestamp("deleted_at"),
 });
 
 // User roles enum
@@ -121,18 +115,6 @@ export const flowAttributes = pgTable("flow_attributes", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Add pending invites tracking
-export const pendingInvites = pgTable("pending_invites", {
-  id: serial("id").primaryKey(),
-  inviteCode: varchar("invite_code", { length: 12 }).unique(),
-  email: varchar("email", { length: 255 }),
-  name: varchar("name", { length: 100 }),
-  createdBy: integer("created_by").references(() => users.id),
-  createdAt: timestamp("created_at").defaultNow(),
-  expiresAt: timestamp("expires_at"),
-  cohortId: integer("cohort_id").references(() => cohorts.id),
-});
-
 // Define relationships
 export const usersRelations = relations(users, ({ many }) => ({
   roles: many(userRoles),
@@ -185,9 +167,6 @@ export const insertVideoSchema = createInsertSchema(videos).omit({
   updatedAt: true 
 });
 
-// Create insert schema for pending invites
-export const insertPendingInviteSchema = createInsertSchema(pendingInvites);
-
 // Define types
 export type User = typeof users.$inferSelect & {
   // Include roles information that gets joined in queries
@@ -200,8 +179,6 @@ export type StarCard = typeof starCards.$inferSelect;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
-export type PendingInvite = typeof pendingInvites.$inferSelect;
-export type InsertPendingInvite = z.infer<typeof insertPendingInviteSchema>;
 
 // Define a UserWithRole type for API responses
 export type UserWithRole = User & {
