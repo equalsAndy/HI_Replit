@@ -1,7 +1,7 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import { invites } from './shared/schema';
-import { generateInviteCode } from './server/utils/invite-code';
+import { generateInviteCode, normalizeInviteCode } from './server/utils/invite-code';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -15,8 +15,9 @@ const db = drizzle(client);
 
 async function createInvite() {
   try {
-    // Generate a new invite code
-    const inviteCode = generateInviteCode();
+    // Generate a new invite code and normalize it (remove hyphens) for storage
+    const displayCode = generateInviteCode();
+    const inviteCode = normalizeInviteCode(displayCode);
     
     // Set expiration date to 7 days from now
     const expiresAt = new Date();
@@ -32,7 +33,8 @@ async function createInvite() {
     }).returning();
     
     console.log('Created new invite:');
-    console.log('Invite Code:', newInvite[0].inviteCode);
+    console.log('Invite Code (for registration):', displayCode);
+    console.log('Normalized Code (in database):', newInvite[0].inviteCode);
     console.log('Role:', newInvite[0].role);
     console.log('Expires:', newInvite[0].expiresAt);
     
