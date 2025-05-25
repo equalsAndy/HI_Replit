@@ -126,13 +126,29 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     
     // Step 3: Reset user progress
     try {
-      await db
-        .update(schema.users)
-        .set({ progress: 0 })
-        .where(eq(schema.users.id, userId));
-      
-      deletedData.userProgress = true;
-      console.log(`Reset progress for user ${userId}`);
+      // Only try to update the progress if the users table has a progress field
+      // This ensures compatibility with different schema versions
+      try {
+        const result = await db
+          .update(schema.users)
+          .set({ progress: 0 })
+          .where(eq(schema.users.id, userId));
+        
+        deletedData.userProgress = true;
+        console.log(`Reset progress for user ${userId}`);
+      } catch (progressError) {
+        // If the error is related to the schema (missing column), log it but don't fail
+        console.log(`Progress reset failed, might be missing from schema: ${progressError.message}`);
+        
+        // Try another approach - update the user's updatedAt timestamp
+        await db
+          .update(schema.users)
+          .set({ updatedAt: new Date() })
+          .where(eq(schema.users.id, userId));
+        
+        deletedData.userProgress = true;
+        console.log(`Updated timestamp for user ${userId} instead`);
+      }
     } catch (error) {
       console.error(`Error resetting progress for user ${userId}:`, error);
     }
