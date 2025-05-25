@@ -270,7 +270,7 @@ export default function WorkshopResetTest() {
       console.log("User ID for reset:", userId);
       
       // Call the reset API with the correct endpoint
-      const resetResponse = await fetch(`/api/test-users/reset/user/${userId}`, {
+      const resetResponse = await fetch(`/api/reset/user/${userId}`, {
         method: 'POST',
         headers: {
           'Accept': 'application/json',
