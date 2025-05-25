@@ -31,6 +31,7 @@ router.get('/profile', requireAuth, async (req, res) => {
       // Add any additional user data from other services if needed
       progress: 0,  // Default progress value
       title: result.user?.jobTitle || '',  // Map jobTitle to title for backward compatibility
+      isTestUser: result.user?.isTestUser || false, // Ensure isTestUser field is included
     };
 
     res.json({

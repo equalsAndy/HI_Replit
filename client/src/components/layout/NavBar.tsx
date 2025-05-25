@@ -136,7 +136,7 @@ export function NavBar() {
   };
 
   // Determine if this is a test user - making it more inclusive to match any test user
-  const isTestUser = user?.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
+  const isTestUser = user?.isTestUser === true;
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
