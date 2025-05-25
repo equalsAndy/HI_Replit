@@ -31,14 +31,27 @@ export function NavBar() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
   const { toast } = useToast();
-  const { data: user } = useQuery<{
+  
+  // Fetch the current user's profile
+  const { data: user, isLoading: isUserLoading } = useQuery<{
     id: number;
     name: string;
     username: string;
     title?: string;
     organization?: string;
     role?: string;
-  }>({ queryKey: ['/api/user/profile'] });
+  }>({ 
+    queryKey: ['/api/user/profile'],
+    // Only refetch on window focus or when explicitly invalidated
+    refetchOnWindowFocus: false 
+  });
+  
+  useEffect(() => {
+    // Log user data for debugging
+    if (user) {
+      console.log("User data loaded:", user);
+    }
+  }, [user]);
   
   // Function to reset user data
   const handleResetUserData = async () => {
@@ -52,7 +65,7 @@ export function NavBar() {
         variant: "default",
       });
       
-      // Use the correct reset endpoint that exists in the code
+      // Use the workshop reset endpoint
       const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
         headers: {
@@ -94,16 +107,18 @@ export function NavBar() {
     }
   };
 
-  // Use yellow color for the header to match Heliotrope logo
-  const bgColorClass = 'bg-yellow-500';
-  
   // Function to reset application state when logo is clicked
   const handleLogoClick = (e: React.MouseEvent) => {
     e.preventDefault();
     // Clear the application selection from localStorage
-    localStorage.removeItem('selectedApp');
+    sessionStorage.removeItem('selectedApp');
     // Use window.location for a full page reload to ensure state is reset
     window.location.href = '/';
+  };
+
+  // Function to navigate to workshop reset page
+  const navigateToWorkshopReset = () => {
+    window.location.href = '/workshop-reset-test';
   };
 
   // Function to toggle between applications
@@ -112,14 +127,27 @@ export function NavBar() {
     const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
     
     if (newApp === 'allstarteams') {
-      window.location.href = '/user-home2-refactored';
+      navigate('/allstarteams');
     } else {
-      window.location.href = '/imaginal-agility';
+      navigate('/imaginal-agility');
     }
   };
 
+  // Determine if this is a test user
+  const isTestUser = user?.username && /^(admin|participant\d+|facilitator\d+)$/i.test(user.username);
+
+  // Use yellow color for the header to match Heliotrope logo
+  const bgColorClass = 'bg-yellow-500';
+  
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
+      {/* If user is loaded and is a test user, show a banner at the top */}
+      {isTestUser && (
+        <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
+          TEST MODE: All actions and data are for testing purposes only
+        </div>
+      )}
+      
       <div className="flex-1">
         <div className="flex items-center">
           <a href="/" onClick={handleLogoClick}>
@@ -129,22 +157,33 @@ export function NavBar() {
               className="h-8 w-auto" 
             />
           </a>
+          
+          {/* Show app name if available */}
+          {currentApp && (
+            <span className="ml-2 font-semibold hidden md:inline">
+              {currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'}
+            </span>
+          )}
         </div>
       </div>
 
       <div className="flex items-center gap-2">
         {/* Test User Badge - shown for all test users */}
+        {user?.id && isTestUser && (
+          <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 flex px-3 py-1">
+            <span className="font-medium">
+              {user?.role === 'admin' && 'Admin'}
+              {user?.role === 'facilitator' && 'Facilitator'}
+              {user?.role === 'participant' && 'Participant'}
+              : {user?.name || user?.username}
+            </span>
+          </Badge>
+        )}
+        
+        {/* User Controls Menu */}
         {user?.id && (
-          <>
-            <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 flex px-3 py-1">
-              <span className="font-medium">
-                {user?.role === 'admin' && 'Admin'}
-                {user?.role === 'facilitator' && 'Facilitator'}
-                {user?.role === 'participant' && 'Participant'}
-                : {user?.name || user?.username}
-              </span>
-            </Badge>
-          
+          <div className="flex items-center gap-2">
+            {/* Info/Settings Button */}
             <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
               <DialogTrigger asChild>
                 <Button 
@@ -152,20 +191,22 @@ export function NavBar() {
                   size="sm" 
                   className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
                 >
-                  <InfoIcon className="h-4 w-4 mr-1 md:mr-0" />
-                  <span className="md:hidden">Info</span>
+                  <InfoIcon className="h-4 w-4 mr-1" />
+                  <span className="hidden md:inline">Settings</span>
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>Test User Information</DialogTitle>
+                  <DialogTitle>User Settings</DialogTitle>
                   <DialogDescription>
-                    You are using a test account. Any data entered will be temporary.
+                    Manage your account and workshop settings
                   </DialogDescription>
                 </DialogHeader>
                 <div className="flex flex-col space-y-3 p-4">
-                  <Badge variant="outline" className="bg-yellow-100 self-start">
-                    {user?.name || `TEST USER ${user?.id}`} ({user?.role})
+                  <Badge variant="outline" className="bg-yellow-100 self-start px-3 py-1.5">
+                    <span className="font-medium">
+                      {user?.name || user?.username} ({user?.role})
+                    </span>
                   </Badge>
                   
                   <Button
@@ -181,32 +222,27 @@ export function NavBar() {
                     variant="outline"
                     size="sm"
                     className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center self-start"
-                    onClick={() => window.location.href = '/workshop-reset'}
+                    onClick={navigateToWorkshopReset}
                   >
-                    Reset All Data
+                    Reset Workshop Data
                   </Button>
                 </div>
               </DialogContent>
             </Dialog>
-          </>
-        )}
 
-        {/* Navigation controls */}
-        <div className="flex items-center gap-2">
-          {/* Admin button - only shown for admin users */}
-          {user?.role === 'admin' && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="rounded-md text-white hover:bg-yellow-400"
-              onClick={() => navigate('/admin')}
-            >
-              Admin
-            </Button>
-          )}
-          
-          {/* Profile button */}
-          {user?.id && (
+            {/* Admin button - only shown for admin users */}
+            {user?.role === 'admin' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="rounded-md text-white hover:bg-yellow-400"
+                onClick={() => navigate('/admin')}
+              >
+                Admin
+              </Button>
+            )}
+            
+            {/* Profile button */}
             <Button 
               variant="ghost" 
               size="sm" 
@@ -216,18 +252,24 @@ export function NavBar() {
               <User className="h-4 w-4 mr-1" />
               <span className="hidden md:inline">Profile</span>
             </Button>
-          )}
-          
-          {/* Logout button */}
-          {user?.id && (
+            
+            {/* Logout button */}
             <LogoutButton 
               variant="outline" 
               size="sm" 
               className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
             />
-          )}
-        </div>
+          </div>
+        )}
       </div>
+      
+      {/* Profile Modal */}
+      {isProfileModalOpen && (
+        <ProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
