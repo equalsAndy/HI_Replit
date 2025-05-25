@@ -43,17 +43,17 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     // Debug log
     console.log('updateAppFromUrl - App param:', appParam, 'Location:', location);
     
-    // If app param is present in URL, use it and save to localStorage
+    // If app param is present in URL, use it and save to sessionStorage
     if (appParam === 'imaginal-agility') {
       console.log('Setting app to imaginal-agility');
       setCurrentApp('imaginal-agility');
-      localStorage.setItem('selectedApp', 'imaginal-agility');
+      sessionStorage.setItem('selectedApp', 'imaginal-agility');
       return true;
     } else if (appParam === 'allstarteams' || appParam === 'ast') {
       // Handle both 'allstarteams' and the 'ast' shorthand
       console.log('Setting app to allstarteams');
       setCurrentApp('allstarteams');
-      localStorage.setItem('selectedApp', 'allstarteams');
+      sessionStorage.setItem('selectedApp', 'ast');
       return true;
     }
     return false;
@@ -65,14 +65,16 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     // Try to get app from URL
     const appUpdated = updateAppFromUrl();
     
-    // If no app in URL, check localStorage
+    // If no app in URL, check sessionStorage
     if (!appUpdated) {
-      const savedApp = localStorage.getItem('selectedApp');
-      console.log('No app param, checking localStorage:', savedApp);
-      if (savedApp === 'imaginal-agility' || savedApp === 'allstarteams') {
-        setCurrentApp(savedApp as ApplicationType);
+      const savedApp = sessionStorage.getItem('selectedApp');
+      console.log('No app param, checking sessionStorage:', savedApp);
+      if (savedApp === 'imaginal-agility' || savedApp === 'allstarteams' || savedApp === 'ast') {
+        // Handle 'ast' shorthand for allstarteams
+        const appType = savedApp === 'ast' ? 'allstarteams' : savedApp as ApplicationType;
+        setCurrentApp(appType);
       }
-      // If nothing valid in localStorage, keep default 'allstarteams'
+      // If nothing valid in sessionStorage, keep default 'allstarteams'
     }
   }, [location]);
   
