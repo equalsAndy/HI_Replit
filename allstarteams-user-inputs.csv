@@ -1,0 +1,77 @@
+
+Category,Input Name,Database Table,Database Field,Data Type,Quantitative/Qualitative
+Authentication,Username,users,username,VARCHAR(100),Qualitative
+Authentication,Password,users,password,VARCHAR(255),Qualitative
+Authentication,Full Name,users,name,VARCHAR(255),Qualitative
+Authentication,Email,users,email,VARCHAR(255),Qualitative
+Authentication,Organization,users,organization,TEXT,Qualitative
+Authentication,Job Title,users,jobTitle,TEXT,Qualitative
+Authentication,Profile Picture,users,profilePicture,TEXT,Qualitative
+Strengths Assessment,Question 1 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 2 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 3 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 4 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 5 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 6 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 7 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 8 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 9 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 10 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 11 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 12 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 13 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 14 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 15 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 16 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 17 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 18 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 19 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 20 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 21 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Question 22 Response,user_assessments,results (JSON),INTEGER,Quantitative
+Strengths Assessment,Thinking Score,user_assessments,results.thinking,INTEGER,Quantitative
+Strengths Assessment,Feeling Score,user_assessments,results.feeling,INTEGER,Quantitative
+Strengths Assessment,Acting Score,user_assessments,results.acting,INTEGER,Quantitative
+Strengths Assessment,Planning Score,user_assessments,results.planning,INTEGER,Quantitative
+Reflections,Personal Strengths Reflection,user_assessments,results (JSON),TEXT,Qualitative
+Reflections,Application Planning,user_assessments,results (JSON),TEXT,Qualitative
+Reflections,Core Strengths Insights,user_assessments,results (JSON),TEXT,Qualitative
+Reflections,Strengths Application Strategy,user_assessments,results (JSON),TEXT,Qualitative
+Reflections,Team Contribution Reflection,user_assessments,results (JSON),TEXT,Qualitative
+Reflections,Growth Areas Identification,user_assessments,results (JSON),TEXT,Qualitative
+Flow Assessment,Flow State Question 1,user_assessments,results (JSON),INTEGER,Quantitative
+Flow Assessment,Flow State Question 2,user_assessments,results (JSON),INTEGER,Quantitative
+Flow Assessment,Flow State Question 3,user_assessments,results (JSON),INTEGER,Quantitative
+Flow Assessment,Flow State Question 4,user_assessments,results (JSON),INTEGER,Quantitative
+Flow Assessment,Flow State Question 5,user_assessments,results (JSON),INTEGER,Quantitative
+Flow Assessment,Flow Attribute 1 Rating,user_assessments,results.attributes[0].value,INTEGER,Quantitative
+Flow Assessment,Flow Attribute 2 Rating,user_assessments,results.attributes[1].value,INTEGER,Quantitative
+Flow Assessment,Flow Attribute 3 Rating,user_assessments,results.attributes[2].value,INTEGER,Quantitative
+Flow Assessment,Flow Attribute 4 Rating,user_assessments,results.attributes[3].value,INTEGER,Quantitative
+Flow Assessment,Flow Overall Score,user_assessments,results.flowScore,INTEGER,Quantitative
+Well-being Assessment,Cantril Ladder Current Rating,user_assessments,results.currentRating,INTEGER,Quantitative
+Well-being Assessment,Cantril Ladder Future Rating,user_assessments,results.futureRating,INTEGER,Quantitative
+Future Self,Future Self Description,user_assessments,results (JSON),TEXT,Qualitative
+Future Self,Goal Setting,user_assessments,results (JSON),TEXT,Qualitative
+Future Self,Action Planning,user_assessments,results (JSON),TEXT,Qualitative
+Future Self,Vision Statement,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Wellbeing Factors,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,One Year Vision,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Specific Changes,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Quarterly Progress,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Quarterly Actions,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Image Meaning,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Future Vision,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Optimized Flow,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Happy Life Achievements,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Future Statement,user_assessments,results (JSON),TEXT,Qualitative
+Visualizations,Wellbeing Level,user_assessments,results.wellbeingLevel,INTEGER,Quantitative
+Final Reflections,Key Insights,user_assessments,results (JSON),TEXT,Qualitative
+Final Reflections,Personal Statement,user_assessments,results (JSON),TEXT,Qualitative
+Final Reflections,Commitment Planning,user_assessments,results (JSON),TEXT,Qualitative
+Star Card,Custom Image Upload,user_assessments,results.imageUrl,TEXT,Qualitative
+Progress Tracking,Workshop Progress,workshop_participation,progress,TEXT,Qualitative
+Progress Tracking,Completion Status,workshop_participation,completed,BOOLEAN,Quantitative
+Progress Tracking,Start Time,workshop_participation,startedAt,TIMESTAMP,Quantitative
+Progress Tracking,Completion Time,workshop_participation,completedAt,TIMESTAMP,Quantitative
+Progress Tracking,Last Access Time,workshop_participation,lastAccessedAt,TIMESTAMP,Quantitative
