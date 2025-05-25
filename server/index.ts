@@ -86,6 +86,11 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 // Create HTTP server
 const server = createServer(app);
 
@@ -94,6 +99,10 @@ if (process.env.NODE_ENV === 'development') {
   import('./vite').then(({ setupVite }) => {
     setupVite(app, server).then(() => {
       console.log('Vite middleware setup complete');
+      
+      // The catch-all route is already handled by Vite middleware in server/vite.ts
+      // We don't need to add another one here
+      
     }).catch(err => {
       console.error('Failed to setup Vite:', err);
     });
