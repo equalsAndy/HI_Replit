@@ -1,4 +1,4 @@
-// Simple test script to test the invite creation functionality
+// Test script for invite creation functionality
 import fetch from 'node-fetch';
 
 async function testInviteCreation() {
@@ -13,8 +13,7 @@ async function testInviteCreation() {
       body: JSON.stringify({
         username: 'admin',
         password: 'password'
-      }),
-      credentials: 'include'
+      })
     });
 
     if (!loginResponse.ok) {
@@ -28,6 +27,7 @@ async function testInviteCreation() {
 
     // Store the cookies from the login response
     const cookies = loginResponse.headers.get('set-cookie');
+    console.log('Cookies:', cookies);
     
     // Now, create an invite
     console.log('\nCreating a new invite...');
@@ -41,8 +41,7 @@ async function testInviteCreation() {
         email: 'test@example.com',
         role: 'participant',
         name: 'Test User'
-      }),
-      credentials: 'include'
+      })
     });
 
     const inviteData = await inviteResponse.json();
@@ -54,8 +53,7 @@ async function testInviteCreation() {
       method: 'GET',
       headers: {
         'Cookie': cookies
-      },
-      credentials: 'include'
+      }
     });
 
     const allInvitesData = await allInvitesResponse.json();
