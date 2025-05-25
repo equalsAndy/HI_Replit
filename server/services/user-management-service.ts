@@ -194,6 +194,7 @@ class UserManagementService {
     organization?: string | null;
     jobTitle?: string | null;
     profilePicture?: string | null;
+    isTestUser?: boolean;
   }) {
     try {
       // Update the user in the database
@@ -225,6 +226,86 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to update user'
+      };
+    }
+  }
+  
+  /**
+   * Toggle a user's test status
+   */
+  async toggleTestUserStatus(id: number) {
+    try {
+      // Get the current test status
+      const currentUser = await db.select()
+        .from(users)
+        .where(eq(users.id, id));
+        
+      if (!currentUser || currentUser.length === 0) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+      
+      const isCurrentlyTestUser = currentUser[0].isTestUser;
+      
+      // Toggle the test status
+      const result = await db.update(users)
+        .set({
+          isTestUser: !isCurrentlyTestUser,
+          updatedAt: new Date()
+        })
+        .where(eq(users.id, id))
+        .returning();
+      
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'Failed to update test user status'
+        };
+      }
+      
+      const user = result[0];
+      
+      // Return the user without the password
+      const { password, ...userWithoutPassword } = user;
+      return {
+        success: true,
+        user: userWithoutPassword
+      };
+    } catch (error) {
+      console.error('Error toggling test user status:', error);
+      return {
+        success: false,
+        error: 'Failed to toggle test user status'
+      };
+    }
+  }
+  
+  /**
+   * Get all test users
+   */
+  async getAllTestUsers() {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.isTestUser, true));
+      
+      // Return the users without their passwords
+      const usersWithoutPasswords = result.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      return {
+        success: true,
+        users: usersWithoutPasswords
+      };
+    } catch (error) {
+      console.error('Error getting test users:', error);
+      return {
+        success: false,
+        error: 'Failed to get test users'
       };
     }
   }

@@ -157,7 +157,7 @@ router.post('/invites/batch', isAuthenticated, isAdmin, async (req: Request, res
 /**
  * Change a user's role (admin only)
  */
-router.put('/users/:id/role', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.put('/users/:id/role', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
@@ -183,22 +183,69 @@ router.put('/users/:id/role', isAuthenticated, isAdmin, async (req: Request, res
       });
     }
     
-    // Update the role in the database (you'll need to implement this method)
-    try {
-      // This would need to be implemented in the UserManagementService
-      // await UserManagementService.updateUserRole(id, result.data.role);
-      
-      res.json({ 
-        message: 'User role updated successfully',
-        userId: id,
-        newRole: result.data.role
-      });
-    } catch (error) {
-      console.error('Error updating user role:', error);
-      return res.status(404).json({ message: 'User not found' });
+    // Update the role in the database
+    const updateResult = await userManagementService.updateUser(id, {
+      role: result.data.role
+    });
+    
+    if (!updateResult.success) {
+      return res.status(404).json({ message: updateResult.error || 'User not found' });
     }
+    
+    res.json({ 
+      message: 'User role updated successfully',
+      user: updateResult.user
+    });
   } catch (error) {
     console.error('Error changing user role:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Toggle a user's test status (admin only)
+ */
+router.put('/users/:id/test-status', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    // Toggle the test status
+    const result = await userManagementService.toggleTestUserStatus(id);
+    
+    if (!result.success) {
+      return res.status(404).json({ message: result.error || 'User not found' });
+    }
+    
+    res.json({ 
+      message: `User is ${result.user.isTestUser ? 'now' : 'no longer'} a test user`,
+      user: result.user
+    });
+  } catch (error) {
+    console.error('Error toggling test user status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Get all test users (admin only)
+ */
+router.get('/test-users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await userManagementService.getAllTestUsers();
+    
+    if (!result.success) {
+      return res.status(500).json({ message: result.error || 'Failed to retrieve test users' });
+    }
+    
+    res.json({
+      message: 'Test users retrieved successfully',
+      users: result.users
+    });
+  } catch (error) {
+    console.error('Error getting test users:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

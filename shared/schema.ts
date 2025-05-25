@@ -13,6 +13,7 @@ export const users = pgTable('users', {
   organization: text('organization'),
   jobTitle: text('job_title'),
   profilePicture: text('profile_picture'),
+  isTestUser: boolean('is_test_user').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -27,6 +28,7 @@ export const insertUserSchema = createInsertSchema(users, {
   organization: z.string().nullable().optional(),
   jobTitle: z.string().nullable().optional(),
   profilePicture: z.string().nullable().optional(),
+  isTestUser: z.boolean().default(false),
 }).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Type definitions for TypeScript
