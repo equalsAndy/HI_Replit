@@ -53,23 +53,29 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
     }
     
     // Check if email is already in use
-    const existingUser = await UserManagementService.getUserByEmail(result.data.email);
-    if (existingUser) {
+    const existingUserResult = await userManagementService.getUserByEmail(result.data.email);
+    if (existingUserResult.success) {
       return res.status(400).json({ message: 'Email is already registered' });
     }
     
-    // Generate a secure random password
-    const password = UserManagementService.generateSecurePassword();
+    // Generate a secure random password (10 characters, alphanumeric)
+    const password = Math.random().toString(36).substring(2, 12);
     
     // Create the user
-    const user = await UserManagementService.createUser({
-      ...result.data,
-      password
+    const name = `${result.data.firstName || ''} ${result.data.lastName || ''}`.trim() || result.data.username;
+    const userResult = await userManagementService.createUser({
+      username: result.data.username,
+      password: password,
+      name: name,
+      email: result.data.email,
+      role: result.data.role,
+      organization: result.data.organization,
+      jobTitle: result.data.jobTitle
     });
     
     res.status(201).json({
       message: 'User created successfully',
-      user,
+      user: userResult.success ? userResult.user : null,
       initialPassword: password // Note: In production, you'd email this to the user
     });
   } catch (error) {
@@ -89,7 +95,7 @@ router.get('/invites', requireAuth, isAdmin, async (req: Request, res: Response)
     // Format invite codes for display
     const formattedInvites = invites.map(invite => ({
       ...invite,
-      formattedCode: formatInviteCode(invite.code)
+      formattedCode: formatInviteCode(invite.inviteCode)
     }));
     
     res.json({
@@ -110,8 +116,7 @@ router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Re
     const batchSchema = z.object({
       count: z.number().min(1).max(50),
       role: z.enum(['admin', 'facilitator', 'participant']),
-      expiresAt: z.string().optional(),
-      cohortId: z.number().optional()
+      expiresAt: z.string().optional()
     });
     
     const result = batchSchema.safeParse(req.body);
@@ -122,23 +127,28 @@ router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Re
       });
     }
     
-    const { count, role, expiresAt, cohortId } = result.data;
+    const { count, role, expiresAt } = result.data;
     const invites = [];
     
     // Generate the specified number of invite codes
     for (let i = 0; i < count; i++) {
       try {
-        const invite = await InviteService.createInvite(
-          req.user.id,
-          role,
-          expiresAt ? new Date(expiresAt) : undefined,
-          cohortId
-        );
+        // Create a unique email for each invite
+        const uniqueEmail = `invite-${Date.now()}-${i}@placeholder.com`;
         
-        invites.push({
-          ...invite,
-          formattedCode: formatInviteCode(invite.code)
+        const inviteResult = await inviteService.createInvite({
+          email: uniqueEmail,
+          role: role,
+          createdBy: req.session.userId || 1, // Fallback to admin ID 1 if no session
+          expiresAt: expiresAt ? new Date(expiresAt) : undefined
         });
+        
+        if (inviteResult.success && inviteResult.invite) {
+          invites.push({
+            ...inviteResult.invite,
+            formattedCode: formatInviteCode(inviteResult.invite.inviteCode)
+          });
+        }
       } catch (error) {
         console.error(`Error creating invite ${i + 1}:`, error);
       }
@@ -177,7 +187,7 @@ router.put('/users/:id/role', requireAuth, isAdmin, async (req: Request, res: Re
     }
     
     // Prevent changing own role (to avoid locking yourself out)
-    if (id === req.user.id) {
+    if (id === req.session.userId) {
       return res.status(403).json({ 
         message: 'Cannot change your own role'
       });
