@@ -65,7 +65,7 @@ export default function WorkshopResetTest() {
     
     try {
       // Fetch star card data
-      const starCardResponse = await fetch('/api/starcard', {
+      const starCardResponse = await fetch('/api/workshop-data/starcard', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
@@ -78,7 +78,7 @@ export default function WorkshopResetTest() {
 
     try {
       // Fetch flow attributes
-      const flowResponse = await fetch('/api/flow-attributes', {
+      const flowResponse = await fetch('/api/workshop-data/flow-attributes', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
