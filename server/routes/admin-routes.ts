@@ -1,9 +1,9 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
-import { UserManagementService } from '../services/user-management-service';
-import { InviteService } from '../services/invite-service';
-import { isAuthenticated } from '../middleware/auth';
-import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
+import { userManagementService } from '../services/user-management-service';
+import { inviteService } from '../services/invite-service';
+import { requireAuth } from '../middleware/auth';
+import { requireAdmin, requireFacilitatorOrAdmin } from '../middleware/roles';
 import { formatInviteCode } from '../utils/invite-code';
 
 const router = express.Router();
@@ -11,13 +11,17 @@ const router = express.Router();
 /**
  * Get all users (admin only)
  */
-router.get('/users', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.get('/users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
   try {
-    const users = await UserManagementService.getAllUsers();
+    const result = await userManagementService.getAllUsers();
+    
+    if (!result.success) {
+      return res.status(500).json({ message: result.error || 'Failed to retrieve users' });
+    }
     
     res.json({
       message: 'Users retrieved successfully',
-      users
+      users: result.users
     });
   } catch (error) {
     console.error('Error getting users:', error);
