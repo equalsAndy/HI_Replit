@@ -6,8 +6,9 @@ import AuthPage from '@/pages/auth-page';
 import LoginPage from '@/pages/auth/login';
 import DashboardPage from '@/pages/dashboard';
 import NotFoundPage from '@/pages/not-found';
-import HomePage from '@/pages/home';
-import WorkshopPage from '@/pages/workshop';
+import LandingPage from '@/pages/landing';
+import AllStarTeamsPage from '@/pages/allstarteams';
+import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import AdminPage from '@/pages/admin';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -18,18 +19,18 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-background">
         <Switch>
           {/* Main routes */}
-          <Route path="/" component={HomePage} />
+          <Route path="/" component={LandingPage} />
           <Route path="/dashboard" component={DashboardPage} />
           
           {/* Authentication routes */}
-          <Route path="/auth/login" component={LoginPage} />
-          <Route path="/login" component={LoginPage} /> {/* Alias for backward compatibility */}
+          <Route path="/auth" component={AuthPage} />
+          <Route path="/auth/login" component={AuthPage} />
+          <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
           <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
           
           {/* Workshop routes */}
-          <Route path="/workshop/allstarteams" component={WorkshopPage} />
-          <Route path="/workshop/imaginalagility" component={WorkshopPage} />
-          <Route path="/workshop/:id" component={WorkshopPage} />
+          <Route path="/allstarteams" component={AllStarTeamsPage} />
+          <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
           
           {/* Admin routes */}
           <Route path="/admin" component={AdminPage} />

@@ -40,7 +40,7 @@ export default function Landing() {
                   <Button 
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
-                      localStorage.removeItem('selectedApp');
+                      localStorage.setItem('selectedApp', 'ast');
                       window.location.href = '/auth?app=ast';
                     }}
                   >
@@ -86,7 +86,7 @@ export default function Landing() {
                   <Button 
                     className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
-                      localStorage.removeItem('selectedApp');
+                      localStorage.setItem('selectedApp', 'imaginal-agility');
                       window.location.href = '/auth?app=imaginal-agility';
                     }}
                   >

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -21,8 +21,26 @@ type LoginFormValues = z.infer<typeof loginFormSchema>;
 
 const AuthPage: React.FC = () => {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const [selectedApp, setSelectedApp] = useState<string | null>(null);
+
+  // Parse URL parameters to get the app selection
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const app = searchParams.get('app');
+    if (app) {
+      setSelectedApp(app);
+      // Store the app selection in localStorage for use after login
+      localStorage.setItem('selectedApp', app);
+    } else {
+      // Check if there's a previously selected app in localStorage
+      const storedApp = localStorage.getItem('selectedApp');
+      if (storedApp) {
+        setSelectedApp(storedApp);
+      }
+    }
+  }, [location]);
 
   // Initialize form
   const form = useForm<LoginFormValues>({
@@ -62,16 +80,27 @@ const AuthPage: React.FC = () => {
         return;
       }
       
-      // Redirect based on user role
+      // Show success message
       toast({
         title: 'Login successful',
         description: `Welcome back, ${result.user.name}!`,
       });
       
-      // Redirect to the appropriate dashboard based on user role
+      // Redirect based on user role and selected app
       if (result.user.role === 'admin') {
         setLocation('/admin');
+      } else if (selectedApp) {
+        // Redirect to the selected workshop
+        if (selectedApp === 'ast') {
+          setLocation('/allstarteams');
+        } else if (selectedApp === 'imaginal-agility') {
+          setLocation('/imaginal-agility');
+        } else {
+          // Default to dashboard if app is unknown
+          setLocation('/dashboard');
+        }
       } else {
+        // No app selected, go to dashboard
         setLocation('/dashboard');
       }
     } catch (error) {
@@ -86,13 +115,23 @@ const AuthPage: React.FC = () => {
     }
   };
 
+  // Get app-specific title
+  const getAppTitle = () => {
+    if (selectedApp === 'ast') {
+      return 'AllStar Teams Workshop';
+    } else if (selectedApp === 'imaginal-agility') {
+      return 'Imaginal Agility Workshop';
+    }
+    return 'Heliotrope Imaginal Workshops';
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="container mx-auto py-6">
         <div className="flex items-center space-x-2">
           <Link href="/">
             <Button variant="ghost" className="font-semibold text-lg">
-              Heliotrope Imaginal Workshops
+              {getAppTitle()}
             </Button>
           </Link>
         </div>

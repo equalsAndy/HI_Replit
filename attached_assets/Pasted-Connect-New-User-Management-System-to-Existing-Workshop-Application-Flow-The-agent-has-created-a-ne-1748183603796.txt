@@ -1,0 +1,34 @@
+Connect New User Management System to Existing Workshop Application Flow
+
+The agent has created a new user management system, but it's not properly integrated with our existing workshop application. Our real application flow is:
+
+Landing Page: client/src/pages/landing.tsx - Users choose between AllStarTeams or Imaginal Agility
+Authentication: client/src/pages/auth-page.tsx - User login/registration
+Workshop Pages:
+client/src/pages/allstarteams.tsx - AllStarTeams workshop
+client/src/pages/imaginal-agility.tsx - Imaginal Agility workshop
+Current Problem: The new user management appears to be using client/src/pages/home.tsx as an alternate landing page, bypassing our established flow.
+
+Required Integration Tasks:
+
+Route Integration: Update the routing system to ensure the new user management works with our existing pages (landing.tsx → auth-page.tsx → workshop pages)
+
+Authentication Flow: Connect the new user management authentication with our existing auth system that handles the workshop selection and user routing
+
+Database Integration: Ensure the new user management system uses the same user database/storage that our workshop pages (allstarteams.tsx, imaginal-agility.tsx) expect
+
+Session Management: Make sure user sessions created by the new management system are compatible with how our workshop pages check for authenticated users
+
+Navigation Consistency: Update any navigation or routing logic to maintain the proper flow: landing → auth → workshop selection → workshop content
+
+Key Files to Review/Update:
+
+Routing configuration
+client/src/pages/landing.tsx (our real landing page)
+client/src/pages/auth-page.tsx (our auth system)
+client/src/pages/allstarteams.tsx and client/src/pages/imaginal-agility.tsx (workshop pages)
+Any authentication middleware or context providers
+User storage/database integration
+Goal: Users should be able to seamlessly go from the new user management system through our established workshop application flow without any disconnects or authentication issues.
+
+Please audit the current setup and make the necessary connections so the new user management system properly integrates with our existing workshop application pages.
