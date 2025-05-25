@@ -86,46 +86,26 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
-// Serve static files from the client directory
-const clientDir = path.join(__dirname, '..', 'client');
-app.use(express.static(clientDir));
+// Create a simple server
+import { createServer } from 'http';
 
-// For SPA, send index.html for any non-API routes
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
-  }
-  res.sendFile(path.join(clientDir, 'index.html'), err => {
-    if (err) {
-      console.error('Error serving client:', err);
-      res.status(500).send('Error serving client application');
-    }
-  });
-});
+// Create HTTP server
+const server = createServer(app);
 
-// Create HTTP server for Vite
-const httpServer = createServer(app);
-
-// Configure server startup based on environment
-async function startServer() {
-  if (process.env.NODE_ENV === 'production') {
-    // In production, serve static files
-    httpServer.listen(5000, '0.0.0.0', () => {
-      console.log(`Server running in production mode on port 5000`);
+// In development mode, use Vite to serve the client
+if (process.env.NODE_ENV === 'development') {
+  import('./vite').then(({ setupVite }) => {
+    setupVite(app, server).then(() => {
+      console.log('Vite middleware setup complete');
+    }).catch(err => {
+      console.error('Failed to setup Vite:', err);
     });
-  } else {
-    // In development, use Vite for hot module reloading
-    try {
-      await setupVite(app, httpServer);
-      httpServer.listen(5000, '0.0.0.0', () => {
-        console.log(`Server running in development mode on port 5000`);
-      });
-    } catch (error) {
-      console.error('Error setting up Vite:', error);
-      process.exit(1);
-    }
-  }
+  }).catch(err => {
+    console.error('Failed to import Vite setup:', err);
+  });
 }
 
-// Start the server
-startServer();
+// Start the server on port 5000
+server.listen(5000, '0.0.0.0', () => {
+  console.log(`Server running on port 5000`);
+});
