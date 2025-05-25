@@ -447,18 +447,13 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       // Update the StarCard flow attributes (local state)
       setStarCardFlowAttributes(coloredAttributes);
       
-      // Convert to server format and save to server
-      const serverAttributes = rankedAttributes.map((attr, index) => ({
-        name: attr.text,
-        score: 100 - (index * 5) // Score from 100 to 85 in decrements of 5
+      // Convert to server format and save to server (only attribute names)
+      const serverAttributes = rankedAttributes.map(attr => ({
+        name: attr.text
       }));
       
-      // Random flow score between 45 and 60 (max possible score)
-      const randomFlowScore = Math.floor(Math.random() * 16) + 45;
-      
-      // Save flow attributes to server
+      // Save flow attributes to server (no scores)
       flowAttributesMutation.mutate({
-        flowScore: randomFlowScore,
         attributes: serverAttributes
       });
     }
