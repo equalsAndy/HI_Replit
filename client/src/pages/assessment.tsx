@@ -318,13 +318,26 @@ export default function Assessment() {
         });
 
         // Show the results popup with verified data
+        // Force data to be numeric for consistent handling
+        const thinking = Number(data.thinking) || 25;
+        const feeling = Number(data.feeling) || 25;
+        const acting = Number(data.acting) || 25;
+        const planning = Number(data.planning) || 25;
+        
+        console.log("Setting assessment results:", {thinking, feeling, acting, planning});
+        
         setAssessmentResults({
-          thinking: data.thinking || 25,
-          feeling: data.feeling || 25,
-          acting: data.acting || 25,
-          planning: data.planning || 25
+          thinking: thinking,
+          feeling: feeling,
+          acting: acting,
+          planning: planning
         });
-        setShowResultsPopup(true);
+        
+        // Force modal to appear after a short delay
+        setTimeout(() => {
+          setShowResultsPopup(true);
+          console.log("Assessment modal should now be visible");
+        }, 300);
       },
     onError: (error) => {
       toast({

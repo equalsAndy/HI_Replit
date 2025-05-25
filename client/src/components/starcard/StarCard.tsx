@@ -236,23 +236,33 @@ export default function StarCard({
 
   // Calculate total score for normalization
   const totalScore = useMemo(() => {
-    return (
-      (derivedQuadrantData.thinking || 0) + 
-      (derivedQuadrantData.acting || 0) + 
-      (derivedQuadrantData.feeling || 0) + 
-      (derivedQuadrantData.planning || 0)
-    );
+    // Ensure we're using number values
+    const thinking = Number(derivedQuadrantData.thinking) || 0;
+    const acting = Number(derivedQuadrantData.acting) || 0;
+    const feeling = Number(derivedQuadrantData.feeling) || 0;
+    const planning = Number(derivedQuadrantData.planning) || 0;
+    
+    const total = thinking + acting + feeling + planning;
+    console.log("StarCard total score calculation:", { thinking, acting, feeling, planning, total });
+    return total;
   }, [derivedQuadrantData]);
 
   // Convert raw scores to percentages
   const normalizeScore = (score: number): number => {
+    // Make sure score is a number
+    const numScore = Number(score) || 0;
+    
     // If the score is already a percentage (0-100), just return it directly
-    if (score >= 0 && score <= 100 && totalScore >= 99 && totalScore <= 101) {
-      return score;  
+    if (numScore >= 0 && numScore <= 100 && totalScore >= 99 && totalScore <= 101) {
+      return numScore;  
     }
+    
     // Otherwise normalize it
     if (totalScore === 0) return 0;
-    return Math.round((score / totalScore) * 100);
+    
+    const normalized = Math.round((numScore / totalScore) * 100);
+    console.log(`Normalized score: ${numScore} / ${totalScore} = ${normalized}%`);
+    return normalized;
   };
 
   return (
