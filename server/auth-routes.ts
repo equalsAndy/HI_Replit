@@ -50,18 +50,13 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid username/email or password' });
     }
     
-    // Get user roles
-    const roles = await db
-      .select({ role: schema.userRoles.role })
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.userId, user.id));
+    // User already has a role column directly in the users table now
+    console.log(`User has role: ${user.role}`);
     
-    console.log(`Found roles for user:`, roles);
-    
-    // Add role to user object
+    // Create the user object with the role directly from the user record
     const userWithRole = {
       ...user,
-      role: roles.length > 0 ? roles[0].role : UserRole.Participant
+      role: user.role || 'participant'
     };
     
     // Set cookie with user ID
