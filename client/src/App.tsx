@@ -10,6 +10,7 @@ import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import AdminPage from '@/pages/admin';
+import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ApplicationProvider } from '@/hooks/use-application';
@@ -38,6 +39,9 @@ const App: React.FC = () => {
               
               {/* Admin routes */}
               <Route path="/admin" component={AdminPage} />
+              
+              {/* Reset and test routes */}
+              <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
               
               {/* Fallback route */}
               <Route component={NotFoundPage} />
