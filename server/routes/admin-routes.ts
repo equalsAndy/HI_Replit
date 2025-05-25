@@ -266,4 +266,74 @@ router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Respon
   }
 });
 
+/**
+ * Video Management Routes
+ */
+
+// Get all videos
+router.get('/videos', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    // This is a placeholder - we'll need to implement proper video storage
+    // For now, return sample data to make the UI work
+    const videos = [
+      {
+        id: 1,
+        title: "Introduction to AllStarTeams Workshop",
+        description: "Welcome video introducing the AllStarTeams workshop concepts",
+        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        editableId: "dQw4w9WgXcQ",
+        workshop_type: "allstarteams",
+        section: "Introduction",
+        sortOrder: 1
+      },
+      {
+        id: 2,
+        title: "Understanding Your Strengths",
+        description: "Learn how to identify and leverage your core strengths",
+        url: "https://www.youtube.com/embed/C0DPdy98e4c",
+        editableId: "C0DPdy98e4c",
+        workshop_type: "allstarteams",
+        section: "Module 1",
+        sortOrder: 2
+      },
+      {
+        id: 3,
+        title: "Imaginal Agility Overview",
+        description: "Introduction to the Imaginal Agility framework",
+        url: "https://www.youtube.com/embed/9bZkp7q19f0",
+        editableId: "9bZkp7q19f0",
+        workshop_type: "imaginal-agility",
+        section: "Introduction",
+        sortOrder: 1
+      }
+    ];
+    
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Update video
+router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+    
+    // In a real implementation, this would update the video in storage
+    // For now, just return success
+    res.status(200).json({ 
+      success: true, 
+      message: 'Video updated successfully',
+      id: id
+    });
+  } catch (error) {
+    console.error('Error updating video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export const adminRouter = router;

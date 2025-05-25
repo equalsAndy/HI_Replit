@@ -8,6 +8,7 @@ import fixedInviteRoutes from './routes/fixed-invite-routes';
 import userRoutes from './routes/user-routes';
 import workshopDataRoutes from './routes/workshop-data-routes';
 import { resetRouter } from './reset-routes';
+import { adminRouter } from './routes/admin-routes';
 
 // Create a router
 export const router = express.Router();
@@ -19,6 +20,7 @@ router.use(attachUser);
 router.use('/auth', authRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/admin/invites', fixedInviteRoutes);
+router.use('/admin', adminRouter);
 router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/', workshopDataRoutes);
