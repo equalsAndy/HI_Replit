@@ -59,11 +59,11 @@ interface Video {
   description: string | null;
   url: string;
   editableId: string | null;
-  workshop_type: string;
+  workshopType: string;
   section: string;
-  sort_order: number;
-  created_at: string;
-  updated_at: string;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 // Form schema for video creation/updating
@@ -771,9 +771,9 @@ export function VideoDirectManagement() {
                   <TableRow key={video.id}>
                     <TableCell className="font-medium">{video.title}</TableCell>
                     <TableCell>
-                      {video.workshop_type === 'allstarteams' ? 'AllStarTeams' : 
-                       video.workshop_type === 'imaginal-agility' ? 'Imaginal Agility' : 
-                       video.workshop_type}
+                      {video.workshopType === 'allstarteams' ? 'AllStarTeams' : 
+                       video.workshopType === 'imaginal-agility' ? 'Imaginal Agility' : 
+                       video.workshopType}
                     </TableCell>
                     <TableCell>{video.section}</TableCell>
                     <TableCell className="font-mono">
