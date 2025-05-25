@@ -11,8 +11,8 @@ const workshopDataRouter = Router();
  */
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (primary) or cookie (fallback)
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -71,8 +71,8 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
  */
 workshopDataRouter.get('/flow-attributes', async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (primary) or cookie (fallback)
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
