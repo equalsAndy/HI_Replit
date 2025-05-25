@@ -31,11 +31,11 @@ const AuthPage: React.FC = () => {
     const app = searchParams.get('app');
     if (app) {
       setSelectedApp(app);
-      // Store the app selection in localStorage for use after login
-      localStorage.setItem('selectedApp', app);
+      // Store the app selection in sessionStorage for use after login
+      sessionStorage.setItem('selectedApp', app);
     } else {
-      // Check if there's a previously selected app in localStorage
-      const storedApp = localStorage.getItem('selectedApp');
+      // Check if there's a previously selected app in sessionStorage
+      const storedApp = sessionStorage.getItem('selectedApp');
       if (storedApp) {
         setSelectedApp(storedApp);
       }
