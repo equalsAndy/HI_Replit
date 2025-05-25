@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, UserPlus, Mail, RefreshCw, Check, X } from 'lucide-react';
+import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
 
 interface User {
   id: number;
@@ -57,7 +58,9 @@ const AdminPage: React.FC = () => {
   const fetchUsers = async () => {
     setIsLoadingUsers(true);
     try {
-      const response = await fetch('/api/admin/users');
+      const response = await fetch('/api/admin/users', {
+        credentials: 'include' // Include credentials to send session cookies
+      });
       
       // If not authenticated or not admin, redirect to login
       if (response.status === 401 || response.status === 403) {
@@ -71,14 +74,22 @@ const AdminPage: React.FC = () => {
       }
       
       const data = await response.json();
+      console.log("User data response:", data);
       
-      if (data.success) {
+      if (data.users) {
         setUsers(data.users);
+      } else if (data.message) {
+        // If we got a message but no users, it might be an error
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: data.message || 'Failed to load users',
+        });
       } else {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: data.error || 'Failed to load users',
+          description: 'Failed to load users',
         });
       }
     } catch (error) {
@@ -213,9 +224,10 @@ const AdminPage: React.FC = () => {
         </div>
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="invites">Invites</TabsTrigger>
+            <TabsTrigger value="videos">Videos</TabsTrigger>
           </TabsList>
           
           <TabsContent value="users" className="mt-6">
@@ -279,6 +291,18 @@ const AdminPage: React.FC = () => {
                     </Table>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="videos" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Video Management</CardTitle>
+                <CardDescription>Manage workshop videos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <SimpleVideoManagement />
               </CardContent>
             </Card>
           </TabsContent>
