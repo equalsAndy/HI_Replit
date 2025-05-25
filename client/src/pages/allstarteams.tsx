@@ -32,7 +32,7 @@ export default function AllStarTeams() {
   // Set app to AllStarTeams on component mount and check authentication
   useEffect(() => {
     setCurrentApp('allstarteams');
-    
+
     // Check if user is authenticated
     const checkAuth = async () => {
       try {
@@ -51,7 +51,7 @@ export default function AllStarTeams() {
         navigate('/auth?app=ast');
       }
     };
-    
+
     checkAuth();
   }, [navigate, toast]);
 
@@ -114,14 +114,33 @@ export default function AllStarTeams() {
     }
   }, [completedSteps, progressStorageKey]);
 
-  // Fetch user profile data
-  const { data: user, isLoading: userLoading } = useQuery<User>({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
-    refetchOnWindowFocus: false
+    staleTime: 30000,
   });
 
+  // Fetch star card data separately to debug the issue
+  const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useQuery({
+    queryKey: ['/api/user/star-card-data'],
+    enabled: !!user?.id,
+    staleTime: 10000,
+  });
+
+  // Debug: Log all relevant data
+  React.useEffect(() => {
+    if (user) {
+      console.log('AllStarTeams - User data:', user);
+    }
+    if (starCardData) {
+      console.log('AllStarTeams - Star card data:', starCardData);
+    }
+    if (starCardError) {
+      console.log('AllStarTeams - Star card error:', starCardError);
+    }
+  }, [user, starCardData, starCardError]);
+
   // Fetch star card data 
-  const { data: starCard, isLoading: starCardLoading } = useQuery<StarCard>({ 
+  const { data: starCard, isLoading: starCardLoading1 } = useQuery<StarCard>({ 
     queryKey: ['/api/starcard'],
     refetchOnWindowFocus: false
   });
@@ -138,7 +157,7 @@ export default function AllStarTeams() {
       if (!user?.id) {
         throw new Error("User ID is required to reset progress");
       }
-      
+
       const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
         credentials: 'include',
@@ -146,7 +165,7 @@ export default function AllStarTeams() {
           'Accept': 'application/json'
         }
       });
-      
+
       // Check if response is OK before trying to parse JSON
       if (!response.ok) {
         const contentType = response.headers.get('content-type');
@@ -160,7 +179,7 @@ export default function AllStarTeams() {
           throw new Error(`Server error: ${response.status}`);
         }
       }
-      
+
       // Try to parse response as JSON (if possible)
       try {
         return await response.json();
@@ -171,18 +190,18 @@ export default function AllStarTeams() {
     },
     onSuccess: () => {
       setCompletedSteps([]);
-      
+
       // Clear all possible localStorage keys for maximum compatibility
       localStorage.removeItem(progressStorageKey);
       localStorage.removeItem('allstarteams-navigation-progress');
       localStorage.removeItem('imaginal-agility-navigation-progress');
       localStorage.removeItem('allstar_navigation_progress');
-      
+
       // Refresh data from server
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      
+
       toast({
         title: "Progress Reset",
         description: "Your progress has been reset successfully.",
@@ -251,7 +270,7 @@ export default function AllStarTeams() {
   // Handle assessment completion
   const handleAssessmentComplete = (result: any) => {
     console.log("Assessment completed with result:", result);
-    
+
     // When assessment is completed, make sure previous steps are also marked as completed
     markStepCompleted('1-1'); // Introduction Video
     markStepCompleted('2-1'); // Intro to Strengths
@@ -358,7 +377,7 @@ export default function AllStarTeams() {
                         Array.isArray(flowAttributesData.attributes) && 
                         flowAttributesData.attributes.length > 0;
 
-    const starCardData = {
+    const starCardData1 = {
       thinking: starCard?.thinking || 0,
       acting: starCard?.acting || 0,
       feeling: starCard?.feeling || 0,
@@ -373,7 +392,7 @@ export default function AllStarTeams() {
     };
 
     // Debug log for data checking
-    console.log("Has data condition:", { hasData: !!hasStarCardData, hasFlowData, starCardData, flowAttributes });
+    console.log("Has data condition:", { hasData: !!hasStarCardData, hasFlowData, starCardData1, flowAttributes });
 
     return hasStarCardData;
   }, [starCard, flowAttributesData]);
@@ -402,7 +421,7 @@ export default function AllStarTeams() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Navigation */}
       <NavBar />
-      
+
       {/* Test User Banner */}
       {user?.id && (
         <TestUserBanner 

@@ -1,69 +1,97 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { InfoIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Link } from 'wouter';
+import { RefreshCw, RotateCcw } from 'lucide-react';
 
 interface TestUserBannerProps {
+  userId?: number;
+  userName?: string;
   className?: string;
-  showInHeader?: boolean;
 }
 
 export function TestUserBanner({ 
-  className = '', 
-  showInHeader = false 
+  userId, 
+  userName, 
+  className = '' 
 }: TestUserBannerProps) {
-  // Fetch the current user profile
-  const { data: user, isLoading } = useQuery<{
-    id: number;
-    name: string;
-    username: string;
-    email: string | null;
-    title: string | null;
-    organization: string | null;
-    role?: string;
+  // Fetch the current user profile if not provided
+  const { data: userData, isLoading } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      email: string | null;
+      title: string | null;
+      organization: string | null;
+      role?: string;
+      isTestUser?: boolean;
+    }
   }>({
     queryKey: ['/api/user/profile'],
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000, // 1 minute
+    enabled: !userId, // Only fetch if userId not provided
   });
 
-  if (isLoading || !user?.id) return null;
+  if (isLoading && !userId) return null;
 
-  // Determine if this is a test user
-  const isTestUser = user.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
-  
-  if (!isTestUser) return null;
+  const user = userData?.user;
+  const currentUserId = userId || user?.id;
+  const currentUserName = userName || user?.name || user?.username;
+  const isTestUser = user?.isTestUser || /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user?.username || '');
 
-  // Style based on role
-  const getBadgeStyle = () => {
-    switch(user.role?.toLowerCase()) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
-      case 'facilitator':
-        return 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
-      case 'participant':
-      default:
-        return 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200';
-    }
-  };
-
-  if (showInHeader) {
-    return (
-      <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
-        TEST MODE: All actions and data are for testing purposes only
-      </div>
-    );
-  }
+  if (!currentUserId || !isTestUser) return null;
 
   return (
-    <div className={`flex items-center ${className}`}>
-      <Badge 
-        variant="outline" 
-        className={`font-medium flex items-center px-3 py-1 ${getBadgeStyle()}`}
-      >
-        {user.role}: {user.name || user.username}
-      </Badge>
+    <div className={`bg-yellow-100 border-b border-yellow-200 px-4 py-2 ${className}`}>
+      <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2">
+            <Badge variant="outline" className="bg-yellow-200 text-yellow-800 border-yellow-300">
+              TEST USER
+            </Badge>
+            <span className="text-yellow-800 font-medium">
+              {currentUserName} (ID: {currentUserId})
+            </span>
+          </div>
+          <span className="text-yellow-700 text-sm">
+            You are using a test account - all actions and data are for testing purposes only
+          </span>
+        </div>
+        
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100"
+            onClick={() => {
+              // Switch between applications
+              const currentApp = sessionStorage.getItem('selectedApp') || 'ast';
+              const newApp = currentApp === 'ast' ? 'imaginal-agility' : 'ast';
+              sessionStorage.setItem('selectedApp', newApp);
+              window.location.href = newApp === 'ast' ? '/allstarteams' : '/imaginal-agility';
+            }}
+          >
+            <RotateCcw className="w-4 h-4 mr-1" />
+            Switch App
+          </Button>
+          
+          <Link href="/workshop-reset">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+            >
+              <RefreshCw className="w-4 h-4 mr-1" />
+              Reset Data
+            </Button>
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
