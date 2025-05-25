@@ -251,9 +251,23 @@ export class ResetService {
     try {
       console.log(`Resetting progress for user ${userId}`);
       
-      // Since we don't actually have a progress field in the users table,
-      // we'll just return success without updating anything
-      console.log(`Progress reset for user ${userId} (no-op since progress field doesn't exist)`);
+      // Reset the progress field in the users table if it exists
+      try {
+        const { eq } = await import('drizzle-orm');
+        
+        // Update the progress field to 0
+        // This will set the progress back to the beginning for all workshops
+        await db
+          .update(schema.users)
+          .set({ progress: 0 })
+          .where(eq(schema.users.id, userId));
+          
+        console.log(`Reset progress to 0 for user ${userId}`);
+      } catch (err) {
+        console.error(`Error resetting progress for user ${userId}:`, err);
+        // Continue even if this fails
+      }
+      
       return true;
     } catch (error) {
       console.error(`Error in resetUserProgress for user ${userId}:`, error);

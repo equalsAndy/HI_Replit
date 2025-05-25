@@ -250,7 +250,7 @@ export default function WorkshopResetTest() {
     refreshStorageData();
   };
 
-  // Reset user data via API
+  // Reset user data via API with complete client-side refresh
   const resetUserData = async () => {
     setIsResetting(true);
     setResetResult('');
@@ -287,6 +287,13 @@ export default function WorkshopResetTest() {
       // Log the user ID for debugging
       console.log("User ID for reset:", userId);
       
+      // Clear browser memory data BEFORE reset to avoid using cached data
+      // Clear localStorage
+      clearAllData();
+      
+      // Clear any data in memory 
+      setServerData({ status: "Resetting data..." });
+      
       // Call the reset API with the correct endpoint
       const resetResponse = await fetch(`/api/test-users/reset/user/${userId}`, {
         method: 'POST',
@@ -294,7 +301,9 @@ export default function WorkshopResetTest() {
           'Accept': 'application/json',
           'Content-Type': 'application/json'
         },
-        credentials: 'include'
+        credentials: 'include',
+        // Disable cache to ensure we get fresh data after reset
+        cache: 'no-store'
       });
       
       // Check if reset was successful based on status
@@ -311,20 +320,45 @@ export default function WorkshopResetTest() {
           setResetResult(`✅ RESET SUCCESSFUL!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nNote: Server returned HTML instead of JSON, but the reset operation completed successfully.`);
         }
         
+        // Force a full refresh of all data
+        // First clear any server data we might have cached in memory
+        setServerData({ status: "Data reset complete. Refreshing..." });
+        
         // Wait a moment to allow the server to fully process the reset
-        setTimeout(() => {
-          // Then refresh the server data to show changes
-          refreshServerData();
+        setTimeout(async () => {
+          // 1. Clear browser memory data again to be sure
+          clearAllData();
+          
+          // 2. Refresh the server data to show changes - force no-cache
+          await refreshServerData();
+          
+          // 3. Also explicitly clear flow assessment data separately
+          try {
+            // Force a fresh fetch of flow attributes with cache disabled
+            const flowResponse = await fetch('/api/starcard/flow-attributes', {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache'
+              },
+              credentials: 'include',
+              cache: 'no-store'
+            });
+            
+            if (flowResponse.ok) {
+              const flowData = await flowResponse.json();
+              console.log("Refreshed flow attributes data:", flowData);
+            }
+          } catch (e) {
+            console.error("Error refreshing flow data:", e);
+          }
         }, 1000);
       } else {
         // Reset failed
         const responseText = await resetResponse.text();
         setResetResult(`❌ RESET FAILED!\n\nStatus: ${resetResponse.status} ${resetResponse.statusText}\n\nError: ${responseText}`);
       }
-      
-      // Clear local storage
-      clearAllData();
-      
     } catch (error) {
       setResetResult(`Error: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
