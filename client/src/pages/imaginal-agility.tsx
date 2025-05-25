@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import TestUserBanner from '@/components/auth/TestUserBanner';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -158,6 +159,13 @@ export default function ImaginalAgilityHome() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
+      {/* Test User Banner */}
+      {user?.isTestUser && (
+        <div className="w-full">
+          <TestUserBanner showInHeader={true} user={user} />
+        </div>
+      )}
+      
       {/* Header with Reset Button */}
       <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
         <div className="flex justify-between items-center h-full">

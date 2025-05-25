@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, RefreshCw, Save, Trash } from 'lucide-react';
+import TestUserBanner from '@/components/auth/TestUserBanner';
 
 // Helper function to safely parse JSON
 const safeParseJSON = (json: string | null) => {
@@ -252,148 +253,155 @@ export default function WorkshopResetTest() {
   };
 
   return (
-    <div className="container py-8 max-w-4xl">
-      <div className="flex items-center mb-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate('/allstarteams')}
-          className="mr-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Workshop
-        </Button>
-        <h1 className="text-3xl font-bold">Workshop Reset Test Tool</h1>
+    <div className="relative">
+      {/* Test Banner at the top */}
+      <div className="w-full fixed top-0 left-0 right-0 z-50">
+        <TestUserBanner showInHeader={true} user={{isTestUser: true}} />
       </div>
       
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Browser Storage (localStorage)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-slate-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
-              <pre className="text-xs">{JSON.stringify(storageData, null, 2)}</pre>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={refreshStorageData}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="container py-8 max-w-4xl mt-12">
+        <div className="flex items-center mb-8">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/allstarteams')}
+            className="mr-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Workshop
+          </Button>
+          <h1 className="text-3xl font-bold">Workshop Reset Test Tool</h1>
+        </div>
         
-        <Card>
-          <CardHeader>
-            <CardTitle>Database Data (Server)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="bg-blue-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
-              <pre className="text-xs">{JSON.stringify(serverData, null, 2)}</pre>
-            </div>
-            <div className="flex space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={refreshServerData}
-              >
-                <RefreshCw className="h-4 w-4 mr-2" />
-                Refresh Server Data
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Test Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <h3 className="font-medium mb-2">Current User Data</h3>
-              <div className="flex flex-wrap gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={showDataBreakdown}
-                  className="bg-blue-50"
-                >
-                  <Save className="h-4 w-4 mr-2" />
-                  Show My Data
-                </Button>
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>Browser Storage (localStorage)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-slate-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
+                <pre className="text-xs">{JSON.stringify(storageData, null, 2)}</pre>
+              </div>
+              <div className="flex space-x-2">
                 <Button 
                   variant="outline" 
                   size="sm"
                   onClick={refreshStorageData}
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh Data
+                  Refresh
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Database Data (Server)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="bg-blue-50 p-4 rounded mb-4 overflow-auto max-h-[300px]">
+                <pre className="text-xs">{JSON.stringify(serverData, null, 2)}</pre>
+              </div>
+              <div className="flex space-x-2">
                 <Button 
                   variant="outline" 
                   size="sm"
-                  onClick={clearAllData}
+                  onClick={refreshServerData}
                 >
-                  <Trash className="h-4 w-4 mr-2" />
-                  Clear All
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Refresh Server Data
                 </Button>
               </div>
-            </div>
-            
-            <div className="pt-2 border-t">
-              <h3 className="font-medium mb-2">Server Reset</h3>
-              <Button 
-                onClick={resetUserData}
-                disabled={isResetting}
-                className="bg-red-500 hover:bg-red-600 text-white mb-4"
-              >
-                {isResetting ? (
-                  <>
-                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Resetting...
-                  </>
-                ) : (
-                  <>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Test Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <h3 className="font-medium mb-2">Current User Data</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={showDataBreakdown}
+                    className="bg-blue-50"
+                  >
+                    <Save className="h-4 w-4 mr-2" />
+                    Show My Data
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={refreshStorageData}
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh Data
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={clearAllData}
+                  >
                     <Trash className="h-4 w-4 mr-2" />
-                    Reset User Data
-                  </>
-                )}
-              </Button>
-              
-              {resetResult && (
-                <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
-                  <pre className="text-xs whitespace-pre-wrap">{resetResult}</pre>
+                    Clear All
+                  </Button>
                 </div>
-              )}
-            </div>
+              </div>
+              
+              <div className="pt-2 border-t">
+                <h3 className="font-medium mb-2">Server Reset</h3>
+                <Button 
+                  onClick={resetUserData}
+                  disabled={isResetting}
+                  className="bg-red-500 hover:bg-red-600 text-white mb-4"
+                >
+                  {isResetting ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                      Resetting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash className="h-4 w-4 mr-2" />
+                      Reset User Data
+                    </>
+                  )}
+                </Button>
+                
+                {resetResult && (
+                  <div className="bg-slate-50 p-4 rounded overflow-auto max-h-[150px]">
+                    <pre className="text-xs whitespace-pre-wrap">{resetResult}</pre>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Card className="mt-6">
+          <CardHeader>
+            <CardTitle>Instructions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal pl-6 space-y-2">
+              <li>First, make sure you're logged in to test the reset functionality</li>
+              <li>Click "Show My Data" to see a detailed breakdown of your actual workshop progress and data</li>
+              <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
+              <li>Check the response to see if there are any errors</li>
+              <li>The reset is working correctly if:
+                <ul className="list-disc pl-6 mt-1">
+                  <li>Your localStorage data is cleared</li>
+                  <li>The server response shows success</li>
+                  <li>When you go back to the workshop, your progress is reset</li>
+                </ul>
+              </li>
+            </ol>
           </CardContent>
         </Card>
       </div>
-      
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>Instructions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ol className="list-decimal pl-6 space-y-2">
-            <li>First, make sure you're logged in to test the reset functionality</li>
-            <li>Click "Show My Data" to see a detailed breakdown of your actual workshop progress and data</li>
-            <li>Click "Reset User Data" to test the full reset process (both localStorage and server)</li>
-            <li>Check the response to see if there are any errors</li>
-            <li>The reset is working correctly if:
-              <ul className="list-disc pl-6 mt-1">
-                <li>Your localStorage data is cleared</li>
-                <li>The server response shows success</li>
-                <li>When you go back to the workshop, your progress is reset</li>
-              </ul>
-            </li>
-          </ol>
-        </CardContent>
-      </Card>
     </div>
   );
 }
