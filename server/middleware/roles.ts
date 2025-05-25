@@ -1,56 +1,55 @@
 import { Request, Response, NextFunction } from 'express';
-import { UserRole } from '../../shared/types';
 
 /**
- * Middleware to check if user has required role(s)
- * @param allowedRoles Array of roles that are allowed to access the route
- */
-export const hasRole = (allowedRoles: string[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    // Check if user exists in request (set by isAuthenticated middleware)
-    if (!req.user) {
-      return res.status(401).json({ message: 'Not authenticated' });
-    }
-    
-    // Check if user has one of the allowed roles
-    if (!allowedRoles.includes(req.user.role)) {
-      return res.status(403).json({ 
-        message: 'Access denied: Insufficient permissions',
-        requiredRoles: allowedRoles,
-        userRole: req.user.role
-      });
-    }
-    
-    next();
-  };
-};
-
-/**
- * Middleware to check if user is an admin
+ * Middleware to check if a user has admin role
  */
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Not authenticated' });
+  // First ensure user is authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
-  if (req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Admin access required' });
+  // Check if user has admin role
+  if (req.session.userRole === 'admin') {
+    return next();
   }
   
-  next();
+  // If not admin, return 403 Forbidden
+  return res.status(403).json({ error: 'Admin privileges required' });
 };
 
 /**
- * Middleware to check if user is a facilitator or admin
+ * Middleware to check if user has facilitator or admin role
  */
 export const isFacilitatorOrAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.user) {
-    return res.status(401).json({ message: 'Not authenticated' });
+  // First ensure user is authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
   }
   
-  if (req.user.role !== 'facilitator' && req.user.role !== 'admin') {
-    return res.status(403).json({ message: 'Facilitator or admin access required' });
+  // Check if user has admin or facilitator role
+  if (req.session.userRole === 'admin' || req.session.userRole === 'facilitator') {
+    return next();
   }
   
-  next();
+  // If not admin or facilitator, return 403 Forbidden
+  return res.status(403).json({ error: 'Insufficient privileges' });
+};
+
+/**
+ * Middleware to check if a user has facilitator role
+ */
+export const isFacilitator = (req: Request, res: Response, next: NextFunction) => {
+  // First ensure user is authenticated
+  if (!req.session || !req.session.userId) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+  
+  // Check if user has facilitator role
+  if (req.session.userRole === 'facilitator') {
+    return next();
+  }
+  
+  // If not facilitator, return 403 Forbidden
+  return res.status(403).json({ error: 'Facilitator privileges required' });
 };

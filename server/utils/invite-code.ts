@@ -1,59 +1,40 @@
 /**
- * Utility functions for generating and validating invite codes
- * Invite codes are 12-character alphanumeric strings with 
- * characters from ABCDEFGHJKMNPQRSTUVWXYZ23456789
- * (excluding confusing characters like I, O, 0, 1, etc.)
+ * Utility functions for generating secure invite codes
  */
 
-// The character set for invite codes
-const INVITE_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+// Character set for generating invite codes
+// Excludes potentially confusing characters (0, 1, I, O, L)
+const INVITE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const INVITE_CODE_LENGTH = 12;
 
 /**
- * Generate a secure random invite code
- * @returns A 12-character invite code
+ * Generate a random secure invite code of specified length
+ * @returns A random invite code string
  */
-export function generateInviteCodeNode(): string {
-  let inviteCode = '';
-  const crypto = require('crypto');
-  const bytes = crypto.randomBytes(12);
-  
-  for (let i = 0; i < 12; i++) {
-    const index = bytes[i] % INVITE_CODE_CHARS.length;
-    inviteCode += INVITE_CODE_CHARS.charAt(index);
+export function generateInviteCode(): string {
+  let code = '';
+  const charLength = INVITE_CHARS.length;
+
+  for (let i = 0; i < INVITE_CODE_LENGTH; i++) {
+    // Generate a secure random number
+    const randomIndex = Math.floor(Math.random() * charLength);
+    code += INVITE_CHARS.charAt(randomIndex);
   }
-  
-  return inviteCode;
+
+  return code;
 }
 
 /**
- * Validate if a string follows the invite code format
+ * Validate if a string is a valid invite code format
  * @param code The code to validate
- * @returns True if the code matches the format, false otherwise
+ * @returns True if the code is valid format, false otherwise
  */
 export function isValidInviteCodeFormat(code: string): boolean {
-  if (!code || typeof code !== 'string') {
+  if (!code || code.length !== INVITE_CODE_LENGTH) {
     return false;
   }
-  
-  // Check length
-  if (code.length !== 12) {
-    return false;
-  }
-  
-  // Check if all characters are from the valid set
-  const regex = new RegExp(`^[${INVITE_CODE_CHARS}]+$`);
-  return regex.test(code);
-}
 
-/**
- * Format an invite code for display (adds hyphens)
- * @param code The code to format
- * @returns Formatted code, e.g. ABCD-EFGH-IJKL
- */
-export function formatInviteCode(code: string): string {
-  if (!isValidInviteCodeFormat(code)) {
-    return code;
-  }
-  
-  return `${code.slice(0, 4)}-${code.slice(4, 8)}-${code.slice(8, 12)}`;
+  // Check if the code only contains characters from our allowed set
+  const regex = new RegExp(`^[${INVITE_CHARS}]+$`);
+  return regex.test(code);
 }
