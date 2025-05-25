@@ -52,102 +52,116 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     
     console.log(`=== RESET: Starting data reset for user ${userId} ===`);
     
-    // Step 1: Delete star card
+    // Step 1: Delete star card assessment
     try {
-      // Check if star card exists
-      const [starCard] = await db
+      // Check if star card exists in userAssessments
+      const starCards = await db
         .select()
-        .from(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
+        .from(schema.userAssessments)
+        .where(
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'starCard')
+          )
+        );
       
-      if (starCard) {
-        console.log(`Found star card for user ${userId}, deleting it`);
+      if (starCards && starCards.length > 0) {
+        console.log(`Found ${starCards.length} star card assessments for user ${userId}, deleting them`);
         
-        // Delete the star card
+        // Delete the star card assessments
         await db
-          .delete(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
+          .delete(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.userId, userId) && 
+            eq(schema.userAssessments.assessmentType, 'starCard')
+          );
         
         // Verify deletion
-        const [verifyCard] = await db
+        const verifyCards = await db
           .select()
-          .from(schema.starCards)
-          .where(eq(schema.starCards.userId, userId));
+          .from(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.userId, userId) && 
+            eq(schema.userAssessments.assessmentType, 'starCard')
+          );
         
-        if (!verifyCard) {
+        if (!verifyCards || verifyCards.length === 0) {
           deletedData.starCard = true;
-          console.log(`Successfully deleted star card for user ${userId}`);
+          console.log(`Successfully deleted star card assessments for user ${userId}`);
         } else {
-          console.error(`Failed to delete star card for user ${userId}`);
+          console.error(`Failed to delete star card assessments for user ${userId}`);
         }
       } else {
-        console.log(`No star card found for user ${userId}`);
+        console.log(`No star card assessments found for user ${userId}`);
         deletedData.starCard = true; // Count as success if nothing to delete
       }
     } catch (error) {
-      console.error(`Error deleting star card for user ${userId}:`, error);
+      console.error(`Error deleting star card assessments for user ${userId}:`, error);
     }
     
-    // Step 2: Delete flow attributes
+    // Step 2: Delete flow attributes assessment
     try {
-      // Check if flow attributes exist
-      const [flowAttrs] = await db
+      // Check if flow attributes exist in userAssessments
+      const flowAttrs = await db
         .select()
-        .from(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
+        .from(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId) && 
+          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        );
       
-      if (flowAttrs) {
-        console.log(`Found flow attributes for user ${userId}, deleting them`);
+      if (flowAttrs && flowAttrs.length > 0) {
+        console.log(`Found ${flowAttrs.length} flow attribute assessments for user ${userId}, deleting them`);
         
-        // Delete the flow attributes
+        // Delete the flow attributes assessments
         await db
-          .delete(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
+          .delete(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.userId, userId) && 
+            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          );
         
         // Verify deletion
-        const [verifyAttrs] = await db
+        const verifyAttrs = await db
           .select()
-          .from(schema.flowAttributes)
-          .where(eq(schema.flowAttributes.userId, userId));
+          .from(schema.userAssessments)
+          .where(
+            eq(schema.userAssessments.userId, userId) && 
+            eq(schema.userAssessments.assessmentType, 'flowAttributes')
+          );
         
-        if (!verifyAttrs) {
+        if (!verifyAttrs || verifyAttrs.length === 0) {
           deletedData.flowAttributes = true;
-          console.log(`Successfully deleted flow attributes for user ${userId}`);
+          console.log(`Successfully deleted flow attribute assessments for user ${userId}`);
         } else {
-          console.error(`Failed to delete flow attributes for user ${userId}`);
+          console.error(`Failed to delete flow attribute assessments for user ${userId}`);
         }
       } else {
-        console.log(`No flow attributes found for user ${userId}`);
+        console.log(`No flow attribute assessments found for user ${userId}`);
         deletedData.flowAttributes = true; // Count as success if nothing to delete
       }
     } catch (error) {
-      console.error(`Error deleting flow attributes for user ${userId}:`, error);
+      console.error(`Error deleting flow attribute assessments for user ${userId}:`, error);
     }
     
     // Step 3: Reset user progress
     try {
-      // Only try to update the progress if the users table has a progress field
-      // This ensures compatibility with different schema versions
+      // Update the user's timestamp to mark when data was reset
+      await db
+        .update(schema.users)
+        .set({ updatedAt: new Date() })
+        .where(eq(schema.users.id, userId));
+      
+      deletedData.userProgress = true;
+      console.log(`Updated timestamp for user ${userId} to mark data reset`);
+      
+      // If workshop participation data exists, delete that too
       try {
-        const result = await db
-          .update(schema.users)
-          .set({ progress: 0 })
-          .where(eq(schema.users.id, userId));
-        
-        deletedData.userProgress = true;
-        console.log(`Reset progress for user ${userId}`);
-      } catch (progressError) {
-        // If the error is related to the schema (missing column), log it but don't fail
-        console.log(`Progress reset failed, might be missing from schema: ${progressError.message}`);
-        
-        // Try another approach - update the user's updatedAt timestamp
-        await db
-          .update(schema.users)
-          .set({ updatedAt: new Date() })
-          .where(eq(schema.users.id, userId));
-        
-        deletedData.userProgress = true;
-        console.log(`Updated timestamp for user ${userId} instead`);
+        // Try to reset workshop participation data
+        await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+        console.log(`Deleted workshop participation for user ${userId}`);
+      } catch (err) {
+        console.log(`No workshop participation found for user ${userId} or table does not exist`);
       }
     } catch (error) {
       console.error(`Error resetting progress for user ${userId}:`, error);
@@ -211,27 +225,36 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
       });
     }
     
-    // Check if star card exists
-    const [starCard] = await db
+    // Check if star card exists in userAssessments
+    const starCards = await db
       .select()
-      .from(schema.starCards)
-      .where(eq(schema.starCards.userId, userId));
+      .from(schema.userAssessments)
+      .where(
+        eq(schema.userAssessments.userId, userId) && 
+        eq(schema.userAssessments.assessmentType, 'starCard')
+      );
     
     let success = false;
     
-    if (starCard) {
-      // Delete star card
+    if (starCards && starCards.length > 0) {
+      // Delete star card assessments
       await db
-        .delete(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
+        .delete(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId) && 
+          eq(schema.userAssessments.assessmentType, 'starCard')
+        );
       
       // Verify deletion
-      const [verifyCard] = await db
+      const verifyCards = await db
         .select()
-        .from(schema.starCards)
-        .where(eq(schema.starCards.userId, userId));
+        .from(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId) && 
+          eq(schema.userAssessments.assessmentType, 'starCard')
+        );
       
-      success = !verifyCard;
+      success = !verifyCards || verifyCards.length === 0;
     } else {
       // Nothing to delete
       success = true;
@@ -290,27 +313,36 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
       });
     }
     
-    // Check if flow attributes exist
-    const [flowAttrs] = await db
+    // Check if flow attributes exist in userAssessments
+    const flowAttrs = await db
       .select()
-      .from(schema.flowAttributes)
-      .where(eq(schema.flowAttributes.userId, userId));
+      .from(schema.userAssessments)
+      .where(
+        eq(schema.userAssessments.userId, userId) && 
+        eq(schema.userAssessments.assessmentType, 'flowAttributes')
+      );
     
     let success = false;
     
-    if (flowAttrs) {
-      // Delete flow attributes
+    if (flowAttrs && flowAttrs.length > 0) {
+      // Delete flow attributes assessments
       await db
-        .delete(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
+        .delete(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId) && 
+          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        );
       
       // Verify deletion
-      const [verifyAttrs] = await db
+      const verifyAttrs = await db
         .select()
-        .from(schema.flowAttributes)
-        .where(eq(schema.flowAttributes.userId, userId));
+        .from(schema.userAssessments)
+        .where(
+          eq(schema.userAssessments.userId, userId) && 
+          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        );
       
-      success = !verifyAttrs;
+      success = !verifyAttrs || verifyAttrs.length === 0;
     } else {
       // Nothing to delete
       success = true;
