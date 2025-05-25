@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
 interface ResetUserDataButtonProps {
   userId: number;
@@ -28,6 +29,12 @@ export function ResetUserDataButton({ userId, onSuccess }: ResetUserDataButtonPr
       const result = await response.json();
 
       if (result.success) {
+        // Invalidate all relevant queries to refresh data after reset
+        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+        
         toast({
           title: 'Success',
           description: `User data reset successfully!`,
