@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { apiRequest } from '@/lib/queryClient';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 
 // Form schema for profile setup
 const profileSetupSchema = z.object({
@@ -38,7 +38,7 @@ interface ProfileSetupProps {
 export const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) => {
   const [error, setError] = useState<string | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
-  const navigate = useNavigate();
+  const [, setLocation] = useLocation();
 
   // Form initialization with pre-filled name if available
   const form = useForm<ProfileSetupValues>({
@@ -118,7 +118,7 @@ export const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComple
       if (onComplete) {
         onComplete();
       } else {
-        navigate('/');
+        setLocation('/');
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An unknown error occurred');

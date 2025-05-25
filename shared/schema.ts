@@ -1,170 +1,90 @@
-import { InferSelectModel, relations } from 'drizzle-orm';
-import { boolean, date, integer, pgTable, primaryKey, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, text, boolean } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
-// ==================== USER RELATED SCHEMAS ====================
-
+// Users table schema
 export const users = pgTable('users', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  username: varchar('username', { length: 50 }).notNull().unique(),
+  id: serial('id').primaryKey(),
+  username: varchar('username', { length: 100 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
-  name: varchar('name', { length: 100 }).notNull(),
-  email: varchar('email', { length: 100 }).notNull().unique(),
-  role: varchar('role', { length: 20 }).notNull().$type<'admin' | 'facilitator' | 'participant'>(),
-  organization: varchar('organization', { length: 100 }),
-  jobTitle: varchar('job_title', { length: 100 }),
-  profilePicture: varchar('profile_picture', { length: 255 }),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+  name: varchar('name', { length: 255 }).notNull(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  role: varchar('role', { length: 20 }).notNull().default('participant'),
+  organization: text('organization'),
+  jobTitle: text('job_title'),
+  profilePicture: text('profile_picture'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-export const usersRelations = relations(users, ({ many }) => ({
-  userRoles: many(userRoles)
-}));
+// Create insert schema for users
+export const insertUserSchema = createInsertSchema(users, {
+  username: z.string().min(3).max(100),
+  password: z.string().min(8),
+  name: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(['admin', 'facilitator', 'participant']),
+  organization: z.string().nullable().optional(),
+  jobTitle: z.string().nullable().optional(),
+  profilePicture: z.string().nullable().optional(),
+}).omit({ id: true, createdAt: true, updatedAt: true });
 
-// Schema for invites
+// Type definitions for TypeScript
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
+
+// Invite codes table schema
 export const invites = pgTable('invites', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
+  id: serial('id').primaryKey(),
   inviteCode: varchar('invite_code', { length: 12 }).notNull().unique(),
-  name: varchar('name', { length: 100 }),
-  email: varchar('email', { length: 100 }).notNull(),
-  role: varchar('role', { length: 20 }).notNull().$type<'admin' | 'facilitator' | 'participant'>(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  createdBy: integer('created_by').notNull(), // Reference will be added later
+  email: varchar('email', { length: 255 }).notNull(),
+  role: varchar('role', { length: 20 }).notNull().default('participant'),
+  name: text('name'),
+  createdBy: serial('created_by').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at'),
   usedAt: timestamp('used_at'),
-  usedBy: integer('used_by')
+  usedBy: serial('used_by'),
 });
 
-// ==================== COHORT RELATED SCHEMAS ====================
+// Create insert schema for invites
+export const insertInviteSchema = createInsertSchema(invites, {
+  inviteCode: z.string().length(12),
+  email: z.string().email(),
+  role: z.enum(['admin', 'facilitator', 'participant']),
+  name: z.string().nullable().optional(),
+  createdBy: z.number(),
+  expiresAt: z.date().nullable().optional(),
+}).omit({ id: true, createdAt: true, usedAt: true, usedBy: true });
 
-export const cohorts = pgTable('cohorts', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  name: varchar('name', { length: 100 }).notNull(),
-  description: text('description'),
-  startDate: date('start_date'),
-  endDate: date('end_date'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+// Type definitions for TypeScript
+export type Invite = typeof invites.$inferSelect;
+export type InsertInvite = z.infer<typeof insertInviteSchema>;
 
-export const cohortsRelations = relations(cohorts, ({ many }) => ({
-  cohortParticipants: many(cohortParticipants),
-  cohortFacilitators: many(cohortFacilitators)
-}));
-
-export const cohortParticipants = pgTable('cohort_participants', {
-  cohortId: integer('cohort_id').notNull(),
-  userId: integer('user_id').notNull(),
-  addedAt: timestamp('added_at').notNull().defaultNow(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.cohortId, table.userId] })
-  };
-});
-
-export const cohortParticipantsRelations = relations(cohortParticipants, ({ one }) => ({
-  cohort: one(cohorts, {
-    fields: [cohortParticipants.cohortId],
-    references: [cohorts.id]
-  }),
-  user: one(users, {
-    fields: [cohortParticipants.userId],
-    references: [users.id]
-  })
-}));
-
-export const cohortFacilitators = pgTable('cohort_facilitators', {
-  cohortId: integer('cohort_id').notNull(),
-  userId: integer('user_id').notNull(),
-  addedAt: timestamp('added_at').notNull().defaultNow(),
-}, (table) => {
-  return {
-    pk: primaryKey({ columns: [table.cohortId, table.userId] })
-  };
-});
-
-export const cohortFacilitatorsRelations = relations(cohortFacilitators, ({ one }) => ({
-  cohort: one(cohorts, {
-    fields: [cohortFacilitators.cohortId],
-    references: [cohorts.id]
-  }),
-  user: one(users, {
-    fields: [cohortFacilitators.userId],
-    references: [users.id]
-  })
-}));
-
-export const userRoles = pgTable('user_roles', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  userId: integer('user_id').notNull(),
-  role: varchar('role', { length: 20 }).notNull().$type<'admin' | 'facilitator' | 'participant'>(),
-  createdAt: timestamp('created_at').notNull().defaultNow()
-});
-
-export const userRolesRelations = relations(userRoles, ({ one }) => ({
-  user: one(users, {
-    fields: [userRoles.userId],
-    references: [users.id]
-  })
-}));
-
-// ==================== VIDEO RELATED SCHEMAS ====================
-
-export const videos = pgTable('videos', {
-  id: integer('id').primaryKey({ autoIncrement: true }),
-  title: varchar('title', { length: 100 }).notNull(),
-  description: text('description'),
-  url: varchar('url', { length: 255 }).notNull(),
-  workshopType: varchar('workshop_type', { length: 50 }).notNull(),
-  section: varchar('section', { length: 50 }).notNull(),
-  sortOrder: integer('sort_order').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-// ==================== SESSION RELATED SCHEMAS ====================
-
+// Session store for Express sessions
 export const sessions = pgTable('sessions', {
   sid: varchar('sid', { length: 255 }).primaryKey(),
   sess: text('sess').notNull(),
-  expire: timestamp('expire', { withTimezone: true }).notNull(),
+  expire: timestamp('expire').notNull(),
 });
 
-// ==================== TYPES AND SCHEMAS ====================
+// Workshop participation table for tracking user progress
+export const workshopParticipation = pgTable('workshop_participation', {
+  id: serial('id').primaryKey(),
+  userId: serial('user_id').notNull(),
+  workshopId: serial('workshop_id').notNull(),
+  progress: text('progress'),
+  completed: boolean('completed').default(false),
+  startedAt: timestamp('started_at').defaultNow().notNull(),
+  completedAt: timestamp('completed_at'),
+  lastAccessedAt: timestamp('last_accessed_at').defaultNow().notNull(),
+});
 
-// User types
-export type User = InferSelectModel<typeof users>;
-export type UserRole = InferSelectModel<typeof userRoles>;
-
-// Invite types
-export type Invite = InferSelectModel<typeof invites>;
-
-// Cohort types
-export type Cohort = InferSelectModel<typeof cohorts>;
-
-// Video types
-export type Video = InferSelectModel<typeof videos>;
-
-// Insert schemas
-export const insertUserSchema = createInsertSchema(users, {
-  role: z.enum(['admin', 'facilitator', 'participant']),
-  email: z.string().email(),
-  password: z.string().min(8)
-}).omit({ id: true, createdAt: true, updatedAt: true });
-
-export const insertInviteSchema = createInsertSchema(invites, {
-  role: z.enum(['admin', 'facilitator', 'participant']),
-  email: z.string().email(),
-  inviteCode: z.string().length(12)
-}).omit({ id: true, createdAt: true, usedAt: true, usedBy: true });
-
-export const insertCohortSchema = createInsertSchema(cohorts).omit({ id: true, createdAt: true, updatedAt: true });
-
-export const insertVideoSchema = createInsertSchema(videos).omit({ id: true, createdAt: true, updatedAt: true });
-
-export type NewUser = z.infer<typeof insertUserSchema>;
-export type NewInvite = z.infer<typeof insertInviteSchema>;
-export type NewCohort = z.infer<typeof insertCohortSchema>;
-export type NewVideo = z.infer<typeof insertVideoSchema>;
+// User assessments table for tracking assessment results
+export const userAssessments = pgTable('user_assessments', {
+  id: serial('id').primaryKey(),
+  userId: serial('user_id').notNull(),
+  assessmentType: varchar('assessment_type', { length: 50 }).notNull(),
+  results: text('results').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});

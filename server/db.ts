@@ -1,24 +1,38 @@
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-import * as schema from '@shared/schema';
+import * as schema from '../shared/schema';
 
-// Database connection string from environment variable
-const connectionString = process.env.DATABASE_URL!;
+// Database connection string
+const connectionString = process.env.DATABASE_URL || '';
 
-// Create connection
-const client = postgres(connectionString);
+// Check if the connection string is available
+if (!connectionString) {
+  console.error('DATABASE_URL environment variable is not set');
+  process.exit(1);
+}
 
-// Create drizzle instance
+// Create a postgres connection
+const client = postgres(connectionString, {
+  max: 10, // Maximum number of connections in the pool
+  idle_timeout: 20, // How long a connection can stay idle before being closed
+  connect_timeout: 10, // How long to wait for a connection
+});
+
+// Initialize the database with drizzle
 export const db = drizzle(client, { schema });
 
-// Simple function to test database connection
+// Function to test database connection
 export async function connectToDatabase() {
   try {
-    // postgres.js automatically connects when needed
-    console.log('Database connection initialized');
+    console.log('Testing database connection...');
+    
+    // Simple query to test the connection
+    const result = await client`SELECT NOW()`;
+    
+    console.log('Database connection successful:', result[0].now);
     return true;
   } catch (error) {
-    console.error('Error initializing database connection:', error);
-    return false;
+    console.error('Failed to connect to the database:', error);
+    throw error;
   }
 }

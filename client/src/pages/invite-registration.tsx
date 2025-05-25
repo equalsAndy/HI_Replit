@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useRoute } from 'wouter';
 import { InviteVerification } from '@/components/auth/InviteVerification';
 import { ProfileSetup } from '@/components/auth/ProfileSetup';
-import { Steps, Step } from '@/components/ui/steps';
 
 // Steps for the registration process
 const STEPS = [
@@ -64,17 +63,62 @@ export default function InviteRegistrationPage() {
         </p>
         
         {/* Registration steps indicator */}
-        <Steps currentStep={currentStep} className="mb-8">
-          {STEPS.map((step, index) => (
-            <Step 
-              key={step.id}
-              title={step.title}
-              description={step.description}
-              active={index === currentStep}
-              completed={index < currentStep}
-            />
-          ))}
-        </Steps>
+        <div className="mb-8">
+          <div className="flex flex-col space-y-2">
+            {STEPS.map((step, index) => (
+              <div key={step.id} className="flex items-start">
+                <div className="flex-shrink-0 mr-3">
+                  <div
+                    className={`flex items-center justify-center w-8 h-8 rounded-full border-2 ${
+                      index === currentStep || index < currentStep 
+                        ? "border-primary bg-primary text-white" 
+                        : "border-gray-300 bg-white text-gray-500"
+                    }`}
+                  >
+                    {index < currentStep ? (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    ) : (
+                      <span>{index === currentStep ? "•" : ""}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex flex-col">
+                  <span
+                    className={`text-sm font-medium ${
+                      index === currentStep || index < currentStep 
+                        ? "text-primary" 
+                        : "text-gray-900"
+                    }`}
+                  >
+                    {step.title}
+                  </span>
+                  {step.description && (
+                    <span
+                      className={`text-xs ${
+                        index !== currentStep 
+                          ? "text-gray-500" 
+                          : "text-primary/80"
+                      }`}
+                    >
+                      {step.description}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
         
         {/* Step content */}
         <div className="mt-6">
