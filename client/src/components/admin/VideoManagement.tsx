@@ -60,7 +60,7 @@ interface Video {
   title: string;
   description: string | null;
   url: string;
-  editableId: string;
+  editableId: string | null;
   workshopType: string;
   section: string;
   sortOrder: number;
@@ -123,8 +123,10 @@ export function VideoManagement() {
 
   // Create video mutation
   const createVideoMutation = useMutation({
-    mutationFn: (newVideo: VideoFormValues) => 
-      apiRequest('POST', '/api/admin/videos', newVideo),
+    mutationFn: async (newVideo: VideoFormValues) => {
+      const response = await apiRequest('POST', '/api/admin/videos', newVideo);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -145,8 +147,10 @@ export function VideoManagement() {
 
   // Update video mutation
   const updateVideoMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<VideoFormValues> }) =>
-      apiRequest('PUT', `/api/admin/videos/${id}`, data) as Promise<any>,
+    mutationFn: async ({ id, data }: { id: number; data: Partial<VideoFormValues> }) => {
+      const response = await apiRequest('PUT', `/api/admin/videos/${id}`, data);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -168,8 +172,10 @@ export function VideoManagement() {
 
   // Delete video mutation
   const deleteVideoMutation = useMutation({
-    mutationFn: (id: number) =>
-      apiRequest(`/api/admin/videos/${id}`, { method: 'DELETE' }) as Promise<any>,
+    mutationFn: async (id: number) => {
+      const response = await apiRequest('DELETE', `/api/admin/videos/${id}`);
+      return response.json();
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -299,7 +305,7 @@ export function VideoManagement() {
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
   allowFullScreen>
 </iframe>`;
-
+    
     navigator.clipboard.writeText(iframeCode).then(
       () => {
         toast({
@@ -502,34 +508,18 @@ export function VideoManagement() {
           <Form {...editForm}>
             <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
               <FormField
-                  control={editForm.control}
-                  name="editableId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Video ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Unique video ID (e.g. lcjao1ob55A)" {...field} />
-                      </FormControl>
-                      <FormDescription>
-                        This ID will be used to identify the video in the workshop
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={editForm.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Video title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                control={editForm.control}
+                name="title"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Title</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Video title" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={editForm.control}
                 name="description"
@@ -544,32 +534,48 @@ export function VideoManagement() {
                 )}
               />
               <FormField
-                  control={editForm.control}
-                  name="url"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>URL</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="Video URL (YouTube embed or similar)" 
-                          {...field}
-                          onChange={(e) => {
-                            field.onChange(e);
-                            // Auto-extract video ID when URL changes
-                            const extractedId = extractYouTubeId(e.target.value);
-                            if (extractedId) {
-                              editForm.setValue('editableId', extractedId);
-                            }
-                          }}
-                        />
-                      </FormControl>
-                      <FormDescription>
-                        Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                control={editForm.control}
+                name="url"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>URL</FormLabel>
+                    <FormControl>
+                      <Input 
+                        placeholder="Video URL (YouTube embed or similar)" 
+                        {...field}
+                        onChange={(e) => {
+                          field.onChange(e);
+                          // Auto-extract video ID when URL changes
+                          const extractedId = extractYouTubeId(e.target.value);
+                          if (extractedId) {
+                            editForm.setValue('editableId', extractedId);
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Use an embed URL (e.g., https://www.youtube.com/embed/VIDEO_ID)
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={editForm.control}
+                name="editableId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Video ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Unique video ID (e.g. lcjao1ob55A)" {...field} />
+                    </FormControl>
+                    <FormDescription>
+                      This ID will be used to identify the video in the workshop
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
@@ -650,6 +656,7 @@ export function VideoManagement() {
           <DialogContent className="sm:max-w-[800px] sm:max-h-[600px]">
             <DialogHeader>
               <DialogTitle>Video Preview</DialogTitle>
+              <DialogDescription>Preview of the selected video</DialogDescription>
             </DialogHeader>
             <div className="w-full aspect-video">
               <iframe 
@@ -678,6 +685,7 @@ export function VideoManagement() {
                 <TableHead>Workshop</TableHead>
                 <TableHead>Section</TableHead>
                 <TableHead>Video ID</TableHead>
+                <TableHead>URL</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -691,6 +699,11 @@ export function VideoManagement() {
                     <TableCell className="font-mono">
                       {video.editableId || extractYouTubeId(video.url)}
                     </TableCell>
+                    <TableCell className="max-w-[200px] truncate">
+                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                        {video.url}
+                      </a>
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
                         <Button size="icon" variant="outline" onClick={() => handlePreviewClick(video.url)}>
@@ -702,13 +715,16 @@ export function VideoManagement() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(video)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
+                        <Button size="icon" variant="outline" className="text-destructive" onClick={() => handleDeleteClick(video.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     No videos found. Add your first video to get started.
                   </TableCell>
                 </TableRow>
