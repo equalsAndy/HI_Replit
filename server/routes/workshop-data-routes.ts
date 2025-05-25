@@ -337,9 +337,16 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
  * Save flow attributes for the current user
  */
 workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) => {
+  // Always set content type to JSON
+  res.setHeader('Content-Type', 'application/json');
+  
   try {
+    console.log('Flow attributes save request received:', req.body);
+    
     // Get user ID from session (primary) or cookie (fallback)
     const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    console.log('User ID from request:', userId);
     
     if (!userId) {
       return res.status(401).json({
@@ -350,6 +357,8 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
     
     // Get flow attributes data from request body
     const { flowScore, attributes } = req.body;
+    
+    console.log('Flow attributes data:', { flowScore, attributes });
     
     if (!flowScore || !attributes || !Array.isArray(attributes)) {
       return res.status(400).json({
@@ -375,21 +384,28 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
         )
       );
     
+    console.log('Existing flow attributes:', existingFlowAttributes);
+    
     if (existingFlowAttributes.length > 0) {
       // Update existing flow attributes
-      await db
+      const updated = await db
         .update(schema.userAssessments)
         .set({
           results: JSON.stringify(flowAttributesData)
         })
-        .where(eq(schema.userAssessments.id, existingFlowAttributes[0].id));
+        .where(eq(schema.userAssessments.id, existingFlowAttributes[0].id))
+        .returning();
+      
+      console.log('Updated flow attributes:', updated);
     } else {
       // Create new flow attributes record
-      await db.insert(schema.userAssessments).values({
+      const inserted = await db.insert(schema.userAssessments).values({
         userId,
         assessmentType: 'flowAttributes',
         results: JSON.stringify(flowAttributesData)
-      });
+      }).returning();
+      
+      console.log('Inserted flow attributes:', inserted);
     }
     
     // Return success response
@@ -401,9 +417,6 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
     });
   } catch (error) {
     console.error('Error saving flow attributes:', error);
-    
-    // Force content type to JSON
-    res.setHeader('Content-Type', 'application/json');
     
     return res.status(500).json({
       success: false,
