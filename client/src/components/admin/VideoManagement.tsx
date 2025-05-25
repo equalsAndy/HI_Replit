@@ -146,7 +146,7 @@ export function VideoManagement() {
   // Update video mutation
   const updateVideoMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<VideoFormValues> }) =>
-      apiRequest(`/api/admin/videos/${id}`, { method: 'PUT', data }) as Promise<any>,
+      apiRequest('PUT', `/api/admin/videos/${id}`, data) as Promise<any>,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
