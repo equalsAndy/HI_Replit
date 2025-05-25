@@ -83,6 +83,8 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   // Save flow assessment to server
   const saveFlowAssessmentToServer = async (flowScore: number, answersData: Record<number, number>) => {
     try {
+      console.log("Attempting to save flow assessment to server with score:", flowScore);
+      
       const response = await fetch('/api/user/assessments', {
         method: 'POST',
         headers: {
@@ -102,12 +104,13 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       
       if (response.ok) {
         const result = await response.json();
-        console.log("Flow assessment saved to server:", result);
+        console.log("✅ Flow assessment saved to server successfully:", result);
       } else {
-        console.error("Failed to save flow assessment to server:", response.status);
+        const errorText = await response.text();
+        console.error("❌ Failed to save flow assessment to server:", response.status, errorText);
       }
     } catch (error) {
-      console.error("Error saving flow assessment to server:", error);
+      console.error("❌ Error saving flow assessment to server:", error);
     }
   };
   
