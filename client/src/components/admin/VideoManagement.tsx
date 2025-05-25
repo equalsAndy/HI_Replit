@@ -684,9 +684,6 @@ export function VideoManagement() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(video)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button size="icon" variant="outline" className="text-destructive" onClick={() => handleDeleteClick(video.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
