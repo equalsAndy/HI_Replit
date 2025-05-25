@@ -5,7 +5,13 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
-import { QuadrantData } from '@shared/schema';
+// Import QuadrantData type directly to fix import error
+interface QuadrantData {
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+}
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import MainContainer from '@/components/layout/MainContainer';
 import { useDemoMode } from '@/hooks/use-demo-mode';
@@ -177,9 +183,14 @@ export default function Assessment() {
   const saveAnswer = useMutation({
     mutationFn: async (data: { questionId: number, rankings: RankedOption[] }) => {
       // Convert to the format expected by the server
-      const res = await apiRequest('POST', '/api/assessment/answer', {
-        questionId: data.questionId,
-        ranking: data.rankings  // Use 'ranking' parameter to match the server schema
+      const res = await fetch('/api/assessment/answer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          questionId: data.questionId,
+          ranking: data.rankings  // Use 'ranking' parameter to match the server schema
+        })
       });
       return await res.json();
     },
@@ -210,7 +221,11 @@ export default function Assessment() {
   // Start assessment mutation
   const startAssessment = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/assessment/start', {});
+      const res = await fetch('/api/assessment/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include'
+      });
       return await res.json();
     },
     onError: (error) => {
@@ -246,8 +261,13 @@ export default function Assessment() {
       console.log("Submitting formatted answers:", formattedAnswers);
 
       // Save to server - send the quadrant data
-      const res = await apiRequest('POST', '/api/assessment/complete', {
-        quadrantData: results
+      const res = await fetch('/api/assessment/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          quadrantData: results
+        })
       });
 
       // This will return the updated star card data
@@ -263,7 +283,12 @@ export default function Assessment() {
         // Update user progress
         const updateProgress = async () => {
           try {
-            await apiRequest('PUT', '/api/user/progress', { progress: 100 });
+            await fetch('/api/user/progress', {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ progress: 100 })
+            });
             // Invalidate user profile query to refresh progress data
             queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
           } catch (error) {

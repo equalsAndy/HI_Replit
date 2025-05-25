@@ -2,6 +2,14 @@ import { pgTable, serial, varchar, timestamp, text, boolean } from 'drizzle-orm/
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
+// Define the QuadrantData type for use in star card data
+export interface QuadrantData {
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+}
+
 // Users table schema
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
