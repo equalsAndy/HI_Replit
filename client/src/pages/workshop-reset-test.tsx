@@ -206,12 +206,18 @@ export default function WorkshopResetTest() {
       }
       
       const userData = await userResponse.json();
-      const userId = userData.id;
       
+      // Extract userId using multiple fallbacks to handle different response formats
+      const userId = userData?.id || userData?.user?.id;
+      
+      // Check if we have a valid user ID
       if (!userId) {
-        setResetResult('Error: Could not determine user ID.');
+        setResetResult('Error: Could not determine user ID. Please make sure you are logged in.');
         return;
       }
+      
+      // Log the user ID for debugging
+      console.log("User ID for reset:", userId);
       
       // Call the reset API
       const resetResponse = await fetch(`/api/test-users/reset/${userId}`, {
