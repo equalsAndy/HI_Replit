@@ -86,9 +86,6 @@ app.locals.upload = upload;
 // API routes
 app.use('/api', router);
 
-// Create a simple server
-import { createServer } from 'http';
-
 // Create HTTP server
 const server = createServer(app);
 

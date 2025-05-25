@@ -1,10 +1,12 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 
 export default function Landing() {
+  const [, navigate] = useLocation();
+  
   return (
     <div className="min-h-screen flex flex-col">
       <header className="bg-white border-b border-gray-200">
@@ -56,8 +58,8 @@ export default function Landing() {
                   <Button 
                     className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
-                      localStorage.setItem('selectedApp', 'ast');
-                      window.location.href = '/auth?app=ast';
+                      sessionStorage.setItem('selectedApp', 'ast');
+                      navigate('/auth?app=ast');
                     }}
                   >
                     Start AllStarTeams
@@ -102,8 +104,8 @@ export default function Landing() {
                   <Button 
                     className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md"
                     onClick={() => {
-                      localStorage.setItem('selectedApp', 'imaginal-agility');
-                      window.location.href = '/auth?app=imaginal-agility';
+                      sessionStorage.setItem('selectedApp', 'imaginal-agility');
+                      navigate('/auth?app=imaginal-agility');
                     }}
                   >
                     Start Imaginal Agility
