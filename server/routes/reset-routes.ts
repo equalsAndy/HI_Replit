@@ -47,12 +47,32 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       const { db } = await import('../db');
       const { sql } = await import('drizzle-orm');
       
-      // Use direct SQL to delete user assessments
-      await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+      // Delete data from all relevant tables for complete reset
       
-      // Try to reset any workshop participation (might not exist)
+      // 1. Delete from user_assessments
+      await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+      console.log(`Deleted from user_assessments for user ${userId}`);
+      
+      // 2. Delete from star_cards table
+      try {
+        await db.execute(sql`DELETE FROM star_cards WHERE user_id = ${userId}`);
+        console.log(`Deleted from star_cards for user ${userId}`);
+      } catch (err) {
+        console.log(`No star_cards data or table for user ${userId}`);
+      }
+      
+      // 3. Delete from flow_attributes table
+      try {
+        await db.execute(sql`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
+        console.log(`Deleted from flow_attributes for user ${userId}`);
+      } catch (err) {
+        console.log(`No flow_attributes data or table for user ${userId}`);
+      }
+      
+      // 4. Try to reset any workshop participation
       try {
         await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+        console.log(`Deleted from workshop_participation for user ${userId}`);
       } catch (err) {
         console.log(`No workshop participation to reset for user ${userId}`);
       }
