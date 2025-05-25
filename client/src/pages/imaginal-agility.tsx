@@ -10,6 +10,7 @@ import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import TestUserBanner from '@/components/auth/TestUserBanner';
+import LogoutButton from '@/components/auth/LogoutButton';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -161,8 +162,28 @@ export default function ImaginalAgilityHome() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Test User Banner */}
       {user?.isTestUser && (
-        <div className="w-full">
-          <TestUserBanner showInHeader={true} user={user} />
+        <div className="w-full bg-blue-100 text-blue-800 px-4 py-2 flex justify-between items-center">
+          <span className="font-medium">TEST MODE: All actions and data are for testing purposes only</span>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
+              onClick={() => navigate('/allstarteams')}
+            >
+              <span>Switch to AllStarTeams</span>
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
+              onClick={() => navigate('/workshop-reset-test')}
+            >
+              <RefreshCw className="h-4 w-4 mr-1" />
+              <span>Reset Data</span>
+            </Button>
+          </div>
         </div>
       )}
       
@@ -174,16 +195,23 @@ export default function ImaginalAgilityHome() {
             alt="Imaginal Agility Workshop"
             className="h-10 w-auto" 
           />
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-1 text-gray-700"
-            onClick={() => resetUserProgress.mutate()}
-            disabled={resetUserProgress.isPending}
-          >
-            <RefreshCw className="h-4 w-4" />
-            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="flex items-center gap-1 text-gray-700"
+              onClick={() => resetUserProgress.mutate()}
+              disabled={resetUserProgress.isPending}
+            >
+              <RefreshCw className="h-4 w-4" />
+              {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
+            </Button>
+            <LogoutButton 
+              variant="outline" 
+              size="sm" 
+              className="rounded-md bg-white text-gray-700 hover:bg-gray-100 flex items-center"
+            />
+          </div>
         </div>
       </header>
       
