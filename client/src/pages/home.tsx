@@ -5,11 +5,13 @@ import { Card } from "@/components/ui/card";
 
 export default function Home() {
   // Fetch user profile
-  const { data: user } = useQuery({
+  const { data: userData } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: Infinity,
     refetchInterval: 60000 // Refetch every minute to keep progress updated
   });
+  
+  const user = userData?.user;
 
   return (
     <div className="container max-w-4xl mx-auto px-4 py-8">
