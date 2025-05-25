@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
-// import TestUserBanner from "../test-users/TestUserBanner"; // Using direct badge implementation instead
+import TestUserBanner from "../auth/TestUserBanner";
 import {
   Dialog,
   DialogContent,

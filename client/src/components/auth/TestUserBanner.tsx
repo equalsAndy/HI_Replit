@@ -4,9 +4,13 @@ import { Badge } from '@/components/ui/badge';
 
 interface TestUserBannerProps {
   className?: string;
+  showInHeader?: boolean;
 }
 
-export function TestUserBanner({ className = '' }: TestUserBannerProps) {
+export function TestUserBanner({ 
+  className = '', 
+  showInHeader = false 
+}: TestUserBannerProps) {
   // Fetch the current user profile
   const { data: user } = useQuery<{
     id: number;
@@ -15,12 +19,18 @@ export function TestUserBanner({ className = '' }: TestUserBannerProps) {
     email: string | null;
     title: string | null;
     organization: string | null;
-    role?: string;
+    role: string;
   }>({
     queryKey: ['/api/user/profile'],
+    refetchOnWindowFocus: false,
   });
 
-  if (!user?.username) return null;
+  if (!user?.id) return null;
+
+  // Determine if this is a test user
+  const isTestUser = user.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
+  
+  if (!isTestUser) return null;
 
   // Style based on role
   const getBadgeStyle = () => {
@@ -35,20 +45,21 @@ export function TestUserBanner({ className = '' }: TestUserBannerProps) {
     }
   };
 
-  // Only show banner for test users (those that match our test pattern)
-  const isTestUser = /^(admin|participant\d+|facilitator\d+)$/i.test(user.username);
-  
-  if (!isTestUser) return null;
+  if (showInHeader) {
+    return (
+      <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
+        TEST MODE: All actions and data are for testing purposes only
+      </div>
+    );
+  }
 
   return (
-    <div className={`px-3 py-1 flex items-center justify-center ${className}`}>
-      <Badge 
-        variant="outline" 
-        className={`font-medium ${getBadgeStyle()}`}
-      >
-        Test User: {user.username} ({user.role})
-      </Badge>
-    </div>
+    <Badge 
+      variant="outline" 
+      className={`font-medium ${getBadgeStyle()} ${className}`}
+    >
+      {user.role}: {user.name || user.username}
+    </Badge>
   );
 }
 
