@@ -333,4 +333,84 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
   }
 });
 
+/**
+ * Save flow attributes for the current user
+ */
+workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) => {
+  try {
+    // Get user ID from session (primary) or cookie (fallback)
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    // Get flow attributes data from request body
+    const { flowScore, attributes } = req.body;
+    
+    if (!flowScore || !attributes || !Array.isArray(attributes)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid flow attributes data'
+      });
+    }
+    
+    // Format data for storage
+    const flowAttributesData = {
+      flowScore,
+      attributes
+    };
+    
+    // Check if user already has flow attributes
+    const existingFlowAttributes = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'flowAttributes')
+        )
+      );
+    
+    if (existingFlowAttributes.length > 0) {
+      // Update existing flow attributes
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(flowAttributesData)
+        })
+        .where(eq(schema.userAssessments.id, existingFlowAttributes[0].id));
+    } else {
+      // Create new flow attributes record
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'flowAttributes',
+        results: JSON.stringify(flowAttributesData)
+      });
+    }
+    
+    // Return success response
+    return res.status(200).json({
+      success: true,
+      message: 'Flow attributes saved successfully',
+      flowScore,
+      attributes
+    });
+  } catch (error) {
+    console.error('Error saving flow attributes:', error);
+    
+    // Force content type to JSON
+    res.setHeader('Content-Type', 'application/json');
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save flow attributes',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default workshopDataRouter;
