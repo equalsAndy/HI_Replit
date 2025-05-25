@@ -416,20 +416,19 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
     }
     
     // Get flow attributes data from request body
-    const { flowScore, attributes } = req.body;
+    const { attributes } = req.body;
     
-    console.log('Flow attributes data:', { flowScore, attributes });
+    console.log('Flow attributes data:', { attributes });
     
-    if (!flowScore || !attributes || !Array.isArray(attributes)) {
+    if (!attributes || !Array.isArray(attributes)) {
       return res.status(400).json({
         success: false,
         message: 'Invalid flow attributes data'
       });
     }
     
-    // Format data for storage
+    // Format data for storage (only attribute names)
     const flowAttributesData = {
-      flowScore,
       attributes
     };
     
@@ -472,7 +471,6 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
     return res.status(200).json({
       success: true,
       message: 'Flow attributes saved successfully',
-      flowScore,
       attributes
     });
   } catch (error) {
