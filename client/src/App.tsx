@@ -50,39 +50,42 @@ const App: React.FC = () => {
   // Use error boundary to catch any rendering or navigation errors
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <ApplicationProvider>
-          <DemoModeProvider>
-            <div className="min-h-screen bg-background">
-              <Switch>
-                {/* Main routes */}
-                <Route path="/" component={LandingPage} />
-                <Route path="/dashboard" component={DashboardPage} />
-                
-                {/* Authentication routes */}
-                <Route path="/auth" component={AuthPage} />
-                <Route path="/auth/login" component={AuthPage} />
-                <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
-                <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
-                
-                {/* Workshop routes */}
-                <Route path="/allstarteams" component={AllStarTeamsPage} />
-                <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
-                
-                {/* Admin routes */}
-                <Route path="/admin" component={AdminPage} />
-                
-                {/* Reset and test routes */}
-                <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
-                
-                {/* Fallback route */}
-                <Route component={NotFoundPage} />
-              </Switch>
-              <Toaster />
-            </div>
-          </DemoModeProvider>
-        </ApplicationProvider>
-      </QueryClientProvider>
+      {/* Use our custom Router with more reliable history handling */}
+      <Router hook={useHashLocation}>
+        <QueryClientProvider client={queryClient}>
+          <ApplicationProvider>
+            <DemoModeProvider>
+              <div className="min-h-screen bg-background">
+                <Switch>
+                  {/* Main routes */}
+                  <Route path="/" component={LandingPage} />
+                  <Route path="/dashboard" component={DashboardPage} />
+                  
+                  {/* Authentication routes */}
+                  <Route path="/auth" component={AuthPage} />
+                  <Route path="/auth/login" component={AuthPage} />
+                  <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
+                  <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
+                  
+                  {/* Workshop routes */}
+                  <Route path="/allstarteams" component={AllStarTeamsPage} />
+                  <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
+                  
+                  {/* Admin routes */}
+                  <Route path="/admin" component={AdminPage} />
+                  
+                  {/* Reset and test routes */}
+                  <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
+                  
+                  {/* Fallback route */}
+                  <Route component={NotFoundPage} />
+                </Switch>
+                <Toaster />
+              </div>
+            </DemoModeProvider>
+          </ApplicationProvider>
+        </QueryClientProvider>
+      </Router>
     </ErrorBoundary>
   );
 };
