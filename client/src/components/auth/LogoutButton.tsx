@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { LogOut } from 'lucide-react';
 
 interface LogoutButtonProps {
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
@@ -67,7 +68,8 @@ export function LogoutButton({
       className={`${className} ${fullWidth ? 'w-full' : ''}`}
       onClick={handleLogout}
     >
-      Logout
+      <LogOut className="h-4 w-4 mr-1" />
+      <span className="hidden md:inline">Logout</span>
     </Button>
   );
 }

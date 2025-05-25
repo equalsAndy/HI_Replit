@@ -54,13 +54,15 @@ export function NavBar() {
   
   // Extract user data from the response
   const user = data?.user;
+  const isTestUser = user?.isTestUser || false;
   
   useEffect(() => {
     // Log user data for debugging
     if (user) {
-      console.log("User data loaded:", user);
+      console.log("User data in NavBar:", user);
+      console.log("Is test user:", isTestUser);
     }
-  }, [user]);
+  }, [user, isTestUser]);
   
   // Function to reset user data
   const handleResetUserData = async () => {
@@ -171,7 +173,7 @@ export function NavBar() {
 
       <div className="flex items-center gap-2">
         {/* Test User Badge - shown for all test users */}
-        {user?.id && isTestUser && (
+        {user?.id && user?.isTestUser && (
           <TestUserBanner className="p-0" />
         )}
         
