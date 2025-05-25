@@ -1,186 +1,215 @@
-/**
- * User management service handling creation and updates of users
- */
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, isNull, and, not } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 import { UserRole } from '@shared/types';
-import { generateInviteCode } from '../utils/invite-code';
+import { InviteService } from './invite-service';
+
+// Password salt rounds for bcrypt
+const SALT_ROUNDS = 10;
+
+// Special characters for password generation
+const SPECIAL_CHARS = '!@#$%^&*';
+
+interface CreateUserOptions {
+  username: string;
+  password: string;
+  name: string;
+  email?: string;
+  organization?: string;
+  jobTitle?: string;
+  role: UserRole;
+  profilePicture?: string;
+  createdByFacilitator?: number;
+}
+
+interface RegisterWithInviteOptions {
+  username: string;
+  password: string;
+  name: string;
+  organization?: string;
+  jobTitle?: string;
+  profilePicture?: string;
+}
+
+interface UpdateProfileOptions {
+  name?: string;
+  firstName?: string;
+  lastName?: string;
+  organization?: string;
+  jobTitle?: string;
+  profilePicture?: string;
+}
 
 export class UserManagementService {
   /**
-   * Create a new user with role
-   * 
-   * @param userData User data including role
-   * @returns The created user
+   * Check if a username is available
+   * @param username The username to check
+   * @returns True if username is available, false otherwise
    */
-  public static async createUser(userData: {
-    username: string;
-    password: string;
-    name: string;
-    email?: string;
-    organization?: string;
-    jobTitle?: string;
-    profilePicture?: string;
-    role: UserRole;
-    createdByFacilitator?: number;
-  }) {
-    // Hash password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+  static async isUsernameAvailable(username: string): Promise<boolean> {
+    const [existingUser] = await db
+      .select({ id: schema.users.id })
+      .from(schema.users)
+      .where(eq(schema.users.username, username));
     
-    // Generate invite code for tracking even if created directly
-    const inviteCode = userData.role === UserRole.Admin 
-      ? null // Admins don't need invite codes
-      : generateInviteCode();
-    
-    // Insert user
-    const [user] = await db
-      .insert(schema.users)
-      .values({
-        username: userData.username,
-        password: hashedPassword,
-        name: userData.name,
-        email: userData.email,
-        organization: userData.organization,
-        jobTitle: userData.jobTitle,
-        profilePicture: userData.profilePicture,
-        inviteCode: inviteCode,
-        codeUsed: true, // Since this is direct creation, code is considered used
-        createdByFacilitator: userData.createdByFacilitator
-      })
-      .returning();
-    
-    // Add role
-    await db
-      .insert(schema.userRoles)
-      .values({
-        userId: user.id,
-        role: userData.role
-      });
-    
-    // Return user with role
-    return {
-      ...user,
-      role: userData.role
-    };
+    return !existingUser;
   }
   
   /**
-   * Complete user registration with invite code
-   * 
-   * @param inviteCode The invite code used
-   * @param userData User data to create account
-   * @returns The created user
+   * Register a new user with an invite code
+   * @param inviteCode The invite code
+   * @param options User registration options
+   * @returns The created user with role
    */
-  public static async registerWithInviteCode(
+  static async registerWithInviteCode(
     inviteCode: string,
-    userData: {
-      username: string;
-      password: string;
-      name: string;
-      organization?: string;
-      jobTitle?: string;
-      profilePicture?: string;
-      email?: string; // Should match invite email
-    }
-  ) {
-    // Find the invite
-    const [invite] = await db
-      .select()
-      .from(schema.pendingInvites)
-      .where(eq(schema.pendingInvites.inviteCode, inviteCode));
+    options: RegisterWithInviteOptions
+  ): Promise<any> {
+    // Get invite details
+    const invite = await InviteService.getInviteByCode(inviteCode);
     
     if (!invite) {
       throw new Error('Invalid invite code');
     }
     
-    // Check if invite is expired
-    if (invite.expiresAt && new Date(invite.expiresAt) < new Date()) {
+    if (invite.isExpired) {
       throw new Error('Invite code has expired');
     }
     
     // Hash password
-    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    const hashedPassword = await bcrypt.hash(options.password, SALT_ROUNDS);
     
-    // Create user
-    const [user] = await db
-      .insert(schema.users)
-      .values({
-        username: userData.username,
-        password: hashedPassword,
-        name: userData.name || invite.name, // Use name from invite if not provided
-        email: invite.email, // Use email from invite
-        organization: userData.organization,
-        jobTitle: userData.jobTitle,
-        profilePicture: userData.profilePicture,
-        inviteCode,
-        codeUsed: true,
-        createdByFacilitator: invite.createdBy
-      })
-      .returning();
-    
-    // Add role (default to participant)
-    await db
-      .insert(schema.userRoles)
-      .values({
-        userId: user.id,
-        role: UserRole.Participant
-      });
-    
-    // Delete the pending invite
-    await db
-      .delete(schema.pendingInvites)
-      .where(eq(schema.pendingInvites.id, invite.id));
-    
-    // If invite had a cohort, add user to that cohort
-    if (invite.cohortId) {
-      await db
-        .insert(schema.cohortParticipants)
+    // Begin transaction
+    return await db.transaction(async (tx) => {
+      // Create user
+      const [user] = await tx
+        .insert(schema.users)
         .values({
-          cohortId: invite.cohortId,
-          participantId: user.id
+          username: options.username,
+          password: hashedPassword,
+          name: options.name,
+          email: invite.email,
+          organization: options.organization,
+          jobTitle: options.jobTitle,
+          profilePicture: options.profilePicture
+        })
+        .returning();
+      
+      // Assign role from invite
+      await tx
+        .insert(schema.userRoles)
+        .values({
+          userId: user.id,
+          role: invite.role
         });
-    }
-    
-    // Return user with role
-    return {
-      ...user,
-      role: UserRole.Participant
-    };
+      
+      // If invite has a cohort ID, add user to that cohort
+      const [inviteDetails] = await tx
+        .select({ cohortId: schema.pendingInvites.cohortId })
+        .from(schema.pendingInvites)
+        .where(eq(schema.pendingInvites.id, invite.id));
+      
+      if (inviteDetails?.cohortId) {
+        await tx
+          .insert(schema.cohortParticipants)
+          .values({
+            cohortId: inviteDetails.cohortId,
+            participantId: user.id
+          });
+      }
+      
+      // Mark invite as used
+      await InviteService.markInviteAsUsed(invite.id);
+      
+      // Return user with role
+      return {
+        ...user,
+        role: invite.role
+      };
+    });
   }
   
   /**
-   * Update a user's profile
-   * 
-   * @param userId ID of user to update
-   * @param userData Updated user data
+   * Create a new user (admin function)
+   * @param options User creation options
+   * @returns The created user with role
+   */
+  static async createUser(options: CreateUserOptions): Promise<any> {
+    // Check if username is available
+    const isAvailable = await UserManagementService.isUsernameAvailable(options.username);
+    
+    if (!isAvailable) {
+      throw new Error('Username already exists');
+    }
+    
+    // Hash password
+    const hashedPassword = await bcrypt.hash(options.password, SALT_ROUNDS);
+    
+    // Begin transaction
+    return await db.transaction(async (tx) => {
+      // Create user
+      const [user] = await tx
+        .insert(schema.users)
+        .values({
+          username: options.username,
+          password: hashedPassword,
+          name: options.name,
+          email: options.email || null,
+          organization: options.organization,
+          jobTitle: options.jobTitle,
+          profilePicture: options.profilePicture,
+          createdByFacilitator: options.createdByFacilitator
+        })
+        .returning();
+      
+      // Assign role
+      await tx
+        .insert(schema.userRoles)
+        .values({
+          userId: user.id,
+          role: options.role
+        });
+      
+      // Return user with role
+      return {
+        ...user,
+        role: options.role
+      };
+    });
+  }
+  
+  /**
+   * Update user profile
+   * @param userId The ID of the user to update
+   * @param options Profile update options
    * @returns The updated user
    */
-  public static async updateUserProfile(
-    userId: number,
-    userData: {
-      name?: string;
-      organization?: string;
-      jobTitle?: string;
-      profilePicture?: string;
-      firstName?: string;
-      lastName?: string;
+  static async updateUserProfile(userId: number, options: UpdateProfileOptions): Promise<any> {
+    // Get current user
+    const [user] = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.id, userId));
+    
+    if (!user) {
+      throw new Error('User not found');
     }
-  ) {
+    
     // Update user
     const [updatedUser] = await db
       .update(schema.users)
       .set({
-        ...userData,
+        name: options.name ?? user.name,
+        firstName: options.firstName ?? user.firstName,
+        lastName: options.lastName ?? user.lastName,
+        organization: options.organization ?? user.organization,
+        jobTitle: options.jobTitle ?? user.jobTitle,
+        profilePicture: options.profilePicture ?? user.profilePicture,
         updatedAt: new Date()
       })
       .where(eq(schema.users.id, userId))
       .returning();
-    
-    if (!updatedUser) {
-      throw new Error('User not found');
-    }
     
     // Get user role
     const [userRole] = await db
@@ -188,26 +217,52 @@ export class UserManagementService {
       .from(schema.userRoles)
       .where(eq(schema.userRoles.userId, userId));
     
-    // Return updated user with role
+    // Return user with role (excluding password)
+    const { password: _, ...userWithoutPassword } = updatedUser;
+    
     return {
-      ...updatedUser,
+      ...userWithoutPassword,
       role: userRole?.role || UserRole.Participant
     };
   }
   
   /**
-   * Change a user's password
-   * 
-   * @param userId ID of user
-   * @param currentPassword Current password for verification
-   * @param newPassword New password to set
-   * @returns Boolean indicating success
+   * Update user role
+   * @param userId The ID of the user
+   * @param role The new role
+   * @returns True if successful
    */
-  public static async changePassword(
-    userId: number,
-    currentPassword: string,
-    newPassword: string
-  ) {
+  static async updateUserRole(userId: number, role: UserRole): Promise<boolean> {
+    // Check if user has a role
+    const [existingRole] = await db
+      .select()
+      .from(schema.userRoles)
+      .where(eq(schema.userRoles.userId, userId));
+    
+    if (existingRole) {
+      // Update existing role
+      await db
+        .update(schema.userRoles)
+        .set({ role })
+        .where(eq(schema.userRoles.userId, userId));
+    } else {
+      // Create new role
+      await db
+        .insert(schema.userRoles)
+        .values({ userId, role });
+    }
+    
+    return true;
+  }
+  
+  /**
+   * Change user password
+   * @param userId The ID of the user
+   * @param currentPassword The current password
+   * @param newPassword The new password
+   * @returns True if successful
+   */
+  static async changePassword(userId: number, currentPassword: string, newPassword: string): Promise<boolean> {
     // Get user
     const [user] = await db
       .select()
@@ -219,18 +274,19 @@ export class UserManagementService {
     }
     
     // Verify current password
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    const isCorrect = await bcrypt.compare(currentPassword, user.password);
     
-    if (!isPasswordValid) {
+    if (!isCorrect) {
       throw new Error('Current password is incorrect');
     }
     
-    // Hash and set new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     
+    // Update password
     await db
       .update(schema.users)
-      .set({
+      .set({ 
         password: hashedPassword,
         updatedAt: new Date()
       })
@@ -240,20 +296,37 @@ export class UserManagementService {
   }
   
   /**
-   * Reset a user's password (admin/facilitator function)
-   * 
-   * @param userId ID of user to reset
-   * @param newPassword New password to set
-   * @returns Boolean indicating success
+   * Reset user password (admin function)
+   * @param userId The ID of the user
+   * @param newPassword The new password
+   * @returns True if successful
    */
-  public static async resetPassword(userId: number, newPassword: string) {
-    // Hash and set new password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+  static async resetPassword(userId: number, newPassword: string): Promise<boolean> {
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
     
+    // Update password
+    await db
+      .update(schema.users)
+      .set({ 
+        password: hashedPassword,
+        updatedAt: new Date()
+      })
+      .where(eq(schema.users.id, userId));
+    
+    return true;
+  }
+  
+  /**
+   * Soft delete a user
+   * @param userId The ID of the user to delete
+   * @returns True if successful
+   */
+  static async softDeleteUser(userId: number): Promise<boolean> {
     const [user] = await db
       .update(schema.users)
-      .set({
-        password: hashedPassword,
+      .set({ 
+        deletedAt: new Date(),
         updatedAt: new Date()
       })
       .where(eq(schema.users.id, userId))
@@ -263,114 +336,95 @@ export class UserManagementService {
   }
   
   /**
-   * Soft delete a user
-   * 
-   * @param userId ID of user to delete
-   * @returns Boolean indicating success
+   * Restore a soft-deleted user
+   * @param userId The ID of the user to restore
+   * @returns True if successful
    */
-  public static async softDeleteUser(userId: number) {
-    const [deletedUser] = await db
+  static async restoreUser(userId: number): Promise<boolean> {
+    const [user] = await db
       .update(schema.users)
-      .set({
-        deletedAt: new Date()
+      .set({ 
+        deletedAt: null,
+        updatedAt: new Date()
       })
       .where(eq(schema.users.id, userId))
       .returning();
     
-    return !!deletedUser;
+    return !!user;
   }
   
   /**
-   * Get all users with optional filters
-   * 
-   * @param options Optional filters
-   * @returns Array of users with roles
+   * Get users
+   * @param options Options for filtering users
+   * @returns Array of users
    */
-  public static async getUsers(options?: {
-    includeDeleted?: boolean;
-    role?: UserRole;
-    createdBy?: number;
-  }) {
-    // Build query
+  static async getUsers(options: {
+    includeDeleted?: boolean
+  } = {}): Promise<any[]> {
     let query = db
-      .select()
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        name: schema.users.name,
+        email: schema.users.email,
+        organization: schema.users.organization,
+        jobTitle: schema.users.jobTitle,
+        profilePicture: schema.users.profilePicture,
+        createdAt: schema.users.createdAt,
+        updatedAt: schema.users.updatedAt,
+        deletedAt: schema.users.deletedAt,
+        createdByFacilitator: schema.users.createdByFacilitator
+      })
       .from(schema.users);
     
-    // Apply filters
-    if (!options?.includeDeleted) {
+    // Filter out deleted users unless includeDeleted is true
+    if (!options.includeDeleted) {
       query = query.where(isNull(schema.users.deletedAt));
     }
     
-    // Execute query
     const users = await query;
     
-    // Get roles for all users
+    // Get all user roles
     const userIds = users.map(user => user.id);
-    
-    if (userIds.length === 0) {
-      return [];
-    }
-    
-    const userRoles = await db
+    const roles = await db
       .select()
-      .from(schema.userRoles);
+      .from(schema.userRoles)
+      .where(
+        userIds.length > 0 
+          ? db.inArray(schema.userRoles.userId, userIds) 
+          : eq(schema.userRoles.userId, -1) // No users found, return empty result
+      );
     
-    // Map roles to users
-    const usersWithRoles = users.map(user => {
-      const role = userRoles.find(r => r.userId === user.id)?.role || UserRole.Participant;
-      
-      // If role filter is applied, skip users that don't match
-      if (options?.role && role !== options.role) {
-        return null;
-      }
-      
-      // If createdBy filter is applied, skip users not created by this facilitator
-      if (options?.createdBy && user.createdByFacilitator !== options.createdBy) {
-        return null;
-      }
-      
+    // Map users with their roles
+    return users.map(user => {
+      const userRole = roles.find(role => role.userId === user.id);
       return {
         ...user,
-        role
+        role: userRole?.role || UserRole.Participant,
+        isDeleted: !!user.deletedAt
       };
-    }).filter(Boolean); // Remove null entries from filters
-    
-    return usersWithRoles;
-  }
-  
-  /**
-   * Update a user's role
-   * 
-   * @param userId ID of user
-   * @param newRole New role to assign
-   * @returns Boolean indicating success
-   */
-  public static async updateUserRole(userId: number, newRole: UserRole) {
-    // Delete existing roles
-    await db
-      .delete(schema.userRoles)
-      .where(eq(schema.userRoles.userId, userId));
-    
-    // Add new role
-    await db
-      .insert(schema.userRoles)
-      .values({
-        userId,
-        role: newRole
-      });
-    
-    return true;
+    });
   }
   
   /**
    * Get users created by a specific facilitator
-   * 
-   * @param facilitatorId ID of facilitator
-   * @returns Array of users created by this facilitator
+   * @param facilitatorId The ID of the facilitator
+   * @returns Array of users
    */
-  public static async getUsersCreatedByFacilitator(facilitatorId: number) {
+  static async getUsersCreatedByFacilitator(facilitatorId: number): Promise<any[]> {
+    // Get users created by this facilitator
     const users = await db
-      .select()
+      .select({
+        id: schema.users.id,
+        username: schema.users.username,
+        name: schema.users.name,
+        email: schema.users.email,
+        organization: schema.users.organization,
+        jobTitle: schema.users.jobTitle,
+        profilePicture: schema.users.profilePicture,
+        createdAt: schema.users.createdAt,
+        updatedAt: schema.users.updatedAt
+      })
       .from(schema.users)
       .where(
         and(
@@ -379,70 +433,59 @@ export class UserManagementService {
         )
       );
     
-    // Get roles for these users
+    // Get all user roles
     const userIds = users.map(user => user.id);
-    
-    if (userIds.length === 0) {
-      return [];
-    }
-    
-    const userRoles = await db
+    const roles = await db
       .select()
-      .from(schema.userRoles);
+      .from(schema.userRoles)
+      .where(
+        userIds.length > 0 
+          ? db.inArray(schema.userRoles.userId, userIds) 
+          : eq(schema.userRoles.userId, -1) // No users found, return empty result
+      );
     
-    // Map roles to users
+    // Map users with their roles
     return users.map(user => {
-      const role = userRoles.find(r => r.userId === user.id)?.role || UserRole.Participant;
+      const userRole = roles.find(role => role.userId === user.id);
       return {
         ...user,
-        role
+        role: userRole?.role || UserRole.Participant
       };
     });
   }
   
   /**
-   * Check if a username is available
-   * 
-   * @param username Username to check
-   * @returns Boolean indicating if username is available
-   */
-  public static async isUsernameAvailable(username: string) {
-    const [existingUser] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.username, username));
-    
-    return !existingUser;
-  }
-  
-  /**
    * Generate a secure random password
-   * 
-   * @returns A secure password meeting requirements
+   * @returns A secure password
    */
-  public static generateSecurePassword(): string {
-    const uppercaseChars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
-    const lowercaseChars = 'abcdefghijkmnopqrstuvwxyz';
-    const numberChars = '23456789'; // No 0/1 to avoid confusion
-    const specialChars = '!@#$%^&*';
+  static generateSecurePassword(): string {
+    const length = 12;
+    const charset = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789';
     
-    // Get at least one of each character type
-    const uppercase = uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
-    const lowercase = lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
-    const number = numberChars[Math.floor(Math.random() * numberChars.length)];
-    const special = specialChars[Math.floor(Math.random() * specialChars.length)];
+    let password = '';
     
-    // Generate remaining characters (4-8 more)
-    const allChars = uppercaseChars + lowercaseChars + numberChars + specialChars;
-    const remainingLength = 4 + Math.floor(Math.random() * 5); // 4-8 more chars
-    let remainingChars = '';
+    // At least one uppercase letter
+    password += charset.match(/[A-Z]/g)![Math.floor(Math.random() * 23)];
     
-    for (let i = 0; i < remainingLength; i++) {
-      remainingChars += allChars[Math.floor(Math.random() * allChars.length)];
+    // At least one lowercase letter
+    password += charset.match(/[a-z]/g)![Math.floor(Math.random() * 23)];
+    
+    // At least one number
+    password += charset.match(/[0-9]/g)![Math.floor(Math.random() * 8)];
+    
+    // At least one special character
+    password += SPECIAL_CHARS[Math.floor(Math.random() * SPECIAL_CHARS.length)];
+    
+    // Fill the rest with random characters
+    for (let i = password.length; i < length; i++) {
+      const randomIndex = Math.floor(Math.random() * charset.length);
+      password += charset[randomIndex];
     }
     
-    // Combine all parts and shuffle
-    const password = uppercase + lowercase + number + special + remainingChars;
-    return password.split('').sort(() => 0.5 - Math.random()).join('');
+    // Shuffle the password
+    return password
+      .split('')
+      .sort(() => Math.random() - 0.5)
+      .join('');
   }
 }
