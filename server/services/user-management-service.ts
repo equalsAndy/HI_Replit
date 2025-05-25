@@ -195,6 +195,7 @@ class UserManagementService {
     jobTitle?: string | null;
     profilePicture?: string | null;
     isTestUser?: boolean;
+    role?: 'admin' | 'facilitator' | 'participant';
   }) {
     try {
       // Update the user in the database

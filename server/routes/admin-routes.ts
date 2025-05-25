@@ -90,10 +90,11 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
 router.get('/invites', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     // Get all invites
-    const invites = await inviteService.getInvitesByCreator(req.session.userId);
+    const invitesResult = await inviteService.getAllInvites();
+    const invitesList = invitesResult.success ? invitesResult.invites : [];
     
     // Format invite codes for display
-    const formattedInvites = invites.map(invite => ({
+    const formattedInvites = invitesList?.map(invite => ({
       ...invite,
       formattedCode: formatInviteCode(invite.inviteCode)
     }));
@@ -227,6 +228,11 @@ router.put('/users/:id/test-status', requireAuth, isAdmin, async (req: Request, 
     
     if (!result.success) {
       return res.status(404).json({ message: result.error || 'User not found' });
+    }
+    
+    // Make sure we have a valid user after update
+    if (!result.success || !result.user) {
+      return res.status(404).json({ message: 'User not found after update' });
     }
     
     res.json({ 
