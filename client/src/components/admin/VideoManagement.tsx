@@ -124,7 +124,7 @@ export function VideoManagement() {
   // Create video mutation
   const createVideoMutation = useMutation({
     mutationFn: (newVideo: VideoFormValues) => 
-      apiRequest('/api/admin/videos', { method: 'POST', data: newVideo }) as Promise<any>,
+      apiRequest('POST', '/api/admin/videos', newVideo),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/videos'] });
       toast({
@@ -218,10 +218,19 @@ export function VideoManagement() {
   // Handle create submit
   const onCreateSubmit = (values: VideoFormValues) => {
     // Extract video ID from URL if not provided
-    const extractedId = values.editableId || extractYouTubeId(values.url);
+    const videoId = values.editableId || extractYouTubeId(values.url);
+    
+    // If the user has edited the ID, update the URL to match this ID
+    let updatedUrl = values.url;
+    if (videoId && videoId !== extractYouTubeId(values.url)) {
+      // Create a proper YouTube embed URL with the new ID
+      updatedUrl = `https://www.youtube.com/embed/${videoId}`;
+    }
+    
     const dataToSubmit = {
       ...values,
-      editableId: extractedId
+      url: updatedUrl,
+      editableId: videoId
     };
     
     createVideoMutation.mutate(dataToSubmit);
@@ -230,11 +239,20 @@ export function VideoManagement() {
   // Handle edit submit
   const onEditSubmit = (values: VideoFormValues) => {
     if (selectedVideo) {
-      // Extract video ID from URL if not provided
-      const extractedId = values.editableId || extractYouTubeId(values.url);
+      // Use the manually edited ID or extract from URL if not provided
+      const videoId = values.editableId || extractYouTubeId(values.url);
+      
+      // If the user has edited the ID, update the URL to match this ID
+      let updatedUrl = values.url;
+      if (videoId && videoId !== extractYouTubeId(values.url)) {
+        // Create a proper YouTube embed URL with the new ID
+        updatedUrl = `https://www.youtube.com/embed/${videoId}`;
+      }
+      
       const dataToSubmit = {
         ...values,
-        editableId: extractedId
+        url: updatedUrl,
+        editableId: videoId
       };
       
       updateVideoMutation.mutate({ id: selectedVideo.id, data: dataToSubmit });
