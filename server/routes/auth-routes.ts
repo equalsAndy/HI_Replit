@@ -265,6 +265,25 @@ authRouter.post('/change-password', async (req, res) => {
   }
 });
 
+// Check username availability
+authRouter.post('/check-username', async (req, res) => {
+  try {
+    const { username } = req.body;
+    
+    if (!username) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+    
+    // Check username availability
+    const isAvailable = await userManagementService.isUsernameAvailable(username);
+    
+    return res.status(200).json({ available: isAvailable });
+  } catch (error) {
+    console.error('Username check error:', error);
+    return res.status(500).json({ error: 'An error occurred while checking username availability' });
+  }
+});
+
 // Logout route
 authRouter.post('/logout', (req, res) => {
   req.session.destroy(err => {

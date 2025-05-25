@@ -1,8 +1,9 @@
 import React from 'react';
+import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StepsProps {
-  currentStep: number;
+  activeStep: number;
   className?: string;
   children: React.ReactNode;
 }
@@ -12,79 +13,61 @@ interface StepProps {
   description?: string;
 }
 
-export function Steps({ currentStep, className, children }: StepsProps) {
-  // Convert children to array to work with them
-  const stepsArray = React.Children.toArray(children);
+export const Steps = ({ activeStep, className, children }: StepsProps) => {
+  // Convert React children to array
+  const steps = React.Children.toArray(children);
   
   return (
     <div className={cn('w-full', className)}>
-      <div className="flex items-center justify-between">
-        {stepsArray.map((step, index) => {
-          const isCompleted = index < currentStep;
-          const isActive = index === currentStep;
-          const isLast = index === stepsArray.length - 1;
+      <div className="relative flex items-center justify-between">
+        {steps.map((step, i) => {
+          const isActive = i === activeStep;
+          const isCompleted = i < activeStep;
           
           return (
-            <React.Fragment key={index}>
-              <div className="flex items-center">
+            <React.Fragment key={i}>
+              {/* Step circle */}
+              <div className="flex flex-col items-center relative">
                 <div
                   className={cn(
-                    "flex items-center justify-center w-8 h-8 rounded-full border transition-colors duration-200",
-                    {
-                      "bg-primary text-white border-primary": isCompleted || isActive,
-                      "border-gray-300": !isCompleted && !isActive,
-                      "bg-white text-primary": isActive && !isCompleted,
-                      "bg-primary text-white": isCompleted,
-                    }
+                    'w-10 h-10 rounded-full flex items-center justify-center border-2 transition-colors',
+                    isCompleted ? 'border-primary bg-primary text-white' :
+                    isActive ? 'border-primary text-primary' :
+                    'border-muted-foreground/30 text-muted-foreground/50'
                   )}
                 >
                   {isCompleted ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="3"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
+                    <CheckIcon className="h-5 w-5" />
                   ) : (
-                    <span className={cn(isActive ? "text-primary" : "text-gray-500")}>
-                      {index + 1}
-                    </span>
+                    <span>{i + 1}</span>
                   )}
                 </div>
-                <div className="ml-3 hidden sm:block">
-                  <p
-                    className={cn("text-sm font-medium", {
-                      "text-gray-900": isActive || isCompleted,
-                      "text-gray-500": !isActive && !isCompleted,
-                    })}
-                  >
-                    {(step as React.ReactElement<StepProps>).props.title}
-                  </p>
-                  {(step as React.ReactElement<StepProps>).props.description && (
-                    <p
-                      className={cn("text-xs", {
-                        "text-gray-700": isActive || isCompleted,
-                        "text-gray-400": !isActive && !isCompleted,
-                      })}
-                    >
-                      {(step as React.ReactElement<StepProps>).props.description}
-                    </p>
+                
+                {/* Step title */}
+                <span
+                  className={cn(
+                    'mt-2 text-sm font-medium',
+                    isActive || isCompleted ? 'text-foreground' : 'text-muted-foreground/50'
                   )}
-                </div>
+                >
+                  {(step as React.ReactElement<StepProps>).props.title}
+                </span>
+                
+                {/* Step description if provided */}
+                {(step as React.ReactElement<StepProps>).props.description && (
+                  <span className="text-xs text-muted-foreground mt-1 hidden md:block">
+                    {(step as React.ReactElement<StepProps>).props.description}
+                  </span>
+                )}
               </div>
-              {!isLast && (
+              
+              {/* Connector line between steps */}
+              {i < steps.length - 1 && (
                 <div
-                  className={cn("flex-1 h-0.5 mx-4", {
-                    "bg-primary": isCompleted,
-                    "bg-gray-200": !isCompleted,
-                  })}
+                  className={cn(
+                    'flex-1 h-px mx-2',
+                    i < activeStep ? 'bg-primary' : 'bg-muted-foreground/30'
+                  )}
                 />
               )}
             </React.Fragment>
@@ -93,10 +76,9 @@ export function Steps({ currentStep, className, children }: StepsProps) {
       </div>
     </div>
   );
-}
+};
 
-export function Step({ title, description }: StepProps) {
-  // This component doesn't render anything on its own
-  // It's used for type safety and to pass props to the Steps component
+export const Step: React.FC<StepProps> = ({ title, description }) => {
+  // This is just a placeholder component for the Steps component to use
   return null;
-}
+};

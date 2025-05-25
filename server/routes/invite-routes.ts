@@ -1,144 +1,137 @@
-import express, { Request, Response } from 'express';
-import { z } from 'zod';
+import express from 'express';
 import { inviteService } from '../services/invite-service';
-import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
+import { userManagementService } from '../services/user-management-service';
+import { isFacilitatorOrAdmin } from '../middleware/roles';
 import { isAuthenticated } from '../middleware/auth';
+import { normalizeInviteCode } from '../utils/invite-code';
 
 const router = express.Router();
 
-/**
- * Verify an invite code
- */
-router.post('/verify', async (req: Request, res: Response) => {
-  try {
-    const schema = z.object({
-      inviteCode: z.string().min(12).max(12),
-    });
+// All invite routes require authentication
+router.use(isAuthenticated);
 
-    const { inviteCode } = schema.parse(req.body);
-    const result = await inviteService.verifyInviteCode(inviteCode);
-
-    if (result) {
-      res.json({
-        valid: true,
-        inviteCode,
-        ...result
-      });
-    } else {
-      res.json({
-        valid: false,
-        message: 'Invalid or expired invite code'
-      });
-    }
-  } catch (error) {
-    console.error('Error verifying invite code:', error);
-    res.status(400).json({
-      valid: false,
-      message: error instanceof Error ? error.message : 'Invalid invite code format'
-    });
-  }
-});
-
-/**
- * Get a list of all invites (admin only)
- */
-router.get('/', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+// Get all invites (for admins/facilitators)
+router.get('/invites', isFacilitatorOrAdmin, async (req, res) => {
   try {
     const invites = await inviteService.getAllInvites();
-    res.json(invites);
+    return res.status(200).json({ invites });
   } catch (error) {
     console.error('Error fetching invites:', error);
-    res.status(500).json({
-      error: 'Failed to fetch invites'
-    });
+    return res.status(500).json({ error: 'An error occurred while fetching invites' });
   }
 });
 
-/**
- * Create a new invite (admin or facilitator)
- */
-router.post('/', isAuthenticated, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+// Get unused invites (for admins/facilitators)
+router.get('/invites/unused', isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const schema = z.object({
-      name: z.string().min(1, 'Name is required'),
-      email: z.string().email('Valid email is required'),
-      role: z.enum(['admin', 'facilitator', 'participant']),
-      cohortId: z.number().optional(),
-    });
+    const invites = await inviteService.getUnusedInvites();
+    return res.status(200).json({ invites });
+  } catch (error) {
+    console.error('Error fetching unused invites:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching unused invites' });
+  }
+});
 
-    const data = schema.parse(req.body);
+// Create a new invite (for admins/facilitators)
+router.post('/invites', isFacilitatorOrAdmin, async (req, res) => {
+  try {
+    const { name, email, role, cohortId } = req.body;
     
-    // Get the creator's ID from the session
-    const creatorId = req.session.userId;
-    if (!creatorId) {
-      return res.status(401).json({ error: 'Authentication required' });
+    // Validate required fields
+    if (!name || !email || !role) {
+      return res.status(400).json({ error: 'Name, email, and role are required' });
     }
-
+    
+    // Only admins can create admin/facilitator invites
+    if ((role === 'admin' || role === 'facilitator') && req.session.userRole !== 'admin') {
+      return res.status(403).json({ error: 'Only admins can create admin or facilitator invites' });
+    }
+    
+    // Create the invite
     const invite = await inviteService.createInvite({
-      ...data,
-      createdBy: creatorId
+      name,
+      email,
+      role,
+      createdBy: req.session.userId,
+      cohortId: cohortId || null,
     });
-
-    res.status(201).json(invite);
+    
+    return res.status(201).json({ invite });
   } catch (error) {
     console.error('Error creating invite:', error);
-    res.status(400).json({
-      error: error instanceof Error ? error.message : 'Failed to create invite'
-    });
+    return res.status(500).json({ error: 'An error occurred while creating the invite' });
   }
 });
 
-/**
- * Generate batch invites (admin only)
- */
-router.post('/batch', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+// Generate batch invites (for admins/facilitators)
+router.post('/invites/batch', isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const schema = z.object({
-      count: z.number().min(1).max(50),
-      role: z.enum(['admin', 'facilitator', 'participant']),
-      cohortId: z.number().optional(),
-    });
-
-    const { count, role, cohortId } = schema.parse(req.body);
+    const { count, role, cohortId } = req.body;
     
-    // Get the creator's ID from the session
-    const creatorId = req.session.userId;
-    if (!creatorId) {
-      return res.status(401).json({ error: 'Authentication required' });
+    // Validate required fields
+    if (!count || !role) {
+      return res.status(400).json({ error: 'Count and role are required' });
     }
-
+    
+    // Only admins can create admin/facilitator invites
+    if ((role === 'admin' || role === 'facilitator') && req.session.userRole !== 'admin') {
+      return res.status(403).json({ error: 'Only admins can create admin or facilitator invites' });
+    }
+    
+    // Generate batch invites
     const invites = await inviteService.generateBatchInvites(count, {
       role,
-      createdBy: creatorId,
-      cohortId
+      createdBy: req.session.userId,
+      cohortId: cohortId || null,
     });
-
-    res.status(201).json(invites);
+    
+    return res.status(201).json({ invites });
   } catch (error) {
     console.error('Error generating batch invites:', error);
-    res.status(400).json({
-      error: error instanceof Error ? error.message : 'Failed to generate batch invites'
-    });
+    return res.status(500).json({ error: 'An error occurred while generating batch invites' });
   }
 });
 
-/**
- * Delete an invite (admin only)
- */
-router.delete('/:id', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+// Get invite by ID (for admins/facilitators)
+router.get('/invites/:id', isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid invite ID' });
+    const { id } = req.params;
+    
+    const invite = await inviteService.getInviteById(Number(id));
+    
+    if (!invite) {
+      return res.status(404).json({ error: 'Invite not found' });
     }
+    
+    return res.status(200).json({ invite });
+  } catch (error) {
+    console.error('Error fetching invite:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching the invite' });
+  }
+});
 
-    await inviteService.deleteInvite(id);
-    res.status(204).send();
+// Delete invite (for admins/facilitators)
+router.delete('/invites/:id', isFacilitatorOrAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const invite = await inviteService.getInviteById(Number(id));
+    
+    if (!invite) {
+      return res.status(404).json({ error: 'Invite not found' });
+    }
+    
+    // Check if this user has permission to delete this invite
+    if (req.session.userRole !== 'admin' && invite.createdBy !== req.session.userId) {
+      return res.status(403).json({ error: 'You do not have permission to delete this invite' });
+    }
+    
+    await inviteService.deleteInvite(Number(id));
+    
+    return res.status(200).json({ message: 'Invite deleted successfully' });
   } catch (error) {
     console.error('Error deleting invite:', error);
-    res.status(500).json({
-      error: 'Failed to delete invite'
-    });
+    return res.status(500).json({ error: 'An error occurred while deleting the invite' });
   }
 });
 
