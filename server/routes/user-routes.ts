@@ -18,14 +18,19 @@ router.get('/profile', requireAuth, async (req, res) => {
       });
     }
     
+    console.log(`Fetching user profile for session user ID: ${req.session.userId}`);
+    
     const result = await userManagementService.getUserById(req.session.userId);
 
     if (!result.success) {
+      console.log(`User profile not found for ID: ${req.session.userId}`);
       return res.status(404).json({
         success: false,
         error: 'User profile not found'
       });
     }
+
+    console.log(`Raw user data from service:`, result.user);
 
     // Return the user profile with additional fields
     const userProfile = {
@@ -35,6 +40,8 @@ router.get('/profile', requireAuth, async (req, res) => {
       title: result.user?.jobTitle || '',  // Map jobTitle to title for backward compatibility
       isTestUser: result.user?.isTestUser || false, // Ensure isTestUser field is included
     };
+
+    console.log(`Final user profile being returned:`, userProfile);
 
     // Return user data directly (not wrapped in success object) for frontend compatibility
     res.json(userProfile);
