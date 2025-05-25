@@ -283,6 +283,33 @@ class UserManagementService {
   }
   
   /**
+   * Get all users
+   */
+  async getAllUsers() {
+    try {
+      const result = await db.select()
+        .from(users);
+      
+      // Return the users without their passwords
+      const usersWithoutPasswords = result.map(user => {
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
+      });
+      
+      return {
+        success: true,
+        users: usersWithoutPasswords
+      };
+    } catch (error) {
+      console.error('Error getting all users:', error);
+      return {
+        success: false,
+        error: 'Failed to get users'
+      };
+    }
+  }
+
+  /**
    * Get all test users
    */
   async getAllTestUsers() {

@@ -81,10 +81,10 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
 /**
  * Get all invites (admin only)
  */
-router.get('/invites', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.get('/invites', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     // Get all invites
-    const invites = await InviteService.getInvitesByCreator(req.user.id);
+    const invites = await inviteService.getInvitesByCreator(req.session.userId);
     
     // Format invite codes for display
     const formattedInvites = invites.map(invite => ({
@@ -105,7 +105,7 @@ router.get('/invites', requireAuth, requireAdmin, async (req: Request, res: Resp
 /**
  * Generate multiple invite codes at once (admin only)
  */
-router.post('/invites/batch', isAuthenticated, isAdmin, async (req: Request, res: Response) => {
+router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const batchSchema = z.object({
       count: z.number().min(1).max(50),
@@ -232,7 +232,7 @@ router.put('/users/:id/test-status', requireAuth, isAdmin, async (req: Request, 
 /**
  * Get all test users (admin only)
  */
-router.get('/test-users', requireAuth, requireAdmin, async (req: Request, res: Response) => {
+router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
     const result = await userManagementService.getAllTestUsers();
     

@@ -105,6 +105,23 @@ class InviteService {
   }
   
   /**
+   * Get all invites created by a specific user
+   */
+  async getInvitesByCreator(creatorId: number) {
+    try {
+      const result = await db.select()
+        .from(invites)
+        .where(eq(invites.createdBy, creatorId))
+        .orderBy(invites.createdAt);
+      
+      return result;
+    } catch (error) {
+      console.error('Error getting invites by creator:', error);
+      return [];
+    }
+  }
+  
+  /**
    * Get all invites for an admin view
    */
   async getAllInvites() {
