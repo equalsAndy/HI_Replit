@@ -293,6 +293,24 @@ export default function WorkshopResetTest() {
       
       // Clear any data in memory 
       setServerData({ status: "Resetting data..." });
+
+      // Special handling for user 1 if needed (specifically delete starCard and flowAttributes)
+      if (userId === 1) {
+        // First, directly delete the star card for this user
+        const deleteStarCardResponse = await fetch(`/api/test-users/reset/user/${userId}/starcard`, {
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          credentials: 'include',
+          cache: 'no-store'
+        });
+        
+        if (!deleteStarCardResponse.ok) {
+          console.error("Error deleting star card:", await deleteStarCardResponse.text());
+        }
+      }
       
       // Call the reset API with the correct endpoint
       const resetResponse = await fetch(`/api/test-users/reset/user/${userId}`, {
