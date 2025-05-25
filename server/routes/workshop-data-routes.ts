@@ -12,13 +12,21 @@ const workshopDataRouter = Router();
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
   try {
     // Get user ID from session (primary) or cookie (fallback)
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
       });
+    }
+    
+    // Fix for test users - use session userId instead of cookie userId (1) if available
+    // This ensures we're fetching star card data for the correct user
+    console.log(`StarCard: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+      console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
     console.log(`Fetching star card for user ${userId}`);
@@ -89,13 +97,20 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
 workshopDataRouter.get('/flow-attributes', async (req: Request, res: Response) => {
   try {
     // Get user ID from session (primary) or cookie (fallback)
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
       });
+    }
+    
+    // Fix for test users - use session userId instead of cookie userId (1) if available
+    console.log(`Flow Attributes: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+      console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
     // Try to find flow attributes for this user
@@ -277,13 +292,21 @@ workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response
 workshopDataRouter.post('/assessment/complete', async (req: Request, res: Response) => {
   try {
     // Get user ID from session (primary) or cookie (fallback) for better reliability
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
       });
+    }
+    
+    // If test user with cookie userId is 1 but session userId is different, use session ID
+    // This ensures star card data is saved for the correct user
+    console.log(`Assessment: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+      console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
     // In a real implementation, we'd calculate the results based on all answers
@@ -374,9 +397,16 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
     console.log('Flow attributes save request received:', req.body);
     
     // Get user ID from session (primary) or cookie (fallback)
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    console.log('User ID from request:', userId);
+    // Fix for test users - use session userId instead of cookie userId (1) if available
+    console.log(`Flow Attributes POST: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+      console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
+    }
+    
+    console.log('User ID for saving flow attributes:', userId);
     
     if (!userId) {
       return res.status(401).json({
