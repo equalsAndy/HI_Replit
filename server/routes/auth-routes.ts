@@ -1,261 +1,278 @@
-import express, { Request, Response } from 'express';
-import { z } from 'zod';
-import bcrypt from 'bcryptjs';
-import { db } from '../db';
-import * as schema from '../../shared/schema';
-import { eq } from 'drizzle-orm';
-import { inviteService } from '../services/invite-service';
+import express from 'express';
 import { userManagementService } from '../services/user-management-service';
-import { isAuthenticated } from '../middleware/auth';
+import { inviteService } from '../services/invite-service';
+import { normalizeInviteCode } from '../utils/invite-code';
+import bcrypt from 'bcryptjs';
 
-const router = express.Router();
+export const authRouter = express.Router();
 
-// Register with invite code
-router.post('/register', async (req: Request, res: Response) => {
+// Login route
+authRouter.post('/login', async (req, res) => {
   try {
-    // Define validation schema for registration with invite code
-    const registerSchema = z.object({
-      username: z.string().min(3, 'Username must be at least 3 characters'),
-      email: z.string().email('Valid email is required'),
-      password: z
-        .string()
-        .min(8, 'Password must be at least 8 characters')
-        .regex(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-          'Password must include at least one uppercase letter, one lowercase letter, and one number'
-        ),
-      inviteCode: z.string().min(12).max(12),
-      firstName: z.string().optional(),
-      lastName: z.string().optional(),
-      organization: z.string().optional(),
-      jobTitle: z.string().optional(),
-    });
-
-    const data = registerSchema.parse(req.body);
+    const { username, password } = req.body;
     
-    // Verify invite code is valid and unused
-    const inviteData = await inviteService.verifyInviteCode(data.inviteCode);
-    if (!inviteData) {
-      return res.status(400).json({ error: 'Invalid or expired invite code' });
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
     }
-
-    // Check if username or email already exists
-    const existingUser = await db.query.users.findFirst({
-      where: (users) => {
-        return eq(users.username, data.username);
-      },
-    });
-
-    if (existingUser) {
-      return res.status(400).json({ error: 'Username already exists' });
-    }
-
-    const existingEmail = await db.query.users.findFirst({
-      where: (users) => {
-        return eq(users.email, data.email);
-      },
-    });
-
-    if (existingEmail) {
-      return res.status(400).json({ error: 'Email already exists' });
-    }
-
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(data.password, salt);
-
-    // Create user with role from invite
-    const newUser = await userManagementService.createUser({
-      username: data.username,
-      email: data.email,
-      password: hashedPassword,
-      firstName: data.firstName || null,
-      lastName: data.lastName || null,
-      organization: data.organization || null,
-      jobTitle: data.jobTitle || null,
-      role: inviteData.role,
-      cohortId: inviteData.cohortId,
-    });
-
-    // Mark invite as used
-    await inviteService.markInviteAsUsed(data.inviteCode, newUser.id);
-
-    // Set up session
-    req.session.userId = newUser.id;
-    req.session.userRole = newUser.role;
-    req.session.username = newUser.username;
-
-    res.status(201).json({
-      id: newUser.id,
-      username: newUser.username,
-      email: newUser.email,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      organization: newUser.organization,
-      jobTitle: newUser.jobTitle,
-      role: newUser.role,
-    });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(400).json({
-      error: error instanceof Error ? error.message : 'Registration failed',
-    });
-  }
-});
-
-// Login endpoint
-router.post('/login', async (req: Request, res: Response) => {
-  try {
-    const loginSchema = z.object({
-      username: z.string(),
-      password: z.string(),
-    });
-
-    const { username, password } = loginSchema.parse(req.body);
-
-    // Find user by username
-    const user = await db.query.users.findFirst({
-      where: (users) => {
-        return eq(users.username, username);
-      },
-    });
-
+    
+    // Validate user credentials
+    const user = await userManagementService.validateUserCredentials(username, password);
+    
     if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+      return res.status(401).json({ error: 'Invalid username or password' });
     }
-
-    // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid credentials' });
+    
+    // Check if user is soft deleted
+    if (user.deletedAt) {
+      return res.status(403).json({ error: 'This account has been deactivated' });
     }
-
-    // Set up session
+    
+    // Set session data
     req.session.userId = user.id;
-    req.session.userRole = user.role;
     req.session.username = user.username;
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      organization: user.organization,
-      jobTitle: user.jobTitle,
-      role: user.role,
+    req.session.userRole = user.role;
+    
+    // Update last login timestamp
+    await userManagementService.updateLastLogin(user.id);
+    
+    // Return user data (excluding password)
+    return res.status(200).json({
+      user: {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        organization: user.organization,
+        jobTitle: user.jobTitle,
+        profilePicture: user.profilePicture
+      }
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(400).json({
-      error: error instanceof Error ? error.message : 'Login failed',
-    });
+    return res.status(500).json({ error: 'An error occurred during login' });
   }
 });
 
-// Logout endpoint
-router.post('/logout', (req: Request, res: Response) => {
-  req.session.destroy((err) => {
-    if (err) {
-      console.error('Logout error:', err);
-      return res.status(500).json({ error: 'Failed to logout' });
-    }
-    res.clearCookie('connect.sid');
-    res.status(200).json({ message: 'Logged out successfully' });
-  });
-});
-
-// Get current user
-router.get('/me', isAuthenticated, async (req: Request, res: Response) => {
+// Verify invite code route
+authRouter.post('/verify-invite', async (req, res) => {
   try {
-    const userId = req.session.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    const { inviteCode } = req.body;
+    
+    if (!inviteCode) {
+      return res.status(400).json({ error: 'Invite code is required' });
     }
-
-    const user = await db.query.users.findFirst({
-      where: (users) => {
-        return eq(users.id, userId);
-      },
-    });
-
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+    
+    // Normalize and verify the invite code
+    const normalizedCode = normalizeInviteCode(inviteCode);
+    const verification = await inviteService.verifyInviteCode(normalizedCode);
+    
+    if (!verification.valid) {
+      return res.status(400).json({ error: verification.message });
     }
-
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      organization: user.organization,
-      jobTitle: user.jobTitle,
-      role: user.role,
+    
+    // Return basic invite data for registration
+    return res.status(200).json({
+      valid: true,
+      name: verification.invite.name || null,
+      email: verification.invite.email || null,
+      role: verification.invite.role,
+      cohortId: verification.invite.cohortId,
+      inviteCode: normalizedCode
     });
   } catch (error) {
-    console.error('Get current user error:', error);
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to get user',
+    console.error('Invite verification error:', error);
+    return res.status(500).json({ error: 'An error occurred while verifying the invite code' });
+  }
+});
+
+// Register with invite code route
+authRouter.post('/register', async (req, res) => {
+  try {
+    const { 
+      username, 
+      password, 
+      email, 
+      name, 
+      inviteCode,
+      organization,
+      jobTitle,
+      profilePicture
+    } = req.body;
+    
+    // Validate required fields
+    if (!username || !password || !email || !name || !inviteCode) {
+      return res.status(400).json({ error: 'All required fields must be provided' });
+    }
+    
+    // Normalize and verify the invite code
+    const normalizedCode = normalizeInviteCode(inviteCode);
+    const verification = await inviteService.verifyInviteCode(normalizedCode);
+    
+    if (!verification.valid) {
+      return res.status(400).json({ error: verification.message });
+    }
+    
+    // Validate username format and availability
+    const usernameValidation = await userManagementService.validateUsername(username);
+    if (!usernameValidation.valid) {
+      return res.status(400).json({ error: usernameValidation.message });
+    }
+    
+    // Validate password strength
+    const passwordValidation = userManagementService.validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.message });
+    }
+    
+    // Check if email is already in use
+    const existingEmail = await userManagementService.getUserByEmail(email);
+    if (existingEmail) {
+      return res.status(400).json({ error: 'Email is already in use' });
+    }
+    
+    // Create the user
+    const newUser = await userManagementService.createUser({
+      username,
+      password,
+      email,
+      name,
+      role: verification.invite.role,
+      inviteCode: normalizedCode,
+      organization,
+      jobTitle,
+      profilePicture,
+      createdByFacilitator: verification.invite.createdBy
     });
+    
+    // Mark invite as used
+    await inviteService.markInviteAsUsed(normalizedCode, newUser.id);
+    
+    // Set session data
+    req.session.userId = newUser.id;
+    req.session.username = newUser.username;
+    req.session.userRole = newUser.role;
+    
+    // Return user data (excluding password)
+    const { password: _, ...userWithoutPassword } = newUser;
+    return res.status(201).json({ user: userWithoutPassword });
+  } catch (error) {
+    console.error('Registration error:', error);
+    return res.status(500).json({ error: 'An error occurred during registration' });
+  }
+});
+
+// Get current user data
+authRouter.get('/me', async (req, res) => {
+  try {
+    // Check if user is authenticated
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    // Get user data
+    const user = await userManagementService.getUserById(req.session.userId);
+    
+    if (!user) {
+      // Clear session if user not found
+      req.session.destroy(err => {
+        if (err) console.error('Session destruction error:', err);
+      });
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if user is soft deleted
+    if (user.deletedAt) {
+      // Clear session if user is deleted
+      req.session.destroy(err => {
+        if (err) console.error('Session destruction error:', err);
+      });
+      return res.status(403).json({ error: 'This account has been deactivated' });
+    }
+    
+    // Return user data
+    return res.status(200).json({ user });
+  } catch (error) {
+    console.error('Get current user error:', error);
+    return res.status(500).json({ error: 'An error occurred while fetching user data' });
+  }
+});
+
+// Update user profile
+authRouter.put('/profile', async (req, res) => {
+  try {
+    // Check if user is authenticated
+    if (!req.session || !req.session.userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+    
+    const { name, organization, jobTitle, profilePicture } = req.body;
+    
+    // Update profile
+    const updatedProfile = await userManagementService.updateUserProfile(
+      req.session.userId,
+      { name, organization, jobTitle, profilePicture }
+    );
+    
+    return res.status(200).json({ profile: updatedProfile });
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ error: 'An error occurred while updating profile' });
   }
 });
 
 // Change password
-router.post('/change-password', isAuthenticated, async (req: Request, res: Response) => {
+authRouter.post('/change-password', async (req, res) => {
   try {
-    const passwordSchema = z.object({
-      currentPassword: z.string(),
-      newPassword: z
-        .string()
-        .min(8, 'Password must be at least 8 characters')
-        .regex(
-          /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-          'Password must include at least one uppercase letter, one lowercase letter, and one number'
-        ),
-    });
-
-    const { currentPassword, newPassword } = passwordSchema.parse(req.body);
-    const userId = req.session.userId;
-
-    if (!userId) {
+    // Check if user is authenticated
+    if (!req.session || !req.session.userId) {
       return res.status(401).json({ error: 'Not authenticated' });
     }
-
-    // Find user
-    const user = await db.query.users.findFirst({
-      where: (users) => {
-        return eq(users.id, userId);
-      },
-    });
-
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ error: 'Current password and new password are required' });
+    }
+    
+    // Get user with password
+    const user = await userManagementService.getUserWithPassword(req.session.userId);
+    
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-
+    
     // Verify current password
-    const isMatch = await bcrypt.compare(currentPassword, user.password);
-    if (!isMatch) {
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    if (!isPasswordValid) {
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
-
-    // Hash new password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-    // Update password
-    await db
-      .update(schema.users)
-      .set({ password: hashedPassword })
-      .where(eq(schema.users.id, userId));
-
-    res.json({ message: 'Password updated successfully' });
+    
+    // Validate new password strength
+    const passwordValidation = userManagementService.validatePassword(newPassword);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.message });
+    }
+    
+    // Change password
+    await userManagementService.changePassword(req.session.userId, newPassword);
+    
+    return res.status(200).json({ message: 'Password changed successfully' });
   } catch (error) {
     console.error('Change password error:', error);
-    res.status(400).json({
-      error: error instanceof Error ? error.message : 'Failed to change password',
-    });
+    return res.status(500).json({ error: 'An error occurred while changing password' });
   }
 });
 
-export { router as authRouter };
+// Logout route
+authRouter.post('/logout', (req, res) => {
+  req.session.destroy(err => {
+    if (err) {
+      console.error('Logout error:', err);
+      return res.status(500).json({ error: 'An error occurred during logout' });
+    }
+    res.clearCookie('connect.sid');
+    return res.status(200).json({ message: 'Logged out successfully' });
+  });
+});

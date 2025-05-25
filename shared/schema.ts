@@ -21,6 +21,9 @@ export const users = pgTable('users', {
   jobTitle: varchar('job_title', { length: 100 }),
   profilePicture: text('profile_picture'),
   bio: text('bio'),
+  role: userRoleEnum('role').notNull().default('participant'),
+  inviteCode: varchar('invite_code', { length: 12 }).unique(),
+  codeUsed: boolean('code_used').default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
   deletedAt: timestamp('deleted_at'),
@@ -239,6 +242,11 @@ export const invitesRelations = relations(invites, ({ one }) => ({
     fields: [invites.createdBy],
     references: [users.id],
     relationName: 'creator',
+  }),
+  user: one(users, {
+    fields: [invites.usedBy],
+    references: [users.id],
+    relationName: 'user',
   }),
   cohort: one(cohorts, {
     fields: [invites.cohortId],
