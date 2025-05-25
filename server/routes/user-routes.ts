@@ -114,66 +114,79 @@ router.get('/assessments', requireAuth, async (req, res) => {
     // Import and use the correct Drizzle eq operator
     const { eq } = await import('drizzle-orm');
     
-    // Fetch all assessment data for the current user
-    const assessments = await db
-      .select()
-      .from(schema.userAssessments)
-      .where(eq(schema.userAssessments.userId, sessionUserId));
-    
-    // Also look for assessments that might be incorrectly stored with the cookie user ID
-    let cookieAssessments: any[] = [];
-    if (cookieUserId && cookieUserId !== sessionUserId) {
-      cookieAssessments = await db
-        .select()
-        .from(schema.userAssessments)
-        .where(eq(schema.userAssessments.userId, cookieUserId));
-    }
-    
-    // Format assessment results to show human-readable data
-    const formattedAssessments = assessments.map(assessment => {
-      try {
-        const parsedResults = JSON.parse(assessment.results);
-        return {
-          ...assessment,
-          parsedResults
-        };
-      } catch (e) {
-        return assessment;
-      }
-    });
-    
-    // Format cookie assessments as well
-    const formattedCookieAssessments = cookieAssessments.map(assessment => {
-      try {
-        const parsedResults = JSON.parse(assessment.results);
-        return {
-          ...assessment,
-          parsedResults
-        };
-      } catch (e) {
-        return assessment;
-      }
-    });
-    
-    // Query all user assessments for debugging
+    // Execute a query to get all user assessment records
     const allAssessments = await db
       .select()
       .from(schema.userAssessments);
+      
+    // Parse the results to make them more readable
+    const formattedAssessments = allAssessments.map(assessment => {
+      try {
+        // Try to parse the JSON results
+        let parsedResults = {};
+        try {
+          parsedResults = JSON.parse(assessment.results);
+        } catch (e) {
+          parsedResults = { error: "Failed to parse results JSON" };
+        }
+        
+        // Format the assessment record
+        return {
+          id: assessment.id,
+          userId: assessment.userId,
+          type: assessment.assessmentType,
+          created: assessment.createdAt,
+          formattedResults: parsedResults
+        };
+      } catch (e) {
+        return {
+          id: assessment.id,
+          userId: assessment.userId,
+          error: "Failed to process assessment record"
+        };
+      }
+    });
     
+    // Group by user ID for better organization
+    const assessmentsByUser: Record<number, any[]> = {};
+    formattedAssessments.forEach(assessment => {
+      const userId = assessment.userId;
+      if (!assessmentsByUser[userId]) {
+        assessmentsByUser[userId] = [];
+      }
+      assessmentsByUser[userId].push(assessment);
+    });
+    
+    // Format by assessment type for the current user
+    const currentUserAssessments = formattedAssessments
+      .filter(a => a.userId === sessionUserId)
+      .reduce((result: Record<string, any>, assessment) => {
+        const type = assessment.type;
+        result[type] = assessment;
+        return result;
+      }, {});
+      
+    // Get star card data specifically
+    const starCardData = currentUserAssessments.starCard?.formattedResults || null;
+    
+    // Return formatted data that's easy to read in the UI
     res.json({
       success: true,
       userInfo: {
-        sessionUserId: req.user.id,
+        sessionUserId,
         cookieUserId
       },
-      assessments: formattedAssessments,
-      cookieAssessments: formattedCookieAssessments,
-      allAssessments: allAssessments.map(a => ({
-        id: a.id,
-        userId: a.userId,
-        type: a.assessmentType,
-        created: a.createdAt
-      }))
+      currentUser: {
+        assessments: currentUserAssessments,
+        starCard: starCardData
+      },
+      // Include all assessments grouped by user for a complete view
+      allUsers: assessmentsByUser,
+      // Raw data for developers
+      raw: {
+        assessmentCount: allAssessments.length,
+        allAssessments: formattedAssessments
+      }
     });
   } catch (error) {
     console.error('Error getting user assessments:', error);
@@ -189,7 +202,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
-    if (!req.user?.id) {
+    if (!req.session.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
