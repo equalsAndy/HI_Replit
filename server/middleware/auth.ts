@@ -1,12 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
 
+// Define user types in Express Request
+declare global {
+  namespace Express {
+    interface User {
+      id: number;
+      username: string;
+      role: 'admin' | 'facilitator' | 'participant';
+      name: string;
+      email: string;
+    }
+    
+    interface Session {
+      userId?: number;
+      username?: string;
+      userRole?: 'admin' | 'facilitator' | 'participant';
+    }
+  }
+}
+
 /**
  * Middleware to require authentication
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
   }
+  
   next();
 };
 
@@ -15,11 +38,17 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
   }
   
   if (req.session.userRole !== 'admin') {
-    return res.status(403).json({ error: 'Admin role required' });
+    return res.status(403).json({
+      success: false,
+      error: 'Admin privileges required'
+    });
   }
   
   next();
@@ -30,34 +59,35 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
  */
 export const requireFacilitator = (req: Request, res: Response, next: NextFunction) => {
   if (!req.session.userId) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({
+      success: false,
+      error: 'Authentication required'
+    });
   }
   
   if (req.session.userRole !== 'admin' && req.session.userRole !== 'facilitator') {
-    return res.status(403).json({ error: 'Facilitator role or higher required' });
+    return res.status(403).json({
+      success: false,
+      error: 'Facilitator privileges required'
+    });
   }
   
   next();
 };
 
-// Extend Express Request to include user session data
-declare module 'express-session' {
-  interface SessionData {
-    userId: number;
-    username: string;
-    userRole: 'admin' | 'facilitator' | 'participant';
+/**
+ * Middleware to attach the user to the request if authenticated
+ */
+export const attachUser = (req: Request, res: Response, next: NextFunction) => {
+  if (req.session.userId) {
+    req.user = {
+      id: req.session.userId,
+      username: req.session.username || '',
+      role: req.session.userRole || 'participant',
+      name: '',  // These are placeholders as we don't store these in the session
+      email: ''  // for security reasons
+    };
   }
-}
-
-// Extend Express Request to include user data
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: number;
-        username: string;
-        role: 'admin' | 'facilitator' | 'participant';
-      };
-    }
-  }
-}
+  
+  next();
+};

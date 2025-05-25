@@ -1,118 +1,167 @@
 import express from 'express';
-import { z } from 'zod';
-import { inviteService } from '../services/invite-service';
 import { userManagementService } from '../services/user-management-service';
-import { isValidInviteCodeFormat } from '../utils/invite-code';
+import { inviteService } from '../services/invite-service';
+import { z } from 'zod';
+import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code';
 
-// Create the auth registration router
-export const authRegisterRouter = express.Router();
+const router = express.Router();
 
-// Schema for validating username availability
-const usernameCheckSchema = z.object({
-  username: z.string().min(3).max(50)
-});
+/**
+ * Validate an invite code
+ */
+router.post('/validate-invite', async (req, res) => {
+  const { inviteCode } = req.body;
 
-// Schema for validating registration with invite
-const registerWithInviteSchema = z.object({
-  username: z.string().min(3).max(50),
-  password: z.string().min(8),
-  name: z.string().min(2),
-  email: z.string().email(),
-  organization: z.string().optional(),
-  jobTitle: z.string().optional(),
-  inviteCode: z.string().min(12).max(12)
-    .refine(code => isValidInviteCodeFormat(code), {
-      message: 'Invalid invite code format'
-    }),
-  role: z.enum(['admin', 'facilitator', 'participant'])
-});
+  if (!inviteCode) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invite code is required'
+    });
+  }
 
-// Check if a username is available
-authRegisterRouter.post('/check-username', async (req, res) => {
+  // Validate the format of the invite code
+  if (!validateInviteCode(inviteCode)) {
+    return res.status(400).json({
+      success: false,
+      error: 'Invalid invite code format'
+    });
+  }
+
   try {
-    const { username } = usernameCheckSchema.parse(req.body);
+    // Normalize the invite code (remove hyphens, convert to uppercase)
+    const normalizedCode = normalizeInviteCode(inviteCode);
     
-    const available = await userManagementService.isUsernameAvailable(username);
-    
-    return res.status(200).json({ available });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+    // Check if the invite code exists and is valid
+    const result = await inviteService.getInviteByCode(normalizedCode);
+
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid invite code'
+      });
     }
-    console.error('Error checking username:', error);
-    return res.status(500).json({ error: 'An error occurred while checking username availability' });
+
+    // Check if the invite code has already been used
+    if (result.invite?.usedAt) {
+      return res.status(400).json({
+        success: false,
+        error: 'This invite code has already been used'
+      });
+    }
+
+    // Check if the invite code has expired
+    if (result.invite?.expiresAt && new Date(result.invite.expiresAt) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'This invite code has expired'
+      });
+    }
+
+    // Return the invite details (excluding sensitive data)
+    res.json({
+      success: true,
+      invite: {
+        email: result.invite.email,
+        role: result.invite.role,
+        name: result.invite.name
+      }
+    });
+  } catch (error) {
+    console.error('Error validating invite code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to validate invite code'
+    });
   }
 });
 
-// Register with invite code
-authRegisterRouter.post('/register-with-invite', async (req, res) => {
+/**
+ * Register a new user with an invite code
+ */
+router.post('/register', async (req, res) => {
+  const registerSchema = z.object({
+    inviteCode: z.string().min(12, 'Invite code is required'),
+    username: z.string().min(3, 'Username must be at least 3 characters'),
+    password: z.string().min(8, 'Password must be at least 8 characters'),
+    name: z.string().min(1, 'Name is required'),
+    email: z.string().email('Invalid email address'),
+    organization: z.string().optional().nullable(),
+    jobTitle: z.string().optional().nullable(),
+    profilePicture: z.string().optional().nullable()
+  });
+
   try {
-    // Validate the request data
-    const validatedData = registerWithInviteSchema.parse(req.body);
+    const data = registerSchema.parse(req.body);
     
-    // Verify the invite
-    const verification = await inviteService.verifyInvite(validatedData.inviteCode);
+    // Normalize the invite code
+    const normalizedCode = normalizeInviteCode(data.inviteCode);
     
-    if (!verification.valid || !verification.invite) {
-      return res.status(400).json({ 
-        error: verification.error || 'Invalid invite code' 
+    // Verify the invite code
+    const inviteResult = await inviteService.getInviteByCode(normalizedCode);
+    
+    if (!inviteResult.success || inviteResult.invite?.usedAt) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid or already used invite code'
       });
     }
     
-    // Check that email matches the invite
-    if (verification.invite.email.toLowerCase() !== validatedData.email.toLowerCase()) {
-      return res.status(400).json({ 
+    // Check if the invite code has expired
+    if (inviteResult.invite?.expiresAt && new Date(inviteResult.invite.expiresAt) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'This invite code has expired'
+      });
+    }
+    
+    // Check if the email matches the invite
+    if (data.email.toLowerCase() !== inviteResult.invite.email.toLowerCase()) {
+      return res.status(400).json({
+        success: false,
         error: 'Email does not match the invite'
       });
     }
     
-    // Check that the role matches the invite
-    if (verification.invite.role !== validatedData.role) {
-      return res.status(400).json({ 
-        error: 'Role does not match the invite'
-      });
-    }
-    
-    // Check if username is available
-    const isUsernameAvailable = await userManagementService.isUsernameAvailable(validatedData.username);
-    
-    if (!isUsernameAvailable) {
-      return res.status(400).json({ 
-        error: 'Username is already taken'
-      });
-    }
-    
     // Create the user
-    const newUser = await userManagementService.createUser({
-      username: validatedData.username,
-      password: validatedData.password,
-      name: validatedData.name,
-      email: validatedData.email,
-      role: validatedData.role,
-      organization: validatedData.organization,
-      jobTitle: validatedData.jobTitle
+    const createResult = await userManagementService.createUser({
+      username: data.username,
+      password: data.password,
+      name: data.name,
+      email: data.email,
+      role: inviteResult.invite.role as 'admin' | 'facilitator' | 'participant',
+      organization: data.organization,
+      jobTitle: data.jobTitle,
+      profilePicture: data.profilePicture
     });
+    
+    if (!createResult.success) {
+      return res.status(400).json(createResult);
+    }
     
     // Mark the invite as used
-    await inviteService.markInviteAsUsed(validatedData.inviteCode, newUser.id);
+    await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id);
     
-    // Log the user in
-    req.session.userId = newUser.id;
-    req.session.username = newUser.username;
-    req.session.userRole = newUser.role;
+    // Set session data
+    req.session.userId = createResult.user.id;
+    req.session.username = createResult.user.username;
+    req.session.userRole = createResult.user.role;
     
-    // Return the user (excluding password)
-    const { password, ...userWithoutPassword } = newUser;
-    
-    return res.status(201).json({
-      message: 'Registration successful',
-      user: userWithoutPassword
-    });
+    // Return the user data
+    res.json(createResult);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+      return res.status(400).json({
+        success: false,
+        error: error.errors[0].message
+      });
     }
-    console.error('Error during registration:', error);
-    return res.status(500).json({ error: 'An error occurred during registration' });
+    
+    console.error('Error registering user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to register user'
+    });
   }
 });
+
+export default router;

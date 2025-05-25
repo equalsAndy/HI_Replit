@@ -4,99 +4,119 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiRequest } from '@/lib/queryClient';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useToast } from '@/hooks/use-toast';
+import { Loader2 } from 'lucide-react';
 
-// Form schema for invite code validation
+// Define the form schema
 const inviteFormSchema = z.object({
-  inviteCode: z.string()
-    .min(12, 'Invite code must be exactly 12 characters')
-    .max(12, 'Invite code must be exactly 12 characters')
-    .regex(/^[A-Z0-9]+$/, 'Invite code must contain only uppercase letters and numbers')
+  inviteCode: z
+    .string()
+    .min(1, 'Invite code is required')
+    .regex(/^[A-Z0-9-]{12,14}$/, 'Invalid invite code format')
 });
 
 type InviteFormValues = z.infer<typeof inviteFormSchema>;
 
 interface InviteVerificationProps {
   onVerified: (inviteData: { 
+    inviteCode: string; 
     email: string; 
-    role: string; 
+    role: string;
     name?: string; 
-    inviteCode: string;
   }) => void;
 }
 
-export const InviteVerification: React.FC<InviteVerificationProps> = ({ onVerified }) => {
-  const [error, setError] = useState<string | null>(null);
+const InviteVerification: React.FC<InviteVerificationProps> = ({ onVerified }) => {
   const [isVerifying, setIsVerifying] = useState(false);
+  const { toast } = useToast();
 
-  // Form initialization
+  // Initialize form
   const form = useForm<InviteFormValues>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
-      inviteCode: '',
-    },
+      inviteCode: ''
+    }
   });
 
   // Handle form submission
-  const onSubmit = async (values: InviteFormValues) => {
+  const onSubmit = async (data: InviteFormValues) => {
     setIsVerifying(true);
-    setError(null);
     
     try {
-      // Remove any hyphens that might have been entered
-      const cleanCode = values.inviteCode.replace(/-/g, '').toUpperCase();
+      // Format the invite code (remove spaces, etc.)
+      const formattedCode = data.inviteCode.replace(/\s+/g, '').toUpperCase();
       
-      // Verify the invite code with the server
-      const response = await apiRequest('/api/invites/verify', {
+      // Verify the invite code with the API
+      const response = await fetch(`/api/auth/validate-invite`, {
         method: 'POST',
-        body: JSON.stringify({ inviteCode: cleanCode }),
+        body: JSON.stringify({ inviteCode: formattedCode }),
         headers: {
-          'Content-Type': 'application/json',
-        },
+          'Content-Type': 'application/json'
+        }
       });
       
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to verify invite code');
+      const result = await response.json();
+      
+      if (!result.success) {
+        toast({
+          variant: 'destructive',
+          title: 'Verification failed',
+          description: result.error || 'Invalid invite code'
+        });
+        setIsVerifying(false);
+        return;
       }
       
-      const data = await response.json();
-      
-      if (!data.valid) {
-        throw new Error(data.error || 'Invalid invite code');
-      }
-      
-      // Pass the verified invite data to the parent component
+      // Call the onVerified callback with the invite data
       onVerified({
-        email: data.invite.email,
-        role: data.invite.role,
-        name: data.invite.name,
-        inviteCode: cleanCode
+        inviteCode: formattedCode,
+        email: result.invite.email,
+        role: result.invite.role,
+        name: result.invite.name
       });
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred');
+      
+      toast({
+        title: 'Invite code verified',
+        description: 'Your invite code has been successfully verified.'
+      });
+    } catch (error) {
+      console.error('Error verifying invite code:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Verification failed',
+        description: 'There was a problem verifying your invite code. Please try again.'
+      });
     } finally {
       setIsVerifying(false);
     }
   };
 
+  // Handle auto-formatting of invite code as user types
+  const formatInviteCode = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^A-Za-z0-9-]/g, '').toUpperCase();
+    
+    // Add hyphens after every 4 characters (if not already there)
+    if (value.length > 4 && value.charAt(4) !== '-' && !value.includes('-')) {
+      value = value.replace(/(.{4})/g, '$1-');
+    }
+    
+    // Limit to 14 characters (12 chars + 2 hyphens)
+    value = value.substring(0, 14);
+    
+    form.setValue('inviteCode', value);
+  };
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Join Heliotrope Imaginal Workshops</CardTitle>
-        <CardDescription>
-          Enter your invite code to get started
+        <CardTitle className="text-2xl text-center">Enter Your Invite Code</CardTitle>
+        <CardDescription className="text-center">
+          Please enter the invite code you received to create your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <Alert variant="destructive" className="mb-4">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -107,41 +127,40 @@ export const InviteVerification: React.FC<InviteVerificationProps> = ({ onVerifi
                   <FormLabel>Invite Code</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="XXXX-XXXX-XXXX"
                       {...field}
-                      autoComplete="off"
                       onChange={(e) => {
-                        // Format the invite code with hyphens for better readability
-                        let value = e.target.value.replace(/-/g, '').toUpperCase();
-                        if (value.length > 12) value = value.slice(0, 12);
-                        
-                        // Add hyphens for display
-                        if (value.length > 8) {
-                          value = `${value.slice(0, 4)}-${value.slice(4, 8)}-${value.slice(8)}`;
-                        } else if (value.length > 4) {
-                          value = `${value.slice(0, 4)}-${value.slice(4)}`;
-                        }
-                        
-                        field.onChange(value);
+                        field.onChange(e);
+                        formatInviteCode(e);
                       }}
+                      placeholder="XXXX-XXXX-XXXX"
+                      className="text-center tracking-widest uppercase"
+                      disabled={isVerifying}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            <Button type="submit" className="w-full" disabled={isVerifying}>
+              {isVerifying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Verifying...
+                </>
+              ) : (
+                'Verify Invite Code'
+              )}
+            </Button>
           </form>
         </Form>
       </CardContent>
-      <CardFooter>
-        <Button 
-          className="w-full" 
-          onClick={form.handleSubmit(onSubmit)}
-          disabled={isVerifying}
-        >
-          {isVerifying ? 'Verifying...' : 'Continue'}
-        </Button>
+      <CardFooter className="flex justify-center text-sm text-muted-foreground">
+        <p>
+          If you don't have an invite code, please contact your administrator.
+        </p>
       </CardFooter>
     </Card>
   );
 };
+
+export default InviteVerification;

@@ -1,188 +1,178 @@
 import express from 'express';
-import { z } from 'zod';
 import { inviteService } from '../services/invite-service';
-import { formatInviteCode } from '../utils/invite-code';
+import { requireAdmin, requireFacilitator } from '../middleware/auth';
+import { validateInviteCode, formatInviteCode } from '../utils/invite-code';
 
-// Create the invite router
-export const inviteRouter = express.Router();
+const router = express.Router();
 
-// Define middleware to check if user is admin
-const isAdmin = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  if (req.session.userRole !== 'admin') {
-    return res.status(403).json({ error: 'Access denied. Admin role required.' });
-  }
-  
-  next();
-};
-
-// Define middleware to check if user is admin or facilitator
-const isAdminOrFacilitator = (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  if (!req.session.userId) {
-    return res.status(401).json({ error: 'Not authenticated' });
-  }
-  
-  if (req.session.userRole !== 'admin' && req.session.userRole !== 'facilitator') {
-    return res.status(403).json({ error: 'Access denied. Admin or facilitator role required.' });
-  }
-  
-  next();
-};
-
-// Verify an invite code (public route)
-inviteRouter.post('/verify', async (req, res) => {
-  const schema = z.object({
-    inviteCode: z.string().min(12).max(12)
-  });
-  
+/**
+ * Create a new invite (admin only)
+ */
+router.post('/', requireAdmin, async (req, res) => {
   try {
-    const { inviteCode } = schema.parse(req.body);
+    const { email, role, name, expiresAt } = req.body;
     
-    const verification = await inviteService.verifyInvite(inviteCode);
-    
-    if (!verification.valid) {
-      return res.status(400).json({ 
-        valid: false, 
-        error: verification.error || 'Invalid invite code' 
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Email is required'
       });
     }
     
-    return res.status(200).json({ 
-      valid: true,
-      invite: {
-        email: verification.invite?.email,
-        role: verification.invite?.role,
-        name: verification.invite?.name
-      }
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
-    console.error('Error verifying invite code:', error);
-    return res.status(500).json({ error: 'An error occurred while verifying the invite code' });
-  }
-});
-
-// Create a new invite (admin or facilitator only)
-inviteRouter.post('/', isAdminOrFacilitator, async (req, res) => {
-  const schema = z.object({
-    email: z.string().email(),
-    role: z.enum(['admin', 'facilitator', 'participant']),
-    name: z.string().optional(),
-    expiresAt: z.date().optional()
-  });
-  
-  try {
-    const data = schema.parse(req.body);
-    
-    // Check if user is authorized to create invites with this role
-    if (data.role === 'admin' && req.session.userRole !== 'admin') {
-      return res.status(403).json({ 
-        error: 'Only administrators can create admin invites' 
+    if (!role || !['admin', 'facilitator', 'participant'].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Valid role is required'
       });
     }
     
-    // Create the invite
     const result = await inviteService.createInvite({
-      email: data.email,
-      role: data.role,
-      name: data.name || null,
+      email,
+      role: role as 'admin' | 'facilitator' | 'participant',
+      name,
       createdBy: req.session.userId!,
-      expiresAt: data.expiresAt || null
+      expiresAt: expiresAt ? new Date(expiresAt) : undefined
     });
     
     if (!result.success) {
-      return res.status(400).json({ error: result.error });
+      return res.status(400).json(result);
     }
     
     // Format the invite code for display
-    const formattedInviteCode = formatInviteCode(result.invite.inviteCode);
+    const formattedInvite = {
+      ...result.invite,
+      formattedCode: formatInviteCode(result.invite.inviteCode)
+    };
     
-    return res.status(201).json({
-      id: result.invite.id,
-      email: result.invite.email,
-      name: result.invite.name,
-      role: result.invite.role,
-      inviteCode: result.invite.inviteCode,
-      formattedInviteCode,
-      expiresAt: result.invite.expiresAt,
-      createdAt: result.invite.createdAt
+    res.json({
+      success: true,
+      invite: formattedInvite
     });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
-    }
     console.error('Error creating invite:', error);
-    return res.status(500).json({ error: 'An error occurred while creating the invite' });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create invite'
+    });
   }
 });
 
-// Get all invites (admin only)
-inviteRouter.get('/', isAdmin, async (req, res) => {
+/**
+ * Get all invites (admin only)
+ */
+router.get('/', requireAdmin, async (req, res) => {
   try {
-    const invites = await inviteService.getAllInvites();
+    const result = await inviteService.getAllInvites();
+    
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
     
     // Format invite codes for display
-    const formattedInvites = invites.map(invite => ({
+    const formattedInvites = result.invites.map(invite => ({
       ...invite,
-      formattedInviteCode: formatInviteCode(invite.inviteCode)
+      formattedCode: formatInviteCode(invite.inviteCode)
     }));
     
-    return res.status(200).json(formattedInvites);
+    res.json({
+      success: true,
+      invites: formattedInvites
+    });
   } catch (error) {
     console.error('Error getting invites:', error);
-    return res.status(500).json({ error: 'An error occurred while getting invites' });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get invites'
+    });
   }
 });
 
-// Get all unused invites (admin or facilitator)
-inviteRouter.get('/unused', isAdminOrFacilitator, async (req, res) => {
+/**
+ * Get invite details by code (public, used for verification)
+ */
+router.get('/code/:code', async (req, res) => {
   try {
-    const invites = await inviteService.getUnusedInvites();
+    const code = req.params.code;
     
-    // Format invite codes for display
-    const formattedInvites = invites.map(invite => ({
-      ...invite,
-      formattedInviteCode: formatInviteCode(invite.inviteCode)
-    }));
-    
-    // If user is a facilitator, filter to only show their invites
-    if (req.session.userRole === 'facilitator') {
-      const filteredInvites = formattedInvites.filter(
-        invite => invite.createdBy === req.session.userId
-      );
-      return res.status(200).json(filteredInvites);
+    if (!validateInviteCode(code)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid invite code format'
+      });
     }
     
-    return res.status(200).json(formattedInvites);
+    const result = await inviteService.getInviteByCode(code.replace(/-/g, '').toUpperCase());
+    
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invalid invite code'
+      });
+    }
+    
+    // Check if the invite code has already been used
+    if (result.invite?.usedAt) {
+      return res.status(400).json({
+        success: false,
+        error: 'This invite code has already been used'
+      });
+    }
+    
+    // Check if the invite code has expired
+    if (result.invite?.expiresAt && new Date(result.invite.expiresAt) < new Date()) {
+      return res.status(400).json({
+        success: false,
+        error: 'This invite code has expired'
+      });
+    }
+    
+    // Return limited info for security
+    res.json({
+      success: true,
+      invite: {
+        email: result.invite.email,
+        role: result.invite.role,
+        name: result.invite.name,
+        expiresAt: result.invite.expiresAt
+      }
+    });
   } catch (error) {
-    console.error('Error getting unused invites:', error);
-    return res.status(500).json({ error: 'An error occurred while getting unused invites' });
+    console.error('Error getting invite by code:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get invite'
+    });
   }
 });
 
-// Delete an invite (admin only)
-inviteRouter.delete('/:id', isAdmin, async (req, res) => {
+/**
+ * Delete an invite (admin only)
+ */
+router.delete('/:id', requireAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     
     if (isNaN(id)) {
-      return res.status(400).json({ error: 'Invalid invite ID' });
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid ID'
+      });
     }
     
     const result = await inviteService.deleteInvite(id);
     
     if (!result.success) {
-      return res.status(400).json({ error: result.error });
+      return res.status(404).json(result);
     }
     
-    return res.status(200).json({ message: 'Invite deleted successfully' });
+    res.json(result);
   } catch (error) {
     console.error('Error deleting invite:', error);
-    return res.status(500).json({ error: 'An error occurred while deleting the invite' });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete invite'
+    });
   }
 });
+
+export default router;

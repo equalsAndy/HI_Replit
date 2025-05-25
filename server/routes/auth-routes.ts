@@ -1,72 +1,117 @@
 import express from 'express';
-import { z } from 'zod';
 import { userManagementService } from '../services/user-management-service';
+import { requireAuth } from '../middleware/auth';
+import { validateInviteCode } from '../utils/invite-code';
 
-// Create the auth router
-export const authRouter = express.Router();
+const router = express.Router();
 
-// Login route
-authRouter.post('/login', async (req, res) => {
-  const schema = z.object({
-    username: z.string(),
-    password: z.string()
-  });
-  
-  try {
-    const { username, password } = schema.parse(req.body);
-    
-    // Verify credentials
-    const verification = await userManagementService.verifyPassword(username, password);
-    
-    if (!verification.valid || !verification.user) {
-      return res.status(401).json({ error: 'Invalid username or password' });
-    }
-    
-    // Set session data
-    req.session.userId = verification.user.id;
-    req.session.username = verification.user.username;
-    req.session.userRole = verification.user.role;
-    
-    // Return user data
-    return res.status(200).json({
-      message: 'Login successful',
-      user: verification.user
+/**
+ * Login route
+ */
+router.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+    return res.status(400).json({
+      success: false,
+      error: 'Username and password are required'
     });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: error.errors });
+  }
+
+  try {
+    const result = await userManagementService.authenticateUser(username, password);
+
+    if (!result.success) {
+      return res.status(401).json(result);
     }
-    console.error('Error during login:', error);
-    return res.status(500).json({ error: 'An error occurred during login' });
+
+    // Set session data
+    req.session.userId = result.user.id;
+    req.session.username = result.user.username;
+    req.session.userRole = result.user.role;
+
+    // Send the user data (without the password)
+    res.json(result);
+  } catch (error) {
+    console.error('Error in login route:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Authentication failed'
+    });
   }
 });
 
-// Logout route
-authRouter.post('/logout', (req, res) => {
-  // Destroy session
+/**
+ * Logout route
+ */
+router.post('/logout', (req, res) => {
   req.session.destroy((err) => {
     if (err) {
-      console.error('Error destroying session:', err);
-      return res.status(500).json({ error: 'An error occurred during logout' });
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to logout'
+      });
     }
-    
-    res.clearCookie('connect.sid');
-    return res.status(200).json({ message: 'Logout successful' });
+
+    res.json({
+      success: true,
+      message: 'Logged out successfully'
+    });
   });
 });
 
-// Check authentication status
-authRouter.get('/status', (req, res) => {
-  if (!req.session.userId) {
-    return res.status(200).json({ 
-      authenticated: false 
+/**
+ * Get the current user
+ */
+router.get('/me', requireAuth, async (req, res) => {
+  try {
+    const result = await userManagementService.getUserById(req.session.userId!);
+
+    if (!result.success) {
+      return res.status(404).json(result);
+    }
+
+    res.json(result);
+  } catch (error) {
+    console.error('Error getting current user:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get user'
     });
   }
-  
-  return res.status(200).json({
-    authenticated: true,
-    userId: req.session.userId,
-    username: req.session.username,
-    role: req.session.userRole
-  });
 });
+
+/**
+ * Check if a username is available
+ */
+router.post('/check-username', async (req, res) => {
+  const { username } = req.body;
+
+  if (!username) {
+    return res.status(400).json({
+      success: false,
+      error: 'Username is required'
+    });
+  }
+
+  try {
+    const available = await userManagementService.isUsernameAvailable(username);
+
+    res.json({
+      success: true,
+      available
+    });
+  } catch (error) {
+    console.error('Error checking username availability:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check username availability'
+    });
+  }
+});
+
+// Import registration routes
+import registerRoutes from './auth-routes-register';
+router.use(registerRoutes);
+
+export default router;
