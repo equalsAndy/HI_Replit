@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import StarCard from '@/components/starcard/StarCard';
+import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 import FlowAssessment from '@/components/flow/FlowAssessment';
 
@@ -500,12 +501,16 @@ export default function UserHome2() {
                     </div>
                     <div className="p-4 flex justify-center">
                       <div className="w-full">
-                        <StarCard 
-                          thinking={starCard?.thinking || 0}
-                          acting={starCard?.acting || 0}
-                          feeling={starCard?.feeling || 0}
-                          planning={starCard?.planning || 0}
-                          imageUrl={starCard?.imageUrl || null}
+                        {/* Fetch latest data directly from API when displaying Star Card */}
+                        <StarCardWithFetch 
+                          userId={user?.id}
+                          fallbackData={{
+                            thinking: starCard?.thinking || 0,
+                            acting: starCard?.acting || 0,
+                            feeling: starCard?.feeling || 0,
+                            planning: starCard?.planning || 0,
+                            imageUrl: starCard?.imageUrl || null
+                          }}
                         />
                       </div>
                     </div>
