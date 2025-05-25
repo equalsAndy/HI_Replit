@@ -1,66 +1,71 @@
-
 import React from 'react';
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { InfoIcon, Repeat } from "lucide-react";
-import { useApplication } from '@/hooks/use-application';
+import { useQuery } from '@tanstack/react-query';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 interface TestUserBannerProps {
-  userId: number;
-  userName: string;
+  className?: string;
+  showInHeader?: boolean;
 }
 
-export function TestUserBanner({ userId, userName }: TestUserBannerProps) {
-  const { currentApp, setCurrentApp } = useApplication();
+export function TestUserBanner({ 
+  className = '', 
+  showInHeader = false 
+}: TestUserBannerProps) {
+  // Fetch the current user profile
+  const { data: user, isLoading } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    email: string | null;
+    title: string | null;
+    organization: string | null;
+    role?: string;
+  }>({
+    queryKey: ['/api/user/profile'],
+    refetchOnWindowFocus: false,
+    staleTime: 60 * 1000, // 1 minute
+  });
 
-  // Function to toggle between applications
-  const toggleApplication = () => {
-    // Toggle to the other application
-    const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
-    setCurrentApp(newApp);
-    localStorage.setItem('selectedApp', newApp);
+  if (isLoading || !user?.id) return null;
 
-    // Navigate to the appropriate page
-    if (newApp === 'allstarteams') {
-      window.location.href = '/user-home2-refactored';
-    } else {
-      window.location.href = '/imaginal-agility';
+  // Determine if this is a test user
+  const isTestUser = user.username && /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user.username);
+  
+  if (!isTestUser) return null;
+
+  // Style based on role
+  const getBadgeStyle = () => {
+    switch(user.role?.toLowerCase()) {
+      case 'admin':
+        return 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200';
+      case 'facilitator':
+        return 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+      case 'participant':
+      default:
+        return 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200';
     }
   };
 
+  if (showInHeader) {
+    return (
+      <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
+        TEST MODE: All actions and data are for testing purposes only
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-yellow-300 text-yellow-900 py-2 px-4 text-sm flex items-center justify-between md:flex hidden">
-      <div className="flex items-center space-x-2">
-        <InfoIcon className="h-4 w-4" />
-        <span>
-          You are using a test account. Any data entered will be temporary.
-        </span>
-      </div>
-
-      <div className="flex items-center space-x-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center"
-          onClick={toggleApplication}
-        >
-          <Repeat className="h-4 w-4 mr-1" />
-          Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
-        </Button>
-
-        <Button
-          variant="outline"
-          size="sm"
-          className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center"
-          onClick={() => window.location.href = '/workshop-reset'}
-        >
-          Reset Data
-        </Button>
-
-        <Badge variant="outline" className="bg-yellow-100">
-          {userName || `TEST USER ${userId}`}
-        </Badge>
-      </div>
+    <div className={`flex items-center ${className}`}>
+      <Badge 
+        variant="outline" 
+        className={`font-medium flex items-center px-3 py-1 ${getBadgeStyle()}`}
+      >
+        {user.role}: {user.name || user.username}
+      </Badge>
     </div>
   );
 }
+
+export default TestUserBanner;

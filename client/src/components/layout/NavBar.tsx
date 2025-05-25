@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
-import TestUserBanner from "../auth/TestUserBanner";
+import TestUserBanner from "../test-users/TestUserBanner";
 import {
   Dialog,
   DialogContent,
@@ -144,11 +144,7 @@ export function NavBar() {
   return (
     <div className={`${bgColorClass} text-white p-2 sticky top-0 z-50 flex justify-between items-center`}>
       {/* If user is loaded and is a test user, show a banner at the top */}
-      {isTestUser && (
-        <div className="absolute top-0 left-0 right-0 bg-blue-100 text-blue-800 text-center text-xs py-1 font-medium">
-          TEST MODE: All actions and data are for testing purposes only
-        </div>
-      )}
+      {isTestUser && <TestUserBanner showInHeader={true} />}
       
       <div className="flex-1">
         <div className="flex items-center">
@@ -172,14 +168,7 @@ export function NavBar() {
       <div className="flex items-center gap-2">
         {/* Test User Badge - shown for all test users */}
         {user?.id && isTestUser && (
-          <Badge variant="outline" className="bg-orange-100 border-orange-300 text-orange-800 flex px-3 py-1">
-            <span className="font-medium">
-              {user?.role === 'admin' && 'Admin'}
-              {user?.role === 'facilitator' && 'Facilitator'}
-              {user?.role === 'participant' && 'Participant'}
-              : {user?.name || user?.username}
-            </span>
-          </Badge>
+          <TestUserBanner className="p-0" />
         )}
         
         {/* User Controls Menu */}
