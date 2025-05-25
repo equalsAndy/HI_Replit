@@ -660,7 +660,6 @@ export function VideoManagement() {
                 <TableHead>Workshop</TableHead>
                 <TableHead>Section</TableHead>
                 <TableHead>Video ID</TableHead>
-                <TableHead>URL</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -673,11 +672,6 @@ export function VideoManagement() {
                     <TableCell>{video.section}</TableCell>
                     <TableCell className="font-mono">
                       {video.editableId || extractYouTubeId(video.url)}
-                    </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {video.url}
-                      </a>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
