@@ -79,8 +79,11 @@ router.get('/profile', async (req, res) => {
 
     console.log(`Final user profile being returned:`, userProfile);
 
-    // Return user data directly (not wrapped in success object) for frontend compatibility
-    res.json(userProfile);
+    // Return user data wrapped in success object for NavBar compatibility
+    res.json({
+      success: true,
+      user: userProfile
+    });
   } catch (error) {
     console.error('Error getting user profile:', error);
     res.status(500).json({
