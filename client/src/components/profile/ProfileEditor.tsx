@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User, LogOut } from 'lucide-react';
+import { Camera, Upload, User, LogOut, Edit3 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -17,6 +17,7 @@ interface ProfileEditorProps {
 
 export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -28,6 +29,19 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Update form data when user prop changes
+  React.useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        organization: user.organization || '',
+        jobTitle: user.jobTitle || '',
+      });
+      setProfileImage(user.profilePicture);
+    }
+  }, [user]);
 
   // Update profile mutation
   const updateProfileMutation = useMutation({
@@ -43,7 +57,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         description: 'Your profile information has been saved.',
       });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      setIsOpen(false);
+      setIsEditing(false);
     },
     onError: (error) => {
       toast({
@@ -130,6 +144,24 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     });
   };
 
+  const handleEdit = () => {
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    // Reset form data to original user data
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        organization: user.organization || '',
+        jobTitle: user.jobTitle || '',
+      });
+      setProfileImage(user.profilePicture);
+    }
+    setIsEditing(false);
+  };
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -168,111 +200,169 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploadPhotoMutation.isPending}
-                className="flex items-center gap-2"
-              >
-                <Camera className="h-4 w-4" />
-                {profileImage ? 'Change Photo' : 'Upload Photo'}
-              </Button>
-              
-              {profileImage && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setProfileImage(null);
-                    toast({
-                      title: 'Photo removed',
-                      description: 'Your profile photo has been removed.',
-                    });
-                  }}
-                >
-                  Remove
-                </Button>
-              )}
-            </div>
-            
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleFileSelect}
-              className="hidden"
-            />
-            
-            <p className="text-xs text-muted-foreground text-center">
-              Upload a photo under 1MB. JPG, PNG, or GIF format.
-            </p>
+            {isEditing && (
+              <>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadPhotoMutation.isPending}
+                    className="flex items-center gap-2"
+                  >
+                    <Camera className="h-4 w-4" />
+                    {profileImage ? 'Change Photo' : 'Upload Photo'}
+                  </Button>
+                  
+                  {profileImage && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setProfileImage(null);
+                        toast({
+                          title: 'Photo removed',
+                          description: 'Your profile photo has been removed.',
+                        });
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+                
+                <p className="text-xs text-muted-foreground text-center">
+                  Upload a photo under 1MB. JPG, PNG, or GIF format.
+                </p>
+              </>
+            )}
           </div>
 
           {/* Profile Information */}
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input
-                id="name"
-                value={formData.name}
-                onChange={(e) => handleInputChange('name', e.target.value)}
-                placeholder="Enter your full name"
-              />
-            </div>
+            {isEditing ? (
+              // Edit Mode - Show input fields
+              <>
+                <div>
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    placeholder="Enter your full name"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => handleInputChange('email', e.target.value)}
-                placeholder="Enter your email"
-              />
-            </div>
+                <div>
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    placeholder="Enter your email"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="organization">Organization</Label>
-              <Input
-                id="organization"
-                value={formData.organization}
-                onChange={(e) => handleInputChange('organization', e.target.value)}
-                placeholder="Enter your organization"
-              />
-            </div>
+                <div>
+                  <Label htmlFor="organization">Organization</Label>
+                  <Input
+                    id="organization"
+                    value={formData.organization}
+                    onChange={(e) => handleInputChange('organization', e.target.value)}
+                    placeholder="Enter your organization"
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="jobTitle">Job Title</Label>
-              <Input
-                id="jobTitle"
-                value={formData.jobTitle}
-                onChange={(e) => handleInputChange('jobTitle', e.target.value)}
-                placeholder="Enter your job title"
-              />
-            </div>
+                <div>
+                  <Label htmlFor="jobTitle">Job Title</Label>
+                  <Input
+                    id="jobTitle"
+                    value={formData.jobTitle}
+                    onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+                    placeholder="Enter your job title"
+                  />
+                </div>
+              </>
+            ) : (
+              // View Mode - Show read-only information
+              <>
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Full Name</Label>
+                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">{formData.name || 'Not provided'}</p>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium text-muted-foreground">Email</Label>
+                  <p className="text-sm mt-1 p-2 bg-muted rounded-md">{formData.email || 'Not provided'}</p>
+                </div>
+
+                {formData.organization && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Organization</Label>
+                    <p className="text-sm mt-1 p-2 bg-muted rounded-md">{formData.organization}</p>
+                  </div>
+                )}
+
+                {formData.jobTitle && (
+                  <div>
+                    <Label className="text-sm font-medium text-muted-foreground">Job Title</Label>
+                    <p className="text-sm mt-1 p-2 bg-muted rounded-md">{formData.jobTitle}</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <Button
-                onClick={handleSave}
-                disabled={updateProfileMutation.isPending}
-                className="flex-1"
-              >
-                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-            </div>
+            {isEditing ? (
+              // Edit Mode buttons
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleSave}
+                  disabled={updateProfileMutation.isPending}
+                  className="flex-1"
+                >
+                  {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={handleCancel}
+                  className="flex-1"
+                >
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              // View Mode buttons
+              <div className="flex gap-2">
+                <Button
+                  onClick={handleEdit}
+                  className="flex-1 flex items-center gap-2"
+                >
+                  <Edit3 className="h-4 w-4" />
+                  Edit Profile
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  onClick={() => setIsOpen(false)}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+              </div>
+            )}
             
             <Button
               variant="destructive"
