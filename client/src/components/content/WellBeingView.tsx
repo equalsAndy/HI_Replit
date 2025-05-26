@@ -304,7 +304,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               : "bg-gray-300 cursor-not-allowed text-gray-500"
           }`}
         >
-          {saving ? 'Saving...' : 'Continue'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Next: Well-being Reflections'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
