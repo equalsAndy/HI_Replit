@@ -139,6 +139,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-1');
+      
+      // Navigate to well-being reflections (cantril-ladder content)
+      console.log('Navigating to well-being reflections (cantril-ladder)');
       setCurrentContent('cantril-ladder');
     } catch (error) {
       console.error('Error saving well-being data:', error);
