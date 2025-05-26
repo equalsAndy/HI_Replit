@@ -91,7 +91,10 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         
         <div className="flex flex-col items-center">
           <div ref={starCardRef} className="w-full max-w-md">
-            <StarCard />
+            <StarCard 
+              forceDataFetch={true}
+              downloadable={true}
+            />
           </div>
         </div>
       </div>

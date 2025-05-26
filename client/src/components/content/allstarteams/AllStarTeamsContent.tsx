@@ -15,6 +15,7 @@ import CantrilLadderView from '../CantrilLadderView';
 import VisualizingYouView from '../VisualizingYouView';
 import FutureSelfView from '../FutureSelfView';
 import FinalReflectionView from '../FinalReflectionView';
+import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
 
@@ -204,6 +205,15 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
+        />
+      );
+
+    case 'your-star-card':
+      return (
+        <YourStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
         />
       );
 
