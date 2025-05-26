@@ -42,17 +42,17 @@ const flowAttributes = [
   "Abstract", "Analytic", "Astute", "Big Picture", "Curious", 
   "Focused", "Insightful", "Logical", "Investigative", "Rational", 
   "Reflective", "Sensible", "Strategic", "Thoughtful",
-  
+
   // Feeling attributes
   "Collaborative", "Creative", "Encouraging", "Expressive",
   "Empathic", "Intuitive", "Inspiring", "Objective", "Passionate",
   "Positive", "Receptive", "Supportive",
-  
+
   // Planning attributes
   "Detail-Oriented", "Diligent", "Immersed", "Industrious", "Methodical",
   "Organized", "Precise", "Punctual", "Reliable", "Responsible",
   "Straightforward", "Tidy", "Systematic", "Thorough",
-  
+
   // Acting attributes
   "Adventuresome", "Competitive", "Dynamic", "Effortless", "Energetic",
   "Engaged", "Funny", "Persuasive", "Open-Minded", "Optimistic",
@@ -162,7 +162,7 @@ const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 
     'Innovative', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
     'Sensible', 'Strategic', 'Thoughtful'
   ].map(a => a.toLowerCase());
-  
+
   const blueAttributes = [
     'Accepting', 'Authentic', 'Calm', 'Caring', 'Collaborative', 'Compassionate', 'Connected',
     'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Empathic', 'Friendly', 'Generous',
@@ -170,14 +170,14 @@ const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 
     'Vulnerable', 'Creative', 'Encouraging', 'Expressive', 'Intuitive', 'Inspiring', 
     'Passionate', 'Positive', 'Receptive'
   ].map(a => a.toLowerCase());
-  
+
   const yellowAttributes = [
     'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detailed', 'Detail-Oriented', 'Diligent',
     'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
     'Reliable', 'Responsible', 'Thorough', 'Trustworthy', 'Immersed', 'Industrious',
     'Straightforward', 'Tidy', 'Systematic'
   ].map(a => a.toLowerCase());
-  
+
   const redAttributes = [
     'Adaptable', 'Adventurous', 'Adventuresome', 'Assertive', 'Brave', 'Capable', 'Challenging',
     'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Energetic', 'Fearless',
@@ -185,24 +185,24 @@ const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 
     'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 'Practical', 
     'Resilient', 'Spontaneous', 'Vigorous'
   ].map(a => a.toLowerCase());
-  
+
   // Check if attribute is defined before calling toLowerCase
   if (!attribute) return 'default';
-  
+
   const lowerAttribute = attribute.toLowerCase();
-  
+
   if (greenAttributes.includes(lowerAttribute)) return 'green';
   if (blueAttributes.includes(lowerAttribute)) return 'blue';
   if (yellowAttributes.includes(lowerAttribute)) return 'yellow';
   if (redAttributes.includes(lowerAttribute)) return 'red';
-  
+
   return 'default';
 };
 
 // Get color for an attribute based on its category
 const getAttributeColor = (attribute: string): string => {
   const category = getAttributeCategory(attribute);
-  
+
   switch(category) {
     case 'green': return 'rgb(1, 162, 82)';    // Green - Thinking
     case 'blue': return 'rgb(22, 126, 253)';   // Blue - Feeling
@@ -236,7 +236,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(false);
-  
+
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -248,16 +248,16 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
-  
+
   // Determine if card is already complete
   const isCardComplete = flowAttributesData?.attributes && 
                         Array.isArray(flowAttributesData.attributes) && 
                         flowAttributesData.attributes.length > 0;
-  
+
   useEffect(() => {
     if (isCardComplete && flowAttributesData?.attributes) {
       console.log("Flow attributes data:", flowAttributesData.attributes);
-      
+
       // Map existing attributes to the local state - handle both possible data structures
       const mappedAttributes = flowAttributesData.attributes.map((attr: any, index: number) => {
         // Some attributes might have 'text' property, others might have 'name'
@@ -267,23 +267,23 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           rank: index
         };
       });
-      
+
       setSelectedAttributes(mappedAttributes);
-      
+
       // Also set the starcard attributes
       const coloredAttributes = mappedAttributes.map(attr => ({
         text: attr.text,
         color: getAttributeColor(attr.text)
       }));
-      
+
       console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
     }
   }, [flowAttributesData, isCardComplete]);
-  
+
   // Tracks if we're updating existing attributes rather than creating new ones
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
-  
+
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
     mutationFn: async (attributes: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
@@ -303,13 +303,13 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       });
       // Invalidate star card data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-      
+
       toast({
         title: "Flow attributes saved!",
         description: "Your flow attributes have been saved and your Star Card is now complete.",
         duration: 5000
       });
-      
+
       // Mark step completed
       markStepCompleted('3-4');
     },
@@ -321,21 +321,21 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       });
     }
   });
-  
+
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
     // Don't allow selection if card is complete and we're not in edit mode
     if (isCardComplete && !showSelectionInterface) {
       return; // No action, selection is disabled
     }
-    
+
     // Check if attribute is already in the list (selected)
     const existingAttr = selectedAttributes.find(attr => attr.text === text);
-    
+
     if (existingAttr) {
       // If it's already selected, remove it and adjust other ranks
       const removedRank = existingAttr.rank;
-      
+
       // Remove the attribute and recalculate ranks if it had a rank
       const filteredAttrs = selectedAttributes.filter(attr => attr.text !== text);
       const updatedAttrs = filteredAttrs.map(attr => {
@@ -344,7 +344,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         }
         return attr;
       });
-      
+
       setSelectedAttributes(updatedAttrs);
     } else {
       // If it's not selected, add it to the list only if we have less than 4 ranked attributes
@@ -364,16 +364,16 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       }
     }
   };
-  
+
   const handleRemoveAttribute = (text: string) => {
     // Find the attribute to remove
     const attrToRemove = selectedAttributes.find(attr => attr.text === text);
     if (!attrToRemove) return;
-    
+
     // Remove it and adjust ranks
     const removedRank = attrToRemove.rank;
     const filteredAttrs = selectedAttributes.filter(attr => attr.text !== text);
-    
+
     if (removedRank !== null) {
       // Adjust ranks for attributes with higher ranks
       const updatedAttrs = filteredAttrs.map(attr => {
@@ -387,78 +387,78 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       setSelectedAttributes(filteredAttrs);
     }
   };
-  
+
   // Handle drag end for reordering attributes
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    
+
     if (over && active.id !== over.id) {
       setSelectedAttributes((items) => {
         // Find the items we're reordering
         const activeItem = items.find(item => item.text === active.id);
         const overItem = items.find(item => item.text === over.id);
-        
+
         if (!activeItem || !overItem || activeItem.rank === null || overItem.rank === null) {
           return items;
         }
-        
+
         // Get the ordered array of items with ranks
         const rankedItems = items
           .filter(item => item.rank !== null)
           .sort((a, b) => (a.rank || 0) - (b.rank || 0));
-        
+
         // Find the indices for swapping
         const activeIndex = rankedItems.findIndex(item => item.text === active.id);
         const overIndex = rankedItems.findIndex(item => item.text === over.id);
-        
+
         // Reorder the array
         const newRankedItems = arrayMove(rankedItems, activeIndex, overIndex);
-        
+
         // Update all ranks based on new positions
         const updatedRankedItems = newRankedItems.map((item, index) => ({
           ...item,
           rank: index
         }));
-        
+
         // Merge ranked items with unranked items
         const unrankedItems = items.filter(item => item.rank === null);
         return [...updatedRankedItems, ...unrankedItems];
       });
     }
   };
-  
+
   const saveFlowAttributes = () => {
     // Create a new version of the StarCard component with the flow attributes
     const rankedAttributes = selectedAttributes
       .filter(attr => attr.rank !== null)
       .sort((a, b) => (a.rank || 0) - (b.rank || 0));
-    
+
     if (rankedAttributes.length === 4) {
       // Get properly colored attributes
       const coloredAttributes = rankedAttributes.map(attr => ({
         text: attr.text,
         color: getAttributeColor(attr.text)
       }));
-      
+
       // Update the StarCard flow attributes (local state)
       setStarCardFlowAttributes(coloredAttributes);
-      
+
       // Convert to server format and save to server (only attribute names)
       const serverAttributes = rankedAttributes.map(attr => ({
         name: attr.text
       }));
-      
+
       // Save flow attributes to server (no scores)
       flowAttributesMutation.mutate({
         attributes: serverAttributes
       });
     }
   };
-  
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Add Flow to Your Star Card</h1>
-      
+
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
         <h4 className="font-medium text-blue-800 mb-2">Understanding Flow Attributes</h4>
         <p className="text-blue-700 mb-0">
@@ -466,7 +466,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           Together, they create a more complete picture of your professional identity and help others understand how to collaborate with you effectively.
         </p>
       </div>
-      
+
       <div className="prose max-w-none mb-6">
         <p className="text-lg text-gray-700">
           Now that you've completed the flow assessment and reflection, select four flow attributes 
@@ -485,7 +485,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                   <p className="text-sm text-gray-600 mb-4">
                     These attributes reflect how you work at your best when in flow state.
                   </p>
-                  
+
                   {/* Show selected attributes in a read-only display */}
                   <div className="mb-4">
                     <h4 className="text-sm font-medium mb-2">I find myself in flow when I am being:</h4>
@@ -509,7 +509,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       </div>
                     </div>
                   </div>
-                  
+
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -534,13 +534,13 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       Choose 4 words that best describe your flow state. Click badges to select/deselect. Once selected, use the grip handle to drag and reorder your selections.
                     </p>
                   </div>
-                  
+
                   {/* Selected attributes */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
                       <h4 className="text-sm font-medium">I find myself in flow when I am being:</h4>
                     </div>
-                    
+
                     <div className="p-3 border border-gray-200 rounded-lg min-h-[60px]">
                       {selectedAttributes.filter(attr => attr.rank !== null).length > 0 ? (
                         <DndContext
@@ -579,7 +579,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       )}
                     </div>
                   </div>
-                  
+
                   {/* Available attributes */}
                   <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                     <h4 className="text-sm font-medium mb-2">Flow Attributes:</h4>
@@ -588,7 +588,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                         const isSelected = selectedAttributes.some(selected => selected.text === attr);
                         const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
                         const isDisabled = isCardComplete && !showSelectionInterface;
-                        
+
                         return (
                           <FlowBadge 
                             key={attr}
@@ -605,7 +605,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                   </div>
                 </div>
               </div>
-              
+
               <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6 mt-6">
                 <h4 className="font-medium text-gray-700 mb-2">Selection Tip</h4>
                 <p className="text-sm text-gray-600">
@@ -613,7 +613,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                   These will appear in the four corners of your Star Card.
                 </p>
               </div>
-              
+
               {isCardComplete && (
                 <div className="mb-4">
                   <Button 
@@ -632,7 +632,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </>
           )}
         </div>
-        
+
         <div>
           <h3 className="text-lg font-semibold mb-4">Your Star Card</h3>
           <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-4">
@@ -652,12 +652,12 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
               </div>
             </div>
           </div>
-          
+
           {showSelectionInterface || !isCardComplete ? (
             <div className="mt-2">
               <Button
                 className="w-full bg-indigo-700 hover:bg-indigo-800"
-                disabled={selectedAttributes.filter(attr => attr.rank !== null).length < 4 || flowAttributesMutation.isPending}
+                disabled={selectedAttributes.filter(attr => attr.rank !== null).length !== 4 || flowAttributesMutation.isPending}
                 onClick={saveFlowAttributes}
               >
                 {flowAttributesMutation.isPending ? "Saving..." : 
@@ -667,7 +667,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           ) : null}
         </div>
       </div>
-      
+
       <div className="flex justify-end mt-8">
         <Button 
           onClick={() => {
