@@ -271,7 +271,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           onClick={() => {
             handleSave();
             markStepCompleted('4-3');
-            setCurrentContent('final-reflection');
+            setCurrentContent('your-statement');
           }}
           disabled={saving || !hasReachedMinimum}
           className={`${
