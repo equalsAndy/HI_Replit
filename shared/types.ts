@@ -43,6 +43,52 @@ export interface InviteVerificationResult {
   };
 }
 
+// Navigation and progression types
+export interface NavigationStep {
+  id: string;
+  label: string;
+  path: string;
+  type: 'Learning' | 'Assessment' | 'Reflection' | 'Workshop';
+  contentKey?: string;
+  icon?: any;
+  autoPlay?: boolean;
+  minWatchPercent?: number;
+  isModal?: boolean;
+  requireAllAnswers?: boolean;
+  requireAllInputs?: boolean;
+  requireExactWords?: number;
+  hasSliders?: boolean;
+  downloadOnly?: boolean;
+  estimatedTime?: number;
+}
+
+export interface NavigationSection {
+  id: string;
+  title: string;
+  path: string;
+  icon: any;
+  totalSteps: number;
+  completedSteps: number;
+  locked?: boolean;
+  steps: NavigationStep[];
+}
+
+export interface ProgressionRules {
+  sequentialUnlock: boolean;
+  completionCriteria: {
+    [stepId: string]: {
+      type: 'video' | 'assessment' | 'reflection' | 'activity';
+      requirements: {
+        minWatchPercent?: number;
+        allQuestionsAnswered?: boolean;
+        exactWordCount?: number;
+        slidersCompleted?: boolean;
+        dataSubmitted?: boolean;
+      };
+    };
+  };
+}
+
 // Extended session type
 declare module 'express-session' {
   interface SessionData {
