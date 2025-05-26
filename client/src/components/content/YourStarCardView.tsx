@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import StarCard from '../starcard/StarCard';
+import html2canvas from 'html2canvas';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -14,15 +15,42 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
-  const handleDownload = () => {
-    // Trigger the star card download functionality
-    const downloadButton = document.querySelector('[data-download-star-card]') as HTMLButtonElement;
-    if (downloadButton) {
-      downloadButton.click();
+  const starCardRef = useRef<HTMLDivElement>(null);
+
+  const handleDownload = async () => {
+    if (!starCardRef.current) return;
+
+    try {
+      // Create canvas from the star card element
+      const canvas = await html2canvas(starCardRef.current, {
+        backgroundColor: '#ffffff',
+        scale: 2, // Higher resolution
+        useCORS: true,
+        allowTaint: true,
+        width: starCardRef.current.offsetWidth,
+        height: starCardRef.current.offsetHeight,
+      });
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+        if (blob) {
+          // Create download link
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'my-star-card.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+        }
+      }, 'image/png');
+
+      // Mark completion and unlock resources
+      markStepCompleted('5-1');
+    } catch (error) {
+      console.error('Error generating star card image:', error);
     }
-    
-    // Mark completion and unlock resources
-    markStepCompleted('5-1');
   };
 
   return (
@@ -62,7 +90,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         </div>
         
         <div className="flex flex-col items-center">
-          <div className="w-full max-w-md">
+          <div ref={starCardRef} className="w-full max-w-md">
             <StarCard />
           </div>
         </div>
