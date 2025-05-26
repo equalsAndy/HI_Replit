@@ -157,7 +157,7 @@ export default function AllStarTeams() {
     staleTime: 10000,
   });
 
-  // Clear workshop progress when user changes  
+  // Clear workshop progress when user changes OR when any user has progress: 0
   React.useEffect(() => {
     // Extract actual user data from the response wrapper
     const actualUser = user?.user || user;
@@ -166,9 +166,15 @@ export default function AllStarTeams() {
       const lastUserId = localStorage.getItem('last-user-id');
       const currentUserId = actualUser.id.toString();
       
-      if (lastUserId && lastUserId !== currentUserId) {
-        // Different user logged in, clear workshop progress
-        console.log(`User changed from ${lastUserId} to ${currentUserId}, clearing workshop progress`);
+      // Clear progress if user changed OR if current user has progress: 0 (fresh start)
+      const shouldClearProgress = (lastUserId && lastUserId !== currentUserId) || actualUser.progress === 0;
+      
+      if (shouldClearProgress) {
+        const reason = lastUserId && lastUserId !== currentUserId 
+          ? `User changed from ${lastUserId} to ${currentUserId}`
+          : `User ${currentUserId} has fresh progress (0), clearing cached data`;
+        
+        console.log(`${reason}, clearing workshop progress`);
         
         // Clear AllStarTeams specific progress
         const keysToRemove = [
@@ -186,6 +192,10 @@ export default function AllStarTeams() {
         
         // Reset completed steps state
         setCompletedSteps([]);
+        
+        // Mark progress as cleared for this session to avoid repeated clearing
+        const sessionKey = `progress-cleared-${currentUserId}`;
+        sessionStorage.setItem(sessionKey, 'true');
       }
       
       // Update stored user ID
