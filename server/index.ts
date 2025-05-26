@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // Initialize Express app
 const app = express();
-const port = parseInt(process.env.PORT || '3000');
+const port = parseInt(process.env.PORT || '5000');
 
 // Initialize database connection
 initializeDatabase()
@@ -91,17 +91,16 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Add a specific route handler for the root path
-// This ensures that when users visit /, they're properly redirected
-app.get('/', (req, res, next) => {
-  // In production, we would serve the static index.html file
-  // In development, pass to the next middleware (which will be Vite)
-  if (process.env.NODE_ENV === 'production') {
-    res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-  } else {
-    next();
-  }
-});
+// In production, serve static files from the dist directory
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../dist');
+  app.use(express.static(distPath));
+  
+  // Catch-all handler for client-side routing
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 // Create HTTP server
 const server = createServer(app);
@@ -123,7 +122,7 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Start the server on port 5000 to match Replit config
-server.listen(5000, () => {
-  console.log(`Server running on port 5000`);
+// Start the server on the configured port
+server.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`);
 });
