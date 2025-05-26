@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 // Props interface
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -17,17 +18,28 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
+  const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
   
-  // Fetch user's actual wellbeing data from the visualization API
+  // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
     queryKey: ['/api/visualization'],
     staleTime: 0
   });
 
-  // Use actual user data from their saved visualization
-  const wellBeingLevel = (visualizationData as any)?.wellBeingLevel || 5;
-  const futureWellBeingLevel = (visualizationData as any)?.futureWellBeingLevel || 7;
+  // Initialize slider values when data loads
+  useEffect(() => {
+    if (visualizationData) {
+      const data = visualizationData as any;
+      if (data.wellBeingLevel !== undefined) {
+        setWellBeingLevel(data.wellBeingLevel);
+      }
+      if (data.futureWellBeingLevel !== undefined) {
+        setFutureWellBeingLevel(data.futureWellBeingLevel);
+      }
+    }
+  }, [visualizationData]);
   
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
@@ -177,27 +189,71 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           </p>
         </div>
         
-        {/* Content below video - centered ladder display */}
-        <div className="flex justify-center mb-8">
-          <div className="w-full max-w-md lg:max-w-lg xl:max-w-xl">
-            <WellBeingLadderSvg 
-              currentValue={wellBeingLevel}
-              futureValue={futureWellBeingLevel}
-            />
+        {/* Content below video */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          {/* SVG Ladder - larger on bigger screens */}
+          <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
+            <div className="w-full xl:w-11/12 2xl:w-full">
+              <WellBeingLadderSvg 
+                currentValue={wellBeingLevel}
+                futureValue={futureWellBeingLevel}
+              />
+            </div>
           </div>
-        </div>
-        
-        {/* Legend for the dots */}
-        <div className="flex justify-center mb-8">
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <div className="flex flex-col sm:flex-row gap-4 items-center text-sm">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-gray-700">Where you are now (Step {wellBeingLevel})</span>
+          
+          {/* Sliders and controls - stacked */}
+          <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
+            <div className="grid grid-cols-1 gap-4">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
+                <div className="space-y-3">
+                  <p className="text-gray-700 text-sm">
+                    On which step of the ladder would you say you stand today?
+                  </p>
+                  <div className="py-2">
+                    <div className="flex justify-between mb-2 text-xs text-gray-600">
+                      <span>Worst (0)</span>
+                      <span>Best (10)</span>
+                    </div>
+                    <Slider
+                      value={[wellBeingLevel]} 
+                      min={0}
+                      max={10}
+                      step={1}
+                      onValueChange={(values) => setWellBeingLevel(values[0])}
+                      className="py-2"
+                    />
+                    <div className="text-center mt-1">
+                      <span className="font-medium text-lg text-blue-700">{wellBeingLevel}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                <span className="text-gray-700">Where you want to be (Step {futureWellBeingLevel})</span>
+
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
+                <div className="space-y-3">
+                  <p className="text-gray-700 text-sm">
+                    Where would you realistically like to be in one year?
+                  </p>
+                  <div className="py-2">
+                    <div className="flex justify-between mb-2 text-xs text-gray-600">
+                      <span>Worst (0)</span>
+                      <span>Best (10)</span>
+                    </div>
+                    <Slider
+                      value={[futureWellBeingLevel]} 
+                      min={0}
+                      max={10}
+                      step={1}
+                      onValueChange={(values) => setFutureWellBeingLevel(values[0])}
+                      className="py-2"
+                    />
+                    <div className="text-center mt-1">
+                      <span className="font-medium text-lg text-green-700">{futureWellBeingLevel}</span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
