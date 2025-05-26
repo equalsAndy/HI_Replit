@@ -1,26 +1,141 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps } from '@/shared/types';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 const IntroStrengthsView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
+  const { updateVideoProgress } = useNavigationProgress();
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [player, setPlayer] = useState<any>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  const stepId = "2-1";
+  const videoId = "ao04eaeDIFQ";
+
+  // Load YouTube API
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer();
+      };
+    } else {
+      initializePlayer();
+    }
+
+    return () => {
+      if (player) {
+        try {
+          player.destroy();
+        } catch (error) {
+          console.log('Error destroying player:', error);
+        }
+      }
+    };
+  }, [videoId]);
+
+  // Track video progress
+  const startProgressTracking = (playerInstance: any) => {
+    let interval: NodeJS.Timeout;
+    
+    const trackProgress = () => {
+      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
+        try {
+          const currentTime = playerInstance.getCurrentTime();
+          const duration = playerInstance.getDuration();
+          
+          if (duration > 0) {
+            const percentage = (currentTime / duration) * 100;
+            handleVideoProgress(percentage);
+          }
+        } catch (error) {
+          console.log('Video progress tracking error:', error);
+        }
+      }
+    };
+
+    // Track progress every second
+    interval = setInterval(trackProgress, 1000);
+    
+    // Clean up interval when component unmounts
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  };
+
+  // Handle video progress updates
+  const handleVideoProgress = (percentage: number) => {
+    setVideoProgress(percentage);
+    updateVideoProgress(stepId, percentage);
+    
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
+      setHasReachedMinimum(true);
+    }
+  };
+
+  // Initialize YouTube player
+  const initializePlayer = () => {
+    if (window.YT && window.YT.Player && playerRef.current) {
+      const newPlayer = new window.YT.Player(playerRef.current, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0
+        },
+        events: {
+          onReady: (event: any) => {
+            setPlayer(event.target);
+            startProgressTracking(event.target);
+          },
+          onStateChange: (event: any) => {
+            // Handle player state changes if needed
+          }
+        }
+      });
+    }
+  };
+
+  // Handle completion and progression
+  const handleNext = () => {
+    markStepCompleted(stepId);
+    setCurrentContent("strengths-assessment");
+  };
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Intro to Strengths</h1>
       
       <div className="prose max-w-none">
         <div className="aspect-w-16 aspect-h-9 mb-4">
-          <iframe 
-            src="https://www.youtube.com/embed/ao04eaeDIFQ" 
-            title="Introduction to AllStarTeams" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-80 rounded border border-gray-200"
-          ></iframe>
+          <div className="w-full h-80 rounded border border-gray-200 bg-black">
+            <div 
+              ref={playerRef}
+              className="w-full h-full rounded-lg"
+              style={{ pointerEvents: 'auto', position: 'relative' }}
+            />
+          </div>
         </div>
 
         <h2 className="text-2xl font-bold mt-8 mb-4">The Four Quadrants of Strengths</h2>
@@ -60,11 +175,13 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         
         <div className="flex justify-end mt-6">
           <Button 
-            onClick={() => {
-              markStepCompleted('2-1');
-              setCurrentContent("strengths-assessment");
-            }}
-            className="bg-indigo-700 hover:bg-indigo-800"
+            onClick={handleNext}
+            disabled={!hasReachedMinimum}
+            className={`${
+              hasReachedMinimum 
+                ? "bg-indigo-700 hover:bg-indigo-800" 
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
           >
             Take Assessment
           </Button>
