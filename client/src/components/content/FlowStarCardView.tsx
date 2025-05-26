@@ -119,19 +119,20 @@ const SortableFlowBadge = ({
 };
 
 // Regular flow badge component for selections
-const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", onSelect, onRemove }: { 
+const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disabled = false, onSelect, onRemove }: { 
   text: string; 
   rank?: number | null; // Allow null or undefined with a default value applied
   selected?: boolean;
   rankBadgeColor?: string;
+  disabled?: boolean;
   onSelect?: () => void;
   onRemove?: () => void;
 }) => {
   return (
     <Badge 
       variant="outline"
-      className={`${selected ? 'bg-indigo-100 text-indigo-800' : 'hover:bg-gray-100'} cursor-pointer transition-colors flex items-center`}
-      onClick={onSelect}
+      className={`${selected ? 'bg-indigo-100 text-indigo-800' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
+      onClick={disabled ? undefined : onSelect}
     >
       {text}
       {rank !== null && rank !== undefined && (
@@ -139,7 +140,7 @@ const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", onSe
           {rank + 1}
         </span>
       )}
-      {selected && onRemove && (
+      {selected && onRemove && !disabled && (
         <button 
           className="ml-1 text-indigo-600 hover:text-indigo-800"
           onClick={(e) => {
@@ -323,14 +324,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   
   // Helper functions for attribute selection
   const handleAttributeSelect = (text: string) => {
-    // Only check for completion if we're not in update mode
-    if (isCardComplete && !isUpdating) {
-      toast({
-        title: "Card already complete",
-        description: "Your Star Card already has flow attributes. You can continue to the next section.",
-        variant: "default"
-      });
-      return;
+    // Don't allow selection if card is complete and we're not in edit mode
+    if (isCardComplete && !showSelectionInterface) {
+      return; // No action, selection is disabled
     }
     
     // Check if attribute is already in the list (selected)
@@ -591,6 +587,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       {flowAttributes.map((attr: string) => {
                         const isSelected = selectedAttributes.some(selected => selected.text === attr);
                         const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
+                        const isDisabled = isCardComplete && !showSelectionInterface;
                         
                         return (
                           <FlowBadge 
@@ -598,6 +595,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                             text={attr}
                             rank={rank || 0}
                             selected={isSelected}
+                            disabled={isDisabled}
                             rankBadgeColor={rank !== null && rank !== undefined ? getRankBadgeColor(rank) : ''}
                             onSelect={() => handleAttributeSelect(attr)}
                           />
