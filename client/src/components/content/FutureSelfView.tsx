@@ -261,24 +261,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           />
         </div>
 
-        <div className="bg-white p-5 rounded-lg border">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">Final Reflection</h3>
-          <p className="text-sm text-gray-700 mb-3">
-            Look back at your answers. Now write a short paragraph (3-5 sentences) that brings them together. Your vision statement should describe your future self in a way that inspires you — who you are, what you value, and how you want to live and lead.
-          </p>
-          <p className="text-sm text-gray-600 mb-3">
-            You can start with:
-          </p>
-          <p className="text-sm text-gray-600 mb-1">"In the future, I see myself..."</p>
-          <p className="text-sm text-gray-600 mb-1">"My purpose is to..."</p>
-          <p className="text-sm text-gray-600 mb-3">"I am becoming someone who..."</p>
-          <Textarea 
-            placeholder="Your answer"
-            value={resourcesNeeded}
-            onChange={(e) => setResourcesNeeded(e.target.value)}
-            className="min-h-[150px]"
-          />
-        </div>
+
       </div>
       
 
