@@ -156,13 +156,10 @@ export default function ImaginalAgilityHome() {
     setDrawerOpen(!drawerOpen);
   };
 
-  // Mark a step as completed
-  const markStepCompleted = (stepId: string) => {
-    if (!completedSteps.includes(stepId)) {
-      const newCompletedSteps = [...completedSteps, stepId];
-      setCompletedSteps(newCompletedSteps);
-      localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: newCompletedSteps }));
-    }
+  // Mark a step as completed (using progression logic)
+  const handleStepCompletion = (stepId: string) => {
+    markStepCompleted(stepId);
+    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: [...completedSteps, stepId] }));
   };
 
   // Function to determine if a step is accessible

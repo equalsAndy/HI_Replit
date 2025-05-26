@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ContentViewProps } from '../../../shared/types';
 // Import types but use type-only imports to avoid conflicts
 import type { StarCard, User } from '../../../shared/types';
@@ -6,6 +6,7 @@ import PlaceholderView from '../PlaceholderView';
 import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';
 import { Button } from '@/components/ui/button';
+import { ImaginalAgilityAssessmentModal } from '@/components/assessment/ImaginalAgilityAssessmentModal';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
@@ -27,6 +28,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   flowAttributesData,
   setIsAssessmentModalOpen
 }) => {
+  // State for new Imaginal Agility Assessment Modal
+  const [isImaginalAssessmentOpen, setIsImaginalAssessmentOpen] = useState(false);
   switch (currentContent) {
     // Imaginal Agility content views
     case 'imaginal-intro':
