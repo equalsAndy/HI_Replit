@@ -91,9 +91,14 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
   }, []);
 
   const handleDownload = async () => {
-    if (!starCardRef.current) return;
+    console.log('Download button clicked');
+    if (!starCardRef.current) {
+      console.log('StarCard ref not found');
+      return;
+    }
 
     try {
+      console.log('Starting star card download...');
       // Create canvas from the star card element
       const canvas = await html2canvas(starCardRef.current, {
         backgroundColor: '#ffffff',
@@ -104,18 +109,24 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         height: starCardRef.current.offsetHeight,
       });
 
+      console.log('Canvas created successfully');
+
       // Convert canvas to blob
       canvas.toBlob((blob) => {
         if (blob) {
+          console.log('Blob created, starting download...');
           // Create download link
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = 'my-star-card.png';
+          link.download = 'your-star-card.png';
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
           URL.revokeObjectURL(url);
+          console.log('Download completed successfully');
+        } else {
+          console.log('Failed to create blob');
         }
       }, 'image/png');
 
