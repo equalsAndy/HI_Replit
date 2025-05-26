@@ -43,23 +43,45 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
 }) => {
   const starCardRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user data - same as flow attributes page
-  const { data: user } = useQuery({
-    queryKey: ['/api/user/profile'],
-    staleTime: 30000,
-  });
+  // Use the same direct fetch approach that's working successfully
+  const [user, setUser] = React.useState<any>(null);
+  const [starCard, setStarCard] = React.useState<any>(null);
+  const [flowAttributesData, setFlowAttributesData] = React.useState<any>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
 
-  // Fetch star card data - same as flow attributes page
-  const { data: starCard } = useQuery({
-    queryKey: ['/api/starcard'],
-    staleTime: 30000,
-  });
+  React.useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch user profile
+        const userResponse = await fetch('/api/user/profile', { credentials: 'include' });
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          setUser(userData);
+        }
 
-  // Fetch flow attributes data - same as flow attributes page
-  const { data: flowAttributesData } = useQuery({
-    queryKey: ['/api/flow-attributes'],
-    staleTime: 30000,
-  });
+        // Fetch starcard data using the same approach that's working
+        const starCardResponse = await fetch('/api/starcard', { credentials: 'include' });
+        if (starCardResponse.ok) {
+          const starCardData = await starCardResponse.json();
+          console.log('YourStarCardView - Fetched StarCard data:', starCardData);
+          setStarCard(starCardData);
+        }
+
+        // Fetch flow attributes
+        const flowResponse = await fetch('/api/flow-attributes', { credentials: 'include' });
+        if (flowResponse.ok) {
+          const flowData = await flowResponse.json();
+          setFlowAttributesData(flowData);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleDownload = async () => {
     if (!starCardRef.current) return;
@@ -134,20 +156,23 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         </div>
         
         <div className="flex flex-col items-center">
-          {user && starCard ? (
+          {isLoading ? (
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
+              <p>Loading your StarCard data...</p>
+            </div>
+          ) : user?.user && starCard?.success ? (
             <div ref={starCardRef} className="w-full max-w-md">
               <StarCard 
                 profile={{
-                  name: user?.name || 'Your Name',
-                  title: user?.title || '',
-                  organization: user?.organization || ''
+                  name: user.user.name || 'Your Name',
+                  title: user.user.jobTitle || user.user.title || '',
+                  organization: user.user.organization || ''
                 }}
                 quadrantData={{
                   thinking: starCard.thinking || 0,
                   acting: starCard.acting || 0,
                   feeling: starCard.feeling || 0,
-                  planning: starCard.planning || 0,
-                  state: starCard.state || 'empty'
+                  planning: starCard.planning || 0
                 }}
                 flowAttributes={
                   (flowAttributesData?.attributes && Array.isArray(flowAttributesData.attributes) && flowAttributesData.attributes.length > 0) ? 
@@ -170,11 +195,14 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
             </div>
           ) : (
             <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
-              <p>Loading your StarCard data...</p>
+              <p className="text-amber-700 font-medium">StarCard not available</p>
+              <p className="text-sm text-gray-600 mt-2">
+                You need to complete the strengths assessment first.
+              </p>
             </div>
           )}
           
-          {user && starCard && (
+          {user?.user && starCard?.success && (
             <div className="flex justify-center mt-6">
               <Button 
                 onClick={handleDownload}
