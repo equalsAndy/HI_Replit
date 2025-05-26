@@ -85,9 +85,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '4-5': 'your-statement',
       
       // Section 5: Resources
-      '5-1': 'workshop-guide',
+      '5-1': 'your-star-card',
       '5-2': 'pdf-summary',
-      '5-3': 'your-star-card',
     };
     
     // Special case for intro-to-flow which has two possible content keys
