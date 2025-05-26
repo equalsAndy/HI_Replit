@@ -92,21 +92,20 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         <div className="flex flex-col items-center">
           <div ref={starCardRef} className="w-full max-w-md">
             <StarCard 
-              forceDataFetch={true}
-              downloadable={true}
+              downloadable={false}
             />
           </div>
         </div>
-      </div>
-      
-      <div className="flex justify-center">
-        <Button 
-          onClick={handleDownload}
-          className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-        >
-          <Download className="mr-2 h-5 w-5" />
-          Download Your Star Card
-        </Button>
+        
+        <div className="flex justify-center mt-6">
+          <Button 
+            onClick={handleDownload}
+            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+          >
+            <Download className="mr-2 h-5 w-5" />
+            Download Your Star Card
+          </Button>
+        </div>
       </div>
     </>
   );

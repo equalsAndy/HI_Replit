@@ -15,20 +15,28 @@ interface ProfileData {
   avatarUrl?: string;
 }
 
-// Helper function to get attribute color
+// Helper function to get attribute color - enhanced for better visibility
 const getAttributeColor = (text: string): string => {
   const colors = [
-    'rgb(34, 197, 94)',   // Green
-    'rgb(59, 130, 246)',  // Blue  
-    'rgb(168, 85, 247)',  // Purple
-    'rgb(245, 158, 11)',  // Orange
-    'rgb(239, 68, 68)',   // Red
-    'rgb(20, 184, 166)',  // Teal
+    'rgb(34, 197, 94)',   // Bright Green
+    'rgb(59, 130, 246)',  // Bright Blue  
+    'rgb(168, 85, 247)',  // Bright Purple
+    'rgb(245, 158, 11)',  // Bright Orange
+    'rgb(239, 68, 68)',   // Bright Red
+    'rgb(20, 184, 166)',  // Bright Teal
+    'rgb(236, 72, 153)',  // Bright Pink
+    'rgb(16, 185, 129)',  // Emerald
   ];
   
-  const hash = text.split('').reduce((acc, char) => {
-    return char.charCodeAt(0) + ((acc << 5) - acc);
-  }, 0);
+  if (!text) return colors[0]; // Default to green if no text
+  
+  // Create a more consistent hash for better color distribution
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
   
   return colors[Math.abs(hash) % colors.length];
 };
