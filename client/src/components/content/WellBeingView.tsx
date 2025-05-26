@@ -241,20 +241,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               </div>
             </div>
             
-            {/* Submit/Adjust button section - removed I'm Done button */}
-            <div className="flex justify-center gap-4">
-              <Button
-                onClick={handleSave}
-                disabled={saving || !hasReachedMinimum}
-                className={`${
-                  hasReachedMinimum && !saving
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
-                    : "bg-gray-300 cursor-not-allowed text-gray-500"
-                }`}
-              >
-                {saving ? 'Saving...' : 'Next'} <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            {/* Removed the Next button - users will use the bottom button instead */}
           </div>
         </div>
         
@@ -290,9 +277,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
-          disabled={saving || !submitted || !hasReachedMinimum}
+          disabled={saving || !hasReachedMinimum}
           className={`${
-            hasReachedMinimum && submitted && !saving
+            hasReachedMinimum && !saving
               ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
               : "bg-gray-300 cursor-not-allowed text-gray-500"
           }`}
