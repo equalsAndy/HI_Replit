@@ -35,6 +35,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   // YouTube API integration
   useEffect(() => {
+    let intervalId: NodeJS.Timeout;
+
     // Load YouTube API
     const loadYouTubeAPI = () => {
       if (window.YT && window.YT.Player) {
@@ -53,32 +55,38 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     };
 
     const initializePlayer = () => {
-      if (playerRef.current) return;
+      const playerElement = document.getElementById('youtube-player-wellbeing');
+      if (playerRef.current || !playerElement) return;
 
-      playerRef.current = new window.YT.Player('youtube-player-wellbeing', {
-        height: '100%',
-        width: '100%',
-        videoId: 'yidsMx8B678',
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          iv_load_policy: 3,
-        },
-        events: {
-          onReady: (event: any) => {
-            setIsPlayerReady(true);
-            event.target.playVideo();
+      try {
+        playerRef.current = new window.YT.Player('youtube-player-wellbeing', {
+          height: '100%',
+          width: '100%',
+          videoId: 'yidsMx8B678',
+          playerVars: {
+            autoplay: 1,
+            controls: 1,
+            modestbranding: 1,
+            rel: 0,
+            showinfo: 0,
+            iv_load_policy: 3,
           },
-          onStateChange: (event: any) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              startProgressTracking();
-            }
+          events: {
+            onReady: (event: any) => {
+              console.log('YouTube player ready');
+              setIsPlayerReady(true);
+              event.target.playVideo();
+            },
+            onStateChange: (event: any) => {
+              if (event.data === window.YT.PlayerState.PLAYING) {
+                startProgressTracking();
+              }
+            },
           },
-        },
-      });
+        });
+      } catch (error) {
+        console.error('Error initializing YouTube player:', error);
+      }
     };
 
     const startProgressTracking = () => {
@@ -101,22 +109,18 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         }
       };
 
-      const interval = setInterval(checkProgress, 1000);
-      return () => clearInterval(interval);
+      intervalId = setInterval(checkProgress, 1000);
     };
 
     loadYouTubeAPI();
 
     return () => {
-      if (playerRef.current && playerRef.current.destroy) {
-        try {
-          playerRef.current.destroy();
-        } catch (error) {
-          console.log('Error destroying player:', error);
-        }
+      if (intervalId) {
+        clearInterval(intervalId);
       }
+      // Don't destroy the player on component re-render, only on unmount
     };
-  }, [hasReachedMinimum]);
+  }, []); // Empty dependency array to run only once
 
   const handleSave = async () => {
     setSaving(true);
