@@ -21,7 +21,7 @@ export default function ImaginalAgilityHome() {
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("imaginal-intro");
   const { toast } = useToast();
-  
+
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
@@ -41,16 +41,51 @@ export default function ImaginalAgilityHome() {
         navigate('/auth?app=imaginal-agility');
       }
     };
-    
+
     checkAuth();
   }, [navigate, toast]);
-  
+
   // Fetch user profile data
-  const { data: user } = useQuery<User>({
+  const { data: user, isLoading: isUserLoading } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      email: string | null;
+      title: string | null;
+      organization: string | null;
+      role?: string;
+      progress?: number;
+    }
+  }>({
     queryKey: ['/api/user/profile'],
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    staleTime: 60 * 1000,
   });
-  
+
+  // Clear progress when user has database progress: 0
+  React.useEffect(() => {
+    const actualUser = user?.user || user;
+
+    if (actualUser?.id) {
+      const currentUserId = actualUser.id.toString();
+      const sessionKey = `progress-cleared-imaginal-${currentUserId}`;
+      const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
+
+      // Clear progress if current user has progress: 0 (database reset)
+      if (actualUser.progress === 0 && !hasAlreadyCleared) {
+        console.log(`User ${currentUserId} has database progress: 0, clearing Imaginal Agility cached data`);
+
+        // Clear Imaginal Agility specific progress cache
+        localStorage.removeItem(PROGRESS_STORAGE_KEY);
+
+        // Mark as cleared for this session
+        sessionStorage.setItem(sessionKey, 'true');
+      }
+    }
+  }, [user]);
+
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
@@ -62,10 +97,10 @@ export default function ImaginalAgilityHome() {
       // Clear local storage progress
       localStorage.removeItem(PROGRESS_STORAGE_KEY);
       setCompletedSteps([]);
-      
+
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      
+
       toast({
         title: "Progress Reset",
         description: "Your progress has been reset successfully.",
@@ -79,7 +114,7 @@ export default function ImaginalAgilityHome() {
       });
     }
   });
-  
+
   // Load completed steps from localStorage on component mount
   useEffect(() => {
     const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
@@ -92,24 +127,24 @@ export default function ImaginalAgilityHome() {
       }
     }
   }, []);
-  
+
   // Update navigation sections with completed steps count
   const updatedNavigationSections = imaginalAgilityNavigationSections.map(section => {
     const completedStepsInSection = section.steps.filter(step => 
       completedSteps.includes(step.id)
     ).length;
-    
+
     return {
       ...section,
       completedSteps: completedStepsInSection
     };
   });
-  
+
   // Toggle drawer open/closed
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
-  
+
   // Mark a step as completed
   const markStepCompleted = (stepId: string) => {
     if (!completedSteps.includes(stepId)) {
@@ -118,38 +153,38 @@ export default function ImaginalAgilityHome() {
       localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: newCompletedSteps }));
     }
   };
-  
+
   // Function to determine if a step is accessible
   const isStepAccessible = (sectionId: string, stepId: string) => {
     const sectionIndex = parseInt(sectionId) - 1;
     const stepIndex = parseInt(stepId.split('-')[1]) - 1;
-    
+
     // If it's the first step, it's always accessible
     if (sectionIndex === 0 && stepIndex === 0) return true;
-    
+
     // For other steps, check if the previous step is completed
     const prevStepId = `${sectionId}-${stepIndex}`;
     return completedSteps.includes(prevStepId);
   };
-  
+
   // Get content key from step ID
   const getContentKeyFromStepId = (sectionId: string, stepId: string): string => {
     // Find the step in the navigation sections
     const section = imaginalAgilityNavigationSections.find(s => s.id === sectionId);
     if (!section) return '';
-    
+
     const step = section.steps.find(s => s.id === stepId);
     return step?.contentKey || '';
   };
-  
+
   // Handle step click
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Find the content key for this step
     const contentKey = getContentKeyFromStepId(sectionId, stepId);
-    
+
     if (contentKey) {
       setCurrentContent(contentKey);
-      
+
       // Don't automatically mark assessments as completed
       const isAssessment = contentKey.includes('assessment');
       if (!isAssessment) {
@@ -172,7 +207,7 @@ export default function ImaginalAgilityHome() {
           >
             <span>Switch to AllStarTeams</span>
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -184,7 +219,7 @@ export default function ImaginalAgilityHome() {
           </Button>
         </div>
       </div>
-      
+
       {/* Yellow NavBar - Just like in AllStarTeams */}
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
         <div className="flex items-center">
@@ -203,7 +238,7 @@ export default function ImaginalAgilityHome() {
           />
         </div>
       </div>
-      
+
       {/* Sub Header with Reset Button - specifically for Imaginal Agility */}
       <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
         <div className="flex justify-between items-center h-full">
@@ -224,7 +259,7 @@ export default function ImaginalAgilityHome() {
           </Button>
         </div>
       </header>
-      
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
@@ -237,7 +272,7 @@ export default function ImaginalAgilityHome() {
           handleStepClick={handleStepClick}
           currentContent={currentContent}
         />
-        
+
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
           <ContentViews

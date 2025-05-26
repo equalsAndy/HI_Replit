@@ -59,6 +59,18 @@ export function useNavigationProgress() {
     
     const loadProgressFromDatabase = async () => {
       try {
+        // Check if user has progress: 0 in database - if so, clear local cache immediately
+        if (userData.user.progress === 0) {
+          console.log(`User ${userData.user.id} has database progress: 0, clearing navigation cache`);
+          const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
+          const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
+          localStorage.removeItem(cacheKey);
+          localStorage.removeItem(syncKey);
+          setLocalProgress(null);
+          setIsInitialized(true);
+          return;
+        }
+        
         // First try localStorage for immediate response
         const cachedProgress = localStorage.getItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`);
         const lastSync = localStorage.getItem(`${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`);

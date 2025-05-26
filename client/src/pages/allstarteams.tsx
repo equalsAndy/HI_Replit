@@ -170,14 +170,25 @@ export default function AllStarTeams() {
       const sessionKey = `progress-cleared-${currentUserId}`;
       const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
       
-      // Clear progress if user changed OR if current user has progress: 0 (fresh start) AND hasn't been cleared yet
-      const shouldClearProgress = (lastUserId && lastUserId !== currentUserId) || 
-                                 (actualUser.progress === 0 && !hasAlreadyCleared);
+      // Clear progress if:
+      // 1. User changed (different user logged in)
+      // 2. Current user has progress: 0 (database reset) AND hasn't been cleared in this session
+      // 3. Current user has undefined/null progress (fresh user)
+      const userChanged = lastUserId && lastUserId !== currentUserId;
+      const hasZeroProgress = actualUser.progress === 0 && !hasAlreadyCleared;
+      const hasNoProgress = (actualUser.progress === undefined || actualUser.progress === null) && !hasAlreadyCleared;
+      
+      const shouldClearProgress = userChanged || hasZeroProgress || hasNoProgress;
       
       if (shouldClearProgress) {
-        const reason = lastUserId && lastUserId !== currentUserId 
-          ? `User changed from ${lastUserId} to ${currentUserId}`
-          : `User ${currentUserId} has fresh progress (0), clearing cached data`;
+        let reason;
+        if (userChanged) {
+          reason = `User changed from ${lastUserId} to ${currentUserId}`;
+        } else if (hasZeroProgress) {
+          reason = `User ${currentUserId} has database progress: 0, clearing cached data`;
+        } else {
+          reason = `User ${currentUserId} has no progress data, clearing cached data`;
+        }
         
         console.log(`${reason}, clearing workshop progress`);
         
