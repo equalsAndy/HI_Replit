@@ -18,10 +18,12 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       
       {/* SVG Ladder at the top */}
       <div className="flex justify-center mb-8">
-        <WellBeingLadderSvg 
-          currentValue={wellBeingLevel}
-          futureValue={futureWellBeingLevel}
-        />
+        <div className="w-full xl:w-11/12 2xl:w-full max-w-lg">
+          <WellBeingLadderSvg 
+            currentValue={wellBeingLevel}
+            futureValue={futureWellBeingLevel}
+          />
+        </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 mb-8">
