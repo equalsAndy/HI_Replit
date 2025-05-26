@@ -11,17 +11,72 @@ export const imaginalAgilityNavigationSections: NavigationSection[] = [
     title: 'Imaginal Agility Program',
     path: '/imaginal-agility/intro',
     icon: LightbulbIcon,
-    totalSteps: 8,
+    totalSteps: 6,
     completedSteps: 0,
     steps: [
-      { id: '1-1', label: 'Introduction to Imaginal Agility', path: '/imaginal-agility/intro', type: 'Learning', contentKey: 'imaginal-intro' },
-      { id: '1-2', label: 'The Triple Challenge', path: '/imaginal-agility/triple-challenge', type: 'Learning', contentKey: 'triple-challenge' },
-      { id: '1-3', label: 'The Imaginal Agility Solution', path: '/imaginal-agility/solution', type: 'Learning', contentKey: 'imaginal-solution' },
-      { id: '1-4', label: 'Your 5 Capabilities (5Cs)', path: '/imaginal-agility/capabilities', type: 'Learning', contentKey: 'five-capabilities' },
-      { id: '1-5', label: 'Take the Imagination Assessment', path: '/imaginal-agility/imagination-assessment', type: 'Assessment', contentKey: 'imagination-assessment' },
-      { id: '1-6', label: 'Complete the 5Cs Assessment', path: '/imaginal-agility/5cs-assessment', type: 'Assessment', contentKey: 'five-c-assessment' },
-      { id: '1-7', label: 'Review Your Insights', path: '/imaginal-agility/insights', type: 'Learning', contentKey: 'insights-review' },
-      { id: '1-8', label: 'Team Workshop', path: '/imaginal-agility/team-workshop', type: 'Workshop', contentKey: 'team-workshop' }
+      { 
+        id: '1-1', 
+        label: 'Introduction to Imaginal Agility', 
+        path: '/imaginal-agility/intro', 
+        type: 'Learning', 
+        contentKey: 'imaginal-intro',
+        icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: false // Only this step starts unlocked
+      },
+      { 
+        id: '1-2', 
+        label: 'The Triple Challenge', 
+        path: '/imaginal-agility/triple-challenge', 
+        type: 'Learning', 
+        contentKey: 'triple-challenge',
+        icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: true
+      },
+      { 
+        id: '1-3', 
+        label: 'The Imaginal Agility Solution', 
+        path: '/imaginal-agility/solution', 
+        type: 'Learning', 
+        contentKey: 'imaginal-solution',
+        icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: true
+      },
+      { 
+        id: '1-4', 
+        label: 'Your 5 Capabilities (5Cs)', 
+        path: '/imaginal-agility/capabilities', 
+        type: 'Learning', 
+        contentKey: 'five-capabilities',
+        icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: true
+      },
+      { 
+        id: '1-5', 
+        label: 'Take the Imagination Assessment', 
+        path: '/imaginal-agility/imagination-assessment', 
+        type: 'Assessment', 
+        contentKey: 'imagination-assessment',
+        icon: Zap,
+        isModal: true,
+        locked: true
+      },
+      { 
+        id: '1-6', 
+        label: 'Review your Results', 
+        path: '/imaginal-agility/results', 
+        type: 'Learning', 
+        contentKey: 'assessment-results',
+        icon: Book,
+        locked: true
+      }
     ]
   }
 ];

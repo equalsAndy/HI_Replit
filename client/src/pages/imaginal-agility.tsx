@@ -11,6 +11,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import TestUserBanner from '@/components/auth/TestUserBanner';
 import LogoutButton from '@/components/auth/LogoutButton';
+import { useProgressionLogic } from '@/hooks/use-progression-logic';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -18,9 +19,19 @@ const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
 export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("imaginal-intro");
   const { toast } = useToast();
+  
+  // Use progression logic for sequential unlocking
+  const {
+    completedSteps,
+    isStepUnlocked,
+    isStepCompleted,
+    markStepCompleted,
+    markVideoWatched,
+    saveAssessmentResult,
+    getProgressCount
+  } = useProgressionLogic();
 
   // Check authentication on component mount
   useEffect(() => {

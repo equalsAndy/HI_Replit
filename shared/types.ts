@@ -60,6 +60,7 @@ export interface NavigationStep {
   hasSliders?: boolean;
   downloadOnly?: boolean;
   estimatedTime?: number;
+  locked?: boolean;
 }
 
 export interface NavigationSection {
