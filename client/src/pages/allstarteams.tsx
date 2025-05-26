@@ -198,6 +198,11 @@ export default function AllStarTeams() {
         // Reset completed steps state
         setCompletedSteps([]);
         
+        // Force refresh of all cached data by invalidating queries
+        queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+        
         // Mark progress as cleared for this session to avoid repeated clearing
         const sessionKey = `progress-cleared-${currentUserId}`;
         sessionStorage.setItem(sessionKey, 'true');
