@@ -93,12 +93,25 @@ app.get('/health', (req, res) => {
 
 // In production, serve static files from the dist directory
 if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist');
-  app.use(express.static(distPath));
+  const distPath = path.join(__dirname, '../dist/public');
+  console.log('Production mode - serving static files from:', distPath);
   
-  // Catch-all handler for client-side routing
+  // Serve static files with proper cache headers
+  app.use(express.static(distPath, {
+    maxAge: '1y',
+    etag: false
+  }));
+  
+  // Catch-all handler for client-side routing (must be after API routes)
   app.get('*', (req, res) => {
-    res.sendFile(path.join(distPath, 'index.html'));
+    const indexPath = path.join(distPath, 'index.html');
+    console.log('Serving index.html from:', indexPath);
+    res.sendFile(indexPath, (err) => {
+      if (err) {
+        console.error('Error serving index.html:', err);
+        res.status(500).send('Internal Server Error');
+      }
+    });
   });
 }
 
