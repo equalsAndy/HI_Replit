@@ -163,6 +163,30 @@ export default function AllStarTeams() {
       const lastUserId = localStorage.getItem('last-user-id');
       const currentUserId = user.id.toString();
       
+      // Always clear progress for Joan Baez (user 19) if she has progress: 0
+      if (currentUserId === '19' && user.progress === 0) {
+        console.log(`Clearing all progress for Joan Baez (fresh user)`);
+        
+        // Clear AllStarTeams specific progress
+        const keysToRemove = [
+          'allstarteams-navigation-progress',
+          'allstar_navigation_progress', 
+          'allstarteams_progress',
+          'allstarteams_completedActivities',
+          'allstarteams_starCard',
+          'allstarteams_flowAttributes'
+        ];
+        
+        keysToRemove.forEach(key => {
+          console.log(`Removing localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        });
+        
+        // Reset completed steps state
+        setCompletedSteps([]);
+        console.log('Completed steps reset to empty array');
+      }
+      
       if (lastUserId && lastUserId !== currentUserId) {
         // Different user logged in, clear workshop progress
         console.log(`User changed from ${lastUserId} to ${currentUserId}, clearing workshop progress`);
