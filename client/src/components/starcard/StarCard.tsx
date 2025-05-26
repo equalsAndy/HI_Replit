@@ -7,6 +7,32 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
 
+// Profile data interface
+interface ProfileData {
+  name: string;
+  title: string;
+  organization: string;
+  avatarUrl?: string;
+}
+
+// Helper function to get attribute color
+const getAttributeColor = (text: string): string => {
+  const colors = [
+    'rgb(34, 197, 94)',   // Green
+    'rgb(59, 130, 246)',  // Blue  
+    'rgb(168, 85, 247)',  // Purple
+    'rgb(245, 158, 11)',  // Orange
+    'rgb(239, 68, 68)',   // Red
+    'rgb(20, 184, 166)',  // Teal
+  ];
+  
+  const hash = text.split('').reduce((acc, char) => {
+    return char.charCodeAt(0) + ((acc << 5) - acc);
+  }, 0);
+  
+  return colors[Math.abs(hash) % colors.length];
+};
+
 // Flow attribute structure
 interface FlowAttribute {
   text: string;
@@ -74,39 +100,58 @@ export default function StarCard({
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
   const [userProfileData, setUserProfileData] = useState<any>(null);
+  const [fetchedFlowAttributes, setFetchedFlowAttributes] = useState<FlowAttribute[]>([]);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch user profile data directly
+  // Fetch user profile and flow attributes data directly
   React.useEffect(() => {
-    const fetchUserProfile = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch user profile
         console.log('StarCard: Attempting to fetch user profile...');
-        const response = await fetch('/api/user/profile', {
+        const profileResponse = await fetch('/api/user/profile', {
           credentials: 'include'
         });
         
-        console.log('StarCard: Profile response status:', response.status);
+        console.log('StarCard: Profile response status:', profileResponse.status);
         
-        if (response.ok) {
-          const data = await response.json();
+        if (profileResponse.ok) {
+          const data = await profileResponse.json();
           console.log('StarCard: Fetched user profile data:', data);
-          // Extract user data from the response structure
           const userData = data.success && data.user ? data.user : data;
           console.log('StarCard: Processed user data:', userData);
           setUserProfileData(userData);
-        } else {
-          const errorData = await response.json();
-          console.log('StarCard: User profile fetch failed, status:', response.status, 'error:', errorData);
+        }
+
+        // Fetch flow attributes if not provided as props
+        if (!flowAttributes || flowAttributes.length === 0) {
+          console.log('StarCard: Fetching flow attributes...');
+          const flowResponse = await fetch('/api/flow-attributes', {
+            credentials: 'include'
+          });
+          
+          if (flowResponse.ok) {
+            const flowData = await flowResponse.json();
+            console.log('StarCard: Fetched flow data:', flowData);
+            
+            if (flowData.attributes && Array.isArray(flowData.attributes)) {
+              const coloredAttributes = flowData.attributes.map((attr: any) => ({
+                text: attr.name || attr.text,
+                color: getAttributeColor(attr.name || attr.text)
+              }));
+              console.log('StarCard: Setting flow attributes:', coloredAttributes);
+              setFetchedFlowAttributes(coloredAttributes);
+            }
+          }
         }
       } catch (error) {
-        console.error('StarCard: Error fetching user profile data:', error);
+        console.error('StarCard: Error fetching data:', error);
       }
     };
 
-    // Always try to fetch user profile data
-    console.log('StarCard: Starting profile fetch, current profile:', profile, 'userName:', userName);
-    fetchUserProfile();
-  }, []);
+    console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
+    fetchData();
+  }, [flowAttributes]);
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
@@ -154,12 +199,14 @@ export default function StarCard({
     return thinking > 0 || acting > 0 || feeling > 0 || planning > 0;
   }, [derivedQuadrantData]);
 
-  // Check if flow attributes are provided and valid
+  // Check if flow attributes are provided and valid (use fetched or props)
+  const effectiveFlowAttributes = flowAttributes?.length > 0 ? flowAttributes : fetchedFlowAttributes;
+  
   const hasFlowAttributes = useMemo(() => {
-    return flowAttributes && 
-           flowAttributes.length > 0 && 
-           flowAttributes.every(attr => !!attr.text);
-  }, [flowAttributes]);
+    return effectiveFlowAttributes && 
+           effectiveFlowAttributes.length > 0 && 
+           effectiveFlowAttributes.every(attr => !!attr.text);
+  }, [effectiveFlowAttributes]);
 
   // Determine the card state based on props or data
   const cardState = useMemo(() => {
@@ -445,24 +492,24 @@ export default function StarCard({
                 top,
                 right,
                 left,
-                backgroundColor: flowAttributes[index]?.text 
-                  ? flowAttributes[index]?.color || getQuadrantDefaultColor(index)  // Use attribute's color when available
+                backgroundColor: effectiveFlowAttributes[index]?.text 
+                  ? effectiveFlowAttributes[index]?.color || getQuadrantDefaultColor(index)  // Use attribute's color when available
                   : 'rgb(229, 231, 235)' // Default light gray only when no attribute
               }}
             >
               {/* Show text if attribute exists */}
-              {flowAttributes[index]?.text && (
+              {effectiveFlowAttributes[index]?.text && (
                 <div className="w-full h-full flex items-center justify-center p-[2px]">
                 <div 
                   className="font-bold text-center leading-tight"
                   style={{
-                    fontSize: flowAttributes[index]?.text 
-                      ? `${Math.max(Math.min(69 / flowAttributes[index]?.text.length * 1.2, 14), 7.5)}px` 
+                    fontSize: effectiveFlowAttributes[index]?.text 
+                      ? `${Math.max(Math.min(69 / effectiveFlowAttributes[index]?.text.length * 1.2, 14), 7.5)}px` 
                       : '9px',
                     margin: '0 1px'
                   }}
                 >
-                  {flowAttributes[index]?.text}
+                  {effectiveFlowAttributes[index]?.text}
                 </div>
               </div>
               )}
