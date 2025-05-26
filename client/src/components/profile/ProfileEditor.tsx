@@ -20,9 +20,9 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     name: user?.name || '',
-    email: user?.email || '',
+    email: user?.email || user?.username || '',
     organization: user?.organization || '',
-    jobTitle: user?.jobTitle || '',
+    jobTitle: user?.jobTitle || user?.title || '',
   });
   const [profileImage, setProfileImage] = useState(user?.profilePicture);
   const [uploading, setUploading] = useState(false);
@@ -35,9 +35,9 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     if (user) {
       setFormData({
         name: user.name || '',
-        email: user.email || '',
+        email: user.email || user.username || '',
         organization: user.organization || '',
-        jobTitle: user.jobTitle || '',
+        jobTitle: user.jobTitle || user.title || '',
       });
       setProfileImage(user.profilePicture);
     }
@@ -153,9 +153,9 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     if (user) {
       setFormData({
         name: user.name || '',
-        email: user.email || '',
+        email: user.email || user.username || '',
         organization: user.organization || '',
-        jobTitle: user.jobTitle || '',
+        jobTitle: user.jobTitle || user.title || '',
       });
       setProfileImage(user.profilePicture);
     }
@@ -169,9 +169,9 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     if (user) {
       setFormData({
         name: user.name || '',
-        email: user.email || '',
+        email: user.email || user.username || '',
         organization: user.organization || '',
-        jobTitle: user.jobTitle || '',
+        jobTitle: user.jobTitle || user.title || '',
       });
       setProfileImage(user.profilePicture);
     }
