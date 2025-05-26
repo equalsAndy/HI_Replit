@@ -250,9 +250,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   );
 
   // Determine if card is already complete
-  const isCardComplete = flowAttributesData?.attributes && 
+  const isCardComplete = (flowAttributesData?.attributes && 
                         Array.isArray(flowAttributesData.attributes) && 
-                        flowAttributesData.attributes.length > 0;
+                        flowAttributesData.attributes.length > 0) ||
+                        (selectedAttributes.length === 4 && selectedAttributes.every(attr => attr.rank !== null));
 
   useEffect(() => {
     if (isCardComplete && flowAttributesData?.attributes) {
@@ -481,7 +482,6 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          {console.log("FlowStarCard conditions:", { isCardComplete, showSelectionInterface, selectedAttributesLength: selectedAttributes.length })}
           {isCardComplete && !showSelectionInterface ? (
             <>
               <h3 className="text-lg font-semibold mb-4">Your Flow Attributes</h3>
