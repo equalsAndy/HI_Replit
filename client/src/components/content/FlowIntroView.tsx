@@ -127,19 +127,17 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
       
-      <div className="flex flex-col md:flex-row gap-6 mb-4">
-        <div className="md:w-1/2">
-          <div className="aspect-w-16 aspect-h-9">
-            <div className="w-full h-52 rounded border border-gray-200 bg-black">
-              <div 
-                ref={playerRef}
-                className="w-full h-full rounded-lg"
-                style={{ pointerEvents: 'auto', position: 'relative' }}
-              />
-            </div>
-          </div>
+      <div className="aspect-w-16 aspect-h-9 mb-4">
+        <div className="w-full h-80 rounded border border-gray-200 bg-black">
+          <div 
+            ref={playerRef}
+            className="w-full h-full rounded-lg"
+            style={{ pointerEvents: 'auto', position: 'relative' }}
+          />
         </div>
-        
+      </div>
+      
+      <div className="flex flex-col md:flex-row gap-6 mb-4">
         <div className="md:w-1/2">
           <div className="prose">
             <p className="mb-3">
@@ -156,6 +154,9 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
               <li>More meaningful and engaging experiences</li>
             </ul>
           </div>
+        </div>
+        
+        <div className="md:w-1/2">
         </div>
       </div>
       

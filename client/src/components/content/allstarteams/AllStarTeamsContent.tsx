@@ -21,7 +21,7 @@ import PlaceholderView from '../PlaceholderView';
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
-  
+
   // Use any type to avoid compatibility issues temporarily
   starCard?: any;
   user?: any;
@@ -103,10 +103,10 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           starCard={starCard}
         />
       );
-      
+
     case 'intro-to-flow':
       return (
-        <IntroToFlowView 
+        <FlowIntroView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -206,7 +206,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
           starCard={starCard}
         />
       );
-    
+
     // Handle placeholder content
     default:
       return (
