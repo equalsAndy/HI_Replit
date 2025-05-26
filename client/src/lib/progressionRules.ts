@@ -225,7 +225,7 @@ export function getNextButtonText(stepId: string): string {
 export function getCompletionButtonText(stepId: string): string {
   const buttonTextMap: { [key: string]: string } = {
     '3-4': 'Add Attributes to Star Card',
-    '4-1': "I'm Done",
+    '4-1': "Next",
     '4-3': 'Save Vision Board'
   };
 
