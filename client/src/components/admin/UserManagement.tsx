@@ -436,68 +436,44 @@ export function UserManagement() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex space-x-1">
+                            <div className="flex items-center gap-2">
                               {!user.isDeleted && (
                                 <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8"
-                                          onClick={() => handleEditUser(user)}
-                                        >
-                                          <PencilIcon className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Edit user</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs"
+                                    onClick={() => handleEditUser(user)}
+                                  >
+                                    <PencilIcon className="h-3 w-3 mr-1" />
+                                    Edit
+                                  </Button>
                                   
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="h-8 w-8 text-red-600 hover:text-red-800 hover:bg-red-50"
-                                          onClick={() => {
-                                            setSelectedUser(user);
-                                            setConfirmDeleteOpen(true);
-                                          }}
-                                        >
-                                          <Trash2 className="h-4 w-4" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Delete user</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-3 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setConfirmDeleteOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Delete
+                                  </Button>
                                 </>
                               )}
                               
                               {user.isDeleted && (
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-8 w-8 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                                        onClick={() => restoreUserMutation.mutate(user.id)}
-                                      >
-                                        <UndoIcon className="h-4 w-4" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                      <p>Restore user</p>
-                                    </TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                  onClick={() => restoreUserMutation.mutate(user.id)}
+                                >
+                                  <UndoIcon className="h-3 w-3 mr-1" />
+                                  Restore
+                                </Button>
                               )}
                             </div>
                           </TableCell>
