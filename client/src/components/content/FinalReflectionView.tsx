@@ -101,7 +101,7 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Download your star card'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Download Your Star Card'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
