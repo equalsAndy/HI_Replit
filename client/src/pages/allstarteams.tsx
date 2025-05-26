@@ -181,7 +181,7 @@ export default function AllStarTeams() {
         
         console.log(`${reason}, clearing workshop progress`);
         
-        // Clear AllStarTeams specific progress
+        // Clear AllStarTeams specific progress and navigation cache
         const keysToRemove = [
           'allstarteams-navigation-progress',
           'allstar_navigation_progress', 
@@ -191,7 +191,13 @@ export default function AllStarTeams() {
           'allstarteams_flowAttributes'
         ];
         
-        keysToRemove.forEach(key => {
+        // Also clear navigation progress cache for this user
+        const navigationKeys = Object.keys(localStorage).filter(key => 
+          key.startsWith('app_navigation_progress_') || 
+          key.startsWith('navigation_last_sync_')
+        );
+        
+        keysToRemove.concat(navigationKeys).forEach(key => {
           localStorage.removeItem(key);
         });
         

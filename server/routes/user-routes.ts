@@ -287,7 +287,96 @@ router.post('/assessments', requireAuth, async (req, res) => {
 });
 
 /**
- * Update user progress
+ * Get user navigation progress
+ */
+router.get('/navigation-progress', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    const result = await userManagementService.getUserById(req.session.userId);
+    
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      progress: result.user?.navigationProgress || null
+    });
+  } catch (error) {
+    console.error('Error getting navigation progress:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load navigation progress. Please try again later.'
+    });
+  }
+});
+
+/**
+ * Update user navigation progress
+ */
+router.put('/navigation-progress', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    const { navigationProgress } = req.body;
+    
+    if (!navigationProgress || typeof navigationProgress !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'Navigation progress must be a valid JSON string'
+      });
+    }
+    
+    // Validate JSON
+    try {
+      JSON.parse(navigationProgress);
+    } catch (parseError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Navigation progress must be valid JSON'
+      });
+    }
+    
+    const result = await userManagementService.updateUser(req.session.userId, {
+      navigationProgress
+    });
+    
+    if (!result.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'Failed to update navigation progress'
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: 'Navigation progress updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating navigation progress:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update navigation progress. Please try again later.'
+    });
+  }
+});
+
+/**
+ * Update user progress (legacy endpoint for compatibility)
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
@@ -307,9 +396,7 @@ router.put('/progress', requireAuth, async (req, res) => {
       });
     }
     
-    // Currently we don't have a progress field in the user table,
-    // so we'll just return success without actually updating anything
-    
+    // This endpoint is kept for compatibility but doesn't actually store anything
     res.json({
       success: true,
       message: 'Progress updated successfully',

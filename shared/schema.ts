@@ -22,6 +22,7 @@ export const users = pgTable('users', {
   jobTitle: text('job_title'),
   profilePicture: text('profile_picture'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
+  navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

@@ -24,36 +24,36 @@ export class ResetService {
     error?: string;
   }> {
     console.log(`=== RESET SERVICE: Starting complete data reset for user ${userId} ===`);
-    
+
     const deletedData = {
       starCard: false,
       flowAttributes: false,
       userProgress: false
     };
-    
+
     try {
       // Use direct database access for maximum reliability
       const { sql } = await import('drizzle-orm');
       const { eq } = await import('drizzle-orm');
-      
+
       console.log(`Starting comprehensive data reset for user ${userId}`);
-      
+
       // STEP 1: Delete all user assessments (including star card and flow attributes)
       try {
         // Use direct SQL for guaranteed deletion of ALL assessment data
         await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
         console.log(`Deleted all assessment data for user ${userId} using direct SQL`);
-        
+
         // Mark both types as deleted for reporting
         deletedData.starCard = true;
         deletedData.flowAttributes = true;
-        
+
         // Verify the deletion was successful
         const remainingAssessments = await db
           .select()
           .from(schema.userAssessments)
           .where(eq(schema.userAssessments.userId, userId));
-        
+
         if (remainingAssessments.length > 0) {
           console.error(`ERROR: Some assessments remain for user ${userId} after deletion attempt`);
         } else {
@@ -63,7 +63,7 @@ export class ResetService {
         console.error(`Error deleting user assessments for user ${userId}:`, error);
         // Continue with other operations even if this fails
       }
-      
+
       // STEP 2: Reset workshop participation data
       try {
         // Direct SQL deletion of workshop participation
@@ -73,7 +73,7 @@ export class ResetService {
       } catch (error) {
         console.error(`Error deleting workshop participation for user ${userId}:`, error);
       }
-      
+
       // STEP 3: Reset any reflections or custom user content
       try {
         // If there's a reflections table, clear it for this user
@@ -86,7 +86,7 @@ export class ResetService {
         // This is expected to fail if the table doesn't exist
         console.log(`No reflections table to clear for user ${userId}`);
       }
-      
+
       // STEP 4: Reset user progress (reset timestamp)
       try {
         // Update the user's timestamp to reset their progress
@@ -98,9 +98,9 @@ export class ResetService {
       } catch (error) {
         console.error(`Error updating user timestamp for user ${userId}:`, error);
       }
-      
+
       console.log(`=== RESET: Completed data reset for user ${userId} ===`);
-      
+
       // All operations completed successfully
       return {
         success: true,
@@ -111,7 +111,7 @@ export class ResetService {
     } catch (error) {
       // Log the error for server-side debugging
       console.error('Error in resetAllUserData:', error);
-      
+
       // Return failure response with details
       return {
         success: false,
@@ -122,7 +122,7 @@ export class ResetService {
       };
     }
   }
-  
+
   /**
    * Reset just the star card data for a user
    * @param userId The user ID
@@ -131,10 +131,10 @@ export class ResetService {
   public static async resetStarCard(userId: number): Promise<boolean> {
     try {
       console.log(`Resetting star card for user ${userId}`);
-      
+
       // Import and use the eq operator from drizzle-orm
       const { eq, and } = await import('drizzle-orm');
-      
+
       // Check userAssessments table for star card data
       const assessments = await db
         .select()
@@ -145,14 +145,14 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'starCard')
           )
         );
-      
+
       if (assessments.length === 0) {
         console.log(`No star card found for user ${userId}, nothing to delete`);
         return true;
       }
-      
+
       console.log(`Found ${assessments.length} star card assessments for user ${userId}`);
-      
+
       // Delete all star card assessments for this user
       await db
         .delete(schema.userAssessments)
@@ -162,7 +162,7 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'starCard')
           )
         );
-      
+
       // Verify deletion
       const verifyAssessments = await db
         .select()
@@ -173,12 +173,12 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'starCard')
           )
         );
-      
+
       if (verifyAssessments.length > 0) {
         console.error(`ERROR: Star card assessments still exist after deletion for user ${userId}`);
         return false;
       }
-      
+
       console.log(`Successfully deleted all star card assessments for user ${userId}`);
       return true;
     } catch (error) {
@@ -186,7 +186,7 @@ export class ResetService {
       throw error;
     }
   }
-  
+
   /**
    * Reset just the flow attributes data for a user
    * @param userId The user ID
@@ -195,10 +195,10 @@ export class ResetService {
   public static async resetFlowAttributes(userId: number): Promise<boolean> {
     try {
       console.log(`Resetting flow attributes for user ${userId}`);
-      
+
       // Import and use the eq operator from drizzle-orm
       const { eq, and } = await import('drizzle-orm');
-      
+
       // Check userAssessments table for flow attributes
       const assessments = await db
         .select()
@@ -209,14 +209,14 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'flowAttributes')
           )
         );
-      
+
       if (assessments.length === 0) {
         console.log(`No flow attributes found for user ${userId}, nothing to delete`);
         return true;
       }
-      
+
       console.log(`Found ${assessments.length} flow attribute assessments for user ${userId}`);
-      
+
       // Delete all flow attribute assessments for this user
       await db
         .delete(schema.userAssessments)
@@ -226,7 +226,7 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'flowAttributes')
           )
         );
-      
+
       // Verify deletion
       const verifyAssessments = await db
         .select()
@@ -237,12 +237,12 @@ export class ResetService {
             eq(schema.userAssessments.assessmentType, 'flowAttributes')
           )
         );
-      
+
       if (verifyAssessments.length > 0) {
         console.error(`ERROR: Flow attribute assessments still exist after deletion for user ${userId}`);
         return false;
       }
-      
+
       console.log(`Successfully deleted all flow attribute assessments for user ${userId}`);
       return true;
     } catch (error) {
@@ -250,7 +250,7 @@ export class ResetService {
       throw error;
     }
   }
-  
+
   /**
    * Reset user progress
    * @param userId The user ID
@@ -259,24 +259,23 @@ export class ResetService {
   public static async resetUserProgress(userId: number): Promise<boolean> {
     try {
       console.log(`Resetting progress for user ${userId}`);
-      
-      // Reset the progress field in the users table if it exists
+
+      // Reset user progress and navigation progress
       try {
         const { eq } = await import('drizzle-orm');
-        
-        // Update the progress field to 0
-        // This will set the progress back to the beginning for all workshops
-        await db
-          .update(schema.users)
-          .set({ progress: 0 })
+
+        await db.update(schema.users)
+          .set({ 
+            navigationProgress: null
+          })
           .where(eq(schema.users.id, userId));
-          
-        console.log(`Reset progress to 0 for user ${userId}`);
+
+        console.log(`Reset navigation progress for user ${userId}`);
       } catch (err) {
         console.error(`Error resetting progress for user ${userId}:`, err);
         // Continue even if this fails
       }
-      
+
       return true;
     } catch (error) {
       console.error(`Error in resetUserProgress for user ${userId}:`, error);

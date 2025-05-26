@@ -28,10 +28,12 @@ export interface NavigationProgress {
   completedSteps: string[];
   expandedSections: string[];
   sections: NavigationSection[];
+  appType?: string; // 'ast' or 'imaginal-agility'
 }
 
-// Local storage key
+// Local storage keys for caching
 const NAVIGATION_PROGRESS_KEY = 'app_navigation_progress';
+const LAST_SYNC_KEY = 'navigation_last_sync';
 
 // Default time values in milliseconds
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -39,54 +41,116 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
 export function useNavigationProgress() {
   const { toast } = useToast();
   const [localProgress, setLocalProgress] = useState<NavigationProgress | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   // Get user progress from the server
   const { data: userData, isLoading: isUserDataLoading } = useQuery({
     queryKey: ['/api/user/profile'],
-    staleTime: Infinity,
+    staleTime: 60000, // 1 minute cache
+    refetchOnWindowFocus: false,
   });
+
+  // Get current app type
+  const currentApp = sessionStorage.getItem('selectedApp') || 'ast';
   
-  // Initialize from localStorage on first load
+  // Load progress from database on user change or app change
   useEffect(() => {
-    const savedProgress = localStorage.getItem(NAVIGATION_PROGRESS_KEY);
-    if (savedProgress) {
+    if (!userData?.user?.id || isInitialized) return;
+    
+    const loadProgressFromDatabase = async () => {
       try {
-        const parsed = JSON.parse(savedProgress);
-        setLocalProgress(parsed);
+        // First try localStorage for immediate response
+        const cachedProgress = localStorage.getItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`);
+        const lastSync = localStorage.getItem(`${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`);
+        
+        if (cachedProgress && lastSync) {
+          const cacheAge = Date.now() - parseInt(lastSync);
+          if (cacheAge < 300000) { // Use cache if less than 5 minutes old
+            const parsed = JSON.parse(cachedProgress);
+            setLocalProgress(parsed);
+            setIsInitialized(true);
+            return;
+          }
+        }
+        
+        // Load from database
+        const response = await apiRequest('GET', '/api/user/navigation-progress');
+        const result = await response.json();
+        
+        if (result.success && result.progress) {
+          const dbProgress = JSON.parse(result.progress);
+          // Only use database progress if it matches current app
+          if (dbProgress.appType === currentApp) {
+            setLocalProgress(dbProgress);
+            // Cache in localStorage
+            localStorage.setItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`, result.progress);
+            localStorage.setItem(`${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`, Date.now().toString());
+          }
+        }
+        
+        setIsInitialized(true);
       } catch (error) {
-        console.error('Error parsing navigation progress from localStorage:', error);
-        // If parsing fails, we'll initialize with default values
+        console.error('Error loading navigation progress from database:', error);
+        // Fall back to localStorage
+        const cachedProgress = localStorage.getItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`);
+        if (cachedProgress) {
+          try {
+            const parsed = JSON.parse(cachedProgress);
+            setLocalProgress(parsed);
+          } catch (parseError) {
+            console.error('Error parsing cached progress:', parseError);
+          }
+        }
+        setIsInitialized(true);
       }
-    }
-  }, []);
+    };
+    
+    loadProgressFromDatabase();
+  }, [userData?.user?.id, currentApp, isInitialized]);
   
-  // Update progress on the server
+  // Update navigation progress on the server
   const updateServerProgress = useMutation({
-    mutationFn: async (progress: number) => {
-      const res = await apiRequest('PUT', '/api/user/progress', { progress });
+    mutationFn: async (navigationProgress: NavigationProgress) => {
+      const res = await apiRequest('PUT', '/api/user/navigation-progress', { 
+        navigationProgress: JSON.stringify(navigationProgress)
+      });
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
     },
     onError: (error) => {
-      toast({
-        title: "Failed to update progress on server",
-        description: String(error),
-        variant: "destructive",
-      });
+      console.error('Failed to sync progress to database:', error);
+      // Don't show toast for sync errors to avoid being annoying
     }
   });
   
-  // Save progress to localStorage
-  const saveProgressToLocalStorage = (progress: NavigationProgress) => {
+  // Save progress to localStorage and database
+  const saveProgress = (progress: NavigationProgress) => {
     try {
-      localStorage.setItem(NAVIGATION_PROGRESS_KEY, JSON.stringify(progress));
-      setLocalProgress(progress);
+      // Add app type and user ID to progress
+      const progressWithMeta = {
+        ...progress,
+        appType: currentApp,
+        lastVisitedAt: Date.now()
+      };
+      
+      setLocalProgress(progressWithMeta);
+      
+      // Save to localStorage immediately for responsiveness
+      if (userData?.user?.id) {
+        const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
+        const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
+        localStorage.setItem(cacheKey, JSON.stringify(progressWithMeta));
+        localStorage.setItem(syncKey, Date.now().toString());
+        
+        // Sync to database (async, non-blocking)
+        updateServerProgress.mutate(progressWithMeta);
+      }
     } catch (error) {
-      console.error('Error saving navigation progress to localStorage:', error);
+      console.error('Error saving navigation progress:', error);
       toast({
-        title: "Failed to save progress locally",
+        title: "Failed to save progress",
         description: "Your progress may not be saved between sessions.",
         variant: "destructive",
       });
@@ -119,14 +183,9 @@ export function useNavigationProgress() {
       ...localProgress,
       completedSteps: [...localProgress.completedSteps, stepId],
       currentStepId: stepId,
-      lastVisitedAt: Date.now()
     };
     
-    saveProgressToLocalStorage(newProgress);
-    
-    // Update server progress
-    const progressPercentage = calculateOverallProgress();
-    updateServerProgress.mutate(progressPercentage);
+    saveProgress(newProgress);
   };
   
   // Set current step
@@ -136,10 +195,9 @@ export function useNavigationProgress() {
     const newProgress = {
       ...localProgress,
       currentStepId: stepId,
-      lastVisitedAt: Date.now()
     };
     
-    saveProgressToLocalStorage(newProgress);
+    saveProgress(newProgress);
   };
   
   // Check if a step is accessible (can only access if previous steps are complete or it's already visited)
@@ -184,13 +242,13 @@ export function useNavigationProgress() {
       expandedSections: newExpandedSections
     };
     
-    saveProgressToLocalStorage(newProgress);
+    saveProgress(newProgress);
   };
   
   // Initialize or update navigation sections
   const updateNavigationSections = (sections: NavigationSection[]) => {
     // If we have existing progress, merge with new sections
-    if (localProgress) {
+    if (localProgress && isInitialized) {
       // Keep track of completed steps and expanded sections
       const newProgress = {
         ...localProgress,
@@ -204,17 +262,17 @@ export function useNavigationProgress() {
         }))
       };
       
-      saveProgressToLocalStorage(newProgress);
-    } else {
+      saveProgress(newProgress);
+    } else if (isInitialized) {
       // Initialize with default values
       const defaultProgress: NavigationProgress = {
         completedSteps: [],
         expandedSections: [sections[0]?.id].filter(Boolean), // Expand first section by default
         sections: sections,
-        lastVisitedAt: Date.now()
+        appType: currentApp
       };
       
-      saveProgressToLocalStorage(defaultProgress);
+      saveProgress(defaultProgress);
     }
   };
   
@@ -247,7 +305,7 @@ export function useNavigationProgress() {
   
   return {
     progress: localProgress,
-    isLoading: isUserDataLoading || localProgress === null,
+    isLoading: isUserDataLoading || !isInitialized,
     currentStepId: localProgress?.currentStepId,
     completedSteps: localProgress?.completedSteps || [],
     expandedSections: localProgress?.expandedSections || [],
