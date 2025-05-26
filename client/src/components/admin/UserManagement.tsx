@@ -367,6 +367,7 @@ export function UserManagement() {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead>ID</TableHead>
                         <TableHead>User</TableHead>
                         <TableHead>Username</TableHead>
                         <TableHead>Organization</TableHead>
@@ -380,6 +381,9 @@ export function UserManagement() {
                     <TableBody>
                       {users.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
+                          <TableCell>
+                            <span className="font-mono text-sm text-muted-foreground">#{user.id}</span>
+                          </TableCell>
                           <TableCell>
                             <div className="flex items-center space-x-3">
                               <Avatar className="h-9 w-9">
