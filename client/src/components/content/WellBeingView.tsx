@@ -114,7 +114,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             if (duration > 0) {
               const watchPercent = (currentTime / duration) * 100;
               
-              if (watchPercent >= 1 && !hasReachedMinimum) {
+              if (watchPercent >= 0.5 && !hasReachedMinimum) {
                 setHasReachedMinimum(true);
               }
             }
@@ -291,12 +291,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
-          disabled={saving || !hasReachedMinimum}
-          className={`${
-            hasReachedMinimum && !saving
-              ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
-              : "bg-gray-300 cursor-not-allowed text-gray-500"
-          }`}
+          disabled={saving}
+          className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
           {saving ? 'Saving...' : 'Next: Well-being Reflections'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
