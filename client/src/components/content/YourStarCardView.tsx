@@ -11,29 +11,36 @@ interface ContentViewProps {
   setCurrentContent: (content: string) => void;
 }
 
-// Helper function to get attribute color - same as flow attributes page
+// Helper function to get attribute color based on official categorization
 const getAttributeColor = (text: string): string => {
-  const colors = [
-    'rgb(34, 197, 94)',   // Bright Green
-    'rgb(59, 130, 246)',  // Bright Blue  
-    'rgb(168, 85, 247)',  // Bright Purple
-    'rgb(245, 158, 11)',  // Bright Orange
-    'rgb(239, 68, 68)',   // Bright Red
-    'rgb(20, 184, 166)',  // Bright Teal
-    'rgb(236, 72, 153)',  // Bright Pink
-    'rgb(16, 185, 129)',  // Emerald
-  ];
+  if (!text) return 'rgb(156, 163, 175)'; // Default gray
   
-  if (!text) return colors[0];
+  // THINK attributes (Green)
+  const thinkAttributes = ['Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 'Focused', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 'Sensible', 'Strategic', 'Thoughtful'];
   
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+  // FEEL attributes (Blue)
+  const feelAttributes = ['Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Expressive', 'Empathic', 'Intuitive', 'Inspiring', 'Objective', 'Passionate', 'Positive', 'Receptive', 'Supportive'];
+  
+  // PLAN attributes (Yellow)
+  const planAttributes = ['Detail-Oriented', 'Diligent', 'Immersed', 'Industrious', 'Methodical', 'Organized', 'Organised', 'Precise', 'Punctual', 'Reliable', 'Responsible', 'Straightforward', 'Tidy', 'Systematic', 'Thorough'];
+  
+  // ACT attributes (Red)
+  const actAttributes = ['Adventuresome', 'Competitive', 'Dynamic', 'Effortless', 'Energetic', 'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 'Practical', 'Resilient', 'Spontaneous', 'Vigorous'];
+  
+  const normalizedText = text.trim();
+  
+  if (thinkAttributes.includes(normalizedText)) {
+    return 'rgb(34, 197, 94)'; // Green for THINK
+  } else if (feelAttributes.includes(normalizedText)) {
+    return 'rgb(59, 130, 246)'; // Blue for FEEL
+  } else if (planAttributes.includes(normalizedText)) {
+    return 'rgb(245, 158, 11)'; // Yellow for PLAN
+  } else if (actAttributes.includes(normalizedText)) {
+    return 'rgb(239, 68, 68)'; // Red for ACT
   }
   
-  return colors[Math.abs(hash) % colors.length];
+  // Fallback to default gray for unrecognized attributes
+  return 'rgb(156, 163, 175)';
 };
 
 const YourStarCardView: React.FC<ContentViewProps> = ({
