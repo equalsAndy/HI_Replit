@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 
@@ -9,9 +10,15 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
-  // Values will be retrieved from stored data in a real implementation
-  const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
-  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  // Fetch user's actual wellbeing data from the visualization API
+  const { data: visualizationData } = useQuery({
+    queryKey: ['/api/visualization'],
+    staleTime: 0
+  });
+
+  // Use actual user data from their saved visualization
+  const wellBeingLevel = (visualizationData as any)?.wellBeingLevel || 5;
+  const futureWellBeingLevel = (visualizationData as any)?.futureWellBeingLevel || 7;
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
