@@ -157,8 +157,39 @@ export default function AllStarTeams() {
     staleTime: 10000,
   });
 
-  // Debug: Log all relevant data
+  // Auto-clear workshop progress when user changes
   React.useEffect(() => {
+    if (user?.id) {
+      const lastUserId = localStorage.getItem('last-user-id');
+      const currentUserId = user.id.toString();
+      
+      if (lastUserId && lastUserId !== currentUserId) {
+        // Different user logged in, clear workshop progress
+        console.log(`User changed from ${lastUserId} to ${currentUserId}, clearing workshop progress`);
+        
+        // Clear AllStarTeams specific progress
+        const keysToRemove = [
+          'allstarteams-navigation-progress',
+          'allstar_navigation_progress', 
+          'allstarteams_progress',
+          'allstarteams_completedActivities',
+          'allstarteams_starCard',
+          'allstarteams_flowAttributes'
+        ];
+        
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+        });
+        
+        // Reset completed steps state
+        setCompletedSteps([]);
+      }
+      
+      // Update stored user ID
+      localStorage.setItem('last-user-id', currentUserId);
+    }
+    
+    // Debug logging
     if (user) {
       console.log('AllStarTeams - User data:', user);
     }
