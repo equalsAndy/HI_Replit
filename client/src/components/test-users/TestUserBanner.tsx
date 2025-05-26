@@ -42,7 +42,9 @@ export function TestUserBanner({
   const user = userData?.user;
   const currentUserId = userId || user?.id;
   const currentUserName = userName || user?.name || user?.username;
-  const isTestUser = user?.isTestUser || /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+)$/i.test(user?.username || '');
+  const isTestUser = user?.isTestUser || 
+    /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+|bobby|jbaez|test)$/i.test(user?.username || '') ||
+    user?.username?.toLowerCase().includes('test');
 
   if (!currentUserId || !isTestUser) return null;
 
