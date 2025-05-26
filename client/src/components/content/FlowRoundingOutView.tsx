@@ -89,16 +89,26 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   // Save reflection mutation
   const saveReflectionMutation = useMutation({
     mutationFn: async (reflectionData: Record<number, string>) => {
-      return await apiRequest('/api/assessments', {
+      const response = await fetch('/api/assessments', {
         method: 'POST',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           assessmentType: 'flowReflection',
           results: {
             answers: reflectionData,
             completedAt: new Date().toISOString()
           }
-        }
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save reflection: ${response.status}`);
+      }
+
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/assessments'] });
