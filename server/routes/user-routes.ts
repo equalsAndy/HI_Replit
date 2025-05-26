@@ -30,12 +30,18 @@ router.get('/profile', async (req, res) => {
     console.log('Profile request - Session data:', req.session);
     console.log('Profile request - Cookies:', req.cookies);
     
-    // Check session or cookie authentication
+    // Check session or cookie authentication - prioritize session over cookie
     let userId = req.session?.userId;
     
-    // If no session, try cookie fallback (for compatibility)
+    console.log('Session userId:', req.session?.userId);
+    console.log('Cookie userId:', req.cookies?.userId);
+    
+    // Only use cookie as fallback if no session exists
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
+      console.log('Using cookie fallback, userId:', userId);
+    } else if (userId) {
+      console.log('Using session userId:', userId);
     }
     
     console.log(`Profile request - Resolved user ID: ${userId}`);
