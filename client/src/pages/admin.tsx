@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
 
 interface User {
@@ -54,6 +55,8 @@ const AdminPage: React.FC = () => {
     organization: '',
     jobTitle: '',
     role: 'participant',
+    resetPassword: false,
+    newPassword: '',
   });
   const [isUpdatingUser, setIsUpdatingUser] = useState(false);
   const [, setLocation] = useLocation();
@@ -153,6 +156,8 @@ const AdminPage: React.FC = () => {
       organization: user.organization || '',
       jobTitle: user.jobTitle || '',
       role: user.role,
+      resetPassword: false,
+      newPassword: '',
     });
     setEditDialogOpen(true);
   };
@@ -597,6 +602,39 @@ const AdminPage: React.FC = () => {
                   <SelectItem value="participant">Participant</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-3 border-t pt-4">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="reset-password"
+                  checked={editForm.resetPassword}
+                  onCheckedChange={(checked) => 
+                    setEditForm({ 
+                      ...editForm, 
+                      resetPassword: checked as boolean,
+                      newPassword: checked ? editForm.newPassword : ''
+                    })
+                  }
+                />
+                <Label htmlFor="reset-password" className="text-sm font-medium">
+                  Reset password
+                </Label>
+              </div>
+              {editForm.resetPassword && (
+                <div className="space-y-2">
+                  <Label htmlFor="edit-newPassword">New Password (optional)</Label>
+                  <Input
+                    id="edit-newPassword"
+                    type="password"
+                    placeholder="Leave empty to generate random password"
+                    value={editForm.newPassword}
+                    onChange={(e) => setEditForm({ ...editForm, newPassword: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    If left empty, a temporary password will be generated automatically
+                  </p>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button 
