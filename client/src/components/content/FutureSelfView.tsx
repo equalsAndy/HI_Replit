@@ -268,7 +268,11 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       
       <div className="flex justify-end">
         <Button 
-          onClick={handleSave}
+          onClick={() => {
+            handleSave();
+            markStepCompleted('4-3');
+            setCurrentContent('final-reflection');
+          }}
           disabled={saving || !hasReachedMinimum}
           className={`${
             hasReachedMinimum && !saving
@@ -276,7 +280,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               : "bg-gray-300 cursor-not-allowed text-gray-500"
           }`}
         >
-          {saving ? 'Saving...' : 'Complete'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Next: Final Reflection'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
