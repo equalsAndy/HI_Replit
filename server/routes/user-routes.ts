@@ -11,6 +11,9 @@ const router = express.Router();
  */
 router.get('/profile', async (req, res) => {
   try {
+    console.log('Profile request - Session data:', req.session);
+    console.log('Profile request - Cookies:', req.cookies);
+    
     // Check session or cookie authentication
     let userId = req.session?.userId;
     
@@ -19,7 +22,10 @@ router.get('/profile', async (req, res) => {
       userId = parseInt(req.cookies.userId);
     }
     
+    console.log(`Profile request - Resolved user ID: ${userId}`);
+    
     if (!userId) {
+      console.log('Profile request - No user ID found, authentication failed');
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
