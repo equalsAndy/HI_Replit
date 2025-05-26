@@ -103,7 +103,10 @@ export default function StarCard({
   const [fetchedFlowAttributes, setFetchedFlowAttributes] = useState<FlowAttribute[]>([]);
   const cardRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch user profile and flow attributes data directly
+  // Add state for fetched assessment data
+  const [fetchedAssessmentData, setFetchedAssessmentData] = useState<QuadrantData | null>(null);
+
+  // Fetch user profile, flow attributes, and assessment data directly
   React.useEffect(() => {
     const fetchData = async () => {
       try {
@@ -121,6 +124,33 @@ export default function StarCard({
           const userData = data.success && data.user ? data.user : data;
           console.log('StarCard: Processed user data:', userData);
           setUserProfileData(userData);
+        }
+
+        // Fetch assessment data if not provided as props or if scores are zero
+        const hasValidScores = quadrantData && (
+          quadrantData.thinking > 0 || quadrantData.acting > 0 || 
+          quadrantData.feeling > 0 || quadrantData.planning > 0
+        );
+        
+        if (!hasValidScores && (!thinking || !acting || !feeling || !planning)) {
+          console.log('StarCard: Fetching assessment data...');
+          const assessmentResponse = await fetch('/api/starcard', {
+            credentials: 'include'
+          });
+          
+          if (assessmentResponse.ok) {
+            const assessmentData = await assessmentResponse.json();
+            console.log('StarCard: Fetched assessment data:', assessmentData);
+            
+            if (assessmentData.success) {
+              setFetchedAssessmentData({
+                thinking: assessmentData.thinking || 0,
+                acting: assessmentData.acting || 0,
+                feeling: assessmentData.feeling || 0,
+                planning: assessmentData.planning || 0
+              });
+            }
+          }
         }
 
         // Fetch flow attributes if not provided as props
@@ -151,7 +181,7 @@ export default function StarCard({
 
     console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
     fetchData();
-  }, [flowAttributes]);
+  }, [flowAttributes, quadrantData, thinking, acting, feeling, planning]);
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
@@ -174,13 +204,17 @@ export default function StarCard({
   }, [profile, userName, userTitle, userOrg, userProfileData]);
 
   const derivedQuadrantData: QuadrantData = useMemo(() => {
+    // Use fetched data if available, then props, then defaults
+    if (fetchedAssessmentData) {
+      return fetchedAssessmentData;
+    }
     return quadrantData || {
       thinking: thinking || 0,
       acting: acting || 0,
       feeling: feeling || 0,
       planning: planning || 0
     };
-  }, [quadrantData, thinking, acting, feeling, planning]);
+  }, [quadrantData, thinking, acting, feeling, planning, fetchedAssessmentData]);
 
   // Check if assessment has been completed (at least one score > 0)
   const hasScores = useMemo(() => {
