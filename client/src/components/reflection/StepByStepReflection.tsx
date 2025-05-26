@@ -325,7 +325,7 @@ export default function StepByStepReflection({
       
       // We're on the last step, mark reflection as completed
       if (markStepCompleted) {
-        markStepCompleted('2-3'); // Mark reflection step as completed
+        markStepCompleted('2-4'); // Mark reflection step as completed
       }
 
       // Navigate to Intro to Flow
