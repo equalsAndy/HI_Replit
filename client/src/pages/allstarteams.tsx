@@ -344,10 +344,26 @@ export default function AllStarTeams() {
     if (Array.isArray(completedSteps)) {
       if (!completedSteps.includes(stepId)) {
         setCompletedSteps(prev => Array.isArray(prev) ? [...prev, stepId] : [stepId]);
+        
+        // Also mark in navigation progress and sync with database
+        markNavStepCompleted(stepId);
+        updateCurrentStep(stepId, 'ast');
+        
+        // Sync with database (async, non-blocking)
+        syncWithDatabase().catch(error => {
+          console.error('Failed to sync navigation progress with database:', error);
+        });
       }
     } else {
       console.error("completedSteps is not an array:", completedSteps);
       setCompletedSteps([stepId]);
+      
+      // Also update navigation progress for this case
+      markNavStepCompleted(stepId);
+      updateCurrentStep(stepId, 'ast');
+      syncWithDatabase().catch(error => {
+        console.error('Failed to sync navigation progress with database:', error);
+      });
     }
   };
 
