@@ -202,7 +202,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
       
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit Profile</DialogTitle>
+          <DialogTitle>{isEditing ? 'Edit Profile' : 'Profile'}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
