@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Slider } from '@/components/ui/slider';
@@ -17,6 +17,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [adjusting, setAdjusting] = useState(false);
+  
+  // YouTube API state
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const playerRef = useRef<any>(null);
+  const [isPlayerReady, setIsPlayerReady] = useState(false);
 
   const handleSubmit = () => {
     setSubmitted(true);
@@ -27,6 +32,91 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     setAdjusting(true);
     setSubmitted(false);
   };
+
+  // YouTube API integration
+  useEffect(() => {
+    // Load YouTube API
+    const loadYouTubeAPI = () => {
+      if (window.YT && window.YT.Player) {
+        initializePlayer();
+        return;
+      }
+
+      if (!document.querySelector('script[src*="youtube"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://www.youtube.com/iframe_api';
+        script.async = true;
+        document.body.appendChild(script);
+      }
+
+      window.onYouTubeIframeAPIReady = initializePlayer;
+    };
+
+    const initializePlayer = () => {
+      if (playerRef.current) return;
+
+      playerRef.current = new window.YT.Player('youtube-player-wellbeing', {
+        height: '100%',
+        width: '100%',
+        videoId: 'yidsMx8B678',
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0,
+          iv_load_policy: 3,
+        },
+        events: {
+          onReady: (event: any) => {
+            setIsPlayerReady(true);
+            event.target.playVideo();
+          },
+          onStateChange: (event: any) => {
+            if (event.data === window.YT.PlayerState.PLAYING) {
+              startProgressTracking();
+            }
+          },
+        },
+      });
+    };
+
+    const startProgressTracking = () => {
+      const checkProgress = () => {
+        if (playerRef.current && playerRef.current.getCurrentTime && playerRef.current.getDuration) {
+          try {
+            const currentTime = playerRef.current.getCurrentTime();
+            const duration = playerRef.current.getDuration();
+            
+            if (duration > 0) {
+              const watchPercent = (currentTime / duration) * 100;
+              
+              if (watchPercent >= 1 && !hasReachedMinimum) {
+                setHasReachedMinimum(true);
+              }
+            }
+          } catch (error) {
+            console.log('Error checking video progress:', error);
+          }
+        }
+      };
+
+      const interval = setInterval(checkProgress, 1000);
+      return () => clearInterval(interval);
+    };
+
+    loadYouTubeAPI();
+
+    return () => {
+      if (playerRef.current && playerRef.current.destroy) {
+        try {
+          playerRef.current.destroy();
+        } catch (error) {
+          console.log('Error destroying player:', error);
+        }
+      }
+    };
+  }, [hasReachedMinimum]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -55,14 +145,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         {/* Video at the top, full width with proper aspect ratio */}
         <div className="mb-8">
           <div className="aspect-w-16 aspect-h-9 overflow-hidden rounded border border-gray-200">
-            <iframe 
-              src="https://www.youtube.com/embed/yidsMx8B678" 
-              title="Cantril Ladder of Well-Being" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
+            <div 
+              id="youtube-player-wellbeing"
               className="w-full h-full"
-            ></iframe>
+              style={{ minHeight: '360px' }}
+            ></div>
           </div>
         </div>
         
@@ -200,8 +287,12 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
-          disabled={saving || !submitted}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          disabled={saving || !submitted || !hasReachedMinimum}
+          className={`${
+            hasReachedMinimum && submitted && !saving
+              ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
+              : "bg-gray-300 cursor-not-allowed text-gray-500"
+          }`}
         >
           {saving ? 'Saving...' : 'Continue'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
