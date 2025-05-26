@@ -171,21 +171,38 @@ const AdminPage: React.FC = () => {
     setIsUpdatingUser(true);
     
     try {
+      // Transform the form data to match backend expectations
+      const updateData: any = {
+        name: editForm.name,
+        email: editForm.email,
+        organization: editForm.organization,
+        title: editForm.jobTitle, // Backend expects 'title' not 'jobTitle'
+      };
+      
+      // Add password if reset is requested
+      if (editForm.resetPassword) {
+        updateData.password = editForm.newPassword || undefined; // Backend will generate if empty
+      }
+      
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(updateData),
       });
       
       const data = await response.json();
       
       if (response.ok) {
+        const successMessage = editForm.resetPassword && data.temporaryPassword 
+          ? `User updated successfully. New temporary password: ${data.temporaryPassword}`
+          : 'User information has been successfully updated.';
+          
         toast({
           title: 'User updated',
-          description: 'User information has been successfully updated.',
+          description: successMessage,
         });
         
         setEditDialogOpen(false);
@@ -195,7 +212,7 @@ const AdminPage: React.FC = () => {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: data.error || 'Failed to update user',
+          description: data.message || data.error || 'Failed to update user',
         });
       }
     } catch (error) {
