@@ -235,7 +235,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const queryClient = useQueryClient();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
-  const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(false);
+  const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
 
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(
@@ -279,6 +279,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
+      setShowSelectionInterface(false); // Hide interface after existing attributes are loaded
     }
   }, [flowAttributesData, isCardComplete]);
 
@@ -658,7 +659,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           </div>
 
-          {showSelectionInterface || !isCardComplete ? (
+          {selectedAttributes.filter(attr => attr.rank !== null).length === 4 && showSelectionInterface ? (
             <div className="mt-2">
               <Button
                 className="w-full bg-indigo-700 hover:bg-indigo-800"
@@ -670,20 +671,20 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           ) : null}
-        </div>
         
-        <div className="flex justify-center mt-8">
-          <Button 
-            onClick={() => {
-              if (isCardComplete || starCardFlowAttributes.length > 0) {
-                markStepCompleted('3-4');
-              }
-              setCurrentContent("wellbeing");
-            }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            Next: Ladder of Well-Being <ChevronRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex justify-center mt-8">
+            <Button 
+              onClick={() => {
+                if (isCardComplete || starCardFlowAttributes.length > 0) {
+                  markStepCompleted('3-4');
+                }
+                setCurrentContent("wellbeing");
+              }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Next: Ladder of Well-Being <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </>
