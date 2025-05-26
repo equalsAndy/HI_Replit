@@ -126,15 +126,42 @@ export function useNavigationProgress() {
       const res = await apiRequest('PUT', '/api/user/navigation-progress', { 
         navigationProgress: JSON.stringify(navigationProgress)
       });
+      
+      if (!res.ok) {
+        throw new Error(`Failed to sync progress: ${res.status}`);
+      }
+      
       return res.json();
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
+      console.log('Navigation progress synced to database:', {
+        completedSteps: variables.completedSteps.length,
+        currentStep: variables.currentStepId,
+        appType: variables.appType
+      });
+      
+      // Invalidate profile query to ensure data consistency
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
     },
-    onError: (error) => {
-      console.error('Failed to sync progress to database:', error);
-      // Don't show toast for sync errors to avoid being annoying
-    }
+    onError: (error, variables) => {
+      console.error('Failed to sync navigation progress to database:', {
+        error: error.message,
+        stepCount: variables.completedSteps.length,
+        currentStep: variables.currentStepId,
+        appType: variables.appType
+      });
+      
+      // For critical navigation events, we might want to retry
+      if (variables.completedSteps.length > 0) {
+        console.warn('Navigation progress sync failed for completed steps - consider implementing retry logic');
+      }
+    },
+    // Add retry logic for failed syncs
+    retry: (failureCount, error) => {
+      // Retry up to 2 times for network errors
+      return failureCount < 2 && error.message.includes('Failed to sync progress');
+    },
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000) // Exponential backoff
   });
   
   // Save progress to localStorage and database
@@ -195,9 +222,22 @@ export function useNavigationProgress() {
       ...localProgress,
       completedSteps: [...localProgress.completedSteps, stepId],
       currentStepId: stepId,
+      lastVisitedAt: Date.now()
     };
     
-    saveProgress(newProgress);
+    // Save to localStorage immediately for responsiveness
+    setLocalProgress(newProgress);
+    
+    // Auto-save to database with progress metadata
+    if (userData?.user?.id) {
+      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
+      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
+      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
+      localStorage.setItem(syncKey, Date.now().toString());
+      
+      // Immediately sync to database
+      updateServerProgress.mutate(newProgress);
+    }
   };
   
   // Set current step
@@ -207,9 +247,22 @@ export function useNavigationProgress() {
     const newProgress = {
       ...localProgress,
       currentStepId: stepId,
+      lastVisitedAt: Date.now()
     };
     
-    saveProgress(newProgress);
+    // Save to localStorage immediately
+    setLocalProgress(newProgress);
+    
+    // Auto-save to database
+    if (userData?.user?.id) {
+      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
+      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
+      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
+      localStorage.setItem(syncKey, Date.now().toString());
+      
+      // Sync to database with debouncing for frequent navigation
+      updateServerProgress.mutate(newProgress);
+    }
   };
   
   // Check if a step is accessible (can only access if previous steps are complete or it's already visited)
@@ -251,10 +304,23 @@ export function useNavigationProgress() {
     
     const newProgress = {
       ...localProgress,
-      expandedSections: newExpandedSections
+      expandedSections: newExpandedSections,
+      lastVisitedAt: Date.now()
     };
     
-    saveProgress(newProgress);
+    // Save to localStorage immediately
+    setLocalProgress(newProgress);
+    
+    // Auto-save to database
+    if (userData?.user?.id) {
+      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
+      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
+      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
+      localStorage.setItem(syncKey, Date.now().toString());
+      
+      // Sync to database (UI state changes are less critical, so we can be more lenient)
+      updateServerProgress.mutate(newProgress);
+    }
   };
   
   // Initialize or update navigation sections

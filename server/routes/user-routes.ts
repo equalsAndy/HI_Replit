@@ -341,33 +341,47 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
       });
     }
     
-    // Validate JSON
+    // Validate and parse JSON
+    let progressData;
     try {
-      JSON.parse(navigationProgress);
+      progressData = JSON.parse(navigationProgress);
     } catch (parseError) {
+      console.error('Invalid navigation progress JSON:', parseError);
       return res.status(400).json({
         success: false,
         error: 'Navigation progress must be valid JSON'
       });
     }
     
+    // Log progress update for debugging
+    console.log(`Updating navigation progress for user ${req.session.userId}:`, {
+      completedSteps: progressData.completedSteps?.length || 0,
+      currentStep: progressData.currentStepId,
+      appType: progressData.appType,
+      lastVisited: progressData.lastVisitedAt ? new Date(progressData.lastVisitedAt).toISOString() : 'unknown'
+    });
+    
     const result = await userManagementService.updateUser(req.session.userId, {
       navigationProgress
     });
     
     if (!result.success) {
+      console.error(`Failed to update navigation progress for user ${req.session.userId}:`, result.error);
       return res.status(404).json({
         success: false,
         error: 'Failed to update navigation progress'
       });
     }
     
+    console.log(`Successfully updated navigation progress for user ${req.session.userId}`);
+    
     res.json({
       success: true,
-      message: 'Navigation progress updated successfully'
+      message: 'Navigation progress updated successfully',
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
-    console.error('Error updating navigation progress:', error);
+    console.error(`Error updating navigation progress for user ${req.session?.userId}:`, error);
     res.status(500).json({
       success: false,
       error: 'Failed to update navigation progress. Please try again later.'
