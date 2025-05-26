@@ -88,30 +88,19 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe specific improvements you hope to see in your life..."
             />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="md:w-1/2 space-y-6">
-          <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">Specific Changes</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-green-700">What will be different?</h4>
-                <p className="text-green-600 text-sm mb-2">
-                  How will your experience be noticeably different in tangible ways?
-                </p>
-                <textarea 
-                  className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                  placeholder="Describe concrete changes you'll experience..."
-                />
-              </div>
+            
+            {/* Specific Changes section moved under improvements */}
+            <div className="mt-6">
+              <h4 className="font-medium text-indigo-700 mb-2">What will be different?</h4>
+              <p className="text-indigo-600 text-sm mb-2">
+                How will your experience be noticeably different in tangible ways?
+              </p>
+              <textarea 
+                className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+                placeholder="Describe concrete changes you'll experience..."
+              />
             </div>
           </div>
-        </div>
-        
-        <div className="md:w-1/2">
         </div>
       </div>
 
