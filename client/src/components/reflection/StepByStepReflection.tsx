@@ -285,12 +285,44 @@ export default function StepByStepReflection({
     }
   };
 
+  // Save reflections to database
+  const saveReflections = async () => {
+    try {
+      const response = await fetch('/api/assessments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          assessmentType: 'stepByStepReflection',
+          results: {
+            reflections,
+            starCardData: starCard,
+            completedAt: new Date().toISOString()
+          }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to save reflections: ${response.status}`);
+      }
+      
+      console.log('Step-by-step reflections saved successfully');
+    } catch (error) {
+      console.error('Error saving reflections:', error);
+    }
+  };
+
   // Next/previous step handlers
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowExamples(false);
     } else if (currentStep === totalSteps) {
+      // Save reflections before completing
+      await saveReflections();
+      
       // We're on the last step, mark reflection as completed
       if (markStepCompleted) {
         markStepCompleted('2-3'); // Mark reflection step as completed
