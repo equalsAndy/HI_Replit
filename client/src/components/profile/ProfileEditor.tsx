@@ -32,7 +32,6 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
 
   // Update form data when user prop changes
   React.useEffect(() => {
-    console.log('ProfileEditor received user data:', user);
     if (user) {
       const mappedData = {
         name: user.name || '',
@@ -40,7 +39,6 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         organization: user.organization || '',
         jobTitle: user.jobTitle || user.title || '',
       };
-      console.log('Mapped form data:', mappedData);
       setFormData(mappedData);
       setProfileImage(user.profilePicture);
     }
