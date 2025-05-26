@@ -241,29 +241,19 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               </div>
             </div>
             
-            {/* Submit/Adjust button section */}
+            {/* Submit/Adjust button section - removed I'm Done button */}
             <div className="flex justify-center gap-4">
-              {!submitted || adjusting ? (
-                <Button 
-                  onClick={handleSubmit}
-                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                  disabled={saving}
-                >
-                  I'm Done
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSave}
-                  disabled={saving || !hasReachedMinimum}
-                  className={`${
-                    hasReachedMinimum && !saving
-                      ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
-                      : "bg-gray-300 cursor-not-allowed text-gray-500"
-                  }`}
-                >
-                  {saving ? 'Saving...' : 'Next'} <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
+              <Button
+                onClick={handleSave}
+                disabled={saving || !hasReachedMinimum}
+                className={`${
+                  hasReachedMinimum && !saving
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
+                    : "bg-gray-300 cursor-not-allowed text-gray-500"
+                }`}
+              >
+                {saving ? 'Saving...' : 'Next'} <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
             </div>
           </div>
         </div>
