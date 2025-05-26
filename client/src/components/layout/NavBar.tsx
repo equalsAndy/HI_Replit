@@ -62,11 +62,13 @@ export function NavBar() {
   
   useEffect(() => {
     // Log user data for debugging
+    console.log("NavBar - API response:", data);
+    console.log("NavBar - User extracted:", user);
     if (user) {
       console.log("User data in NavBar:", user);
       console.log("Is test user:", isTestUser);
     }
-  }, [user, isTestUser]);
+  }, [data, user, isTestUser]);
   
   // Function to reset user data
   const handleResetUserData = async () => {
