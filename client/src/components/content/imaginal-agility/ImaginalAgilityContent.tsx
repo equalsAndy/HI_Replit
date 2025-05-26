@@ -28,7 +28,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   flowAttributesData,
   setIsAssessmentModalOpen
 }) => {
-  // State for new Imaginal Agility Assessment Modal
   const [isImaginalAssessmentOpen, setIsImaginalAssessmentOpen] = useState(false);
   switch (currentContent) {
     // Imaginal Agility content views
@@ -370,7 +369,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <Button 
               onClick={() => {
                 markStepCompleted('1-4');
-                setCurrentContent("imagination-assessment");
+                setIsImaginalAssessmentOpen(true);
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
@@ -612,6 +611,104 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
           setCurrentContent={setCurrentContent}
         />
       );
+  }
+
+  // Add the assessment modal component
+  return (
+    <div>
+      {renderContent()}
+      
+      {/* New 5-Capacity Assessment Modal */}
+      <ImaginalAgilityAssessmentModal
+        isOpen={isImaginalAssessmentOpen}
+        onClose={() => setIsImaginalAssessmentOpen(false)}
+        onComplete={(results) => {
+          setIsImaginalAssessmentOpen(false);
+          markStepCompleted('1-5');
+          setCurrentContent("assessment-results");
+        }}
+      />
+    </div>
+  );
+
+  function renderContent() {
+    switch (currentContent) {
+      // All your existing cases go here...
+      case 'imaginal-intro':
+        return (
+          <div className="prose max-w-none">
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+                title="IAWS ORIENTATION VIDEO"
+                className="w-full h-[400px] rounded-lg border-0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Imaginal Agility is founded on the principle that human imagination becomes
+              more critical—not less—in the age of artificial intelligence. This workshop will
+              help you develop the capacity to envision possibilities beyond what
+              technology alone can generate.
+            </p>
+            
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Learning Journey Overview</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Through this workshop, you'll explore five core capabilities that together 
+              create Imaginal Agility. Each section builds on the previous, helping you 
+              develop a comprehensive approach to thriving in the AI era.
+            </p>
+            
+            <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">What You'll Gain</h3>
+              <ul className="space-y-3 text-gray-700">
+                <li className="flex items-start">
+                  <span className="text-purple-600 mr-2">•</span>
+                  <span>Clear understanding of your current imagination and creativity patterns</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 mr-2">•</span>
+                  <span>Practical tools for enhancing your adaptive capacity</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 mr-2">•</span>
+                  <span>Strategies for collaboration that leverage both human and AI capabilities</span>
+                </li>
+                <li className="flex items-start">
+                  <span className="text-purple-600 mr-2">•</span>
+                  <span>A personalized development plan based on your unique profile</span>
+                </li>
+              </ul>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('1-1');
+                  setCurrentContent("triple-challenge");
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Next: The Triple Challenge
+              </Button>
+            </div>
+          </div>
+        );
+
+      // ... continue with all other cases from the original switch statement
+      default:
+        return (
+          <PlaceholderView 
+            title={`${currentContent}`}
+          />
+        );
+    }
   }
 };
 
