@@ -34,22 +34,25 @@ export function NavBar() {
   const { toast } = useToast();
   
   // Fetch the current user's profile
-  const { data, isLoading: isUserLoading } = useQuery<{
+  const { data, isLoading: isUserLoading, refetch } = useQuery<{
     success: boolean;
     user: {
       id: number;
       name: string;
       username: string;
+      email?: string;
       title?: string;
       organization?: string;
+      jobTitle?: string;
       role?: string;
       isTestUser: boolean;
+      profilePicture?: string;
     }
   }>({ 
     queryKey: ['/api/user/profile'],
-    // Only refetch on window focus or when explicitly invalidated
-    refetchOnWindowFocus: false,
-    staleTime: 60 * 1000, // 1 minute
+    // Force fresh data fetch
+    refetchOnWindowFocus: true,
+    staleTime: 0, // Always fetch fresh data
     retry: 2
   });
   
