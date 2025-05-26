@@ -304,6 +304,10 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       // Invalidate star card data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
 
+      // Hide the selection interface after successful save
+      setShowSelectionInterface(false);
+      setIsUpdating(false);
+
       toast({
         title: "Flow attributes saved!",
         description: "Your flow attributes have been saved and your Star Card is now complete.",
