@@ -8,19 +8,30 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
   const userId = req.session?.userId;
 
   console.log('Admin check - UserID:', userId, 'Role:', userRole);
+  console.log('Full session in admin check:', req.session);
 
-  // Allow admin role or user ID 1 (primary admin)
-  if (userRole !== 'admin' && userId !== 1) {
+  // For user ID 1, always grant admin access and ensure role is set
+  if (userId === 1) {
+    if (!req.session.userRole) {
+      req.session.userRole = 'admin';
+    }
+    console.log('Admin access granted for user 1');
+    next();
+    return;
+  }
+
+  // For other users, check admin role
+  if (userRole !== 'admin') {
     console.log('Admin access denied - Role:', userRole, 'UserID:', userId);
     return res.status(403).json({ 
       success: false,
-      message: 'Admin access required',
+      message: 'You do not have permission to access the admin panel',
       currentRole: userRole,
       userId: userId
     });
   }
 
-  console.log('Admin access granted');
+  console.log('Admin access granted for role:', userRole);
   next();
 };
 

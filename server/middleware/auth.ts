@@ -27,6 +27,7 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
   const cookieUserId = req.cookies?.userId;
 
   console.log('Auth check - Session:', sessionUserId, 'Cookie:', cookieUserId);
+  console.log('Full session data:', req.session);
 
   const userId = sessionUserId || (cookieUserId ? parseInt(cookieUserId) : null);
 
@@ -38,12 +39,18 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
     });
   }
 
-  // Ensure session has the user ID
+  // Ensure session has the user ID and role
   if (!req.session.userId) {
     req.session.userId = userId;
   }
 
-  console.log('Authentication successful for user:', userId);
+  // For user 1 (admin), ensure admin role is set
+  if (userId === 1 && !req.session.userRole) {
+    req.session.userRole = 'admin';
+    req.session.username = 'admin';
+  }
+
+  console.log('Authentication successful for user:', userId, 'Role:', req.session.userRole);
   next();
 };
 

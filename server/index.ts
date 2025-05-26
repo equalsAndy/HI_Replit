@@ -46,8 +46,10 @@ app.use(session({
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
     secure: process.env.NODE_ENV === 'production',
-    httpOnly: true
-  }
+    httpOnly: true,
+    sameSite: 'lax'
+  },
+  rolling: true // Refresh session on each request
 }));
 
 // Configure cookie parser
@@ -95,13 +97,13 @@ app.get('/health', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../dist/public');
   console.log('Production mode - serving static files from:', distPath);
-  
+
   // Serve static files with proper cache headers
   app.use(express.static(distPath, {
     maxAge: '1y',
     etag: false
   }));
-  
+
   // Catch-all handler for client-side routing (must be after API routes)
   app.get('*', (req, res) => {
     const indexPath = path.join(distPath, 'index.html');
@@ -123,10 +125,10 @@ if (process.env.NODE_ENV === 'development') {
   import('./vite').then(({ setupVite }) => {
     setupVite(app, server).then(() => {
       console.log('Vite middleware setup complete');
-      
+
       // The catch-all route is already handled by Vite middleware in server/vite.ts
       // We don't need to add another one here
-      
+
     }).catch(err => {
       console.error('Failed to setup Vite:', err);
     });
