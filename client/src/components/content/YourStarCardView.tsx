@@ -111,24 +111,27 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
 
       console.log('Canvas created successfully');
 
-      // Convert canvas to blob
-      canvas.toBlob((blob) => {
-        if (blob) {
-          console.log('Blob created, starting download...');
-          // Create download link
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = 'your-star-card.png';
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          console.log('Download completed successfully');
-        } else {
-          console.log('Failed to create blob');
-        }
-      }, 'image/png');
+      // Convert canvas to data URL and trigger download
+      const dataURL = canvas.toDataURL('image/png');
+      console.log('Canvas converted to data URL');
+      
+      // Create download link with data URL
+      const link = document.createElement('a');
+      link.href = dataURL;
+      link.download = 'your-star-card.png';
+      
+      // Ensure the link is properly configured
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      
+      // Force the download
+      link.click();
+      
+      // Clean up
+      setTimeout(() => {
+        document.body.removeChild(link);
+        console.log('Download completed successfully');
+      }, 100);
 
       // Mark completion and unlock resources
       markStepCompleted('5-1');
