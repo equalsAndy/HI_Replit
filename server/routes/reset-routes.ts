@@ -23,9 +23,11 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       });
     }
     
-    // Only allow users to reset their own data
-    // Unless they are admin (userId 1)
-    const currentUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Check authentication from multiple sources (session, cookies)
+    let currentUserId = req.session?.userId;
+    if (!currentUserId && req.cookies?.userId) {
+      currentUserId = parseInt(req.cookies.userId);
+    }
     
     if (!currentUserId) {
       return res.status(401).json({
