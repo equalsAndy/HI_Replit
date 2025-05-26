@@ -27,7 +27,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 /**
  * Middleware to restrict access to facilitator users only
  */
-export const const isFacilitator = (req: Request, res: Response, next: NextFunction) => {
+export const isFacilitator = (req: Request, res: Response, next: NextFunction) => {
   // Check if user is authenticated and has facilitator role
   if (!req.session || !req.session.userId || req.session.userRole !== 'facilitator') {
     return res.status(403).json({ error: 'Facilitator access required' });

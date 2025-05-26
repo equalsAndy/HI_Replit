@@ -16,7 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // Initialize Express app
 const app = express();
-const port = parseInt(process.env.PORT || '5000');
+const port = parseInt(process.env.PORT || '3000');
 
 // Initialize database connection
 initializeDatabase()
