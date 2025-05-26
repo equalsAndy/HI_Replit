@@ -28,8 +28,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     staleTime: 0
   });
 
-  // Initialize slider values when data loads
+  // Initialize slider values when data loads or from localStorage
   useEffect(() => {
+    // First try to load from API
     if (visualizationData) {
       const data = visualizationData as any;
       if (data.wellBeingLevel !== undefined) {
@@ -38,8 +39,30 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       if (data.futureWellBeingLevel !== undefined) {
         setFutureWellBeingLevel(data.futureWellBeingLevel);
       }
+    } else {
+      // Fallback to localStorage if API data not available
+      const savedWellBeing = localStorage.getItem('wellbeingData');
+      if (savedWellBeing) {
+        try {
+          const parsed = JSON.parse(savedWellBeing);
+          setWellBeingLevel(parsed.wellBeingLevel || 5);
+          setFutureWellBeingLevel(parsed.futureWellBeingLevel || 7);
+        } catch (error) {
+          console.log('Error parsing saved wellbeing data');
+        }
+      }
     }
   }, [visualizationData]);
+
+  // Save to localStorage whenever values change
+  useEffect(() => {
+    const wellbeingData = {
+      wellBeingLevel,
+      futureWellBeingLevel,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('wellbeingData', JSON.stringify(wellbeingData));
+  }, [wellBeingLevel, futureWellBeingLevel]);
   
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);

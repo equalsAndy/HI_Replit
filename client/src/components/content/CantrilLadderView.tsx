@@ -1,24 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
+
+// Props interface
+interface ContentViewProps {
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+}
 
 const CantrilLadderView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
+  const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+
   // Fetch user's actual wellbeing data from the visualization API
   const { data: visualizationData } = useQuery({
     queryKey: ['/api/visualization'],
     staleTime: 0
   });
 
-  // Use actual user data from their saved visualization
-  const wellBeingLevel = (visualizationData as any)?.wellBeingLevel || 5;
-  const futureWellBeingLevel = (visualizationData as any)?.futureWellBeingLevel || 7;
+  // Load persisted values from localStorage or API
+  useEffect(() => {
+    // First try API data
+    if (visualizationData) {
+      const data = visualizationData as any;
+      if (data.wellBeingLevel !== undefined) {
+        setWellBeingLevel(data.wellBeingLevel);
+      }
+      if (data.futureWellBeingLevel !== undefined) {
+        setFutureWellBeingLevel(data.futureWellBeingLevel);
+      }
+    } else {
+      // Fallback to localStorage
+      const savedWellBeing = localStorage.getItem('wellbeingData');
+      if (savedWellBeing) {
+        try {
+          const parsed = JSON.parse(savedWellBeing);
+          setWellBeingLevel(parsed.wellBeingLevel || 5);
+          setFutureWellBeingLevel(parsed.futureWellBeingLevel || 7);
+        } catch (error) {
+          console.log('Error parsing saved wellbeing data');
+        }
+      }
+    }
+  }, [visualizationData]);
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
