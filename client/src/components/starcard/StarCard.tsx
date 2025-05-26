@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { downloadElementAsImage } from "@/lib/html2canvas";
 import { UserIcon } from "lucide-react";
@@ -72,17 +72,54 @@ export default function StarCard({
   state = undefined
 }: StarCardProps) {
   const [downloading, setDownloading] = useState(false);
+  const [userProfileData, setUserProfileData] = useState<any>(null);
   const cardRef = useRef<HTMLDivElement | null>(null);
+
+  // Fetch user profile data directly
+  React.useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch('/api/user/profile', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('StarCard: Fetched user profile data:', data);
+          setUserProfileData(data);
+        } else {
+          console.log('StarCard: User profile fetch failed, status:', response.status);
+        }
+      } catch (error) {
+        console.error('StarCard: Error fetching user profile data:', error);
+      }
+    };
+
+    // Only fetch if we don't already have profile data passed as props
+    if (!profile && !userName) {
+      fetchUserProfile();
+    }
+  }, [profile, userName]);
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
+    // Use userProfileData if available, then fallback to props
+    if (userProfileData) {
+      return {
+        name: userProfileData.name || 'Your Name',
+        title: userProfileData.title || userProfileData.jobTitle || '',
+        organization: userProfileData.organization || '',
+        avatarUrl: undefined
+      };
+    }
+    
     return profile || {
-      name: userName || '',
+      name: userName || 'Your Name',
       title: userTitle || '',
       organization: userOrg || '',
       avatarUrl: undefined
     };
-  }, [profile, userName, userTitle, userOrg]);
+  }, [profile, userName, userTitle, userOrg, userProfileData]);
 
   const derivedQuadrantData: QuadrantData = useMemo(() => {
     return quadrantData || {
