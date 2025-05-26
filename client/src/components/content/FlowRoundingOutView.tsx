@@ -1,9 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Check, ChevronRight, Edit } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 
 // Reflection Questions
 interface RoundingOutQuestion {
@@ -46,20 +49,116 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showExample, setShowExample] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
+  const [saving, setSaving] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch existing reflection data on component mount
+  const { data: existingReflection } = useQuery({
+    queryKey: ['/api/user-assessments', 'flowReflection'],
+    enabled: true
+  });
+
+  // Load existing answers if available
+  useEffect(() => {
+    if (existingReflection?.results) {
+      try {
+        const parsedResults = typeof existingReflection.results === 'string' 
+          ? JSON.parse(existingReflection.results) 
+          : existingReflection.results;
+        
+        if (parsedResults.answers) {
+          setAnswers(parsedResults.answers);
+          
+          // Check if all questions are answered
+          const allAnswered = roundingOutQuestions.every(q => 
+            parsedResults.answers[q.id] && parsedResults.answers[q.id].trim().length > 0
+          );
+          
+          if (allAnswered) {
+            setReflectionCompleted(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing reflection results:', error);
+      }
+    }
+  }, [existingReflection]);
+
+  // Save reflection mutation
+  const saveReflectionMutation = useMutation({
+    mutationFn: async (reflectionData: Record<number, string>) => {
+      return await apiRequest('/api/user-assessments', {
+        method: 'POST',
+        body: {
+          assessmentType: 'flowReflection',
+          results: {
+            answers: reflectionData,
+            completedAt: new Date().toISOString()
+          }
+        }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user-assessments'] });
+      toast({
+        title: "Reflection saved!",
+        description: "Your flow reflection responses have been saved successfully.",
+        duration: 3000
+      });
+      markStepCompleted('3-3');
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Failed to save reflection",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
   
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
   const currentAnswer = answers[question?.id] || '';
   
+  // Check if all questions have been answered
+  const allQuestionsAnswered = () => {
+    return roundingOutQuestions.every(q => 
+      answers[q.id] && answers[q.id].trim().length > 0
+    );
+  };
+
   // Move to next question
   const nextQuestion = () => {
     if (currentQuestion < roundingOutQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
       setShowExample(false);
     } else {
-      // All questions answered
+      // Moved to last question, but don't mark complete yet
+      setShowExample(false);
+    }
+  };
+
+  // Save all reflection answers to database
+  const handleSaveReflection = async () => {
+    if (!allQuestionsAnswered()) {
+      toast({
+        title: "Please answer all questions",
+        description: "You must provide answers to all reflection questions before continuing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSaving(true);
+    try {
+      await saveReflectionMutation.mutateAsync(answers);
       setReflectionCompleted(true);
-      markStepCompleted('3-3');
+    } catch (error) {
+      console.error('Error saving reflection:', error);
+    } finally {
+      setSaving(false);
     }
   };
   
@@ -267,16 +366,43 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 Previous
               </Button>
               
-              <Button
-                onClick={nextQuestion}
-                className="bg-indigo-700 hover:bg-indigo-800 ml-2"
-                disabled={currentAnswer.trim().length === 0}
-              >
-                {currentQuestion === roundingOutQuestions.length - 1 ? "Finish" : "Next"}
-              </Button>
+              <div className="flex gap-2">
+                {currentQuestion < roundingOutQuestions.length - 1 ? (
+                  <Button
+                    onClick={nextQuestion}
+                    className="bg-indigo-700 hover:bg-indigo-800"
+                    disabled={currentAnswer.trim().length === 0}
+                  >
+                    Next
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={handleSaveReflection}
+                    disabled={saving || !allQuestionsAnswered()}
+                    className={`${
+                      allQuestionsAnswered() && !saving
+                        ? "bg-green-600 hover:bg-green-700 text-white" 
+                        : "bg-gray-300 cursor-not-allowed text-gray-500"
+                    }`}
+                  >
+                    {saving ? 'Saving...' : 'Complete Reflection'}
+                  </Button>
+                )}
+              </div>
             </div>
           </Card>
           
+          {/* Show completion status if all questions answered but not yet saved */}
+          {allQuestionsAnswered() && !reflectionCompleted && (
+            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+              <div className="flex items-center">
+                <Check className="h-5 w-5 text-green-600 mr-2" />
+                <p className="text-green-800 font-medium">
+                  All questions answered! Click "Complete Reflection" to save your responses.
+                </p>
+              </div>
+            </div>
+          )}
 
         </div>
       )}
