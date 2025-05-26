@@ -94,11 +94,14 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
       
       <div className="flex justify-end">
         <Button 
-          onClick={handleSave}
+          onClick={() => {
+            handleSave();
+            setCurrentContent('final-reflection');
+          }}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Complete'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Next: Final Reflection'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
