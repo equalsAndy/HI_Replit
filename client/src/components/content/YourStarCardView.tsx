@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import StarCard from '../starcard/StarCard';
 import html2canvas from 'html2canvas';
+import { useQuery } from '@tanstack/react-query';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -10,12 +11,55 @@ interface ContentViewProps {
   setCurrentContent: (content: string) => void;
 }
 
+// Helper function to get attribute color - same as flow attributes page
+const getAttributeColor = (text: string): string => {
+  const colors = [
+    'rgb(34, 197, 94)',   // Bright Green
+    'rgb(59, 130, 246)',  // Bright Blue  
+    'rgb(168, 85, 247)',  // Bright Purple
+    'rgb(245, 158, 11)',  // Bright Orange
+    'rgb(239, 68, 68)',   // Bright Red
+    'rgb(20, 184, 166)',  // Bright Teal
+    'rgb(236, 72, 153)',  // Bright Pink
+    'rgb(16, 185, 129)',  // Emerald
+  ];
+  
+  if (!text) return colors[0];
+  
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) {
+    const char = text.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  return colors[Math.abs(hash) % colors.length];
+};
+
 const YourStarCardView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
   const starCardRef = useRef<HTMLDivElement>(null);
+
+  // Fetch user data - same as flow attributes page
+  const { data: user } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: 30000,
+  });
+
+  // Fetch star card data - same as flow attributes page
+  const { data: starCard } = useQuery({
+    queryKey: ['/api/starcard'],
+    staleTime: 30000,
+  });
+
+  // Fetch flow attributes data - same as flow attributes page
+  const { data: flowAttributesData } = useQuery({
+    queryKey: ['/api/flow-attributes'],
+    staleTime: 30000,
+  });
 
   const handleDownload = async () => {
     if (!starCardRef.current) return;
@@ -90,21 +134,57 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
         </div>
         
         <div className="flex flex-col items-center">
-          <div ref={starCardRef} className="w-full max-w-md">
-            <StarCard 
-              downloadable={false}
-            />
-          </div>
-        </div>
-        
-        <div className="flex justify-center mt-6">
-          <Button 
-            onClick={handleDownload}
-            className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-          >
-            <Download className="mr-2 h-5 w-5" />
-            Download Your Star Card
-          </Button>
+          {user && starCard ? (
+            <div ref={starCardRef} className="w-full max-w-md">
+              <StarCard 
+                profile={{
+                  name: user?.name || 'Your Name',
+                  title: user?.title || '',
+                  organization: user?.organization || ''
+                }}
+                quadrantData={{
+                  thinking: starCard.thinking || 0,
+                  acting: starCard.acting || 0,
+                  feeling: starCard.feeling || 0,
+                  planning: starCard.planning || 0,
+                  state: starCard.state || 'empty'
+                }}
+                flowAttributes={
+                  (flowAttributesData?.attributes && Array.isArray(flowAttributesData.attributes) && flowAttributesData.attributes.length > 0) ? 
+                    // Map server data to expected format - same as flow attributes page
+                    flowAttributesData.attributes.map((attr: { name: string }) => {
+                      if (!attr || !attr.name) {
+                        return { text: "", color: "rgb(156, 163, 175)" }; // Default gray
+                      }
+                      return {
+                        text: attr.name,
+                        color: getAttributeColor(attr.name)
+                      };
+                    }) : 
+                    // Default to empty array
+                    []
+                }
+                downloadable={false}
+                preview={false}
+              />
+            </div>
+          ) : (
+            <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
+              <p>Loading your StarCard data...</p>
+            </div>
+          )}
+          
+          {user && starCard && (
+            <div className="flex justify-center mt-6">
+              <Button 
+                onClick={handleDownload}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+              >
+                <Download className="mr-2 h-5 w-5" />
+                Download Your Star Card
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </>
