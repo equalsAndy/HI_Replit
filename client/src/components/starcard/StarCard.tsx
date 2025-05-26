@@ -89,7 +89,10 @@ export default function StarCard({
         if (response.ok) {
           const data = await response.json();
           console.log('StarCard: Fetched user profile data:', data);
-          setUserProfileData(data);
+          // Extract user data from the response structure
+          const userData = data.success && data.user ? data.user : data;
+          console.log('StarCard: Processed user data:', userData);
+          setUserProfileData(userData);
         } else {
           const errorData = await response.json();
           console.log('StarCard: User profile fetch failed, status:', response.status, 'error:', errorData);
