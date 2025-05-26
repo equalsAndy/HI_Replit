@@ -56,7 +56,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
 
   // Fetch existing reflection data on component mount
   const { data: existingReflection } = useQuery({
-    queryKey: ['/api/user-assessments', 'flowReflection'],
+    queryKey: ['/api/assessments', 'flowReflection'],
     enabled: true
   });
 
@@ -89,7 +89,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   // Save reflection mutation
   const saveReflectionMutation = useMutation({
     mutationFn: async (reflectionData: Record<number, string>) => {
-      return await apiRequest('/api/user-assessments', {
+      return await apiRequest('/api/assessments', {
         method: 'POST',
         body: {
           assessmentType: 'flowReflection',
@@ -101,13 +101,13 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user-assessments'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/assessments'] });
       toast({
         title: "Reflection saved!",
         description: "Your flow reflection responses have been saved successfully.",
         duration: 3000
       });
-      markStepCompleted('3-3');
+      markStepCompleted('3-4');
     },
     onError: (error: Error) => {
       toast({
