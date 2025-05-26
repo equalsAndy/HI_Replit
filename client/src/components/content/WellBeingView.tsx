@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '@/shared/types';
+// Props interface
+interface ContentViewProps {
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+}
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
@@ -21,8 +26,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   });
 
   // Use actual user data from their saved visualization
-  const wellBeingLevel = visualizationData?.wellBeingLevel || 5;
-  const futureWellBeingLevel = visualizationData?.futureWellBeingLevel || 7;
+  const wellBeingLevel = (visualizationData as any)?.wellBeingLevel || 5;
+  const futureWellBeingLevel = (visualizationData as any)?.futureWellBeingLevel || 7;
   
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
