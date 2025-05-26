@@ -27,7 +27,7 @@ export default function ImaginalAgilityHome() {
     completedSteps,
     isStepUnlocked,
     isStepCompleted,
-    markStepCompleted,
+    markStepCompleted: progressionMarkCompleted,
     markVideoWatched,
     saveAssessmentResult,
     getProgressCount
@@ -157,8 +157,8 @@ export default function ImaginalAgilityHome() {
   };
 
   // Mark a step as completed (using progression logic)
-  const handleStepCompletion = (stepId: string) => {
-    markStepCompleted(stepId);
+  const markStepCompleted = (stepId: string) => {
+    progressionMarkCompleted(stepId);
     localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: [...completedSteps, stepId] }));
   };
 
