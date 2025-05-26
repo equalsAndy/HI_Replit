@@ -360,8 +360,17 @@ export default function VisualizeYourself() {
       ...(visualization || {})
     };
     
-    // Save visualization data
-    saveVisualization.mutate(visualizationData);
+    // Save visualization data and hide search interface after saving
+    saveVisualization.mutate(visualizationData, {
+      onSuccess: () => {
+        setShowSearchInterface(false); // Hide search interface after successful save
+        toast({
+          title: "Images saved successfully!",
+          description: "Your vision board has been saved. You can now reflect on what these images mean to you.",
+          variant: "default"
+        });
+      }
+    });
   };
 
   // Show loading state
