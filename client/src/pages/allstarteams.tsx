@@ -166,8 +166,13 @@ export default function AllStarTeams() {
       const lastUserId = localStorage.getItem('last-user-id');
       const currentUserId = actualUser.id.toString();
       
-      // Clear progress if user changed OR if current user has progress: 0 (fresh start)
-      const shouldClearProgress = (lastUserId && lastUserId !== currentUserId) || actualUser.progress === 0;
+      // Check if we've already cleared progress for this user in this session
+      const sessionKey = `progress-cleared-${currentUserId}`;
+      const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
+      
+      // Clear progress if user changed OR if current user has progress: 0 (fresh start) AND hasn't been cleared yet
+      const shouldClearProgress = (lastUserId && lastUserId !== currentUserId) || 
+                                 (actualUser.progress === 0 && !hasAlreadyCleared);
       
       if (shouldClearProgress) {
         const reason = lastUserId && lastUserId !== currentUserId 
