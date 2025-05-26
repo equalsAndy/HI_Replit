@@ -1,142 +1,125 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
+import { apiRequest } from '@/lib/queryClient';
 
 const CantrilLadderView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
-  // Values will be retrieved from stored data in a real implementation
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchWellbeingData = async () => {
+      try {
+        const response = await apiRequest('/api/visualization');
+        if (response && response.wellBeingLevel !== undefined && response.futureWellBeingLevel !== undefined) {
+          setWellBeingLevel(response.wellBeingLevel);
+          setFutureWellBeingLevel(response.futureWellBeingLevel);
+        }
+      } catch (error) {
+        console.error('Error fetching wellbeing data:', error);
+        // Keep default values if fetch fails
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWellbeingData();
+  }, []);
+
+  const handleNext = () => {
+    markStepCompleted('cantril-ladder');
+    setCurrentContent('future-self');
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg text-gray-600">Loading your wellbeing data...</div>
+      </div>
+    );
+  }
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
-      
-      {/* SVG Ladder at the top */}
-      <div className="flex justify-center mb-8">
-        <WellBeingLadderSvg 
-          currentValue={wellBeingLevel}
-          futureValue={futureWellBeingLevel}
-        />
-      </div>
 
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="md:w-1/2">
-          <div className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
-              <p className="text-gray-700 text-sm mb-2">
-                What are the main elements contributing to your current well-being?
-              </p>
-              <textarea 
-                className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Consider your work, relationships, health, finances, and personal growth..."
-              />
-            </div>
+      <div className="mb-8">
+        <div className="prose max-w-none mb-6">
+          <p className="text-lg text-gray-700">
+            Here's your position on the Cantril Ladder based on your earlier responses. Take a moment to reflect on where you are now and where you want to be in one year.
+          </p>
+        </div>
+
+        {/* SVG Ladder - centered and prominent */}
+        <div className="flex justify-center mb-8">
+          <div className="w-full max-w-2xl">
+            <WellBeingLadderSvg 
+              currentValue={wellBeingLevel}
+              futureValue={futureWellBeingLevel}
+            />
           </div>
         </div>
-        
-        <div className="md:w-1/2 space-y-6">
-          <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-4">Your Future Vision</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-indigo-700">What improvements do you envision?</h4>
-                <p className="text-indigo-600 text-sm mb-2">
-                  What achievements or changes would make your life better in one year?
-                </p>
-                <textarea 
-                  className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                  placeholder="Describe specific improvements you hope to see in your life..."
-                />
-              </div>
+
+        {/* Reflection prompts */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
+            <h3 className="text-lg font-medium text-blue-800 mb-3">Your Current Position: {wellBeingLevel}</h3>
+            <div className="text-sm text-blue-700 space-y-2">
+              <p><strong>Reflect on:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>What factors contribute to this rating?</li>
+                <li>What aspects of your life are working well?</li>
+                <li>What challenges are you currently facing?</li>
+              </ul>
             </div>
           </div>
-          
+
           <div className="bg-green-50 p-6 rounded-lg border border-green-100">
-            <h3 className="text-lg font-semibold text-green-800 mb-4">Specific Changes</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-green-700">What will be different?</h4>
-                <p className="text-green-600 text-sm mb-2">
-                  How will your experience be noticeably different in tangible ways?
-                </p>
-                <textarea 
-                  className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                  placeholder="Describe concrete changes you'll experience..."
-                />
-              </div>
+            <h3 className="text-lg font-medium text-green-800 mb-3">Your Future Goal: {futureWellBeingLevel}</h3>
+            <div className="text-sm text-green-700 space-y-2">
+              <p><strong>Consider:</strong></p>
+              <ul className="list-disc list-inside space-y-1">
+                <li>What would need to change to reach this level?</li>
+                <li>What specific steps could you take?</li>
+                <li>What support or resources might you need?</li>
+              </ul>
             </div>
+          </div>
+        </div>
+
+        {/* Additional reflection section */}
+        <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
+          <h3 className="text-amber-800 font-medium mb-3">The Gap Between Now and Your Goal</h3>
+          <div className="text-sm text-amber-700">
+            <p className="mb-3">
+              You're currently at level <strong>{wellBeingLevel}</strong> and want to reach level <strong>{futureWellBeingLevel}</strong> 
+              {futureWellBeingLevel > wellBeingLevel ? 
+                ` - that's a positive movement of ${futureWellBeingLevel - wellBeingLevel} level${futureWellBeingLevel - wellBeingLevel > 1 ? 's' : ''}!` :
+                futureWellBeingLevel === wellBeingLevel ?
+                ` - you're aiming to maintain your current level.` :
+                ` - you may want to consider what's realistic and achievable.`
+              }
+            </p>
+            <p>
+              Think about this gap as your <em>growth opportunity</em>. Each step up the ladder represents meaningful improvements in your overall life satisfaction and wellbeing.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
-        <h3 className="text-lg font-semibold text-purple-800 mb-4">QUARTERLY MILESTONES</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium text-purple-900 mb-2">What progress would you expect in 3 months?</h4>
-            <p className="text-sm text-purple-600 mb-2">
-              Name one specific indicator that you're moving up the ladder.
-            </p>
-            <textarea 
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-              placeholder="Describe a measurable sign of progress..."
-            />
-          </div>
-          <div>
-            <h4 className="font-medium text-purple-900 mb-2">What actions will you commit to this quarter?</h4>
-            <p className="text-sm text-purple-600 mb-2">
-              Name 1-2 concrete steps you'll take before your first quarterly check-in.
-            </p>
-            <textarea 
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-              placeholder="Describe specific actions you'll take..."
-            />
-          </div>
-        </div>
-      </div>
-      
-      <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
-        <h3 className="text-amber-800 font-medium mb-3">Interpreting Your Position on the Ladder</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Steps 0-4: Struggling</h4>
-            <p className="text-sm text-amber-700">
-              People in this range typically report high levels of worry, sadness, stress, and pain.
-              Daily challenges may feel overwhelming, and hope for the future may be limited.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Steps 5-6: Getting By</h4>
-            <p className="text-sm text-amber-700">
-              This middle range represents moderate satisfaction with life. You likely have some 
-              important needs met but still face significant challenges or unfulfilled aspirations.
-            </p>
-          </div>
-          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-            <h4 className="font-medium text-amber-800 mb-2">Steps 7-10: Thriving</h4>
-            <p className="text-sm text-amber-700">
-              People in this range report high life satisfaction, with most basic needs met. 
-              They typically experience a sense of purpose, strong social connections, and optimism.
-            </p>
-          </div>
-        </div>
-      </div>
-      
       <div className="flex justify-end">
         <Button 
-          onClick={() => {
-            markStepCompleted('4-2');
-            setCurrentContent("visualizing-you");
-          }}
+          onClick={handleNext}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Continue <ChevronRight className="ml-2 h-4 w-4" />
+          Continue to Future Self Visualization <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
