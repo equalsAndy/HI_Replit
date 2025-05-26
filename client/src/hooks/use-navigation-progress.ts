@@ -1,398 +1,131 @@
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { queryClient } from '@/lib/queryClient';
 
-// Define types for our navigation progress
-export interface NavigationStep {
-  id: string;
-  label: string;
-  path: string;
-  estimatedTime?: number; // in minutes
-  completed?: boolean;
-  required?: boolean;
-}
-
-export interface NavigationSection {
-  id: string;
-  title: string;
-  description?: string;
-  steps: NavigationStep[];
-  completed?: boolean;
-  expanded?: boolean;
-}
-
-export interface NavigationProgress {
-  currentStepId?: string;
-  lastVisitedAt?: number;
+interface NavigationProgress {
   completedSteps: string[];
-  expandedSections: string[];
-  sections: NavigationSection[];
-  appType?: string; // 'ast' or 'imaginal-agility'
+  currentStepId: string;
+  appType: 'ast' | 'ia' | null;
+  lastVisitedAt: string;
 }
-
-// Local storage keys for caching
-const NAVIGATION_PROGRESS_KEY = 'app_navigation_progress';
-const LAST_SYNC_KEY = 'navigation_last_sync';
-
-// Default time values in milliseconds
-const ONE_DAY = 24 * 60 * 60 * 1000;
 
 export function useNavigationProgress() {
-  const { toast } = useToast();
-  const [localProgress, setLocalProgress] = useState<NavigationProgress | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
-  // Get user progress from the server
-  const { data: userData, isLoading: isUserDataLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
-    staleTime: 60000, // 1 minute cache
-    refetchOnWindowFocus: false,
+  const [progress, setProgress] = useState<NavigationProgress>({
+    completedSteps: [],
+    currentStepId: '',
+    appType: null,
+    lastVisitedAt: new Date().toISOString()
   });
 
-  // Get current app type
-  const currentApp = sessionStorage.getItem('selectedApp') || 'ast';
-  
-  // Load progress from database on user change or app change
+  // Load progress from local storage on mount
   useEffect(() => {
-    if (!userData?.user?.id || isInitialized) return;
-    
-    const loadProgressFromDatabase = async () => {
+    const savedProgress = localStorage.getItem('navigationProgress');
+    if (savedProgress) {
       try {
-        // Check if user has progress: 0 in database - if so, clear local cache immediately
-        if (userData.user.progress === 0) {
-          console.log(`User ${userData.user.id} has database progress: 0, clearing navigation cache`);
-          const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
-          const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
-          localStorage.removeItem(cacheKey);
-          localStorage.removeItem(syncKey);
-          setLocalProgress(null);
-          setIsInitialized(true);
-          return;
-        }
-        
-        // First try localStorage for immediate response
-        const cachedProgress = localStorage.getItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`);
-        const lastSync = localStorage.getItem(`${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`);
-        
-        if (cachedProgress && lastSync) {
-          const cacheAge = Date.now() - parseInt(lastSync);
-          if (cacheAge < 300000) { // Use cache if less than 5 minutes old
-            const parsed = JSON.parse(cachedProgress);
-            setLocalProgress(parsed);
-            setIsInitialized(true);
-            return;
-          }
-        }
-        
-        // Load from database
-        const response = await apiRequest('GET', '/api/user/navigation-progress');
-        const result = await response.json();
-        
-        if (result.success && result.progress) {
-          const dbProgress = JSON.parse(result.progress);
-          // Only use database progress if it matches current app
-          if (dbProgress.appType === currentApp) {
-            setLocalProgress(dbProgress);
-            // Cache in localStorage
-            localStorage.setItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`, result.progress);
-            localStorage.setItem(`${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`, Date.now().toString());
-          }
-        }
-        
-        setIsInitialized(true);
+        const parsed = JSON.parse(savedProgress);
+        setProgress(parsed);
       } catch (error) {
-        console.error('Error loading navigation progress from database:', error);
-        // Fall back to localStorage
-        const cachedProgress = localStorage.getItem(`${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`);
-        if (cachedProgress) {
-          try {
-            const parsed = JSON.parse(cachedProgress);
-            setLocalProgress(parsed);
-          } catch (parseError) {
-            console.error('Error parsing cached progress:', parseError);
-          }
-        }
-        setIsInitialized(true);
+        console.error('Error parsing saved navigation progress:', error);
       }
-    };
-    
-    loadProgressFromDatabase();
-  }, [userData?.user?.id, currentApp, isInitialized]);
-  
-  // Update navigation progress on the server
-  const updateServerProgress = useMutation({
-    mutationFn: async (navigationProgress: NavigationProgress) => {
-      const res = await apiRequest('PUT', '/api/user/navigation-progress', { 
-        navigationProgress: JSON.stringify(navigationProgress)
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Failed to sync progress: ${res.status}`);
-      }
-      
-      return res.json();
-    },
-    onSuccess: (data, variables) => {
-      console.log('Navigation progress synced to database:', {
-        completedSteps: variables.completedSteps.length,
-        currentStep: variables.currentStepId,
-        appType: variables.appType
-      });
-      
-      // Invalidate profile query to ensure data consistency
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-    },
-    onError: (error, variables) => {
-      console.error('Failed to sync navigation progress to database:', {
-        error: error.message,
-        stepCount: variables.completedSteps.length,
-        currentStep: variables.currentStepId,
-        appType: variables.appType
-      });
-      
-      // For critical navigation events, we might want to retry
-      if (variables.completedSteps.length > 0) {
-        console.warn('Navigation progress sync failed for completed steps - consider implementing retry logic');
-      }
-    },
-    // Add retry logic for failed syncs
-    retry: (failureCount, error) => {
-      // Retry up to 2 times for network errors
-      return failureCount < 2 && error.message.includes('Failed to sync progress');
-    },
-    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000) // Exponential backoff
-  });
-  
-  // Save progress to localStorage and database
-  const saveProgress = (progress: NavigationProgress) => {
+    }
+  }, []);
+
+  // Save progress to local storage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('navigationProgress', JSON.stringify(progress));
+  }, [progress]);
+
+  // Sync with database
+  const syncWithDatabase = async () => {
     try {
-      // Add app type and user ID to progress
-      const progressWithMeta = {
-        ...progress,
-        appType: currentApp,
-        lastVisitedAt: Date.now()
-      };
-      
-      setLocalProgress(progressWithMeta);
-      
-      // Save to localStorage immediately for responsiveness
-      if (userData?.user?.id) {
-        const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
-        const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
-        localStorage.setItem(cacheKey, JSON.stringify(progressWithMeta));
-        localStorage.setItem(syncKey, Date.now().toString());
-        
-        // Sync to database (async, non-blocking)
-        updateServerProgress.mutate(progressWithMeta);
+      const response = await fetch('/api/user/navigation-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(progress),
+      });
+
+      if (response.ok) {
+        console.log('Navigation progress synced with database');
+      } else {
+        console.error('Failed to sync navigation progress with database');
       }
     } catch (error) {
-      console.error('Error saving navigation progress:', error);
-      toast({
-        title: "Failed to save progress",
-        description: "Your progress may not be saved between sessions.",
-        variant: "destructive",
-      });
+      console.error('Error syncing navigation progress:', error);
     }
   };
-  
-  // Calculate overall progress percentage
-  const calculateOverallProgress = (): number => {
-    if (!localProgress?.sections) return 0;
-    
-    const allSteps = localProgress.sections.flatMap(section => section.steps);
-    const totalRequiredSteps = allSteps.filter(step => step.required !== false).length;
-    const completedRequiredSteps = localProgress.completedSteps.filter(stepId => 
-      allSteps.find(step => step.id === stepId && step.required !== false)
-    ).length;
-    
-    return totalRequiredSteps > 0 
-      ? Math.round((completedRequiredSteps / totalRequiredSteps) * 100)
-      : 0;
+
+  // Load progress from database when user logs in
+  const loadFromDatabase = async () => {
+    try {
+      const response = await fetch('/api/user/navigation-progress', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success && result.navigationProgress) {
+          const dbProgress = JSON.parse(result.navigationProgress);
+          
+          // Merge database progress with local storage (database takes precedence)
+          const mergedProgress = {
+            ...progress,
+            ...dbProgress,
+            completedSteps: dbProgress.completedSteps || progress.completedSteps,
+            lastVisitedAt: new Date().toISOString()
+          };
+          
+          setProgress(mergedProgress);
+          console.log('Navigation progress loaded from database:', mergedProgress);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading navigation progress from database:', error);
+    }
   };
-  
+
   // Mark a step as completed
   const markStepCompleted = (stepId: string) => {
-    if (!localProgress) return;
-    
-    // Skip if already completed
-    if (localProgress.completedSteps.includes(stepId)) return;
-    
-    const newProgress = {
-      ...localProgress,
-      completedSteps: [...localProgress.completedSteps, stepId],
+    setProgress(prev => ({
+      ...prev,
+      completedSteps: prev.completedSteps.includes(stepId) 
+        ? prev.completedSteps 
+        : [...prev.completedSteps, stepId],
       currentStepId: stepId,
-      lastVisitedAt: Date.now()
-    };
-    
-    // Save to localStorage immediately for responsiveness
-    setLocalProgress(newProgress);
-    
-    // Auto-save to database with progress metadata
-    if (userData?.user?.id) {
-      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
-      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
-      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
-      localStorage.setItem(syncKey, Date.now().toString());
-      
-      // Immediately sync to database
-      updateServerProgress.mutate(newProgress);
-    }
+      lastVisitedAt: new Date().toISOString()
+    }));
   };
-  
-  // Set current step
-  const setCurrentStep = (stepId: string) => {
-    if (!localProgress) return;
-    
-    const newProgress = {
-      ...localProgress,
+
+  // Update current step
+  const updateCurrentStep = (stepId: string, appType: 'ast' | 'ia' | null = null) => {
+    setProgress(prev => ({
+      ...prev,
       currentStepId: stepId,
-      lastVisitedAt: Date.now()
+      appType: appType || prev.appType,
+      lastVisitedAt: new Date().toISOString()
+    }));
+  };
+
+  // Reset progress
+  const resetProgress = () => {
+    const resetData = {
+      completedSteps: [],
+      currentStepId: '',
+      appType: null,
+      lastVisitedAt: new Date().toISOString()
     };
-    
-    // Save to localStorage immediately
-    setLocalProgress(newProgress);
-    
-    // Auto-save to database
-    if (userData?.user?.id) {
-      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
-      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
-      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
-      localStorage.setItem(syncKey, Date.now().toString());
-      
-      // Sync to database with debouncing for frequent navigation
-      updateServerProgress.mutate(newProgress);
-    }
+    setProgress(resetData);
+    localStorage.removeItem('navigationProgress');
   };
-  
-  // Check if a step is accessible (can only access if previous steps are complete or it's already visited)
-  const isStepAccessible = (stepId: string): boolean => {
-    if (!localProgress) return false;
-    
-    // If the step is already completed, it's accessible
-    if (localProgress.completedSteps.includes(stepId)) return true;
-    
-    // Get all steps in sequential order
-    const allSteps = localProgress.sections.flatMap(section => section.steps);
-    const allStepIds = allSteps.map(step => step.id);
-    
-    // Find the index of the current step
-    const stepIndex = allStepIds.indexOf(stepId);
-    if (stepIndex === -1) return false; // Step not found
-    
-    // If it's the first step, it's always accessible
-    if (stepIndex === 0) return true;
-    
-    // Check if all previous steps are completed
-    for (let i = 0; i < stepIndex; i++) {
-      if (!localProgress.completedSteps.includes(allStepIds[i])) {
-        return false; // Found an incomplete previous step
-      }
-    }
-    
-    return true; // All previous steps are completed
-  };
-  
-  // Toggle section expansion
-  const toggleSectionExpanded = (sectionId: string) => {
-    if (!localProgress) return;
-    
-    const isCurrentlyExpanded = localProgress.expandedSections.includes(sectionId);
-    const newExpandedSections = isCurrentlyExpanded
-      ? localProgress.expandedSections.filter(id => id !== sectionId)
-      : [...localProgress.expandedSections, sectionId];
-    
-    const newProgress = {
-      ...localProgress,
-      expandedSections: newExpandedSections,
-      lastVisitedAt: Date.now()
-    };
-    
-    // Save to localStorage immediately
-    setLocalProgress(newProgress);
-    
-    // Auto-save to database
-    if (userData?.user?.id) {
-      const cacheKey = `${NAVIGATION_PROGRESS_KEY}_${currentApp}_${userData.user.id}`;
-      const syncKey = `${LAST_SYNC_KEY}_${currentApp}_${userData.user.id}`;
-      localStorage.setItem(cacheKey, JSON.stringify(newProgress));
-      localStorage.setItem(syncKey, Date.now().toString());
-      
-      // Sync to database (UI state changes are less critical, so we can be more lenient)
-      updateServerProgress.mutate(newProgress);
-    }
-  };
-  
-  // Initialize or update navigation sections
-  const updateNavigationSections = (sections: NavigationSection[]) => {
-    // If we have existing progress, merge with new sections
-    if (localProgress && isInitialized) {
-      // Keep track of completed steps and expanded sections
-      const newProgress = {
-        ...localProgress,
-        sections: sections.map(section => ({
-          ...section,
-          expanded: localProgress.expandedSections.includes(section.id),
-          steps: section.steps.map(step => ({
-            ...step,
-            completed: localProgress.completedSteps.includes(step.id)
-          }))
-        }))
-      };
-      
-      saveProgress(newProgress);
-    } else if (isInitialized) {
-      // Initialize with default values
-      const defaultProgress: NavigationProgress = {
-        completedSteps: [],
-        expandedSections: [sections[0]?.id].filter(Boolean), // Expand first section by default
-        sections: sections,
-        appType: currentApp
-      };
-      
-      saveProgress(defaultProgress);
-    }
-  };
-  
-  // Get last position for quick resume
-  const getLastPosition = () => {
-    if (!localProgress) return null;
-    
-    const { currentStepId, lastVisitedAt } = localProgress;
-    
-    // If last visit was more than a day ago, show quick resume
-    const shouldShowQuickResume = lastVisitedAt && 
-      (Date.now() - lastVisitedAt > ONE_DAY);
-    
-    if (currentStepId && shouldShowQuickResume) {
-      const allSteps = localProgress.sections.flatMap(section => section.steps);
-      const currentStep = allSteps.find(step => step.id === currentStepId);
-      
-      if (currentStep) {
-        return {
-          stepId: currentStepId,
-          path: currentStep.path,
-          label: currentStep.label,
-          lastVisitedAt
-        };
-      }
-    }
-    
-    return null;
-  };
-  
+
   return {
-    progress: localProgress,
-    isLoading: isUserDataLoading || !isInitialized,
-    currentStepId: localProgress?.currentStepId,
-    completedSteps: localProgress?.completedSteps || [],
-    expandedSections: localProgress?.expandedSections || [],
+    progress,
     markStepCompleted,
-    setCurrentStep,
-    toggleSectionExpanded,
-    updateNavigationSections,
-    getLastPosition,
-    calculateOverallProgress,
-    isStepAccessible
+    updateCurrentStep,
+    resetProgress,
+    syncWithDatabase,
+    loadFromDatabase
   };
 }

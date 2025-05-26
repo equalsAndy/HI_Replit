@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 // Constants for different apps
 const APP_PROGRESS_KEYS = {
@@ -28,6 +29,13 @@ export default function AllStarTeams() {
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
+  const { 
+    progress: navProgress, 
+    markStepCompleted: markNavStepCompleted, 
+    updateCurrentStep, 
+    syncWithDatabase, 
+    loadFromDatabase 
+  } = useNavigationProgress();
 
   // Set app to AllStarTeams on component mount and check authentication
   useEffect(() => {
@@ -45,6 +53,9 @@ export default function AllStarTeams() {
           // Save the workshop selection before redirecting
           localStorage.setItem('selectedApp', 'ast');
           navigate('/auth?app=ast');
+        } else {
+          // User is authenticated, load navigation progress from database
+          await loadFromDatabase();
         }
       } catch (error) {
         console.error('Auth check error:', error);
@@ -53,7 +64,7 @@ export default function AllStarTeams() {
     };
 
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate, toast, loadFromDatabase]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
