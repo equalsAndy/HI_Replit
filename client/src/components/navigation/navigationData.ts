@@ -87,13 +87,12 @@ export const navigationSections: NavigationSection[] = [
     title: 'Resources', 
     path: '/resources',
     icon: BookOpen,
-    totalSteps: 3,
+    totalSteps: 2,
     completedSteps: 0,
-    locked: true, // Unlocked after Final Reflection completion
+    locked: false, // Always unlocked
     steps: [
-      { id: '5-1', label: 'Workshop Guide', path: '/resources/workshop', type: 'Learning', contentKey: 'workshop-guide', icon: Book },
-      { id: '5-2', label: 'Your Star Report', path: '/resources/summary', type: 'Learning', contentKey: 'star-report', icon: Book },
-      { id: '5-3', label: 'Your Star Card', path: '/resources/star-card', type: 'Learning', contentKey: 'final-star-card', icon: Book, downloadOnly: true }
+      { id: '5-1', label: 'Your Star Card', path: '/resources/star-card', type: 'Learning', contentKey: 'your-star-card', icon: StarIcon, downloadOnly: true },
+      { id: '5-2', label: 'Your Star Report', path: '/resources/summary', type: 'Learning', contentKey: 'star-report', icon: Book }
     ]
   }
 ];
