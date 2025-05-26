@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import { Link } from 'wouter';
 import ProfileModal from "../profile/ProfileModal";
+import ProfileEditor from "../profile/ProfileEditor";
 import { useToast } from "@/hooks/use-toast";
 import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -132,6 +133,47 @@ export function NavBar() {
     window.location.href = '/workshop-reset-test';
   };
 
+  // Logout function for ProfileEditor
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Clear React Query cache
+        queryClient.clear();
+        
+        // Show success toast
+        toast({
+          title: 'Logged out successfully',
+          description: 'You have been logged out of your account.',
+          variant: 'default',
+        });
+
+        // Navigate to home page
+        navigate('/');
+        
+        // Force page reload to clear all state
+        window.location.reload();
+      } else {
+        throw new Error(data.error || 'Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: 'Logout failed',
+        description: 'There was a problem logging out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Function to toggle between applications
   const toggleApplication = () => {
     // Toggle to the other application
@@ -243,30 +285,17 @@ export function NavBar() {
                 </Button>
               )}
               
-              {/* Profile button */}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="rounded-md text-white hover:bg-yellow-400"
-                onClick={() => setIsProfileModalOpen(true)}
-              >
-                <User className="h-4 w-4 mr-1" />
-                <span className="hidden md:inline">Profile</span>
-              </Button>
-              
-              {/* Logout button */}
-              <LogoutButton 
-                variant="outline" 
-                size="sm" 
-                className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
+              {/* Profile Editor with logout functionality */}
+              <ProfileEditor
+                user={user}
+                onLogout={handleLogout}
               />
             </div>
           ) : (
-            /* Show logout button for all users regardless of login status */
-            <LogoutButton 
-              variant="outline" 
-              size="sm" 
-              className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
+            /* Show ProfileEditor for all users regardless of login status */
+            <ProfileEditor
+              user={user}
+              onLogout={handleLogout}
             />
           )}
         </div>

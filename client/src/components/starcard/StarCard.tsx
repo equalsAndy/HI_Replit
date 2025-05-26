@@ -2,7 +2,8 @@ import React, { useState, useRef, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { downloadElementAsImage } from "@/lib/html2canvas";
 import { UserIcon } from "lucide-react";
-import { ProfileData, QuadrantData } from "@shared/schema";
+import { QuadrantData } from "@shared/schema";
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
 
