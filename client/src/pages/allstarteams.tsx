@@ -159,14 +159,20 @@ export default function AllStarTeams() {
 
   // Auto-clear workshop progress when user changes
   React.useEffect(() => {
-    if (user?.id) {
+    console.log('Debug: user object received:', user);
+    
+    // Extract actual user data from the response wrapper
+    const actualUser = user?.user || user;
+    console.log('Debug: extracted user data:', actualUser);
+    
+    if (actualUser?.id) {
       const lastUserId = localStorage.getItem('last-user-id');
-      const currentUserId = user.id.toString();
+      const currentUserId = actualUser.id.toString();
       
       // Always clear progress for Joan Baez (user 19) if she has progress: 0
-      console.log(`Debug: currentUserId=${currentUserId}, user.progress=${user.progress}, condition check:`, currentUserId === '19' && user.progress === 0);
+      console.log(`Debug: currentUserId=${currentUserId}, user.progress=${actualUser.progress}, condition check:`, currentUserId === '19' && actualUser.progress === 0);
       
-      if (currentUserId === '19' && user.progress === 0) {
+      if (currentUserId === '19' && actualUser.progress === 0) {
         console.log(`Clearing all progress for Joan Baez (fresh user)`);
         
         // Clear AllStarTeams specific progress
