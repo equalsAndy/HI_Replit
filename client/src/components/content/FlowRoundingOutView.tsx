@@ -147,7 +147,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         description: "Your flow reflection responses have been saved successfully.",
         duration: 3000
       });
-      markStepCompleted('3-4');
+      markStepCompleted('3-3');
     },
     onError: (error: Error) => {
       toast({
