@@ -30,13 +30,13 @@ const getAttributeColor = (text: string): string => {
   const normalizedText = text.trim();
   
   if (thinkAttributes.includes(normalizedText)) {
-    return 'rgb(34, 197, 94)'; // Green for THINK
+    return 'rgb(1, 162, 82)'; // Green for THINK - matches StarCard quadrant color
   } else if (feelAttributes.includes(normalizedText)) {
-    return 'rgb(59, 130, 246)'; // Blue for FEEL
+    return 'rgb(22, 126, 253)'; // Blue for FEEL - matches StarCard quadrant color
   } else if (planAttributes.includes(normalizedText)) {
-    return 'rgb(245, 158, 11)'; // Yellow for PLAN
+    return 'rgb(255, 203, 47)'; // Yellow for PLAN - matches StarCard quadrant color
   } else if (actAttributes.includes(normalizedText)) {
-    return 'rgb(239, 68, 68)'; // Red for ACT
+    return 'rgb(241, 64, 64)'; // Red for ACT - matches StarCard quadrant color
   }
   
   // Fallback to default gray for unrecognized attributes
