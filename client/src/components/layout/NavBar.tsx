@@ -50,6 +50,30 @@ export function NavBar() {
     }
   }>({ 
     queryKey: ['/api/user/profile'],
+    queryFn: async () => {
+      console.log('NavBar: Fetching user profile...');
+      
+      const response = await fetch('/api/user/profile', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      console.log('NavBar: Profile fetch response status:', response.status);
+      console.log('NavBar: Profile fetch response headers:', Object.fromEntries(response.headers.entries()));
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('NavBar: Profile fetch failed:', response.status, errorText);
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('NavBar: Profile data received:', data);
+      return data;
+    },
     // Force fresh data fetch
     refetchOnWindowFocus: true,
     staleTime: 0, // Always fetch fresh data
