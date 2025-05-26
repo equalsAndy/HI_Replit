@@ -141,25 +141,23 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     setSaving(true);
     
     try {
-      await apiRequest('/api/visualization', {
-        method: 'POST',
-        body: JSON.stringify({
-          wellBeingLevel,
-          futureWellBeingLevel,
-        }),
-        headers: {
-          'Content-Type': 'application/json'
-        }
+      await apiRequest('POST', '/api/visualization', {
+        wellBeingLevel,
+        futureWellBeingLevel,
       });
       
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-1');
       
       // Navigate to well-being reflections (cantril-ladder content)
-      console.log('Navigating to well-being reflections (cantril-ladder)');
+      console.log('Navigating to cantril-ladder content view');
       setCurrentContent('cantril-ladder');
     } catch (error) {
       console.error('Error saving well-being data:', error);
+      // Navigate anyway even if save fails
+      console.log('Navigating to cantril-ladder despite save error');
+      markStepCompleted('4-1');
+      setCurrentContent('cantril-ladder');
     } finally {
       setSaving(false);
     }
