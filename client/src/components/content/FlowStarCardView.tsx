@@ -666,20 +666,20 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           ) : null}
         </div>
-      </div>
-
-      <div className="flex justify-end mt-8">
-        <Button 
-          onClick={() => {
-            if (isCardComplete || starCardFlowAttributes.length > 0) {
-              markStepCompleted('3-4');
-            }
-            setCurrentContent("wellbeing");
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          Next: Visualize Your Potential <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+        
+        <div className="flex justify-center mt-8">
+          <Button 
+            onClick={() => {
+              if (isCardComplete || starCardFlowAttributes.length > 0) {
+                markStepCompleted('3-4');
+              }
+              setCurrentContent("wellbeing");
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Next: Ladder of Well-Being <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </>
   );
