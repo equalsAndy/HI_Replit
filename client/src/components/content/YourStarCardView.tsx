@@ -99,44 +99,37 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
 
     try {
       console.log('Starting star card download...');
-      // Create canvas from the star card element
+      // Use simpler html2canvas options for better compatibility
       const canvas = await html2canvas(starCardRef.current, {
         backgroundColor: '#ffffff',
-        scale: 2, // Higher resolution
+        scale: 1, // Lower scale for better performance
+        logging: true,
         useCORS: true,
-        allowTaint: true,
-        width: starCardRef.current.offsetWidth,
-        height: starCardRef.current.offsetHeight,
+        allowTaint: false,
+        foreignObjectRendering: false
       });
 
-      console.log('Canvas created successfully');
+      console.log('Canvas created successfully, dimensions:', canvas.width, 'x', canvas.height);
 
-      // Convert canvas to data URL and trigger download
-      const dataURL = canvas.toDataURL('image/png');
-      console.log('Canvas converted to data URL');
+      // Convert to data URL
+      const dataURL = canvas.toDataURL('image/png', 0.9);
+      console.log('Canvas converted to data URL, length:', dataURL.length);
       
-      // Create download link with data URL
+      // Create and trigger download
       const link = document.createElement('a');
-      link.href = dataURL;
       link.download = 'your-star-card.png';
+      link.href = dataURL;
       
-      // Ensure the link is properly configured
-      link.style.display = 'none';
+      // Add to DOM temporarily and click
       document.body.appendChild(link);
-      
-      // Force the download
       link.click();
+      document.body.removeChild(link);
       
-      // Clean up
-      setTimeout(() => {
-        document.body.removeChild(link);
-        console.log('Download completed successfully');
-      }, 100);
-
-      // Mark completion and unlock resources
+      console.log('Download link clicked');
       markStepCompleted('5-1');
     } catch (error) {
       console.error('Error generating star card image:', error);
+      alert('Download failed. Please try right-clicking on your star card and selecting "Save as Image"');
     }
   };
 
