@@ -84,26 +84,6 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       } catch (error) {
         console.error('Error parsing reflection results:', error);
       }
-    } else {
-      // Fallback to localStorage if API data not available
-      const savedReflections = localStorage.getItem('flowReflectionAnswers');
-      if (savedReflections) {
-        try {
-          const parsed = JSON.parse(savedReflections);
-          setAnswers(parsed.answers || {});
-          
-          // Check if all questions are answered
-          const allAnswered = roundingOutQuestions.every(q => 
-            parsed.answers && parsed.answers[q.id] && parsed.answers[q.id].trim().length > 0
-          );
-          
-          if (allAnswered) {
-            setReflectionCompleted(true);
-          }
-        } catch (error) {
-          console.log('Error parsing saved reflection data');
-        }
-      }
     }
   }, [existingReflection]);
 
