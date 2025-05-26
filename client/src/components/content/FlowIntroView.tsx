@@ -1,12 +1,128 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps } from '@/shared/types';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
 
 const FlowIntroView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
+  const { updateVideoProgress } = useNavigationProgress();
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+  const [player, setPlayer] = useState<any>(null);
+  const playerRef = useRef<HTMLDivElement>(null);
+
+  const stepId = "3-1";
+  const videoId = "JxdhWd8agmE";
+
+  // Load YouTube API
+  useEffect(() => {
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+
+      window.onYouTubeIframeAPIReady = () => {
+        initializePlayer();
+      };
+    } else {
+      initializePlayer();
+    }
+
+    return () => {
+      if (player) {
+        try {
+          player.destroy();
+        } catch (error) {
+          console.log('Error destroying player:', error);
+        }
+      }
+    };
+  }, [videoId]);
+
+  // Track video progress
+  const startProgressTracking = (playerInstance: any) => {
+    let interval: NodeJS.Timeout;
+    
+    const trackProgress = () => {
+      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
+        try {
+          const currentTime = playerInstance.getCurrentTime();
+          const duration = playerInstance.getDuration();
+          
+          if (duration > 0) {
+            const percentage = (currentTime / duration) * 100;
+            handleVideoProgress(percentage);
+          }
+        } catch (error) {
+          console.log('Video progress tracking error:', error);
+        }
+      }
+    };
+
+    // Track progress every second
+    interval = setInterval(trackProgress, 1000);
+    
+    // Clean up interval when component unmounts
+    return () => {
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  };
+
+  // Handle video progress updates
+  const handleVideoProgress = (percentage: number) => {
+    setVideoProgress(percentage);
+    updateVideoProgress(stepId, percentage);
+    
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
+      setHasReachedMinimum(true);
+    }
+  };
+
+  // Initialize YouTube player
+  const initializePlayer = () => {
+    if (window.YT && window.YT.Player && playerRef.current) {
+      const newPlayer = new window.YT.Player(playerRef.current, {
+        videoId: videoId,
+        playerVars: {
+          autoplay: 1,
+          controls: 1,
+          modestbranding: 1,
+          rel: 0,
+          showinfo: 0
+        },
+        events: {
+          onReady: (event: any) => {
+            setPlayer(event.target);
+            startProgressTracking(event.target);
+          },
+          onStateChange: (event: any) => {
+            // Handle player state changes if needed
+          }
+        }
+      });
+    }
+  };
+
+  // Handle completion and progression
+  const handleNext = () => {
+    markStepCompleted(stepId);
+    setCurrentContent("flow-assessment");
+  };
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
@@ -14,14 +130,13 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
       <div className="flex flex-col md:flex-row gap-6 mb-4">
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/JxdhWd8agmE" 
-              title="Introduction to Flow State" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-              className="w-full h-52 rounded border border-gray-200"
-            ></iframe>
+            <div className="w-full h-52 rounded border border-gray-200 bg-black">
+              <div 
+                ref={playerRef}
+                className="w-full h-full rounded-lg"
+                style={{ pointerEvents: 'auto', position: 'relative' }}
+              />
+            </div>
           </div>
         </div>
         
@@ -75,11 +190,13 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
       
       <div className="flex justify-end">
         <Button 
-          onClick={() => {
-            markStepCompleted('3-1');
-            setCurrentContent("flow-assessment");
-          }}
-          className="bg-indigo-700 hover:bg-indigo-800"
+          onClick={handleNext}
+          disabled={!hasReachedMinimum}
+          className={`${
+            hasReachedMinimum 
+              ? "bg-indigo-700 hover:bg-indigo-800" 
+              : "bg-gray-300 cursor-not-allowed"
+          }`}
         >
           Next: Flow Assessment
         </Button>
