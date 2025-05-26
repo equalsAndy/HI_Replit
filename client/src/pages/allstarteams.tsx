@@ -34,7 +34,8 @@ export default function AllStarTeams() {
     markStepCompleted: markNavStepCompleted, 
     updateCurrentStep, 
     syncWithDatabase, 
-    loadFromDatabase 
+    loadFromDatabase,
+    resetProgress
   } = useNavigationProgress();
 
   // Set app to AllStarTeams on component mount and check authentication
@@ -317,10 +318,20 @@ export default function AllStarTeams() {
       localStorage.removeItem('imaginal-agility-navigation-progress');
       localStorage.removeItem('allstar_navigation_progress');
 
-      // Refresh data from server
+      // Refresh data from server and clear all cached assessment data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+      
+      // Clear any cached flow assessment data
+      queryClient.removeQueries({ queryKey: ['/api/flow-attributes'] });
+      queryClient.removeQueries({ queryKey: ['/api/starcard'] });
+      
+      // Reset navigation progress as well
+      if (typeof resetProgress === 'function') {
+        resetProgress();
+      }
 
       toast({
         title: "Progress Reset",
