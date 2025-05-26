@@ -116,7 +116,7 @@ export default function StarCard({
         name: userProfileData.name || 'Your Name',
         title: userProfileData.title || userProfileData.jobTitle || '',
         organization: userProfileData.organization || '',
-        avatarUrl: undefined
+        avatarUrl: userProfileData.profilePicture || undefined
       };
     }
     

@@ -255,53 +255,6 @@ export function NavBar() {
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
-              {/* Info/Settings Button */}
-              <Dialog open={isTestInfoOpen} onOpenChange={setIsTestInfoOpen}>
-                <DialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100"
-                  >
-                    <InfoIcon className="h-4 w-4 mr-1" />
-                    <span className="hidden md:inline">Settings</span>
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-md">
-                  <DialogHeader>
-                    <DialogTitle>User Settings</DialogTitle>
-                    <DialogDescription>
-                      Manage your account and workshop settings
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="flex flex-col space-y-3 p-4">
-                    <Badge variant="outline" className="bg-yellow-100 self-start px-3 py-1.5">
-                      <span className="font-medium">
-                        {user?.name || user?.username} ({user?.role})
-                      </span>
-                    </Badge>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white text-purple-600 border-purple-200 hover:bg-purple-50 flex items-center self-start"
-                      onClick={toggleApplication}
-                    >
-                      Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-white text-red-600 border-red-200 hover:bg-red-50 flex items-center self-start"
-                      onClick={navigateToWorkshopReset}
-                    >
-                      Reset Workshop Data
-                    </Button>
-                  </div>
-                </DialogContent>
-              </Dialog>
-
               {/* Admin button - only shown for admin users */}
               {user?.role === 'admin' && (
                 <Button 
