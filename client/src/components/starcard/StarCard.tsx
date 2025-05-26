@@ -79,27 +79,30 @@ export default function StarCard({
   React.useEffect(() => {
     const fetchUserProfile = async () => {
       try {
+        console.log('StarCard: Attempting to fetch user profile...');
         const response = await fetch('/api/user/profile', {
           credentials: 'include'
         });
+        
+        console.log('StarCard: Profile response status:', response.status);
         
         if (response.ok) {
           const data = await response.json();
           console.log('StarCard: Fetched user profile data:', data);
           setUserProfileData(data);
         } else {
-          console.log('StarCard: User profile fetch failed, status:', response.status);
+          const errorData = await response.json();
+          console.log('StarCard: User profile fetch failed, status:', response.status, 'error:', errorData);
         }
       } catch (error) {
         console.error('StarCard: Error fetching user profile data:', error);
       }
     };
 
-    // Only fetch if we don't already have profile data passed as props
-    if (!profile && !userName) {
-      fetchUserProfile();
-    }
-  }, [profile, userName]);
+    // Always try to fetch user profile data
+    console.log('StarCard: Starting profile fetch, current profile:', profile, 'userName:', userName);
+    fetchUserProfile();
+  }, []);
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
