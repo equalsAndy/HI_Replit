@@ -9,7 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Mail, RefreshCw, Check, X } from 'lucide-react';
+import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
 
 interface User {
@@ -45,6 +46,16 @@ const AdminPage: React.FC = () => {
     role: 'participant',
     name: '',
   });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [editForm, setEditForm] = useState({
+    name: '',
+    email: '',
+    organization: '',
+    jobTitle: '',
+    role: 'participant',
+  });
+  const [isUpdatingUser, setIsUpdatingUser] = useState(false);
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
