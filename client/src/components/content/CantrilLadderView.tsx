@@ -16,49 +16,46 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
       
-      {/* SVG Ladder at the top */}
-      <div className="flex justify-center mb-8">
-        <div className="w-full xl:w-11/12 2xl:w-full max-w-lg">
-          <WellBeingLadderSvg 
-            currentValue={wellBeingLevel}
-            futureValue={futureWellBeingLevel}
-          />
+      {/* Content below title - same layout as WellBeingView */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        {/* SVG Ladder - same sizing as WellBeingView */}
+        <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
+          <div className="w-full xl:w-11/12 2xl:w-full">
+            <WellBeingLadderSvg 
+              currentValue={wellBeingLevel}
+              futureValue={futureWellBeingLevel}
+            />
+          </div>
+        </div>
+        
+        {/* Reflections section - positioned like sliders section in WellBeingView */}
+        <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
+            <p className="text-gray-700 text-sm mb-2">
+              What are the main elements contributing to your current well-being?
+            </p>
+            <textarea 
+              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Consider your work, relationships, health, finances, and personal growth..."
+            />
+          </div>
+          
+          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+            <h3 className="text-md font-medium text-indigo-800 mb-2">What improvements do you envision?</h3>
+            <p className="text-indigo-600 text-sm mb-2">
+              What achievements or changes would make your life better in one year?
+            </p>
+            <textarea 
+              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              placeholder="Describe specific improvements you hope to see in your life..."
+            />
+          </div>
         </div>
       </div>
 
       <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="md:w-1/2">
-          <div className="space-y-6">
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
-              <p className="text-gray-700 text-sm mb-2">
-                What are the main elements contributing to your current well-being?
-              </p>
-              <textarea 
-                className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                placeholder="Consider your work, relationships, health, finances, and personal growth..."
-              />
-            </div>
-          </div>
-        </div>
-        
         <div className="md:w-1/2 space-y-6">
-          <div className="bg-indigo-50 p-6 rounded-lg border border-indigo-100">
-            <h3 className="text-lg font-semibold text-indigo-800 mb-4">Your Future Vision</h3>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-indigo-700">What improvements do you envision?</h4>
-                <p className="text-indigo-600 text-sm mb-2">
-                  What achievements or changes would make your life better in one year?
-                </p>
-                <textarea 
-                  className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
-                  placeholder="Describe specific improvements you hope to see in your life..."
-                />
-              </div>
-            </div>
-          </div>
-          
           <div className="bg-green-50 p-6 rounded-lg border border-green-100">
             <h3 className="text-lg font-semibold text-green-800 mb-4">Specific Changes</h3>
             <div className="space-y-4">
@@ -74,6 +71,9 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               </div>
             </div>
           </div>
+        </div>
+        
+        <div className="md:w-1/2">
         </div>
       </div>
 
