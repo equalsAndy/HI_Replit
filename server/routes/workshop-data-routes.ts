@@ -484,4 +484,92 @@ workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) 
   }
 });
 
+/**
+ * Save assessment data (for reflections and other assessments)
+ */
+workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
+  try {
+    // Get user ID from session or cookie
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    // Fix for test users - use session userId instead of cookie userId (1) if available
+    console.log(`Assessments POST: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+      console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { assessmentType, results } = req.body;
+    
+    console.log('Saving assessment:', { userId, assessmentType, results });
+    
+    if (!assessmentType || !results) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assessment type and results are required'
+      });
+    }
+    
+    // Check if assessment already exists
+    const existingAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, assessmentType)
+        )
+      );
+    
+    if (existingAssessment.length > 0) {
+      // Update existing assessment
+      const updated = await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(results)
+        })
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id))
+        .returning();
+      
+      console.log('Updated assessment:', updated[0]);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Assessment updated successfully',
+        assessment: updated[0]
+      });
+    } else {
+      // Create new assessment
+      const inserted = await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType,
+        results: JSON.stringify(results)
+      }).returning();
+      
+      console.log('Created new assessment:', inserted[0]);
+      
+      return res.status(200).json({
+        success: true,
+        message: 'Assessment saved successfully',
+        assessment: inserted[0]
+      });
+    }
+  } catch (error) {
+    console.error('Error saving assessment:', error);
+    
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save assessment',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default workshopDataRouter;

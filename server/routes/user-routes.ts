@@ -321,7 +321,67 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
 });
 
 /**
- * Update user navigation progress
+ * Update user navigation progress (POST endpoint for frontend compatibility)
+ */
+router.post('/navigation-progress', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    const progressData = req.body;
+    
+    if (!progressData || typeof progressData !== 'object') {
+      return res.status(400).json({
+        success: false,
+        error: 'Progress data must be a valid object'
+      });
+    }
+    
+    // Convert progress object to JSON string for storage
+    const navigationProgress = JSON.stringify(progressData);
+    
+    // Log progress update for debugging
+    console.log(`Updating navigation progress for user ${req.session.userId}:`, {
+      completedSteps: progressData.completedSteps?.length || 0,
+      currentStep: progressData.currentStepId,
+      appType: progressData.appType,
+      lastVisited: progressData.lastVisitedAt ? new Date(progressData.lastVisitedAt).toISOString() : 'unknown'
+    });
+    
+    const result = await userManagementService.updateUser(req.session.userId, {
+      navigationProgress
+    });
+    
+    if (!result.success) {
+      console.error(`Failed to update navigation progress for user ${req.session.userId}:`, result.error);
+      return res.status(404).json({
+        success: false,
+        error: 'Failed to update navigation progress'
+      });
+    }
+    
+    console.log(`Successfully updated navigation progress for user ${req.session.userId}`);
+    
+    res.json({
+      success: true,
+      message: 'Navigation progress updated successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`Error updating navigation progress for user ${req.session?.userId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update navigation progress. Please try again later.'
+    });
+  }
+});
+
+/**
+ * Update user navigation progress (PUT endpoint)
  */
 router.put('/navigation-progress', requireAuth, async (req, res) => {
   try {
