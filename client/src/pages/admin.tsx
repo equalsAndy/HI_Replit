@@ -144,6 +144,67 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  // Handle editing a user
+  const handleEditUser = (user: User) => {
+    setSelectedUser(user);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      organization: user.organization || '',
+      jobTitle: user.jobTitle || '',
+      role: user.role,
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Handle updating a user
+  const handleUpdateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!selectedUser) return;
+    
+    setIsUpdatingUser(true);
+    
+    try {
+      const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(editForm),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        toast({
+          title: 'User updated',
+          description: 'User information has been successfully updated.',
+        });
+        
+        setEditDialogOpen(false);
+        setSelectedUser(null);
+        fetchUsers(); // Refresh the users list
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: data.error || 'Failed to update user',
+        });
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to update user. Please try again later.',
+      });
+    } finally {
+      setIsUpdatingUser(false);
+    }
+  };
+
   // Handle creating a new invite
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -278,6 +339,7 @@ const AdminPage: React.FC = () => {
                           <TableHead>Email</TableHead>
                           <TableHead>Role</TableHead>
                           <TableHead>Organization</TableHead>
+                          <TableHead>Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -289,11 +351,22 @@ const AdminPage: React.FC = () => {
                               <TableCell>{user.email}</TableCell>
                               <TableCell>{user.role}</TableCell>
                               <TableCell>{user.organization || 'N/A'}</TableCell>
+                              <TableCell>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="h-8 px-3 text-xs"
+                                  onClick={() => handleEditUser(user)}
+                                >
+                                  <PencilIcon className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
+                              </TableCell>
                             </TableRow>
                           ))
                         ) : (
                           <TableRow>
-                            <TableCell colSpan={5} className="h-24 text-center">
+                            <TableCell colSpan={6} className="h-24 text-center">
                               No users found
                             </TableCell>
                           </TableRow>
@@ -463,6 +536,91 @@ const AdminPage: React.FC = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Edit User Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+            <DialogDescription>
+              Update user information and settings.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleUpdateUser} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-email">Email</Label>
+              <Input
+                id="edit-email"
+                type="email"
+                value={editForm.email}
+                onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-organization">Organization</Label>
+              <Input
+                id="edit-organization"
+                value={editForm.organization}
+                onChange={(e) => setEditForm({ ...editForm, organization: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-jobTitle">Job Title</Label>
+              <Input
+                id="edit-jobTitle"
+                value={editForm.jobTitle}
+                onChange={(e) => setEditForm({ ...editForm, jobTitle: e.target.value })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-role">Role</Label>
+              <Select
+                value={editForm.role}
+                onValueChange={(value) => setEditForm({ ...editForm, role: value })}
+              >
+                <SelectTrigger id="edit-role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="facilitator">Facilitator</SelectItem>
+                  <SelectItem value="participant">Participant</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setEditDialogOpen(false)}
+                disabled={isUpdatingUser}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isUpdatingUser}>
+                {isUpdatingUser ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update User'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
