@@ -164,6 +164,8 @@ export default function AllStarTeams() {
       const currentUserId = user.id.toString();
       
       // Always clear progress for Joan Baez (user 19) if she has progress: 0
+      console.log(`Debug: currentUserId=${currentUserId}, user.progress=${user.progress}, condition check:`, currentUserId === '19' && user.progress === 0);
+      
       if (currentUserId === '19' && user.progress === 0) {
         console.log(`Clearing all progress for Joan Baez (fresh user)`);
         
@@ -185,6 +187,9 @@ export default function AllStarTeams() {
         // Reset completed steps state
         setCompletedSteps([]);
         console.log('Completed steps reset to empty array');
+        
+        // Force refresh the page to clear any cached state
+        window.location.reload();
       }
       
       if (lastUserId && lastUserId !== currentUserId) {
