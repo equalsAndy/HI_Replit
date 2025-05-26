@@ -162,6 +162,21 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     setIsEditing(false);
   };
 
+  const handleModalClose = () => {
+    setIsOpen(false);
+    setIsEditing(false);
+    // Reset form data when closing modal
+    if (user) {
+      setFormData({
+        name: user.name || '',
+        email: user.email || '',
+        organization: user.organization || '',
+        jobTitle: user.jobTitle || '',
+      });
+      setProfileImage(user.profilePicture);
+    }
+  };
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -356,7 +371,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
                 
                 <Button
                   variant="outline"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleModalClose}
                   className="flex-1"
                 >
                   Close
