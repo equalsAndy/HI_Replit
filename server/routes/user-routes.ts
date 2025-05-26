@@ -1,10 +1,26 @@
 import express from 'express';
+import multer from 'multer';
 import { userManagementService } from '../services/user-management-service';
 import { requireAuth } from '../middleware/auth';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 
 const router = express.Router();
+
+// Configure multer for photo uploads (1MB limit)
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1024 * 1024, // 1MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  },
+});
 
 /**
  * Get the current user's profile
@@ -295,6 +311,65 @@ router.put('/progress', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to update progress. Please try again later.'
+    });
+  }
+});
+
+/**
+ * Upload profile photo
+ */
+router.post('/upload-photo', upload.single('photo'), async (req, res) => {
+  try {
+    // Check session or cookie authentication
+    let userId = req.session?.userId;
+    
+    if (!userId && req.cookies?.userId) {
+      userId = parseInt(req.cookies.userId);
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    // Handle file upload
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'No file uploaded'
+      });
+    }
+
+    // Convert file to base64 for database storage
+    const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
+    
+    console.log(`Uploading photo for user ${userId}, size: ${req.file.size} bytes`);
+    
+    // Update user's profile picture
+    const result = await userManagementService.updateUser(userId, {
+      profilePicture: base64Image
+    });
+
+    if (!result.success) {
+      return res.status(400).json({
+        success: false,
+        error: 'Failed to save profile picture'
+      });
+    }
+
+    console.log(`Photo uploaded successfully for user ${userId}`);
+    
+    res.json({
+      success: true,
+      profilePicture: base64Image
+    });
+  } catch (error) {
+    console.error('Error uploading photo:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error'
     });
   }
 });

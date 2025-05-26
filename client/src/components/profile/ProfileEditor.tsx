@@ -1,306 +1,290 @@
-import React, { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import React, { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, Upload, User, LogOut } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
-import { User, UserRole } from '@/shared/types';
-
-import { Button } from '@/components/ui/button';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Loader2, Upload } from 'lucide-react';
-
-// Schema for profile editing
-const profileSchema = z.object({
-  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
-  title: z.string().optional(),
-  organization: z.string().optional(),
-  email: z.string().email({ message: 'Invalid email address' }).optional().or(z.literal('')),
-});
-
-type ProfileFormValues = z.infer<typeof profileSchema>;
 
 interface ProfileEditorProps {
-  user: User;
-  onSaved?: () => void;
-  readOnly?: boolean;
-  isCurrentUser?: boolean;
+  user: any;
+  onLogout: () => void;
 }
 
-export function ProfileEditor({ user, onSaved, readOnly = false, isCurrentUser = true }: ProfileEditorProps) {
+export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    organization: user?.organization || '',
+    jobTitle: user?.jobTitle || '',
+  });
+  const [profileImage, setProfileImage] = useState(user?.profilePicture);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(user.avatarUrl || null);
-  const [isUploading, setIsUploading] = useState(false);
 
-  // Initialize form with user data
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: user.name || '',
-      title: user.title || '',
-      organization: user.organization || '',
-      email: user.email || '',
-    },
-  });
-
-  // Update form when user changes
-  useEffect(() => {
-    form.reset({
-      name: user.name || '',
-      title: user.title || '',
-      organization: user.organization || '',
-      email: user.email || '',
-    });
-    setAvatarPreview(user.avatarUrl || null);
-  }, [user, form]);
-
-  // Handle avatar file selection
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'File too large',
-          description: 'Please select an image smaller than 5MB',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'Invalid file type',
-          description: 'Please select an image file',
-          variant: 'destructive',
-        });
-        return;
-      }
-      
-      setAvatarFile(file);
-      
-      // Create a preview URL
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        setAvatarPreview(event.target?.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  // Profile update mutation
+  // Update profile mutation
   const updateProfileMutation = useMutation({
-    mutationFn: async (profileData: ProfileFormValues) => {
-      const response = await apiRequest('PUT', `/api/user/profile`, profileData);
-      return await response.json();
+    mutationFn: async (data: any) => {
+      return apiRequest('/api/user/profile', {
+        method: 'PUT',
+        body: data,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       toast({
-        title: 'Profile updated',
-        description: 'Your profile information has been updated successfully',
+        title: 'Profile updated successfully',
+        description: 'Your profile information has been saved.',
       });
-      if (onSaved) onSaved();
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      setIsOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error) => {
       toast({
-        title: 'Update failed',
-        description: error.message || 'Failed to update profile. Please try again.',
+        title: 'Error updating profile',
+        description: 'Failed to update your profile. Please try again.',
         variant: 'destructive',
       });
     },
   });
 
-  // Avatar upload mutation
-  const uploadAvatarMutation = useMutation({
+  // Photo upload mutation
+  const uploadPhotoMutation = useMutation({
     mutationFn: async (file: File) => {
-      // For now, to avoid errors with file upload, we'll just update the profile
-      // and skip the actual file upload since the backend endpoint may not be ready
-      return { success: true };
+      const formData = new FormData();
+      formData.append('photo', file);
+      
+      const response = await fetch('/api/user/upload-photo', {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+      
+      return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-      setAvatarFile(null);
+      setProfileImage(data.profilePicture);
       toast({
-        title: 'Avatar updated',
-        description: 'Your profile picture has been updated',
+        title: 'Photo uploaded successfully',
+        description: 'Your profile photo has been updated.',
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
     },
-    onError: (error: any) => {
+    onError: () => {
       toast({
         title: 'Upload failed',
-        description: error.message || 'Failed to upload avatar. Please try again.',
+        description: 'Failed to upload photo. Please ensure it\'s under 1MB.',
         variant: 'destructive',
       });
     },
   });
 
-  // Handle form submission
-  const onSubmit = async (values: ProfileFormValues) => {
-    try {
-      // Update profile without avatar for now
-      await updateProfileMutation.mutateAsync(values);
-      // Success toast and callback are handled in the mutation's onSuccess
-    } catch (error) {
-      console.error('Profile update error:', error);
-      // Error toast is handled in the mutation's onError
-    }
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
-  // Get initials for avatar fallback
-  const getInitials = (name: string) => {
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Check file size (1MB limit)
+    if (file.size > 1024 * 1024) {
+      toast({
+        title: 'File too large',
+        description: 'Please select an image under 1MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Invalid file type',
+        description: 'Please select an image file.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    uploadPhotoMutation.mutate(file);
+  };
+
+  const handleSave = () => {
+    updateProfileMutation.mutate({
+      ...formData,
+      profilePicture: profileImage,
+    });
+  };
+
+  const getUserInitials = (name: string) => {
     return name
       .split(' ')
-      .map(part => part.charAt(0).toUpperCase())
-      .slice(0, 2)
-      .join('');
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
-
-  // Define role display based on user.role
-  const getRoleDisplay = () => {
-    switch (user.role) {
-      case UserRole.Admin:
-        return { name: 'Administrator', color: 'bg-red-100 text-red-800 border-red-300' };
-      case UserRole.Facilitator:
-        return { name: 'Facilitator', color: 'bg-blue-100 text-blue-800 border-blue-300' };
-      case UserRole.Participant:
-      default:
-        return { name: 'Participant', color: 'bg-green-100 text-green-800 border-green-300' };
-    }
-  };
-
-  const roleDisplay = getRoleDisplay();
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Profile Information</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Avatar section */}
-              <div className="flex flex-col items-center space-y-4">
-                <Avatar className="h-24 w-24">
-                  <AvatarImage src={avatarPreview || undefined} alt={user.name} />
-                  <AvatarFallback className="text-lg">{getInitials(user.name)}</AvatarFallback>
-                </Avatar>
-                
-                {/* Role badge */}
-                <div className={`text-sm font-medium py-1 px-3 rounded-full border ${roleDisplay.color}`}>
-                  {roleDisplay.name}
-                </div>
-              </div>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="ghost" size="sm" className="flex items-center gap-2">
+          <Avatar className="h-6 w-6">
+            <AvatarImage src={user?.profilePicture} />
+            <AvatarFallback className="text-xs">
+              {user?.name ? getUserInitials(user.name) : <User className="h-3 w-3" />}
+            </AvatarFallback>
+          </Avatar>
+          <span className="hidden sm:inline">{user?.name || 'Profile'}</span>
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Profile</DialogTitle>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Profile Photo Section */}
+          <div className="flex flex-col items-center space-y-4">
+            <Avatar className="h-24 w-24">
+              <AvatarImage src={profileImage} />
+              <AvatarFallback className="text-lg">
+                {formData.name ? getUserInitials(formData.name) : <User className="h-8 w-8" />}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadPhotoMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <Camera className="h-4 w-4" />
+                {profileImage ? 'Change Photo' : 'Upload Photo'}
+              </Button>
               
-              {/* Form fields */}
-              <div className="flex-1 space-y-4">
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Full Name</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Full name" {...field} readOnly={readOnly} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Job Title</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Job title" {...field} readOnly={readOnly} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="organization"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Organization</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Company or organization" {...field} readOnly={readOnly} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="email@example.com" 
-                          type="email" 
-                          {...field} 
-                          readOnly={readOnly}
-                          value={field.value || ''} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              {profileImage && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setProfileImage(null);
+                    toast({
+                      title: 'Photo removed',
+                      description: 'Your profile photo has been removed.',
+                    });
+                  }}
+                >
+                  Remove
+                </Button>
+              )}
             </div>
             
-            {!readOnly && isCurrentUser && (
-              <div className="flex justify-end">
-                <Button 
-                  type="submit" 
-                  disabled={updateProfileMutation.isPending || isUploading}
-                  className="w-full md:w-auto"
-                >
-                  {(updateProfileMutation.isPending || isUploading) && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Save Changes
-                </Button>
-              </div>
-            )}
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            
+            <p className="text-xs text-muted-foreground text-center">
+              Upload a photo under 1MB. JPG, PNG, or GIF format.
+            </p>
+          </div>
+
+          {/* Profile Information */}
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Full Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleInputChange('name', e.target.value)}
+                placeholder="Enter your full name"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleInputChange('email', e.target.value)}
+                placeholder="Enter your email"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="organization">Organization</Label>
+              <Input
+                id="organization"
+                value={formData.organization}
+                onChange={(e) => handleInputChange('organization', e.target.value)}
+                placeholder="Enter your organization"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="jobTitle">Job Title</Label>
+              <Input
+                id="jobTitle"
+                value={formData.jobTitle}
+                onChange={(e) => handleInputChange('jobTitle', e.target.value)}
+                placeholder="Enter your job title"
+              />
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-2">
+              <Button
+                onClick={handleSave}
+                disabled={updateProfileMutation.isPending}
+                className="flex-1"
+              >
+                {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => setIsOpen(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+            </div>
+            
+            <Button
+              variant="destructive"
+              onClick={onLogout}
+              className="flex items-center gap-2 justify-center"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 }
