@@ -571,7 +571,7 @@ export default function WorkshopResetTest() {
                   {/* New fixed reset button using ResetUserDataButton component */}
                   <div className="mt-2">
                     <ResetUserDataButton 
-                      userId={serverData.userProfile?.id || 15} 
+                      userId={serverData.userProfile?.user?.id || serverData.userProfile?.id || serverData.userAssessments?.userInfo?.sessionUserId || 19} 
                       onSuccess={() => {
                         // Invalidate all queries
                         queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
