@@ -439,6 +439,20 @@ export default function FindYourFlow() {
     console.log('FindYourFlow - User data:', user);
     console.log('FindYourFlow - User loading:', userLoading);
     console.log('FindYourFlow - User error:', userError);
+    
+    // Force a manual fetch to debug
+    if (!user && !userLoading) {
+      console.log('Manually fetching user profile...');
+      fetch('/api/user/profile', {
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+      .then(response => response.json())
+      .then(data => console.log('Manual fetch result:', data))
+      .catch(error => console.error('Manual fetch error:', error));
+    }
   }, [user, userLoading, userError]);
 
   // Get star card data
