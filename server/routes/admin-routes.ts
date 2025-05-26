@@ -203,7 +203,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     let responseData: any = { message: 'User updated successfully' };
     
     // If password was reset, include temporary password in response
-    if (updateData.password === undefined && updateResult.temporaryPassword) {
+    if (updateData.password === undefined && 'temporaryPassword' in updateResult && updateResult.temporaryPassword) {
       responseData.temporaryPassword = updateResult.temporaryPassword;
     }
     

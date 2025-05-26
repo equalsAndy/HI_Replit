@@ -193,18 +193,48 @@ class UserManagementService {
     email?: string;
     organization?: string | null;
     jobTitle?: string | null;
+    title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
     role?: 'admin' | 'facilitator' | 'participant';
     navigationProgress?: string | null;
+    password?: string | null;
   }) {
     try {
+      const updateData: any = {};
+      
+      // Handle regular fields
+      if (data.name !== undefined) updateData.name = data.name;
+      if (data.email !== undefined) updateData.email = data.email;
+      if (data.organization !== undefined) updateData.organization = data.organization;
+      if (data.jobTitle !== undefined) updateData.jobTitle = data.jobTitle;
+      if (data.title !== undefined) updateData.jobTitle = data.title; // Map title to jobTitle
+      if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
+      if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
+      if (data.role !== undefined) updateData.role = data.role;
+      if (data.navigationProgress !== undefined) updateData.navigationProgress = data.navigationProgress;
+      
+      let temporaryPassword = null;
+      
+      // Handle password update
+      if (data.password !== undefined) {
+        if (data.password === null || data.password === '') {
+          // Generate a temporary password
+          temporaryPassword = Math.random().toString(36).slice(-8);
+          const salt = await bcrypt.genSalt(10);
+          updateData.password = await bcrypt.hash(temporaryPassword, salt);
+        } else {
+          // Use provided password
+          const salt = await bcrypt.genSalt(10);
+          updateData.password = await bcrypt.hash(data.password, salt);
+        }
+      }
+      
+      updateData.updatedAt = new Date();
+      
       // Update the user in the database
       const result = await db.update(users)
-        .set({
-          ...data,
-          updatedAt: new Date()
-        })
+        .set(updateData)
         .where(eq(users.id, id))
         .returning();
       
@@ -221,7 +251,8 @@ class UserManagementService {
       const { password, ...userWithoutPassword } = user;
       return {
         success: true,
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        temporaryPassword
       };
     } catch (error) {
       console.error('Error updating user:', error);
