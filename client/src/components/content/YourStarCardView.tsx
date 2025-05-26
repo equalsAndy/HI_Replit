@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import StarCard from '../starcard/StarCard';
-import html2canvas from 'html2canvas';
 import { useQuery } from '@tanstack/react-query';
 
 interface ContentViewProps {
@@ -99,33 +98,12 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
 
     try {
       console.log('Starting star card download...');
-      // Use simpler html2canvas options for better compatibility
-      const canvas = await html2canvas(starCardRef.current, {
-        backgroundColor: '#ffffff',
-        scale: 1, // Lower scale for better performance
-        logging: true,
-        useCORS: true,
-        allowTaint: false,
-        foreignObjectRendering: false
-      });
-
-      console.log('Canvas created successfully, dimensions:', canvas.width, 'x', canvas.height);
-
-      // Convert to data URL
-      const dataURL = canvas.toDataURL('image/png', 0.9);
-      console.log('Canvas converted to data URL, length:', dataURL.length);
       
-      // Create and trigger download
-      const link = document.createElement('a');
-      link.download = 'your-star-card.png';
-      link.href = dataURL;
+      // Use the utility function for consistent configuration
+      const { downloadElementAsImage } = await import('@/lib/html2canvas');
+      await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
       
-      // Add to DOM temporarily and click
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
-      console.log('Download link clicked');
+      console.log('Download completed successfully');
       markStepCompleted('5-1');
     } catch (error) {
       console.error('Error generating star card image:', error);
