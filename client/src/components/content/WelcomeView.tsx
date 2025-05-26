@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps } from '@/shared/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 interface WelcomeViewProps extends ContentViewProps {
   isImaginalAgility?: boolean;
@@ -13,7 +14,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   setCurrentContent,
   isImaginalAgility = false
 }) => {
+  const { updateVideoProgress } = useNavigationProgress();
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
+
   // Different content based on which app is active
+  const stepId = isImaginalAgility ? "1-1" : "1-1";
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -23,8 +29,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
   const videoSrc = isImaginalAgility
-    ? "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1"
-    : "https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1";
+    ? "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1&autoplay=1"
+    : "https://www.youtube.com/embed/lcjao1ob55A?enablejsapi=1&autoplay=1";
 
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"
@@ -37,6 +43,23 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const nextContentId = isImaginalAgility
     ? "triple-challenge"
     : "intro-strengths";
+
+  // Handle video progress updates
+  const handleVideoProgress = (percentage: number) => {
+    setVideoProgress(percentage);
+    updateVideoProgress(stepId, percentage);
+    
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
+      setHasReachedMinimum(true);
+    }
+  };
+
+  // Handle completion and progression
+  const handleNext = () => {
+    markStepCompleted(stepId);
+    setCurrentContent(nextContentId);
+  };
 
   return (
     <>
@@ -122,16 +145,33 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           </ul>
         )}
 
+        {/* Progress indicator */}
+        {videoProgress > 0 && (
+          <div className="mb-6">
+            <div className="text-sm text-gray-600 mb-2">
+              Video progress: {Math.round(videoProgress)}%
+              {hasReachedMinimum && <span className="text-green-600 ml-2">✓ Minimum viewing requirement met</span>}
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${Math.min(videoProgress, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         <div className="flex justify-end">
           <Button 
-            onClick={() => {
-              markStepCompleted('1-1');
-              setCurrentContent(nextContentId);
-            }}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleNext}
+            disabled={!hasReachedMinimum}
+            className={`${hasReachedMinimum 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
             size="lg"
           >
-            {nextButton}
+            {hasReachedMinimum ? nextButton : "Watch video to continue"}
           </Button>
         </div>
       </div>

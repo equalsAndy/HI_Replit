@@ -89,6 +89,17 @@ export interface ProgressionRules {
   };
 }
 
+// Content view component props interface
+export interface ContentViewProps {
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+  starCard?: any;
+  user?: any;
+  flowAttributesData?: any;
+  setIsAssessmentModalOpen?: (open: boolean) => void;
+}
+
 // Extended session type
 declare module 'express-session' {
   interface SessionData {
