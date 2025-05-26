@@ -166,6 +166,55 @@ router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Re
 });
 
 /**
+ * Update user information (admin only)
+ */
+router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    const updateSchema = z.object({
+      name: z.string().min(1).optional(),
+      email: z.string().email().optional(),
+      organization: z.string().optional(),
+      title: z.string().optional(), // Job title
+      password: z.string().optional(),
+    });
+    
+    const result = updateSchema.safeParse(req.body);
+    if (!result.success) {
+      return res.status(400).json({ 
+        message: 'Invalid update data', 
+        errors: result.error.errors 
+      });
+    }
+    
+    const updateData = result.data;
+    
+    // Update user via user management service
+    const updateResult = await userManagementService.updateUser(id, updateData);
+    
+    if (!updateResult.success) {
+      return res.status(400).json({ message: updateResult.error || 'Failed to update user' });
+    }
+    
+    let responseData: any = { message: 'User updated successfully' };
+    
+    // If password was reset, include temporary password in response
+    if (updateData.password === undefined && updateResult.temporaryPassword) {
+      responseData.temporaryPassword = updateResult.temporaryPassword;
+    }
+    
+    res.json(responseData);
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Change a user's role (admin only)
  */
 router.put('/users/:id/role', requireAuth, isAdmin, async (req: Request, res: Response) => {
