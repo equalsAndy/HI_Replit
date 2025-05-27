@@ -476,7 +476,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <Button 
               onClick={() => {
                 markStepCompleted('1-4');
-                setCurrentContent("imagination-assessment");
+                setIsAssessmentModalOpen(true);
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
