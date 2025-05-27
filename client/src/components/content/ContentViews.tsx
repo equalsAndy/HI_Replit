@@ -568,19 +568,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         </div>
       );
       
-    case 'imagination-assessment':
-      return (
-        <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination Assessment</h1>
-          
-          {/* Assessment component with scenarios and response functionality */}
-          <ImaginationAssessmentContent 
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-          />
-        </div>
-      );
+
       
     case 'five-c-assessment':
       return (

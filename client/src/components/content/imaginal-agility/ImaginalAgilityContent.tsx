@@ -374,7 +374,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
             >
-              Next: Take the Imagination Assessment
+              Next: Imagination Assessment
             </Button>
           </div>
         </div>
@@ -614,7 +614,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
           setIsImaginalAssessmentOpen(false);
           markStepCompleted('1-5');
           setCurrentContent('assessment-results');
-        }}entContent("assessment-results");
         }}
       />
     </div>
