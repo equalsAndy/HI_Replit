@@ -12,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import TestUserBanner from '@/components/auth/TestUserBanner';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { useProgressionLogic } from '@/hooks/use-progression-logic';
-import ImaginalAgilityAssessmentModal from '@/components/assessment/ImaginalAgilityAssessmentModal';
+import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -295,7 +295,7 @@ export default function ImaginalAgilityHome() {
           />
           
           {/* Add the new 5-Capacity Assessment Modal */}
-          <ImaginalAgilityAssessmentModal
+          <ImaginalAgilityAssessmentComplete
             isOpen={isAssessmentModalOpen}
             onClose={() => setIsAssessmentModalOpen(false)}
             onComplete={(results) => {
