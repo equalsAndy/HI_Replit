@@ -369,7 +369,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <Button 
               onClick={() => {
                 markStepCompleted('1-4');
-                setIsAssessmentModalOpen(true);
+                setCurrentContent('imagination-assessment');
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
@@ -383,14 +383,43 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
     case 'imagination-assessment':
       return (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination Assessment</h1>
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">5-Capacity Assessment</h1>
           
-          {/* Assessment component with scenarios and response functionality */}
-          <ImaginationAssessmentContent 
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-          />
+          <div className="mb-8">
+            <p className="text-lg text-gray-700 mb-6">
+              Ready to discover your unique profile across the five foundational capabilities? 
+              This assessment will help you understand your strengths in Imagination, Curiosity, 
+              Empathy, Creativity, and Courage.
+            </p>
+            
+            <div className="bg-purple-50 rounded-lg p-6 mb-6">
+              <h3 className="text-xl font-semibold text-purple-800 mb-3">What You'll Discover</h3>
+              <ul className="space-y-2 text-purple-700">
+                <li>• Your unique 5-capacity profile with detailed scoring</li>
+                <li>• Personalized insights based on your responses</li>
+                <li>• Specific recommendations for development</li>
+                <li>• A visual radar chart showing your capability distribution</li>
+              </ul>
+            </div>
+            
+            <div className="bg-amber-50 rounded-lg p-4 mb-6">
+              <h4 className="font-medium text-amber-800 mb-2">Assessment Details</h4>
+              <p className="text-sm text-amber-700">
+                21 questions measuring your capabilities across multiple dimensions. 
+                Takes approximately 10-15 minutes to complete.
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => setIsImaginalAssessmentOpen(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-4 text-lg"
+              size="lg"
+            >
+              Start 5-Capacity Assessment
+            </Button>
+          </div>
         </div>
       );
       
@@ -625,7 +654,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         onComplete={(results) => {
           setIsImaginalAssessmentOpen(false);
           markStepCompleted('1-5');
-          setCurrentContent("assessment-results");
+          setCurrentContent('assessment-results');
+        }}entContent("assessment-results");
         }}
       />
     </div>
