@@ -505,3 +505,5 @@ export function ImaginalAgilityAssessmentModal({ isOpen, onClose, onComplete }: 
     </Dialog>
   );
 }
+
+export default ImaginalAgilityAssessmentModal;

@@ -20,6 +20,7 @@ export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [currentContent, setCurrentContent] = useState("imaginal-intro");
+  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const { toast } = useToast();
   
   // Use progression logic for sequential unlocking
@@ -289,7 +290,7 @@ export default function ImaginalAgilityHome() {
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
             user={user}
-            setIsAssessmentModalOpen={() => {}} // Not needed for Imaginal Agility
+            setIsAssessmentModalOpen={() => setIsAssessmentModalOpen(true)}
           />
         </div>
       </div>

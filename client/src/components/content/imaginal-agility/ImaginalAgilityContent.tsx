@@ -6,7 +6,7 @@ import PlaceholderView from '../PlaceholderView';
 import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';
 import { Button } from '@/components/ui/button';
-import { ImaginalAgilityAssessmentModal } from '@/components/assessment/ImaginalAgilityAssessmentModal';
+import ImaginalAgilityAssessmentModal from '@/components/assessment/ImaginalAgilityAssessmentModal';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
