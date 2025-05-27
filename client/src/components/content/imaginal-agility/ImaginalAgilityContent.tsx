@@ -369,7 +369,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <Button 
               onClick={() => {
                 markStepCompleted('1-4');
-                setIsImaginalAssessmentOpen(true);
+                setIsAssessmentModalOpen(true);
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
