@@ -1,509 +1,577 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Card, CardContent } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowRight, CheckCircle, X } from 'lucide-react';
-import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, ResponsiveContainer, Legend } from 'recharts';
-import { useQuery } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { ChevronLeft, ChevronRight, BarChart3, Eye, Heart, Lightbulb, Shield, X } from 'lucide-react';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
 interface ImaginalAgilityAssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onComplete?: (results: AssessmentResults) => void;
+  onComplete?: (results: any) => void;
 }
 
-interface AssessmentQuestion {
-  id: number;
-  text: string;
-  capacity: 'imagination' | 'curiosity' | 'empathy' | 'creativity' | 'courage';
-  subDimension?: string;
-}
-
-interface AssessmentResults {
-  assessmentType: 'imaginationAssessment';
-  completedAt: string;
-  responses: Record<number, number>;
-  scores: {
-    imagination: number;
-    curiosity: number;
-    empathy: number;
-    creativity: number;
-    courage: number;
-    subDimensions: {
-      generativeFluency: number;
-      temporalFlexibility: number;
-      perspectivalAgility: number;
-      boundaryPermeability: number;
-      ambiguityTolerance: number;
-      embodiedTranslation: number;
-      playfulWonder: number;
-    };
-  };
-}
-
-// Assessment questions with exact structure from requirements
-const assessmentQuestions: AssessmentQuestion[] = [
-  // Imagination - Generative Fluency (2 questions)
-  { id: 1, text: "I can easily come up with multiple, unconventional ideas.", capacity: 'imagination', subDimension: 'generativeFluency' },
-  { id: 2, text: "I often generate new ideas in my daily life.", capacity: 'imagination', subDimension: 'generativeFluency' },
-  
-  // Imagination - Temporal Flexibility (2 questions)
-  { id: 3, text: "I can vividly imagine different possible futures or pasts.", capacity: 'imagination', subDimension: 'temporalFlexibility' },
-  { id: 4, text: "I often reflect on alternative outcomes before making decisions.", capacity: 'imagination', subDimension: 'temporalFlexibility' },
-  
-  // Imagination - Perspectival Agility (2 questions)
-  { id: 5, text: "I can imagine experiences beyond my current reality.", capacity: 'imagination', subDimension: 'perspectivalAgility' },
-  { id: 6, text: "I frequently consider other people's viewpoints in discussions.", capacity: 'imagination', subDimension: 'perspectivalAgility' },
-  
-  // Imagination - Boundary Permeability (2 questions)
-  { id: 7, text: "I'm comfortable blending ideas from different domains (e.g., science and art).", capacity: 'imagination', subDimension: 'boundaryPermeability' },
-  { id: 8, text: "I actively seek inspiration from outside my usual field.", capacity: 'imagination', subDimension: 'boundaryPermeability' },
-  
-  // Imagination - Ambiguity Tolerance (2 questions)
-  { id: 9, text: "I can explore complex ideas without needing quick answers.", capacity: 'imagination', subDimension: 'ambiguityTolerance' },
-  { id: 10, text: "I feel comfortable with uncertainty when solving problems.", capacity: 'imagination', subDimension: 'ambiguityTolerance' },
-  
-  // Imagination - Embodied Translation (2 questions)
-  { id: 11, text: "I can turn abstract ideas into tangible actions or prototypes.", capacity: 'imagination', subDimension: 'embodiedTranslation' },
-  { id: 12, text: "I take steps to bring my ideas to life.", capacity: 'imagination', subDimension: 'embodiedTranslation' },
-  
-  // Imagination - Playful Wonder (1 question)
-  { id: 13, text: "I allow myself to daydream, imagine, or wonder—even if it feels unproductive.", capacity: 'imagination', subDimension: 'playfulWonder' },
-  
-  // Curiosity (2 questions)
-  { id: 14, text: "I frequently seek out new experiences or knowledge.", capacity: 'curiosity' },
-  { id: 15, text: "I enjoy exploring unfamiliar topics.", capacity: 'curiosity' },
-  
-  // Empathy (2 questions)
-  { id: 16, text: "I'm good at understanding how others feel.", capacity: 'empathy' },
-  { id: 17, text: "I try to see situations through others' eyes.", capacity: 'empathy' },
-  
-  // Creativity (2 questions)
-  { id: 18, text: "I engage regularly in creative activities (e.g., art, writing, design).", capacity: 'creativity' },
-  { id: 19, text: "I often come up with novel solutions to everyday challenges.", capacity: 'creativity' },
-  
-  // Courage (2 questions)
-  { id: 20, text: "I take risks to pursue ideas or values I believe in.", capacity: 'courage' },
-  { id: 21, text: "I stand up for what I believe, even when it's unpopular.", capacity: 'courage' }
-];
-
-const likertScale = [
-  { value: 1, label: "Strongly Disagree" },
-  { value: 2, label: "Disagree" },
-  { value: 3, label: "Neutral" },
-  { value: 4, label: "Agree" },
-  { value: 5, label: "Strongly Agree" }
-];
-
-// Function to calculate scores from responses
-const calculateScores = (responses: Record<number, number>) => {
-  // Calculate sub-dimension averages for Imagination (13 questions total)
-  const generativeFluencyScore = (responses[1] + responses[2]) / 2;
-  const temporalFlexibilityScore = (responses[3] + responses[4]) / 2;
-  const perspectivalAgilityScore = (responses[5] + responses[6]) / 2;
-  const boundaryPermeabilityScore = (responses[7] + responses[8]) / 2;
-  const ambiguityToleranceScore = (responses[9] + responses[10]) / 2;
-  const embodiedTranslationScore = (responses[11] + responses[12]) / 2;
-  const playfulWonderScore = responses[13]; // single question
-
-  // Overall Imagination score (average of 7 sub-dimensions)
-  const imaginationScore = (
-    generativeFluencyScore +
-    temporalFlexibilityScore +
-    perspectivalAgilityScore +
-    boundaryPermeabilityScore +
-    ambiguityToleranceScore +
-    embodiedTranslationScore +
-    playfulWonderScore
-  ) / 7;
-
-  // Calculate other capacity averages
-  const curiosityScore = (responses[14] + responses[15]) / 2;
-  const empathyScore = (responses[16] + responses[17]) / 2;
-  const creativityScore = (responses[18] + responses[19]) / 2;
-  const courageScore = (responses[20] + responses[21]) / 2;
-
-  return {
-    imagination: imaginationScore,
-    curiosity: curiosityScore,
-    empathy: empathyScore,
-    creativity: creativityScore,
-    courage: courageScore,
-    subDimensions: {
-      generativeFluency: generativeFluencyScore,
-      temporalFlexibility: temporalFlexibilityScore,
-      perspectivalAgility: perspectivalAgilityScore,
-      boundaryPermeability: boundaryPermeabilityScore,
-      ambiguityTolerance: ambiguityToleranceScore,
-      embodiedTranslation: embodiedTranslationScore,
-      playfulWonder: playfulWonderScore
-    }
-  };
-};
-
-// Guidance based on scores
-const getGuidance = (scores: ReturnType<typeof calculateScores>) => {
-  const strengths = [];
-  const opportunities = [];
-
-  // Identify strengths (scores above 4.0)
-  if (scores.imagination >= 4.0) strengths.push("Your imagination capabilities show strong development across multiple dimensions");
-  if (scores.curiosity >= 4.0) strengths.push("Your curiosity drives you to actively seek new experiences and knowledge");
-  if (scores.empathy >= 4.0) strengths.push("Your empathy allows you to understand and connect with others effectively");
-  if (scores.creativity >= 4.0) strengths.push("Your creativity manifests in both regular creative activities and novel problem-solving");
-  if (scores.courage >= 4.0) strengths.push("Your courage enables you to take risks and stand up for your beliefs");
-
-  // Identify opportunities (scores below 3.5)
-  if (scores.imagination < 3.5) opportunities.push("Practice imagination exercises to strengthen your ability to envision possibilities");
-  if (scores.curiosity < 3.5) opportunities.push("Actively seek out new experiences and unfamiliar topics to cultivate curiosity");
-  if (scores.empathy < 3.5) opportunities.push("Practice perspective-taking to better understand others' feelings and viewpoints");
-  if (scores.creativity < 3.5) opportunities.push("Engage in more creative activities and experiment with novel approaches to challenges");
-  if (scores.courage < 3.5) opportunities.push("Take small risks to build confidence in pursuing your ideas and values");
-
-  // Default messages if scores are moderate
-  if (strengths.length === 0) strengths.push("You show balanced development across the five capacities");
-  if (opportunities.length === 0) opportunities.push("Continue developing all five capacities through regular practice and reflection");
-
-  return { strengths, opportunities };
-};
-
-export function ImaginalAgilityAssessmentModal({ isOpen, onClose, onComplete }: ImaginalAgilityAssessmentModalProps) {
-  const { toast } = useToast();
-  const [view, setView] = useState<'intro' | 'assessment' | 'results'>('intro');
+const ImaginalAgilityAssessmentModal = ({ isOpen, onClose, onComplete }: ImaginalAgilityAssessmentModalProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [responses, setResponses] = useState<Record<number, number>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [assessmentResults, setAssessmentResults] = useState<AssessmentResults | null>(null);
+  const [responses, setResponses] = useState({});
+  const [showResults, setShowResults] = useState(false);
+  const [scores, setScores] = useState(null);
+  const [isDemoMode, setIsDemoMode] = useState(false);
 
-  // Check for existing assessment results
-  const { data: existingAssessment } = useQuery({
-    queryKey: ['/api/user/assessments', 'imaginationAssessment'],
-    enabled: isOpen,
-    staleTime: Infinity
-  });
-
-  // Reset state when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      // Check if assessment already exists
-      if (existingAssessment?.data) {
-        setAssessmentResults(existingAssessment.data);
-        setView('results');
-      } else {
-        setView('intro');
-        setCurrentQuestion(0);
-        setResponses({});
-      }
-    }
-  }, [isOpen, existingAssessment]);
-
-  // Generate demo data for testing
-  const handleDemoMode = () => {
-    const demoResponses: Record<number, number> = {};
-    
-    // Generate random responses for all questions
-    assessmentQuestions.forEach(question => {
-      demoResponses[question.id] = Math.floor(Math.random() * 5) + 1; // 1-5 scale
-    });
-    
-    setResponses(demoResponses);
-    setCurrentQuestion(assessmentQuestions.length - 1);
-    setView('assessment');
-    
-    toast({
-      title: "Demo Mode Activated",
-      description: "Random responses generated. You can now complete the assessment.",
-    });
+  // Demo answers for testing
+  const demoAnswers = {
+    imagination_gf_1: 4,
+    imagination_gf_2: 5,
+    imagination_tf_1: 3,
+    imagination_tf_2: 4,
+    imagination_pa_1: 5,
+    imagination_pa_2: 4,
+    imagination_bp_1: 4,
+    imagination_bp_2: 3,
+    imagination_at_1: 3,
+    imagination_at_2: 4,
+    imagination_et_1: 4,
+    imagination_et_2: 5,
+    imagination_pw_1: 5,
+    curiosity_1: 4,
+    curiosity_2: 4,
+    empathy_1: 3,
+    empathy_2: 4,
+    creativity_1: 4,
+    creativity_2: 3,
+    courage_1: 3,
+    courage_2: 4
   };
 
-  // Handle Likert scale response
-  const handleLikertResponse = (questionId: number, value: number) => {
+  const questions = [
+    // Imagination - Generative Fluency (2 questions)
+    {
+      id: 'imagination_gf_1',
+      category: 'imagination',
+      subcategory: 'generativeFluency',
+      text: 'I can easily come up with multiple, unconventional ideas.',
+      icon: <Lightbulb className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_gf_2',
+      category: 'imagination',
+      subcategory: 'generativeFluency',
+      text: 'I often generate new ideas in my daily life.',
+      icon: <Lightbulb className="w-5 h-5" />
+    },
+    // Imagination - Temporal Flexibility (2 questions)
+    {
+      id: 'imagination_tf_1',
+      category: 'imagination',
+      subcategory: 'temporalFlexibility',
+      text: 'I can vividly imagine different possible futures or pasts.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_tf_2',
+      category: 'imagination',
+      subcategory: 'temporalFlexibility',
+      text: 'I often reflect on alternative outcomes before making decisions.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    // Imagination - Perspectival Agility (2 questions)
+    {
+      id: 'imagination_pa_1',
+      category: 'imagination',
+      subcategory: 'perspectivalAgility',
+      text: 'I can imagine experiences beyond my current reality.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_pa_2',
+      category: 'imagination',
+      subcategory: 'perspectivalAgility',
+      text: 'I frequently consider other people\'s viewpoints in discussions.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    // Imagination - Boundary Permeability (2 questions)
+    {
+      id: 'imagination_bp_1',
+      category: 'imagination',
+      subcategory: 'boundaryPermeability',
+      text: 'I\'m comfortable blending ideas from different domains (e.g., science and art).',
+      icon: <BarChart3 className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_bp_2',
+      category: 'imagination',
+      subcategory: 'boundaryPermeability',
+      text: 'I actively seek inspiration from outside my usual field.',
+      icon: <BarChart3 className="w-5 h-5" />
+    },
+    // Imagination - Ambiguity Tolerance (2 questions)
+    {
+      id: 'imagination_at_1',
+      category: 'imagination',
+      subcategory: 'ambiguityTolerance',
+      text: 'I can explore complex ideas without needing quick answers.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_at_2',
+      category: 'imagination',
+      subcategory: 'ambiguityTolerance',
+      text: 'I feel comfortable with uncertainty when solving problems.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    // Imagination - Embodied Translation (2 questions)
+    {
+      id: 'imagination_et_1',
+      category: 'imagination',
+      subcategory: 'embodiedTranslation',
+      text: 'I can turn abstract ideas into tangible actions or prototypes.',
+      icon: <BarChart3 className="w-5 h-5" />
+    },
+    {
+      id: 'imagination_et_2',
+      category: 'imagination',
+      subcategory: 'embodiedTranslation',
+      text: 'I take steps to bring my ideas to life.',
+      icon: <BarChart3 className="w-5 h-5" />
+    },
+    // Imagination - Playful Wonder (1 question)
+    {
+      id: 'imagination_pw_1',
+      category: 'imagination',
+      subcategory: 'playfulWonder',
+      text: 'I allow myself to daydream, imagine, or wonder—even if it feels unproductive.',
+      icon: <Heart className="w-5 h-5" />
+    },
+    // Curiosity (2 questions)
+    {
+      id: 'curiosity_1',
+      category: 'curiosity',
+      subcategory: 'explorationDrive',
+      text: 'I frequently seek out new experiences or knowledge.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    {
+      id: 'curiosity_2',
+      category: 'curiosity',
+      subcategory: 'explorationDrive',
+      text: 'I enjoy exploring unfamiliar topics.',
+      icon: <Eye className="w-5 h-5" />
+    },
+    // Empathy (2 questions)
+    {
+      id: 'empathy_1',
+      category: 'empathy',
+      subcategory: 'emotionalInsight',
+      text: 'I\'m good at understanding how others feel.',
+      icon: <Heart className="w-5 h-5" />
+    },
+    {
+      id: 'empathy_2',
+      category: 'empathy',
+      subcategory: 'emotionalInsight',
+      text: 'I try to see situations through others\' eyes.',
+      icon: <Heart className="w-5 h-5" />
+    },
+    // Creativity (2 questions)
+    {
+      id: 'creativity_1',
+      category: 'creativity',
+      subcategory: 'appliedCreativity',
+      text: 'I engage regularly in creative activities (e.g., art, writing, design).',
+      icon: <Lightbulb className="w-5 h-5" />
+    },
+    {
+      id: 'creativity_2',
+      category: 'creativity',
+      subcategory: 'appliedCreativity',
+      text: 'I often come up with novel solutions to everyday challenges.',
+      icon: <Lightbulb className="w-5 h-5" />
+    },
+    // Courage (2 questions)
+    {
+      id: 'courage_1',
+      category: 'courage',
+      subcategory: 'principledAction',
+      text: 'I take risks to pursue ideas or values I believe in.',
+      icon: <Shield className="w-5 h-5" />
+    },
+    {
+      id: 'courage_2',
+      category: 'courage',
+      subcategory: 'principledAction',
+      text: 'I stand up for what I believe, even when it\'s unpopular.',
+      icon: <Shield className="w-5 h-5" />
+    }
+  ];
+
+  const scaleLabels = [
+    { value: 5, label: 'Strongly Agree' },
+    { value: 4, label: 'Agree' },
+    { value: 3, label: 'Neutral' },
+    { value: 2, label: 'Disagree' },
+    { value: 1, label: 'Strongly Disagree' }
+  ];
+
+  const categoryColors = {
+    imagination: 'bg-purple-500',
+    curiosity: 'bg-blue-500',
+    empathy: 'bg-green-500',
+    creativity: 'bg-orange-500',
+    courage: 'bg-red-500'
+  };
+
+  const handleResponse = (questionId: string, value: number) => {
     setResponses(prev => ({
       ...prev,
       [questionId]: value
     }));
-    
-    // Auto-advance to next question after a short delay
-    setTimeout(() => {
-      if (currentQuestion < assessmentQuestions.length - 1) {
-        setCurrentQuestion(currentQuestion + 1);
-      } else {
-        // Complete assessment
-        completeAssessment();
-      }
-    }, 500);
   };
 
-  // Complete the assessment
-  const completeAssessment = async () => {
-    setIsSubmitting(true);
+  const fillDemoAnswers = () => {
+    setIsDemoMode(true);
+    setResponses(demoAnswers);
+    // Jump to last question but don't auto-submit
+    setCurrentQuestion(questions.length - 1);
+  };
 
-    try {
-      // Calculate scores
-      const scores = calculateScores(responses);
-      
-      // Prepare assessment data
-      const assessmentData: AssessmentResults = {
-        assessmentType: 'imaginationAssessment',
-        completedAt: new Date().toISOString(),
-        responses,
-        scores
-      };
+  const calculateScores = () => {
+    // Calculate imagination sub-dimension scores
+    const imaginationSubDimensions = {
+      generativeFluency: (responses.imagination_gf_1 + responses.imagination_gf_2) / 2,
+      temporalFlexibility: (responses.imagination_tf_1 + responses.imagination_tf_2) / 2,
+      perspectivalAgility: (responses.imagination_pa_1 + responses.imagination_pa_2) / 2,
+      boundaryPermeability: (responses.imagination_bp_1 + responses.imagination_bp_2) / 2,
+      ambiguityTolerance: (responses.imagination_at_1 + responses.imagination_at_2) / 2,
+      embodiedTranslation: (responses.imagination_et_1 + responses.imagination_et_2) / 2,
+      playfulWonder: responses.imagination_pw_1
+    };
 
-      // Save to database using existing API pattern
-      const response = await fetch('/api/workshop-data/assessment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(assessmentData)
-      });
+    // Calculate overall scores
+    const calculatedScores = {
+      imagination: Object.values(imaginationSubDimensions).reduce((a, b) => a + b, 0) / 7,
+      curiosity: (responses.curiosity_1 + responses.curiosity_2) / 2,
+      empathy: (responses.empathy_1 + responses.empathy_2) / 2,
+      creativity: (responses.creativity_1 + responses.creativity_2) / 2,
+      courage: (responses.courage_1 + responses.courage_2) / 2,
+      subDimensions: imaginationSubDimensions
+    };
 
-      if (!response.ok) {
-        throw new Error('Failed to save assessment');
-      }
-
-      // Show success message
-      toast({
-        title: "Assessment Complete!",
-        description: "Your 5-capacity profile has been created!",
-      });
-
-      // Set results and show results view
-      setAssessmentResults(assessmentData);
-      setView('results');
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-
-      // Call onComplete callback if provided
-      if (onComplete) {
-        onComplete(assessmentData);
-      }
-    } catch (error) {
-      console.error('Error completing assessment:', error);
-      toast({
-        title: "Error saving assessment",
-        description: "Please try again later.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsSubmitting(false);
+    setScores(calculatedScores);
+    setShowResults(true);
+    
+    if (onComplete) {
+      onComplete(calculatedScores);
     }
   };
 
-  // Prepare radar chart data
-  const radarData = assessmentResults ? [
-    { capacity: 'Imagination', value: assessmentResults.scores.imagination * 20, fullMark: 100 },
-    { capacity: 'Curiosity', value: assessmentResults.scores.curiosity * 20, fullMark: 100 },
-    { capacity: 'Empathy', value: assessmentResults.scores.empathy * 20, fullMark: 100 },
-    { capacity: 'Creativity', value: assessmentResults.scores.creativity * 20, fullMark: 100 },
-    { capacity: 'Courage', value: assessmentResults.scores.courage * 20, fullMark: 100 }
-  ] : [];
+  const nextQuestion = () => {
+    if (currentQuestion < questions.length - 1) {
+      setCurrentQuestion(currentQuestion + 1);
+    } else if (Object.keys(responses).length === questions.length) {
+      calculateScores();
+    }
+  };
 
-  const guidance = assessmentResults ? getGuidance(assessmentResults.scores) : null;
+  const previousQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
+    }
+  };
 
-  const progressPercentage = ((currentQuestion + 1) / assessmentQuestions.length) * 100;
+  const resetAssessment = () => {
+    setCurrentQuestion(0);
+    setResponses({});
+    setShowResults(false);
+    setScores(null);
+    setIsDemoMode(false);
+  };
+
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const currentQ = questions[currentQuestion];
+  const isAnswered = responses[currentQ?.id] !== undefined;
+  const allQuestionsAnswered = Object.keys(responses).length === questions.length;
+
+  if (showResults && scores) {
+    const radarData = [
+      {
+        capacity: 'Imagination',
+        score: scores.imagination,
+        fullMark: 5,
+      },
+      {
+        capacity: 'Curiosity',
+        score: scores.curiosity,
+        fullMark: 5,
+      },
+      {
+        capacity: 'Empathy',
+        score: scores.empathy,
+        fullMark: 5,
+      },
+      {
+        capacity: 'Creativity',
+        score: scores.creativity,
+        fullMark: 5,
+      },
+      {
+        capacity: 'Courage',
+        score: scores.courage,
+        fullMark: 5,
+      },
+    ];
+
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-gray-900">Your Imaginal Agility Profile</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            <div className="text-center">
+              <p className="text-lg text-gray-600">
+                Your unique combination of imagination, curiosity, empathy, creativity, and courage
+              </p>
+              {isDemoMode && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 inline-block mt-3">
+                  <p className="text-blue-800 text-sm font-medium">
+                    📊 Demo Results - Sample data for testing purposes
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Spider/Radar Chart Visualization */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-semibold text-gray-900">Capacity Radar Chart</h3>
+                <p className="text-sm text-gray-600 mt-2">Your scores plotted on a 5-point scale</p>
+              </div>
+              
+              <div className="h-80 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <RadarChart data={radarData}>
+                    <PolarGrid stroke="#e5e7eb" />
+                    <PolarAngleAxis 
+                      dataKey="capacity" 
+                      tick={{ fontSize: 12, fontWeight: 'bold', fill: '#374151' }}
+                      className="text-gray-700"
+                    />
+                    <PolarRadiusAxis 
+                      angle={90} 
+                      domain={[0, 5]} 
+                      tick={{ fontSize: 10, fill: '#6b7280' }}
+                      tickCount={6}
+                    />
+                    <Radar
+                      name="Capacity Scores"
+                      dataKey="score"
+                      stroke="#8b5cf6"
+                      fill="#8b5cf6"
+                      fillOpacity={0.3}
+                      strokeWidth={3}
+                      dot={{ fill: '#8b5cf6', strokeWidth: 2, r: 4 }}
+                    />
+                  </RadarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Numerical Scores */}
+              <div className="grid grid-cols-5 gap-2 mt-6">
+                {radarData.map((item) => (
+                  <div key={item.capacity} className="text-center p-3 bg-gray-50 rounded-lg">
+                    <div className="text-xl font-bold text-purple-600 mb-1">
+                      {item.score.toFixed(1)}
+                    </div>
+                    <div className="text-xs font-medium text-gray-700">
+                      {item.capacity}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      out of 5.0
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Imagination Sub-Dimensions */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Imagination Sub-Dimensions</h3>
+              <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+                {Object.entries(scores.subDimensions).map(([dimension, score]) => (
+                  <div key={dimension} className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+                    <span className="font-medium text-gray-900 text-sm capitalize">
+                      {dimension.replace(/([A-Z])/g, ' $1').trim()}
+                    </span>
+                    <span className="text-lg font-bold text-purple-600">{(score as number).toFixed(1)}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex justify-center space-x-4">
+              <button 
+                onClick={resetAssessment}
+                className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Retake Assessment
+              </button>
+              <button 
+                onClick={onClose}
+                className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center justify-between">
-            <span className="text-purple-700">5-Capacity Assessment</span>
-            <Button variant="ghost" size="sm" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogTitle>
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <DialogTitle className="text-2xl font-bold text-gray-900">Imaginal Agility Assessment</DialogTitle>
+              <p className="text-gray-600 mt-2">
+                Discover your unique profile across five foundational human capacities
+              </p>
+              <div className="flex justify-center space-x-4 text-sm text-gray-500 mt-3">
+                <span>• Imagination</span>
+                <span>• Curiosity</span>
+                <span>• Empathy</span>
+                <span>• Creativity</span>
+                <span>• Courage</span>
+              </div>
+            </div>
+            <button
+              onClick={fillDemoAnswers}
+              className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              Demo Mode
+            </button>
+          </div>
+          {isDemoMode && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center mt-3">
+              <p className="text-blue-800 text-sm font-medium">
+                Demo mode activated! All questions filled with sample answers. Review and click "View Results" when ready.
+              </p>
+            </div>
+          )}
         </DialogHeader>
 
-        {view === 'intro' && (
-          <div className="space-y-6 p-6">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-purple-700 mb-4">Discover Your 5 Capacities</h2>
-              <p className="text-gray-700 mb-6">
-                This assessment measures your strengths across five key capacities: Imagination, Curiosity, Empathy, Creativity, and Courage.
-              </p>
+        <div className="space-y-6">
+          {/* Progress Bar */}
+          <div>
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Question {currentQuestion + 1} of {questions.length}</span>
+              <span>{Math.round(progress)}% Complete</span>
             </div>
-
-            <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-              <h3 className="font-medium text-purple-800 mb-2">What You'll Get</h3>
-              <p className="text-sm text-purple-700">
-                A personalized 5-axis radar chart showing your capacity profile, plus insights into your strengths and growth opportunities.
-              </p>
-            </div>
-
-            <div className="bg-amber-50 rounded-lg p-4 border border-amber-100">
-              <h3 className="font-medium text-amber-800 mb-2">Instructions</h3>
-              <p className="text-sm text-amber-700">
-                You'll answer 21 questions using a 5-point scale from "Strongly Disagree" to "Strongly Agree". 
-                There are no right or wrong answers - be honest about your preferences.
-              </p>
-            </div>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Button onClick={() => setView('assessment')} className="bg-purple-600 hover:bg-purple-700">
-                Start Assessment <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-              <Button variant="outline" onClick={handleDemoMode}>
-                Demo Mode
-              </Button>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              ></div>
             </div>
           </div>
-        )}
 
-        {view === 'assessment' && (
-          <div className="space-y-6 p-6">
-            <div className="mb-6">
-              <Progress value={progressPercentage} className="h-2" />
-              <p className="text-right text-sm text-gray-500 mt-1">
-                Question {currentQuestion + 1} of {assessmentQuestions.length}
-              </p>
-            </div>
+          {/* Question Card */}
+          <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="space-y-4">
+              {/* Category Badge */}
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${categoryColors[currentQ.category]} text-white`}>
+                  {currentQ.icon}
+                </div>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[currentQ.category]} text-white`}>
+                  {currentQ.category.charAt(0).toUpperCase() + currentQ.category.slice(1)}
+                </span>
+              </div>
 
-            <Card>
-              <CardContent className="pt-6">
-                <h2 className="text-xl font-semibold text-purple-800 mb-6">
-                  {assessmentQuestions[currentQuestion].text}
-                </h2>
-                
-                <div className="space-y-3">
-                  {likertScale.map((option) => (
-                    <Button
+              {/* Question Text */}
+              <h2 className="text-lg font-semibold text-gray-900 leading-relaxed">
+                {currentQ.text}
+              </h2>
+
+              {/* Rating Scale */}
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">How well does this statement reflect your experience?</p>
+                <div className="grid grid-cols-1 gap-2">
+                  {scaleLabels.map((option) => (
+                    <label 
                       key={option.value}
-                      onClick={() => handleLikertResponse(assessmentQuestions[currentQuestion].id, option.value)}
-                      variant={responses[assessmentQuestions[currentQuestion].id] === option.value ? "default" : "outline"}
-                      className={`w-full text-left justify-start h-auto p-4 ${
-                        responses[assessmentQuestions[currentQuestion].id] === option.value 
-                          ? "bg-purple-600 hover:bg-purple-700 text-white" 
-                          : "hover:bg-purple-50"
+                      className={`flex items-center p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50 ${
+                        responses[currentQ.id] === option.value 
+                          ? 'border-purple-500 bg-purple-50' 
+                          : 'border-gray-200'
                       }`}
-                      disabled={isSubmitting}
                     >
-                      <div className="flex items-center w-full">
-                        <span className="font-medium mr-3">{option.value}</span>
-                        <span>{option.label}</span>
+                      <input
+                        type="radio"
+                        name={currentQ.id}
+                        value={option.value}
+                        checked={responses[currentQ.id] === option.value}
+                        onChange={() => handleResponse(currentQ.id, option.value)}
+                        className="sr-only"
+                      />
+                      <div className={`w-4 h-4 rounded-full border-2 mr-3 ${
+                        responses[currentQ.id] === option.value 
+                          ? 'border-purple-500 bg-purple-500' 
+                          : 'border-gray-300'
+                      }`}>
+                        {responses[currentQ.id] === option.value && (
+                          <div className="w-2 h-2 bg-white rounded-full mx-auto mt-0.5"></div>
+                        )}
                       </div>
-                    </Button>
+                      <div className="flex-1 flex justify-between items-center">
+                        <span className="font-medium text-gray-900">{option.label}</span>
+                        <span className="text-lg font-bold text-gray-600">{option.value}</span>
+                      </div>
+                    </label>
                   ))}
                 </div>
-                
-                <div className="mt-4 text-sm text-gray-500">
-                  Capacity: <span className="font-medium capitalize">{assessmentQuestions[currentQuestion].capacity}</span>
-                  {assessmentQuestions[currentQuestion].subDimension && (
-                    <span> • Sub-dimension: <span className="font-medium">{assessmentQuestions[currentQuestion].subDimension}</span></span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
-        )}
 
-        {view === 'results' && assessmentResults && (
-          <div className="space-y-6 p-6">
-            <div className="flex items-center mb-4">
-              <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
-              <h2 className="text-2xl font-semibold text-purple-800">Assessment Complete</h2>
-            </div>
-            
-            <p className="text-gray-700 mb-6">
-              Your responses reveal your strengths across imagination, curiosity, empathy, creativity, and courage.
-            </p>
-            
-            {/* Radar Chart */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-purple-700 mb-4">Your 5-Capacity Profile</h3>
-              <div className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <RadarChart data={radarData}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="capacity" />
-                    <PolarRadiusAxis 
-                      angle={90} 
-                      domain={[0, 100]} 
-                      tick={false}
-                    />
-                    <Radar
-                      name="Your Scores"
-                      dataKey="value"
-                      stroke="#8754b4"
-                      fill="#8754b4"
-                      fillOpacity={0.3}
-                      strokeWidth={2}
-                    />
-                    <Legend />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-            
-            {/* Detailed Scores */}
-            <div className="space-y-4 mb-6">
-              {Object.entries({
-                Imagination: assessmentResults.scores.imagination,
-                Curiosity: assessmentResults.scores.curiosity,
-                Empathy: assessmentResults.scores.empathy,
-                Creativity: assessmentResults.scores.creativity,
-                Courage: assessmentResults.scores.courage
-              }).map(([capacity, score]) => (
-                <div key={capacity} className="space-y-1">
-                  <div className="flex justify-between items-center">
-                    <span className="font-medium">{capacity}</span>
-                    <span>{(score * 20).toFixed(0)}%</span>
-                  </div>
-                  <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-purple-500" 
-                      style={{ width: `${score * 20}%` }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {guidance && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-                  <h4 className="font-semibold text-purple-800 mb-2">Your Strengths</h4>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    {guidance.strengths.map((strength, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-green-500 mr-2">✓</span>
-                        <span>{strength}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-                <div className="bg-purple-50 p-4 rounded-md border border-purple-100">
-                  <h4 className="font-semibold text-purple-800 mb-2">Growth Opportunities</h4>
-                  <ul className="text-sm text-gray-700 space-y-2">
-                    {guidance.opportunities.map((opportunity, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-purple-500 mr-2">→</span>
-                        <span>{opportunity}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-            
-            <div className="flex justify-end">
-              <Button 
-                onClick={onClose}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Continue to Results
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
+            <button
+              onClick={previousQuestion}
+              disabled={currentQuestion === 0}
+              className="flex items-center space-x-2 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              <span>Previous</span>
+            </button>
+
+            <span className="text-sm text-gray-500">
+              {Object.keys(responses).length} of {questions.length} answered
+            </span>
+
+            <button
+              onClick={nextQuestion}
+              disabled={!isAnswered}
+              className="flex items-center space-x-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>{currentQuestion === questions.length - 1 ? 'View Results' : 'Next'}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
           </div>
-        )}
+
+          {/* Completion Status */}
+          {allQuestionsAnswered && currentQuestion === questions.length - 1 && (
+            <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-center">
+              <p className="text-green-800 font-medium">
+                All questions completed! Click "View Results" to see your Imaginal Agility Profile.
+              </p>
+            </div>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
 
 export default ImaginalAgilityAssessmentModal;
