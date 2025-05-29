@@ -178,8 +178,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
               <div key={section.id} className="space-y-2">
                 {/* Section Header */}
                 <div className="flex items-center space-x-2">
-                  <section.icon className={cn("h-5 w-5 text-indigo-600")} />
-                  
                   {drawerOpen && (
                     <>
                       <h3 className="font-medium text-gray-800">{section.title}</h3>
