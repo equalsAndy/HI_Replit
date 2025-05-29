@@ -210,7 +210,16 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               your work. The AllStarTeams workshop activities will help you explore these dimensions in depth.
             </p>
             
-            <div className="flex justify-center items-center my-4 w-full px-4">
+            {/* Yellow Star */}
+            <div className="flex justify-center mb-2">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-8 h-8 text-yellow-400">
+                  <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="flex justify-center items-center w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
                   thinking={effectiveData?.thinking || 0}
@@ -221,6 +230,19 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               </div>
             </div>
             
+            {/* Imagination Legend */}
+            <div className="flex justify-center mb-4">
+              <div className="flex items-center">
+                <div className="w-5 h-5 mr-2 flex items-center justify-center">
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 text-yellow-400">
+                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                  </svg>
+                </div>
+                <span className="font-semibold">Imagination</span>
+                <span className="ml-3 text-gray-600 text-sm"> - Your limitless potential capacity that brings<br className="hidden sm:inline" /> the other core dimensions into focus.</span>
+              </div>
+            </div>
+
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="space-y-3">
                 {(() => {
