@@ -46,8 +46,7 @@ const App: React.FC = () => {
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
                     
                     {/* Admin routes */}
-                    <Route path="/admin" component={() => { window.location.href = '/admin/dashboard'; return null; }} />
-                    <Route path="/admin/dashboard" component={React.lazy(() => import('./pages/admin/dashboard'))} />
+                    <Route path="/admin" component={AdminPage} />
                     
                     {/* Reset and test routes */}
                     <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
