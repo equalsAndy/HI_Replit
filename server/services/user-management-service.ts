@@ -596,6 +596,42 @@ class UserManagementService {
       };
     }
   }
+
+  async deleteUser(userId: number) {
+    try {
+      console.log(`Starting complete user deletion for user ${userId}`);
+      
+      // Import required modules
+      const { eq } = await import('drizzle-orm');
+      const { sql } = await import('drizzle-orm');
+      
+      // First delete all related data
+      await this.deleteUserData(userId);
+      
+      // Then delete the user account itself
+      try {
+        await db.execute(sql`DELETE FROM users WHERE id = ${userId}`);
+        console.log(`Deleted user account for user ${userId}`);
+        
+        return {
+          success: true,
+          message: 'User deleted successfully'
+        };
+      } catch (error) {
+        console.error(`Error deleting user account ${userId}:`, error);
+        return {
+          success: false,
+          error: 'Failed to delete user account'
+        };
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return {
+        success: false,
+        error: 'Failed to delete user'
+      };
+    }
+  }
 }
 
 export const userManagementService = new UserManagementService();
