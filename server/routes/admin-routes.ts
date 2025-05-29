@@ -295,6 +295,33 @@ router.put('/users/:id/test-status', requireAuth, isAdmin, async (req: Request, 
 });
 
 /**
+ * Delete all user data except profile and password (admin only)
+ */
+router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    // Delete user data using user management service
+    const result = await userManagementService.deleteUserData(id);
+    
+    if (!result.success) {
+      return res.status(400).json({ message: result.error || 'Failed to delete user data' });
+    }
+    
+    res.json({ 
+      message: 'User data deleted successfully',
+      deletedData: result.deletedData
+    });
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Get all test users (admin only)
  */
 router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Response) => {

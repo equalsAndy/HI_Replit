@@ -145,6 +145,7 @@ export function UserManagement() {
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [confirmDeleteDataOpen, setConfirmDeleteDataOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [includeDeleted, setIncludeDeleted] = useState(false);
 
@@ -268,6 +269,34 @@ export function UserManagement() {
       toast({
         title: 'Error deleting user',
         description: error.message || 'Failed to delete user. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Mutation for deleting user data (keeping profile and password)
+  const deleteUserDataMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      const response = await apiRequest('DELETE', `/api/admin/users/${userId}/data`);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'User data deleted',
+        description: 'All user assessment and progress data has been deleted.',
+      });
+
+      // Close delete data dialog
+      setConfirmDeleteDataOpen(false);
+      setSelectedUser(null);
+
+      // Refresh users list
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error deleting user data',
+        description: error.message || 'Failed to delete user data. Please try again.',
         variant: 'destructive',
       });
     },
@@ -511,6 +540,19 @@ export function UserManagement() {
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    className="h-8 px-3 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                    onClick={() => {
+                                      setSelectedUser(user);
+                                      setConfirmDeleteDataOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-3 w-3 mr-1" />
+                                    Delete Data
+                                  </Button>
+
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="h-8 px-3 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
                                     onClick={() => {
                                       setSelectedUser(user);
@@ -518,7 +560,7 @@ export function UserManagement() {
                                     }}
                                   >
                                     <Trash2 className="h-3 w-3 mr-1" />
-                                    Delete
+                                    Delete User
                                   </Button>
                                 </>
                               )}
@@ -911,7 +953,7 @@ export function UserManagement() {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog for Delete */}
+      {/* Confirmation Dialog for Delete User */}
       <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <DialogContent>
           <DialogHeader>
@@ -955,6 +997,67 @@ export function UserManagement() {
             >
               {deleteUserMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Dialog for Delete User Data */}
+      <Dialog open={confirmDeleteDataOpen} onOpenChange={setConfirmDeleteDataOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete User Data</DialogTitle>
+            <DialogDescription>
+              This will permanently delete all assessment data, progress, and workshop results for this user. 
+              The user profile and login credentials will be preserved. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedUser && (
+            <div className="py-4">
+              <div className="flex items-center gap-4 p-3 border rounded-md">
+                <div>
+                  <Avatar className="h-10 w-10">
+                    {selectedUser.profilePicture ? (
+                      <AvatarImage src={selectedUser.profilePicture} alt={selectedUser.name} />
+                    ) : (
+                      <AvatarFallback>{getInitials(selectedUser.name)}</AvatarFallback>
+                    )}
+                  </Avatar>
+                </div>
+                <div className="flex-1">
+                  <h4 className="font-medium">{selectedUser.name}</h4>
+                  <p className="text-sm text-muted-foreground">{selectedUser.username}</p>
+                </div>
+                <Badge className={getRoleBadgeColor(selectedUser.role)}>
+                  {selectedUser.role}
+                </Badge>
+              </div>
+              
+              <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
+                <h5 className="font-medium text-orange-800 mb-2">Data to be deleted:</h5>
+                <ul className="text-sm text-orange-700 space-y-1">
+                  <li>• Star card assessments</li>
+                  <li>• Flow attribute data</li>
+                  <li>• Workshop progress</li>
+                  <li>• Assessment results</li>
+                  <li>• Navigation history</li>
+                </ul>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDeleteDataOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => selectedUser && deleteUserDataMutation.mutate(selectedUser.id)}
+              disabled={deleteUserDataMutation.isPending}
+            >
+              {deleteUserDataMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Data
             </Button>
           </DialogFooter>
         </DialogContent>

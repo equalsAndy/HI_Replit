@@ -509,6 +509,93 @@ class UserManagementService {
       };
     }
   }
+
+  /**
+   * Delete all user data except profile and password
+   */
+  async deleteUserData(userId: number) {
+    try {
+      console.log(`Starting data deletion for user ${userId}`);
+      
+      // Import required modules
+      const { eq, and } = await import('drizzle-orm');
+      const { sql } = await import('drizzle-orm');
+      
+      let deletedData = {
+        starCard: false,
+        flowAttributes: false,
+        userAssessments: false,
+        navigationProgress: false
+      };
+
+      // 1. Delete star card data
+      try {
+        const starCardResult = await db.execute(sql`DELETE FROM star_cards WHERE user_id = ${userId}`);
+        console.log(`Deleted star card data for user ${userId}`);
+        deletedData.starCard = true;
+      } catch (error) {
+        console.log(`No star card data found for user ${userId}`);
+        deletedData.starCard = true; // Count as success if nothing to delete
+      }
+
+      // 2. Delete flow attributes
+      try {
+        const flowResult = await db.execute(sql`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
+        console.log(`Deleted flow attributes for user ${userId}`);
+        deletedData.flowAttributes = true;
+      } catch (error) {
+        console.log(`No flow attributes found for user ${userId}`);
+        deletedData.flowAttributes = true;
+      }
+
+      // 3. Delete user assessments
+      try {
+        const assessmentResult = await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
+        console.log(`Deleted user assessments for user ${userId}`);
+        deletedData.userAssessments = true;
+      } catch (error) {
+        console.log(`No user assessments found for user ${userId}`);
+        deletedData.userAssessments = true;
+      }
+
+      // 4. Reset navigation progress (keep profile data)
+      try {
+        await db.update(users)
+          .set({
+            navigationProgress: null,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userId));
+        
+        console.log(`Reset navigation progress for user ${userId}`);
+        deletedData.navigationProgress = true;
+      } catch (error) {
+        console.error(`Error resetting navigation progress for user ${userId}:`, error);
+      }
+
+      // 5. Delete any workshop participation data
+      try {
+        await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+        console.log(`Deleted workshop participation for user ${userId}`);
+      } catch (error) {
+        console.log(`No workshop participation found for user ${userId}`);
+      }
+
+      console.log(`Completed data deletion for user ${userId}`, deletedData);
+
+      return {
+        success: true,
+        message: 'User data deleted successfully',
+        deletedData
+      };
+    } catch (error) {
+      console.error('Error deleting user data:', error);
+      return {
+        success: false,
+        error: 'Failed to delete user data'
+      };
+    }
+  }
 }
 
 export const userManagementService = new UserManagementService();
