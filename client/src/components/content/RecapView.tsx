@@ -22,17 +22,17 @@ const RecapView: React.FC<ContentViewProps> = ({
   // Get the main quadrant from the star card (highest score)
   const getMainQuadrant = () => {
     if (!starCard) return 'your strengths';
-    
+
     const scores = {
       thinking: starCard.thinking || 0,
       acting: starCard.acting || 0,
       feeling: starCard.feeling || 0,
       planning: starCard.planning || 0
     };
-    
+
     const highestScore = Math.max(...Object.values(scores));
     const mainQuadrant = Object.keys(scores).find(key => scores[key as keyof typeof scores] === highestScore);
-    
+
     switch (mainQuadrant) {
       case 'thinking': return 'analytical thinking';
       case 'acting': return 'taking action';
@@ -51,7 +51,7 @@ const RecapView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Recap Your Insights</h1>
-      
+
       <div className="prose max-w-none mb-8">
         <p className="text-lg text-gray-700">
           Congratulations on completing the AllStarTeams individual journey! 
@@ -84,7 +84,7 @@ const RecapView: React.FC<ContentViewProps> = ({
             </div>
           </div>
         </div>
-        
+
         <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-100">
           <h3 className="text-lg font-medium text-blue-800 mb-4">Your Flow State</h3>
           <div className="space-y-3">
@@ -142,7 +142,7 @@ const RecapView: React.FC<ContentViewProps> = ({
           and collaborate with colleagues to understand how your strengths complement each other.
         </p>
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={handleComplete}

@@ -19,10 +19,10 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [imageMeaning, setImageMeaning] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
-  
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
+
     setIsSearching(true);
     try {
       // Use the actual Unsplash API
@@ -34,12 +34,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       setIsSearching(false);
     }
   };
-  
+
   const addImage = (image: any) => {
     if (selectedImages.length >= 5) {
       return; // Max 5 images
     }
-    
+
     const newImage = {
       id: image.id,
       url: image.urls.regular,
@@ -51,10 +51,10 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         sourceUrl: image.links.html
       }
     };
-    
+
     setSelectedImages(prev => [...prev, newImage]);
   };
-  
+
   const removeImage = (id: string) => {
     setSelectedImages(prev => prev.filter(img => img.id !== id));
   };
@@ -62,7 +62,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
-      
+
       <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
         <div className="flex justify-between items-start">
           {showInstructions && (
@@ -78,7 +78,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
               </ul>
             </div>
           )}
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -105,7 +105,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             {isSaving ? "Saving..." : "Save Images"}
           </Button>
         </div>
-        
+
         {selectedImages.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {selectedImages.map(image => (
@@ -120,7 +120,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                     </span>
                   </div>
                 )}
-                
+
                 <img 
                   src={image.url} 
                   alt="Selected visualization" 
@@ -133,7 +133,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 >
                   <X className="h-4 w-4 text-red-500" />
                 </button>
-                
+
                 {image.credit && (
                   <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 rounded-b-lg">
                     Photo by{" "}
@@ -167,11 +167,11 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           </div>
         )}
       </div>
-      
+
       {/* Search interface */}
       <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm mb-8">
         <h3 className="text-lg font-medium mb-4">Find Images</h3>
-        
+
         <div className="space-y-4">
           <div>
             <h4 className="text-sm font-medium mb-2">Search for images:</h4>
@@ -193,7 +193,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           </div>
-          
+
           {/* File upload option */}
           <div>
             <h4 className="text-sm font-medium mb-2">Upload your own image:</h4>
@@ -209,7 +209,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             </label>
             <p className="text-xs text-gray-500 mt-1">Maximum file size: 10MB</p>
           </div>
-          
+
           {/* Display search results */}
           {searchResults.length > 0 && (
             <div>
@@ -238,7 +238,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           )}
         </div>
       </div>
-      
+
       {/* Image meaning */}
       <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
         <h3 className="text-lg font-medium text-purple-800 mb-3">What Do These Images Mean to You?</h3>
@@ -252,7 +252,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           className="w-full p-2 min-h-[120px] border border-gray-300 rounded-md"
         />
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={() => {
@@ -261,7 +261,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           }}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Continue <ChevronRight className="ml-2 h-4 w-4" />
+          Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

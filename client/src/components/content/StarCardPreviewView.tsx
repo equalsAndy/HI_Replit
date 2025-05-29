@@ -56,13 +56,13 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   // Track video progress
   const startProgressTracking = (playerInstance: any) => {
     let interval: NodeJS.Timeout;
-    
+
     const trackProgress = () => {
       if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
         try {
           const currentTime = playerInstance.getCurrentTime();
           const duration = playerInstance.getDuration();
-          
+
           if (duration > 0) {
             const percentage = (currentTime / duration) * 100;
             handleVideoProgress(percentage);
@@ -75,7 +75,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
 
     // Track progress every second
     interval = setInterval(trackProgress, 1000);
-    
+
     // Clean up interval when component unmounts
     return () => {
       if (interval) {
@@ -88,7 +88,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   const handleVideoProgress = (percentage: number) => {
     setVideoProgress(percentage);
     updateVideoProgress(stepId, percentage);
-    
+
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
@@ -204,7 +204,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           } px-8`}
           size="lg"
         >
-          Continue to Reflection
+          Next: Your Core Strengths
         </Button>
       </div>
     </>

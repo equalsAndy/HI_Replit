@@ -61,7 +61,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       return false;
     }
   });
-  
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
     try {
@@ -75,16 +75,16 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [showScoringInfo, setShowScoringInfo] = useState(true);
-  
+
   // Get current question
   const question = flowQuestions[currentQuestion];
   const currentValue = answers[question?.id] || 0;
-  
+
   // Save flow assessment to server
   const saveFlowAssessmentToServer = async (flowScore: number, answersData: Record<number, number>) => {
     try {
       console.log("Attempting to save flow assessment to server with score:", flowScore);
-      
+
       const response = await fetch('/api/user/assessments', {
         method: 'POST',
         headers: {
@@ -101,7 +101,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           }
         }),
       });
-      
+
       if (response.ok) {
         const result = await response.json();
         console.log("✅ Flow assessment saved to server successfully:", result);
@@ -113,7 +113,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       console.error("❌ Error saving flow assessment to server:", error);
     }
   };
-  
+
   // Handle answer selection
   const handleAnswerSelect = (value: number) => {
     // Update answers
@@ -121,10 +121,10 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       ...prev,
       [question.id]: value
     }));
-    
+
     // Clear any errors
     setError(null);
-    
+
     // Auto advance to next question if enabled
     if (autoAdvance && currentQuestion < flowQuestions.length - 1) {
       setTimeout(() => {
@@ -132,62 +132,62 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       }, 700);
     }
   };
-  
+
   // Handle next question
   const handleNext = () => {
     if (!answers[question.id]) {
       setError("Please select an answer before proceeding");
       return;
     }
-    
+
     if (currentQuestion < flowQuestions.length - 1) {
       setCurrentQuestion(prev => prev + 1);
     } else {
       // Calculate flow score
       const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
-      
+
       console.log("Flow assessment completed with score:", flowScore);
-      
+
       // Save to server database
       saveFlowAssessmentToServer(flowScore, answers);
-      
+
       // Mark step as completed
       markStepCompleted('3-2');
-      
+
       // Save assessment to localStorage
       localStorage.setItem('flowAssessmentAnswers', JSON.stringify(answers));
       setHasCompletedAssessment(true);
-      
+
       // Show results modal
       setShowResults(true);
     }
   };
-  
+
   // Handle previous question
   const handleBack = () => {
     if (currentQuestion > 0) {
       setCurrentQuestion(prev => prev - 1);
     }
   };
-  
+
   // Handle assessment completion
   const handleComplete = () => {
     // Calculate flow score
     const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
-    
+
     console.log("Flow assessment completed with score:", flowScore);
-    
+
     // Save to server database
     saveFlowAssessmentToServer(flowScore, answers);
-    
+
     // Mark step as completed
     markStepCompleted('3-2');
-    
+
     // Save assessment to localStorage
     localStorage.setItem('flowAssessmentAnswers', JSON.stringify(answers));
     setHasCompletedAssessment(true);
   };
-  
+
   // Function to manually reset assessment data
   const resetAssessmentData = () => {
     localStorage.removeItem('flowAssessmentAnswers');
@@ -195,10 +195,10 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     setHasCompletedAssessment(false);
     setCurrentQuestion(0);
   };
-  
+
   // State to track which popover is open
   const [openPopoverId, setOpenPopoverId] = useState<number | null>(null);
-  
+
   // Update a specific answer directly in the results modal
   const handleUpdateAnswer = (questionId: number, newValue: number) => {
     // Update the answer
@@ -206,14 +206,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       ...prev,
       [questionId]: newValue
     }));
-    
+
     // Log for debugging
     console.log(`Updated answer for question #${questionId} to ${newValue}`);
-    
+
     // Close the popover immediately after selection
     setOpenPopoverId(null);
   };
-  
+
   // Get interpretation based on score
   const getInterpretation = (score: number) => {
     if (score >= 50) {
@@ -238,7 +238,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       };
     }
   };
-  
+
   // Convert number to label
   const valueToLabel = (value: number) => {
     switch (value) {
@@ -250,7 +250,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       default: return "";
     }
   };
-  
+
   // Get color for label badge
   const getColorForValue = (value: number) => {
     switch (value) {
@@ -262,11 +262,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       default: return "bg-gray-200 text-gray-800";
     }
   };
-  
+
   // Calculate total score
   const totalScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
   const interpretation = getInterpretation(totalScore);
-  
+
   // Fill demo answers
   const fillDemoAnswers = () => {
     const demoAnswers: Record<number, number> = {};
@@ -274,11 +274,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       // Generate a random value between 3 and 5
       demoAnswers[q.id] = Math.floor(Math.random() * 3) + 3;
     });
-    
+
     setAnswers(demoAnswers);
     setCurrentQuestion(flowQuestions.length - 1);
   };
-  
+
   // Determine if we should show the assessment or results
   const renderContent = () => {
     if (hasCompletedAssessment) {
@@ -286,11 +286,11 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       return (
         <Card className="border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">Your Flow State Results</h2>
-          
+
           <p className="mb-4">
             You've completed the flow state assessment. Here's what your results reveal about your flow experience:
           </p>
-          
+
           {/* Score display */}
           <div className="text-center my-6">
             <div className="text-4xl font-bold text-indigo-600 mb-2">
@@ -300,12 +300,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               {interpretation.level}
             </div>
           </div>
-          
+
           {/* Interpretation box */}
           <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
             <p>{interpretation.description}</p>
           </div>
-          
+
           {/* Scoring info accordion */}
           <div 
             className="border rounded-md p-4 cursor-pointer" 
@@ -317,7 +317,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} 
               />
             </div>
-            
+
             {showScoringInfo && (
               <div className="mt-4 space-y-2 text-sm text-gray-600">
                 <p className="font-medium">Flow Score Interpretation:</p>
@@ -328,14 +328,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               </div>
             )}
           </div>
-          
+
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-3">Next Steps</h3>
             <p className="mb-4">
               Now that you understand your flow profile, you can use these insights to create more optimal conditions for flow in your work and personal life.
             </p>
           </div>
-          
+
           <div className="mt-6 flex justify-end">
             <Button 
               className="bg-indigo-600 hover:bg-indigo-700"
@@ -354,15 +354,15 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       return (
         <Card className="border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
-          
+
           <p className="mb-4">
             Purpose: This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
           </p>
-          
+
           <p className="mb-6">
             Instructions: Rate your agreement with each of the following statements on a scale from 1 (Never) to 5 (Always). Answer with a specific activity or task in mind where you most often seek or experience flow.
           </p>
-          
+
           <Card className="border border-gray-200 p-6 mb-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Flow State Self-Assessment</h3>
@@ -374,12 +374,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 Fill Demo Answers
               </Button>
             </div>
-            
+
             <div className="mb-8">
               <p className="font-medium mb-4">
                 <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
               </p>
-              
+
               <div className="mb-8 relative">
                 <div className="h-16 relative">
                   {/* Main track background */}
@@ -390,7 +390,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                       style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
                     ></div>
                   </div>
-                  
+
                   {/* Circle markers - perfectly aligned on the track */}
                   <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                     {[1, 2, 3, 4, 5].map((value) => {
@@ -399,7 +399,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                       let bgColor = "bg-white";
                       let textColor = "text-gray-800";
                       let borderStyle = "border-2 border-gray-300 hover:border-indigo-300";
-                      
+
                       if (isSelected) {
                         switch (value) {
                           case 1:
@@ -429,7 +429,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                             break;
                         }
                       }
-                      
+
                       return (
                         <div
                           key={value}
@@ -446,7 +446,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                     })}
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-red-500">Never</span>
                   <span className="text-orange-500">Rarely</span>
@@ -455,16 +455,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                   <span className="text-purple-600">Always</span>
                 </div>
               </div>
-              
+
               <div className="text-center">
-                {currentValue > 0 ? (
-                  <p className="text-indigo-600 font-medium">
-                    Please select your answer
-                  </p>
-                ) : null}
+                {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center justify-center mb-4 space-y-2">
               <div className="flex items-center space-x-2">
                 <Checkbox 
@@ -493,7 +489,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 </TooltipProvider>
               </div>
             </div>
-            
+
             <div className="flex justify-between">
               <Button 
                 variant="outline" 
@@ -503,7 +499,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               >
                 Go Back
               </Button>
-              
+
               <div className="text-center">
                 <div className="flex flex-col items-center">
                   <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
@@ -517,12 +513,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                   </span>
                 </div>
               </div>
-              
+
               <Button 
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={handleNext}
               >
-                {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Finish'}
+                {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Next: Rounding Out'}
               </Button>
             </div>
           </Card>
@@ -537,7 +533,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       <p className="text-lg text-gray-600 mb-6">
         Learn about the flow and discover how to optimize your work experience
       </p>
-      
+
       {/* Add reset button for testing */}
       <div className="mb-4">
         <Button 
@@ -549,16 +545,16 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           Reset Assessment
         </Button>
       </div>
-      
+
       {/* If assessment has been completed, show results */}
       {hasCompletedAssessment ? (
         <Card className="border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">Your Flow State Results</h2>
-          
+
           <p className="mb-4">
             You've completed the flow state assessment. Here's what your results reveal about your flow experience:
           </p>
-          
+
           {/* Score display */}
           <div className="text-center my-6">
             <div className="text-4xl font-bold text-indigo-600 mb-2">
@@ -568,12 +564,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               {interpretation.level}
             </div>
           </div>
-          
+
           {/* Interpretation box */}
           <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
             <p>{interpretation.description}</p>
           </div>
-          
+
           {/* Scoring info accordion */}
           <div 
             className="border rounded-md p-4 cursor-pointer" 
@@ -585,7 +581,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} 
               />
             </div>
-            
+
             {showScoringInfo && (
               <div className="mt-4 space-y-2 text-sm text-gray-600">
                 <p className="font-medium">Flow Score Interpretation:</p>
@@ -596,14 +592,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               </div>
             )}
           </div>
-          
+
           <div className="mt-6">
             <h3 className="text-lg font-medium mb-3">Next Steps</h3>
             <p className="mb-4">
               Now that you understand your flow profile, you can use these insights to create more optimal conditions for flow in your work and personal life.
             </p>
           </div>
-          
+
           <div className="mt-6 flex justify-end">
             <Button 
               className="bg-indigo-600 hover:bg-indigo-700"
@@ -619,15 +615,15 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       ) : (
         <Card className="border border-gray-200 p-6 mb-8">
           <h2 className="text-xl font-semibold mb-3">Your Flow State Self-Assessment</h2>
-          
+
           <p className="mb-4">
             Purpose: This exercise is designed to help you easily understand what "flow" is and recognize when you are in it, personally and professionally.
           </p>
-          
+
           <p className="mb-6">
             Instructions: Rate your agreement with each of the following statements on a scale from 1 (Never) to 5 (Always). Answer with a specific activity or task in mind where you most often seek or experience flow.
           </p>
-          
+
           <Card className="border border-gray-200 p-6 mb-4">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-medium">Flow State Self-Assessment</h3>
@@ -639,12 +635,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 Fill Demo Answers
               </Button>
             </div>
-            
+
             <div className="mb-8">
               <p className="font-medium mb-4">
                 <span className="font-bold mr-1">Question #{question.id}:</span> {question.text}
               </p>
-              
+
               <div className="mb-8 relative">
                 <div className="h-16 relative">
                   {/* Main track background */}
@@ -655,7 +651,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                       style={{ width: currentValue ? `${((currentValue - 1) / 4) * 100}%` : '0%' }}
                     ></div>
                   </div>
-                  
+
                   {/* Circle markers - perfectly aligned on the track */}
                   <div className="absolute flex justify-between w-full px-0 z-10" style={{ top: '14px' }}>
                     {[1, 2, 3, 4, 5].map((value) => {
@@ -664,7 +660,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                       let bgColor = "bg-white";
                       let textColor = "text-gray-800";
                       let borderStyle = "border-2 border-gray-300 hover:border-indigo-300";
-                      
+
                       if (isSelected) {
                         switch (value) {
                           case 1:
@@ -694,7 +690,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                             break;
                         }
                       }
-                      
+
                       return (
                         <div
                           key={value}
@@ -711,7 +707,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                     })}
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between text-sm mt-2">
                   <span className="text-red-500">Never</span>
                   <span className="text-orange-500">Rarely</span>
@@ -720,12 +716,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                   <span className="text-purple-600">Always</span>
                 </div>
               </div>
-              
+
               <div className="text-center">
                 {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
               </div>
             </div>
-            
+
             <div className="flex flex-col items-center justify-center mb-4 space-y-2">
               <div className="flex items-center space-x-2">
                 <Checkbox 
@@ -754,7 +750,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 </TooltipProvider>
               </div>
             </div>
-            
+
             <div className="flex justify-between">
               <Button 
                 variant="outline" 
@@ -764,7 +760,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               >
                 Go Back
               </Button>
-              
+
               <div className="text-center">
                 <div className="flex flex-col items-center">
                   <div className="w-32 h-2 bg-gray-200 rounded-full mb-1 overflow-hidden">
@@ -778,18 +774,18 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                   </span>
                 </div>
               </div>
-              
+
               <Button 
                 className="bg-indigo-600 hover:bg-indigo-700"
                 onClick={handleNext}
               >
-                {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Finish'}
+                {currentQuestion < flowQuestions.length - 1 ? 'Next' : 'Next: Rounding Out'}
               </Button>
             </div>
           </Card>
         </Card>
       )}
-      
+
       {/* Results Modal */}
       <Dialog open={showResults} onOpenChange={setShowResults}>
         <DialogContent className="max-w-4xl p-0 gap-0 overflow-hidden bg-white rounded-lg">
@@ -800,7 +796,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
             </div>
             {/* Close button removed to avoid duplicate X in corner */}
           </div>
-          
+
           <div className="p-6 overflow-y-auto max-h-[80vh]">
             {/* Score display */}
             <div className="text-center my-6">
@@ -811,41 +807,40 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 {interpretation.level}
               </div>
             </div>
-            
+
             {/* Interpretation box */}
             <div className="bg-blue-50 p-4 rounded-md text-blue-800 mb-6">
               <p>{interpretation.description}</p>
             </div>
-            
+
             {/* Answers summary */}
             <div className="mb-6">
               <h3 className="text-lg font-semibold mb-2">Your Answers Summary</h3>
               <p className="text-gray-600 mb-4">Review your answers below. Click an answer or the Adjust button to modify your responses.</p>
-              
-              <div className="border rounded-md divide-y">
-                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
+
+              <div className="border rounded-md divide-y">                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
                   <div>QUESTION</div>
                   <div>YOUR ANSWER</div>
                   <div>ACTION</div>
                 </div>
-                
+
                 <div className="max-h-72 overflow-y-auto divide-y">
                   {flowQuestions.map((q) => {
                     const answerValue = answers[q.id] || 0;
                     if (answerValue === 0) return null;
-                    
+
                     return (
                       <div key={q.id} className="grid grid-cols-[1fr,auto,auto] items-center p-3">
                         <div className="pr-4">
                           <p className="text-gray-800">Question #{q.id}: {q.text}</p>
                         </div>
-                        
+
                         <div className="px-3">
                           <div className={`px-4 py-1 rounded-full text-sm font-medium ${getColorForValue(answerValue)}`}>
                             {valueToLabel(answerValue)}
                           </div>
                         </div>
-                        
+
                         <div className="text-center">
                           <Popover open={openPopoverId === q.id} onOpenChange={(open: boolean) => {
                             if (open) {
@@ -905,7 +900,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 </div>
               </div>
             </div>
-            
+
             {/* Scoring information */}
             <div className="border rounded-md overflow-hidden mb-6">
               <div 
@@ -915,24 +910,24 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
                 <h3 className="text-lg font-semibold">Scoring & Interpretation</h3>
                 <ChevronRight className={`h-5 w-5 transition-transform ${showScoringInfo ? 'rotate-90' : ''}`} />
               </div>
-              
+
               {showScoringInfo && (
                 <div className="p-4 bg-gray-50 text-sm text-gray-600 border-t">
                   <p className="mb-2">Your Flow Score is calculated by adding up your responses to all {flowQuestions.length} questions:</p>
-                  
+
                   <ul className="list-disc pl-5 mb-3 space-y-1">
                     <li><strong>50-60 points:</strong> Flow Fluent - You reliably access flow states.</li>
                     <li><strong>39-49 points:</strong> Flow Aware - You experience flow but have room to improve.</li>
                     <li><strong>26-38 points:</strong> Flow Blocked - You struggle with consistency in flow.</li>
                     <li><strong>12-25 points:</strong> Flow Distant - Flow is a rare experience for you.</li>
                   </ul>
-                  
+
                   <p>This assessment is based on Mihaly Csikszentmihalyi's flow research and identifies your current relationship with flow states.</p>
                 </div>
               )}
             </div>
           </div>
-          
+
           <div className="border-t p-4 bg-gray-50 flex justify-end">
             <Button 
               onClick={() => {

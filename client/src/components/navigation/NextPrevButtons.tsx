@@ -10,6 +10,10 @@ interface NextPrevButtonsProps {
   onNext?: () => void;
   onPrev?: () => void;
   onComplete?: () => void;
+  showComplete?: boolean;
+  completeLabel?: string;
+  nextLabel?: string;
+  prevLabel?: string;
   showNext?: boolean;
   showPrev?: boolean;
   showComplete?: boolean;
@@ -38,14 +42,14 @@ export function NextPrevButtons({
   const [nextStepLabel, setNextStepLabel] = useState<string | null>(null);
   const [prevStepLabel, setPrevStepLabel] = useState<string | null>(null);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
-  
+
   // Find next and previous steps
   useEffect(() => {
     if (!progress?.sections || !currentStepId) return;
-    
+
     const allSteps = progress.sections.flatMap(section => section.steps);
     const currentStepIndex = allSteps.findIndex(step => step.id === currentStepId);
-    
+
     if (currentStepIndex >= 0) {
       // Find next step
       if (currentStepIndex < allSteps.length - 1) {
@@ -56,7 +60,7 @@ export function NextPrevButtons({
         setNextPath(null);
         setNextStepLabel(null);
       }
-      
+
       // Find previous step
       if (currentStepIndex > 0) {
         const prevStep = allSteps[currentStepIndex - 1];
@@ -68,20 +72,20 @@ export function NextPrevButtons({
       }
     }
   }, [progress?.sections, currentStepId]);
-  
+
   // Handle navigation
   const handleNext = () => {
     if (currentStepId) {
       // Mark the current step as completed
       markStepCompleted(currentStepId);
-      
+
       // Show completion animation
       setShowCompletionAnimation(true);
-      
+
       // Wait for animation to complete before navigating
       setTimeout(() => {
         setShowCompletionAnimation(false);
-        
+
         if (onNext) {
           onNext();
         } else if (nextPath) {
@@ -90,7 +94,7 @@ export function NextPrevButtons({
       }, 1000);
     }
   };
-  
+
   const handlePrev = () => {
     if (onPrev) {
       onPrev();
@@ -98,26 +102,26 @@ export function NextPrevButtons({
       navigate(prevPath);
     }
   };
-  
+
   const handleComplete = () => {
     if (currentStepId) {
       // Mark the current step as completed
       markStepCompleted(currentStepId);
-      
+
       // Show completion animation
       setShowCompletionAnimation(true);
-      
+
       // Wait for animation to complete before calling onComplete
       setTimeout(() => {
         setShowCompletionAnimation(false);
-        
+
         if (onComplete) {
           onComplete();
         }
       }, 1000);
     }
   };
-  
+
   return (
     <div className={cn("flex items-center justify-between mt-8", className)}>
       {/* Previous button */}
@@ -137,10 +141,10 @@ export function NextPrevButtons({
           )}
         </Button>
       )}
-      
+
       {/* Spacer if only showing one button */}
       {!showPrev && <div />}
-      
+
       {/* Completion animation overlay */}
       {showCompletionAnimation && (
         <motion.div
@@ -163,7 +167,7 @@ export function NextPrevButtons({
           </motion.div>
         </motion.div>
       )}
-      
+
       {/* Next or Complete Button */}
       {showComplete ? (
         <Button

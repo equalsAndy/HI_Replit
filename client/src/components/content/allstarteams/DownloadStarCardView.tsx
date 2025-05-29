@@ -58,7 +58,7 @@ export default function DownloadStarCardView({
               </Button>
               
               <Button variant="outline" onClick={handleNext} className="flex items-center gap-2">
-                Continue
+                Next: Team Workshop Prep
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

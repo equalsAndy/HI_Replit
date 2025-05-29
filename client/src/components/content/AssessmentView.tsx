@@ -26,7 +26,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   // Fetch the latest assessment data from server using fetch instead of relying on passed props
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
-  
+
   // Load assessment data directly from the API when component mounts
   React.useEffect(() => {
     const fetchAssessmentData = async () => {
@@ -35,11 +35,11 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
         const response = await fetch('/api/workshop-data/userAssessments', {
           credentials: 'include'
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log("Assessment API response:", data);
-          
+
           // Look for star card assessment in the response
           if (data?.currentUser?.assessments?.starCard) {
             setAssessmentData(data.currentUser.assessments.starCard);
@@ -53,13 +53,13 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
         setIsLoadingAssessment(false);
       }
     };
-    
+
     fetchAssessmentData();
   }, []);
-  
+
   // Use the fetched data or fall back to the prop
   const assessmentResults = assessmentData?.formattedResults || starCard;
-  
+
   // Check if the starCard data directly passed as prop has valid scores
   const hasValidStarCardProp = starCard && (
     Number(starCard.thinking) > 0 || 
@@ -67,7 +67,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     Number(starCard.feeling) > 0 || 
     Number(starCard.planning) > 0
   );
-  
+
   // Check if the assessment data we fetched has valid scores
   const hasValidAssessmentData = assessmentData && assessmentData.formattedResults && (
     Number(assessmentData.formattedResults.thinking) > 0 || 
@@ -75,10 +75,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     Number(assessmentData.formattedResults.feeling) > 0 || 
     Number(assessmentData.formattedResults.planning) > 0
   );
-  
+
   // Check if direct API call to starcard returns valid data
   const [directStarCardData, setDirectStarCardData] = React.useState<any>(null);
-  
+
   React.useEffect(() => {
     // Directly fetch star card data as a fallback
     const fetchStarCardData = async () => {
@@ -86,7 +86,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
         const response = await fetch('/api/starcard', {
           credentials: 'include'
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log("Direct StarCard API response:", data);
@@ -96,12 +96,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
         console.error("Error fetching direct star card data:", error);
       }
     };
-    
+
     if (!hasValidStarCardProp && !hasValidAssessmentData) {
       fetchStarCardData();
     }
   }, [hasValidStarCardProp, hasValidAssessmentData]);
-  
+
   // Check if direct star card API call returned valid data
   const hasValidDirectData = directStarCardData && (
     Number(directStarCardData.thinking) > 0 || 
@@ -109,15 +109,15 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     Number(directStarCardData.feeling) > 0 || 
     Number(directStarCardData.planning) > 0
   );
-  
+
   // Determine which data source to use
   const effectiveData = hasValidDirectData ? directStarCardData : 
                        hasValidAssessmentData ? assessmentData.formattedResults : 
                        hasValidStarCardProp ? starCard : null;
-                       
+
   // Final assessment completion check
   const isAssessmentComplete = hasValidStarCardProp || hasValidAssessmentData || hasValidDirectData;
-  
+
   // Debug log to check assessment completion status                              
   console.log("Assessment completion check:", {
     hasStarCard: !!starCard,
@@ -136,11 +136,11 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     markStepCompleted('2-2');
     setCurrentContent('star-card-preview');
   };
-  
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Strengths Assessment</h1>
-      
+
       {!isAssessmentComplete ? (
         // Show introduction and start button if assessment is not complete
         <div className="prose max-w-none">
@@ -157,7 +157,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               <div>• Generates your personal Star Card</div>
             </div>
           </div>
-          
+
           <div className="bg-amber-50 rounded-lg p-4 shadow-sm mb-6">
             <h3 className="font-medium text-amber-800 mb-3 text-lg">How it works</h3>
             <p className="text-amber-700 text-sm mb-2">
@@ -168,7 +168,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               Imagination appears at the top as your limitless fifth strength.
             </p>
           </div>
-          
+
           <div className="bg-green-50 rounded-lg p-4 shadow-sm mb-6">
             <h3 className="font-medium text-green-800 mb-2 text-lg flex items-center">
               <CheckCircle className="h-4 w-4 mr-2" /> What you'll get
@@ -178,7 +178,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               to complete your profile for personal and team development.
             </p>
           </div>
-          
+
           <div className="flex justify-center">
             <Button 
               onClick={() => setIsAssessmentModalOpen(true)}
@@ -200,16 +200,16 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               Congratulations! You've completed the AllStarTeams Strengths Assessment. Here's your unique strengths profile.
             </p>
           </div>
-          
+
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6 mb-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Strengths Profile</h2>
-            
+
             <p className="mb-6">
               Your assessment reveals your natural tendencies across four key dimensions. This profile 
               shows how you naturally approach challenges, collaborate with others, and engage in 
               your work. The AllStarTeams workshop activities will help you explore these dimensions in depth.
             </p>
-            
+
             {/* Yellow Star */}
             <div className="flex justify-center mb-2">
               <div className="w-8 h-8 flex items-center justify-center">
@@ -218,7 +218,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 </svg>
               </div>
             </div>
-            
+
             <div className="flex justify-center items-center w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
@@ -229,7 +229,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 />
               </div>
             </div>
-            
+
             {/* Imagination Legend */}
             <div className="flex justify-center mb-4">
               <div className="flex items-center">
@@ -252,10 +252,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                   const feeling = Number(effectiveData?.feeling) || 0;
                   const acting = Number(effectiveData?.acting) || 0;
                   const total = thinking + planning + feeling + acting;
-                  
+
                   // Calculate percentages
                   const normalizeValue = (value: number) => total === 0 ? 25 : Math.round((value / total) * 100);
-                  
+
                   // Create and sort data
                   return [
                     { name: 'Thinking', value: thinking, percentage: normalizeValue(thinking), color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
@@ -275,13 +275,13 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 }
               </div>
             </div>
-            
+
             <div className="flex justify-end">
               <Button 
                 onClick={continueToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                Continue to Your Star Card <ArrowRight className="h-4 w-4 ml-2" />
+                Next: Your Star Card <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>

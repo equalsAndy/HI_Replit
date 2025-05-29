@@ -676,7 +676,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           ) : null}
-        
+
           <div className="flex justify-center mt-8">
             <Button 
               onClick={() => {

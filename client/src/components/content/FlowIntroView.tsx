@@ -53,13 +53,13 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   // Track video progress
   const startProgressTracking = (playerInstance: any) => {
     let interval: NodeJS.Timeout;
-    
+
     const trackProgress = () => {
       if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
         try {
           const currentTime = playerInstance.getCurrentTime();
           const duration = playerInstance.getDuration();
-          
+
           if (duration > 0) {
             const percentage = (currentTime / duration) * 100;
             handleVideoProgress(percentage);
@@ -72,7 +72,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
 
     // Track progress every second
     interval = setInterval(trackProgress, 1000);
-    
+
     // Clean up interval when component unmounts
     return () => {
       if (interval) {
@@ -85,7 +85,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   const handleVideoProgress = (percentage: number) => {
     setVideoProgress(percentage);
     updateVideoProgress(stepId, percentage);
-    
+
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
@@ -126,7 +126,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
-      
+
       <div className="aspect-w-16 aspect-h-9 mb-4">
         <div className="w-full h-80 rounded border border-gray-200 bg-black">
           <div 
@@ -136,7 +136,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
           />
         </div>
       </div>
-      
+
       <div className="flex flex-col md:flex-row gap-6 mb-4">
         <div className="md:w-1/2">
           <div className="prose">
@@ -155,40 +155,40 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
             </ul>
           </div>
         </div>
-        
+
         <div className="md:w-1/2">
         </div>
       </div>
-      
+
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
         <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100">
           <h3 className="text-indigo-700 font-medium mb-1 text-sm">Clear Goals</h3>
           <p className="text-xs">You know exactly what you need to accomplish and can measure your progress.</p>
         </div>
-        
+
         <div className="bg-purple-50 p-3 rounded-lg border border-purple-100">
           <h3 className="text-purple-700 font-medium mb-1 text-sm">Challenge & Skill Balance</h3>
           <p className="text-xs">The task is challenging enough to engage you but not so difficult that it causes anxiety.</p>
         </div>
-        
+
         <div className="bg-teal-50 p-3 rounded-lg border border-teal-100">
           <h3 className="text-teal-700 font-medium mb-1 text-sm">Immediate Feedback</h3>
           <p className="text-xs">You can quickly tell how well you're doing, allowing for adjustment in real-time.</p>
         </div>
-        
+
         <div className="bg-amber-50 p-3 rounded-lg border border-amber-100">
           <h3 className="text-amber-700 font-medium mb-1 text-sm">Deep Concentration</h3>
           <p className="text-xs">Your attention is completely focused on the task at hand, with no distractions.</p>
         </div>
       </div>
-      
+
       <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-4">
         <p className="text-blue-800 text-sm">
           In the upcoming assessment, you'll answer questions to determine your flow profile - how often you experience flow, 
           what triggers it for you, and how to create more flow experiences in your work.
         </p>
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={handleNext}
