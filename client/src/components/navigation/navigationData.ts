@@ -11,7 +11,6 @@ export const imaginalAgilityNavigationSections: NavigationSection[] = [
     id: '1',
     title: 'Imaginal Agility Program',
     path: '/imaginal-agility/intro',
-    icon: LightbulbIcon,
     totalSteps: 6,
     completedSteps: 0,
     steps: [
@@ -88,7 +87,6 @@ export const navigationSections: NavigationSection[] = [
     id: '1', 
     title: 'AllStarTeams Introduction', 
     path: '/intro/video',
-    icon: Book,
     totalSteps: 1,
     completedSteps: 0,
     steps: [
@@ -99,7 +97,6 @@ export const navigationSections: NavigationSection[] = [
     id: '2', 
     title: 'DISCOVER YOUR STAR STRENGTHS', 
     path: '/discover-strengths',
-    icon: Book,
     totalSteps: 4,
     completedSteps: 0,
     steps: [
@@ -113,7 +110,6 @@ export const navigationSections: NavigationSection[] = [
     id: '3', 
     title: 'IDENTIFY YOUR FLOW', 
     path: '/find-your-flow',
-    icon: Book,
     totalSteps: 4,
     completedSteps: 0,
     steps: [
@@ -127,7 +123,6 @@ export const navigationSections: NavigationSection[] = [
     id: '4', 
     title: 'VISUALIZE FUTURE GROWTH', 
     path: '/visualize-potential',
-    icon: Book,
     totalSteps: 5,
     completedSteps: 0,
     steps: [
@@ -142,7 +137,6 @@ export const navigationSections: NavigationSection[] = [
     id: '5', 
     title: 'NEXT STEPS', 
     path: '/next-steps',
-    icon: Download,
     totalSteps: 4,
     completedSteps: 0,
     locked: false,
@@ -157,7 +151,6 @@ export const navigationSections: NavigationSection[] = [
     id: '6', 
     title: 'MORE INFORMATION', 
     path: '/more-information',
-    icon: Brain,
     totalSteps: 4,
     completedSteps: 0,
     locked: false,
