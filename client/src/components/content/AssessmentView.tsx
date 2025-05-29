@@ -144,50 +144,72 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
       {!isAssessmentComplete ? (
         // Show introduction and start button if assessment is not complete
         <div className="prose max-w-none">
-          <p className="text-lg mb-6">
-            The AllStarTeams Strengths Assessment helps you discover your unique strengths profile across four key dimensions: Thinking, Acting, Feeling, and Planning.
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div className="bg-blue-50 rounded-lg p-5 shadow-sm">
-              <h3 className="font-medium text-blue-800 mb-3 text-lg">About this assessment</h3>
-              <ul className="text-blue-700 space-y-3">
-                <li className="flex items-start">
-                  <ClipboardCheck className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>22 questions about how you approach work and collaboration</span>
-                </li>
-                <li className="flex items-start">
-                  <ClipboardCheck className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Takes approximately 10-15 minutes to complete</span>
-                </li>
-                <li className="flex items-start">
-                  <ClipboardCheck className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Rank options based on how well they describe you</span>
-                </li>
-                <li className="flex items-start">
-                  <ClipboardCheck className="h-5 w-5 mr-2 mt-0.5 flex-shrink-0" />
-                  <span>Creates your personal Star Card showing your strengths distribution</span>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="bg-amber-50 rounded-lg p-5 shadow-sm">
-              <h3 className="font-medium text-amber-800 mb-3 text-lg">Instructions</h3>
-              <p className="text-amber-700">
-                For each scenario, drag and drop the options to rank them from most like you (1) to least 
-                like you (4). There are no right or wrong answers - just be honest about your preferences.
-              </p>
-            </div>
+          <div className="bg-blue-50 rounded-lg p-6 shadow-sm mb-8">
+            <h3 className="font-medium text-blue-800 mb-4 text-xl">About this assessment</h3>
+            <p className="text-blue-700 mb-4">
+              The AllStarTeams Strengths Assessment helps you discover your unique strengths profile across five key dimensions:
+              Thinking, Acting, Feeling, Planning, and Imagining.
+            </p>
+            <ul className="text-blue-700 space-y-2">
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>22 short questions about how you approach work and collaboration</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Takes approximately 10–15 minutes to complete</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>You'll order your responses from most like you (1) to least like you (4)</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Generates your personal Star Card—a visual snapshot of your strengths</span>
+              </li>
+            </ul>
           </div>
           
-          <div className="bg-green-50 rounded-lg p-5 shadow-sm mb-8">
-            <h3 className="font-medium text-green-800 mb-3 text-lg flex items-center">
+          <div className="bg-amber-50 rounded-lg p-6 shadow-sm mb-8">
+            <h3 className="font-medium text-amber-800 mb-4 text-xl">Instructions</h3>
+            <p className="text-amber-700 mb-4">
+              For each scenario, drag and drop the four options to rank them from most like you (1) to least like you (4).
+            </p>
+            <ul className="text-amber-700 space-y-2">
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>There are no right or wrong answers—just be honest about what feels true to you.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="bg-green-50 rounded-lg p-6 shadow-sm mb-8">
+            <h3 className="font-medium text-green-800 mb-4 text-xl flex items-center">
               <CheckCircle className="h-5 w-5 mr-2" /> What you'll get
             </h3>
-            <p className="text-green-700">
-              Your personal Star Card showing your unique distribution of strengths across the four 
-              dimensions: Thinking, Acting, Feeling, and Planning. This will guide your learning journey
-              through the rest of the AllStarTeams program.
+            <p className="text-green-700 mb-4">
+              Your personal Star Card, showing how your four core strengths are distributed and ordered.
+            </p>
+            <ul className="text-green-700 space-y-2">
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Think, Act, Feel, and Plan are placed on the card based on how you use them.</span>
+              </li>
+              <li className="flex items-start">
+                <span className="mr-2">•</span>
+                <span>Imagination appears at the apex, as your limitless fifth strength.</span>
+              </li>
+            </ul>
+            <p className="text-green-700 mt-4">
+              Later in the course, you'll complete your Star Card by adding your Flow State Qualities, making it a powerful tool for personal and team development.
             </p>
           </div>
           
