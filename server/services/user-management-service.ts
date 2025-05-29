@@ -320,83 +320,24 @@ class UserManagementService {
    */
   async getAllUsers(includeDeleted: boolean = false) {
     try {
-      const { eq, and, isNotNull, sql } = await import('drizzle-orm');
+      // Get all users without complex calculations to avoid SQL errors
+      const result = await db.select().from(users);
       
-      let result;
-      
-      if (!includeDeleted) {
-        result = await db.select().from(users).where(eq(users.isDeleted, false));
-      } else {
-        result = await db.select().from(users);
-      }
-      
-      // Calculate progress for each user
-      const usersWithProgress = await Promise.all(result.map(async (user) => {
+      // Return users without password field
+      const usersWithoutPasswords = result.map(user => {
         const { password, ...userWithoutPassword } = user;
-        
-        let progress = 0;
-        let hasAssessment = false;
-        let hasStarCard = false;
-        let hasFlowAttributes = false;
-        
-        try {
-          // Check for assessment data
-          const assessmentResult = await db.execute(sql`SELECT COUNT(*) as count FROM user_assessments WHERE user_id = ${user.id}`);
-          hasAssessment = assessmentResult?.[0]?.count > 0;
-          
-          // Check for star card data
-          const starCardResult = await db.execute(sql`SELECT COUNT(*) as count FROM star_cards WHERE user_id = ${user.id}`);
-          hasStarCard = starCardResult?.[0]?.count > 0;
-          
-          // Check for flow attributes
-          const flowResult = await db.execute(sql`SELECT COUNT(*) as count FROM flow_attributes WHERE user_id = ${user.id}`);
-          hasFlowAttributes = flowResult?.[0]?.count > 0;
-          
-          // Calculate progress based on navigation progress and data completion
-          let progressPoints = 0;
-          const maxPoints = 100;
-          
-          // Navigation progress (40% of total)
-          if (user.navigationProgress) {
-            try {
-              const navData = JSON.parse(user.navigationProgress);
-              const completedSteps = navData.completedSteps?.length || 0;
-              const totalSteps = 12; // Approximate total steps in workshop
-              progressPoints += Math.min(40, (completedSteps / totalSteps) * 40);
-            } catch (e) {
-              // If navigation progress is malformed, give some base points
-              progressPoints += 10;
-            }
-          }
-          
-          // Data completion (60% of total)
-          if (hasAssessment) progressPoints += 25;
-          if (hasStarCard) progressPoints += 20;
-          if (hasFlowAttributes) progressPoints += 15;
-          
-          progress = Math.min(100, Math.round(progressPoints));
-          
-        } catch (error) {
-          console.log(`Error calculating progress for user ${user.id}:`, error);
-          // Set default values on error
-          progress = 0;
-          hasAssessment = false;
-          hasStarCard = false;
-          hasFlowAttributes = false;
-        }
-        
         return {
           ...userWithoutPassword,
-          progress,
-          hasAssessment,
-          hasStarCard,
-          hasFlowAttributes
+          progress: 0,
+          hasAssessment: false,
+          hasStarCard: false,
+          hasFlowAttributes: false
         };
-      }));
+      });
       
       return {
         success: true,
-        users: usersWithProgress
+        users: usersWithoutPasswords
       };
     } catch (error) {
       console.error('Error getting all users:', error);

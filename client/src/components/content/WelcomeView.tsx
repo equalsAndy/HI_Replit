@@ -36,21 +36,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   const description = isImaginalAgility
     ? "Welcome to the Imaginal Agility workshop! This program will help you develop strategic imagination and navigate the Triple Challenge facing organizations today."
-    : `PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)
-This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
-• Discover your Star Strengths
-• Identify your Flow State
-• Visualize your Professional Growth
-
-Your Takeaways:
-• A personalized Digital Star Card
-• A personalized AI Holistic Profile Report
-• Readiness for High-Impact Teamwork Practice
-
-PART II: TEAMWORK PRACTICE (FACILITATED)
-Join your teammates in a guided session where you'll bring your insights to life.
-
-Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.`;
+    : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
   const videoId = isImaginalAgility ? "JxdhWd8agmE" : "lcjao1ob55A";
 
