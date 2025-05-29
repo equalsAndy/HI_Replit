@@ -18,6 +18,14 @@ import FinalReflectionView from '../FinalReflectionView';
 import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
+import DownloadStarCardView from './DownloadStarCardView';
+import HolisticReportView from './HolisticReportView';
+import GrowthPlanView from './GrowthPlanView';
+import TeamWorkshopPrepView from './TeamWorkshopPrepView';
+import MethodologyView from './MethodologyView';
+import NeuroscienceView from './NeuroscienceView';
+import CompendiumView from './CompendiumView';
+import BackgroundView from './BackgroundView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -211,6 +219,80 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'your-star-card':
       return (
         <YourStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    // NEXT STEPS section
+    case 'download-star-card':
+      return (
+        <DownloadStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'holistic-report':
+      return (
+        <HolisticReportView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'growth-plan':
+      return (
+        <GrowthPlanView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'team-workshop-prep':
+      return (
+        <TeamWorkshopPrepView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    // MORE INFORMATION section
+    case 'methodology':
+      return (
+        <MethodologyView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'neuroscience':
+      return (
+        <NeuroscienceView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'compendium':
+      return (
+        <CompendiumView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'background':
+      return (
+        <BackgroundView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

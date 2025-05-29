@@ -1,6 +1,7 @@
 import { 
   StarIcon, BarChartIcon, Activity, Sparkles, BookOpen,
-  LightbulbIcon, Braces, Users, Puzzle, Book, Zap, PenTool
+  LightbulbIcon, Braces, Users, Puzzle, Book, Zap, PenTool,
+  Download, Plan, Brain
 } from 'lucide-react';
 import { NavigationSection } from '@/shared/types';
 
@@ -87,7 +88,7 @@ export const navigationSections: NavigationSection[] = [
     id: '1', 
     title: 'AllStarTeams Introduction', 
     path: '/intro/video',
-    icon: Book, // Book icon for video content
+    icon: Book,
     totalSteps: 1,
     completedSteps: 0,
     steps: [
@@ -96,58 +97,75 @@ export const navigationSections: NavigationSection[] = [
   },
   { 
     id: '2', 
-    title: 'Discover your Strengths', 
+    title: 'DISCOVER YOUR STAR STRENGTHS', 
     path: '/discover-strengths',
-    icon: BarChartIcon,
+    icon: Book,
     totalSteps: 4,
     completedSteps: 0,
     steps: [
-      { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning', contentKey: 'intro-strengths', icon: Book, autoPlay: true, minWatchPercent: 1 },
-      { id: '2-2', label: 'Strengths Assessment', path: '/discover-strengths/assessment', type: 'Assessment', contentKey: 'strengths-assessment', icon: Zap, isModal: true },
-      { id: '2-3', label: 'Star Card Preview', path: '/discover-strengths/star-card', type: 'Learning', contentKey: 'star-card-preview', icon: Book, autoPlay: true, minWatchPercent: 1 },
-      { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflection', type: 'Reflection', contentKey: 'strengths-reflection', icon: PenTool, requireAllAnswers: true }
+      { id: '2-1', label: 'Introduction to ...', path: '/discover-strengths/intro', type: 'Learning', contentKey: 'intro-strengths', icon: Book, autoPlay: true, minWatchPercent: 1 },
+      { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/discover-strengths/assessment', type: 'Assessment', contentKey: 'strengths-assessment', icon: Activity, isModal: true },
+      { id: '2-3', label: 'Review Your Star Card', path: '/discover-strengths/star-card', type: 'Learning', contentKey: 'star-card-preview', icon: Book, autoPlay: true, minWatchPercent: 1 },
+      { id: '2-4', label: 'Strength Reflection', path: '/discover-strengths/reflection', type: 'Reflection', contentKey: 'strengths-reflection', icon: PenTool, requireAllAnswers: true }
     ]
   },
   { 
     id: '3', 
-    title: 'Find your Flow', 
+    title: 'IDENTIFY YOUR FLOW', 
     path: '/find-your-flow',
-    icon: Activity,
+    icon: Book,
     totalSteps: 4,
     completedSteps: 0,
     steps: [
       { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', contentKey: 'intro-flow', icon: Book, autoPlay: true, minWatchPercent: 1 },
-      { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow/assessment', type: 'Assessment', contentKey: 'flow-assessment', icon: Zap, isModal: true },
+      { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow/assessment', type: 'Assessment', contentKey: 'flow-assessment', icon: Activity, isModal: true },
       { id: '3-3', label: 'Rounding Out', path: '/find-your-flow/rounding-out', type: 'Learning', contentKey: 'rounding-out', icon: Book, autoPlay: true, minWatchPercent: 1, requireAllInputs: true },
-      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Assessment', contentKey: 'flow-star-card', icon: Zap, requireExactWords: 4 }
+      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Assessment', contentKey: 'flow-star-card', icon: Activity, requireExactWords: 4 }
     ]
   },
   { 
     id: '4', 
-    title: 'Visualize your Potential', 
+    title: 'VISUALIZE FUTURE GROWTH', 
     path: '/visualize-potential',
-    icon: Sparkles,
+    icon: Book,
     totalSteps: 5,
     completedSteps: 0,
     steps: [
       { id: '4-1', label: 'Ladder of Well-being', path: '/visualize-potential/wellbeing', type: 'Learning', contentKey: 'ladder-wellbeing', icon: Book, autoPlay: true, minWatchPercent: 1, hasSliders: true },
-      { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning', contentKey: 'wellbeing-reflections', icon: Book, requireAllAnswers: true },
-      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Learning', contentKey: 'visualizing-you', icon: Book },
-      { id: '4-4', label: 'Your Future Self', path: '/visualize-potential/future-self', type: 'Reflection', contentKey: 'future-self', icon: PenTool, autoPlay: true, minWatchPercent: 1, requireAllAnswers: true },
-      { id: '4-5', label: 'Final Reflection', path: '/visualize-potential/your-statement', type: 'Reflection', contentKey: 'final-reflection', icon: PenTool, requireAllAnswers: true }
+      { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning', contentKey: 'wellbeing-reflections', icon: PenTool, requireAllAnswers: true },
+      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Learning', contentKey: 'visualizing-you', icon: Activity },
+      { id: '4-4', label: 'Your Future Self', path: '/visualize-potential/future-self', type: 'Reflection', contentKey: 'future-self', icon: Book, autoPlay: true, minWatchPercent: 1, requireAllAnswers: true },
+      { id: '4-5', label: 'Final Reflection', path: '/visualize-potential/your-statement', type: 'Reflection', contentKey: 'final-reflection', icon: Book, requireAllAnswers: true }
     ]
   },
   { 
     id: '5', 
-    title: 'Resources', 
-    path: '/resources',
-    icon: BookOpen,
-    totalSteps: 2,
+    title: 'NEXT STEPS', 
+    path: '/next-steps',
+    icon: Download,
+    totalSteps: 4,
     completedSteps: 0,
-    locked: false, // Always unlocked
+    locked: false,
     steps: [
-      { id: '5-1', label: 'Your Star Card', path: '/resources/star-card', type: 'Learning', contentKey: 'your-star-card', icon: StarIcon, downloadOnly: true },
-      { id: '5-2', label: 'Your Star Report', path: '/resources/summary', type: 'Learning', contentKey: 'star-report', icon: Book }
+      { id: '5-1', label: 'Download your Star Card', path: '/next-steps/star-card', type: 'Learning', contentKey: 'download-star-card', icon: Download, downloadOnly: true },
+      { id: '5-2', label: 'Your Holistic Report', path: '/next-steps/holistic-report', type: 'Learning', contentKey: 'holistic-report', icon: Download },
+      { id: '5-3', label: 'Growth Plan (coming soon)', path: '/next-steps/growth-plan', type: 'Learning', contentKey: 'growth-plan', icon: Plan },
+      { id: '5-4', label: 'Team Workshop Prep', path: '/next-steps/team-prep', type: 'Learning', contentKey: 'team-workshop-prep', icon: Activity }
+    ]
+  },
+  { 
+    id: '6', 
+    title: 'MORE INFORMATION', 
+    path: '/more-information',
+    icon: Brain,
+    totalSteps: 4,
+    completedSteps: 0,
+    locked: false,
+    steps: [
+      { id: '6-1', label: 'Methodology', path: '/more-information/methodology', type: 'Learning', contentKey: 'methodology', icon: Brain },
+      { id: '6-2', label: 'Neuroscience', path: '/more-information/neuroscience', type: 'Learning', contentKey: 'neuroscience', icon: Brain },
+      { id: '6-3', label: 'Compendium', path: '/more-information/compendium', type: 'Learning', contentKey: 'compendium', icon: Brain },
+      { id: '6-4', label: 'Background', path: '/more-information/background', type: 'Learning', contentKey: 'background', icon: Brain }
     ]
   }
 ];
