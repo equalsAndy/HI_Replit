@@ -886,6 +886,14 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
                 ))
               }
             </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center">
+                <div className="w-5 h-5 rounded mr-3 bg-gradient-to-r from-purple-400 to-pink-400"></div>
+                <span className="font-semibold">Imagination</span>
+                <span className="ml-3 text-gray-600 text-sm"> - your limitless potential capacity that brings the other core dimensions into focus.</span>
+              </div>
+            </div>
           </div>
         </>
       )}
