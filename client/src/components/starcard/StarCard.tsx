@@ -1,8 +1,10 @@
-import React, { useState, useRef, useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { downloadElementAsImage } from "@/lib/html2canvas";
+import React, { useState, useRef, useMemo, memo } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { FlowAttribute, ProfileData, QuadrantData } from '@shared/schema';
+import { downloadElementAsImage } from '@/lib/html2canvas';
 import { UserIcon } from "lucide-react";
-import { QuadrantData } from "@shared/schema";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
 import cloudImage from '@assets/starcardcloudimage.png';
@@ -27,9 +29,9 @@ const getAttributeColor = (text: string): string => {
     'rgb(236, 72, 153)',  // Bright Pink
     'rgb(16, 185, 129)',  // Emerald
   ];
-  
+
   if (!text) return colors[0]; // Default to green if no text
-  
+
   // Create a more consistent hash for better color distribution
   let hash = 0;
   for (let i = 0; i < text.length; i++) {
@@ -37,7 +39,7 @@ const getAttributeColor = (text: string): string => {
     hash = ((hash << 5) - hash) + char;
     hash = hash & hash; // Convert to 32bit integer
   }
-  
+
   return colors[Math.abs(hash) % colors.length];
 };
 
@@ -87,7 +89,7 @@ type QuadrantInfo = {
   position: number;
 };
 
-export default function StarCard({ 
+function StarCard({ 
   // Support both object-based and direct props
   profile, 
   quadrantData,
@@ -123,9 +125,9 @@ export default function StarCard({
         const profileResponse = await fetch('/api/user/profile', {
           credentials: 'include'
         });
-        
+
         console.log('StarCard: Profile response status:', profileResponse.status);
-        
+
         if (profileResponse.ok) {
           const data = await profileResponse.json();
           console.log('StarCard: Fetched user profile data:', data);
@@ -139,17 +141,17 @@ export default function StarCard({
           quadrantData.thinking > 0 || quadrantData.acting > 0 || 
           quadrantData.feeling > 0 || quadrantData.planning > 0
         );
-        
+
         if (!hasValidScores && (!thinking || !acting || !feeling || !planning)) {
           console.log('StarCard: Fetching assessment data...');
           const assessmentResponse = await fetch('/api/starcard', {
             credentials: 'include'
           });
-          
+
           if (assessmentResponse.ok) {
             const assessmentData = await assessmentResponse.json();
             console.log('StarCard: Fetched assessment data:', assessmentData);
-            
+
             if (assessmentData.success) {
               setFetchedAssessmentData({
                 thinking: assessmentData.thinking || 0,
@@ -167,11 +169,11 @@ export default function StarCard({
           const flowResponse = await fetch('/api/flow-attributes', {
             credentials: 'include'
           });
-          
+
           if (flowResponse.ok) {
             const flowData = await flowResponse.json();
             console.log('StarCard: Fetched flow data:', flowData);
-            
+
             if (flowData.attributes && Array.isArray(flowData.attributes)) {
               const coloredAttributes = flowData.attributes.map((attr: any) => ({
                 text: attr.name || attr.text,
@@ -202,7 +204,7 @@ export default function StarCard({
         avatarUrl: userProfileData.profilePicture || undefined
       };
     }
-    
+
     return profile || {
       name: userName || 'Your Name',
       title: userTitle || '',
@@ -228,22 +230,22 @@ export default function StarCard({
   const hasScores = useMemo(() => {
     // Debug log for quadrant data
     console.log("StarCard checking scores, quadrantData:", derivedQuadrantData);
-    
+
     // Force non-zero values (fix for false zero issue)
     const thinking = Number(derivedQuadrantData.thinking) || 0;
     const acting = Number(derivedQuadrantData.acting) || 0;
     const feeling = Number(derivedQuadrantData.feeling) || 0;
     const planning = Number(derivedQuadrantData.planning) || 0;
-    
+
     // Debug the actual values being checked
     console.log("StarCard checking scores with values:", {thinking, acting, feeling, planning});
-    
+
     return thinking > 0 || acting > 0 || feeling > 0 || planning > 0;
   }, [derivedQuadrantData]);
 
   // Check if flow attributes are provided and valid (use fetched or props)
   const effectiveFlowAttributes = flowAttributes?.length > 0 ? flowAttributes : fetchedFlowAttributes;
-  
+
   const hasFlowAttributes = useMemo(() => {
     return effectiveFlowAttributes && 
            effectiveFlowAttributes.length > 0 && 
@@ -260,10 +262,10 @@ export default function StarCard({
       quadrantState: (derivedQuadrantData as any).state,
       pending
     });
-    
+
     // Override if explicitly marked as pending
     if (pending) return 'empty';
-    
+
     // First check if state is explicitly provided in props
     if (state) return state;
 
@@ -295,7 +297,7 @@ export default function StarCard({
     const acting = Number(derivedQuadrantData.acting) || 0;
     const feeling = Number(derivedQuadrantData.feeling) || 0;
     const planning = Number(derivedQuadrantData.planning) || 0;
-    
+
     // Create quadrant objects with proper typing
     const quadrants = [
       { key: 'thinking' as const, score: thinking },
@@ -315,10 +317,10 @@ export default function StarCard({
 
     // If any score is greater than 0, use them for sorting
     const hasAnyScores = quadrants.some(q => q.score > 0);
-    
+
     // If all scores are equal, maintain consistent ordering
     const allScoresEqual = quadrants.every(q => q.score === quadrants[0].score);
-    
+
     let sorted;
     if (!hasAnyScores) {
       // If no scores, use default order
@@ -374,7 +376,7 @@ export default function StarCard({
     const acting = Number(derivedQuadrantData.acting) || 0;
     const feeling = Number(derivedQuadrantData.feeling) || 0;
     const planning = Number(derivedQuadrantData.planning) || 0;
-    
+
     const total = thinking + acting + feeling + planning;
     console.log("StarCard total score calculation:", { thinking, acting, feeling, planning, total });
     return total;
@@ -384,15 +386,15 @@ export default function StarCard({
   const normalizeScore = (score: number): number => {
     // Make sure score is a number
     const numScore = Number(score) || 0;
-    
+
     // If the score is already a percentage (0-100), just return it directly
     if (numScore >= 0 && numScore <= 100 && totalScore >= 99 && totalScore <= 101) {
       return numScore;  
     }
-    
+
     // Otherwise normalize it
     if (totalScore === 0) return 0;
-    
+
     const normalized = Math.round((numScore / totalScore) * 100);
     console.log(`Normalized score: ${numScore} / ${totalScore} = ${normalized}%`);
     return normalized;
@@ -613,3 +615,5 @@ export default function StarCard({
     </div>
   );
 }
+
+export default memo(StarCard);
