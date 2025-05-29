@@ -858,13 +858,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
           </div>
 
           <div className="flex flex-col items-center my-4 w-full px-4">
-            <div className="flex items-center mb-4">
-              <div className="w-6 h-6 mr-3 flex items-center justify-center">
+            <div className="flex items-center mb-2">
+              <div className="w-6 h-6 flex items-center justify-center">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
                   <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
                 </svg>
               </div>
-              <span className="font-semibold text-lg">Imagination</span>
             </div>
             <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
               <AssessmentPieChart
@@ -897,7 +896,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center">
-                <div className="w-5 h-5 rounded mr-3 bg-gradient-to-r from-purple-400 to-pink-400"></div>
+                <div className="w-5 h-5 mr-3 flex items-center justify-center">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
+                  </svg>
+                </div>
                 <span className="font-semibold">Imagination</span>
                 <span className="ml-3 text-gray-600 text-sm"> - your limitless potential capacity that brings the other core dimensions into focus.</span>
               </div>
