@@ -448,19 +448,20 @@ export function UserManagement() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID</TableHead>
-                        <TableHead>User</TableHead>
-                        <TableHead>Username</TableHead>
-                        <TableHead>Role</TableHead>
-                        <TableHead>Test User</TableHead>
-                        <TableHead>Created</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="w-32">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
+                  <div className="min-w-[800px]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="min-w-[80px]">ID</TableHead>
+                          <TableHead className="min-w-[200px]">User</TableHead>
+                          <TableHead className="min-w-[120px]">Username</TableHead>
+                          <TableHead className="min-w-[100px]">Role</TableHead>
+                          <TableHead className="min-w-[100px]">Test User</TableHead>
+                          <TableHead className="min-w-[120px]">Created</TableHead>
+                          <TableHead className="min-w-[80px]">Status</TableHead>
+                          <TableHead className="min-w-[200px]">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
                     <TableBody>
                       {users.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
@@ -568,7 +569,8 @@ export function UserManagement() {
                         </TableRow>
                       ))}
                     </TableBody>
-                  </Table>
+                    </Table>
+                  </div>
                 </div>
               )}
             </CardContent>
