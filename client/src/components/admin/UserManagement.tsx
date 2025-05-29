@@ -41,6 +41,10 @@ interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant';
   isTestUser: boolean;
+  progress?: number;
+  hasAssessment?: boolean;
+  hasStarCard?: boolean;
+  hasFlowAttributes?: boolean;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -467,6 +471,7 @@ export function UserManagement() {
                           <TableHead className="min-w-[180px]">User</TableHead>
                           <TableHead className="w-[100px]">Username</TableHead>
                           <TableHead className="w-[80px]">Role</TableHead>
+                          <TableHead className="w-[80px]">Progress</TableHead>
                           <TableHead className="w-[80px]">Test User</TableHead>
                           <TableHead className="w-[100px]">Created</TableHead>
                           <TableHead className="w-[70px]">Status</TableHead>
@@ -501,6 +506,57 @@ export function UserManagement() {
                             <Badge className={`${getRoleBadgeColor(user.role)} text-xs px-1.5 py-0.5`}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
+                          </TableCell>
+                          <TableCell className="w-[80px]">
+                            <div className="space-y-1">
+                              <div className="flex items-center justify-between text-xs">
+                                <span className="font-medium">{user.progress || 0}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-1.5">
+                                <div 
+                                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
+                                  style={{ width: `${user.progress || 0}%` }}
+                                ></div>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                {user.hasAssessment && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Has Assessment Data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                                {user.hasStarCard && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Has Star Card Data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                                {user.hasFlowAttributes && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger>
+                                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Has Flow Attributes Data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                              </div>
+                            </div>
                           </TableCell>
                           <TableCell className="w-[80px]">
                             <Switch 

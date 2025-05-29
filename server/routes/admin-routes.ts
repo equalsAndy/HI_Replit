@@ -13,7 +13,8 @@ const router = express.Router();
  */
 router.get('/users', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
-    const result = await userManagementService.getAllUsers();
+    const includeDeleted = req.query.includeDeleted === 'true';
+    const result = await userManagementService.getAllUsers(includeDeleted);
     
     if (!result.success) {
       return res.status(500).json({ message: result.error || 'Failed to retrieve users' });

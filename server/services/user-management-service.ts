@@ -316,22 +316,85 @@ class UserManagementService {
   }
   
   /**
-   * Get all users
+   * Get all users with progress calculation
    */
-  async getAllUsers() {
+  async getAllUsers(includeDeleted: boolean = false) {
     try {
-      const result = await db.select()
-        .from(users);
+      const { eq, and, isNotNull, sql } = await import('drizzle-orm');
       
-      // Return the users without their passwords
-      const usersWithoutPasswords = result.map(user => {
+      let query = db.select().from(users);
+      
+      if (!includeDeleted) {
+        query = query.where(eq(users.isDeleted, false));
+      }
+      
+      const result = await query;
+      
+      // Calculate progress for each user
+      const usersWithProgress = await Promise.all(result.map(async (user) => {
         const { password, ...userWithoutPassword } = user;
-        return userWithoutPassword;
-      });
+        
+        try {
+          // Get user's navigation progress
+          let progress = 0;
+          if (user.navigationProgress) {
+            try {
+              const navProgress = JSON.parse(user.navigationProgress);
+              progress = navProgress.progress || 0;
+            } catch (e) {
+              progress = 0;
+            }
+          }
+          
+          // Check for assessment data
+          let hasAssessment = false;
+          try {
+            const assessments = await db.execute(sql`SELECT COUNT(*) as count FROM user_assessments WHERE user_id = ${user.id}`);
+            hasAssessment = assessments[0]?.count > 0;
+          } catch (e) {
+            hasAssessment = false;
+          }
+          
+          // Check for star card data
+          let hasStarCard = false;
+          try {
+            const starCards = await db.execute(sql`SELECT COUNT(*) as count FROM star_cards WHERE user_id = ${user.id}`);
+            hasStarCard = starCards[0]?.count > 0;
+          } catch (e) {
+            hasStarCard = false;
+          }
+          
+          // Check for flow attributes data
+          let hasFlowAttributes = false;
+          try {
+            const flowAttrs = await db.execute(sql`SELECT COUNT(*) as count FROM flow_attributes WHERE user_id = ${user.id}`);
+            hasFlowAttributes = flowAttrs[0]?.count > 0;
+          } catch (e) {
+            hasFlowAttributes = false;
+          }
+          
+          return {
+            ...userWithoutPassword,
+            progress,
+            hasAssessment,
+            hasStarCard,
+            hasFlowAttributes
+          };
+        } catch (error) {
+          console.error(`Error calculating progress for user ${user.id}:`, error);
+          return {
+            ...userWithoutPassword,
+            progress: 0,
+            hasAssessment: false,
+            hasStarCard: false,
+            hasFlowAttributes: false
+          };
+        }
+      }));
       
       return {
         success: true,
-        users: usersWithoutPasswords
+        users: usersWithProgress
       };
     } catch (error) {
       console.error('Error getting all users:', error);
