@@ -57,43 +57,43 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                            Array.isArray(flowAttributesData.attributes) && 
                            flowAttributesData.attributes.length > 0;
   const isStarCardComplete = hasStarCard && hasFlowAttributes;
-
+  
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
     // Map section-step to content keys
     const contentKeyMap: Record<string, string> = {
       // Section 1: AllStarTeams Introduction
       '1-1': 'welcome',
-
+      
       // Section 2: Discover your Strengths
       '2-1': 'intro-strengths',
       '2-2': 'strengths-assessment',
       '2-3': 'star-card-preview',
       '2-4': 'reflection',
-
+      
       // Section 3: Find your Flow
       '3-1': 'intro-flow',  // Also handled as 'intro-to-flow'
       '3-2': 'flow-assessment',
       '3-3': 'flow-rounding-out',
       '3-4': 'flow-star-card',
-
+      
       // Section 4: Visualize your Potential
       '4-1': 'wellbeing',
       '4-2': 'cantril-ladder',
       '4-3': 'visualizing-you',
       '4-4': 'future-self',
       '4-5': 'your-statement',
-
+      
       // Section 5: Resources
       '5-1': 'your-star-card',
       '5-2': 'pdf-summary',
     };
-
+    
     // Special case for intro-to-flow which has two possible content keys
     if (currentContent === 'intro-to-flow' && stepId === '3-1') {
       return 'intro-to-flow';
     }
-
+    
     return contentKeyMap[stepId] || `placeholder-${stepId}`;
   };
 
@@ -102,13 +102,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768); // 768px is typical md breakpoint
     };
-
+    
     // Set initial value
     handleResize();
-
+    
     // Add event listener
     window.addEventListener('resize', handleResize);
-
+    
     // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -128,7 +128,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <Menu className="h-5 w-5 text-gray-700" />
         </button>
       )}
-
+      
       {/* Overlay for mobile when drawer is open */}
       {isMobile && drawerOpen && (
         <div 
@@ -137,7 +137,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           aria-hidden="true"
         />
       )}
-
+      
       {/* Navigation Drawer */}
       <div className={cn(
         "bg-white shadow-sm transition-all duration-300 ease-in-out border-r border-gray-200",
@@ -164,7 +164,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         >
           {drawerOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
-
+        
         {/* Navigation Content */}
         <div className="p-4 h-full overflow-y-auto">
           {/* Logo */}
@@ -175,17 +175,17 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
               className="h-12 w-auto"
             />
           </div>
-
+          
           {/* Navigation Sections */}
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
                 {/* Section Header */}
-                {drawerOpen && (
-                  <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2">
+                  {drawerOpen && (
                     <>
                       <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
-
+                      
                       {/* Progress indicator for sections other than Resources */}
                       {section.id !== '5' && (
                         <span className="ml-auto text-xs text-gray-500">
@@ -193,9 +193,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                         </span>
                       )}
                     </>
-                  </div>
-                )}
-
+                  )}
+                </div>
+                
                 {/* Steps List */}
                 {drawerOpen && (
                   <ul className="pl-7 space-y-1">
@@ -203,14 +203,14 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
-
+                      
                       // Resources section items never show checkmarks
                       const isCompleted = isResourceSection ? false : completedSteps.includes(step.id);
-
+                      
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
-
+                      
                       return (
                         <TooltipProvider key={step.id}>
                           <Tooltip>
@@ -244,9 +244,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
                                 </div>
-
+                                
                                 <span className="flex-1">{step.label}</span>
-
+                                
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
                                   {step.type === 'Learning' && (

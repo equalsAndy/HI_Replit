@@ -85,12 +85,12 @@ export const imaginalAgilityNavigationSections: NavigationSection[] = [
 export const navigationSections: NavigationSection[] = [
   { 
     id: '1', 
-    title: '', 
+    title: 'AllStarTeams Introduction', 
     path: '/intro/video',
     totalSteps: 1,
     completedSteps: 0,
     steps: [
-      { id: '1-1', label: 'Welcome', path: '/intro/video', type: 'Learning', contentKey: 'welcome', icon: Book, autoPlay: true, minWatchPercent: 1 }
+      { id: '1-1', label: 'Introduction', path: '/intro/video', type: 'Learning', contentKey: 'welcome', icon: Book, autoPlay: true, minWatchPercent: 1 }
     ]
   },
   { 
