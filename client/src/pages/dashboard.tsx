@@ -211,7 +211,7 @@ const DashboardPage: React.FC = () => {
                 </CardHeader>
                 <CardContent>
                   <Button asChild>
-                    <Link href="/admin">Access Admin Panel</Link>
+                    <Link href="/admin/dashboard">Access Admin Panel</Link>
                   </Button>
                 </CardContent>
               </Card>

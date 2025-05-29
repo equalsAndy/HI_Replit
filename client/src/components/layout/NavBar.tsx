@@ -261,7 +261,7 @@ export function NavBar() {
                   variant="ghost" 
                   size="sm" 
                   className="rounded-md text-white hover:bg-yellow-400"
-                  onClick={() => navigate('/admin')}
+                  onClick={() => navigate('/admin/dashboard')}
                 >
                   Admin
                 </Button>
