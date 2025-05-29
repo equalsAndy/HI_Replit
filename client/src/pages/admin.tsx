@@ -228,6 +228,80 @@ const AdminPage: React.FC = () => {
     }
   };
 
+  // Handle deleting user data (keeping profile and password)
+  const handleDeleteUserData = async (user: User) => {
+    if (!confirm(`Are you sure you want to delete all assessment and progress data for ${user.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/data`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'User data deleted',
+          description: `All assessment and progress data for ${user.name} has been deleted.`,
+        });
+        fetchUsers(); // Refresh the users list
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: data.message || data.error || 'Failed to delete user data',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting user data:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete user data. Please try again later.',
+      });
+    }
+  };
+
+  // Handle deleting a user completely
+  const handleDeleteUser = async (user: User) => {
+    if (!confirm(`Are you sure you want to completely delete the user account for ${user.name}? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'User deleted',
+          description: `User account for ${user.name} has been completely deleted.`,
+        });
+        fetchUsers(); // Refresh the users list
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: data.message || data.error || 'Failed to delete user',
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'Failed to delete user. Please try again later.',
+      });
+    }
+  };
+
   // Handle creating a new invite
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -375,15 +449,33 @@ const AdminPage: React.FC = () => {
                               <TableCell>{user.role}</TableCell>
                               <TableCell>{user.organization || 'N/A'}</TableCell>
                               <TableCell>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-3 text-xs"
-                                  onClick={() => handleEditUser(user)}
-                                >
-                                  <PencilIcon className="h-3 w-3 mr-1" />
-                                  Edit
-                                </Button>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                    onClick={() => handleEditUser(user)}
+                                  >
+                                    <PencilIcon className="h-3 w-3 mr-1" />
+                                    Edit
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                    onClick={() => handleDeleteUserData(user)}
+                                  >
+                                    Delete Data
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
+                                    onClick={() => handleDeleteUser(user)}
+                                  >
+                                    Delete User
+                                  </Button>
+                                </div>
                               </TableCell>
                             </TableRow>
                           ))
