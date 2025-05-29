@@ -181,20 +181,23 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
                 {/* Section Header */}
-                <div className="flex items-center space-x-2">
-                  {drawerOpen && (
-                    <>
-                      <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
-                      
-                      {/* Progress indicator for sections other than Resources */}
-                      {section.id !== '5' && (
-                        <span className="ml-auto text-xs text-gray-500">
-                          {section.completedSteps}/{section.totalSteps}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
+                {/* Hide section title for AllStarTeams Introduction (section 1) */}
+                {section.id !== '1' && (
+                  <div className="flex items-center space-x-2">
+                    {drawerOpen && (
+                      <>
+                        <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
+                        
+                        {/* Progress indicator for sections other than More Information (section 5) */}
+                        {section.id !== '5' && (
+                          <span className="ml-auto text-xs text-gray-500">
+                            {section.completedSteps}/{section.totalSteps}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
                 
                 {/* Steps List */}
                 {drawerOpen && (
