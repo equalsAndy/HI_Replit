@@ -339,8 +339,9 @@ export function UserManagement() {
   // Mutation for toggling test user status
   const toggleTestUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await apiRequest('PUT', `/api/admin/users/${userId}/test-status`);
-      return response.json();
+      return await apiRequest(`/api/admin/users/${userId}/test-status`, {
+        method: 'PUT',
+      });
     },
     onSuccess: (data) => {
       const isNowTestUser = data.user?.isTestUser;
