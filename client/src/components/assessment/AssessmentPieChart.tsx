@@ -15,7 +15,7 @@ const COLORS = {
   thinking: 'rgb(1, 162, 82)'     // Green
 };
 
-// Custom bold label renderer
+// Custom bold label renderer for outer labels
 const renderCustomizedLabel = (props: any) => {
   const { cx, cy, midAngle, innerRadius, outerRadius, percent, index, name, value, payload } = props;
   const RADIAN = Math.PI / 180;
@@ -32,11 +32,37 @@ const renderCustomizedLabel = (props: any) => {
       dominantBaseline="central"
       style={{ 
         fontWeight: 600,
-        fontSize: window.innerWidth >= 1024 ? '16px' : '14px',
+        fontSize: window.innerWidth >= 1024 ? '20px' : '17.5px',
         filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
       }}
     >
       {`${name}: ${value}%`}
+    </text>
+  );
+};
+
+// Inner label renderer for smaller screens
+const renderInnerLabel = (props: any) => {
+  const { cx, cy, midAngle, innerRadius, outerRadius, name } = props;
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+  return (
+    <text 
+      x={x} 
+      y={y} 
+      fill="white"
+      textAnchor="middle" 
+      dominantBaseline="central"
+      style={{ 
+        fontWeight: 700,
+        fontSize: '14px',
+        filter: 'drop-shadow(0px 0px 1px black)' // Black outline for better contrast
+      }}
+    >
+      {name}
     </text>
   );
 };
@@ -83,8 +109,8 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             data={chartData}
             cx="50%"
             cy="50%"
-            labelLine={true}
-            label={renderCustomizedLabel}
+            labelLine={window.innerWidth >= 1024}
+            label={window.innerWidth >= 1024 ? renderCustomizedLabel : renderInnerLabel}
             outerRadius={window.innerWidth >= 1024 ? "78%" : "70.2%"}
             fill="#8884d8"
             dataKey="value"
