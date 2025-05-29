@@ -454,7 +454,6 @@ export function UserManagement() {
                         <TableHead>ID</TableHead>
                         <TableHead>User</TableHead>
                         <TableHead>Username</TableHead>
-                        <TableHead>Organization</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Test User</TableHead>
                         <TableHead>Created</TableHead>
@@ -484,18 +483,6 @@ export function UserManagement() {
                             </div>
                           </TableCell>
                           <TableCell>{user.username}</TableCell>
-                          <TableCell>
-                            {user.organization || user.jobTitle ? (
-                              <div>
-                                <p>{user.organization || 'N/A'}</p>
-                                {user.jobTitle && (
-                                  <p className="text-xs text-muted-foreground">{user.jobTitle}</p>
-                                )}
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">Not specified</span>
-                            )}
-                          </TableCell>
                           <TableCell>
                             <Badge className={getRoleBadgeColor(user.role)}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
