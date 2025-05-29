@@ -32,7 +32,7 @@ const renderCustomizedLabel = (props: any) => {
       dominantBaseline="central"
       style={{ 
         fontWeight: 600,
-        fontSize: '14px',
+        fontSize: '21px',
         filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
       }}
     >
@@ -85,7 +85,7 @@ export function AssessmentPieChart({ thinking, acting, feeling, planning }: Asse
             cy="50%"
             labelLine={true}
             label={renderCustomizedLabel}
-            outerRadius={window.innerWidth >= 1024 ? "65%" : "58.5%"}
+            outerRadius={window.innerWidth >= 1024 ? "78%" : "70.2%"}
             fill="#8884d8"
             dataKey="value"
           >
