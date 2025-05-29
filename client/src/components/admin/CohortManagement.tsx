@@ -443,7 +443,7 @@ function AddCohortDialog({ open, onOpenChange, onSuccess }: AddCohortDialogProps
                   <SelectValue placeholder="Select facilitator" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {facilitators.map((facilitator) => (
                     <SelectItem key={facilitator.id} value={String(facilitator.id)}>
                       {facilitator.name}
@@ -657,7 +657,7 @@ function EditCohortDialog({ cohort, open, onOpenChange, onSuccess }: EditCohortD
                   <SelectValue placeholder="Select facilitator" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Unassigned</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
                   {facilitators.map((facilitator) => (
                     <SelectItem key={facilitator.id} value={String(facilitator.id)}>
                       {facilitator.name}
