@@ -85,6 +85,61 @@ const editUserSchema = z.object({
 
 type EditUserFormValues = z.infer<typeof editUserSchema>;
 
+// Password Input Component
+const PasswordInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  ({ className, ...props }, ref) => {
+    const [showPassword, setShowPassword] = useState(false);
+
+    return (
+      <div className="relative">
+        <Input
+          type={showPassword ? 'text' : 'password'}
+          className={className}
+          {...props}
+          ref={ref}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute right-2 top-1/2 -translate-y-1/2"
+          type="button"
+        >
+          {showPassword ? (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-5 w-5"
+            >
+              <path
+                fillRule="evenodd"
+                d="M3.28 2.22a.75.75 0 00-1.06 1.06l14.5 14.5a.75.75 0 101.06-1.06l-1.72-1.72a4.5 4.5 0 00-6.36-6.36L3.28 2.22zM14.72 5.28a4.5 4.5 0 00-6.36 6.36L3.28 17.78a.75.75 0 001.06 1.06l1.72-1.72a4.5 4.5 0 006.36-6.36L14.72 5.28zM10 7a3 3 0 110 6 3 3 0 010-6z"
+                clipRule="evenodd"
+              />
+            </svg>
+          ) : (
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-5 w-5"
+            >
+              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+              <path
+                fillRule="evenodd"
+                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14.083 10a4 4 0 10-8.166 0c0 1.017.372 2.032 1.06 2.904.243.294.487.588.733.884-.083.03-.168.061-.253.091-.666.222-1.345.413-2.034.57a1.012 1.012 0 00-.215 1.06c1.129.38 2.332.61 3.551.789a.75.75 0 00.747-.805c-.002-.246.009-.492.031-.736.151-.453.325-.903.522-1.352.108-.248.222-.495.342-.74a3.97 3.97 0 013.971 0c.12.245.234.492.342.74.196.449.37.899.522 1.352.022.244.033.49.031.736a.75.75 0 00.747.805c1.219-.179 2.422-.408 3.551-.789a1.012 1.012 0 00-.215-1.06c-.69-.157-1.368-.348-2.034-.57a1.22 1.22 0 01-.253-.091.968.968 0 01.733-.884 3.979 3.979 0 001.06-2.904z"
+                clipRule="evenodd"
+              />
+            </svg>
+          )}
+        </Button>
+      </div>
+    );
+  }
+);
+PasswordInput.displayName = "PasswordInput";
+
 export function UserManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,7 +147,7 @@ export function UserManagement() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [includeDeleted, setIncludeDeleted] = useState(false);
-  
+
   // Query for fetching users
   const { data: users = [], isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users', includeDeleted],
@@ -101,7 +156,7 @@ export function UserManagement() {
       return res.json();
     },
   });
-  
+
   // Form for creating new users
   const createForm = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
@@ -115,7 +170,7 @@ export function UserManagement() {
       generatePassword: true,
     },
   });
-  
+
   // Form for editing users
   const editForm = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
@@ -130,7 +185,7 @@ export function UserManagement() {
       setCustomPassword: false,
     },
   });
-  
+
   // Mutation for creating a new user
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormValues) => {
@@ -144,10 +199,10 @@ export function UserManagement() {
           ? `Temporary password: ${data.temporaryPassword}` 
           : 'The user has been created.',
       });
-      
+
       // Reset form
       createForm.reset();
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
@@ -159,7 +214,7 @@ export function UserManagement() {
       });
     },
   });
-  
+
   // Mutation for updating a user
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: EditUserFormValues }) => {
@@ -173,11 +228,11 @@ export function UserManagement() {
           ? `New temporary password: ${data.temporaryPassword}` 
           : 'The user has been updated.',
       });
-      
+
       // Close edit dialog
       setEditDialogOpen(false);
       setSelectedUser(null);
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
@@ -189,7 +244,7 @@ export function UserManagement() {
       });
     },
   });
-  
+
   // Mutation for deleting a user
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -201,11 +256,11 @@ export function UserManagement() {
         title: 'User deleted',
         description: 'The user has been successfully deleted.',
       });
-      
+
       // Close delete dialog
       setConfirmDeleteOpen(false);
       setSelectedUser(null);
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
@@ -217,7 +272,7 @@ export function UserManagement() {
       });
     },
   });
-  
+
   // Mutation for restoring a deleted user
   const restoreUserMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -229,7 +284,7 @@ export function UserManagement() {
         title: 'User restored',
         description: 'The user has been successfully restored.',
       });
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
@@ -241,7 +296,7 @@ export function UserManagement() {
       });
     },
   });
-  
+
   // Mutation for toggling test user status
   const toggleTestUserMutation = useMutation({
     mutationFn: async (userId: number) => {
@@ -254,7 +309,7 @@ export function UserManagement() {
         title: 'Test user status updated',
         description: `User is ${isNowTestUser ? 'now' : 'no longer'} a test user.`,
       });
-      
+
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
@@ -266,23 +321,23 @@ export function UserManagement() {
       });
     },
   });
-  
+
   // Handler for creating a new user
   const onCreateSubmit = (values: CreateUserFormValues) => {
     createUserMutation.mutate(values);
   };
-  
+
   // Handler for editing a user
   const onEditSubmit = (values: EditUserFormValues) => {
     if (selectedUser) {
       updateUserMutation.mutate({ id: selectedUser.id, data: values });
     }
   };
-  
+
   // Open edit dialog and populate form with user data
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    
+
     editForm.reset({
       name: user.name,
       email: user.email,
@@ -293,15 +348,15 @@ export function UserManagement() {
       newPassword: '',
       setCustomPassword: false,
     });
-    
+
     setEditDialogOpen(true);
   };
-  
+
   // Handler for toggling test user status
   const handleToggleTestUser = (userId: number) => {
     toggleTestUserMutation.mutate(userId);
   };
-  
+
   // Helper to determine role badge color
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -315,7 +370,7 @@ export function UserManagement() {
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
-  
+
   // Get initials for avatar
   const getInitials = (name: string) => {
     return name
@@ -325,7 +380,7 @@ export function UserManagement() {
       .toUpperCase()
       .substring(0, 2);
   };
-  
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="existing" className="w-full">
@@ -333,7 +388,7 @@ export function UserManagement() {
           <TabsTrigger value="existing">Manage Users</TabsTrigger>
           <TabsTrigger value="create">Create New User</TabsTrigger>
         </TabsList>
-        
+
         {/* Tab for managing existing users */}
         <TabsContent value="existing" className="space-y-4">
           <Card>
@@ -452,7 +507,7 @@ export function UserManagement() {
                                     <PencilIcon className="h-3 w-3 mr-1" />
                                     Edit
                                   </Button>
-                                  
+
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -467,7 +522,7 @@ export function UserManagement() {
                                   </Button>
                                 </>
                               )}
-                              
+
                               {user.isDeleted && (
                                 <Button
                                   variant="outline"
@@ -492,14 +547,14 @@ export function UserManagement() {
               <Button variant="outline" onClick={() => refetchUsers()}>
                 Refresh
               </Button>
-              
+
               <div className="text-sm text-muted-foreground">
                 Total: {users.length} user{users.length !== 1 ? 's' : ''}
               </div>
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         {/* Tab for creating new users */}
         <TabsContent value="create">
           <Card>
@@ -526,7 +581,7 @@ export function UserManagement() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={createForm.control}
                       name="username"
@@ -544,7 +599,7 @@ export function UserManagement() {
                       )}
                     />
                   </div>
-                  
+
                   <FormField
                     control={createForm.control}
                     name="email"
@@ -558,7 +613,7 @@ export function UserManagement() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={createForm.control}
@@ -573,7 +628,7 @@ export function UserManagement() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={createForm.control}
                       name="jobTitle"
@@ -588,7 +643,7 @@ export function UserManagement() {
                       )}
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     <FormField
                       control={createForm.control}
@@ -615,7 +670,7 @@ export function UserManagement() {
                         </FormItem>
                       )}
                     />
-                    
+
                     <FormField
                       control={createForm.control}
                       name="generatePassword"
@@ -637,7 +692,7 @@ export function UserManagement() {
                       )}
                     />
                   </div>
-                  
+
                   <Button 
                     type="submit" 
                     className="w-full"
@@ -659,7 +714,7 @@ export function UserManagement() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -669,7 +724,7 @@ export function UserManagement() {
               Update user information and role.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedUser && (
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
@@ -686,7 +741,7 @@ export function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <FormField
                   control={editForm.control}
                   name="email"
@@ -700,7 +755,7 @@ export function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
@@ -715,7 +770,7 @@ export function UserManagement() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={editForm.control}
                     name="jobTitle"
@@ -730,7 +785,7 @@ export function UserManagement() {
                     )}
                   />
                 </div>
-                
+
                 <FormField
                   control={editForm.control}
                   name="role"
@@ -756,7 +811,7 @@ export function UserManagement() {
                     </FormItem>
                   )}
                 />
-                
+
                 <div className="space-y-4">
                   <FormField
                     control={editForm.control}
@@ -821,15 +876,13 @@ export function UserManagement() {
                         <FormItem>
                           <FormLabel>New Password</FormLabel>
                           <FormControl>
-                            <Input
-                              type="password"
-                              placeholder="Enter new password (min 6 characters)"
+                            <PasswordInput
                               {...field}
-                              value={field.value || ''}
+                              placeholder="Enter new password"
                             />
                           </FormControl>
                           <FormDescription>
-                            Password must be at least 6 characters long
+                            Enter a custom password for this user
                           </FormDescription>
                           <FormMessage />
                         </FormItem>
@@ -837,7 +890,7 @@ export function UserManagement() {
                     />
                   )}
                 </div>
-                
+
                 <DialogFooter className="mt-6">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel
@@ -857,7 +910,7 @@ export function UserManagement() {
           )}
         </DialogContent>
       </Dialog>
-      
+
       {/* Confirmation Dialog for Delete */}
       <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
         <DialogContent>
@@ -867,7 +920,7 @@ export function UserManagement() {
               This will deactivate the user account. The user data will be preserved but they won't be able to log in.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedUser && (
             <div className="py-4">
               <div className="flex items-center gap-4 p-3 border rounded-md">
@@ -890,7 +943,7 @@ export function UserManagement() {
               </div>
             </div>
           )}
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>
               Cancel

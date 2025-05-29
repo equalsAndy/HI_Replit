@@ -13,6 +13,7 @@ import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon } from 'lucide
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
+import { PasswordInput } from '@/components/ui/password-input';
 
 interface User {
   id: number;
@@ -75,7 +76,7 @@ const AdminPage: React.FC = () => {
       const response = await fetch('/api/admin/users', {
         credentials: 'include' // Include credentials to send session cookies
       });
-      
+
       // If not authenticated or not admin, redirect to login
       if (response.status === 401 || response.status === 403) {
         toast({
@@ -86,10 +87,10 @@ const AdminPage: React.FC = () => {
         setLocation('/login');
         return;
       }
-      
+
       const data = await response.json();
       console.log("User data response:", data);
-      
+
       if (data.users) {
         setUsers(data.users);
       } else if (data.message) {
@@ -123,9 +124,9 @@ const AdminPage: React.FC = () => {
     setIsLoadingInvites(true);
     try {
       const response = await fetch('/api/admin/invites');
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         setInvites(data.invites);
       } else {
@@ -165,11 +166,11 @@ const AdminPage: React.FC = () => {
   // Handle updating a user
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedUser) return;
-    
+
     setIsUpdatingUser(true);
-    
+
     try {
       // Transform the form data to match backend expectations
       const updateData: any = {
@@ -178,12 +179,12 @@ const AdminPage: React.FC = () => {
         organization: editForm.organization,
         title: editForm.jobTitle, // Backend expects 'title' not 'jobTitle'
       };
-      
+
       // Add password if reset is requested
       if (editForm.resetPassword) {
         updateData.password = editForm.newPassword || undefined; // Backend will generate if empty
       }
-      
+
       const response = await fetch(`/api/admin/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
@@ -192,19 +193,19 @@ const AdminPage: React.FC = () => {
         credentials: 'include',
         body: JSON.stringify(updateData),
       });
-      
+
       const data = await response.json();
-      
+
       if (response.ok) {
         const successMessage = editForm.resetPassword && data.temporaryPassword 
           ? `User updated successfully. New temporary password: ${data.temporaryPassword}`
           : 'User information has been successfully updated.';
-          
+
         toast({
           title: 'User updated',
           description: successMessage,
         });
-        
+
         setEditDialogOpen(false);
         setSelectedUser(null);
         fetchUsers(); // Refresh the users list
@@ -230,7 +231,7 @@ const AdminPage: React.FC = () => {
   // Handle creating a new invite
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!newInvite.email) {
       toast({
         variant: 'destructive',
@@ -239,9 +240,9 @@ const AdminPage: React.FC = () => {
       });
       return;
     }
-    
+
     setIsSendingInvite(true);
-    
+
     try {
       const response = await fetch('/api/admin/invites', {
         method: 'POST',
@@ -250,15 +251,15 @@ const AdminPage: React.FC = () => {
         },
         body: JSON.stringify(newInvite),
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         toast({
           title: 'Invite created',
           description: `Invite code created for ${newInvite.email}.`,
         });
-        
+
         // Reset form and refresh invites
         setNewInvite({
           email: '',
@@ -316,14 +317,14 @@ const AdminPage: React.FC = () => {
             <Link href="/dashboard">Return to Dashboard</Link>
           </Button>
         </div>
-        
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="invites">Invites</TabsTrigger>
             <TabsTrigger value="videos">Videos</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="users" className="mt-6">
             <Card>
               <CardHeader>
@@ -346,7 +347,7 @@ const AdminPage: React.FC = () => {
                     Refresh
                   </Button>
                 </div>
-                
+
                 {isLoadingUsers ? (
                   <div className="flex justify-center py-8">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -400,7 +401,7 @@ const AdminPage: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="videos" className="mt-6">
             <Card>
               <CardHeader>
@@ -412,7 +413,7 @@ const AdminPage: React.FC = () => {
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="invites" className="mt-6">
             <Card>
               <CardHeader>
@@ -480,7 +481,7 @@ const AdminPage: React.FC = () => {
                       </Button>
                     </form>
                   </div>
-                  
+
                   <div>
                     <div className="flex justify-between items-center mb-4">
                       <h3 className="text-lg font-medium">Active Invites</h3>
@@ -498,7 +499,7 @@ const AdminPage: React.FC = () => {
                         Refresh
                       </Button>
                     </div>
-                    
+
                     {isLoadingInvites ? (
                       <div className="flex justify-center py-8">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -639,16 +640,15 @@ const AdminPage: React.FC = () => {
               </div>
               {editForm.resetPassword && (
                 <div className="space-y-2">
-                  <Label htmlFor="edit-newPassword">New Password (optional)</Label>
-                  <Input
-                    id="edit-newPassword"
-                    type="password"
-                    placeholder="Leave empty to generate random password"
+                  <Label htmlFor="new-password">New Password</Label>
+                  <PasswordInput
+                    id="new-password"
                     value={editForm.newPassword}
                     onChange={(e) => setEditForm({ ...editForm, newPassword: e.target.value })}
+                    placeholder="Leave empty to generate random password"
                   />
                   <p className="text-xs text-muted-foreground">
-                    If left empty, a temporary password will be generated automatically
+                    Leave empty to generate a random password
                   </p>
                 </div>
               )}
