@@ -524,13 +524,13 @@ export function UserManagement() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1 flex-wrap">
                               {!user.isDeleted && (
                                 <>
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 px-3 text-xs"
+                                    className="h-8 px-2 text-xs"
                                     onClick={() => handleEditUser(user)}
                                   >
                                     <PencilIcon className="h-3 w-3 mr-1" />
@@ -540,27 +540,27 @@ export function UserManagement() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 px-3 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                    className="h-8 px-2 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
                                     onClick={() => {
                                       setSelectedUser(user);
                                       setConfirmDeleteDataOpen(true);
                                     }}
                                   >
                                     <Trash2 className="h-3 w-3 mr-1" />
-                                    Delete Data
+                                    Data
                                   </Button>
 
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 px-3 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
+                                    className="h-8 px-2 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
                                     onClick={() => {
                                       setSelectedUser(user);
                                       setConfirmDeleteOpen(true);
                                     }}
                                   >
                                     <Trash2 className="h-3 w-3 mr-1" />
-                                    Delete User
+                                    User
                                   </Button>
                                 </>
                               )}
@@ -569,7 +569,7 @@ export function UserManagement() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                  className="h-8 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
                                   onClick={() => restoreUserMutation.mutate(user.id)}
                                 >
                                   <UndoIcon className="h-3 w-3 mr-1" />
