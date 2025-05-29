@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plan, ChevronRight, Clock } from 'lucide-react';
+import { Calendar, ChevronRight, Clock } from 'lucide-react';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -25,7 +25,7 @@ export default function GrowthPlanView({
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Plan className="h-6 w-6 text-purple-600" />
+            <Calendar className="h-6 w-6 text-purple-600" />
             Growth Plan (Coming Soon)
           </CardTitle>
         </CardHeader>

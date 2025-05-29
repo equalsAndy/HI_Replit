@@ -1,7 +1,7 @@
 import { 
   StarIcon, BarChartIcon, Activity, Sparkles, BookOpen,
   LightbulbIcon, Braces, Users, Puzzle, Book, Zap, PenTool,
-  Download, Plan, Brain
+  Download, Calendar, Brain
 } from 'lucide-react';
 import { NavigationSection } from '@/shared/types';
 
@@ -149,7 +149,7 @@ export const navigationSections: NavigationSection[] = [
     steps: [
       { id: '5-1', label: 'Download your Star Card', path: '/next-steps/star-card', type: 'Learning', contentKey: 'download-star-card', icon: Download, downloadOnly: true },
       { id: '5-2', label: 'Your Holistic Report', path: '/next-steps/holistic-report', type: 'Learning', contentKey: 'holistic-report', icon: Download },
-      { id: '5-3', label: 'Growth Plan (coming soon)', path: '/next-steps/growth-plan', type: 'Learning', contentKey: 'growth-plan', icon: Plan },
+      { id: '5-3', label: 'Growth Plan (coming soon)', path: '/next-steps/growth-plan', type: 'Learning', contentKey: 'growth-plan', icon: Calendar },
       { id: '5-4', label: 'Team Workshop Prep', path: '/next-steps/team-prep', type: 'Learning', contentKey: 'team-workshop-prep', icon: Activity }
     ]
   },
