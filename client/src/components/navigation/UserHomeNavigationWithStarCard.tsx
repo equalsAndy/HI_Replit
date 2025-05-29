@@ -185,6 +185,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                   <div className="flex items-center space-x-2">
                     <>
                       <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
+
+                      {/* Progress indicator for sections other than Resources */}
+                      {section.id !== '5' && (
+                        <span className="ml-auto text-xs text-gray-500">
+                          {section.completedSteps}/{section.totalSteps}
+                        </span>
+                      )}
                     </>
                   </div>
                 )}
