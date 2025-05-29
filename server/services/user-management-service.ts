@@ -322,13 +322,13 @@ class UserManagementService {
     try {
       const { eq, and, isNotNull, sql } = await import('drizzle-orm');
       
-      let query = db.select().from(users);
+      let result;
       
       if (!includeDeleted) {
-        query = query.where(eq(users.isDeleted, false));
+        result = await db.select().from(users).where(eq(users.isDeleted, false));
+      } else {
+        result = await db.select().from(users);
       }
-      
-      const result = await query;
       
       // Calculate progress for each user
       const usersWithProgress = await Promise.all(result.map(async (user) => {
