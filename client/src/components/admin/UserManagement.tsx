@@ -448,48 +448,50 @@ export function UserManagement() {
                 </div>
               ) : (
                 <div className="overflow-x-auto">
-                  <div className="min-w-[800px]">
+                  <div className="min-w-[1200px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="min-w-[80px]">ID</TableHead>
-                          <TableHead className="min-w-[200px]">User</TableHead>
-                          <TableHead className="min-w-[120px]">Username</TableHead>
-                          <TableHead className="min-w-[100px]">Role</TableHead>
-                          <TableHead className="min-w-[100px]">Test User</TableHead>
-                          <TableHead className="min-w-[120px]">Created</TableHead>
-                          <TableHead className="min-w-[80px]">Status</TableHead>
-                          <TableHead className="min-w-[200px]">Actions</TableHead>
+                          <TableHead className="w-[60px]">ID</TableHead>
+                          <TableHead className="min-w-[180px]">User</TableHead>
+                          <TableHead className="w-[100px]">Username</TableHead>
+                          <TableHead className="w-[80px]">Role</TableHead>
+                          <TableHead className="w-[80px]">Test User</TableHead>
+                          <TableHead className="w-[100px]">Created</TableHead>
+                          <TableHead className="w-[70px]">Status</TableHead>
+                          <TableHead className="min-w-[280px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
                       {users.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
-                          <TableCell>
-                            <span className="font-mono text-sm text-muted-foreground">#{user.id}</span>
+                          <TableCell className="w-[60px]">
+                            <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="min-w-[180px]">
                             <div className="flex items-center space-x-3">
-                              <Avatar className="h-9 w-9">
+                              <Avatar className="h-8 w-8 flex-shrink-0">
                                 {user.profilePicture ? (
                                   <AvatarImage src={user.profilePicture} alt={user.name} />
                                 ) : (
-                                  <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
+                                  <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
                                 )}
                               </Avatar>
-                              <div className="space-y-0.5">
-                                <p className="font-medium">{user.name}</p>
-                                <p className="text-xs text-muted-foreground">{user.email}</p>
+                              <div className="space-y-0.5 min-w-0">
+                                <p className="font-medium text-sm truncate">{user.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell>{user.username}</TableCell>
-                          <TableCell>
-                            <Badge className={getRoleBadgeColor(user.role)}>
+                          <TableCell className="w-[100px]">
+                            <span className="text-sm truncate block">{user.username}</span>
+                          </TableCell>
+                          <TableCell className="w-[80px]">
+                            <Badge className={`${getRoleBadgeColor(user.role)} text-xs px-1.5 py-0.5`}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="w-[80px]">
                             <Switch 
                               checked={user.isTestUser} 
                               onCheckedChange={() => handleToggleTestUser(user.id)}
@@ -497,74 +499,106 @@ export function UserManagement() {
                               className="data-[state=checked]:bg-amber-500"
                             />
                           </TableCell>
-                          <TableCell>
-                            {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+                          <TableCell className="w-[100px]">
+                            <span className="text-xs truncate block">
+                              {formatDistanceToNow(new Date(user.createdAt), { addSuffix: true })}
+                            </span>
                           </TableCell>
-                          <TableCell>
+                          <TableCell className="w-[70px]">
                             {user.isDeleted ? (
-                              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200">
+                              <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 text-xs px-1.5 py-0.5">
                                 Deleted
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
+                              <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200 text-xs px-1.5 py-0.5">
                                 Active
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1 flex-wrap min-w-max">
-                              {!user.isDeleted && (
-                                <>
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 px-2 text-xs whitespace-nowrap"
-                                    onClick={() => handleEditUser(user)}
-                                  >
-                                    <PencilIcon className="h-3 w-3 mr-1" />
-                                    Edit
-                                  </Button>
+                          <TableCell className="min-w-[280px] sticky right-0 bg-white border-l">
+                            <TooltipProvider>
+                              <div className="flex items-center gap-1 justify-start">
+                                {!user.isDeleted && (
+                                  <>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 px-3 text-xs hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-800"
+                                          onClick={() => handleEditUser(user)}
+                                        >
+                                          <PencilIcon className="h-3 w-3 mr-1" />
+                                          Edit
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Edit user profile</p>
+                                      </TooltipContent>
+                                    </Tooltip>
 
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 px-2 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200 whitespace-nowrap"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setConfirmDeleteDataOpen(true);
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-1" />
-                                    Data
-                                  </Button>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 px-3 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                          onClick={() => {
+                                            setSelectedUser(user);
+                                            setConfirmDeleteDataOpen(true);
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 mr-1" />
+                                          Delete Data
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Delete all user assessment and progress data</p>
+                                      </TooltipContent>
+                                    </Tooltip>
 
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-8 px-2 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200 whitespace-nowrap"
-                                    onClick={() => {
-                                      setSelectedUser(user);
-                                      setConfirmDeleteOpen(true);
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-1" />
-                                    User
-                                  </Button>
-                                </>
-                              )}
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 px-3 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
+                                          onClick={() => {
+                                            setSelectedUser(user);
+                                            setConfirmDeleteOpen(true);
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 mr-1" />
+                                          Delete User
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Delete user account completely</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </>
+                                )}
 
-                              {user.isDeleted && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-8 px-2 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200 whitespace-nowrap"
-                                  onClick={() => restoreUserMutation.mutate(user.id)}
-                                >
-                                  <UndoIcon className="h-3 w-3 mr-1" />
-                                  Restore
-                                </Button>
-                              )}
-                            </div>
+                                {user.isDeleted && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                        onClick={() => restoreUserMutation.mutate(user.id)}
+                                      >
+                                        <UndoIcon className="h-3 w-3 mr-1" />
+                                        Restore
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Restore deleted user account</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
+                              </div>
+                            </TooltipProvider>
                           </TableCell>
                         </TableRow>
                       ))}
