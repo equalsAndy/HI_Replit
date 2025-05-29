@@ -13,6 +13,7 @@ import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon } from 'lucide
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
+import { CohortManagement } from '@/components/admin/CohortManagement';
 import { PasswordInput } from '@/components/ui/password-input';
 
 interface User {
@@ -393,8 +394,9 @@ const AdminPage: React.FC = () => {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="cohorts">Cohorts</TabsTrigger>
             <TabsTrigger value="invites">Invites</TabsTrigger>
             <TabsTrigger value="videos">Videos</TabsTrigger>
           </TabsList>
@@ -490,6 +492,18 @@ const AdminPage: React.FC = () => {
                     </Table>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="cohorts" className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Cohort Management</CardTitle>
+                <CardDescription>Manage workshop cohorts and groups</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CohortManagement />
               </CardContent>
             </Card>
           </TabsContent>
