@@ -32,7 +32,7 @@ const renderCustomizedLabel = (props: any) => {
       dominantBaseline="central"
       style={{ 
         fontWeight: 600,
-        fontSize: '21px',
+        fontSize: window.innerWidth >= 1024 ? '16px' : '14px',
         filter: 'drop-shadow(0px 0px 2px white)' // Add white glow for better visibility
       }}
     >
