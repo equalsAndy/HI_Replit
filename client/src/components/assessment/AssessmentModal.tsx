@@ -865,7 +865,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
                 </svg>
               </div>
             </div>
-            <div className="w-full max-w-[900px] h-[400px] lg:h-[450px] mx-auto">
+            <div className="w-3/4 max-w-[900px] h-[400px] lg:h-[450px] mx-auto">
               <AssessmentPieChart
                 thinking={assessmentResults.thinking}
                 acting={assessmentResults.acting}
