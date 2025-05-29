@@ -384,4 +384,59 @@ router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Respon
   }
 });
 
+/**
+ * Delete a user completely (admin only)
+ */
+router.delete('/users/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    // Prevent deleting yourself
+    if (id === req.session.userId) {
+      return res.status(403).json({ 
+        message: 'Cannot delete your own account'
+      });
+    }
+    
+    // Delete user completely using the service
+    const deleteResult = await userManagementService.deleteUser(id);
+    
+    if (!deleteResult.success) {
+      return res.status(400).json({ message: deleteResult.error || 'Failed to delete user' });
+    }
+    
+    res.json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Delete user data only (keep profile and password)
+ */
+router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
+    
+    // Delete user data only using the service
+    const deleteResult = await userManagementService.deleteUserData(id);
+    
+    if (!deleteResult.success) {
+      return res.status(400).json({ message: deleteResult.error || 'Failed to delete user data' });
+    }
+    
+    res.json({ message: 'User data deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 export const adminRouter = router;
