@@ -153,8 +153,11 @@ export function UserManagement() {
   const { data: users = [], isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users', includeDeleted],
     queryFn: async () => {
-      const res = await apiRequest('GET', `/api/admin/users?includeDeleted=${includeDeleted}`);
-      return res.json();
+      const data = await apiRequest(`/api/admin/users?includeDeleted=${includeDeleted}`, {
+        method: 'GET',
+      });
+      console.log('User data response:', data);
+      return data.users || [];
     },
   });
 
@@ -190,8 +193,10 @@ export function UserManagement() {
   // Mutation for creating a new user
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormValues) => {
-      const response = await apiRequest('POST', '/api/admin/users', data);
-      return response.json();
+      return await apiRequest('/api/admin/users', {
+        method: 'POST',
+        body: data,
+      });
     },
     onSuccess: (data) => {
       toast({
@@ -219,8 +224,10 @@ export function UserManagement() {
   // Mutation for updating a user
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: EditUserFormValues }) => {
-      const response = await apiRequest('PUT', `/api/admin/users/${id}`, data);
-      return response.json();
+      return await apiRequest(`/api/admin/users/${id}`, {
+        method: 'PUT',
+        body: data,
+      });
     },
     onSuccess: (data) => {
       toast({
@@ -249,8 +256,9 @@ export function UserManagement() {
   // Mutation for deleting a user
   const deleteUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await apiRequest('DELETE', `/api/admin/users/${userId}`);
-      return response.json();
+      return await apiRequest(`/api/admin/users/${userId}`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       toast({
@@ -277,8 +285,9 @@ export function UserManagement() {
   // Mutation for deleting user data (keeping profile and password)
   const deleteUserDataMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await apiRequest('DELETE', `/api/admin/users/${userId}/data`);
-      return response.json();
+      return await apiRequest(`/api/admin/users/${userId}/data`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       toast({
@@ -305,8 +314,9 @@ export function UserManagement() {
   // Mutation for restoring a deleted user
   const restoreUserMutation = useMutation({
     mutationFn: async (userId: number) => {
-      const response = await apiRequest('PUT', `/api/admin/users/${userId}/restore`);
-      return response.json();
+      return await apiRequest(`/api/admin/users/${userId}/restore`, {
+        method: 'PUT',
+      });
     },
     onSuccess: () => {
       toast({
