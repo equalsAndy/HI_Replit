@@ -239,7 +239,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                   </svg>
                 </div>
                 <span className="font-semibold">Imagination</span>
-                <span className="ml-3 text-gray-600 text-sm"> - Your limitless potential capacity that brings<br className="hidden sm:inline" /> the other core dimensions into focus.</span>
+                <span className="ml-3 text-gray-600 text-sm">Your limitless potential capacity that brings<br className="hidden sm:inline" /> the other core dimensions into focus.</span>
               </div>
             </div>
 
