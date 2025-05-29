@@ -180,7 +180,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 <div className="flex items-center space-x-2">
                   {drawerOpen && (
                     <>
-                      <h3 className="font-medium text-gray-800">{section.title}</h3>
+                      <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
                       
                       {/* Progress indicator for sections other than Resources */}
                       {section.id !== '5' && (

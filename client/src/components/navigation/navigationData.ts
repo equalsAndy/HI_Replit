@@ -90,7 +90,7 @@ export const navigationSections: NavigationSection[] = [
     totalSteps: 1,
     completedSteps: 0,
     steps: [
-      { id: '1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning', contentKey: 'welcome', icon: Book, autoPlay: true, minWatchPercent: 1 }
+      { id: '1-1', label: 'Introduction', path: '/intro/video', type: 'Learning', contentKey: 'welcome', icon: Book, autoPlay: true, minWatchPercent: 1 }
     ]
   },
   { 
@@ -100,7 +100,7 @@ export const navigationSections: NavigationSection[] = [
     totalSteps: 4,
     completedSteps: 0,
     steps: [
-      { id: '2-1', label: 'Introduction to ...', path: '/discover-strengths/intro', type: 'Learning', contentKey: 'intro-strengths', icon: Book, autoPlay: true, minWatchPercent: 1 },
+      { id: '2-1', label: 'Intro to Star Strengths', path: '/discover-strengths/intro', type: 'Learning', contentKey: 'intro-strengths', icon: Book, autoPlay: true, minWatchPercent: 1 },
       { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/discover-strengths/assessment', type: 'Assessment', contentKey: 'strengths-assessment', icon: Activity, isModal: true },
       { id: '2-3', label: 'Review Your Star Card', path: '/discover-strengths/star-card', type: 'Learning', contentKey: 'star-card-preview', icon: Book, autoPlay: true, minWatchPercent: 1 },
       { id: '2-4', label: 'Strength Reflection', path: '/discover-strengths/reflection', type: 'Reflection', contentKey: 'strengths-reflection', icon: PenTool, requireAllAnswers: true }
