@@ -559,10 +559,10 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       });
       return;
     }
-    
+
     // Close the modal
     onClose();
-    
+
     // If we have an onComplete handler, call it with the assessment results
     if (onComplete) {
       // Clone the results to make sure we don't have any reference issues
@@ -572,13 +572,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         acting: assessmentResults.acting,
         planning: assessmentResults.planning
       };
-      
+
       // Pass the data and navigation flag to the parent component
       onComplete({
         quadrantData,
         navigateToStarCardPreview: true
       });
-      
+
       // Also update query cache to ensure the star card data is available
       if (starCard) {
         const updatedStarCard = {
@@ -875,7 +875,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </div>
           </div>
 
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+          <div className="space-y-3 border rounded-md p-3 bg-gray-50 -mt-4">
             <div className="space-y-3">
               {[
                 { name: 'Thinking', value: assessmentResults.thinking, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
@@ -893,7 +893,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
                 ))
               }
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-200">
               <div className="flex items-center">
                 <div className="w-5 h-5 mr-3 flex items-center justify-center">
