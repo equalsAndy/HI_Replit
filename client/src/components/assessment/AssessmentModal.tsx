@@ -857,7 +857,15 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
             </p>
           </div>
 
-          <div className="flex justify-center items-center my-4 w-full px-4">
+          <div className="flex flex-col items-center my-4 w-full px-4">
+            <div className="flex items-center mb-4">
+              <div className="w-6 h-6 mr-3 flex items-center justify-center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
+                </svg>
+              </div>
+              <span className="font-semibold text-lg">Imagination</span>
+            </div>
             <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
               <AssessmentPieChart
                 thinking={assessmentResults.thinking}
