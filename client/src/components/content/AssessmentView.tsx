@@ -150,32 +150,39 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               The AllStarTeams Strengths Assessment helps you discover your unique strengths profile across five key dimensions:
               Thinking, Acting, Feeling, Planning, and Imagining.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-blue-700 text-sm">
-              <div>• 22 short questions (10–15 minutes)</div>
-              <div>• Rank responses from most to least like you</div>
-              <div>• No right or wrong answers</div>
-              <div>• Generates your personal Star Card</div>
+            <div className="space-y-1 text-blue-700 text-sm">
+              <div>• 22 short questions about how you approach work and collaboration</div>
+              <div>• Takes approximately 10–15 minutes to complete</div>
+              <div>• You'll order your responses from most like you (1) to least like you (4)</div>
+              <div>• Generates your personal Star Card—a visual snapshot of your strengths</div>
             </div>
           </div>
 
           <div className="bg-amber-50 rounded-lg p-4 shadow-sm mb-6">
-            <h3 className="font-medium text-amber-800 mb-3 text-lg">How it works</h3>
-            <p className="text-amber-700 text-sm mb-2">
+            <h3 className="font-medium text-amber-800 mb-3 text-lg">Instructions</h3>
+            <p className="text-amber-700 text-sm mb-3">
               For each scenario, drag and drop the four options to rank them from most like you (1) to least like you (4).
             </p>
-            <p className="text-amber-700 text-sm">
-              Your four core strengths (Think, Act, Feel, Plan) are quantified and placed on your Star Card. 
-              Imagination appears at the top as your limitless fifth strength.
-            </p>
+            <div className="space-y-1 text-amber-700 text-sm">
+              <div>• There are no right or wrong answers—just be honest about what feels true to you.</div>
+              <div>• The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.</div>
+              <div>• Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.</div>
+            </div>
           </div>
 
           <div className="bg-green-50 rounded-lg p-4 shadow-sm mb-6">
             <h3 className="font-medium text-green-800 mb-2 text-lg flex items-center">
               <CheckCircle className="h-4 w-4 mr-2" /> What you'll get
             </h3>
-            <p className="text-green-700 text-sm">
-              Your personal Star Card showing your unique strengths distribution. Later, you'll add Flow State Qualities 
-              to complete your profile for personal and team development.
+            <p className="text-green-700 text-sm mb-3">
+              Your personal Star Card, showing how your four core strengths are distributed and ordered.
+            </p>
+            <div className="space-y-1 text-green-700 text-sm">
+              <div>• Think, Act, Feel, and Plan are placed on the card based on how you use them.</div>
+              <div>• Imagination appears at the apex, as your limitless fifth strength.</div>
+            </div>
+            <p className="text-green-700 text-sm mt-3">
+              Later in the course, you'll complete your Star Card by adding your Flow State Qualities, making it a powerful tool for personal and team development.
             </p>
           </div>
 
