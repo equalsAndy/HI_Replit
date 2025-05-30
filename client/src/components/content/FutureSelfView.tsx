@@ -28,7 +28,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [videoProgress, setVideoProgress] = useState(0);
   const [player, setPlayer] = useState<any>(null);
   const playerRef = useRef<HTMLDivElement>(null);
-  
+
   const [oneYearVision, setOneYearVision] = useState<string>('');
   const [challenges, setChallenges] = useState<string>('');
   const [strengths, setStrengths] = useState<string>('');
@@ -68,13 +68,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   // Track video progress
   const startProgressTracking = (playerInstance: any) => {
     let interval: NodeJS.Timeout;
-    
+
     const trackProgress = () => {
       if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
         try {
           const currentTime = playerInstance.getCurrentTime();
           const duration = playerInstance.getDuration();
-          
+
           if (duration > 0) {
             const percentage = (currentTime / duration) * 100;
             handleVideoProgress(percentage);
@@ -87,7 +87,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
     // Track progress every second
     interval = setInterval(trackProgress, 1000);
-    
+
     // Clean up interval when component unmounts
     return () => {
       if (interval) {
@@ -100,7 +100,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const handleVideoProgress = (percentage: number) => {
     setVideoProgress(percentage);
     updateVideoProgress(stepId, percentage);
-    
+
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
@@ -134,7 +134,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     try {
       await apiRequest('/api/visualization', 'POST', {
         oneYearVision,
@@ -143,7 +143,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         resourcesNeeded,
         actionSteps
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-2');
       setCurrentContent('recap');
@@ -157,7 +157,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Future Self</h1>
-      
+
       <div className="prose max-w-none mb-6">
         <p className="text-gray-700">
           Take a few minutes to reflect on the future you're working toward. 
@@ -178,7 +178,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               />
             </div>
           </div>
-          
+
           <div className="mt-4">
             <p className="text-sm text-gray-700 mb-2">
               <span className="font-medium text-gray-900">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
@@ -196,7 +196,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             </p>
           </div>
         </div>
-        
+
         <div className="md:w-2/5">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <img 
@@ -238,7 +238,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             className="min-h-[100px]"
           />
         </div>
-        
+
         <div className="bg-white p-5 rounded-lg border">
           <h3 className="text-lg font-medium text-gray-900 mb-3">What does your life look like when optimized for flow?</h3>
           <Textarea 
@@ -263,9 +263,9 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
 
       </div>
-      
 
-      
+
+
       <div className="flex justify-end">
         <Button 
           onClick={() => {
@@ -280,7 +280,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               : "bg-gray-300 cursor-not-allowed text-gray-500"
           }`}
         >
-          {saving ? 'Saving...' : 'Next: Recap Your Insights'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Next: Final Reflection'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

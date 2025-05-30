@@ -53,7 +53,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
-      
+
       {/* Content below title - same layout as WellBeingView */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
         {/* SVG Ladder - same sizing as WellBeingView */}
@@ -65,7 +65,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             />
           </div>
         </div>
-        
+
         {/* Reflections section - positioned like sliders section in WellBeingView */}
         <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
@@ -78,7 +78,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               placeholder="Consider your work, relationships, health, finances, and personal growth..."
             />
           </div>
-          
+
           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
             <h3 className="text-md font-medium text-indigo-800 mb-2">What improvements do you envision?</h3>
             <p className="text-indigo-600 text-sm mb-2">
@@ -88,7 +88,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe specific improvements you hope to see in your life..."
             />
-            
+
             {/* Specific Changes section moved under improvements */}
             <div className="mt-6">
               <h4 className="font-medium text-indigo-700 mb-2">What will be different?</h4>
@@ -129,7 +129,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
         <h3 className="text-amber-800 font-medium mb-3">Interpreting Your Position on the Ladder</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
@@ -156,7 +156,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={() => {
@@ -165,7 +165,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           }}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Continue <ChevronRight className="ml-2 h-4 w-4" />
+          Next: Visualizing You <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

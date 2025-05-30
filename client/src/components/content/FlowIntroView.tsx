@@ -199,7 +199,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
               : "bg-gray-300 cursor-not-allowed"
           }`}
         >
-          Next: Flow Self-Assessment
+          Next: Flow Assessment
         </Button>
       </div>
     </>

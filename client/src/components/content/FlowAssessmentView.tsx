@@ -819,12 +819,8 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
               <p className="text-gray-600 mb-4">Review your answers below. Click an answer or the Adjust button to modify your responses.</p>
 
               <div className="border rounded-md divide-y">
-                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">
+                <div className="grid grid-cols-[1fr,auto,auto] p-3 bg-gray-50 text-sm text-gray-500 font-medium sticky top-0 z-10">```
                   <div>QUESTION</div>
-                  One line analysis: The code needs to replace the text of the "Next" button in the FlowAssessmentView component to accurately reflect the name of the next content view, "Rounding Out".
-```
-
-```python
                   <div>YOUR ANSWER</div>
                   <div>ACTION</div>
                 </div>

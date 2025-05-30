@@ -676,7 +676,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           ) : null}
-        
+
           <div className="flex justify-center mt-8">
             <Button 
               onClick={() => {
@@ -687,7 +687,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
               }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white"
             >
-              Next: Ladder of Well-Being <ChevronRight className="ml-2 h-4 w-4" />
+              Next: Ladder of Well-being <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

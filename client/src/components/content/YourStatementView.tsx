@@ -6,8 +6,6 @@ import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool } from 'lucide-react';
 
-import ladderGraphic from '@assets/image_1747800627533.png';
-
 const YourStatementView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
@@ -18,12 +16,12 @@ const YourStatementView: React.FC<ContentViewProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     try {
       await apiRequest('/api/visualization', 'POST', {
         futureLetterText: statement
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-5');
       setCurrentContent("recap");
@@ -37,7 +35,7 @@ const YourStatementView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Final Reflection</h1>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         <div className="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
           <h2 className="text-xl font-bold text-gray-900 mb-4">Final Reflection: Your Next Step</h2>
@@ -50,7 +48,7 @@ const YourStatementView: React.FC<ContentViewProps> = ({
             your well-being shapes your potential. Now, take a moment to name one insight or
             intention you want to carry forward — as preparation for deeper team practice ahead.
           </p>
-          
+
           <Textarea 
             placeholder="One insight I'm taking forward is..."
             value={statement}
@@ -58,7 +56,7 @@ const YourStatementView: React.FC<ContentViewProps> = ({
             className="min-h-[100px]"
           />
         </div>
-        
+
         <div className="flex flex-col items-center justify-center">
           <div className="w-3/4 max-w-[250px] mb-6">
             <img 
@@ -67,21 +65,21 @@ const YourStatementView: React.FC<ContentViewProps> = ({
               className="w-full h-auto"
             />
           </div>
-          
+
           <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 w-full">
             <h3 className="text-lg font-medium text-gray-900 mb-3">What This Ladder Represents</h3>
-            
+
             <h4 className="font-medium text-gray-800">A Natural Progression</h4>
             <p className="text-sm text-gray-700 mb-3">
               Each step builds on the one before — not in leaps, but in deepening awareness.
             </p>
-            
+
             <h4 className="font-medium text-gray-800">Reflective Mirror</h4>
             <p className="text-sm text-gray-700 mb-3">
               This journey wasn't about adding something new. It was about surfacing what's already
               strong within you.
             </p>
-            
+
             <h4 className="font-medium text-gray-800">Team Flow Starts Here</h4>
             <p className="text-sm text-gray-700">
               Your self-awareness is your starting point. Now you're ready to contribute with clarity and
@@ -90,7 +88,7 @@ const YourStatementView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-8 rounded-lg border border-purple-100 mb-8">
         <div className="flex items-start mb-6">
           <PenTool className="h-6 w-6 text-purple-600 mr-3 flex-shrink-0 mt-1" />
@@ -101,10 +99,10 @@ const YourStatementView: React.FC<ContentViewProps> = ({
               them together. Your vision statement should describe your future self in a way that inspires you — 
               who you are, what you value, and how you want to live and lead.
             </p>
-            
+
             <Textarea 
               placeholder="In the future, I see myself... 
-              
+
 My purpose is to...
 
 I am becoming someone who..."
@@ -115,7 +113,7 @@ I am becoming someone who..."
           </div>
         </div>
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}

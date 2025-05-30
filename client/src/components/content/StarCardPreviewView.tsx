@@ -204,7 +204,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           } px-8`}
           size="lg"
         >
-            Next: Reflection
+            Next: Strength Reflection
         </Button>
       </div>
     </>
