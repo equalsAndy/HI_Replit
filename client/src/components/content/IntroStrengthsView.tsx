@@ -53,13 +53,13 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   // Track video progress
   const startProgressTracking = (playerInstance: any) => {
     let interval: NodeJS.Timeout;
-
+    
     const trackProgress = () => {
       if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
         try {
           const currentTime = playerInstance.getCurrentTime();
           const duration = playerInstance.getDuration();
-
+          
           if (duration > 0) {
             const percentage = (currentTime / duration) * 100;
             handleVideoProgress(percentage);
@@ -72,7 +72,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
 
     // Track progress every second
     interval = setInterval(trackProgress, 1000);
-
+    
     // Clean up interval when component unmounts
     return () => {
       if (interval) {
@@ -85,7 +85,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   const handleVideoProgress = (percentage: number) => {
     setVideoProgress(percentage);
     updateVideoProgress(stepId, percentage);
-
+    
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
@@ -126,7 +126,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Intro to Strengths</h1>
-
+      
       <div className="prose max-w-none">
         <div className="aspect-w-16 aspect-h-9 mb-4">
           <div className="w-full h-80 rounded border border-gray-200 bg-black">
@@ -206,7 +206,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         <p className="text-gray-700 mb-6">
           Later in the course, you'll complete your Star Card by adding your Flow State Qualities, making it a powerful tool for personal and team development.
         </p>
-
+        
         <div className="flex justify-end mt-6">
           <Button 
             onClick={handleNext}
@@ -217,7 +217,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
                 : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            Next: Find Your Flow
+            Take Assessment
           </Button>
         </div>
       </div>

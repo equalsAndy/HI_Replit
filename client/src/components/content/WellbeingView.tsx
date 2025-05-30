@@ -18,13 +18,13 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-
+    
     try {
       await apiRequest('/api/visualization', 'POST', {
         wellBeingLevel,
         futureWellBeingLevel,
       });
-
+      
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-1');
       setCurrentContent('cantril-ladder');
@@ -38,7 +38,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
-
+      
       <div className="mb-8">
         <div className="aspect-w-16 aspect-h-9 mb-8">
           <iframe 
@@ -50,14 +50,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             className="w-full h-80 rounded border border-gray-200"
           ></iframe>
         </div>
-
+        
         <div className="prose max-w-none mb-6">
           <p className="text-lg text-gray-700">
             Using the Cantril Ladder (0 = worst possible life, 10 = best possible life), you'll identify where you stand now, where you aim 
             to be in one year, and the steps you'll take each quarter to climb toward that vision.
           </p>
         </div>
-
+        
         <div className="flex justify-center">
           <div className="flex flex-col md:flex-row max-w-4xl w-full">
             {/* SVG Ladder */}
@@ -67,7 +67,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                 futureValue={futureWellBeingLevel}
               />
             </div>
-
+            
             <div className="flex-1 space-y-6 md:ml-6">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
                 <h3 className="text-md font-medium text-blue-800 mb-2">Where are you now?</h3>
@@ -94,7 +94,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   </div>
                 </div>
               </div>
-
+              
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
                 <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
                 <div className="space-y-3">
@@ -124,14 +124,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-
+      
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Next: Cantril Ladder'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Continue'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

@@ -13,21 +13,21 @@ interface ContentViewProps {
 // Helper function to get attribute color based on official categorization
 const getAttributeColor = (text: string): string => {
   if (!text) return 'rgb(156, 163, 175)'; // Default gray
-
+  
   // THINK attributes (Green)
   const thinkAttributes = ['Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 'Focused', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 'Sensible', 'Strategic', 'Thoughtful'];
-
+  
   // FEEL attributes (Blue)
   const feelAttributes = ['Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Expressive', 'Empathic', 'Intuitive', 'Inspiring', 'Objective', 'Passionate', 'Positive', 'Receptive', 'Supportive'];
-
+  
   // PLAN attributes (Yellow)
   const planAttributes = ['Detail-Oriented', 'Diligent', 'Immersed', 'Industrious', 'Methodical', 'Organized', 'Organised', 'Precise', 'Punctual', 'Reliable', 'Responsible', 'Straightforward', 'Tidy', 'Systematic', 'Thorough'];
-
+  
   // ACT attributes (Red)
   const actAttributes = ['Adventuresome', 'Competitive', 'Dynamic', 'Effortless', 'Energetic', 'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 'Practical', 'Resilient', 'Spontaneous', 'Vigorous'];
-
+  
   const normalizedText = text.trim();
-
+  
   if (thinkAttributes.includes(normalizedText)) {
     return 'rgb(1, 162, 82)'; // Green for THINK - matches StarCard quadrant color
   } else if (feelAttributes.includes(normalizedText)) {
@@ -37,7 +37,7 @@ const getAttributeColor = (text: string): string => {
   } else if (actAttributes.includes(normalizedText)) {
     return 'rgb(241, 64, 64)'; // Red for ACT - matches StarCard quadrant color
   }
-
+  
   // Fallback to default gray for unrecognized attributes
   return 'rgb(156, 163, 175)';
 };
@@ -98,11 +98,11 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
 
     try {
       console.log('Starting star card download...');
-
+      
       // Use the utility function for consistent configuration
       const { downloadElementAsImage } = await import('@/lib/html2canvas');
       await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
-
+      
       console.log('Download completed successfully');
       markStepCompleted('5-1');
     } catch (error) {
@@ -114,7 +114,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Star Card</h1>
-
+      
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
         <div className="space-y-6">
           <div className="bg-green-50 p-6 rounded-lg border border-green-100">
@@ -133,7 +133,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
               <li>Building stronger workplace relationships</li>
             </ul>
           </div>
-
+          
           <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
             <h3 className="text-lg font-semibold text-blue-800 mb-3">Next Steps</h3>
             <p className="text-blue-700 mb-3">
@@ -146,7 +146,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
             </p>
           </div>
         </div>
-
+        
         <div className="flex flex-col items-center">
           {isLoading ? (
             <div className="bg-gray-50 p-4 rounded-md border border-gray-200 text-center">
@@ -193,7 +193,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
               </p>
             </div>
           )}
-
+          
           {user?.user && starCard?.success && (
             <div className="flex justify-center mt-6">
               <Button 

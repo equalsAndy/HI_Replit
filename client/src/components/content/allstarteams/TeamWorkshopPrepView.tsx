@@ -70,7 +70,7 @@ export default function TeamWorkshopPrepView({
 
             <div className="flex gap-4">
               <Button onClick={handleNext} className="flex items-center gap-2">
-                Next: AI Holistic Report
+                Continue to More Information
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

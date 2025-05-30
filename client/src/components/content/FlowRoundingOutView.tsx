@@ -50,7 +50,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [showExample, setShowExample] = useState(false);
   const [reflectionCompleted, setReflectionCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
-
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -68,15 +68,15 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         const parsedResults = typeof existingReflection.results === 'string' 
           ? JSON.parse(existingReflection.results) 
           : existingReflection.results;
-
+        
         if (parsedResults.answers) {
           setAnswers(parsedResults.answers);
-
+          
           // Check if all questions are answered
           const allAnswered = roundingOutQuestions.every(q => 
             parsedResults.answers[q.id] && parsedResults.answers[q.id].trim().length > 0
           );
-
+          
           if (allAnswered) {
             setReflectionCompleted(true);
           }
@@ -137,11 +137,11 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       });
     }
   });
-
+  
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
   const currentAnswer = answers[question?.id] || '';
-
+  
   // Check if all questions have been answered
   const allQuestionsAnswered = () => {
     return roundingOutQuestions.every(q => 
@@ -181,7 +181,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       setSaving(false);
     }
   };
-
+  
   // Move to previous question
   const prevQuestion = () => {
     if (currentQuestion > 0) {
@@ -189,7 +189,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       setShowExample(false);
     }
   };
-
+  
   // Update answer for current question
   const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setAnswers(prev => ({
@@ -197,12 +197,12 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       [question.id]: e.target.value
     }));
   };
-
+  
   // Toggle example visibility
   const toggleExample = () => {
     setShowExample(prev => !prev);
   };
-
+  
   // Example answers for each question
   const getExampleAnswer = (questionId: number) => {
     switch (questionId) {
@@ -218,26 +218,26 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         return "";
     }
   };
-
+  
   // Continue to next section
   const handleContinue = () => {
     setCurrentContent("flow-star-card");
   };
-
+  
   // Calculate progress percentage
   const progressPercentage = ((currentQuestion + 1) / roundingOutQuestions.length) * 100;
-
+  
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-4">Rounding Out Your Flow Understanding</h1>
-
+      
       <div className="prose max-w-none mb-6">
         <p className="text-lg text-gray-700">
           Now that you've completed the flow assessment, take some time to round out your understanding 
           of flow and how you can create more opportunities for it in your work and life.
         </p>
       </div>
-
+      
       <div className="flex flex-col md:flex-row gap-6 mb-6">
         {/* Video Section with the requested YouTube video */}
         <div className="md:w-1/2">
@@ -252,7 +252,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             ></iframe>
           </div>
         </div>
-
+        
         <div className="md:w-1/2">
           <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-100 h-full">
             <h3 className="font-medium text-indigo-800 mb-3 flex items-center">
@@ -280,7 +280,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-
+      
       {reflectionCompleted ? (
         <div className="space-y-6">
           <Card className="p-6 border border-green-100 bg-green-50">
@@ -295,7 +295,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 Great work! You've completed the flow reflection exercise. You're now ready to add flow attributes
                 to your Star Card to round out your profile.
               </p>
-
+              
               <Button 
                 onClick={handleContinue}
                 className="bg-indigo-700 hover:bg-indigo-800"
@@ -304,7 +304,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               </Button>
             </div>
           </Card>
-
+          
           <div className="grid grid-cols-1 gap-4 mt-6">
             <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
               <h3 className="uppercase font-bold text-lg mb-2 text-blue-700">Flow State Resources</h3>
@@ -346,7 +346,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                   {showExample ? "Hide Example" : "Show Example"}
                 </Button>
               </div>
-
+              
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-indigo-600 rounded-full"
@@ -354,13 +354,13 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 ></div>
               </div>
             </div>
-
+            
             <h3 className="text-lg font-semibold mb-2">{question.text}</h3>
-
+            
             {question.hint && (
               <p className="text-sm text-gray-600 mb-3">{question.hint}</p>
             )}
-
+            
             {showExample && (
               <div className="mb-4 p-3 bg-indigo-50 border border-indigo-100 rounded-md">
                 <p className="text-sm text-indigo-900">
@@ -369,14 +369,14 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 </p>
               </div>
             )}
-
+            
             <Textarea
               value={currentAnswer}
               onChange={handleAnswerChange}
               placeholder="Your answer here..."
               className="min-h-[120px] mb-4 border border-gray-300"
             />
-
+            
             <div className="flex justify-between">
               <Button
                 variant="outline"
@@ -385,7 +385,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               >
                 Previous
               </Button>
-
+              
               <div className="flex gap-2">
                 {currentQuestion < roundingOutQuestions.length - 1 ? (
                   <Button
@@ -411,7 +411,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               </div>
             </div>
           </Card>
-
+          
           {/* Show completion status if all questions answered but not yet saved */}
           {allQuestionsAnswered() && !reflectionCompleted && (
             <div className="bg-green-50 p-4 rounded-lg border border-green-100">
