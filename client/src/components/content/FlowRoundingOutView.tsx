@@ -300,7 +300,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 onClick={handleContinue}
                 className="bg-indigo-700 hover:bg-indigo-800"
               >
-                Continue to Add Flow to Star Card
+                Next: Add Flow to Star Card
               </Button>
             </div>
           </Card>

@@ -131,7 +131,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Continue'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Next: Visualizing Your Potential'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

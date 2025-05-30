@@ -44,8 +44,8 @@ const RecapView: React.FC<ContentViewProps> = ({
 
   const handleComplete = () => {
     markStepCompleted('4-3');
-    // Navigate to resources section
-    setCurrentContent("placeholder-5-1");
+    // Navigate to your star card
+    setCurrentContent("your-star-card");
   };
 
   return (
@@ -148,7 +148,7 @@ const RecapView: React.FC<ContentViewProps> = ({
           onClick={handleComplete}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Continue to Resources <ChevronRight className="ml-2 h-4 w-4" />
+          Next: Your Star Card <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

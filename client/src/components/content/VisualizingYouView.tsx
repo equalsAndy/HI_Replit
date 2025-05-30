@@ -261,7 +261,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           }}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          Continue <ChevronRight className="ml-2 h-4 w-4" />
+          Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

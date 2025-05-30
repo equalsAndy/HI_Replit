@@ -217,7 +217,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
                 : "bg-gray-300 cursor-not-allowed"
             }`}
           >
-            Take Assessment
+            Next: Strengths Assessment
           </Button>
         </div>
       </div>

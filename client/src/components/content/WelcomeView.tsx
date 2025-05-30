@@ -45,8 +45,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     : "AllStarTeams Workshop Introduction";
 
   const nextButton = isImaginalAgility
-    ? "Next: The Triple Challenge →"
-    : "Next: Intro to Strengths →";
+    ? "Next: The Triple Challenge"
+    : "Next: Intro to Strengths";
 
   const nextContentId = isImaginalAgility
     ? "triple-challenge"
