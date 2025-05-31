@@ -243,7 +243,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
             <iframe 
-              src="https://www.youtube.com/embed/srLM8lHPj40"
+              src="https://www.youtube.com/embed/BBAx5dNZw6Y"
               title="Understanding Flow State" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 

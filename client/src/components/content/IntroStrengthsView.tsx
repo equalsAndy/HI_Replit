@@ -22,7 +22,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   const playerRef = useRef<HTMLDivElement>(null);
 
   const stepId = "2-1";
-  const videoId = "ao04eaeDIFQ";
+  const videoId = "TN5b8jx7KSI";
 
   // Load YouTube API
   useEffect(() => {

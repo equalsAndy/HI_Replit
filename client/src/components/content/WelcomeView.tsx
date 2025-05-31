@@ -38,7 +38,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "Welcome to the Imaginal Agility workshop! This program will help you develop strategic imagination and navigate the Triple Challenge facing organizations today."
     : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
-  const videoId = isImaginalAgility ? "JxdhWd8agmE" : "lcjao1ob55A";
+  const videoId = isImaginalAgility ? "JxdhWd8agmE" : "pp2wrqE8r2o";
 
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"

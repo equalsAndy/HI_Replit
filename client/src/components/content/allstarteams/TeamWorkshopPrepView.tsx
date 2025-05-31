@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,7 @@ export default function TeamWorkshopPrepView({
             <p className="text-lg text-gray-700">
               Prepare for the next phase: collaborating with your team to maximize collective strengths.
             </p>
-            
+
             <div className="bg-orange-50 p-6 rounded-lg">
               <h3 className="font-semibold text-orange-900 mb-4">What to expect in the team workshop:</h3>
               <div className="space-y-3">
@@ -67,6 +66,14 @@ export default function TeamWorkshopPrepView({
                 <strong>Note:</strong> Make sure to bring your downloaded Star Card to the team workshop session.
               </p>
             </div>
+
+            <iframe 
+            src="https://www.youtube.com/embed/SxMKHZWn4JA?enablejsapi=1"
+            title="Team Workshop Preparation"
+            className="w-full h-[400px] rounded-lg" 
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowFullScreen
+          ></iframe>
 
             <div className="flex gap-4">
               <Button onClick={handleNext} className="flex items-center gap-2">

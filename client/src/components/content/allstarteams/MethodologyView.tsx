@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,7 +33,18 @@ export default function MethodologyView({
             <p className="text-lg text-gray-700">
               Learn about the scientific methodology behind the AllStarTeams assessment and development approach.
             </p>
-            
+
+            {/* Added video iframe here */}
+            <div className="mb-4">
+              <iframe 
+                src="https://www.youtube.com/embed/kKarUFyDsf8?enablejsapi=1"
+                title="Workshop Methodology"
+                className="w-full h-[400px] rounded-lg" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+
             <div className="space-y-4">
               <div className="bg-indigo-50 p-6 rounded-lg">
                 <h3 className="font-semibold text-indigo-900 mb-3">Research Foundation</h3>

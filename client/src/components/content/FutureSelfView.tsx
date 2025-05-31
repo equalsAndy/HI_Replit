@@ -37,7 +37,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
 
   const stepId = "4-4";
-  const videoId = "_VsH5NO9jyg";
+  const videoId = "N9uCPe3xF5A";
 
   // Load YouTube API
   useEffect(() => {

@@ -22,7 +22,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   const playerRef = useRef<HTMLDivElement>(null);
 
   const stepId = "3-1";
-  const videoId = "JxdhWd8agmE";
+  const videoId = "6szJ9q_g87E";
 
   // Load YouTube API
   useEffect(() => {

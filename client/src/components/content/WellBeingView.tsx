@@ -21,7 +21,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
-  
+
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
     queryKey: ['/api/visualization'],
@@ -63,7 +63,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     };
     localStorage.setItem('wellbeingData', JSON.stringify(wellbeingData));
   }, [wellBeingLevel, futureWellBeingLevel]);
-  
+
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const playerRef = useRef<any>(null);
@@ -133,10 +133,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           try {
             const currentTime = playerRef.current.getCurrentTime();
             const duration = playerRef.current.getDuration();
-            
+
             if (duration > 0) {
               const watchPercent = (currentTime / duration) * 100;
-              
+
               if (watchPercent >= 0.5 && !hasReachedMinimum) {
                 setHasReachedMinimum(true);
               }
@@ -162,16 +162,16 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   const handleSave = async () => {
     setSaving(true);
-    
+
     try {
       await apiRequest('POST', '/api/visualization', {
         wellBeingLevel,
         futureWellBeingLevel,
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
       markStepCompleted('4-1');
-      
+
       // Navigate to well-being reflections (cantril-ladder content)
       console.log('Navigating to cantril-ladder content view');
       setCurrentContent('cantril-ladder');
@@ -189,7 +189,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
-      
+
       <div className="mb-8">
         {/* Video at the top, full width with proper aspect ratio */}
         <div className="mb-8">
@@ -201,7 +201,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             ></div>
           </div>
         </div>
-        
+
         {/* Cantril Ladder description moved above ladder */}
         <div className="prose max-w-none mb-6">
           <p className="text-lg text-gray-700">
@@ -209,7 +209,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             to be in one year, and the steps you'll take each quarter to climb toward that vision.
           </p>
         </div>
-        
+
         {/* Content below video */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
           {/* SVG Ladder - larger on bigger screens */}
@@ -221,7 +221,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               />
             </div>
           </div>
-          
+
           {/* Sliders and controls - stacked */}
           <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
             <div className="grid grid-cols-1 gap-4">
@@ -279,7 +279,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             </div>
           </div>
         </div>
-        
+
         {/* Interpretation section - as per provided content */}
         <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
           <h3 className="text-amber-800 font-medium mb-3">Interpreting Your Position on the Ladder</h3>
@@ -308,7 +308,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           </div>
         </div>
       </div>
-      
+
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}

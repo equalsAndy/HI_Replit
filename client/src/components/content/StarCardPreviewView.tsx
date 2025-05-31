@@ -25,7 +25,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   const playerRef = useRef<HTMLDivElement>(null);
 
   const stepId = "2-3";
-  const videoId = "x6h7LDtdnJw";
+  const videoId = "JJWb058M-sY";
 
   // Load YouTube API
   useEffect(() => {
