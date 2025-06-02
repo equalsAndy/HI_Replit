@@ -18,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   Card,
@@ -26,20 +25,35 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Pencil, Trash2, Play, Copy } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, Pencil, Play } from 'lucide-react';
+
+// Types
+interface Video {
+  id: number;
+  title: string;
+  description?: string;
+  url: string;
+  editableId: string;
+  workshop_type: string;
+  section?: string;
+  step_id?: string;
+  autoplay?: boolean;
+  sortOrder?: number;
+}
 
 export function SimpleVideoManagement() {
   const { toast } = useToast();
-  const [videos, setVideos] = useState([]);
+  const [videos, setVideos] = useState<Video[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedVideo, setSelectedVideo] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVideo, setSelectedVideo] = useState<Video | null>(null);
   const [editableId, setEditableId] = useState('');
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   // Extract YouTube video ID from URL
-  const extractYouTubeId = (url) => {
+  const extractYouTubeId = (url: string): string => {
     // Handle youtube.com/embed/VIDEO_ID format
     const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
     const embedMatch = url.match(embedRegex);
@@ -63,6 +77,12 @@ export function SimpleVideoManagement() {
     
     // If no matches found, return the original string as it might be just the ID
     return url;
+  };
+
+  // Generate embed URL from video ID
+  const generateEmbedUrl = (videoId: string, autoplay: boolean = false): string => {
+    const autoplayParam = autoplay ? '&autoplay=1' : '';
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1${autoplayParam}`;
   };
 
   // Fetch videos
@@ -99,91 +119,85 @@ export function SimpleVideoManagement() {
 
   // Update video ID
   const updateVideoId = async () => {
-    if (!selectedVideo || !editableId) return;
-    
+    if (!selectedVideo || !editableId.trim()) {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid video ID',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
-      // Create a proper YouTube embed URL with the new ID
-      const updatedUrl = `https://www.youtube.com/embed/${editableId}`;
+      const newUrl = generateEmbedUrl(editableId, selectedVideo.autoplay);
       
       const response = await fetch(`/api/admin/videos/${selectedVideo.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
           editableId: editableId,
-          url: updatedUrl
+          url: newUrl
         }),
-        credentials: 'include'
       });
-      
+
       if (!response.ok) {
-        throw new Error(`Failed to update video: ${response.statusText}`);
+        throw new Error('Failed to update video');
       }
-      
-      // Update videos in state
-      setVideos(prev => 
-        prev.map(video => 
-          video.id === selectedVideo.id 
-            ? { ...video, editableId: editableId, url: updatedUrl } 
-            : video
-        )
-      );
+
+      // Update local state
+      setVideos(prev => prev.map(video => 
+        video.id === selectedVideo.id 
+          ? { ...video, editableId: editableId, url: newUrl }
+          : video
+      ));
+
+      setIsEditDialogOpen(false);
+      setEditableId('');
+      setSelectedVideo(null);
       
       toast({
         title: 'Success',
-        description: 'Video ID updated successfully',
+        description: 'Video updated successfully',
       });
-      
-      setIsEditDialogOpen(false);
-    } catch (err) {
+    } catch (error) {
+      console.error('Error updating video:', error);
       toast({
         title: 'Error',
-        description: 'Failed to update video ID',
+        description: 'Failed to update video. Please try again.',
         variant: 'destructive',
       });
-      console.error('Error updating video ID:', err);
     }
   };
 
-  // Handle edit button click
-  const handleEditClick = (video) => {
+  // Handle edit click
+  const handleEditClick = (video: Video) => {
     setSelectedVideo(video);
     setEditableId(video.editableId || extractYouTubeId(video.url));
+    setPreviewUrl(video.url);
     setIsEditDialogOpen(true);
   };
 
-  // Preview video
-  const handlePreviewClick = (url) => {
-    setPreviewUrl(url);
+  // Handle preview URL update when editing
+  const handlePreviewIdChange = (newId: string) => {
+    setEditableId(newId);
+    if (newId.trim() && selectedVideo) {
+      const newPreviewUrl = generateEmbedUrl(newId, selectedVideo.autoplay);
+      setPreviewUrl(newPreviewUrl);
+    }
   };
 
-  // Copy iframe code to clipboard
-  const copyIframeCode = (url, title) => {
-    const iframeCode = `<iframe 
+  // Generate embed code for display
+  const generateEmbedCode = (url: string, title: string): string => {
+    return `<iframe 
   src="${url}"
   title="${title}"
   className="w-full h-full"
   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
   allowFullScreen>
 </iframe>`;
-    
-    navigator.clipboard.writeText(iframeCode).then(
-      () => {
-        toast({
-          title: 'Copied!',
-          description: 'iframe code copied to clipboard',
-        });
-      },
-      (err) => {
-        console.error('Could not copy text: ', err);
-        toast({
-          title: 'Error',
-          description: 'Failed to copy to clipboard',
-          variant: 'destructive',
-        });
-      }
-    );
   };
 
   if (isLoading) {
@@ -211,37 +225,73 @@ export function SimpleVideoManagement() {
 
   return (
     <div className="space-y-4">
-      {/* Edit Dialog */}
+      {/* Enhanced Edit Dialog with Live Preview */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Video ID</DialogTitle>
+            <DialogTitle>Edit Video</DialogTitle>
             <DialogDescription>
-              Update the video ID for {selectedVideo?.title}
+              Update the video ID for {selectedVideo?.title}. The preview will update in real-time.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Current URL</label>
-                <p className="text-sm text-muted-foreground mt-1 overflow-hidden text-ellipsis">
-                  {selectedVideo?.url}
-                </p>
+          
+          <div className="py-4 space-y-6">
+            {/* Video ID Input */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Video ID</label>
+              <Input 
+                value={editableId}
+                onChange={(e) => handlePreviewIdChange(e.target.value)}
+                placeholder="e.g., nFQPqSwzOLw"
+                className="font-mono"
+              />
+              <p className="text-xs text-muted-foreground">
+                Enter the YouTube video ID (the part after v= or /embed/)
+              </p>
+            </div>
+
+            {/* Live Video Preview */}
+            {previewUrl && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Live Preview</label>
+                <div className="w-full aspect-video bg-gray-100 rounded-lg overflow-hidden">
+                  <iframe
+                    src={previewUrl}
+                    title="Video Preview"
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
-              <div>
-                <label className="text-sm font-medium">Video ID</label>
-                <Input 
-                  value={editableId}
-                  onChange={(e) => setEditableId(e.target.value)}
-                  placeholder="e.g., lcjao1ob55A"
-                  className="mt-1"
+            )}
+
+            {/* Embed Code Display */}
+            {previewUrl && selectedVideo && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Embed Code (Read-only)</label>
+                <Textarea
+                  value={generateEmbedCode(previewUrl, selectedVideo.title)}
+                  readOnly
+                  className="font-mono text-sm bg-gray-50"
+                  rows={6}
                 />
-                <p className="text-xs text-muted-foreground mt-1">
-                  This will update both the ID and the embed URL
+                <p className="text-xs text-muted-foreground">
+                  This is the exact embed code that will be used in content views
+                  {selectedVideo.autoplay && " (includes autoplay parameter)"}
                 </p>
               </div>
+            )}
+
+            {/* Current URL Info */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Current URL</label>
+              <p className="text-sm text-muted-foreground bg-gray-50 p-2 rounded border font-mono break-all">
+                {selectedVideo?.url}
+              </p>
             </div>
           </div>
+          
           <DialogFooter>
             <Button onClick={() => setIsEditDialogOpen(false)} variant="outline">
               Cancel
@@ -252,30 +302,6 @@ export function SimpleVideoManagement() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Video Preview Dialog */}
-      {previewUrl && (
-        <Dialog open={!!previewUrl} onOpenChange={() => setPreviewUrl(null)}>
-          <DialogContent className="sm:max-w-[800px] sm:max-h-[600px]">
-            <DialogHeader>
-              <DialogTitle>Video Preview</DialogTitle>
-              <DialogDescription>Preview of the selected video</DialogDescription>
-            </DialogHeader>
-            <div className="w-full aspect-video">
-              <iframe 
-                className="w-full h-full"
-                src={previewUrl} 
-                title="Video Preview" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen>
-              </iframe>
-            </div>
-            <DialogFooter>
-              <Button onClick={() => setPreviewUrl(null)}>Close</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
 
       {/* Videos Table */}
       <Card>
@@ -303,7 +329,7 @@ export function SimpleVideoManagement() {
                        video.workshop_type}
                     </TableCell>
                     <TableCell className="font-mono text-sm">
-                      {video.step_id || video.stepId || '-'}
+                      {video.step_id || '-'}
                     </TableCell>
                     <TableCell className="font-mono text-sm">
                       {video.editableId || extractYouTubeId(video.url)}
@@ -321,13 +347,20 @@ export function SimpleVideoManagement() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
-                        <Button size="icon" variant="outline" onClick={() => handlePreviewClick(video.url)}>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          onClick={() => window.open(video.url, '_blank')}
+                          title="Preview video"
+                        >
                           <Play className="h-4 w-4" />
                         </Button>
-                        <Button size="icon" variant="outline" onClick={() => copyIframeCode(video.url, video.title)}>
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button size="icon" variant="outline" onClick={() => handleEditClick(video)}>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          onClick={() => handleEditClick(video)}
+                          title="Edit video"
+                        >
                           <Pencil className="h-4 w-4" />
                         </Button>
                       </div>

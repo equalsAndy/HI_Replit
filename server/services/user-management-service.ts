@@ -381,114 +381,27 @@ class UserManagementService {
    */
   async getVideos() {
     try {
-      // Return real data from the add-workshop-videos file
-      return [
-        // AllStarTeams Workshop Videos
-        {
-          id: 1,
-          title: "Intro to Strengths",
-          description: "Introduction to understanding your strengths",
-          url: "https://www.youtube.com/embed/ao04eaeDIFQ?enablejsapi=1",
-          editableId: "ao04eaeDIFQ",
-          workshop_type: "allstarteams",
-          section: "introduction",
-          sortOrder: 1
-        },
-        {
-          id: 2,
-          title: "Your Star Profile",
-          description: "Understanding your personal Star Profile",
-          url: "https://www.youtube.com/embed/x6h7LDtdnJw?enablejsapi=1",
-          editableId: "x6h7LDtdnJw",
-          workshop_type: "allstarteams",
-          section: "assessment",
-          sortOrder: 2
-        },
-        {
-          id: 3,
-          title: "Intro to Flow",
-          description: "Introduction to flow states and performance",
-          url: "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1",
-          editableId: "JxdhWd8agmE",
-          workshop_type: "allstarteams",
-          section: "flow",
-          sortOrder: 3
-        },
-        {
-          id: 4,
-          title: "Rounding Out",
-          description: "Developing a well-rounded approach",
-          url: "https://www.youtube.com/embed/srLM8lHPj40?enablejsapi=1",
-          editableId: "srLM8lHPj40",
-          workshop_type: "allstarteams",
-          section: "development",
-          sortOrder: 4
-        },
-        {
-          id: 5,
-          title: "Ladder of Well-being",
-          description: "Understanding the Well-being Ladder concept",
-          url: "https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1",
-          editableId: "yidsMx8B678",
-          workshop_type: "allstarteams",
-          section: "wellbeing",
-          sortOrder: 5
-        },
-        {
-          id: 6,
-          title: "Your Future Self",
-          description: "Envisioning and planning for your future",
-          url: "https://www.youtube.com/embed/_VsH5NO9jyg?enablejsapi=1",
-          editableId: "_VsH5NO9jyg",
-          workshop_type: "allstarteams",
-          section: "future",
-          sortOrder: 6
-        },
-        
-        // Imaginal Agility Workshop Videos
-        {
-          id: 7,
-          title: "IAWS Orientation Video",
-          description: "Introduction to the Imaginal Agility workshop",
-          url: "https://www.youtube.com/embed/1Belekdly70?enablejsapi=1",
-          editableId: "1Belekdly70", 
-          workshop_type: "imaginal-agility",
-          section: "introduction",
-          sortOrder: 1
-        },
-        {
-          id: 8,
-          title: "AI Triple Challenge",
-          description: "Understanding the challenges ahead",
-          url: "https://www.youtube.com/embed/zIFGKPMN9t8?enablejsapi=1",
-          editableId: "zIFGKPMN9t8",
-          workshop_type: "imaginal-agility", 
-          section: "workshop",
-          sortOrder: 2
-        },
-        {
-          id: 9,
-          title: "Imaginal Agility Solution",
-          description: "Core solution framework",
-          url: "https://www.youtube.com/embed/BLh502BlZLE?enablejsapi=1",
-          editableId: "BLh502BlZLE",
-          workshop_type: "imaginal-agility",
-          section: "workshop",
-          sortOrder: 3
-        },
-        {
-          id: 10,
-          title: "5 Capabilities (5Cs)",
-          description: "Guide to the five core capabilities",
-          url: "https://www.youtube.com/embed/8wXSL3om6Ig?enablejsapi=1",
-          editableId: "8wXSL3om6Ig",
-          workshop_type: "imaginal-agility",
-          section: "assessment",
-          sortOrder: 4
-        }
-      ];
+      // Import videos table from schema
+      const { videos } = await import('@shared/schema');
+      
+      // Query the actual database for videos
+      const result = await db.select().from(videos).orderBy(videos.sortOrder);
+      
+      // Transform the data to match the expected format
+      return result.map(video => ({
+        id: video.id,
+        title: video.title,
+        description: video.description,
+        url: video.url,
+        editableId: video.editableId,
+        workshop_type: video.workshopType,
+        section: video.section,
+        step_id: video.stepId,
+        autoplay: video.autoplay,
+        sortOrder: video.sortOrder
+      }));
     } catch (error) {
-      console.error('Error getting videos:', error);
+      console.error('Error getting videos from database:', error);
       throw error;
     }
   }
