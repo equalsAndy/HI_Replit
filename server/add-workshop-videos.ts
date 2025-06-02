@@ -59,6 +59,18 @@ async function addWorkshopVideos() {
   ];
 
   const imaginalAgilityVideos = [
+    // Landing page video
+    {
+      title: "Landing Page Introduction",
+      description: "Main introduction video for the landing page",
+      url: "https://www.youtube.com/embed/nFQPqSwzOLw?enablejsapi=1",
+      editableId: "nFQPqSwzOLw",
+      workshopType: "general",
+      section: "home",
+      sortOrder: 0
+    },
+
+    // Imaginal Agility videos
     {
       title: "IAWS Orientation Video",
       description: "Introduction to the Imaginal Agility workshop",
