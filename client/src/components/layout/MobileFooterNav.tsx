@@ -15,11 +15,11 @@ export function MobileFooterNav() {
     organization?: string;
     role?: string;
   }>({ queryKey: ['/api/user/profile'] });
-  
+
   // Function to reset user data
   const handleResetUserData = async () => {
     if (!user?.id) return;
-    
+
     try {
       // Show loading toast
       toast({
@@ -27,7 +27,7 @@ export function MobileFooterNav() {
         description: "Please wait while your data is being reset...",
         variant: "default",
       });
-      
+
       // Use the correct reset endpoint that exists in the code
       const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
@@ -35,20 +35,20 @@ export function MobileFooterNav() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         toast({
           title: "Reset Successful",
           description: "Your assessment data has been reset. The page will refresh now.",
           variant: "default",
         });
-        
+
         // Invalidate queries to force refetch
         queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
         queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-        
+
         // Force reload to show reset state after a brief delay
         setTimeout(() => {
           window.location.reload();

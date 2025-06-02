@@ -94,14 +94,8 @@ export function TestUserBanner({
     );
   }
 
-  return (
-    <Badge 
-      variant="outline" 
-      className={`font-medium ${getBadgeStyle()} ${className}`}
-    >
-      {user?.role || 'Test User'}: {user?.name || user?.username || 'Test User'}
-    </Badge>
-  );
+  // Don't show individual test user badges
+  return null;
 }
 
 export default TestUserBanner;

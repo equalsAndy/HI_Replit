@@ -12,6 +12,9 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
+import { ArrowLeftRight } from 'lucide-react';
+import { useApplication } from '@/hooks/use-application';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -21,6 +24,8 @@ interface ProfileModalProps {
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, navigate] = useLocation();
+  const { currentApp } = useApplication();
   
   const { data: user, isLoading } = useQuery<{
     id: number;
@@ -89,6 +94,19 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
         variant: 'destructive',
       });
     }
+  };
+
+  // Function to toggle between applications (admin only)
+  const toggleApplication = () => {
+    const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
+    
+    if (newApp === 'allstarteams') {
+      navigate('/allstarteams');
+    } else {
+      navigate('/imaginal-agility');
+    }
+    
+    onClose();
   };
   
   if (isLoading) {
@@ -161,6 +179,25 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
               />
             </div>
           </div>
+          
+          {/* Application Switcher for Admin Users */}
+          {user?.role === 'admin' && (
+            <div className="border-t pt-4">
+              <Label className="text-sm font-medium text-gray-700 mb-3 block">
+                Admin Tools
+              </Label>
+              <Button 
+                type="button"
+                variant="outline" 
+                className="w-full bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 flex items-center justify-center"
+                onClick={toggleApplication}
+              >
+                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
+              </Button>
+            </div>
+          )}
+          
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel

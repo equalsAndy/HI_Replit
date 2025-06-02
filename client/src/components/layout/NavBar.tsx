@@ -32,7 +32,7 @@ export function NavBar() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
   const { toast } = useToast();
-  
+
   // Fetch the current user's profile
   const { data, isLoading: isUserLoading, refetch } = useQuery<{
     success: boolean;
@@ -52,7 +52,7 @@ export function NavBar() {
     queryKey: ['/api/user/profile'],
     queryFn: async () => {
       console.log('NavBar: Fetching user profile...');
-      
+
       const response = await fetch('/api/user/profile', {
         method: 'GET',
         credentials: 'include',
@@ -60,16 +60,16 @@ export function NavBar() {
           'Content-Type': 'application/json',
         },
       });
-      
+
       console.log('NavBar: Profile fetch response status:', response.status);
       console.log('NavBar: Profile fetch response headers:', Object.fromEntries(response.headers.entries()));
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error('NavBar: Profile fetch failed:', response.status, errorText);
         throw new Error(`Failed to fetch profile: ${response.status}`);
       }
-      
+
       const data = await response.json();
       console.log('NavBar: Profile data received:', data);
       return data;
@@ -79,11 +79,11 @@ export function NavBar() {
     staleTime: 0, // Always fetch fresh data
     retry: 2
   });
-  
+
   // Extract user data from the response
   const user = data?.user;
   const isTestUser = user?.isTestUser || false;
-  
+
   useEffect(() => {
     // Log user data for debugging
     console.log("NavBar - API response:", data);
@@ -93,11 +93,11 @@ export function NavBar() {
       console.log("Is test user:", isTestUser);
     }
   }, [data, user, isTestUser]);
-  
+
   // Function to reset user data
   const handleResetUserData = async () => {
     if (!user?.id) return;
-    
+
     try {
       // Show loading toast
       toast({
@@ -105,7 +105,7 @@ export function NavBar() {
         description: "Please wait while your data is being reset...",
         variant: "default",
       });
-      
+
       // Use the workshop reset endpoint
       const response = await fetch(`/api/test-users/reset/${user.id}`, {
         method: 'POST',
@@ -113,20 +113,20 @@ export function NavBar() {
           'Content-Type': 'application/json'
         }
       });
-      
+
       const data = await response.json();
-      
+
       if (data.success) {
         toast({
           title: "Reset Successful",
           description: "Your assessment data has been reset. The page will refresh now.",
           variant: "default",
         });
-        
+
         // Invalidate queries to force refetch
         queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
         queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-        
+
         // Force reload to show reset state after a brief delay
         setTimeout(() => {
           window.location.reload();
@@ -173,11 +173,11 @@ export function NavBar() {
       });
 
       const data = await response.json();
-      
+
       if (data.success) {
         // Clear React Query cache
         queryClient.clear();
-        
+
         // Show success toast
         toast({
           title: 'Logged out successfully',
@@ -187,7 +187,7 @@ export function NavBar() {
 
         // Navigate to home page
         navigate('/');
-        
+
         // Force page reload to clear all state
         window.location.reload();
       } else {
@@ -207,7 +207,7 @@ export function NavBar() {
   const toggleApplication = () => {
     // Toggle to the other application
     const newApp = currentApp === 'allstarteams' ? 'imaginal-agility' : 'allstarteams';
-    
+
     if (newApp === 'allstarteams') {
       navigate('/allstarteams');
     } else {
@@ -217,14 +217,12 @@ export function NavBar() {
 
   // Use yellow color for the header to match Heliotrope logo
   const bgColorClass = 'bg-yellow-500';
-  
+
   return (
     <div className="relative">
       {/* Test Banner at the top */}
-      <div className="w-full fixed top-0 left-0 right-0 z-50">
-        <TestUserBanner showInHeader={true} user={{isTestUser: true}} />
-      </div>
       
+
       {/* Regular NavBar */}
       <div className={`${bgColorClass} text-white p-2 sticky top-10 z-40 flex justify-between items-center mt-12`}>
         <div className="flex-1">
@@ -236,11 +234,11 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-            
+
             {/* Show app name if available */}
             {currentApp && (
               <span className="ml-2 font-semibold hidden md:inline">
-                {currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'}
+                {currentApp === 'allstarteams' ? '' : 'Imaginal Agility'}
               </span>
             )}
           </div>
@@ -248,10 +246,8 @@ export function NavBar() {
 
         <div className="flex items-center gap-2">
           {/* Test User Badge - shown for all test users */}
-          {user?.id && user?.isTestUser && (
-            <TestUserBanner className="p-0" />
-          )}
           
+
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
@@ -261,12 +257,12 @@ export function NavBar() {
                   variant="ghost" 
                   size="sm" 
                   className="rounded-md text-white hover:bg-yellow-400"
-                  onClick={() => navigate('/admin/dashboard')}
+                  onClick={() => navigate('/admin')}
                 >
                   Admin
                 </Button>
               )}
-              
+
               {/* Profile Editor with logout functionality */}
               <ProfileEditor
                 user={user}
@@ -281,7 +277,7 @@ export function NavBar() {
             />
           )}
         </div>
-        
+
         {/* Profile Modal */}
         {isProfileModalOpen && (
           <ProfileModal

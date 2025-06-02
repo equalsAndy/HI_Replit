@@ -93,14 +93,14 @@ export default function AllStarTeams() {
   // Add user session tracking to refresh data when user changes
   useEffect(() => {
     let lastUserId: number | null = null;
-    
+
     const checkUserAndRefresh = async () => {
       try {
         const response = await fetch('/api/user/me', { credentials: 'include' });
         if (response.ok) {
           const userData = await response.json();
           const currentUserId = userData.user?.id;
-          
+
           // If user changed, clear all cached data and refresh
           if (lastUserId !== null && lastUserId !== currentUserId) {
             queryClient.clear();
@@ -115,7 +115,7 @@ export default function AllStarTeams() {
         // Silently handle errors
       }
     };
-    
+
     checkUserAndRefresh();
     const interval = setInterval(checkUserAndRefresh, 1500);
     return () => clearInterval(interval);
@@ -173,15 +173,15 @@ export default function AllStarTeams() {
   React.useEffect(() => {
     // Extract actual user data from the response wrapper
     const actualUser = user?.user || user;
-    
+
     if (actualUser?.id) {
       const lastUserId = localStorage.getItem('last-user-id');
       const currentUserId = actualUser.id.toString();
-      
+
       // Check if we've already cleared progress for this user in this session
       const sessionKey = `progress-cleared-${currentUserId}`;
       const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
-      
+
       // Clear progress if:
       // 1. User changed (different user logged in)
       // 2. Current user has progress: 0 (database reset) AND hasn't been cleared in this session
@@ -189,9 +189,9 @@ export default function AllStarTeams() {
       const userChanged = lastUserId && lastUserId !== currentUserId;
       const hasZeroProgress = actualUser.progress === 0 && !hasAlreadyCleared;
       const hasNoProgress = (actualUser.progress === undefined || actualUser.progress === null) && !hasAlreadyCleared;
-      
+
       const shouldClearProgress = userChanged || hasZeroProgress || hasNoProgress;
-      
+
       if (shouldClearProgress) {
         let reason;
         if (userChanged) {
@@ -201,9 +201,9 @@ export default function AllStarTeams() {
         } else {
           reason = `User ${currentUserId} has no progress data, clearing cached data`;
         }
-        
+
         console.log(`${reason}, clearing workshop progress`);
-        
+
         // Clear AllStarTeams specific progress and navigation cache
         const keysToRemove = [
           'allstarteams-navigation-progress',
@@ -213,34 +213,34 @@ export default function AllStarTeams() {
           'allstarteams_starCard',
           'allstarteams_flowAttributes'
         ];
-        
+
         // Also clear navigation progress cache for this user
         const navigationKeys = Object.keys(localStorage).filter(key => 
           key.startsWith('app_navigation_progress_') || 
           key.startsWith('navigation_last_sync_')
         );
-        
+
         keysToRemove.concat(navigationKeys).forEach(key => {
           localStorage.removeItem(key);
         });
-        
+
         // Reset completed steps state
         setCompletedSteps([]);
-        
+
         // Force refresh of all cached data by invalidating queries
         queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
         queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
         queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-        
+
         // Mark progress as cleared for this session to avoid repeated clearing
         const sessionKey = `progress-cleared-${currentUserId}`;
         sessionStorage.setItem(sessionKey, 'true');
       }
-      
+
       // Update stored user ID
       localStorage.setItem('last-user-id', currentUserId);
     }
-    
+
     // Debug logging
     if (user) {
       console.log('AllStarTeams - User data:', user);
@@ -323,11 +323,11 @@ export default function AllStarTeams() {
       queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-      
+
       // Clear any cached flow assessment data
       queryClient.removeQueries({ queryKey: ['/api/flow-attributes'] });
       queryClient.removeQueries({ queryKey: ['/api/starcard'] });
-      
+
       // Reset navigation progress as well
       if (typeof resetProgress === 'function') {
         resetProgress();
@@ -355,11 +355,11 @@ export default function AllStarTeams() {
     if (Array.isArray(completedSteps)) {
       if (!completedSteps.includes(stepId)) {
         setCompletedSteps(prev => Array.isArray(prev) ? [...prev, stepId] : [stepId]);
-        
+
         // Also mark in navigation progress and sync with database
         markNavStepCompleted(stepId);
         updateCurrentStep(stepId, 'ast');
-        
+
         // Sync with database (async, non-blocking)
         syncWithDatabase().catch(error => {
           console.error('Failed to sync navigation progress with database:', error);
@@ -368,7 +368,7 @@ export default function AllStarTeams() {
     } else {
       console.error("completedSteps is not an array:", completedSteps);
       setCompletedSteps([stepId]);
-      
+
       // Also update navigation progress for this case
       markNavStepCompleted(stepId);
       updateCurrentStep(stepId, 'ast');
@@ -568,14 +568,6 @@ export default function AllStarTeams() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Navigation */}
       <NavBar />
-
-      {/* Test User Banner */}
-      {user?.id && (
-        <TestUserBanner 
-          userId={user.id} 
-          userName={user.name || `TEST USER ${user.id}`} 
-        />
-      )}
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">

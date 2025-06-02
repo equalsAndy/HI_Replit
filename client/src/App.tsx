@@ -34,24 +34,24 @@ const App: React.FC = () => {
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
                     <Route path="/dashboard" component={DashboardPage} />
-                    
+
                     {/* Authentication routes */}
                     <Route path="/auth" component={AuthPage} />
                     <Route path="/auth/login" component={AuthPage} />
                     <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
-                    
+
                     {/* Workshop routes */}
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
-                    
+
                     {/* Admin routes */}
                     <Route path="/admin" component={AdminPage} />
-                    
+
                     {/* Reset and test routes */}
                     <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
                     <Route path="/reset-test" component={React.lazy(() => import('@/pages/reset-test'))} />
-                    
+
                     {/* Fallback route */}
                     <Route component={NotFoundPage} />
                   </Switch>
