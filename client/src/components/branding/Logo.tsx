@@ -1,51 +1,43 @@
 import React from 'react';
-import { Link } from 'wouter';
+import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
+import imaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
+import heliotropeLogo from '@/assets/HI_Logo_horizontal.png';
 
 interface LogoProps {
-  size?: 'sm' | 'md' | 'lg';
-  variant?: 'default' | 'light' | 'dark';
-  withText?: boolean;
+  type: 'allstarteams' | 'imaginal-agility' | 'heliotrope';
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const Logo: React.FC<LogoProps> = ({
-  size = 'md',
-  variant = 'default',
-  withText = true,
-  className = '',
-}) => {
-  // Size classes
+export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
   const sizeClasses = {
     sm: 'h-8',
-    md: 'h-10',
-    lg: 'h-16',
+    md: 'h-12',
+    lg: 'h-16'
   };
 
-  // Text color classes
-  const textColorClasses = {
-    default: 'text-primary',
-    light: 'text-white',
-    dark: 'text-gray-900',
+  const logoConfig = {
+    'allstarteams': {
+      src: allStarTeamsLogo,
+      alt: 'AllStarTeams'
+    },
+    'imaginal-agility': {
+      src: imaginalAgilityLogo,
+      alt: 'Imaginal Agility'
+    },
+    'heliotrope': {
+      src: heliotropeLogo,
+      alt: 'Heliotrope Imaginal'
+    }
   };
+
+  const config = logoConfig[type];
 
   return (
-    <Link href="/">
-      <a className={`flex items-center gap-2 ${className}`}>
-        <div className="relative">
-          <img 
-            src="/images/HI_Logo_horizontal.png" 
-            alt="Heliotrope Imaginal Logo" 
-            className={`${sizeClasses[size]} object-contain`}
-          />
-        </div>
-        {withText && (
-          <div className={`font-semibold ${textColorClasses[variant]} hidden md:block`}>
-            Heliotrope Imaginal Workshops
-          </div>
-        )}
-      </a>
-    </Link>
+    <img 
+      src={config.src} 
+      alt={config.alt} 
+      className={`${sizeClasses[size]} w-auto ${className}`}
+    />
   );
-};
-
-export default Logo;
+}

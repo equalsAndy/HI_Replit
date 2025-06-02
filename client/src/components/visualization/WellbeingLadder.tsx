@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
 import { LadderVisual } from './LadderVisual';
+import wellbeingLadderImage from '@/assets/wellbeing-ladder.png';
 
 interface WellbeingLadderProps {
   onCurrentValueChange?: (value: number) => void;
@@ -43,7 +44,7 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
       <div className="relative">
         <div className="w-full max-w-md mx-auto">
           <LadderVisual />
-          
+
           {/* Current position marker - purple circle (no number) */}
           <div 
             className="absolute rounded-full bg-purple-600 w-8 h-8 shadow-lg"
@@ -52,7 +53,7 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
               left: `133px`,
             }}
           />
-          
+
           {/* Future position marker - orange circle (no number) */}
           <div 
             className="absolute rounded-full bg-orange-500 w-8 h-8 shadow-lg"
@@ -63,7 +64,7 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
           />
         </div>
       </div>
-      
+
       <div className="space-y-8">
         <div>
           <Label htmlFor="current-position" className="text-base font-medium flex items-center">
@@ -87,7 +88,7 @@ export function WellbeingLadder({ onCurrentValueChange, onFutureValueChange }: W
             </span>
           </div>
         </div>
-        
+
         <div>
           <Label htmlFor="future-position" className="text-base font-medium flex items-center">
             <div className="w-3 h-3 bg-orange-500 rounded-full mr-2"></div>
