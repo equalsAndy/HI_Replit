@@ -23,10 +23,11 @@ async function addWorkshopVideos() {
     {
       title: "Intro to Flow",
       description: "Introduction to flow states and performance",
-      url: "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1&rel=0",
-      editableId: "JxdhWd8agmE",
+      url: "https://www.youtube.com/embed/6szJ9q_g87E?enablejsapi=1&rel=0",
+      editableId: "6szJ9q_g87E",
       workshopType: "allstarteams",
       section: "flow",
+      stepId: "3-1",
       sortOrder: 3
     },
     {
