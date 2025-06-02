@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useVideoByStep } from '@/hooks/use-video-by-step';
+import { useVideoByStep } from '@/hooks/use-videos';
 
 interface ContentViewProps {
   navigate: (path: string) => void;

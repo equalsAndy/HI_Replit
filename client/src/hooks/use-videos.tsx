@@ -48,3 +48,10 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
     data: video,
   };
 }
+
+// Alias for compatibility with existing components
+export function useVideoByStep(stepId: string) {
+  // Determine workshop type based on step ID pattern
+  const workshopType = stepId.includes('-') ? 'allstarteams' : 'imaginal-agility';
+  return useVideoByStepId(workshopType, stepId);
+}
