@@ -1,5 +1,5 @@
 import React from 'react';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps } from '../../../shared/types';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
 import AssessmentView from './AssessmentView';

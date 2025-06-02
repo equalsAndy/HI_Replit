@@ -12,7 +12,8 @@ import {
   Video,
   InsertVideo
 } from "@shared/schema";
-import { UserRole } from "@shared/types";
+// Define UserRole type locally to avoid import issues
+type UserRole = 'admin' | 'facilitator' | 'participant';
 
 // Define the storage interface
 export interface IStorage {

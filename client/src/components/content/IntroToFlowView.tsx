@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps } from '../../../shared/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { VideoPlayer } from './VideoPlayer';
 
