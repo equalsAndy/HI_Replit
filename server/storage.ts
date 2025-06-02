@@ -7,12 +7,12 @@ import connectPg from "connect-pg-simple";
 import session from "express-session";
 import {
   User, InsertUser, 
-  UserRole, 
   StarCard, 
   FlowAttributesRecord,
   Video,
   InsertVideo
 } from "@shared/schema";
+import { UserRole } from "@shared/types";
 
 // Define the storage interface
 export interface IStorage {
