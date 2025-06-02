@@ -12,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { useProgressionLogic } from '@/hooks/use-progression-logic';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
+import ProfileEditor from '@/components/profile/ProfileEditor';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -97,6 +98,47 @@ export default function ImaginalAgilityHome() {
       }
     }
   }, [user]);
+
+  // Logout function for ProfileEditor
+  const handleLogout = async () => {
+    try {
+      const response = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Clear React Query cache
+        queryClient.clear();
+
+        // Show success toast
+        toast({
+          title: 'Logged out successfully',
+          description: 'You have been logged out of your account.',
+          variant: 'default',
+        });
+
+        // Navigate to home page
+        navigate('/');
+
+        // Force page reload to clear all state
+        window.location.reload();
+      } else {
+        throw new Error(data.error || 'Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast({
+        title: 'Logout failed',
+        description: 'There was a problem logging out. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   // Reset user progress mutation
   const resetUserProgress = useMutation({
@@ -208,44 +250,46 @@ export default function ImaginalAgilityHome() {
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
         <div className="flex items-center">
           <img 
-            src="/src/assets/HI_Logo_horizontal.png" 
-            alt="Heliotrope Imaginal"
+            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+            alt="Imaginal Agility"
             className="h-8 w-auto" 
           />
           <span className="ml-2 font-semibold">Imaginal Agility</span>
         </div>
         <div className="flex items-center space-x-2">
-          <LogoutButton 
-            variant="outline" 
-            size="sm" 
-            className="rounded-md bg-white text-yellow-600 hover:bg-yellow-100 flex items-center"
-          />
+          {/* User Controls Menu for authenticated users */}
+          {user?.id ? (
+            <div className="flex items-center gap-2">
+              {/* Admin button - only shown for admin users */}
+              {user?.role === 'admin' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-md text-white hover:bg-yellow-400"
+                  onClick={() => navigate('/admin')}
+                >
+                  Admin
+                </Button>
+              )}
+
+              {/* Profile Editor with logout functionality */}
+              <ProfileEditor
+                user={user}
+                onLogout={handleLogout}
+              />
+            </div>
+          ) : (
+            /* Show ProfileEditor for all users regardless of login status */
+            <ProfileEditor
+              user={user}
+              onLogout={handleLogout}
+            />
+          )}
         </div>
       </div>
 
-      {/* Sub Header with Reset Button - specifically for Imaginal Agility */}
-      <header className="bg-white border-b border-gray-200 py-2 px-4" style={{ height: 'var(--header-height)' }}>
-        <div className="flex justify-between items-center h-full">
-          <img 
-            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
-            alt="Imaginal Agility Workshop"
-            className="h-10 w-auto" 
-          />
-          <Button 
-            variant="outline" 
-            size="sm"
-            className="flex items-center gap-1 text-gray-700"
-            onClick={() => resetUserProgress.mutate()}
-            disabled={resetUserProgress.isPending}
-          >
-            <RefreshCw className="h-4 w-4" />
-            {resetUserProgress.isPending ? "Resetting..." : "Reset Progress"}
-          </Button>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden"></div>
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
           drawerOpen={drawerOpen}

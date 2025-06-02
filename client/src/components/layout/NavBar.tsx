@@ -220,11 +220,8 @@ export function NavBar() {
 
   return (
     <div className="relative">
-      {/* Test Banner at the top */}
-      
-
       {/* Regular NavBar */}
-      <div className={`${bgColorClass} text-white p-2 sticky top-10 z-40 flex justify-between items-center mt-12`}>
+      <div className={`${bgColorClass} text-white p-2 sticky top-0 z-40 flex justify-between items-center`}></div>
         <div className="flex-1">
           <div className="flex items-center">
             <a href="/" onClick={handleLogoClick}>
