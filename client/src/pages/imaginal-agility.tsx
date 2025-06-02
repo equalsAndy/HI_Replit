@@ -289,7 +289,7 @@ export default function ImaginalAgilityHome() {
       </div>
 
       {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden"></div>
+      <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
         <UserHomeNavigation
           drawerOpen={drawerOpen}
