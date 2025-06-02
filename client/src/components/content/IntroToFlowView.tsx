@@ -1,8 +1,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../../shared/types';
-import { Card, CardContent } from '@/components/ui/card';
 import { VideoPlayer } from './VideoPlayer';
+
+interface ContentViewProps {
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+}
 
 const IntroToFlowView: React.FC<ContentViewProps> = ({
   navigate,
@@ -13,7 +17,17 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
 
-
+      {/* YouTube Video Player */}
+      <div className="mb-8">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="3-1"
+          fallbackUrl="https://youtu.be/6szJ9q_g87E"
+          title="Introduction to Flow State"
+          aspectRatio="16:9"
+          autoplay={true}
+        />
+      </div>
 
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold text-indigo-700 mb-4">Understanding Flow State</h2>

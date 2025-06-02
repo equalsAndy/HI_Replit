@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
-import { ContentViewProps } from '../../shared/types';
+
+interface ContentViewProps {
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+}
 import { Check, ChevronRight, Edit } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';

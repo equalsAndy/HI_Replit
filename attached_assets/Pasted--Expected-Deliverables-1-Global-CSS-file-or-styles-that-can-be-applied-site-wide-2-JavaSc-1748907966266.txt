@@ -1,0 +1,108 @@
+## Expected Deliverables
+
+1. **Global CSS file or styles** that can be applied site-wide
+2. **JavaScript solution** for dynamic video wrapping and YouTube URL parameter injection
+3. **YouTube URL handling system** that automatically converts and adds distraction-suppressing parameters with autoplay
+4. **HTML template/example** showing proper YouTube embed markup with clean URLs and autoplay
+5. **Testing instructions** to verify responsiveness and YouTube autoplay functionality across devices
+6. **Documentation** explaining the implementation, YouTube parameters used, autoplay handling, and any customization options# Global Video Responsiveness Implementation Prompt
+
+## Objective
+Implement comprehensive responsive video styling across the entire application to ensure all videos (YouTube embeds, Vimeo, native video elements, and iframes) are properly constrained, maintain aspect ratios, and display responsively on all screen sizes.
+
+## Requirements
+
+### 1. **Global Video Container System**
+Create a universal video wrapper system that:
+- Constrains maximum width to prevent videos from spanning the entire viewport
+- Maintains proper aspect ratios (16:9 default, with support for other ratios)
+- Centers videos within their containers
+- Works on all screen sizes from mobile to desktop
+
+### 2. **Target All Video Types**
+Apply responsive styling to:
+- YouTube iframe embeds
+- Native HTML5 `<video>` elements (if any)
+- Generic video iframes
+- Any other embedded video content
+
+### 3. **Suppress Related Content & Distractions**
+Implement settings to minimize YouTube distractions:
+- **YouTube**: Suppress related videos at end and during pause (`rel=0`)
+- **YouTube**: Hide unnecessary branding and info overlays (`modestbranding=1`)
+- **YouTube**: Enable autoplay for seamless experience (`autoplay=1`)
+- **YouTube**: Hide video info and title overlay (`showinfo=0`)
+- **YouTube**: Remove YouTube logo from control bar (`modestbranding=1`)
+- Ensure clean, focused video viewing experience with automatic playback
+
+### 4. **Responsive Breakpoints**
+Implement responsive behavior for:
+- Mobile devices (320px - 768px)
+- Tablets (768px - 1024px)
+- Desktop (1024px+)
+
+### 5. **Specific Implementation Requirements**
+
+#### CSS Solution:
+Create global CSS rules that:
+- Set maximum width constraints (suggest 800px-1000px max)
+- Maintain 16:9 aspect ratio by default
+- Use intrinsic ratio technique for true responsiveness
+- Add proper spacing and centering
+- Handle edge cases like very wide or very narrow content areas
+
+#### URL Parameter Management:
+Implement automatic URL parameter handling for YouTube:
+- YouTube URLs: Add `?rel=0&modestbranding=1&autoplay=1&showinfo=0&controls=1`
+- Handle both `youtube.com/watch?v=` and `youtu.be/` URL formats
+- Ensure parameters are properly appended regardless of existing URL structure
+- Convert regular YouTube links to embed format automatically
+
+#### HTML Structure:
+- Wrap existing videos in responsive containers
+- Ensure consistent markup across all video implementations
+- Maintain accessibility standards
+
+### 6. **Performance Considerations**
+- Ensure styles don't conflict with existing CSS
+- Use efficient selectors that don't impact page performance
+- Consider lazy loading for video content
+
+### 7. **Cross-Browser Compatibility**
+Ensure the solution works across:
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Mobile browsers (iOS Safari, Chrome Mobile)
+- Handle YouTube iframe API compatibility
+- Ensure YouTube autoplay works within browser policy constraints
+
+## Expected Deliverables
+
+1. **Global CSS file or styles** that can be applied site-wide
+2. **JavaScript solution** (if needed) for dynamic video wrapping
+3. **HTML template/example** showing proper video markup
+4. **Testing instructions** to verify responsiveness across devices
+5. **Documentation** explaining the implementation and any customization options
+
+## Success Criteria
+- Videos never exceed reasonable width limits
+- All YouTube videos maintain proper aspect ratios on resize
+- Videos are properly centered in their containers
+- Solution works on mobile, tablet, and desktop
+- No horizontal scrolling caused by oversized videos
+- Consistent appearance across all YouTube embeds
+- **No related YouTube videos or distracting overlays appear during pause or at video end**
+- **YouTube videos automatically begin playing when loaded**
+- **Clean, focused YouTube viewing experience without promotional content**
+- **All YouTube embeds automatically include appropriate URL parameters for distraction-free autoplay**
+
+## Additional Considerations
+- Preserve YouTube video functionality (play/pause, controls, etc.)
+- Maintain any existing video-specific styling
+- Ensure solution is maintainable and easy to update
+- Consider future YouTube embed requirements
+- **Handle browser autoplay policies** (some browsers require user interaction or muted autoplay)
+- **Implement muted autoplay as fallback** where full autoplay is blocked by browser policy
+- **Provide graceful degradation** for YouTube autoplay restrictions
+- **Support both youtube.com and youtu.be URL formats** for maximum flexibility
+
+Please provide a complete, production-ready solution that addresses all video responsiveness issues across the application.

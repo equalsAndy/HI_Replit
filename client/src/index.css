@@ -140,3 +140,116 @@
   left: 5px;
   z-index: -1;
 }
+
+/* =================================================
+   GLOBAL VIDEO RESPONSIVENESS SYSTEM
+   ================================================= */
+
+/* Base video container - constrains width and centers content */
+.video-responsive-container {
+  @apply w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Aspect ratio wrapper using intrinsic ratio technique */
+.video-aspect-wrapper {
+  position: relative;
+  width: 100%;
+  height: 0;
+  overflow: hidden;
+  border-radius: 0.5rem; /* Tailwind rounded-lg equivalent */
+}
+
+/* Default 16:9 aspect ratio */
+.video-aspect-16-9 {
+  padding-bottom: 56.25%; /* 9/16 = 0.5625 */
+}
+
+/* Alternative aspect ratios */
+.video-aspect-4-3 {
+  padding-bottom: 75%; /* 3/4 = 0.75 */
+}
+
+.video-aspect-21-9 {
+  padding-bottom: 42.857%; /* 9/21 ≈ 0.42857 */
+}
+
+/* Video element positioning */
+.video-responsive-element {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 0.5rem;
+}
+
+/* Global video element styling */
+iframe[src*="youtube.com"],
+iframe[src*="youtube-nocookie.com"],
+iframe[src*="youtu.be"],
+iframe[src*="vimeo.com"],
+video {
+  @apply w-full h-auto max-w-full;
+}
+
+/* Responsive video containers - applies to common video wrapper patterns */
+.aspect-w-16,
+.aspect-video,
+[class*="aspect-"] iframe,
+[class*="video-"] iframe {
+  @apply w-full h-full object-cover;
+}
+
+/* Enhanced YouTube embed styling */
+.youtube-embed {
+  @apply w-full max-w-4xl mx-auto;
+}
+
+.youtube-embed iframe {
+  @apply w-full h-full border-0 rounded-lg;
+}
+
+/* Breakpoint-specific video constraints */
+@media (max-width: 640px) {
+  .video-responsive-container {
+    @apply px-2;
+  }
+  
+  .video-aspect-wrapper {
+    @apply rounded-md;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .video-responsive-container {
+    @apply max-w-3xl;
+  }
+}
+
+@media (min-width: 1025px) {
+  .video-responsive-container {
+    @apply max-w-4xl;
+  }
+}
+
+/* Video loading and placeholder styles */
+.video-loading {
+  @apply bg-gray-100 animate-pulse flex items-center justify-center;
+}
+
+.video-loading::before {
+  content: '';
+  @apply w-16 h-16 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin;
+}
+
+/* Ensure videos don't break layout on very small screens */
+@media (max-width: 320px) {
+  .video-responsive-container {
+    @apply px-1 max-w-full;
+  }
+  
+  .video-aspect-wrapper {
+    @apply rounded-sm;
+  }
+}
