@@ -3,59 +3,81 @@ import { storage } from './storage';
 async function addWorkshopVideos() {
   const allStarTeamsVideos = [
     {
-      title: "Intro to Strengths",
-      description: "Introduction to understanding your strengths",
-      url: "https://www.youtube.com/embed/ao04eaeDIFQ?enablejsapi=1&rel=0",
-      editableId: "ao04eaeDIFQ",
+      title: "Introduction",
+      description: "Welcome to the AllStarTeams workshop",
+      url: "https://www.youtube.com/embed/pp2wrqE8r2o?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "pp2wrqE8r2o",
       workshopType: "allstarteams",
       section: "introduction",
+      stepId: "1-1",
+      autoplay: true,
       sortOrder: 1
     },
     {
-      title: "Your Star Profile",
+      title: "Intro to Star Strengths",
+      description: "Introduction to understanding your strengths",
+      url: "https://www.youtube.com/embed/TN5b8jx7KSI?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "TN5b8jx7KSI",
+      workshopType: "allstarteams",
+      section: "introduction",
+      stepId: "2-1",
+      autoplay: true,
+      sortOrder: 2
+    },
+    {
+      title: "Review Your Star Card",
       description: "Understanding your personal Star Profile",
-      url: "https://www.youtube.com/embed/x6h7LDtdnJw?enablejsapi=1&rel=0",
-      editableId: "x6h7LDtdnJw",
+      url: "https://www.youtube.com/embed/JJWb058M-sY?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "JJWb058M-sY",
       workshopType: "allstarteams",
       section: "assessment",
-      sortOrder: 2
+      stepId: "2-3",
+      autoplay: true,
+      sortOrder: 4
     },
     {
       title: "Intro to Flow",
       description: "Introduction to flow states and performance",
-      url: "https://www.youtube.com/embed/6szJ9q_g87E?enablejsapi=1&rel=0",
+      url: "https://www.youtube.com/embed/6szJ9q_g87E?enablejsapi=1&autoplay=1&rel=0",
       editableId: "6szJ9q_g87E",
       workshopType: "allstarteams",
       section: "flow",
       stepId: "3-1",
-      sortOrder: 3
+      autoplay: true,
+      sortOrder: 6
     },
     {
       title: "Rounding Out",
       description: "Developing a well-rounded approach",
-      url: "https://www.youtube.com/embed/srLM8lHPj40?enablejsapi=1&rel=0",
-      editableId: "srLM8lHPj40",
+      url: "https://www.youtube.com/embed/BBAx5dNZw6Y?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "BBAx5dNZw6Y",
       workshopType: "allstarteams",
       section: "development",
-      sortOrder: 4
+      stepId: "3-3",
+      autoplay: true,
+      sortOrder: 8
     },
     {
       title: "Ladder of Well-being",
       description: "Understanding the Well-being Ladder concept",
-      url: "https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1&rel=0",
-      editableId: "yidsMx8B678",
+      url: "https://www.youtube.com/embed/SjEfwPEl65U?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "SjEfwPEl65U",
       workshopType: "allstarteams",
       section: "wellbeing",
-      sortOrder: 5
+      stepId: "4-1",
+      autoplay: true,
+      sortOrder: 10
     },
     {
       title: "Your Future Self",
       description: "Envisioning and planning for your future",
-      url: "https://www.youtube.com/embed/_VsH5NO9jyg?enablejsapi=1",
-      editableId: "_VsH5NO9jyg",
+      url: "https://www.youtube.com/embed/N9uCPe3xF5A?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "N9uCPe3xF5A",
       workshopType: "allstarteams",
       section: "future",
-      sortOrder: 6
+      stepId: "4-4",
+      autoplay: true,
+      sortOrder: 13
     }
   ];
 
