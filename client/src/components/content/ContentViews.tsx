@@ -20,6 +20,7 @@ import StarCardResourceView from './StarCardResourceView';
 import PlaceholderView from './PlaceholderView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
+import VideoPlayer from './VideoPlayer';
 import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 
@@ -225,13 +226,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
           
           <div className="mb-8">
-            <iframe 
-              src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+            <VideoPlayer
+              workshopType="imaginal-agility"
+              section="introduction"
               title="IAWS ORIENTATION VIDEO"
-              className="w-full h-[400px] rounded-lg" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+              fallbackUrl="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+            />
           </div>
           
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
@@ -286,14 +286,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
           
           <div className="mb-8 rounded-lg overflow-hidden">
-            <iframe 
-              src="https://www.youtube.com/embed/zIFGKPMN9t8"
-              className="w-full h-[400px]" 
+            <VideoPlayer
+              workshopType="imaginal-agility"
+              section="triple-challenge"
               title="AI Triple Cognitive Challenge"
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+              fallbackUrl="https://www.youtube.com/embed/zIFGKPMN9t8"
+            />
           </div>
           
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">AI Triple Cognitive Challenge</h2>
@@ -390,14 +388,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
           
           <div className="mb-8 rounded-lg overflow-hidden">
-            <iframe 
-              src="https://www.youtube.com/embed/BLh502BlZLE"
-              className="w-full h-[400px]" 
+            <VideoPlayer
+              workshopType="imaginal-agility"
+              section="imaginal-solution"
               title="Imaginal Agility Solution"
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+              fallbackUrl="https://www.youtube.com/embed/BLh502BlZLE"
+            />
           </div>
           
           <div className="flex justify-end mb-8">
@@ -462,14 +458,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Your 5 Capabilities (5Cs)</h1>
           
           <div className="mb-8 rounded-lg overflow-hidden">
-            <iframe 
-              src="https://www.youtube.com/embed/8wXSL3om6Ig"
-              className="w-full h-[400px]" 
+            <VideoPlayer
+              workshopType="imaginal-agility"
+              section="five-capabilities"
               title="5 Capabilities (5Cs)"
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+              fallbackUrl="https://www.youtube.com/embed/8wXSL3om6Ig"
+            />
           </div>
           
           <div className="flex justify-end mb-8">
