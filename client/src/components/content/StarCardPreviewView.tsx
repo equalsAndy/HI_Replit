@@ -1,9 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '@/shared/types';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useVideoByStep } from '@/hooks/use-video-by-step';
+
+interface ContentViewProps {
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+}
 
 declare global {
   interface Window {
@@ -25,10 +31,15 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   const playerRef = useRef<HTMLDivElement>(null);
 
   const stepId = "2-3";
-  const videoId = "JJWb058M-sY";
+  
+  // Fetch video data from database based on step ID
+  const { data: videoData, isLoading } = useVideoByStep(stepId);
+  const videoId = videoData?.editableId;
 
   // Load YouTube API
   useEffect(() => {
+    if (!videoId || isLoading) return;
+
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
@@ -51,7 +62,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
         }
       }
     };
-  }, [videoId]);
+  }, [videoId, isLoading]);
 
   // Track video progress
   const startProgressTracking = (playerInstance: any) => {
