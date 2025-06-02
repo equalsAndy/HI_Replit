@@ -74,7 +74,7 @@ interface Video {
 const navigationMenuItems = {
   'allstarteams': {
     'introduction': {
-      '1-1': 'Intro to Strengths',
+      '1-1': 'Welcome to AllStarTeams Workshop',
       '1-2': 'Your Star Profile Assessment'
     },
     'assessment': {
@@ -82,9 +82,8 @@ const navigationMenuItems = {
       '2-2': 'Your Core Strengths'
     },
     'flow': {
-      '3-1': 'Intro to Flow',
-      '3-2': 'Flow Self Assessment',
-      '3-3': 'Rounding Out'
+      '3-1': 'Flow Self Assessment',
+      '3-2': 'Rounding Out'
     },
     'development': {
       '4-1': 'Complete Your Star Card'
@@ -95,21 +94,38 @@ const navigationMenuItems = {
     'future': {
       '6-1': 'Visualizing Potential',
       '6-2': 'Your Future Self'
+    },
+    'insights': {
+      '7-1': 'Recap Your Insights'
     }
   },
   'imaginal-agility': {
     'introduction': {
-      '1-1': 'IAWS Orientation Video'
+      '1-1': 'Welcome to Imaginal Agility Workshop'
     },
     'workshop': {
-      '2-1': 'AI Triple Challenge',
-      '2-2': 'Imaginal Agility Solution',
-      '3-1': '5 Capabilities (5Cs)'
+      '2-1': 'Module 1: The Challenge',
+      '2-2': 'Module 2: Solution',
+      '3-1': 'Module 3: Your 5Cs'
     },
     'assessment': {
       '4-1': '5Cs Self Assessment'
+    },
+    'insights': {
+      '5-1': 'Insights Distilled'
     }
   }
+};
+
+// Function to get suggested title based on workshop type, section, and step ID
+const getSuggestedTitle = (workshopType: string, section: string, stepId: string): string | null => {
+  const workshop = navigationMenuItems[workshopType as keyof typeof navigationMenuItems];
+  if (!workshop) return null;
+  
+  const sectionItems = workshop[section as keyof typeof workshop];
+  if (!sectionItems) return null;
+  
+  return sectionItems[stepId as keyof typeof sectionItems] || null;
 };
 
 // Form schema for video creation/updating
