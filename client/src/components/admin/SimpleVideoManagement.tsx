@@ -286,8 +286,9 @@ export function SimpleVideoManagement() {
               <TableRow>
                 <TableHead>Title</TableHead>
                 <TableHead>Workshop</TableHead>
-                <TableHead>Section</TableHead>
+                <TableHead>Step ID</TableHead>
                 <TableHead>Video ID</TableHead>
+                <TableHead>Autoplay</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -301,9 +302,22 @@ export function SimpleVideoManagement() {
                        video.workshop_type === 'imaginal-agility' ? 'Imaginal Agility' : 
                        video.workshop_type}
                     </TableCell>
-                    <TableCell>{video.section}</TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-mono text-sm">
+                      {video.step_id || video.stepId || '-'}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
                       {video.editableId || extractYouTubeId(video.url)}
+                    </TableCell>
+                    <TableCell>
+                      {video.autoplay ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          No
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
@@ -322,7 +336,7 @@ export function SimpleVideoManagement() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8">
                     No videos found. Add your first video to get started.
                   </TableCell>
                 </TableRow>
