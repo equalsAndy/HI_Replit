@@ -35,17 +35,7 @@ async function addWorkshopVideos() {
       autoplay: true,
       sortOrder: 4
     },
-    {
-      title: "Intro to Flow",
-      description: "Introduction to flow states and performance",
-      url: "https://www.youtube.com/embed/6szJ9q_g87E?enablejsapi=1&autoplay=1&rel=0",
-      editableId: "6szJ9q_g87E",
-      workshopType: "allstarteams",
-      section: "flow",
-      stepId: "3-1",
-      autoplay: true,
-      sortOrder: 6
-    },
+    
     {
       title: "Rounding Out",
       description: "Developing a well-rounded approach",
