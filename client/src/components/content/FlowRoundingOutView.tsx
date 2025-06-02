@@ -240,6 +240,12 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 mb-6">
+        {/* Video Section with the requested YouTube video */}
+        <div className="md:w-1/2">
+          <div className="aspect-w-16 aspect-h-9">
+            <VideoPlayer workshopType="allstarteams" stepId="3-3" title="Rounding Out" />
+          </div>
+        </div>
 
         <div className="md:w-1/2">
           <div className="bg-indigo-50 p-5 rounded-lg border border-indigo-100 h-full">
