@@ -93,6 +93,15 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Root route for basic connectivity test
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Heliotrope Workshop Server', 
+    status: 'running',
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // In production, serve static files from the dist directory
 if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../dist/public');
