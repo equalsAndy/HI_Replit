@@ -243,7 +243,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         {/* Video Section with the requested YouTube video */}
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
-            <VideoPlayer videoId="3-1" title="Understanding Flow State" />
+            <VideoPlayer videoId="3-3" title="Rounding Out" />
           </div>
         </div>
 
