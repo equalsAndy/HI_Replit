@@ -48,9 +48,9 @@ export const allstarteamsProgressionRules: ProgressionRules = {
 
     // Find your Flow (4/4)
     '3-1': {
-      type: 'video',
+      type: 'content',
       requirements: {
-        minWatchPercent: 1, // ≥1% watch required
+        minWatchPercent: 0, // No video content
         dataSubmitted: false // "Next: Flow Assessment" button click
       }
     },
@@ -62,9 +62,9 @@ export const allstarteamsProgressionRules: ProgressionRules = {
       }
     },
     '3-3': {
-      type: 'video',
+      type: 'content',
       requirements: {
-        minWatchPercent: 1, // ≥1% watch required + 4 reflection inputs
+        minWatchPercent: 0, // No video content
         allQuestionsAnswered: true, // ALL 4 reflection inputs completed
         dataSubmitted: true // "Next: Add Flow to Star Card" button click
       }
