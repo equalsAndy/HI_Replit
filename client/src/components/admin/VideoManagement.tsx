@@ -364,7 +364,12 @@ export function VideoManagement() {
 
   // Handle delete button click
   const handleDeleteClick = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this video?')) {
+    const video = videos?.find(v => v.id === id);
+    const confirmMessage = video 
+      ? `Are you sure you want to delete "${video.title}"? This action cannot be undone.`
+      : 'Are you sure you want to delete this video? This action cannot be undone.';
+    
+    if (window.confirm(confirmMessage)) {
       deleteVideoMutation.mutate(id);
     }
   };
@@ -942,7 +947,13 @@ export function VideoManagement() {
                         <Button size="icon" variant="outline" onClick={() => handleEditClick(video)}>
                           <Pencil className="h-4 w-4" />
                         </Button>
-                        <Button size="icon" variant="outline" className="text-destructive" onClick={() => handleDeleteClick(video.id)}>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="text-destructive hover:bg-red-50" 
+                          onClick={() => handleDeleteClick(video.id)}
+                          title="Delete video"
+                        >
                           <Trash className="h-4 w-4" />
                         </Button>
                       </div>
