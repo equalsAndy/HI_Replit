@@ -33,6 +33,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   const { data: videoData, isLoading } = useVideoByStep(stepId);
   
   // Debug logging
+  console.log('FlowIntroView - Component rendered for step:', stepId);
   console.log('FlowIntroView - Video data:', videoData);
   console.log('FlowIntroView - Is loading:', isLoading);
   
@@ -44,6 +45,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   };
   
   const videoId = videoData?.url ? extractVideoId(videoData.url) : null;
+  console.log('FlowIntroView - Extracted video ID:', videoId);
 
   // Load YouTube API
   useEffect(() => {

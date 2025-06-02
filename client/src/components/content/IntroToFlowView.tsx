@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Card, CardContent } from '@/components/ui/card';
+import { VideoPlayer } from './VideoPlayer';
 
 const IntroToFlowView: React.FC<ContentViewProps> = ({
   navigate,
@@ -15,13 +16,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
       <Card className="mb-8">
         <CardContent className="p-0 overflow-hidden">
           <div className="aspect-w-16 aspect-h-9 mb-4">
-            <iframe 
-              src="https://www.youtube.com/embed/JxdhWd8agmE"
-              title="Flow Video"
-              className="w-full h-full" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-            ></iframe>
+            <VideoPlayer
+              workshopType="allstarteams"
+              stepId="3-1"
+              title="Intro to Flow"
+              fallbackUrl="https://www.youtube.com/embed/JxdhWd8agmE"
+            />
           </div>
         </CardContent>
       </Card>
