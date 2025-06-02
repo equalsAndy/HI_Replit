@@ -82,7 +82,7 @@ export function SimpleVideoManagement() {
   // Generate embed URL from video ID
   const generateEmbedUrl = (videoId: string, autoplay: boolean = false): string => {
     const autoplayParam = autoplay ? '&autoplay=1' : '';
-    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1${autoplayParam}`;
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0${autoplayParam}`;
   };
 
   // Fetch videos

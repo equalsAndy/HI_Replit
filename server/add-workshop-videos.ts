@@ -5,7 +5,7 @@ async function addWorkshopVideos() {
     {
       title: "Intro to Strengths",
       description: "Introduction to understanding your strengths",
-      url: "https://www.youtube.com/embed/ao04eaeDIFQ?enablejsapi=1",
+      url: "https://www.youtube.com/embed/ao04eaeDIFQ?enablejsapi=1&rel=0",
       editableId: "ao04eaeDIFQ",
       workshopType: "allstarteams",
       section: "introduction",
@@ -14,7 +14,7 @@ async function addWorkshopVideos() {
     {
       title: "Your Star Profile",
       description: "Understanding your personal Star Profile",
-      url: "https://www.youtube.com/embed/x6h7LDtdnJw?enablejsapi=1",
+      url: "https://www.youtube.com/embed/x6h7LDtdnJw?enablejsapi=1&rel=0",
       editableId: "x6h7LDtdnJw",
       workshopType: "allstarteams",
       section: "assessment",
@@ -23,7 +23,7 @@ async function addWorkshopVideos() {
     {
       title: "Intro to Flow",
       description: "Introduction to flow states and performance",
-      url: "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1",
+      url: "https://www.youtube.com/embed/JxdhWd8agmE?enablejsapi=1&rel=0",
       editableId: "JxdhWd8agmE",
       workshopType: "allstarteams",
       section: "flow",
@@ -32,7 +32,7 @@ async function addWorkshopVideos() {
     {
       title: "Rounding Out",
       description: "Developing a well-rounded approach",
-      url: "https://www.youtube.com/embed/srLM8lHPj40?enablejsapi=1",
+      url: "https://www.youtube.com/embed/srLM8lHPj40?enablejsapi=1&rel=0",
       editableId: "srLM8lHPj40",
       workshopType: "allstarteams",
       section: "development",
@@ -41,7 +41,7 @@ async function addWorkshopVideos() {
     {
       title: "Ladder of Well-being",
       description: "Understanding the Well-being Ladder concept",
-      url: "https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1",
+      url: "https://www.youtube.com/embed/yidsMx8B678?enablejsapi=1&rel=0",
       editableId: "yidsMx8B678",
       workshopType: "allstarteams",
       section: "wellbeing",
