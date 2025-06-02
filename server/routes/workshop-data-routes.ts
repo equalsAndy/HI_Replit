@@ -7,6 +7,53 @@ import * as schema from '../../shared/schema';
 const workshopDataRouter = Router();
 
 /**
+ * Video API routes - accessible without admin authentication
+ */
+
+// Get videos by workshop type
+workshopDataRouter.get('/videos/workshop/:workshopType', async (req: Request, res: Response) => {
+  try {
+    const { workshopType } = req.params;
+    
+    // Query videos from database
+    const videos = await db
+      .select()
+      .from(schema.videos)
+      .where(eq(schema.videos.workshopType, workshopType));
+    
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos by workshop:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get video by ID
+workshopDataRouter.get('/videos/:id', async (req: Request, res: Response) => {
+  try {
+    const videoId = parseInt(req.params.id);
+    
+    if (isNaN(videoId)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+    
+    const videos = await db
+      .select()
+      .from(schema.videos)
+      .where(eq(schema.videos.id, videoId));
+    
+    if (videos.length === 0) {
+      return res.status(404).json({ message: 'Video not found' });
+    }
+    
+    res.status(200).json(videos[0]);
+  } catch (error) {
+    console.error('Error fetching video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
  * Get star card data for the current user
  */
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {

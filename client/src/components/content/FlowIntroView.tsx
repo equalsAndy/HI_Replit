@@ -31,7 +31,19 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
 
   // Fetch video data from database based on step ID
   const { data: videoData, isLoading } = useVideoByStep(stepId);
-  const videoId = videoData?.editableId;
+  
+  // Debug logging
+  console.log('FlowIntroView - Video data:', videoData);
+  console.log('FlowIntroView - Is loading:', isLoading);
+  
+  // Extract YouTube video ID from URL
+  const extractVideoId = (url: string) => {
+    if (!url) return null;
+    const match = url.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([^?\s]+)/);
+    return match ? match[1] : null;
+  };
+  
+  const videoId = videoData?.url ? extractVideoId(videoData.url) : null;
 
   // Load YouTube API
   useEffect(() => {
