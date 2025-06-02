@@ -364,6 +364,23 @@ router.get('/videos', requireAuth, isAdmin, async (req: Request, res: Response) 
   }
 });
 
+// Get videos by workshop type
+router.get('/videos/workshop/:workshopType', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const { workshopType } = req.params;
+    const videos = await userManagementService.getVideosByWorkshop(workshopType);
+    
+    if (!videos || !Array.isArray(videos)) {
+      throw new Error('Failed to retrieve videos from storage');
+    }
+    
+    res.status(200).json(videos);
+  } catch (error) {
+    console.error('Error fetching videos by workshop:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Update video
 router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
   try {
