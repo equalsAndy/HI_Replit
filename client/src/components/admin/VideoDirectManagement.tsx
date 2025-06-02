@@ -47,7 +47,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Plus, Pencil, Trash2, Play, Copy } from 'lucide-react';
+import { Loader2, Plus, Pencil, Trash, Play, Copy } from 'lucide-react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -796,7 +796,7 @@ export function VideoDirectManagement() {
                           <Pencil className="h-4 w-4" />
                         </Button>
                         <Button size="icon" variant="outline" className="text-destructive" onClick={() => deleteVideo(video.id)}>
-                          <Trash2 className="h-4 w-4" />
+                          <Trash className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
