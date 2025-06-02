@@ -13,17 +13,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
 
-      <Card className="mb-8">
-        <CardContent className="p-0 overflow-hidden">
-          <div className="aspect-w-16 aspect-h-9 mb-4">
-            <VideoPlayer
-              workshopType="allstarteams"
-              stepId="3-1"
-              title="Intro to Flow"
-            />
-          </div>
-        </CardContent>
-      </Card>
+
 
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
         <h2 className="text-xl font-semibold text-indigo-700 mb-4">Understanding Flow State</h2>
