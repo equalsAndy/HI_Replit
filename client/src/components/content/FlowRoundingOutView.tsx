@@ -244,6 +244,18 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
+      {/* YouTube Video Player */}
+      <div className="mb-8">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="3-3"
+          fallbackUrl="https://youtu.be/BBAx5dNZw6Y"
+          title="Rounding Out Your Flow Understanding"
+          aspectRatio="16:9"
+          autoplay={true}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-6 mb-6">
 
         <div className="md:w-1/2">
