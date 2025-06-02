@@ -63,10 +63,54 @@ interface Video {
   editableId: string | null;
   workshopType: string;
   section: string;
+  stepId: string | null;
+  autoplay: boolean;
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
+
+// Navigation menu items for auto-populating titles
+const navigationMenuItems = {
+  'allstarteams': {
+    'introduction': {
+      '1-1': 'Intro to Strengths',
+      '1-2': 'Your Star Profile Assessment'
+    },
+    'assessment': {
+      '2-1': 'Your Star Profile',
+      '2-2': 'Your Core Strengths'
+    },
+    'flow': {
+      '3-1': 'Intro to Flow',
+      '3-2': 'Flow Self Assessment',
+      '3-3': 'Rounding Out'
+    },
+    'development': {
+      '4-1': 'Complete Your Star Card'
+    },
+    'wellbeing': {
+      '5-1': 'Ladder of Well-being'
+    },
+    'future': {
+      '6-1': 'Visualizing Potential',
+      '6-2': 'Your Future Self'
+    }
+  },
+  'imaginal-agility': {
+    'introduction': {
+      '1-1': 'IAWS Orientation Video'
+    },
+    'workshop': {
+      '2-1': 'AI Triple Challenge',
+      '2-2': 'Imaginal Agility Solution',
+      '3-1': '5 Capabilities (5Cs)'
+    },
+    'assessment': {
+      '4-1': '5Cs Self Assessment'
+    }
+  }
+};
 
 // Form schema for video creation/updating
 const videoFormSchema = z.object({
@@ -76,6 +120,8 @@ const videoFormSchema = z.object({
   editableId: z.string().optional(),
   workshopType: z.string().min(1, 'Workshop type is required'),
   section: z.string().min(1, 'Section is required'),
+  stepId: z.string().optional(),
+  autoplay: z.boolean().default(false),
   sortOrder: z.number().int().nonnegative().default(0),
 });
 
@@ -193,6 +239,16 @@ export function VideoManagement() {
     },
   });
 
+  // Function to get suggested title based on stepId
+  const getSuggestedTitle = (workshopType: string, section: string, stepId: string): string => {
+    const workshop = navigationMenuItems[workshopType as keyof typeof navigationMenuItems];
+    if (workshop && workshop[section as keyof typeof workshop]) {
+      const sectionItems = workshop[section as keyof typeof workshop] as Record<string, string>;
+      return sectionItems[stepId] || '';
+    }
+    return '';
+  };
+
   // Create form
   const createForm = useForm<VideoFormValues>({
     resolver: zodResolver(videoFormSchema),
@@ -203,6 +259,8 @@ export function VideoManagement() {
       editableId: '',
       workshopType: 'allstarteams',
       section: 'introduction',
+      stepId: '',
+      autoplay: false,
       sortOrder: 0,
     },
   });
@@ -217,6 +275,8 @@ export function VideoManagement() {
       editableId: '',
       workshopType: '',
       section: '',
+      stepId: '',
+      autoplay: false,
       sortOrder: 0,
     },
   });
@@ -279,6 +339,8 @@ export function VideoManagement() {
       editableId: videoId,
       workshopType: video.workshopType,
       section: video.section,
+      stepId: video.stepId || '',
+      autoplay: video.autoplay || false,
       sortOrder: video.sortOrder,
     });
     setIsEditDialogOpen(true);
@@ -421,6 +483,61 @@ export function VideoManagement() {
                     </FormItem>
                   )}
                 />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={createForm.control}
+                    name="stepId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Step ID</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., 1-1, 2-3" 
+                            {...field} 
+                            onChange={(e) => {
+                              field.onChange(e);
+                              // Auto-populate title when stepId changes
+                              const suggestedTitle = getSuggestedTitle(
+                                createForm.getValues('workshopType'),
+                                createForm.getValues('section'),
+                                e.target.value
+                              );
+                              if (suggestedTitle) {
+                                createForm.setValue('title', suggestedTitle);
+                              }
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Navigation step identifier (auto-populates title)
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={createForm.control}
+                    name="autoplay"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                        <div className="space-y-0.5">
+                          <FormLabel>Autoplay</FormLabel>
+                          <FormDescription>
+                            Auto-start video when loaded
+                          </FormDescription>
+                        </div>
+                        <FormControl>
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="h-4 w-4"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <FormField
                     control={createForm.control}
@@ -576,6 +693,90 @@ export function VideoManagement() {
                   </FormItem>
                 )}
               />
+              
+              {/* Video Preview */}
+              {editForm.watch('url') && (
+                <div className="space-y-2">
+                  <FormLabel>Video Preview</FormLabel>
+                  <div className="w-full aspect-video border rounded-lg overflow-hidden">
+                    <iframe 
+                      className="w-full h-full"
+                      src={editForm.watch('url')} 
+                      title="Video Preview" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen>
+                    </iframe>
+                  </div>
+                  <div className="bg-gray-50 p-3 rounded border">
+                    <FormLabel className="text-sm font-medium">Embed Code (for content views):</FormLabel>
+                    <pre className="text-xs bg-white p-2 rounded border mt-1 overflow-x-auto">
+{`<iframe 
+  src="${editForm.watch('url')}${editForm.watch('autoplay') ? '?autoplay=1' : ''}"
+  title="${editForm.watch('title')}"
+  className="w-full h-full"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowFullScreen>
+</iframe>`}
+                    </pre>
+                  </div>
+                </div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={editForm.control}
+                  name="stepId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Step ID</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="e.g., 1-1, 2-3" 
+                          {...field} 
+                          onChange={(e) => {
+                            field.onChange(e);
+                            // Auto-populate title when stepId changes
+                            const suggestedTitle = getSuggestedTitle(
+                              editForm.getValues('workshopType'),
+                              editForm.getValues('section'),
+                              e.target.value
+                            );
+                            if (suggestedTitle && !editForm.getValues('title')) {
+                              editForm.setValue('title', suggestedTitle);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Navigation step identifier
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={editForm.control}
+                  name="autoplay"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                      <div className="space-y-0.5">
+                        <FormLabel>Autoplay</FormLabel>
+                        <FormDescription>
+                          Auto-start video when loaded
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <input
+                          type="checkbox"
+                          checked={field.value}
+                          onChange={field.onChange}
+                          className="h-4 w-4"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editForm.control}
@@ -684,8 +885,9 @@ export function VideoManagement() {
                 <TableHead>Title</TableHead>
                 <TableHead>Workshop</TableHead>
                 <TableHead>Section</TableHead>
+                <TableHead>Step ID</TableHead>
                 <TableHead>Video ID</TableHead>
-                <TableHead>URL</TableHead>
+                <TableHead>Autoplay</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -696,13 +898,22 @@ export function VideoManagement() {
                     <TableCell className="font-medium">{video.title}</TableCell>
                     <TableCell>{video.workshopType}</TableCell>
                     <TableCell>{video.section}</TableCell>
-                    <TableCell className="font-mono">
+                    <TableCell className="font-mono text-sm">
+                      {video.stepId || '-'}
+                    </TableCell>
+                    <TableCell className="font-mono text-sm">
                       {video.editableId || extractYouTubeId(video.url)}
                     </TableCell>
-                    <TableCell className="max-w-[200px] truncate">
-                      <a href={video.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
-                        {video.url}
-                      </a>
+                    <TableCell>
+                      {video.autoplay ? (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          Yes
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                          No
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end space-x-2">
@@ -724,7 +935,7 @@ export function VideoManagement() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={7} className="text-center py-8">
                     No videos found. Add your first video to get started.
                   </TableCell>
                 </TableRow>

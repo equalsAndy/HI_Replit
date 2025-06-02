@@ -44,6 +44,39 @@ export const insertUserSchema = createInsertSchema(users, {
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
+// Videos table schema
+export const videos = pgTable('videos', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  description: text('description'),
+  url: text('url').notNull(),
+  editableId: varchar('editable_id', { length: 100 }),
+  workshopType: varchar('workshop_type', { length: 50 }).notNull(),
+  section: varchar('section', { length: 50 }).notNull(),
+  stepId: varchar('step_id', { length: 20 }), // For navigation step identifiers like "1-1", "2-3"
+  autoplay: boolean('autoplay').default(false).notNull(),
+  sortOrder: serial('sort_order').default(0).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schema for videos
+export const insertVideoSchema = createInsertSchema(videos, {
+  title: z.string().min(1).max(255),
+  description: z.string().nullable().optional(),
+  url: z.string().url(),
+  editableId: z.string().max(100).nullable().optional(),
+  workshopType: z.string().min(1).max(50),
+  section: z.string().min(1).max(50),
+  stepId: z.string().max(20).nullable().optional(),
+  autoplay: z.boolean().default(false),
+  sortOrder: z.number().int().nonnegative().default(0),
+}).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Type definitions for videos
+export type Video = typeof videos.$inferSelect;
+export type InsertVideo = z.infer<typeof insertVideoSchema>;
+
 // Invite codes table schema
 export const invites = pgTable('invites', {
   id: serial('id').primaryKey(),
