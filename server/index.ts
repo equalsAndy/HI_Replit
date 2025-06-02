@@ -139,7 +139,58 @@ if (process.env.NODE_ENV === 'development') {
   });
 }
 
-// Start the server on the configured port
-server.listen(port, '0.0.0.0', () => {
-  console.log(`Server running on port ${port}`);
+// Function to find an available port
+const findAvailablePort = (startPort: number): Promise<number> => {
+  return new Promise((resolve, reject) => {
+    const testServer = server.listen(startPort, '0.0.0.0', () => {
+      const actualPort = (testServer.address() as any)?.port || startPort;
+      testServer.close(() => {
+        resolve(actualPort);
+      });
+    });
+    
+    testServer.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${startPort} is busy, trying ${startPort + 1}...`);
+        resolve(findAvailablePort(startPort + 1));
+      } else {
+        reject(err);
+      }
+    });
+  });
+};
+
+// Start the server with port conflict resolution
+console.log('Initializing database connection...');
+findAvailablePort(port)
+  .then((availablePort) => {
+    server.listen(availablePort, '0.0.0.0', () => {
+      console.log(`✅ Server successfully started on port ${availablePort}`);
+      console.log(`🌐 Access your app at: http://localhost:${availablePort}`);
+      
+      if (availablePort !== port) {
+        console.log(`⚠️  Note: Requested port ${port} was busy, using port ${availablePort} instead`);
+      }
+    });
+  })
+  .catch((error) => {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  });
+
+// Handle server shutdown gracefully
+process.on('SIGTERM', () => {
+  console.log('🛑 Received SIGTERM, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed successfully');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('🛑 Received SIGINT, shutting down gracefully...');
+  server.close(() => {
+    console.log('✅ Server closed successfully');
+    process.exit(0);
+  });
 });
