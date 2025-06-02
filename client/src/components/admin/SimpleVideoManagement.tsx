@@ -26,7 +26,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Loader2, Pencil, Play } from 'lucide-react';
+import { Loader2, Pencil, Play, Trash2 } from 'lucide-react';
 
 // Types
 interface Video {
@@ -186,6 +186,44 @@ export function SimpleVideoManagement() {
     if (newId.trim() && selectedVideo) {
       const newPreviewUrl = generateEmbedUrl(newId, selectedVideo.autoplay);
       setPreviewUrl(newPreviewUrl);
+    }
+  };
+
+  // Delete video
+  const deleteVideo = async (videoId: number) => {
+    const video = videos.find(v => v.id === videoId);
+    const confirmMessage = video 
+      ? `Are you sure you want to delete "${video.title}"? This action cannot be undone.`
+      : 'Are you sure you want to delete this video? This action cannot be undone.';
+    
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/videos/${videoId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete video');
+      }
+
+      // Update local state
+      setVideos(prev => prev.filter(video => video.id !== videoId));
+      
+      toast({
+        title: 'Success',
+        description: 'Video deleted successfully',
+      });
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete video. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -362,6 +400,15 @@ export function SimpleVideoManagement() {
                           title="Edit video"
                         >
                           <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="text-destructive hover:bg-red-50" 
+                          onClick={() => deleteVideo(video.id)}
+                          title="Delete video"
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
