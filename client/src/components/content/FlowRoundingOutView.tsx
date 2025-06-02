@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { VideoPlayer } from './VideoPlayer';
 import { ContentViewProps } from '../../shared/types';
 import { Check, ChevronRight, Edit } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -242,14 +243,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         {/* Video Section with the requested YouTube video */}
         <div className="md:w-1/2">
           <div className="aspect-w-16 aspect-h-9">
-            <iframe 
-              src="https://www.youtube.com/embed/BBAx5dNZw6Y"
-              title="Understanding Flow State" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-              className="w-full h-64 rounded border border-gray-200"
-            ></iframe>
+            <VideoPlayer videoId="3-1" title="Understanding Flow State" />
           </div>
         </div>
 

@@ -14,6 +14,7 @@ import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useDemoMode } from '@/hooks/use-demo-mode';
+import { VideoPlayer } from '@/components/content/VideoPlayer';
 import type { User, StarCard as StarCardType, FlowAttributes } from "@shared/schema";
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import {
@@ -675,14 +676,11 @@ export default function FindYourFlow() {
           
           <TabsContent value="intro" className="space-y-6">
             <div className="aspect-w-16 aspect-h-9 mb-4">
-              <iframe 
-                src="https://www.youtube.com/embed/JxdhWd8agmE" 
-                title="Introduction to Flow State" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="w-full h-80 rounded border border-gray-200"
-              ></iframe>
+              <VideoPlayer
+                workshopType="allstarteams"
+                stepId="3-1"
+                title="Introduction to Flow State"
+              />
             </div>
             
             <div className="prose max-w-none">

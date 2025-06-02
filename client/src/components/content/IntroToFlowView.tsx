@@ -20,7 +20,6 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               workshopType="allstarteams"
               stepId="3-1"
               title="Intro to Flow"
-              fallbackUrl="https://www.youtube.com/embed/JxdhWd8agmE"
             />
           </div>
         </CardContent>
