@@ -405,6 +405,37 @@ class UserManagementService {
       throw error;
     }
   }
+
+  async getVideosByWorkshop(workshopType: string) {
+    try {
+      // Import videos table from schema
+      const { videos } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      // Query the actual database for videos by workshop type
+      const result = await db.select()
+        .from(videos)
+        .where(eq(videos.workshopType, workshopType))
+        .orderBy(videos.sortOrder);
+      
+      // Transform the data to match the expected format
+      return result.map(video => ({
+        id: video.id,
+        title: video.title,
+        description: video.description,
+        url: video.url,
+        editableId: video.editableId,
+        workshop_type: video.workshopType,
+        section: video.section,
+        step_id: video.stepId,
+        autoplay: video.autoplay,
+        sortOrder: video.sortOrder
+      }));
+    } catch (error) {
+      console.error('Error getting videos by workshop from database:', error);
+      throw error;
+    }
+  }
   
   /**
    * Update a video
