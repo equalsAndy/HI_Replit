@@ -12,6 +12,7 @@ import { queryClient } from '@/lib/queryClient';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
+import VideoPlayer from './VideoPlayer';
 
 const WellBeingView: React.FC<ContentViewProps> = ({
   navigate,
@@ -100,7 +101,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         playerRef.current = new window.YT.Player('youtube-player-wellbeing', {
           height: '100%',
           width: '100%',
-          videoId: 'yidsMx8B678',
+          videoId: 'SjEfwPEl65U',
           playerVars: {
             autoplay: 1,
             controls: 1,

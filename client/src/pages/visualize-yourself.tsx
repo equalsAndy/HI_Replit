@@ -434,7 +434,7 @@ export default function VisualizeYourself() {
           <TabsContent value="ladder" className="space-y-6">
             <div className="aspect-w-16 aspect-h-9 mb-4">
               <iframe 
-                src="https://www.youtube.com/embed/yidsMx8B678" 
+                src="https://www.youtube.com/embed/SjEfwPEl65U" 
                 title="Ladder of Wellbeing" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
