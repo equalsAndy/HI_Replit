@@ -1,19 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
-import { Card, CardContent } from '@/components/ui/card';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps extends ContentViewProps {
   isImaginalAgility?: boolean;
-}
-
-// Declare YouTube API globally
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
 }
 
 const WelcomeView: React.FC<WelcomeViewProps> = ({
@@ -22,14 +14,10 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   setCurrentContent,
   isImaginalAgility = false
 }) => {
-  const { updateVideoProgress } = useNavigationProgress();
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [player, setPlayer] = useState<any>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
 
   // Different content based on which app is active
-  const stepId = isImaginalAgility ? "1-1" : "1-1";
+  const stepId = isImaginalAgility ? "1-1" : "2-1";
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -38,7 +26,9 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "Welcome to the Imaginal Agility workshop! This program will help you develop strategic imagination and navigate the Triple Challenge facing organizations today."
     : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
-  const videoId = isImaginalAgility ? "JxdhWd8agmE" : "pp2wrqE8r2o";
+  const fallbackUrl = isImaginalAgility 
+    ? "https://youtu.be/JxdhWd8agmE" 
+    : "https://youtu.be/pp2wrqE8r2o";
 
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"
@@ -52,97 +42,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "triple-challenge"
     : "intro-strengths";
 
-  // Load YouTube API and initialize player
-  useEffect(() => {
-    const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        initializePlayer();
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://www.youtube.com/iframe_api';
-      script.async = true;
-
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-
-      document.body.appendChild(script);
-    };
-
-    const initializePlayer = () => {
-      if (playerRef.current && window.YT) {
-        const newPlayer = new window.YT.Player(playerRef.current, {
-          videoId: videoId,
-          width: '100%',
-          height: '100%',
-          playerVars: {
-            autoplay: 1,
-            enablejsapi: 1,
-            rel: 0,
-            modestbranding: 1
-          },
-          events: {
-            onReady: (event: any) => {
-              setPlayer(event.target);
-              startProgressTracking(event.target);
-            },
-            onStateChange: (event: any) => {
-              if (event.data === window.YT.PlayerState.PLAYING) {
-                startProgressTracking(event.target);
-              }
-            }
-          }
-        });
-      }
-    };
-
-    loadYouTubeAPI();
-
-    return () => {
-      if (player) {
-        player.destroy();
-      }
-    };
-  }, [videoId]);
-
-  // Track video progress
-  const startProgressTracking = (playerInstance: any) => {
-    let interval: NodeJS.Timeout;
-
-    const trackProgress = () => {
-      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
-        try {
-          const currentTime = playerInstance.getCurrentTime();
-          const duration = playerInstance.getDuration();
-
-          if (duration > 0) {
-            const percentage = (currentTime / duration) * 100;
-            handleVideoProgress(percentage);
-          }
-        } catch (error) {
-          console.log('Video progress tracking error:', error);
-        }
-      }
-    };
-
-    // Track progress every second
-    interval = setInterval(trackProgress, 1000);
-
-    // Clean up interval when component unmounts
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  };
-
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
-    setVideoProgress(percentage);
-    updateVideoProgress(stepId, percentage);
-
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
@@ -164,16 +65,17 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           {description}
         </p>
 
+        {/* YouTube Video Player */}
         <div className="mb-8">
-          <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm h-[500px]">
-            <div className="p-0 h-full">
-              <div 
-                ref={playerRef}
-                className="w-full h-full rounded-lg"
-                style={{ pointerEvents: 'auto', position: 'relative' }}
-              />
-            </div>
-          </div>
+          <VideoPlayer
+            workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
+            stepId={stepId}
+            fallbackUrl={fallbackUrl}
+            title={videoTitle}
+            aspectRatio="16:9"
+            autoplay={true}
+            onProgress={handleVideoProgress}
+          />
         </div>
 
         {isImaginalAgility ? (

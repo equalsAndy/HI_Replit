@@ -1,21 +1,14 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useVideoByStep } from '@/hooks/use-video-by-step';
+import VideoPlayer from './VideoPlayer';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
   markStepCompleted: (stepId: string) => void;
   setCurrentContent: (content: string) => void;
-}
-
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
+  starCard?: any;
 }
 
 const StarCardPreviewView: React.FC<ContentViewProps> = ({
@@ -24,110 +17,16 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const { updateVideoProgress } = useNavigationProgress();
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [player, setPlayer] = useState<any>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
 
   const stepId = "2-3";
-  
-  // Fetch video data from database based on step ID
-  const { data: videoData, isLoading } = useVideoByStep(stepId);
-  const videoId = videoData?.editableId;
-
-  // Load YouTube API
-  useEffect(() => {
-    if (!videoId || isLoading) return;
-
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-    } else {
-      initializePlayer();
-    }
-
-    return () => {
-      if (player) {
-        try {
-          player.destroy();
-        } catch (error) {
-          console.log('Error destroying player:', error);
-        }
-      }
-    };
-  }, [videoId, isLoading]);
-
-  // Track video progress
-  const startProgressTracking = (playerInstance: any) => {
-    let interval: NodeJS.Timeout;
-
-    const trackProgress = () => {
-      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
-        try {
-          const currentTime = playerInstance.getCurrentTime();
-          const duration = playerInstance.getDuration();
-
-          if (duration > 0) {
-            const percentage = (currentTime / duration) * 100;
-            handleVideoProgress(percentage);
-          }
-        } catch (error) {
-          console.log('Video progress tracking error:', error);
-        }
-      }
-    };
-
-    // Track progress every second
-    interval = setInterval(trackProgress, 1000);
-
-    // Clean up interval when component unmounts
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  };
+  const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // Default video URL for star card preview
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
-    setVideoProgress(percentage);
-    updateVideoProgress(stepId, percentage);
-
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
-    }
-  };
-
-  // Initialize YouTube player
-  const initializePlayer = () => {
-    if (window.YT && window.YT.Player && playerRef.current) {
-      const newPlayer = new window.YT.Player(playerRef.current, {
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0
-        },
-        events: {
-          onReady: (event: any) => {
-            setPlayer(event.target);
-            startProgressTracking(event.target);
-          },
-          onStateChange: (event: any) => {
-            // Handle player state changes if needed
-          }
-        }
-      });
     }
   };
 
@@ -147,17 +46,21 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
+      {/* YouTube Video Player */}
+      <div className="mb-8">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId={stepId}
+          fallbackUrl={fallbackUrl}
+          title="Review Your Star Card"
+          aspectRatio="16:9"
+          autoplay={true}
+        />
+      </div>
+
       <div className="flex flex-col md:flex-row gap-6 mt-6">
         <div className="md:w-1/2">
-          <div className="aspect-w-16 aspect-h-9">
-            <div className="w-full h-full rounded border border-gray-200 bg-black">
-              <div 
-                ref={playerRef}
-                className="w-full h-full rounded-lg"
-                style={{ pointerEvents: 'auto', position: 'relative' }}
-              />
-            </div>
-          </div>
+          {/* Star Card Display - This could contain additional content */}
         </div>
 
         <div className="md:w-1/2">
