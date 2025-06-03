@@ -58,7 +58,7 @@ export default function StepByStepReflection({
     const fetchStarCardData = async () => {
       try {
         console.log("Reflection: Fetching latest star card data...");
-        const response = await fetch('/api/starcard', {
+        const response = await fetch('/api/workshop-data/starcard', {
           credentials: 'include',
           cache: 'no-cache'
         });
