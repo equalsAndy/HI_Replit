@@ -5,7 +5,7 @@ import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
 import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
-import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
+// import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -254,20 +254,14 @@ export default function AllStarTeams() {
   }, [user, starCardData, starCardError]);
 
   // Fetch star card data with better error handling and logging
-  const { data: starCard, isLoading: starCardLoading1 } = useQuery<StarCard>({ 
+  const { data: starCard, isLoading: starCardLoading1 } = useQuery({ 
     queryKey: ['/api/workshop-data/starcard'],
     refetchOnWindowFocus: false,
     refetchInterval: 30000, // Refresh every 30 seconds to ensure data consistency
-    onSuccess: (data) => {
-      console.log("Star Card data loaded successfully:", data);
-    },
-    onError: (error) => {
-      console.error("Error loading Star Card data:", error);
-    }
   });
 
   // Fetch flow attributes data
-  const { data: flowAttributesData, isLoading: flowLoading } = useQuery<FlowAttributesResponse>({
+  const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
     queryKey: ['/api/flow-attributes'],
     refetchOnWindowFocus: false
   });

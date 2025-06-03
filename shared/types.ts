@@ -98,7 +98,7 @@ export interface ContentViewProps {
   starCard?: any;
   user?: any;
   flowAttributesData?: any;
-  setIsAssessmentModalOpen?: (open: boolean) => void;
+  setIsAssessmentModalOpen: (open: boolean) => void;
 }
 
 // Star Card types
@@ -123,10 +123,7 @@ export interface FlowAttributesResponse {
   isEmpty?: boolean;
 }
 
-// Assessment View Props interface
-export interface AssessmentViewProps extends ContentViewProps {
-  setIsAssessmentModalOpen: (open: boolean) => void;
-}
+
 
 // Extended session type
 declare module 'express-session' {

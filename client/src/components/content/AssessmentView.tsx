@@ -1,10 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps, StarCard } from '@/shared/types';
+// import { StarCard } from '@/shared/types';
 import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 
-interface AssessmentViewProps extends ContentViewProps {
+interface AssessmentViewProps {
+  navigate: (to: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
   setIsAssessmentModalOpen: (isOpen: boolean) => void;
 }
 
