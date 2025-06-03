@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
+import { ContentViewProps, StarCard } from '@/shared/types';
 import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 

@@ -229,8 +229,8 @@ export default function AllStarTeams() {
 
         // Force refresh of all cached data by invalidating queries
         queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
 
         // Mark progress as cleared for this session to avoid repeated clearing
         const sessionKey = `progress-cleared-${currentUserId}`;
@@ -255,7 +255,7 @@ export default function AllStarTeams() {
 
   // Fetch star card data with better error handling and logging
   const { data: starCard, isLoading: starCardLoading1 } = useQuery<StarCard>({ 
-    queryKey: ['/api/starcard'],
+    queryKey: ['/api/workshop-data/starcard'],
     refetchOnWindowFocus: false,
     refetchInterval: 30000, // Refresh every 30 seconds to ensure data consistency
     onSuccess: (data) => {
@@ -319,14 +319,14 @@ export default function AllStarTeams() {
       localStorage.removeItem('allstar_navigation_progress');
 
       // Refresh data from server and clear all cached assessment data
-      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
 
       // Clear any cached flow assessment data
-      queryClient.removeQueries({ queryKey: ['/api/flow-attributes'] });
-      queryClient.removeQueries({ queryKey: ['/api/starcard'] });
+      queryClient.removeQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
+      queryClient.removeQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Reset navigation progress as well
       if (typeof resetProgress === 'function') {

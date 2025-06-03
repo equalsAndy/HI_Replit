@@ -101,6 +101,33 @@ export interface ContentViewProps {
   setIsAssessmentModalOpen?: (open: boolean) => void;
 }
 
+// Star Card types
+export interface StarCard {
+  id?: number | null;
+  userId: number;
+  thinking: number;
+  acting: number;
+  feeling: number;
+  planning: number;
+  pending?: boolean;
+  createdAt: string;
+  imageUrl?: string | null;
+  state?: string;
+}
+
+// Flow Attributes types
+export interface FlowAttributesResponse {
+  success: boolean;
+  attributes: string[];
+  flowScore: number;
+  isEmpty?: boolean;
+}
+
+// Assessment View Props interface
+export interface AssessmentViewProps extends ContentViewProps {
+  setIsAssessmentModalOpen: (open: boolean) => void;
+}
+
 // Extended session type
 declare module 'express-session' {
   interface SessionData {
