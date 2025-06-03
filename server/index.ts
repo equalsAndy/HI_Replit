@@ -93,6 +93,14 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
+// Backup root route handler for development
+if (process.env.NODE_ENV === 'development') {
+  app.get('/', (req, res, next) => {
+    console.log('[Express] Root route accessed, delegating to Vite...');
+    next(); // Let Vite handle it
+  });
+}
+
 // Root route is handled by Vite middleware for the React app
 
 // In production, serve static files from the dist directory

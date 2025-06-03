@@ -43,6 +43,8 @@ export async function setupVite(app: Express, server: Server) {
   app.use(vite.middlewares);
   app.use("*", async (req, res, next) => {
     const url = req.originalUrl;
+    
+    console.log(`[Vite] Handling request: ${url}`);
 
     try {
       const clientTemplate = path.resolve(
@@ -52,6 +54,12 @@ export async function setupVite(app: Express, server: Server) {
         "index.html",
       );
 
+      // Check if template file exists
+      if (!await fs.promises.access(clientTemplate).then(() => true).catch(() => false)) {
+        console.error(`[Vite] Template file not found: ${clientTemplate}`);
+        return res.status(500).send('Template file not found');
+      }
+
       // always reload the index.html file from disk incase it changes
       let template = await fs.promises.readFile(clientTemplate, "utf-8");
       template = template.replace(
@@ -59,8 +67,10 @@ export async function setupVite(app: Express, server: Server) {
         `src="/src/main.tsx?v=${nanoid()}"`,
       );
       const page = await vite.transformIndexHtml(url, template);
+      console.log(`[Vite] Successfully serving page for: ${url}`);
       res.status(200).set({ "Content-Type": "text/html" }).end(page);
     } catch (e) {
+      console.error(`[Vite] Error serving ${url}:`, e);
       vite.ssrFixStacktrace(e as Error);
       next(e);
     }
