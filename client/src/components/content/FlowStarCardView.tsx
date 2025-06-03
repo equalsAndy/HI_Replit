@@ -255,8 +255,13 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                         flowAttributesData.attributes.length > 0) ||
                         (selectedAttributes.length === 4 && selectedAttributes.every(attr => attr.rank !== null));
 
+  // Check if attributes exist in database (should disable picker)
+  const hasExistingAttributes = flowAttributesData?.attributes && 
+                               Array.isArray(flowAttributesData.attributes) && 
+                               flowAttributesData.attributes.length > 0;
+
   useEffect(() => {
-    if (isCardComplete && flowAttributesData?.attributes) {
+    if (hasExistingAttributes && flowAttributesData?.attributes) {
       console.log("Flow attributes data:", flowAttributesData.attributes);
 
       // Map existing attributes to the local state - handle both possible data structures
@@ -279,9 +284,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
-      setShowSelectionInterface(false); // Hide interface after existing attributes are loaded
+      setShowSelectionInterface(false); // Hide interface when existing attributes are loaded from database
     }
-  }, [flowAttributesData, isCardComplete]);
+  }, [flowAttributesData, hasExistingAttributes]);
 
   // Tracks if we're updating existing attributes rather than creating new ones
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
