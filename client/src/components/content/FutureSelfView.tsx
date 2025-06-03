@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
+import { debounce } from '@/lib/utils';
 
 // Import the Hokusai images
 import hokusaiWave from '@assets/image_1747799995641.png';
@@ -16,31 +17,74 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const [reflection1, setReflection1] = useState('');
-  const [reflection2, setReflection2] = useState('');
-  const [reflection3, setReflection3] = useState('');
+  const [formData, setFormData] = useState({
+    futureSelfDescription: '',
+    visualizationNotes: ''
+  });
+
+  // Load existing data when component mounts
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        const response = await fetch('/api/workshop-data/future-self', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setFormData(result.data);
+        }
+      } catch (error) {
+        console.log('No existing data found');
+      }
+    };
+    
+    loadExistingData();
+  }, []);
+
+  // Debounced save function
+  const debouncedSave = useCallback(
+    debounce(async (dataToSave) => {
+      try {
+        const response = await fetch('/api/workshop-data/future-self', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('Auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 1000),
+    []
+  );
+
+  // Trigger save whenever form data changes
+  useEffect(() => {
+    if (formData.futureSelfDescription || formData.visualizationNotes) {
+      debouncedSave(formData);
+    }
+  }, [formData, debouncedSave]);
+
+  // Handle input changes
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
 
   const handleSubmit = async () => {
     try {
-      const reflectionData = {
-        reflection1,
-        reflection2,
-        reflection3
-      };
-
-      await apiRequest('/api/user/future-self-reflection', {
-        method: 'POST',
-        body: JSON.stringify(reflectionData)
-      });
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      queryClient.invalidateQueries({ queryKey: ['starCard'] });
-
       markStepCompleted('4-4');
       setCurrentContent('your-statement');
     } catch (error) {
-      console.error('Error saving future self reflection:', error);
+      console.error('Error completing future self reflection:', error);
     }
   };
 

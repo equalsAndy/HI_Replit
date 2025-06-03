@@ -48,3 +48,10 @@ export interface Workshop {
   facilitatorId: number;
   status: 'upcoming' | 'in-progress' | 'completed';
 }
+
+export interface ContentViewProps {
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+  starCard?: any;
+}
