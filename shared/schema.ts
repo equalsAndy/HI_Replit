@@ -28,10 +28,10 @@ export const users = pgTable('users', {
 });
 
 // Create insert schema for users
-export const insertUserSchema = createInsertSchema(users).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
 });
 
 // Type definitions for TypeScript
