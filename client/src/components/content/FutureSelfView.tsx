@@ -28,8 +28,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const stepId = "4-4";
   const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // Default video URL for future self visualization
 
-  // Load YouTube API
-  useEffect(() => {
+  // Handle video progress updates
+  const handleVideoProgress = (percentage: number) => {
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
+      setHasReachedMinimum(true);
+    }
+  };
     if (!window.YT) {
       const tag = document.createElement('script');
       tag.src = 'https://www.youtube.com/iframe_api';
