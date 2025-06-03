@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, FileText } from "lucide-react";
+import { debounce } from '@/lib/utils';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -41,6 +42,16 @@ export default function StepByStepReflection({
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
+
+  // State for reflections data
+  const [reflections, setReflections] = useState({
+    strength1: '',
+    strength2: '',
+    strength3: '',
+    strength4: '',
+    teamValues: '',
+    uniqueContribution: ''
+  });
 
   // Fetch star card data on component mount
   useEffect(() => {
@@ -85,15 +96,7 @@ export default function StepByStepReflection({
     fetchStarCardData();
   }, []);
 
-  // State for saving user reflections
-  const [reflections, setReflections] = useState({
-    strength1: '',
-    strength2: '',
-    strength3: '',
-    strength4: '',
-    teamValues: '',
-    uniqueContribution: ''
-  });
+
 
   // Function to populate reflections with demo lorem ipsum text
   const fillWithDemoData = () => {

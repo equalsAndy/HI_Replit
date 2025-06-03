@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
+import { debounce } from '@/lib/utils';
 
 // Props interface
 interface ContentViewProps {
@@ -18,6 +19,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 }) => {
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  const [formData, setFormData] = useState({
+    currentFactors: '',
+    futureImprovements: '',
+    specificChanges: ''
+  });
 
   // Fetch user's actual wellbeing data from the visualization API
   const { data: visualizationData } = useQuery({
@@ -50,6 +56,63 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       }
     }
   }, [visualizationData]);
+
+  // Load existing text data when component mounts
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        const response = await fetch('/api/workshop-data/cantril-ladder', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setFormData(result.data);
+        }
+      } catch (error) {
+        console.log('No existing text data found');
+      }
+    };
+    
+    loadExistingData();
+  }, []);
+
+  // Debounced save function for text inputs
+  const debouncedSave = useCallback(
+    debounce(async (dataToSave) => {
+      try {
+        const response = await fetch('/api/workshop-data/cantril-ladder', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('Auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 1000),
+    []
+  );
+
+  // Trigger save whenever form data changes
+  useEffect(() => {
+    if (Object.values(formData).some(value => value.trim().length > 0)) {
+      debouncedSave(formData);
+    }
+  }, [formData, debouncedSave]);
+
+  // Handle text input changes
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
