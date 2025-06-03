@@ -227,15 +227,19 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent,
-  starCard,
-  user,
-  flowAttributesData
+  starCard
 }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
+
+  // Fetch flow attributes data
+  const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery({
+    queryKey: ['/api/workshop-data/flow-attributes'],
+    enabled: true,
+  });
 
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(
@@ -261,6 +265,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                                flowAttributesData.attributes.length > 0;
 
   useEffect(() => {
+    console.log("FlowStarCardView useEffect - hasExistingAttributes:", hasExistingAttributes);
+    console.log("FlowStarCardView useEffect - flowAttributesData:", flowAttributesData);
+    
     if (hasExistingAttributes && flowAttributesData?.attributes) {
       console.log("Flow attributes data:", flowAttributesData.attributes);
 
@@ -274,6 +281,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         };
       });
 
+      console.log("Mapped attributes:", mappedAttributes);
       setSelectedAttributes(mappedAttributes);
 
       // Also set the starcard attributes
@@ -284,7 +292,11 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       console.log("Setting flow attributes:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
-      setShowSelectionInterface(false); // Hide interface when existing attributes are loaded from database
+      // Hide the selection interface since attributes exist
+      setShowSelectionInterface(false);
+    } else {
+      console.log("No existing attributes, showing selection interface");
+      setShowSelectionInterface(true);
     }
   }, [flowAttributesData, hasExistingAttributes]);
 
@@ -490,6 +502,27 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           a comprehensive visualization of your strengths and flow profile.
         </p>
       </div>
+
+      {hasExistingAttributes && !showSelectionInterface && (
+        <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-6">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="font-medium text-green-800 mb-2">✓ Flow Attributes Already Set</h4>
+              <p className="text-green-700 text-sm">
+                Your flow attributes have been saved and appear on your Star Card.
+              </p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="border-green-200 text-green-700 hover:text-green-800 hover:bg-green-100"
+              onClick={() => setShowSelectionInterface(true)}
+            >
+              Edit Attributes
+            </Button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
