@@ -54,7 +54,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           fallbackUrl="https://www.youtube.com/embed/JJWb058M-sY"
           title="Review Your Star Card"
           aspectRatio="16:9"
-          autoplay={false}
+          autoplay={true}
         />
       </div>
 
