@@ -1,18 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
-
-interface ContentViewProps {
-  navigate?: any;
-  markStepCompleted?: (stepId: string) => void;
-  setCurrentContent?: (content: string) => void;
-}
+import { ContentViewProps } from '../../shared/types';
 import { Check, ChevronRight, Edit } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { debounce } from '@/lib/utils';
 
 // Reflection Questions
 interface RoundingOutQuestion {
@@ -81,105 +75,79 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           }
         }
       } catch (error) {
-        console.error('Error parsing reflection results:', error);
+        console.log('No existing data found');
       }
-    }
-  }, [existingReflection]);
-
-  // Save to localStorage whenever answers change
-  useEffect(() => {
-    const reflectionData = {
-      answers,
-      timestamp: new Date().toISOString()
     };
-    localStorage.setItem('flowReflectionAnswers', JSON.stringify(reflectionData));
-  }, [answers]);
+    
+    loadExistingData();
+  }, []);
 
-  // Save reflection mutation
-  const saveReflectionMutation = useMutation({
-    mutationFn: async (reflectionData: Record<number, string>) => {
-      const response = await fetch('/api/assessments', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          assessmentType: 'flowReflection',
-          results: {
-            answers: reflectionData,
-            completedAt: new Date().toISOString()
-          }
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to save reflection: ${response.status}`);
+  // Debounced save function
+  const debouncedSave = useCallback(
+    debounce(async (answersToSave) => {
+      try {
+        const response = await fetch('/api/workshop-data/rounding-out', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ answers: answersToSave })
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('Auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('Auto-save failed:', error);
       }
+    }, 1000),
+    []
+  );
 
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/assessments'] });
-      toast({
-        title: "Reflection saved!",
-        description: "Your flow reflection responses have been saved successfully.",
-        duration: 3000
+  // Trigger save whenever answers change
+  useEffect(() => {
+    if (Object.keys(answers).length > 0) {
+      debouncedSave(answers);
+    }
+  }, [answers, debouncedSave]);
+
+  // Complete reflection function
+  const completeReflection = async () => {
+    try {
+      setSaving(true);
+      
+      const response = await fetch('/api/workshop-data/rounding-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ answers })
       });
-      markStepCompleted('3-3');
-    },
-    onError: (error: Error) => {
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        setReflectionCompleted(true);
+        toast({
+          title: "Reflection completed!",
+          description: "Your responses have been saved successfully.",
+          duration: 3000
+        });
+        markStepCompleted('3-3');
+      }
+    } catch (error) {
       toast({
         title: "Failed to save reflection",
-        description: error.message,
+        description: "Please try again.",
         variant: "destructive"
       });
-    }
-  });
-
-  // Get current question
-  const question = roundingOutQuestions[currentQuestion];
-  const currentAnswer = answers[question?.id] || '';
-
-  // Check if all questions have been answered
-  const allQuestionsAnswered = () => {
-    return roundingOutQuestions.every(q => 
-      answers[q.id] && answers[q.id].trim().length > 0
-    );
-  };
-
-  // Move to next question
-  const nextQuestion = () => {
-    if (currentQuestion < roundingOutQuestions.length - 1) {
-      setCurrentQuestion(prev => prev + 1);
-      setShowExample(false);
-    } else {
-      // Moved to last question, but don't mark complete yet
-      setShowExample(false);
-    }
-  };
-
-  // Save all reflection answers to database
-  const handleSaveReflection = async () => {
-    if (!allQuestionsAnswered()) {
-      toast({
-        title: "Please answer all questions",
-        description: "You must provide answers to all reflection questions before continuing.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setSaving(true);
-    try {
-      await saveReflectionMutation.mutateAsync(answers);
-      setReflectionCompleted(true);
-    } catch (error) {
-      console.error('Error saving reflection:', error);
     } finally {
       setSaving(false);
     }
   };
+
+  // Get current question
+  const question = roundingOutQuestions[currentQuestion];
+  const currentAnswer = answers[question?.id] || '';
 
   // Move to previous question
   const prevQuestion = () => {
@@ -195,6 +163,35 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       ...prev,
       [question.id]: e.target.value
     }));
+  };
+
+  // Move to next question
+  const nextQuestion = () => {
+    if (currentQuestion < roundingOutQuestions.length - 1) {
+      setCurrentQuestion(prev => prev + 1);
+      setShowExample(false);
+    }
+  };
+
+  // Check if all questions are answered
+  const allQuestionsAnswered = () => {
+    return roundingOutQuestions.every(q => 
+      answers[q.id] && answers[q.id].trim().length > 0
+    );
+  };
+
+  // Handle save reflection
+  const handleSaveReflection = async () => {
+    if (!allQuestionsAnswered()) {
+      toast({
+        title: "Incomplete reflection",
+        description: "You must provide answers to all reflection questions before continuing.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await completeReflection();
   };
 
   // Toggle example visibility
