@@ -1198,4 +1198,125 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * Step-by-Step Reflection endpoints
+ */
+// POST /api/workshop-data/step-by-step-reflection
+workshopDataRouter.post('/step-by-step-reflection', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { strength1, strength2, strength3, strength4, teamValues, uniqueContribution } = req.body;
+    
+    // Create the reflections data object
+    const reflectionData = {
+      strength1: strength1 || '',
+      strength2: strength2 || '',
+      strength3: strength3 || '',
+      strength4: strength4 || '',
+      teamValues: teamValues || '',
+      uniqueContribution: uniqueContribution || ''
+    };
+    
+    // Check if user already has step-by-step reflection data
+    const existingReflection = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'stepByStepReflection')
+        )
+      );
+    
+    if (existingReflection.length > 0) {
+      // Update existing reflection
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(reflectionData)
+        })
+        .where(eq(schema.userAssessments.id, existingReflection[0].id));
+    } else {
+      // Create new reflection record
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'stepByStepReflection',
+        results: JSON.stringify(reflectionData)
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: reflectionData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'stepByStepReflection' 
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+      code: 'SAVE_ERROR'
+    });
+  }
+});
+
+// GET /api/workshop-data/step-by-step-reflection
+workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'stepByStepReflection')
+        )
+      );
+    
+    if (!assessment || assessment.length === 0) {
+      return res.json({ success: true, data: null });
+    }
+    
+    const results = JSON.parse(assessment[0].results);
+    res.json({
+      success: true,
+      data: results,
+      meta: { assessmentType: 'stepByStepReflection' }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve assessment',
+      code: 'FETCH_ERROR'
+    });
+  }
+});
+
 export default workshopDataRouter;
