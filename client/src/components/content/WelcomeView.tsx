@@ -66,7 +66,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
         </p>
 
         {/* YouTube Video Player */}
-        <div className="mb-8">
+        <div className="mb-8 max-w-4xl mx-auto">
           <VideoPlayer
             workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
             stepId={stepId}
@@ -74,7 +74,6 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             title={videoTitle}
             aspectRatio="16:9"
             autoplay={true}
-            onProgress={handleVideoProgress}
           />
         </div>
 

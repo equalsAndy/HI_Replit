@@ -17,7 +17,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-
   const [oneYearVision, setOneYearVision] = useState<string>('');
   const [challenges, setChallenges] = useState<string>('');
   const [strengths, setStrengths] = useState<string>('');
@@ -35,112 +34,24 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       setHasReachedMinimum(true);
     }
   };
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-    } else {
-      initializePlayer();
-    }
-
-    return () => {
-      if (player) {
-        try {
-          player.destroy();
-        } catch (error) {
-          console.log('Error destroying player:', error);
-        }
-      }
-    };
-  }, [videoId]);
-
-  // Track video progress
-  const startProgressTracking = (playerInstance: any) => {
-    let interval: NodeJS.Timeout;
-
-    const trackProgress = () => {
-      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
-        try {
-          const currentTime = playerInstance.getCurrentTime();
-          const duration = playerInstance.getDuration();
-
-          if (duration > 0) {
-            const percentage = (currentTime / duration) * 100;
-            handleVideoProgress(percentage);
-          }
-        } catch (error) {
-          console.log('Video progress tracking error:', error);
-        }
-      }
-    };
-
-    // Track progress every second
-    interval = setInterval(trackProgress, 1000);
-
-    // Clean up interval when component unmounts
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  };
-
-  // Handle video progress updates
-  const handleVideoProgress = (percentage: number) => {
-    setVideoProgress(percentage);
-    updateVideoProgress(stepId, percentage);
-
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
-      setHasReachedMinimum(true);
-    }
-  };
-
-  // Initialize YouTube player
-  const initializePlayer = () => {
-    if (window.YT && window.YT.Player && playerRef.current) {
-      const newPlayer = new window.YT.Player(playerRef.current, {
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0
-        },
-        events: {
-          onReady: (event: any) => {
-            setPlayer(event.target);
-            startProgressTracking(event.target);
-          },
-          onStateChange: (event: any) => {
-            // Handle player state changes if needed
-          }
-        }
-      });
-    }
-  };
 
   const handleSave = async () => {
     setSaving(true);
-
     try {
-      await apiRequest('/api/visualization', 'POST', {
-        oneYearVision,
-        challenges,
-        strengths,
-        resourcesNeeded,
-        actionSteps
+      await apiRequest('/api/future-self', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          oneYearVision,
+          challenges,
+          strengths,
+          resourcesNeeded,
+          actionSteps
+        })
       });
-
-      queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
-      markStepCompleted('4-2');
-      setCurrentContent('recap');
+      
+      markStepCompleted(stepId);
+      setCurrentContent("recap");
     } catch (error) {
       console.error('Error saving future self data:', error);
     } finally {
@@ -152,129 +63,101 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Future Self</h1>
 
-      <div className="prose max-w-none mb-6">
-        <p className="text-gray-700">
-          Take a few minutes to reflect on the future you're working toward. 
-          These questions will help you imagine your life over time — and the 
-          kind of person, teammate, and leader you want to become. There are 
-          no right answers. Just be honest and thoughtful.
+      {/* YouTube Video Player */}
+      <div className="mb-8">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId={stepId}
+          fallbackUrl={fallbackUrl}
+          title="Visualizing Your Future Self"
+          aspectRatio="16:9"
+          autoplay={true}
+        />
+      </div>
+
+      <div className="prose max-w-none mb-8">
+        <p className="text-lg">
+          Take a moment to envision yourself one year from today. What does success look like? 
+          How have you grown? What new capabilities have you developed?
         </p>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-8 mb-8">
-        <div className="md:w-3/5 bg-gray-50 p-6 rounded-lg border">
-          <div className="aspect-w-16 aspect-h-9">
-            <div className="w-full h-64 rounded border border-gray-200 bg-black">
-              <div 
-                ref={playerRef}
-                className="w-full h-full rounded-lg"
-                style={{ pointerEvents: 'auto', position: 'relative' }}
-              />
-            </div>
-          </div>
-
-          <div className="mt-4">
-            <p className="text-sm text-gray-700 mb-2">
-              <span className="font-medium text-gray-900">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
-            </p>
-            <p className="text-sm text-gray-800 italic">
-              "From the age of 6 I had a mania for drawing the shapes of things.
-              When I was 50 I had published a universe of designs. But all I have done before the the age of 70 is not worth bothering with. At
-              75 I'll have learned something of the pattern of nature, of animals, of plants, of trees, birds, fish and insects. When I am 80 you will 
-              see real progress. At 90 I shall have cut my way deeply into the mystery of life itself. At 100, I shall be a marvelous artist. At 110, 
-              everything I create; a dot, a line, will jump to life as never before.
-              <br /><br />
-              To all of you who are going to live as long as I do, I promise to keep my word. I am writing this in my old age. I used to call 
-              myself Hokusai, but today I sign my self 'The Old Man Mad About Drawing.'"
-              <span className="block mt-1 font-medium text-right">— Hokusai Katsushika</span>
-            </p>
-          </div>
-        </div>
-
-        <div className="md:w-2/5">
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <img 
-              src={hokusaiWaveImage} 
-              alt="The Great Wave off Kanagawa by Hokusai" 
-              className="w-full h-auto rounded border border-gray-200"
-            />
-            <img 
-              src={hokusaiPortraitImage} 
-              alt="Portrait of Hokusai" 
-              className="w-full h-auto rounded border border-gray-200"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
-        <h3 className="text-lg font-medium text-indigo-900 mb-2">Purpose</h3>
-        <p className="text-sm text-indigo-800">
-          This exercise honors every participant's infinite capacity for growth. 
-          Whether someone is 22 or 82, the focus remains on continuing evolution, 
-          deepening wisdom, and creating one's masterpiece. The most meaningful 
-          futures are not constrained by time but expanded by purpose.
-        </p>
-        <p className="text-sm text-indigo-800 mt-2">
-          Remember Hokusai's wisdom - every decade brings new insight, sharper vision, 
-          and deeper connection to your life's work. The canvas of your future self 
-          has no boundaries.
-        </p>
-      </div>
-
-      <div className="space-y-6 mb-8">
-        <div className="bg-white p-5 rounded-lg border">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">Where do you see yourself in 5, 10, and 20 years?</h3>
-          <Textarea 
-            placeholder="Your answer"
+      {/* Future Vision Form */}
+      <div className="space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            One Year Vision: Where do you see yourself in 12 months?
+          </label>
+          <Textarea
             value={oneYearVision}
             onChange={(e) => setOneYearVision(e.target.value)}
+            placeholder="Describe your vision for where you'll be in one year..."
             className="min-h-[100px]"
           />
         </div>
 
-        <div className="bg-white p-5 rounded-lg border">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">What does your life look like when optimized for flow?</h3>
-          <Textarea 
-            placeholder="Your answer"
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Anticipated Challenges: What obstacles might you face?
+          </label>
+          <Textarea
             value={challenges}
             onChange={(e) => setChallenges(e.target.value)}
-            className="min-h-[100px]"
+            placeholder="What challenges or obstacles do you anticipate..."
+            className="min-h-[80px]"
           />
         </div>
 
-        <div className="bg-white p-5 rounded-lg border">
-          <h3 className="text-lg font-medium text-gray-900 mb-3">
-            When picturing a happy third stage of life, what will you have achieved and still want to achieve?
-          </h3>
-          <Textarea 
-            placeholder="Your answer"
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Strengths to Leverage: What strengths will help you succeed?
+          </label>
+          <Textarea
             value={strengths}
             onChange={(e) => setStrengths(e.target.value)}
-            className="min-h-[100px]"
+            placeholder="What strengths and capabilities will support your journey..."
+            className="min-h-[80px]"
           />
         </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Resources Needed: What support or resources will you need?
+          </label>
+          <Textarea
+            value={resourcesNeeded}
+            onChange={(e) => setResourcesNeeded(e.target.value)}
+            placeholder="What resources, support, or learning will you need..."
+            className="min-h-[80px]"
+          />
+        </div>
 
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            First Steps: What immediate actions will you take?
+          </label>
+          <Textarea
+            value={actionSteps}
+            onChange={(e) => setActionSteps(e.target.value)}
+            placeholder="What are the first concrete steps you'll take..."
+            className="min-h-[80px]"
+          />
+        </div>
       </div>
 
-
-
-      <div className="flex justify-end">
+      <div className="flex justify-end mt-8">
         <Button 
-          onClick={() => {
-            handleSave();
-            markStepCompleted('4-3');
-            setCurrentContent('recap');
-          }}
-          disabled={saving || !hasReachedMinimum}
+          onClick={handleSave}
+          disabled={!hasReachedMinimum || saving}
           className={`${
             hasReachedMinimum && !saving
               ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
               : "bg-gray-300 cursor-not-allowed text-gray-500"
-          }`}
+          } px-8`}
+          size="lg"
         >
-          {saving ? 'Saving...' : 'Next: Final Reflection'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? "Saving..." : "Save & Continue"}
+          <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

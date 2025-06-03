@@ -20,7 +20,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
 
   const stepId = "2-3";
-  const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // Default video URL for star card preview
+  const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // This will be replaced by database video when available
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
