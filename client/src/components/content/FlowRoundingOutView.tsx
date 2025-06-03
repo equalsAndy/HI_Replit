@@ -134,9 +134,9 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         });
         markStepCompleted('3-3');
         // Navigate to the next step: Add Flow to Star Card
-        if (setCurrentContent) {
+        if (navigate) {
           setTimeout(() => {
-            setCurrentContent('star-card');
+            navigate('find-your-flow', '3-4');
           }, 1500); // Small delay to show the success message
         }
       }
@@ -437,7 +437,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                     disabled={saving || !allQuestionsAnswered()}
                     className={`${
                       allQuestionsAnswered() && !saving
-                        ? "bg-green-600 hover:bg-green-700 text-white" 
+                        ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
                         : "bg-gray-300 cursor-not-allowed text-gray-500"
                     }`}
                   >
@@ -448,17 +448,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             </div>
           </Card>
 
-          {/* Show completion status if all questions answered but not yet saved */}
-          {allQuestionsAnswered() && !reflectionCompleted && (
-            <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-              <div className="flex items-center">
-                <Check className="h-5 w-5 text-green-600 mr-2" />
-                <p className="text-green-800 font-medium">
-                  All questions answered! Click "Complete Reflection" to save your responses.
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Completion status removed to avoid confusion during typing */}
 
         </div>
       )}
