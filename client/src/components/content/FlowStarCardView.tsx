@@ -5,7 +5,7 @@ import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { Gauge, ChevronRight, X, GripVertical } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { 
   DndContext, 
@@ -235,11 +235,23 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
 
+  // Fetch user data
+  const { data: userData } = useQuery({
+    queryKey: ['/api/user/me'],
+    enabled: true,
+  });
+
   // Fetch flow attributes data
-  const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery({
+  const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery<{
+    success: boolean;
+    attributes: Array<{ name: string; score: number }>;
+    flowScore: number;
+  }>({
     queryKey: ['/api/workshop-data/flow-attributes'],
     enabled: true,
   });
+
+  const user = userData?.user;
 
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(

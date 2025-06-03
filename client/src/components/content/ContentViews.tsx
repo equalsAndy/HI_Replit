@@ -144,8 +144,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
-          user={user}
-          flowAttributesData={flowAttributesData}
         />
       );
 
