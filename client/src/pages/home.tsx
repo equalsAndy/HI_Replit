@@ -178,14 +178,11 @@ export default function Home() {
               </p>
             </div>
             
-            <div className="max-w-4xl mx-auto aspect-video bg-black rounded-lg overflow-hidden shadow-lg">
-              <iframe 
-                className="w-full h-full"
-                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-                title="Heliotrope Imaginal Workshops Overview" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen>
-              </iframe>
+            <div className="max-w-4xl mx-auto aspect-video bg-gray-100 rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
+              <div className="text-center">
+                <p className="text-xl text-gray-600 font-medium">Video Available</p>
+                <p className="text-gray-500">Heliotrope Imaginal Workshops Overview</p>
+              </div>
             </div>
           </div>
         </section>

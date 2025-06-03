@@ -25,7 +25,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
 
   const stepId = "4-4";
-  const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // Default video URL for future self visualization
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
@@ -68,7 +67,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <VideoPlayer
           workshopType="allstarteams"
           stepId={stepId}
-          fallbackUrl={fallbackUrl}
           title="Visualizing Your Future Self"
           aspectRatio="16:9"
           autoplay={true}

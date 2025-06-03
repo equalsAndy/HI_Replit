@@ -245,14 +245,11 @@ export default function Report() {
             <p className="mb-4">Watch the short video, then explore your profile with fresh eyes.</p>
           </div>
           
-          <div className="aspect-video mb-6">
-            <iframe 
-              className="w-full h-full"
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
-              title="Star Review Video" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen>
-            </iframe>
+          <div className="aspect-video mb-6 bg-gray-100 rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-xl text-gray-600 font-medium">Video Available</p>
+              <p className="text-gray-500">Star Review Video</p>
+            </div>
           </div>
         </div>
         
