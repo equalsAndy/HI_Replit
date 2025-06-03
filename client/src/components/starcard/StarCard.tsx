@@ -144,7 +144,7 @@ function StarCard({
 
         if (!hasValidScores && (!thinking || !acting || !feeling || !planning)) {
           console.log('StarCard: Fetching assessment data...');
-          const assessmentResponse = await fetch('/api/starcard', {
+          const assessmentResponse = await fetch('/api/workshop-data/starcard', {
             credentials: 'include'
           });
 

@@ -27,7 +27,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
 }) => {
   // Use React Query to fetch the latest star card data
   const { data: starCardData, isLoading } = useQuery<any>({
-    queryKey: ['/api/starcard'],
+    queryKey: ['/api/workshop-data/starcard'],
     enabled: true,
     staleTime: 1000, // Refetch after 1 second - important for fresh data
   });
@@ -39,7 +39,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   // Force a direct fetch regardless to ensure we have the latest data
   useEffect(() => {
     setIsDirectLoading(true);
-    fetch('/api/starcard', { 
+    fetch('/api/workshop-data/starcard', { 
       credentials: 'include',
       cache: 'no-cache' // Important: don't use cached data
     })
