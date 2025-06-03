@@ -112,16 +112,31 @@ if (process.env.NODE_ENV === 'production') {
   const distPath = path.join(__dirname, '../dist/public');
   console.log('Production mode - serving static files from:', distPath);
 
-  // Serve static files with proper cache headers
+  // Serve static files with proper MIME types and cache headers
   app.use(express.static(distPath, {
     maxAge: '1d',
-    etag: true
+    etag: true,
+    setHeaders: (res, path) => {
+      // Set correct MIME type for JavaScript modules
+      if (path.endsWith('.js')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.mjs')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      } else if (path.endsWith('.css')) {
+        res.setHeader('Content-Type', 'text/css');
+      }
+    }
   }));
 
-  // Catch-all handler for client-side routing (must be after API routes)
+  // Catch-all handler for client-side routing (must be after API routes and static files)
   app.get('*', (req, res, next) => {
     // Skip API routes
     if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Skip static asset requests - let them 404 naturally if not found
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
       return next();
     }
     
