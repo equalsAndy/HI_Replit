@@ -48,7 +48,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showExample, setShowExample] = useState(false);
-  const [reflectionCompleted, setReflectionCompleted] = useState(false);
+
   const [saving, setSaving] = useState(false);
 
   const { toast } = useToast();
@@ -62,12 +62,28 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         });
         const result = await response.json();
         
-        if (result.success && result.data && result.data.answers) {
-          setAnswers(result.data.answers);
+        if (result.success && result.data) {
+          // Handle both old format (answers) and new format (strengths, values, etc.)
+          let loadedAnswers = {};
+          
+          if (result.data.answers) {
+            // Old format
+            loadedAnswers = result.data.answers;
+          } else if (result.data.strengths || result.data.values || result.data.passions || result.data.growthAreas) {
+            // New format - transform back to numbered answers
+            loadedAnswers = {
+              1: result.data.values || '',     // Question 1: "When does stress or distraction tend to show up for you?"
+              2: result.data.strengths || '',  // Question 2: "Which strengths or qualities do you need to nurture — and why?"
+              3: result.data.passions || '',   // Question 3: "How will you harness your strengths to create forward momentum..."
+              4: result.data.growthAreas || '' // Question 4: "What would you like to explore, develop, or try that's new for you?"
+            };
+          }
+          
+          setAnswers(loadedAnswers);
           
           // Check if all questions are answered
           const allAnswered = roundingOutQuestions.every(q => 
-            result.data.answers[q.id] && result.data.answers[q.id].trim().length > 0
+            loadedAnswers[q.id] && loadedAnswers[q.id].trim().length > 0
           );
 
           if (allAnswered) {
@@ -239,8 +255,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         
         // Navigate to step 3-4 immediately
         console.log('Navigating to step 3-4...');
-        if (navigate) {
-          navigate('find-your-flow', '3-4');
+        if (setCurrentContent) {
+          setCurrentContent('flow-star-card');
         }
       } else {
         throw new Error('Save failed: ' + JSON.stringify(result));
@@ -386,52 +402,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
-      {reflectionCompleted ? (
-        <div className="space-y-6">
-          <Card className="p-6 border border-green-100 bg-green-50">
-            <div className="flex items-center justify-center text-center flex-col">
-              <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">Reflection Completed</h3>
-              <p className="text-gray-600 mb-4">
-                Great work! You've completed the flow reflection exercise. You're now ready to add flow attributes
-                to your Star Card to round out your profile.
-              </p>
-
-              <Button 
-                onClick={handleContinue}
-                className="bg-indigo-700 hover:bg-indigo-800"
-              >
-                Next: Add Flow to Star Card
-              </Button>
-            </div>
-          </Card>
-
-          <div className="grid grid-cols-1 gap-4 mt-6">
-            <div className="text-center bg-blue-50 rounded-lg p-4 border border-blue-100">
-              <h3 className="uppercase font-bold text-lg mb-2 text-blue-700">Flow State Resources</h3>
-              <p className="text-sm text-gray-700 mb-2">
-                Download our guide to creating more flow experiences in your daily work:
-              </p>
-              <Button variant="outline" className="bg-white">
-                <a 
-                  href="#" 
-                  onClick={(e) => {
-                    e.preventDefault();
-                    console.log("Resource download clicked");
-                  }}
-                  className="flex items-center"
-                >
-                  Download Flow Guide
-                </a>
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : (
+      {/* Always show reflection questions for editing */}
+      {(
         <div className="space-y-6">
           <Card className="p-6">
             <div className="mb-6">
