@@ -58,29 +58,22 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
 
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
-  // Fetch existing reflection data on component mount
-  const { data: existingReflection } = useQuery({
-    queryKey: ['/api/assessments', 'flowReflection'],
-    enabled: true
-  });
-
-  // Load existing answers from API or localStorage
+  // Load existing data when component mounts
   useEffect(() => {
-    // First try to load from API
-    if (existingReflection?.results) {
+    const loadExistingData = async () => {
       try {
-        const parsedResults = typeof existingReflection.results === 'string' 
-          ? JSON.parse(existingReflection.results) 
-          : existingReflection.results;
-
-        if (parsedResults.answers) {
-          setAnswers(parsedResults.answers);
-
+        const response = await fetch('/api/workshop-data/rounding-out', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data && result.data.answers) {
+          setAnswers(result.data.answers);
+          
           // Check if all questions are answered
           const allAnswered = roundingOutQuestions.every(q => 
-            parsedResults.answers[q.id] && parsedResults.answers[q.id].trim().length > 0
+            result.data.answers[q.id] && result.data.answers[q.id].trim().length > 0
           );
 
           if (allAnswered) {

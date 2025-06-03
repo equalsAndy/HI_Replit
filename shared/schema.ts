@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, text, boolean } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, text, boolean, integer } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -127,18 +127,17 @@ export const workshopParticipation = pgTable('workshop_participation', {
 // User assessments table for tracking assessment results
 export const userAssessments = pgTable('user_assessments', {
   id: serial('id').primaryKey(),
-  userId: serial('user_id').notNull(),
+  userId: integer('user_id').notNull(),
   assessmentType: varchar('assessment_type', { length: 50 }).notNull(),
   results: text('results').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
 // Create insert schema for user assessments
-export const insertUserAssessmentSchema = createInsertSchema(userAssessments, {
-  userId: z.number(),
-  assessmentType: z.string().min(1).max(50),
-  results: z.string().min(1),
-}).omit({ id: true, createdAt: true });
+export const insertUserAssessmentSchema = createInsertSchema(userAssessments).omit({ 
+  id: true, 
+  createdAt: true 
+});
 
 // Type definitions for user assessments
 export type UserAssessment = typeof userAssessments.$inferSelect;
