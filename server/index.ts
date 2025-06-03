@@ -85,8 +85,12 @@ const upload = multer({
 // Make the upload middleware available to routes
 app.locals.upload = upload;
 
-// API routes
-app.use('/api', router);
+// API routes - these need to be handled before Vite middleware
+app.use('/api', (req, res, next) => {
+  // Ensure API routes are handled by Express, not Vite
+  console.log(`[Express] API route: ${req.path}`);
+  next();
+}, router);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

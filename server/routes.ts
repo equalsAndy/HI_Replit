@@ -23,7 +23,7 @@ router.use('/admin/invites', fixedInviteRoutes);
 router.use('/admin', adminRouter);
 router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
-router.use('/', workshopDataRoutes);
+router.use('/workshop-data', workshopDataRoutes);
 
 // Base API route to check if the API is running
 router.get('/', (req, res) => {
@@ -31,6 +31,6 @@ router.get('/', (req, res) => {
     success: true,
     message: 'Heliotrope Imaginal Workshop API',
     version: '1.0.0',
-    user: req.user || null
+    user: (req as any).user || null
   });
 });
