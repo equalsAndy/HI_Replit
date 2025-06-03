@@ -493,7 +493,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          {isCardComplete && !showSelectionInterface ? (
+          {hasExistingAttributes && !showSelectionInterface ? (
             <>
               <h3 className="text-lg font-semibold mb-4">Your Flow Attributes</h3>
               <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -603,7 +603,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       {flowAttributes.map((attr: string) => {
                         const isSelected = selectedAttributes.some(selected => selected.text === attr);
                         const rank = selectedAttributes.find(selected => selected.text === attr)?.rank;
-                        const isDisabled = isCardComplete && !showSelectionInterface;
+                        const isDisabled = hasExistingAttributes && !isUpdating;
 
                         return (
                           <FlowBadge 
