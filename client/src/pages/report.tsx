@@ -126,7 +126,7 @@ export default function Report() {
   
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery({
-    queryKey: ['/api/starcard'],
+    queryKey: ['/api/workshop-data/starcard'],
     enabled: !!user,
     staleTime: Infinity,
   });

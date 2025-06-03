@@ -458,7 +458,7 @@ export default function FindYourFlow() {
 
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType>({
-    queryKey: ['/api/starcard'],
+    queryKey: ['/api/workshop-data/starcard'],
     staleTime: 30000,
   });
 

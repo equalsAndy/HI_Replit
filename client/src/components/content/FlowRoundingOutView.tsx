@@ -133,6 +133,12 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           duration: 3000
         });
         markStepCompleted('3-3');
+        // Navigate to the next step: Add Flow to Star Card
+        if (setCurrentContent) {
+          setTimeout(() => {
+            setCurrentContent('star-card');
+          }, 1500); // Small delay to show the success message
+        }
       }
     } catch (error) {
       toast({
@@ -435,7 +441,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                         : "bg-gray-300 cursor-not-allowed text-gray-500"
                     }`}
                   >
-                    {saving ? 'Saving...' : 'Complete Reflection'}
+                    {saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
                   </Button>
                 )}
               </div>
