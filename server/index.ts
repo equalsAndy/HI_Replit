@@ -114,12 +114,17 @@ if (process.env.NODE_ENV === 'production') {
 
   // Serve static files with proper cache headers
   app.use(express.static(distPath, {
-    maxAge: '1y',
-    etag: false
+    maxAge: '1d',
+    etag: true
   }));
 
   // Catch-all handler for client-side routing (must be after API routes)
-  app.get('*', (req, res) => {
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
     const indexPath = path.join(distPath, 'index.html');
     console.log('Serving index.html from:', indexPath);
     res.sendFile(indexPath, (err) => {
@@ -178,7 +183,7 @@ findAvailablePort(port)
   .then((availablePort) => {
     server.listen(availablePort, '0.0.0.0', () => {
       console.log(`✅ Server successfully started on port ${availablePort}`);
-      console.log(`🌐 Access your app at: http://localhost:${availablePort}`);
+      console.log(`🌐 Access your app at: http://0.0.0.0:${availablePort}`);
       
       if (availablePort !== port) {
         console.log(`⚠️  Note: Requested port ${port} was busy, using port ${availablePort} instead`);
