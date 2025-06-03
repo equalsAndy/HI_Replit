@@ -132,3 +132,14 @@ export const userAssessments = pgTable('user_assessments', {
   results: text('results').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
+
+// Create insert schema for user assessments
+export const insertUserAssessmentSchema = createInsertSchema(userAssessments, {
+  userId: z.number(),
+  assessmentType: z.string().min(1).max(50),
+  results: z.string().min(1),
+}).omit({ id: true, createdAt: true });
+
+// Type definitions for user assessments
+export type UserAssessment = typeof userAssessments.$inferSelect;
+export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;

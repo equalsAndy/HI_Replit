@@ -388,9 +388,7 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
       const updated = await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(quadrantData),
-          // Update the timestamp to ensure we know this was updated
-          createdAt: new Date()
+          results: JSON.stringify(quadrantData)
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id))
         .returning();
