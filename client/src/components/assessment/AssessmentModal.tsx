@@ -194,7 +194,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       }));
 
       // Save to server
-      const response = await fetch('/api/assessment/complete', {
+      const response = await fetch('/api/workshop-data/assessment/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -211,7 +211,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       const data = await response.json();
 
       // Invalidate star card query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Show toast notification
       toast({
@@ -267,7 +267,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
     // Try to save to server (but don't block progress if it fails)
     try {
-      await fetch('/api/assessment/answer', {
+      await fetch('/api/workshop-data/assessment/answer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

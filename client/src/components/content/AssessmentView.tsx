@@ -83,7 +83,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     // Directly fetch star card data as a fallback
     const fetchStarCardData = async () => {
       try {
-        const response = await fetch('/api/starcard', {
+        const response = await fetch('/api/workshop-data/starcard', {
           credentials: 'include'
         });
 
