@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
-import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 
@@ -17,6 +16,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  
+  // Multiple reflection fields matching the original comprehensive form
   const [fiveYearVision, setFiveYearVision] = useState<string>('');
   const [tenYearVision, setTenYearVision] = useState<string>('');
   const [twentyYearVision, setTwentyYearVision] = useState<string>('');
@@ -24,13 +25,28 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [coreValues, setCoreValues] = useState<string>('');
   const [impactVision, setImpactVision] = useState<string>('');
   const [growthAreas, setGrowthAreas] = useState<string>('');
+  const [strengths5Years, setStrengths5Years] = useState<string>('');
+  const [skills5Years, setSkills5Years] = useState<string>('');
+  const [relationships5Years, setRelationships5Years] = useState<string>('');
+  const [contribution5Years, setContribution5Years] = useState<string>('');
+  const [strengths10Years, setStrengths10Years] = useState<string>('');
+  const [skills10Years, setSkills10Years] = useState<string>('');
+  const [relationships10Years, setRelationships10Years] = useState<string>('');
+  const [contribution10Years, setContribution10Years] = useState<string>('');
+  const [strengths20Years, setStrengths20Years] = useState<string>('');
+  const [skills20Years, setSkills20Years] = useState<string>('');
+  const [relationships20Years, setRelationships20Years] = useState<string>('');
+  const [contribution20Years, setContribution20Years] = useState<string>('');
+  const [personalGrowth, setPersonalGrowth] = useState<string>('');
+  const [professionalism, setProfessionalism] = useState<string>('');
+  const [leadership, setLeadership] = useState<string>('');
+  const [innovation, setInnovation] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
   const stepId = "4-4";
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
-    // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
     }
@@ -49,12 +65,28 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           optimizedFlow,
           coreValues,
           impactVision,
-          growthAreas
+          growthAreas,
+          strengths5Years,
+          skills5Years,
+          relationships5Years,
+          contribution5Years,
+          strengths10Years,
+          skills10Years,
+          relationships10Years,
+          contribution10Years,
+          strengths20Years,
+          skills20Years,
+          relationships20Years,
+          contribution20Years,
+          personalGrowth,
+          professionalism,
+          leadership,
+          innovation
         })
       });
       
       markStepCompleted(stepId);
-      setCurrentContent("recap");
+      setCurrentContent("your-statement");
     } catch (error) {
       console.error('Error saving future self data:', error);
     } finally {
@@ -139,10 +171,11 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
-      {/* Future Vision Questions */}
+      {/* Comprehensive Future Vision Questions */}
       <div className="space-y-8">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">
+        {/* Time-based Vision Questions */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">
             Where do you see yourself in 5, 10, and 20 years?
           </h3>
           
@@ -154,7 +187,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               <Textarea
                 value={fiveYearVision}
                 onChange={(e) => setFiveYearVision(e.target.value)}
-                placeholder="Your answer"
+                placeholder="Describe your vision for yourself in 5 years..."
                 className="min-h-[100px]"
               />
             </div>
@@ -166,7 +199,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               <Textarea
                 value={tenYearVision}
                 onChange={(e) => setTenYearVision(e.target.value)}
-                placeholder="Your answer"
+                placeholder="Describe your vision for yourself in 10 years..."
                 className="min-h-[100px]"
               />
             </div>
@@ -178,59 +211,286 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               <Textarea
                 value={twentyYearVision}
                 onChange={(e) => setTwentyYearVision(e.target.value)}
-                placeholder="Your answer"
+                placeholder="Describe your vision for yourself in 20 years..."
                 className="min-h-[100px]"
               />
             </div>
           </div>
         </div>
 
-        <div>
-          <label className="block text-lg font-semibold text-gray-900 mb-2">
-            What does your life look like when optimized for flow?
-          </label>
-          <Textarea
-            value={optimizedFlow}
-            onChange={(e) => setOptimizedFlow(e.target.value)}
-            placeholder="Your answer"
-            className="min-h-[120px]"
-          />
+        {/* Detailed 5-Year Vision */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">5-Year Deep Dive</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What strengths will you have developed?
+              </label>
+              <Textarea
+                value={strengths5Years}
+                onChange={(e) => setStrengths5Years(e.target.value)}
+                placeholder="Your strengths in 5 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What new skills will you have mastered?
+              </label>
+              <Textarea
+                value={skills5Years}
+                onChange={(e) => setSkills5Years(e.target.value)}
+                placeholder="Your skills in 5 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                How will your relationships have evolved?
+              </label>
+              <Textarea
+                value={relationships5Years}
+                onChange={(e) => setRelationships5Years(e.target.value)}
+                placeholder="Your relationships in 5 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What will you be contributing to the world?
+              </label>
+              <Textarea
+                value={contribution5Years}
+                onChange={(e) => setContribution5Years(e.target.value)}
+                placeholder="Your contribution in 5 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-lg font-semibold text-gray-900 mb-2">
-            What core values guide your future vision?
-          </label>
-          <Textarea
-            value={coreValues}
-            onChange={(e) => setCoreValues(e.target.value)}
-            placeholder="Your answer"
-            className="min-h-[120px]"
-          />
+        {/* Detailed 10-Year Vision */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">10-Year Deep Dive</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What strengths will define you?
+              </label>
+              <Textarea
+                value={strengths10Years}
+                onChange={(e) => setStrengths10Years(e.target.value)}
+                placeholder="Your strengths in 10 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What expertise will you be known for?
+              </label>
+              <Textarea
+                value={skills10Years}
+                onChange={(e) => setSkills10Years(e.target.value)}
+                placeholder="Your expertise in 10 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What kind of relationships will you cultivate?
+              </label>
+              <Textarea
+                value={relationships10Years}
+                onChange={(e) => setRelationships10Years(e.target.value)}
+                placeholder="Your relationships in 10 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What legacy will you be building?
+              </label>
+              <Textarea
+                value={contribution10Years}
+                onChange={(e) => setContribution10Years(e.target.value)}
+                placeholder="Your legacy in 10 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-lg font-semibold text-gray-900 mb-2">
-            What impact do you want to have on others?
-          </label>
-          <Textarea
-            value={impactVision}
-            onChange={(e) => setImpactVision(e.target.value)}
-            placeholder="Your answer"
-            className="min-h-[120px]"
-          />
+        {/* Detailed 20-Year Vision */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">20-Year Deep Dive</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What will be your signature strengths?
+              </label>
+              <Textarea
+                value={strengths20Years}
+                onChange={(e) => setStrengths20Years(e.target.value)}
+                placeholder="Your signature strengths in 20 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What mastery will you have achieved?
+              </label>
+              <Textarea
+                value={skills20Years}
+                onChange={(e) => setSkills20Years(e.target.value)}
+                placeholder="Your mastery in 20 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What relationships will anchor your life?
+              </label>
+              <Textarea
+                value={relationships20Years}
+                onChange={(e) => setRelationships20Years(e.target.value)}
+                placeholder="Your relationships in 20 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What will your lasting impact be?
+              </label>
+              <Textarea
+                value={contribution20Years}
+                onChange={(e) => setContribution20Years(e.target.value)}
+                placeholder="Your lasting impact in 20 years..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-lg font-semibold text-gray-900 mb-2">
-            What areas of growth are you most excited about?
-          </label>
-          <Textarea
-            value={growthAreas}
-            onChange={(e) => setGrowthAreas(e.target.value)}
-            placeholder="Your answer"
-            className="min-h-[120px]"
-          />
+        {/* Life Design Questions */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Life Design Reflections</h3>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="block text-lg font-semibold text-gray-900 mb-2">
+                What does your life look like when optimized for flow?
+              </label>
+              <Textarea
+                value={optimizedFlow}
+                onChange={(e) => setOptimizedFlow(e.target.value)}
+                placeholder="Describe your life in a state of optimal flow..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg font-semibold text-gray-900 mb-2">
+                What core values guide your future vision?
+              </label>
+              <Textarea
+                value={coreValues}
+                onChange={(e) => setCoreValues(e.target.value)}
+                placeholder="What values will guide your decisions and actions..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg font-semibold text-gray-900 mb-2">
+                What impact do you want to have on others?
+              </label>
+              <Textarea
+                value={impactVision}
+                onChange={(e) => setImpactVision(e.target.value)}
+                placeholder="How do you want to influence and help others..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-lg font-semibold text-gray-900 mb-2">
+                What areas of growth are you most excited about?
+              </label>
+              <Textarea
+                value={growthAreas}
+                onChange={(e) => setGrowthAreas(e.target.value)}
+                placeholder="What aspects of yourself do you want to develop..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Character Development */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <h3 className="text-xl font-semibold text-gray-900 mb-6">Character Development</h3>
+          
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                How will you continue growing as a person?
+              </label>
+              <Textarea
+                value={personalGrowth}
+                onChange={(e) => setPersonalGrowth(e.target.value)}
+                placeholder="Your personal development journey..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                What kind of professional will you become?
+              </label>
+              <Textarea
+                value={professionalism}
+                onChange={(e) => setProfessionalism(e.target.value)}
+                placeholder="Your professional identity and approach..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                How will you lead and influence others?
+              </label>
+              <Textarea
+                value={leadership}
+                onChange={(e) => setLeadership(e.target.value)}
+                placeholder="Your leadership style and impact..."
+                className="min-h-[120px]"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                How will you drive innovation and change?
+              </label>
+              <Textarea
+                value={innovation}
+                onChange={(e) => setInnovation(e.target.value)}
+                placeholder="Your approach to innovation and creativity..."
+                className="min-h-[120px]"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
