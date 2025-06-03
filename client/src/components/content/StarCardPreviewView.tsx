@@ -51,11 +51,11 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
       {/* YouTube Video Player */}
       <div className="mb-8">
         <div className="w-full max-w-4xl mx-auto">
-          <div className="relative" style={{ paddingBottom: '56.25%', height: 0 }}>
+          <div className="relative aspect-video">
             <iframe
               src={videoUrl}
               title="Review Your Star Card"
-              className="absolute top-0 left-0 w-full h-full rounded-lg"
+              className="absolute inset-0 w-full h-full rounded-lg shadow-lg"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
