@@ -27,7 +27,7 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for users
+// Create insert schema for users  
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
