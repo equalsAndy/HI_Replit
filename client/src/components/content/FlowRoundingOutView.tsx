@@ -114,8 +114,10 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   // Complete reflection function
   const completeReflection = async () => {
     try {
+      console.log('completeReflection: Starting save process...');
       setSaving(true);
       
+      console.log('completeReflection: Making API request with answers:', answers);
       const response = await fetch('/api/workshop-data/rounding-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,9 +125,12 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         body: JSON.stringify({ answers })
       });
       
+      console.log('completeReflection: API response status:', response.status);
       const result = await response.json();
+      console.log('completeReflection: API response data:', result);
       
       if (result.success) {
+        console.log('completeReflection: Save successful, updating UI...');
         setReflectionCompleted(true);
         toast({
           title: "Reflection completed!",
@@ -135,18 +140,25 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         markStepCompleted('3-3');
         // Navigate to the next step: Add Flow to Star Card
         if (navigate) {
+          console.log('completeReflection: Navigating to step 3-4...');
           setTimeout(() => {
             navigate('find-your-flow', '3-4');
           }, 1500); // Small delay to show the success message
+        } else {
+          console.log('completeReflection: Navigate function not available');
         }
+      } else {
+        console.log('completeReflection: Save failed:', result);
       }
     } catch (error) {
+      console.error('completeReflection: Error occurred:', error);
       toast({
         title: "Failed to save reflection",
         description: "Please try again.",
         variant: "destructive"
       });
     } finally {
+      console.log('completeReflection: Finishing save process...');
       setSaving(false);
     }
   };
@@ -190,8 +202,51 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       return;
     }
 
-    console.log('Starting reflection save process...');
-    await completeReflection();
+    console.log('Starting direct save and navigation...');
+    
+    try {
+      setSaving(true);
+      
+      // Save the reflection data
+      const response = await fetch('/api/workshop-data/rounding-out', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ answers })
+      });
+      
+      const result = await response.json();
+      console.log('Save result:', result);
+      
+      if (result.success) {
+        setReflectionCompleted(true);
+        toast({
+          title: "Reflection completed!",
+          description: "Your responses have been saved successfully.",
+          duration: 2000
+        });
+        
+        // Mark step completed and navigate immediately
+        markStepCompleted('3-3');
+        
+        // Navigate to step 3-4 immediately
+        console.log('Navigating to step 3-4...');
+        if (navigate) {
+          navigate('find-your-flow', '3-4');
+        }
+      } else {
+        throw new Error('Save failed: ' + JSON.stringify(result));
+      }
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: "Failed to save reflection",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   // Toggle example visibility
