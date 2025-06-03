@@ -38,10 +38,10 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
-  
+
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
-  
+
   // Fetch star card data on component mount
   useEffect(() => {
     const fetchStarCardData = async () => {
@@ -51,11 +51,11 @@ export default function StepByStepReflection({
           credentials: 'include',
           cache: 'no-cache'
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log("Reflection: Fetched star card data:", data);
-          
+
           // Check if we have a success response format
           if (data.success) {
             setStarCard({
@@ -80,7 +80,7 @@ export default function StepByStepReflection({
         console.error("Error fetching star card data for reflection:", error);
       }
     };
-    
+
     // Fetch updated data regardless of initial data
     fetchStarCardData();
   }, []);
@@ -307,7 +307,7 @@ export default function StepByStepReflection({
       if (!response.ok) {
         throw new Error(`Failed to save reflections: ${response.status}`);
       }
-      
+
       console.log('Step-by-step reflections saved successfully');
     } catch (error) {
       console.error('Error saving reflections:', error);
@@ -322,7 +322,7 @@ export default function StepByStepReflection({
     } else if (currentStep === totalSteps) {
       // Save reflections before completing
       await saveReflections();
-      
+
       // We're on the last step, mark reflection as completed
       if (markStepCompleted) {
         markStepCompleted('2-4'); // Mark reflection step as completed
@@ -725,7 +725,7 @@ export default function StepByStepReflection({
                       {currentStep}
                     </div>
                   </div>
-                  <h3 className="text-xl font-bold text-gray-800">
+                                    <h3 className="text-xl font-bold text-gray-800">
                     Your {currentStep === 1 ? '1st' : currentStep === 2 ? '2nd' : currentStep === 3 ? '3rd' : '4th'} Strength: {sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} ({sortedQuadrants[currentStep-1].score}%)
                   </h3>
                 </div>
