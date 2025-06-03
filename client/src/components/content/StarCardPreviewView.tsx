@@ -35,6 +35,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
     markStepCompleted(stepId);
     setCurrentContent("reflection");
   };
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Your Star Profile + Star Card</h1>
@@ -118,7 +119,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           } px-8`}
           size="lg"
         >
-            Next: Strength Reflection
+          Next: Strength Reflection
         </Button>
       </div>
     </>

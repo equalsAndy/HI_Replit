@@ -1,33 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import VideoPlayer from './VideoPlayer';
 
 import hokusaiWaveImage from '@assets/image_1747799995641.png';
 import hokusaiPortraitImage from '@assets/image_1747800012190.png';
 import ladderGraphic from '@assets/image_1747800627533.png';
-
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
-}
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
-  const { updateVideoProgress } = useNavigationProgress();
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [player, setPlayer] = useState<any>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
 
   const [oneYearVision, setOneYearVision] = useState<string>('');
   const [challenges, setChallenges] = useState<string>('');
@@ -37,7 +26,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
 
   const stepId = "4-4";
-  const videoId = "N9uCPe3xF5A";
+  const fallbackUrl = "https://youtu.be/dQw4w9WgXcQ"; // Default video URL for future self visualization
 
   // Load YouTube API
   useEffect(() => {
