@@ -118,22 +118,26 @@ function StarCard({
 
   // Fetch user profile, flow attributes, and assessment data directly
   React.useEffect(() => {
+    let isMounted = true;
+    
     const fetchData = async () => {
       try {
-        // Fetch user profile
-        console.log('StarCard: Attempting to fetch user profile...');
-        const profileResponse = await fetch('/api/user/profile', {
-          credentials: 'include'
-        });
+        // Only fetch if we don't already have user profile data
+        if (!userProfileData && isMounted) {
+          console.log('StarCard: Attempting to fetch user profile...');
+          const profileResponse = await fetch('/api/user/profile', {
+            credentials: 'include'
+          });
 
-        console.log('StarCard: Profile response status:', profileResponse.status);
+          console.log('StarCard: Profile response status:', profileResponse.status);
 
-        if (profileResponse.ok) {
-          const data = await profileResponse.json();
-          console.log('StarCard: Fetched user profile data:', data);
-          const userData = data.success && data.user ? data.user : data;
-          console.log('StarCard: Processed user data:', userData);
-          setUserProfileData(userData);
+          if (profileResponse.ok && isMounted) {
+            const data = await profileResponse.json();
+            console.log('StarCard: Fetched user profile data:', data);
+            const userData = data.success && data.user ? data.user : data;
+            console.log('StarCard: Processed user data:', userData);
+            setUserProfileData(userData);
+          }
         }
 
         // Fetch assessment data if not provided as props or if scores are zero
@@ -142,13 +146,13 @@ function StarCard({
           quadrantData.feeling > 0 || quadrantData.planning > 0
         );
 
-        if (!hasValidScores && (!thinking || !acting || !feeling || !planning)) {
+        if (!hasValidScores && (!thinking || !acting || !feeling || !planning) && !fetchedAssessmentData && isMounted) {
           console.log('StarCard: Fetching assessment data...');
           const assessmentResponse = await fetch('/api/workshop-data/starcard', {
             credentials: 'include'
           });
 
-          if (assessmentResponse.ok) {
+          if (assessmentResponse.ok && isMounted) {
             const assessmentData = await assessmentResponse.json();
             console.log('StarCard: Fetched assessment data:', assessmentData);
 
@@ -163,25 +167,31 @@ function StarCard({
           }
         }
 
-        // Fetch flow attributes if not provided as props
-        if (!flowAttributes || flowAttributes.length === 0) {
+        // Only fetch flow attributes if we don't have them and haven't tried fetching them
+        if ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0 && isMounted) {
           console.log('StarCard: Fetching flow attributes...');
-          const flowResponse = await fetch('/api/flow-attributes', {
-            credentials: 'include'
-          });
+          try {
+            const flowResponse = await fetch('/api/flow-attributes', {
+              credentials: 'include'
+            });
 
-          if (flowResponse.ok) {
-            const flowData = await flowResponse.json();
-            console.log('StarCard: Fetched flow data:', flowData);
+            if (flowResponse.ok && isMounted) {
+              const flowData = await flowResponse.json();
+              console.log('StarCard: Fetched flow data:', flowData);
 
-            if (flowData.attributes && Array.isArray(flowData.attributes)) {
-              const coloredAttributes = flowData.attributes.map((attr: any) => ({
-                text: attr.name || attr.text,
-                color: getAttributeColor(attr.name || attr.text)
-              }));
-              console.log('StarCard: Setting flow attributes:', coloredAttributes);
-              setFetchedFlowAttributes(coloredAttributes);
+              if (flowData.attributes && Array.isArray(flowData.attributes)) {
+                const coloredAttributes = flowData.attributes.map((attr: any) => ({
+                  text: attr.name || attr.text,
+                  color: getAttributeColor(attr.name || attr.text)
+                }));
+                console.log('StarCard: Setting flow attributes:', coloredAttributes);
+                setFetchedFlowAttributes(coloredAttributes);
+              }
             }
+          } catch (flowError) {
+            console.log('StarCard: Flow attributes fetch failed, continuing without:', flowError);
+            // Set empty array to prevent retry
+            setFetchedFlowAttributes([]);
           }
         }
       } catch (error) {
@@ -189,9 +199,20 @@ function StarCard({
       }
     };
 
-    console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
-    fetchData();
-  }, [flowAttributes, quadrantData, thinking, acting, feeling, planning]);
+    // Only run if we don't have the necessary data
+    const shouldFetch = !userProfileData || 
+                       (!fetchedAssessmentData && (!quadrantData || (quadrantData.thinking === 0 && quadrantData.acting === 0 && quadrantData.feeling === 0 && quadrantData.planning === 0))) ||
+                       ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0);
+
+    if (shouldFetch) {
+      console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
+      fetchData();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array to run only once
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {

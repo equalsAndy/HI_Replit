@@ -1,0 +1,40 @@
+StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
+Console.js:61 StarCard: Fetching flow attributes...
+Console.js:61 StarCard: Starting data fetch, current profile: {name: '', title: '', organization: ''} userName: undefined
+Console.js:61 StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
+Console.js:61 StarCard: Fetching flow attributes...
+Console.js:61 StarCard: Starting data fetch, current profile: {name: '', title: '', organization: ''} userName: undefined
+Console.js:61 StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
+Console.js:61 StarCard: Fetching flow attributes...
+Console.js:61 StarCard: Starting data fetch, current profile: {name: '', title: '', organization: ''} userName: undefined
+Console.js:61 StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
+Console.js:61 StarCard: Fetching flow attributes...
+Console.js:61 StarCard: Starting data fetch, current profile: {name: '', title: '', organization: ''} userName: undefined
+Console.js:61 StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
+Console.js:61 StarCard: Fetching flow attributes...
+Console.js:61 StarCard: Starting data fetch, current profile: {name: '', title: '', organization: ''} userName: undefined
+Console.js:61 StarCard: Attempting to fetch user profile...
+Console.js:61 StarCard: Flow attributes fetch failed, continuing without: SyntaxError: Unexpected token '<', "<!DOCTYPE "... is not valid JSON
+Console.js:61 StarCard: Profile response status: 200
+Console.js:61 StarCard: Fetched user profile data: {success: true, user: {…}}
+Console.js:61 StarCard: Processed user data: {id: 15, username: 'participant1', name: 'Participant One', email: 'participant1@example.com', role: 'participant', …}
