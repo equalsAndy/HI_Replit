@@ -49,7 +49,7 @@ export const videos = pgTable('videos', {
   section: varchar('section', { length: 50 }).notNull(),
   stepId: varchar('step_id', { length: 20 }), // For navigation step identifiers like "1-1", "2-3"
   autoplay: boolean('autoplay').default(false).notNull(),
-  sortOrder: serial('sort_order').default(0).notNull(),
+  sortOrder: integer('sort_order').default(0).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
