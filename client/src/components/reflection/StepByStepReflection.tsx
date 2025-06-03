@@ -96,7 +96,54 @@ export default function StepByStepReflection({
     fetchStarCardData();
   }, []);
 
+  // Load existing reflection data when component mounts
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        const response = await fetch('/api/workshop-data/step-by-step-reflection', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+          setReflections(result.data);
+        }
+      } catch (error) {
+        console.log('No existing reflection data found');
+      }
+    };
+    
+    loadExistingData();
+  }, []);
 
+  // Debounced save function for reflections
+  const debouncedSave = useCallback(
+    debounce(async (dataToSave) => {
+      try {
+        const response = await fetch('/api/workshop-data/step-by-step-reflection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave)
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+          console.log('Step-by-step reflections auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      }
+    }, 1000),
+    []
+  );
+
+  // Trigger save whenever reflections change
+  useEffect(() => {
+    if (Object.values(reflections).some(value => value.trim().length > 0)) {
+      debouncedSave(reflections);
+    }
+  }, [reflections, debouncedSave]);
 
   // Function to populate reflections with demo lorem ipsum text
   const fillWithDemoData = () => {
