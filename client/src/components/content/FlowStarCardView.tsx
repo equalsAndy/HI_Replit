@@ -278,11 +278,17 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                                flowAttributesData.attributes.length > 0;
 
   useEffect(() => {
-    console.log("FlowStarCardView useEffect - hasExistingAttributes:", hasExistingAttributes);
     console.log("FlowStarCardView useEffect - flowAttributesData:", flowAttributesData);
+    console.log("FlowStarCardView useEffect - hasExistingAttributes:", hasExistingAttributes);
+    
+    // Wait for data to load
+    if (flowAttributesLoading) {
+      console.log("Still loading flow attributes data...");
+      return;
+    }
     
     if (hasExistingAttributes && flowAttributesData?.attributes) {
-      console.log("Flow attributes data:", flowAttributesData.attributes);
+      console.log("Found existing flow attributes:", flowAttributesData.attributes);
 
       // Map existing attributes to the local state - handle both possible data structures
       const mappedAttributes = flowAttributesData.attributes.map((attr: any, index: number) => {
@@ -294,7 +300,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         };
       });
 
-      console.log("Mapped attributes:", mappedAttributes);
+      console.log("Mapped existing attributes:", mappedAttributes);
       setSelectedAttributes(mappedAttributes);
 
       // Also set the starcard attributes
@@ -303,15 +309,16 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         color: getAttributeColor(attr.text)
       }));
 
-      console.log("Setting flow attributes:", coloredAttributes);
+      console.log("Setting flow attributes for display:", coloredAttributes);
       setStarCardFlowAttributes(coloredAttributes);
       // Hide the selection interface since attributes exist
       setShowSelectionInterface(false);
+      console.log("Hiding selection interface - attributes already exist");
     } else {
-      console.log("No existing attributes, showing selection interface");
+      console.log("No existing attributes found, showing selection interface");
       setShowSelectionInterface(true);
     }
-  }, [flowAttributesData, hasExistingAttributes]);
+  }, [flowAttributesData, hasExistingAttributes, flowAttributesLoading]);
 
   // Tracks if we're updating existing attributes rather than creating new ones
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
