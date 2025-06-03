@@ -86,9 +86,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             loadedAnswers[q.id] && loadedAnswers[q.id].trim().length > 0
           );
 
-          if (allAnswered) {
-            setReflectionCompleted(true);
-          }
+          // Data loaded successfully
         }
       } catch (error) {
         console.log('No existing data found');
@@ -147,9 +145,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       
       if (result.success) {
         console.log('completeReflection: Save successful, updating UI...');
-        setReflectionCompleted(true);
         toast({
-          title: "Reflection completed!",
+          title: "Reflection saved!",
           description: "Your responses have been saved successfully.",
           duration: 3000
         });
@@ -157,9 +154,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         // Navigate to the next step: Add Flow to Star Card
         if (navigate) {
           console.log('completeReflection: Navigating to step 3-4...');
-          setTimeout(() => {
-            navigate('find-your-flow', '3-4');
-          }, 1500); // Small delay to show the success message
+          navigate('find-your-flow', '3-4');
         } else {
           console.log('completeReflection: Navigate function not available');
         }
@@ -243,9 +238,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       console.log('Save result:', result);
       
       if (result.success) {
-        setReflectionCompleted(true);
         toast({
-          title: "Reflection completed!",
+          title: "Reflection saved!",
           description: "Your responses have been saved successfully.",
           duration: 2000
         });
