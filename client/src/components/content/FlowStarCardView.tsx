@@ -272,7 +272,8 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                         (selectedAttributes.length === 4 && selectedAttributes.every(attr => attr.rank !== null));
 
   // Check if attributes exist in database (should disable picker)
-  const hasExistingAttributes = flowAttributesData?.attributes && 
+  const hasExistingAttributes = flowAttributesData?.success && 
+                               flowAttributesData?.attributes && 
                                Array.isArray(flowAttributesData.attributes) && 
                                flowAttributesData.attributes.length > 0;
 

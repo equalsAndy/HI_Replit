@@ -90,6 +90,8 @@ const getAttributeColor = (text: string): string => {
     'Sociable': 'rgb(22, 126, 253)',
     'Vulnerable': 'rgb(22, 126, 253)',
     'Passionate': 'rgb(22, 126, 253)',
+    'Creative': 'rgb(22, 126, 253)',
+    'Receptive': 'rgb(22, 126, 253)',
     
     // Planning quadrant attributes (yellow)
     'Organized': 'rgb(255, 203, 47)',
