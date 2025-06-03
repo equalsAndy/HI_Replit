@@ -48,21 +48,10 @@ async function addWorkshopVideos() {
       sortOrder: 8
     },
     {
-      title: "Complete Your Star Card",
-      description: "Adding Flow attributes to your Star Card",
-      url: "https://www.youtube.com/embed/SjEfwPEl65U?enablejsapi=1&autoplay=1&rel=0",
-      editableId: "SjEfwPEl65U",
-      workshopType: "allstarteams",
-      section: "flow",
-      stepId: "3-4",
-      autoplay: true,
-      sortOrder: 9
-    },
-    {
       title: "Ladder of Well-being",
       description: "Understanding the Well-being Ladder concept",
-      url: "https://www.youtube.com/embed/N9uCPe3xF5A?enablejsapi=1&autoplay=1&rel=0",
-      editableId: "N9uCPe3xF5A",
+      url: "https://www.youtube.com/embed/SjEfwPEl65U?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "SjEfwPEl65U",
       workshopType: "allstarteams",
       section: "wellbeing",
       stepId: "4-1",
