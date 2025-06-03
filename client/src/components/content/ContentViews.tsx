@@ -99,14 +99,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     // Find your Flow
     case 'intro-flow':
       return (
-        <FlowIntroView 
+        <IntroToFlowView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
           starCard={starCard}
         />
       );
-      
+
     case 'intro-to-flow':
       return (
         <IntroToFlowView 
@@ -218,13 +218,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           starCard={starCard}
         />
       );
-    
+
     // Imaginal Agility content views
     case 'imaginal-intro':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
-          
+
           <div className="mb-8">
             <VideoPlayer
               workshopType="imaginal-agility"
@@ -233,7 +233,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               fallbackUrl="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
             />
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
           <p className="text-lg text-gray-700 mb-6">
             Imaginal Agility is founded on the principle that human imagination becomes
@@ -241,7 +241,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             help you develop the capacity to envision possibilities beyond what
             technology alone can generate.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Learning Journey Overview</h2>
           <p className="text-lg text-gray-700 mb-6">
             Your journey begins with understanding imagination as an innate human
@@ -249,7 +249,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             you'll progress through awareness, practice, and application of the five core
             capabilities that fuel Imaginal Agility.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Principles</h2>
           <ul className="list-disc pl-6 mb-6 space-y-2">
             <li className="text-lg text-gray-700">Everyone possesses natural imaginative capacities</li>
@@ -257,14 +257,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <li className="text-lg text-gray-700">The integration of all capabilities creates maximum impact</li>
             <li className="text-lg text-gray-700">The goal is flourishing alongside technology, not competing with it</li>
           </ul>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>
           <p className="text-lg text-gray-700 mb-6">
             The most innovative organizations today don't just implement AI—they
             reimagine what's possible when human creativity works in concert with
             technology.
           </p>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -279,12 +279,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-      
+
     case 'triple-challenge':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
-          
+
           <div className="mb-8 rounded-lg overflow-hidden">
             <VideoPlayer
               workshopType="imaginal-agility"
@@ -293,12 +293,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               fallbackUrl="https://www.youtube.com/embed/zIFGKPMN9t8"
             />
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">AI Triple Cognitive Challenge</h2>
           <p className="text-lg text-gray-700 mb-6">
             AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
           </p>
-          
+
           <div className="grid gap-4 mb-8">
             <div className="flex">
               <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
@@ -308,7 +308,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 <p className="text-gray-700">• Outsourcing thinking and sense-making</p>
               </div>
             </div>
-            
+
             <div className="flex">
               <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
                 <h3 className="text-xl font-semibold">Imagination Deficit</h3>
@@ -317,7 +317,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 <p className="text-gray-700">• Diminishing the generative core of human potential</p>
               </div>
             </div>
-            
+
             <div className="flex">
               <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
                 <h3 className="text-xl font-semibold">Psychological Debt</h3>
@@ -327,13 +327,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="mb-8 bg-purple-100 p-6 rounded-lg">
             <p className="text-center text-lg font-medium text-purple-800">
               Recognizing and addressing these challenges is essential for thriving in the AI era
             </p>
           </div>
-          
+
           <div className="flex justify-end mb-8">
             <Button 
               onClick={() => {
@@ -346,27 +346,27 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Next: The Imaginal Agility Solution
             </Button>
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Understanding the Challenge</h2>
           <p className="text-lg text-gray-700 mb-6">
             The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Efficiency</h2>
           <p className="text-lg text-gray-700 mb-6">
             While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing the capabilities that AI cannot replicate—beginning with imagination.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Hidden Costs</h2>
           <p className="text-lg text-gray-700 mb-6">
             Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement. These are symptoms of Psychological Debt—a deficit that grows when efficiency is prioritized over imagination.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Challenge as Opportunity</h2>
           <p className="text-lg text-gray-700 mb-6">
             These challenges aren't reasons to reject technology, but invitations to develop the distinctly human capabilities that give technology meaning and direction. The most successful individuals and organizations will be those who balance both.
           </p>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -381,12 +381,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-      
+
     case 'imaginal-solution':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
-          
+
           <div className="mb-8 rounded-lg overflow-hidden">
             <VideoPlayer
               workshopType="imaginal-agility"
@@ -395,7 +395,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               fallbackUrl="https://www.youtube.com/embed/BLh502BlZLE"
             />
           </div>
-          
+
           <div className="flex justify-end mb-8">
             <Button 
               onClick={() => {
@@ -408,35 +408,35 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Next: Your 5 Capabilities (5Cs)
             </Button>
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Approach</h2>
           <p className="text-lg text-gray-700 mb-6">
             Imaginal Agility is the ability to perceive complex situations clearly and respond effectively 
             through intentional awareness. Unlike temporary skills that quickly become obsolete, 
             this capacity becomes more valuable as change accelerates.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Technical Training</h2>
           <p className="text-lg text-gray-700 mb-6">
             While most AI training focuses on technical adoption, Imaginal Agility addresses the 
             deeper adaptive challenge: developing the human capabilities that complement—rather than 
             compete with—artificial intelligence.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Research Foundation</h2>
           <p className="text-lg text-gray-700 mb-6">
             Research confirms that organizations that cultivate imagination and intentional thinking 
             experience greater innovation, resilience, and employee engagement. This isn't just good 
             for humans—it's good for business.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Challenge to Capability</h2>
           <p className="text-lg text-gray-700 mb-6">
             By transforming potential AI-related disruptions into developmental opportunities, 
             you'll build enduring human capacities that fuel innovation, resilience, and meaningful 
             work—regardless of technological changes.
           </p>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -451,12 +451,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-      
+
     case 'five-capabilities':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Your 5 Capabilities (5Cs)</h1>
-          
+
           <div className="mb-8 rounded-lg overflow-hidden">
             <VideoPlayer
               workshopType="imaginal-agility"
@@ -465,7 +465,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               fallbackUrl="https://www.youtube.com/embed/8wXSL3om6Ig"
             />
           </div>
-          
+
           <div className="flex justify-end mb-8">
             <Button 
               onClick={() => {
@@ -478,7 +478,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Next: Take the Imagination Assessment
             </Button>
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">The 5Cs Framework</h2>
           <p className="text-lg text-gray-700 mb-6">
             These five capabilities form the foundation of Imaginal Agility. While each is 
@@ -486,7 +486,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             Think of them as different facets of the same diamond—each reflecting and 
             amplifying the others.
           </p>
-          
+
           <ul className="space-y-4 mb-8">
             <li className="flex items-start">
               <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
@@ -524,21 +524,21 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </li>
           </ul>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Capabilities in Context</h2>
           <p className="text-lg text-gray-700 mb-6">
             Unlike technical skills that may become obsolete, these capabilities grow more 
             valuable over time. They enhance your ability to learn, adapt, and create meaning 
             in any context—especially in collaboration with AI and other technologies.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Imagination Advantage</h2>
           <p className="text-lg text-gray-700 mb-6">
             Organizations with high Imaginal Agility don't just adapt to change—they envision 
             and create preferred futures. By developing these capabilities, you become an 
             architect of possibility rather than simply responding to circumstances.
           </p>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Individual to Collective</h2>
           <p className="text-lg text-gray-700 mb-6">
             As you strengthen these capabilities, you'll notice their impact extends beyond 
@@ -546,7 +546,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             more creatively, navigate complexity more effectively, and find greater meaning 
             in their shared purpose.
           </p>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -561,14 +561,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-      
 
-      
+
+
     case 'five-c-assessment':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">5Cs Assessment</h1>
-          
+
           {/* 5Cs Assessment component with questions and results functionality */}
           <FiveCSAssessmentContent 
             navigate={navigate}
@@ -577,12 +577,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           />
         </div>
       );
-      
+
     case 'insights-review':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Insights Review</h1>
-          
+
           <div className="mb-8">
             <img 
               src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2970&q=80" 
@@ -590,14 +590,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="w-full rounded-lg object-cover h-64"
             />
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Your Assessment Results</h2>
           <p className="text-lg text-gray-700 mb-6">
             Based on your responses to the Imagination Assessment and 5Cs Assessment, we've generated 
             personalized insights to help you understand your unique imaginative profile and identify 
             growth opportunities.
           </p>
-          
+
           <div className="bg-purple-50 p-6 rounded-lg mb-8">
             <h3 className="text-xl font-semibold text-purple-800 mb-3">Key Findings</h3>
             <ul className="space-y-3">
@@ -627,12 +627,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </li>
             </ul>
           </div>
-          
+
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Next Steps</h2>
           <p className="text-lg text-gray-700 mb-6">
             Based on your assessment results, we recommend focusing on the following areas for development:
           </p>
-          
+
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-xl font-semibold text-purple-800 mb-3">Immediate Opportunities</h3>
@@ -651,7 +651,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 </li>
               </ul>
             </div>
-            
+
             <div className="bg-white p-6 rounded-lg border border-gray-200">
               <h3 className="text-xl font-semibold text-purple-800 mb-3">Leveraging Your Strengths</h3>
               <ul className="space-y-2">
@@ -670,7 +670,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </ul>
             </div>
           </div>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -685,15 +685,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-      
+
     case 'insights-dashboard':
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Your Insights Dashboard</h1>
-          
+
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">5Cs Profile Summary</h2>
-            
+
             {/* Radar Chart Placeholder - would be replaced with actual chart component */}
             <div className="bg-gray-100 rounded-lg p-8 flex items-center justify-center mb-6">
               <div className="text-center">
@@ -701,7 +701,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 <p className="text-gray-700">Your 5Cs Profile Visualization</p>
               </div>
             </div>
-            
+
             <div className="grid md:grid-cols-5 gap-4">
               <div className="p-4 bg-purple-50 rounded-lg text-center">
                 <h3 className="font-semibold text-purple-800 mb-1">Curiosity</h3>
@@ -725,10 +725,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white p-6 rounded-lg shadow-md mb-8">
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">Development Recommendations</h2>
-            
+
             <div className="space-y-4">
               <div className="p-4 bg-purple-50 rounded-lg">
                 <h3 className="font-semibold text-purple-800 mb-2">Imagination Exercises</h3>
@@ -741,7 +741,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                   <li>• Cross-domain inspiration journal - capture ideas from unrelated fields</li>
                 </ul>
               </div>
-              
+
               <div className="p-4 bg-purple-50 rounded-lg">
                 <h3 className="font-semibold text-purple-800 mb-2">Integration Opportunities</h3>
                 <p className="text-gray-700 mb-2">
@@ -755,7 +755,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
           </div>
-          
+
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
@@ -770,7 +770,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         </div>
       );
-    
+
     // Handle placeholder content
     default:
       return (

@@ -105,7 +105,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     // Find your Flow
     case 'intro-flow':
       return (
-        <FlowIntroView 
+        <IntroToFlowView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -115,7 +115,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'intro-to-flow':
       return (
-        <FlowIntroView 
+        <IntroToFlowView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

@@ -330,7 +330,7 @@ export default function StepByStepReflection({
 
       // Navigate to Intro to Flow
       if (setCurrentContent) {
-        setCurrentContent('intro-flow');
+        setCurrentContent('intro-to-flow');
         console.log("Navigating to intro-flow");
       }
     }
@@ -721,7 +721,7 @@ export default function StepByStepReflection({
               <>
                 <div className="flex items-center mb-4">
                   <div className={`${strengthColors[sortedQuadrants[currentStep-1].label].bg} p-2 rounded-full mr-3`}>
-                    <div className={`w-8 h-8 ${strengthColors[sortedQuadrants[currentStep-1].label].circle} rounded-full flex items-center justify-center text-white font-bold`}>
+                    <div className={`w-8 h-8 ${strengthColors[sortedQuadrants[currentStep-1].label].circle} rounded-full flex items-center justify-center text-white fontbold`}>
                       {currentStep}
                     </div>
                   </div>
