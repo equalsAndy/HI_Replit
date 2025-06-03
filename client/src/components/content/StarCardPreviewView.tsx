@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { VideoPlayer } from './VideoPlayer';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
-import VideoPlayer from './VideoPlayer';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -20,8 +20,6 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
 
   const stepId = "2-3";
-  // Direct video URL from database for step 2-3 "Review Your Star Card"
-  const videoUrl = "https://www.youtube.com/embed/JJWb058M-sY?enablejsapi=1&autoplay=1&rel=0";
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
@@ -50,18 +48,14 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
 
       {/* YouTube Video Player */}
       <div className="mb-8">
-        <div className="w-full max-w-4xl mx-auto">
-          <div className="relative aspect-video">
-            <iframe
-              src={videoUrl}
-              title="Review Your Star Card"
-              className="absolute inset-0 w-full h-full rounded-lg shadow-lg"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          </div>
-        </div>
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="2-3"
+          fallbackUrl="https://www.youtube.com/embed/JJWb058M-sY"
+          title="Review Your Star Card"
+          aspectRatio="16:9"
+          autoplay={false}
+        />
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 mt-6">
