@@ -149,20 +149,9 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const question = roundingOutQuestions[currentQuestion];
   const currentAnswer = answers[question?.id] || '';
 
-  // Move to previous question
-  const prevQuestion = () => {
-    if (currentQuestion > 0) {
-      setCurrentQuestion(prev => prev - 1);
-      setShowExample(false);
-    }
-  };
-
-  // Update answer for current question
-  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setAnswers(prev => ({
-      ...prev,
-      [question.id]: e.target.value
-    }));
+  // Continue to next step
+  const handleContinue = () => {
+    setCurrentContent('star-card');
   };
 
   // Move to next question
@@ -199,36 +188,48 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     setShowExample(prev => !prev);
   };
 
+  // Move to previous question
+  const prevQuestion = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(prev => prev - 1);
+      setShowExample(false);
+    }
+  };
+
+  // Update answer for current question
+  const handleAnswerChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setAnswers(prev => ({
+      ...prev,
+      [question.id]: e.target.value
+    }));
+  };
+
+  // Calculate progress percentage
+  const progressPercentage = ((currentQuestion + 1) / roundingOutQuestions.length) * 100;
+
   // Example answers for each question
   const getExampleAnswer = (questionId: number) => {
     switch (questionId) {
       case 1:
         return "When I'm working on a creative problem or designing something new, I often lose track of time. I also experience flow when I'm fully engaged in deep conversations with my team about important projects.";
       case 2:
-        return "Constant notifications, unexpected meetings, and unclear priorities all break my flow. When tasks are too easy or too difficult, I struggle to get into a flow state.";
+        return "Constant notifications, interruptions from colleagues, and switching between too many tasks at once. Also, when I'm feeling overwhelmed or when the task feels either too easy or impossibly difficult.";
       case 3:
-        return "I find it easier to get into flow when I have clear goals, a quiet environment, and all my notifications turned off. Working during early morning hours when my energy is highest also helps.";
+        return "A quiet environment, clear objectives, having all the resources I need available, and feeling well-rested. Music also helps me focus, and working during my peak energy hours in the morning.";
       case 4:
-        return "I could block out specific 'deep work' time on my calendar each day with no meetings allowed. Creating a dedicated workspace with minimal distractions would help. I'll also try to match tasks to my energy levels throughout the day.";
+        return "I could set specific blocks of uninterrupted time for deep work, turn off notifications during focused work periods, and break larger projects into smaller, manageable challenges that match my skill level.";
       default:
         return "";
     }
   };
 
-  // Continue to next section
-  const handleContinue = () => {
-    setCurrentContent("flow-star-card");
-  };
-
-  // Calculate progress percentage
-  const progressPercentage = ((currentQuestion + 1) / roundingOutQuestions.length) * 100;
-
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Rounding Out Your Flow Understanding</h1>
-
-      <div className="prose max-w-none mb-6">
-        <p className="text-lg text-gray-700">
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold text-gray-800 mb-3">
+          Rounding Out: Flow State Mastery
+        </h2>
+        <p className="text-gray-600 leading-relaxed">
           Now that you've completed the flow assessment, take some time to round out your understanding 
           of flow and how you can create more opportunities for it in your work and life.
         </p>
@@ -270,6 +271,41 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               <li className="flex items-start">
                 <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
                 <span><strong>Deep concentration</strong> - Full attention on the task at hand</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-indigo-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Intrinsic motivation</strong> - Driven by personal satisfaction and growth</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="md:w-1/2">
+          <div className="bg-green-50 p-5 rounded-lg border border-green-100 h-full">
+            <h3 className="font-medium text-green-800 mb-3 flex items-center">
+              <ChevronRight className="h-4 w-4 mr-2 text-green-600" />
+              Creating Flow at Work
+            </h3>
+            <ul className="space-y-2 text-green-700 text-sm">
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Time blocking</strong> - Schedule uninterrupted focus periods</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Environment design</strong> - Minimize distractions and interruptions</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Right-sized challenges</strong> - Match tasks to your current skill level</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Progress tracking</strong> - Build in regular feedback loops</span>
+              </li>
+              <li className="flex items-start">
+                <Check className="h-4 w-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
+                <span><strong>Energy management</strong> - Work during your peak performance hours</span>
               </li>
             </ul>
           </div>
@@ -315,10 +351,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                   }}
                   className="flex items-center"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                  Flow State Guide (PDF)
+                  Download Flow Guide
                 </a>
               </Button>
             </div>
@@ -327,8 +360,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       ) : (
         <div className="space-y-6">
           <Card className="p-6">
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-1">
+            <div className="mb-6">
+              <div className="flex justify-between items-center mb-4">
                 <span className="text-sm font-medium text-gray-500">
                   Question {currentQuestion + 1} of {roundingOutQuestions.length}
                 </span>
@@ -370,13 +403,15 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               onChange={handleAnswerChange}
               placeholder="Your answer here..."
               className="min-h-[120px] mb-4 border border-gray-300"
+              rows={4}
             />
 
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <Button
                 variant="outline"
                 onClick={prevQuestion}
                 disabled={currentQuestion === 0}
+                className="text-gray-600"
               >
                 Previous
               </Button>
