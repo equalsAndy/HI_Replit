@@ -28,17 +28,11 @@ export const users = pgTable('users', {
 });
 
 // Create insert schema for users
-export const insertUserSchema = createInsertSchema(users, {
-  username: z.string().min(3).max(100),
-  password: z.string().min(8),
-  name: z.string().min(1),
-  email: z.string().email(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
-  organization: z.string().nullable().optional(),
-  jobTitle: z.string().nullable().optional(),
-  profilePicture: z.string().nullable().optional(),
-  isTestUser: z.boolean().default(false),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertUserSchema = createInsertSchema(users).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
 
 // Type definitions for TypeScript
 export type User = typeof users.$inferSelect;
@@ -61,17 +55,11 @@ export const videos = pgTable('videos', {
 });
 
 // Create insert schema for videos
-export const insertVideoSchema = createInsertSchema(videos, {
-  title: z.string().min(1).max(255),
-  description: z.string().nullable().optional(),
-  url: z.string().url(),
-  editableId: z.string().max(100).nullable().optional(),
-  workshopType: z.string().min(1).max(50),
-  section: z.string().min(1).max(50),
-  stepId: z.string().max(20).nullable().optional(),
-  autoplay: z.boolean().default(false),
-  sortOrder: z.number().int().nonnegative().default(0),
-}).omit({ id: true, createdAt: true, updatedAt: true });
+export const insertVideoSchema = createInsertSchema(videos).omit({ 
+  id: true, 
+  createdAt: true, 
+  updatedAt: true 
+});
 
 // Type definitions for videos
 export type Video = typeof videos.$inferSelect;
@@ -92,14 +80,12 @@ export const invites = pgTable('invites', {
 });
 
 // Create insert schema for invites
-export const insertInviteSchema = createInsertSchema(invites, {
-  inviteCode: z.string().length(12),
-  email: z.string().email(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
-  name: z.string().nullable().optional(),
-  createdBy: z.number(),
-  expiresAt: z.date().nullable().optional(),
-}).omit({ id: true, createdAt: true, usedAt: true, usedBy: true });
+export const insertInviteSchema = createInsertSchema(invites).omit({ 
+  id: true, 
+  createdAt: true, 
+  usedAt: true, 
+  usedBy: true 
+});
 
 // Type definitions for TypeScript
 export type Invite = typeof invites.$inferSelect;
