@@ -207,12 +207,20 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     try {
       setSaving(true);
       
+      // Transform answers to match API expected format
+      const transformedData = {
+        strengths: answers[2] || '', // Question 2: "Which strengths or qualities do you need to nurture — and why?"
+        values: answers[1] || '',    // Question 1: "When does stress or distraction tend to show up for you?"
+        passions: answers[3] || '',  // Question 3: "How will you harness your strengths to create forward momentum..."
+        growthAreas: answers[4] || '' // Question 4: "What would you like to explore, develop, or try that's new for you?"
+      };
+
       // Save the reflection data
       const response = await fetch('/api/workshop-data/rounding-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ answers })
+        body: JSON.stringify(transformedData)
       });
       
       const result = await response.json();

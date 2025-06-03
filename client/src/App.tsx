@@ -44,7 +44,6 @@ const App: React.FC = () => {
                     {/* Workshop routes */}
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
-                    <Route path="/find-your-flow" component={React.lazy(() => import('@/pages/find-your-flow'))} />
 
                     {/* Admin routes */}
                     <Route path="/admin" component={AdminPage} />
