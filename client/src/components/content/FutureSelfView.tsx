@@ -162,8 +162,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             Where do you see yourself in 5, 10, and 20 years?
           </h3>
           <Textarea
-            value={reflection1}
-            onChange={(e) => setReflection1(e.target.value)}
+            value={formData.futureSelfDescription}
+            onChange={(e) => handleInputChange('futureSelfDescription', e.target.value)}
             placeholder="Describe your vision for your future self across these timeframes..."
             className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
           />
@@ -174,8 +174,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             What does your life look like when optimized for flow?
           </h3>
           <Textarea
-            value={reflection2}
-            onChange={(e) => setReflection2(e.target.value)}
+            value={formData.visualizationNotes}
+            onChange={(e) => handleInputChange('visualizationNotes', e.target.value)}
             placeholder="Imagine your ideal state of engagement and fulfillment..."
             className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
           />
@@ -183,12 +183,12 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
         <div className="bg-white p-4 sm:p-6 rounded-lg border shadow-sm">
           <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-3 sm:mb-4 leading-tight">
-            When picturing a happy third stage of life, what will you have achieved and still want to achieve?
+            Additional Notes and Reflections
           </h3>
           <Textarea
-            value={reflection3}
-            onChange={(e) => setReflection3(e.target.value)}
-            placeholder="Reflect on your long-term accomplishments and ongoing aspirations..."
+            value={formData.visualizationNotes}
+            onChange={(e) => handleInputChange('visualizationNotes', e.target.value)}
+            placeholder="Add any additional thoughts about your future self visualization..."
             className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
           />
         </div>
