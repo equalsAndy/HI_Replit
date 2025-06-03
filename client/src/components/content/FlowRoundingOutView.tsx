@@ -177,6 +177,10 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
 
   // Handle save reflection
   const handleSaveReflection = async () => {
+    console.log('Complete Reflection button clicked!');
+    console.log('All questions answered:', allQuestionsAnswered());
+    console.log('Current answers:', answers);
+    
     if (!allQuestionsAnswered()) {
       toast({
         title: "Incomplete reflection",
@@ -186,6 +190,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       return;
     }
 
+    console.log('Starting reflection save process...');
     await completeReflection();
   };
 
