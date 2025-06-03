@@ -67,17 +67,17 @@ export default function StepByStepReflection({
           const data = await response.json();
           console.log("Reflection: Fetched star card data:", data);
 
-          // Check if we have a success response format
-          if (data.success) {
+          // Handle the actual starcard response format
+          if (data.success && data.thinking !== undefined) {
             setStarCard({
-              userId: 0,
+              userId: data.userId || 0,
               thinking: Number(data.thinking) || 0,
               acting: Number(data.acting) || 0,
               feeling: Number(data.feeling) || 0,
               planning: Number(data.planning) || 0
             });
           } else if (data.thinking !== undefined) {
-            // Direct JSON format
+            // Direct JSON format fallback
             setStarCard({
               userId: 0,
               thinking: Number(data.thinking) || 0,
