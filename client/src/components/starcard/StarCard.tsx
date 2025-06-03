@@ -171,7 +171,7 @@ function StarCard({
         if ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0 && isMounted) {
           console.log('StarCard: Fetching flow attributes...');
           try {
-            const flowResponse = await fetch('/api/flow-attributes', {
+            const flowResponse = await fetch('/api/workshop-data/flow-attributes', {
               credentials: 'include'
             });
 

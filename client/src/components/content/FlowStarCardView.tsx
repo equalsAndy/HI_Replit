@@ -289,14 +289,14 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
     mutationFn: async (data: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
-      return await apiRequest('/api/flow-attributes', {
+      return await apiRequest('/api/workshop-data/flow-attributes', {
         method: 'POST',
         body: data
       });
     },
     onSuccess: () => {
       // Invalidate flow attributes query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
       // Update star card to complete state
       fetch('/api/starcard/reviewed', {
         method: 'POST',
@@ -304,7 +304,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         body: JSON.stringify({ userId: user?.id }),
       });
       // Invalidate star card data
-      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Hide the selection interface after successful save
       setShowSelectionInterface(false);

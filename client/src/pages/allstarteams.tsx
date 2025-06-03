@@ -262,7 +262,7 @@ export default function AllStarTeams() {
 
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
-    queryKey: ['/api/flow-attributes'],
+    queryKey: ['/api/workshop-data/flow-attributes'],
     refetchOnWindowFocus: false
   });
 
