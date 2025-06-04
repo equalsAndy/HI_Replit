@@ -107,9 +107,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                     if (onProgress) {
                       startProgressTracking(event.target);
                     }
-                  } else if (event.data === window.YT.PlayerState.PAUSED || 
-                            event.data === window.YT.PlayerState.ENDED) {
-                    console.log('🎬 Video paused/ended, stopping progress tracking');
+                  } else if (event.data === window.YT.PlayerState.ENDED) {
+                    console.log('🎬 Video ended - marking as 100% complete');
+                    stopProgressTracking();
+                    // When video ends, ensure it's marked as 100% complete
+                    if (onProgress) {
+                      onProgress(100);
+                    }
+                  } else if (event.data === window.YT.PlayerState.PAUSED) {
+                    console.log('🎬 Video paused, stopping progress tracking');
                     stopProgressTracking();
                   }
                 }
@@ -171,16 +177,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         if (duration > 0) {
           const percentage = (currentTime / duration) * 100;
           
-          // Only log significant progress changes (every 10% or when reaching 1% threshold)
-          if (Math.abs(percentage - lastLoggedProgressRef.current) >= 10 || 
-              (percentage >= 1 && lastLoggedProgressRef.current < 1) ||
-              (percentage >= 0.5 && lastLoggedProgressRef.current < 0.5)) {
-            console.log(`🎬 Video progress: ${percentage.toFixed(2)}%`);
-            lastLoggedProgressRef.current = percentage;
+          // Treat videos as 100% complete if they're within 2% of the end
+          // This handles cases where YouTube doesn't report exact 100%
+          const adjustedPercentage = percentage >= 98 ? 100 : percentage;
+          
+          // Only log significant progress changes (every 10% or when reaching key thresholds)
+          if (Math.abs(adjustedPercentage - lastLoggedProgressRef.current) >= 10 || 
+              (adjustedPercentage >= 1 && lastLoggedProgressRef.current < 1) ||
+              (adjustedPercentage >= 0.5 && lastLoggedProgressRef.current < 0.5) ||
+              (adjustedPercentage === 100 && lastLoggedProgressRef.current < 100)) {
+            console.log(`🎬 Video progress: ${adjustedPercentage.toFixed(2)}%`);
+            lastLoggedProgressRef.current = adjustedPercentage;
           }
           
           if (onProgress) {
-            onProgress(percentage);
+            onProgress(adjustedPercentage);
           }
         }
       }
