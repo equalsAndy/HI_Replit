@@ -302,19 +302,18 @@ export function useNavigationProgress() {
       '4-1', '4-2', '4-3', '4-4', '4-5'
     ];
 
-    // Only calculate if we have assessment data loaded
-    if (!userAssessments || Object.keys(userAssessments).length === 0) {
-      return {
-        ...progress,
-        completedSteps: [],
-        currentStepId: '1-1',
-        unlockedSections: ['1'],
-        lastVisitedAt: new Date().toISOString()
-      };
-    }
+    // Always start with empty for a clean state
+    let actuallyCompleted: string[] = [];
 
-    // Check which steps are actually completed
-    const actuallyCompleted = allSteps.filter(stepId => checkStepCompletion(stepId));
+    // Only check completions if we have assessment data AND video progress data
+    if (userAssessments && Object.keys(userAssessments).length > 0) {
+      // Check which steps are actually completed
+      actuallyCompleted = allSteps.filter(stepId => {
+        const isComplete = checkStepCompletion(stepId);
+        console.log(`🔍 Step ${stepId} completion check: ${isComplete}`);
+        return isComplete;
+      });
+    }
     
     // Get unlocked sections based on completed steps
     const unlockedSections = getUnlockedSections(actuallyCompleted);
@@ -381,13 +380,18 @@ export function useNavigationProgress() {
 
   // Update video progress
   const updateVideoProgress = (stepId: string, percentage: number) => {
-    setProgress(prev => ({
-      ...prev,
-      videoProgress: {
-        ...prev.videoProgress,
-        [stepId]: percentage
-      }
-    }));
+    console.log(`🎬 Updating video progress for ${stepId}: ${percentage}%`);
+    setProgress(prev => {
+      const newProgress = {
+        ...prev,
+        videoProgress: {
+          ...prev.videoProgress,
+          [stepId]: percentage
+        }
+      };
+      console.log(`🎬 Updated progress state:`, newProgress.videoProgress);
+      return newProgress;
+    });
   };
 
   // Check if step can be unlocked (within an unlocked section)

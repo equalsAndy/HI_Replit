@@ -168,6 +168,8 @@ const isVideoCompleted = (
   const progress = navigationProgress?.videoProgress?.[stepId] || 0;
   const isComplete = progress >= minPercentage;
   
+  console.log(`🎬 Video completion check - Step: ${stepId}, Progress: ${progress}%, Required: ${minPercentage}%, Complete: ${isComplete}`);
+  
   return {
     isComplete,
     missingRequirements: isComplete ? [] : [`Video must be watched to at least ${minPercentage}%`]
