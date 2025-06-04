@@ -104,6 +104,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         {/* Video Section */}
         <div className="xl:col-span-2">
           <VideoPlayer
+            workshopType="allstarteams"
             stepId="4-4"
             autoplay={true}
           />

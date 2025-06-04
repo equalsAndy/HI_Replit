@@ -735,7 +735,8 @@ workshopDataRouter.post('/future-self', async (req: Request, res: Response) => {
     
     const assessmentData = {
       futureSelfDescription: futureSelfDescription.trim(),
-      visualizationNotes: visualizationNotes ? visualizationNotes.trim() : undefined
+      visualizationNotes: visualizationNotes ? visualizationNotes.trim() : undefined,
+      additionalNotes: additionalNotes ? additionalNotes.trim() : undefined
     };
     
     // Check if assessment already exists
