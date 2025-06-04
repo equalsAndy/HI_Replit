@@ -774,7 +774,7 @@ export function UserManagement() {
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Delete user account completely</p>
-                                      TooltipContent>
+                                      </TooltipContent>
                                     </Tooltip>
                                   </>
                                 )}
