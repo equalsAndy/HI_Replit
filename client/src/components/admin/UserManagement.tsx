@@ -61,7 +61,7 @@ const createUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
+  role: z.enum(['admin', 'facilitator' | 'participant']),
   generatePassword: z.boolean().default(true),
 });
 
@@ -73,7 +73,7 @@ const editUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
+  role: z.enum(['admin', 'facilitator' | 'participant']),
   resetPassword: z.boolean().default(false),
   newPassword: z.string().optional(),
   setCustomPassword: z.boolean().default(false),
@@ -132,7 +132,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttribut
               <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
               <path
                 fillRule="evenodd"
-                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14.083 10a4 4 0 10-8.166 0c0 1.017.372 2.032 1.06 2.904.243.294.487.588.733.884-.083.03-.168.061-.253.091-.666.222-1.345.413-2.034.57a1.012 1.012 0 00-.215 1.06c1.129.38 2.332.61 3.551.789a.75.75 0 00.747-.805c-.002-.246.009-.492.031-.736.151-.453.325-.903.522-1.352.108-.248.222-.495.342-.74a3.97 3.97 0 013.971 0c.12.245.234.492.342.74.196.449.37.899.522 1.352.022.244.033.49.031.736a.75.75 0 00.747.805c1.219-.179 2.422-.408 3.551-.789a1.012 1.012 0 00-.215-1.06c-.69-.157-1.368-.348-2.034-.57a1.22 1.22 0 01-.253-.091.968.968 0 01.733-.884 3.979 3.979 0 001.06-2.904z"
+                d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14.083 10a4 4 0 10-8.166 0c0 1.017.372 2.032 1.06 2.904.243.294.487.588.733.884-.083.03-.168.061-.253.091-.666.222-1.345.413-2.034.57a1.012 1.012 0 00-.215 1.06c1.129.38 2.332.61 3.551.789a.75.75 0 00.747-.805c-.002-.246.009-.492.031-.736.151-.453.37.899.522 1.352.022.244.033.49.031.736a.75.75 0 00.747.805c1.219-.179 2.422-.408 3.551-.789a1.012 1.012 0 00-.215-1.06c-.69-.157-1.368-.348-2.034-.57a1.22 1.22 0 01-.253-.091.968.968 0 01.733-.884 3.979 3.979 0 001.06-2.904z"
                 clipRule="evenodd"
               />
             </svg>
@@ -340,9 +340,14 @@ export function UserManagement() {
     },
   });
 
-  // Mutation for exporting user data
+  // Track loading state per user
+  const [loadingUsers, setLoadingUsers] = useState<Set<number>>(new Set());
+
+  // User data export mutation
   const exportUserDataMutation = useMutation({
     mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
       const response = await fetch(`/api/admin/users/${userId}/export`, {
         method: 'GET',
         credentials: 'include',
@@ -378,15 +383,25 @@ export function UserManagement() {
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
 
-      return exportData;
+      return userId;
     },
-    onSuccess: (data) => {
+    onSuccess: (userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
       toast({
         title: 'Export successful',
-        description: `User data for ${data.userInfo.username} has been downloaded.`,
+        description: `User data for ${users.find(user => user.id === userId)?.username} has been downloaded.`,
       });
     },
-    onError: (error: any) => {
+    onError: (error: any, userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
       toast({
         title: 'Export failed',
         description: error.message || 'Failed to export user data. Please try again.',
@@ -567,13 +582,13 @@ export function UserManagement() {
                                 // Parse navigation progress to get current step
                                 let currentStep = 'Not Started';
                                 let stepType = 'none';
-                                
+
                                 if (user.navigationProgress) {
                                   try {
                                     const progress = JSON.parse(user.navigationProgress);
                                     const completedSteps = progress.completedSteps || [];
                                     const currentStepId = progress.currentStepId;
-                                    
+
                                     // Check if user completed final reflection (3-4 for AllStarTeams)
                                     if (completedSteps.includes('3-4')) {
                                       currentStep = 'Complete';
@@ -598,7 +613,7 @@ export function UserManagement() {
                                   currentStep = 'In Progress';
                                   stepType = 'active';
                                 }
-                                
+
                                 const getStepColor = () => {
                                   switch (stepType) {
                                     case 'complete': return 'text-green-700 bg-green-50 border-green-200';
@@ -607,14 +622,14 @@ export function UserManagement() {
                                     default: return 'text-gray-500 bg-gray-50 border-gray-200';
                                   }
                                 };
-                                
+
                                 return (
                                   <div className={`px-2 py-1 rounded border text-xs font-medium text-center ${getStepColor()}`}>
                                     {currentStep}
                                   </div>
                                 );
                               })()}
-                              
+
                               <div className="flex items-center justify-center gap-1 mt-1">
                                 {user.hasAssessment && (
                                   <TooltipProvider>
@@ -700,9 +715,9 @@ export function UserManagement() {
                                           size="sm"
                                           className="h-8 px-3 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 border-green-200"
                                           onClick={() => exportUserDataMutation.mutate(user.id)}
-                                          disabled={exportUserDataMutation.isPending}
+                                          disabled={loadingUsers.has(user.id)}
                                         >
-                                          {exportUserDataMutation.isPending ? (
+                                          {loadingUsers.has(user.id) ? (
                                             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                                           ) : (
                                             <Download className="h-3 w-3 mr-1" />
@@ -766,7 +781,7 @@ export function UserManagement() {
                                         className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
                                         onClick={() => restoreUserMutation.mutate(user.id)}
                                       >
-                                        <UndoIcon className="h-3 w-3 mr-1" />
+                                        <UndoIconclassName="h-3 w-3 mr-1" />
                                         Restore
                                       </Button>
                                     </TooltipTrigger>
@@ -1253,7 +1268,7 @@ export function UserManagement() {
                   {selectedUser.role}
                 </Badge>
               </div>
-              
+
               <div className="mt-4 p-3 bg-orange-50 border border-orange-200 rounded-md">
                 <h5 className="font-medium text-orange-800 mb-2">Data to be deleted:</h5>
                 <ul className="text-sm text-orange-700 space-y-1">
