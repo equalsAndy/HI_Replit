@@ -51,7 +51,7 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!currentUser || currentUser.id !== 1) {
+  if (!currentUser || currentUser.role !== 'admin') {
     return null; // Will redirect via useEffect for non-admin users
   }
 

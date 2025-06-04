@@ -23,7 +23,7 @@ import { useQuery } from '@tanstack/react-query';
 
 // Component to conditionally render AutoSync with user data
 const AutoSyncWrapper: React.FC = () => {
-  const { data: user } = useQuery({
+  const { data: user } = useQuery<{ id: number; name: string; role: string }>({
     queryKey: ['/api/user/me'],
     retry: false,
     refetchOnWindowFocus: false
