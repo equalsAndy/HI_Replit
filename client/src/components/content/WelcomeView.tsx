@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
