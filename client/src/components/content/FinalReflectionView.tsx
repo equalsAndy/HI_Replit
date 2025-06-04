@@ -118,11 +118,12 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         
         <div className="flex flex-col items-center justify-center">
           <div className="w-3/4 max-w-[250px] mb-6">
-            <img 
-              src={ladderGraphic} 
-              alt="Development Ladder" 
-              className="w-full h-auto"
-            />
+            <div className="w-full h-48 bg-gradient-to-t from-blue-100 to-blue-50 rounded-lg border-2 border-blue-200 flex items-center justify-center">
+              <div className="text-center text-blue-600">
+                <div className="text-lg font-semibold">Development Ladder</div>
+                <div className="text-sm">Personal Growth Journey</div>
+              </div>
+            </div>
           </div>
           
           <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 w-full">

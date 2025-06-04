@@ -7,9 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import { debounce } from '@/lib/utils';
 
-// Import the Hokusai images
-import hokusaiWave from '@assets/image_1747799995641.png';
-import hokusaiPortrait from '@assets/image_1747800012190.png';
+// Placeholder for Hokusai images - will use CSS gradients instead
 import VideoPlayer from './VideoPlayer';
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
@@ -135,16 +133,18 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         {/* Images Section */}
         <div className="xl:col-span-1">
           <div className="grid grid-cols-2 xl:grid-cols-1 gap-4">
-            <img 
-              src={hokusaiWave}
-              alt="The Great Wave off Kanagawa by Hokusai" 
-              className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
-            />
-            <img 
-              src={hokusaiPortrait}
-              alt="Portrait of Hokusai" 
-              className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
-            />
+            <div className="w-full h-48 bg-gradient-to-br from-blue-100 to-blue-300 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center">
+              <div className="text-center text-blue-700">
+                <div className="text-sm font-semibold">The Great Wave</div>
+                <div className="text-xs">off Kanagawa by Hokusai</div>
+              </div>
+            </div>
+            <div className="w-full h-48 bg-gradient-to-br from-gray-100 to-gray-300 rounded-lg border border-gray-200 shadow-sm flex items-center justify-center">
+              <div className="text-center text-gray-700">
+                <div className="text-sm font-semibold">Portrait of Hokusai</div>
+                <div className="text-xs">Master Artist</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
