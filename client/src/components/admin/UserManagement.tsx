@@ -664,6 +664,28 @@ export function UserManagement() {
                                         <Button
                                           variant="outline"
                                           size="sm"
+                                          className="h-8 px-3 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 border-green-200"
+                                          onClick={() => exportUserDataMutation.mutate(user.id)}
+                                          disabled={exportUserDataMutation.isPending}
+                                        >
+                                          {exportUserDataMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                          ) : (
+                                            <Download className="h-3 w-3 mr-1" />
+                                          )}
+                                          Download
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Download all user data as JSON file</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
                                           className="h-8 px-3 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
                                           onClick={() => {
                                             setSelectedUser(user);
