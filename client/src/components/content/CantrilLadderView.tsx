@@ -63,16 +63,21 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     const loadExistingData = async () => {
       try {
+        console.log('CantrilLadderView: Loading existing data...');
         const response = await fetch('/api/workshop-data/cantril-ladder', {
           credentials: 'include'
         });
         const result = await response.json();
+        console.log('CantrilLadderView: API response:', result);
         
         if (result.success && result.data) {
+          console.log('CantrilLadderView: Setting form data:', result.data);
           setFormData(result.data);
+        } else {
+          console.log('CantrilLadderView: No existing data found or API failed');
         }
       } catch (error) {
-        console.log('No existing text data found');
+        console.log('CantrilLadderView: Error loading data:', error);
       }
     };
     

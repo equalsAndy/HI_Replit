@@ -920,50 +920,7 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
   }
 });
 
-// GET /api/workshop-data/cantril-ladder
-workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) => {
-  try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
-    
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
-    }
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authenticated'
-      });
-    }
-    
-    const assessment = await db
-      .select()
-      .from(schema.userAssessments)
-      .where(
-        and(
-          eq(schema.userAssessments.userId, userId),
-          eq(schema.userAssessments.assessmentType, 'cantrilLadder')
-        )
-      );
-    
-    if (!assessment || assessment.length === 0) {
-      return res.json({ success: true, data: null });
-    }
-    
-    const results = JSON.parse(assessment[0].results);
-    res.json({
-      success: true,
-      data: results,
-      meta: { assessmentType: 'cantrilLadder' }
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      error: 'Failed to retrieve assessment',
-      code: 'FETCH_ERROR'
-    });
-  }
-});
+
 
 /**
  * Cantril Ladder (Well-being) Reflection endpoints
@@ -1044,6 +1001,7 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
 
 // GET /api/workshop-data/cantril-ladder
 workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) => {
+  console.log('=== CANTRIL LADDER GET ENDPOINT HIT ===');
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1051,12 +1009,17 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
       userId = req.session.userId;
     }
     
+    console.log('Cantril ladder GET - userId from session/cookie:', userId);
+    
     if (!userId) {
+      console.log('Cantril ladder GET - No userId, returning 401');
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
       });
     }
+    
+    console.log('Cantril ladder GET request for userId:', userId);
     
     const assessment = await db
       .select()
@@ -1068,11 +1031,15 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
         )
       );
     
+    console.log('Cantril ladder assessment found:', assessment.length > 0 ? 'YES' : 'NO');
+    
     if (!assessment || assessment.length === 0) {
+      console.log('No cantril ladder data found for user:', userId);
       return res.json({ success: true, data: null });
     }
     
     const results = JSON.parse(assessment[0].results);
+    console.log('Cantril ladder results being returned:', results);
     res.json({
       success: true,
       data: results,
