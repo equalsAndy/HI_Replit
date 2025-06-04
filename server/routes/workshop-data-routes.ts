@@ -1309,4 +1309,157 @@ workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Res
   }
 });
 
+/**
+ * Visualizing Potential (Images) endpoints
+ */
+// POST /api/workshop-data/visualizing-potential
+workshopDataRouter.post('/visualizing-potential', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { selectedImages, imageMeaning } = req.body;
+    console.log('VisualizingPotential: Saving data for user', userId, { selectedImages, imageMeaning });
+    
+    // Validation
+    if (!selectedImages || !Array.isArray(selectedImages) || selectedImages.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Selected images are required and must be a non-empty array',
+        code: 'VALIDATION_ERROR',
+        details: { selectedImages: 'Required field, must be non-empty array' }
+      });
+    }
+    
+    if (selectedImages.length > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Maximum 5 images allowed',
+        code: 'VALIDATION_ERROR',
+        details: { selectedImages: 'Maximum 5 images allowed' }
+      });
+    }
+    
+    if (imageMeaning && (typeof imageMeaning !== 'string' || imageMeaning.length > 2000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Image meaning must be a string with maximum 2000 characters',
+        code: 'VALIDATION_ERROR',
+        details: { imageMeaning: 'Optional field, maximum 2000 characters' }
+      });
+    }
+    
+    const assessmentData = {
+      selectedImages,
+      imageMeaning: imageMeaning ? imageMeaning.trim() : ''
+    };
+    
+    // Check if assessment already exists
+    const existingAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'visualizingPotential')
+        )
+      );
+    
+    if (existingAssessment.length > 0) {
+      // Update existing
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(assessmentData)
+        })
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id));
+      console.log('VisualizingPotential: Updated existing data for user', userId);
+    } else {
+      // Create new
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'visualizingPotential',
+        results: JSON.stringify(assessmentData)
+      });
+      console.log('VisualizingPotential: Created new data for user', userId);
+    }
+    
+    res.json({
+      success: true,
+      data: assessmentData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'visualizingPotential' 
+      }
+    });
+  } catch (error) {
+    console.error('VisualizingPotential save error:', error);
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+      code: 'SAVE_ERROR'
+    });
+  }
+});
+
+// GET /api/workshop-data/visualizing-potential
+workshopDataRouter.get('/visualizing-potential', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    console.log('VisualizingPotential: Loading data for user', userId);
+    
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'visualizingPotential')
+        )
+      );
+    
+    if (!assessment || assessment.length === 0) {
+      console.log('VisualizingPotential: No existing data found for user', userId);
+      return res.json({ success: true, data: null });
+    }
+    
+    const results = JSON.parse(assessment[0].results);
+    console.log('VisualizingPotential: Found existing data for user', userId, results);
+    res.json({
+      success: true,
+      data: results,
+      meta: { assessmentType: 'visualizingPotential' }
+    });
+  } catch (error) {
+    console.error('VisualizingPotential fetch error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve assessment',
+      code: 'FETCH_ERROR'
+    });
+  }
+});
+
 export default workshopDataRouter;

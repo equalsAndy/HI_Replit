@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { ChevronRight, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { searchUnsplash, searchImages } from '@/services/api-services';
+import { useToast } from '@/hooks/use-toast';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -19,6 +20,37 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [imageMeaning, setImageMeaning] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
+  const { toast } = useToast();
+
+  // Load existing image data when component mounts
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        console.log('VisualizingYouView: Loading existing image data...');
+        const response = await fetch('/api/workshop-data/visualizing-potential', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        console.log('VisualizingYouView: API response:', result);
+        
+        if (result.success && result.data) {
+          console.log('VisualizingYouView: Setting existing data:', result.data);
+          if (result.data.selectedImages) {
+            setSelectedImages(result.data.selectedImages);
+          }
+          if (result.data.imageMeaning) {
+            setImageMeaning(result.data.imageMeaning);
+          }
+        } else {
+          console.log('VisualizingYouView: No existing data found');
+        }
+      } catch (error) {
+        console.log('VisualizingYouView: Error loading data:', error);
+      }
+    };
+    
+    loadExistingData();
+  }, []);
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
@@ -59,6 +91,57 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     setSelectedImages(prev => prev.filter(img => img.id !== id));
   };
 
+  const handleSaveImages = async () => {
+    if (selectedImages.length === 0) {
+      toast({
+        title: "No images selected",
+        description: "Please select at least one image before saving.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      console.log('VisualizingYouView: Saving images and meaning...', {
+        selectedImages,
+        imageMeaning
+      });
+
+      const response = await fetch('/api/workshop-data/visualizing-potential', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          selectedImages,
+          imageMeaning
+        })
+      });
+
+      const result = await response.json();
+      console.log('VisualizingYouView: Save response:', result);
+
+      if (result.success) {
+        toast({
+          title: "Images saved!",
+          description: "Your image selection and meaning have been saved successfully.",
+          duration: 3000
+        });
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
+    } catch (error) {
+      console.error('VisualizingYouView: Save error:', error);
+      toast({
+        title: "Save failed",
+        description: "There was an error saving your images. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
@@ -97,7 +180,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           <Button 
             variant="default" 
             size="sm" 
-            onClick={() => {}}
+            onClick={handleSaveImages}
             disabled={selectedImages.length === 0 || isSaving}
             className="flex items-center gap-2"
           >
