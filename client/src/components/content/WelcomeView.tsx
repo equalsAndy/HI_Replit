@@ -45,18 +45,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
   
-  // Testing bypass mechanism for stuck videos
+  // Testing bypass disabled - use proper video completion validation
   const [allowTestingBypass, setAllowTestingBypass] = useState(false);
-  
-  useEffect(() => {
-    // Enable bypass after 5 seconds for testing purposes
-    const timer = setTimeout(() => {
-      console.log('🎬 Testing bypass enabled - allowing manual progression');
-      setAllowTestingBypass(true);
-    }, 5000);
-    
-    return () => clearTimeout(timer);
-  }, []);
   
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
