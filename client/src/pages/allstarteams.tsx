@@ -674,8 +674,8 @@ export default function AllStarTeams() {
           drawerOpen={drawerOpen}
           toggleDrawer={toggleDrawer}
           navigationSections={updatedNavigationSections}
-          completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
+          completedSteps={progressionState.completedSteps}
+          isStepAccessible={(sectionId, stepId) => isStepUnlocked(stepId)}
           handleStepClick={handleStepClick}
           starCard={starCard}
           flowAttributesData={flowAttributesData}
