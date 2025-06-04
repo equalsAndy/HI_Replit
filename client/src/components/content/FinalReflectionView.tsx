@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool } from 'lucide-react';
+import { debounce } from 'lodash';
 
 import ladderGraphic from '@assets/image_1747800627533.png';
 
@@ -16,15 +17,70 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
   const [statement, setStatement] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
+  // Load existing data when component mounts
+  useEffect(() => {
+    const loadExistingData = async () => {
+      try {
+        console.log('FinalReflectionView: Loading existing data...');
+        const response = await fetch('/api/workshop-data/final-reflection', {
+          credentials: 'include'
+        });
+        const result = await response.json();
+        
+        console.log('FinalReflectionView: API response:', result);
+        
+        if (result.success && result.data) {
+          setStatement(result.data.futureLetterText || '');
+          console.log('FinalReflectionView: Setting statement:', result.data.futureLetterText);
+        }
+      } catch (error) {
+        console.log('FinalReflectionView: No existing data found:', error);
+      }
+    };
+    
+    loadExistingData();
+  }, []);
+
+  // Debounced auto-save function
+  const debouncedSave = useCallback(
+    debounce(async (dataToSave) => {
+      try {
+        console.log('FinalReflectionView: Auto-saving...', dataToSave);
+        const response = await fetch('/api/workshop-data/final-reflection', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(dataToSave),
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          console.log('FinalReflectionView: Auto-saved successfully');
+        }
+      } catch (error) {
+        console.error('FinalReflectionView: Auto-save failed:', error);
+      }
+    }, 1000),
+    []
+  );
+
+  // Handle text change with auto-save
+  const handleStatementChange = (value: string) => {
+    setStatement(value);
+    debouncedSave({ futureLetterText: value });
+  };
+
   const handleSave = async () => {
     setSaving(true);
     
     try {
-      await apiRequest('/api/visualization', 'POST', {
+      await apiRequest('/api/workshop-data/final-reflection', 'POST', {
         futureLetterText: statement
       });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
       markStepCompleted('4-5');
       // No longer redirects to recap since it's been removed
       navigate('/resources');
@@ -55,7 +111,7 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
           <Textarea 
             placeholder="One insight I'm taking forward is..."
             value={statement}
-            onChange={(e) => setStatement(e.target.value)}
+            onChange={(e) => handleStatementChange(e.target.value)}
             className="min-h-[100px]"
           />
         </div>
