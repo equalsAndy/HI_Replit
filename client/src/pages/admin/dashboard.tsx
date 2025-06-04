@@ -13,12 +13,13 @@ import { Loader2 } from 'lucide-react';
 // Admin Components
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CohortManagement } from '@/components/admin/CohortManagement';
+import { InviteManagement } from '@/components/admin/InviteManagement';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
-  
+
   // Fetch current user to check permissions
   const { data: currentUser, isLoading: isLoadingUser } = useQuery<{
     id: number;
@@ -30,7 +31,7 @@ export default function AdminDashboard() {
     queryKey: ['/api/user/me'],
     retry: false,
   });
-  
+
   // Redirect non-admin users
   React.useEffect(() => {
     if (currentUser && currentUser.role !== 'admin') {
@@ -81,18 +82,31 @@ export default function AdminDashboard() {
       </Card>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid grid-cols-3 w-[600px]">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
+          <TabsTrigger value="invites">Invite Management</TabsTrigger>
           <TabsTrigger value="videos">Video Management</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="users" className="mt-6">
           <UserManagementTab />
         </TabsContent>
-        
+
         <TabsContent value="cohorts" className="mt-6">
           <CohortManagementTab />
+        </TabsContent>
+
+        <TabsContent value="invites" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Invite Management</CardTitle>
+              <CardDescription>Create and manage invitation codes for new users.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <InviteManagement />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="videos" className="mt-6">
