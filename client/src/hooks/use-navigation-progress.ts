@@ -418,10 +418,20 @@ export function useNavigationProgress() {
       // Video steps require actual video completion
       if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
         const videoProgress = progress.videoProgress[stepId] || 0;
-        const requiredProgress = stepId === '1-1' ? 0.5 : 1; // Use 0.5% for step 1-1, 1% for others
+        
+        // Step-specific completion thresholds
+        let requiredProgress = 1; // Default 1%
+        if (stepId === '1-1') {
+          requiredProgress = 0.5; // 0.5% for intro
+        } else if (['2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+          requiredProgress = 85; // 85% for main content videos
+        }
+        
         if (videoProgress >= requiredProgress) {
           actuallyCompleted.push(stepId);
-          console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
+          console.log(`✅ Video step ${stepId} verified complete: ${videoProgress.toFixed(2)}% >= ${requiredProgress}%`);
+        } else if (videoProgress > 0) {
+          console.log(`⏳ Video step ${stepId} in progress: ${videoProgress.toFixed(2)}% (needs ${requiredProgress}%)`);
         }
         continue;
       }
@@ -455,13 +465,22 @@ export function useNavigationProgress() {
   const validateStepCompletion = (stepId: string): { isComplete: boolean; reason?: string } => {
     console.log(`🔍 Validating completion for step ${stepId}`);
     
-    // Video steps require 1% completion
+    // Video steps require completion based on step-specific thresholds
     if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
       const videoProgress = progress.videoProgress[stepId] || 0;
-      if (videoProgress < 1) {
-        return { isComplete: false, reason: `Video must be watched to at least 1% (${videoProgress.toFixed(2)}% watched)` };
+      
+      // Different completion thresholds for different video steps
+      let requiredProgress = 1; // Default 1% for most videos
+      if (stepId === '1-1') {
+        requiredProgress = 0.5; // 0.5% for step 1-1 intro
+      } else if (['2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+        requiredProgress = 85; // 85% for main content videos to ensure they're actually watched
       }
-      console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
+      
+      if (videoProgress < requiredProgress) {
+        return { isComplete: false, reason: `Video must be watched to at least ${requiredProgress}% (${videoProgress.toFixed(2)}% watched)` };
+      }
+      console.log(`✅ Video step ${stepId} verified complete: ${videoProgress.toFixed(2)}% >= ${requiredProgress}%`);
       return { isComplete: true };
     }
     

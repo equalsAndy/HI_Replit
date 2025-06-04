@@ -36,7 +36,7 @@ export const allstarteamsProgressionRules: ProgressionRules = {
     '2-1': {
       type: 'video', 
       requirements: {
-        minWatchPercent: 1, // ≥1% watch required
+        minWatchPercent: 90, // ≥90% watch required for completion
         dataSubmitted: false // "Next: Strengths Assessment" button click
       }
     },
