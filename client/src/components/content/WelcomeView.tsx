@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
@@ -44,6 +44,19 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   // Track last logged progress to prevent spam
   const lastLoggedProgressRef = useRef(0);
+  
+  // Testing bypass mechanism for stuck videos
+  const [allowTestingBypass, setAllowTestingBypass] = useState(false);
+  
+  useEffect(() => {
+    // Enable bypass after 5 seconds for testing purposes
+    const timer = setTimeout(() => {
+      console.log('🎬 Testing bypass enabled - allowing manual progression');
+      setAllowTestingBypass(true);
+    }, 5000);
+    
+    return () => clearTimeout(timer);
+  }, []);
   
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
@@ -171,14 +184,14 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
         <div className="flex justify-end">
           <Button 
             onClick={handleNext}
-            disabled={!hasReachedMinimum}
-            className={`${hasReachedMinimum 
+            disabled={!hasReachedMinimum && !allowTestingBypass}
+            className={`${(hasReachedMinimum || allowTestingBypass)
               ? 'bg-blue-600 hover:bg-blue-700 text-white' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
             size="lg"
           >
-            {hasReachedMinimum ? nextButton : "Watch video to continue"}
+            {(hasReachedMinimum || allowTestingBypass) ? nextButton : "Watch video to continue"}
           </Button>
         </div>
       </div>

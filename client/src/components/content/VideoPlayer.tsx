@@ -122,6 +122,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   }, [processedUrl, onProgress]);
 
   // Progress tracking functions
+  const lastLoggedProgressRef = useRef(0);
+  
   const startProgressTracking = (ytPlayer: any) => {
     if (progressCheckInterval) {
       clearInterval(progressCheckInterval);
@@ -134,7 +136,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         
         if (duration > 0) {
           const percentage = (currentTime / duration) * 100;
-          console.log(`🎬 Video progress: ${percentage.toFixed(2)}%`);
+          
+          // Only log significant progress changes (every 10% or when reaching 1% threshold)
+          if (Math.abs(percentage - lastLoggedProgressRef.current) >= 10 || 
+              (percentage >= 1 && lastLoggedProgressRef.current < 1) ||
+              (percentage >= 0.5 && lastLoggedProgressRef.current < 0.5)) {
+            console.log(`🎬 Video progress: ${percentage.toFixed(2)}%`);
+            lastLoggedProgressRef.current = percentage;
+          }
           
           if (onProgress) {
             onProgress(percentage);
