@@ -579,9 +579,11 @@ export function UserManagement() {
                           <TableCell className="w-[120px]">
                             <div className="space-y-1">
                               {(() => {
-                                // Parse navigation progress to get current step
                                 let currentStep = 'Not Started';
-                                let stepType = 'none';
+                                let stepType = 'not-started';
+
+                                // First check if user has any assessment data regardless of navigation progress
+                                const hasAnyData = user.hasAssessment || user.hasStarCard || user.hasFlowAttributes;
 
                                 if (user.navigationProgress) {
                                   try {
@@ -601,15 +603,20 @@ export function UserManagement() {
                                       const lastStep = completedSteps[completedSteps.length - 1];
                                       currentStep = `${lastStep} ✓`;
                                       stepType = 'completed';
+                                    } else if (hasAnyData) {
+                                      // Navigation progress exists but no completed steps, but user has data
+                                      currentStep = 'In Progress';
+                                      stepType = 'active';
                                     }
                                   } catch (e) {
                                     // If parsing fails, check for any data
-                                    if (user.hasAssessment || user.hasStarCard || user.hasFlowAttributes) {
+                                    if (hasAnyData) {
                                       currentStep = 'In Progress';
                                       stepType = 'active';
                                     }
                                   }
-                                } else if (user.hasAssessment || user.hasStarCard || user.hasFlowAttributes) {
+                                } else if (hasAnyData) {
+                                  // No navigation progress recorded but user has assessment data
                                   currentStep = 'In Progress';
                                   stepType = 'active';
                                 }
@@ -767,7 +774,7 @@ export function UserManagement() {
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Delete user account completely</p>
-                                      </TooltipContent>
+                                      TooltipContent>
                                     </Tooltip>
                                   </>
                                 )}
@@ -777,8 +784,7 @@ export function UserManagement() {
                                     <TooltipTrigger asChild>
                                       <Button
                                         variant="outline"
-                                        size="sm"
-                                        className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                        size="sm"className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
                                         onClick={() => restoreUserMutation.mutate(user.id)}
                                       >
                                         <UndoIcon className="h-3 w-3 mr-1" />
