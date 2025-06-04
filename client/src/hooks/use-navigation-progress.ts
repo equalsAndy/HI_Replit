@@ -118,46 +118,47 @@ export function useNavigationProgress() {
     refetchIntervalInBackground: true
   });
 
-  // Reset detection logic
+  // Simplified reset detection - only for actual progress changes
   useEffect(() => {
-    const currentProgress = serverProgress;
-    const lastKnownProgress = lastKnownProgressRef.current;
-    
-    // If we had progress before but now it's null, user was reset
-    if (lastKnownProgress !== null && currentProgress === null) {
-      console.log('🚨 USER RESET DETECTED - clearing all caches');
+    if (serverProgress !== undefined) {
+      const currentProgress = serverProgress;
+      const lastKnownProgress = lastKnownProgressRef.current;
       
-      // Clear localStorage
-      clearWorkshopLocalStorage();
+      // Only trigger if we had actual progress data before and now it's explicitly null
+      // This prevents false positives for users who naturally have null progress
+      if (lastKnownProgress && 
+          lastKnownProgress.completedSteps && 
+          lastKnownProgress.completedSteps.length > 0 && 
+          currentProgress === null) {
+        console.log('🚨 USER RESET DETECTED - clearing all caches');
+        
+        // Clear localStorage
+        clearWorkshopLocalStorage();
+        
+        // Invalidate all workshop-related queries
+        invalidateWorkshopQueries(queryClient);
+        
+        // Reset local progress state
+        const resetData = {
+          completedSteps: [],
+          currentStepId: '',
+          appType: null,
+          lastVisitedAt: new Date().toISOString(),
+          unlockedSections: ['1'],
+          videoProgress: {}
+        };
+        setProgress(resetData);
+        
+        // Notify user
+        toast({
+          title: "Workshop Reset",
+          description: "Your progress has been reset by an administrator. Starting fresh.",
+          variant: "default"
+        });
+      }
       
-      // Invalidate all workshop-related queries
-      invalidateWorkshopQueries(queryClient);
-      
-      // Reset local progress state
-      const resetData = {
-        completedSteps: [],
-        currentStepId: '',
-        appType: null,
-        lastVisitedAt: new Date().toISOString(),
-        unlockedSections: ['1'],
-        videoProgress: {}
-      };
-      setProgress(resetData);
-      
-      // Notify user
-      toast({
-        title: "Workshop Reset",
-        description: "Your progress has been reset by an administrator. Starting fresh.",
-        variant: "default"
-      });
-      
-      // Force page reload after short delay
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
+      lastKnownProgressRef.current = currentProgress;
     }
-    
-    lastKnownProgressRef.current = currentProgress;
   }, [serverProgress, toast, queryClient]);
 
   // Load progress from local storage on mount
