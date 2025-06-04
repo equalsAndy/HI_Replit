@@ -6,9 +6,9 @@ interface Video {
   description?: string;
   url: string;
   editableId: string;
-  workshop_type: string;
+  workshopType: string;
   section?: string;
-  step_id?: string;
+  stepId?: string;
   autoplay?: boolean;
   sortOrder?: number;
 }
@@ -41,7 +41,7 @@ export function useVideoBySection(workshopType: string, section: string) {
 export function useVideoByStepId(workshopType: string, stepId: string) {
   const { data: videos, ...query } = useVideosByWorkshop(workshopType);
   
-  const video = videos?.find(v => v.step_id === stepId);
+  const video = videos?.find(v => v.stepId === stepId);
   
   return {
     ...query,
