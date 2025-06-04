@@ -703,7 +703,7 @@ workshopDataRouter.post('/future-self', async (req: Request, res: Response) => {
       });
     }
     
-    const { futureSelfDescription, visualizationNotes } = req.body;
+    const { futureSelfDescription, visualizationNotes, additionalNotes } = req.body;
     
     // Validation
     if (!futureSelfDescription || typeof futureSelfDescription !== 'string' || futureSelfDescription.trim().length === 0 || futureSelfDescription.length > 1000) {
@@ -721,6 +721,15 @@ workshopDataRouter.post('/future-self', async (req: Request, res: Response) => {
         error: 'Visualization Notes must be 1-1000 characters if provided',
         code: 'VALIDATION_ERROR',
         details: { visualizationNotes: 'Optional field, 1-1000 characters' }
+      });
+    }
+    
+    if (additionalNotes && (typeof additionalNotes !== 'string' || additionalNotes.length > 1000)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Additional Notes must be 1-1000 characters if provided',
+        code: 'VALIDATION_ERROR',
+        details: { additionalNotes: 'Optional field, 1-1000 characters' }
       });
     }
     

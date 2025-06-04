@@ -10,6 +10,7 @@ import { debounce } from '@/lib/utils';
 // Import the Hokusai images
 import hokusaiWave from '@assets/image_1747799995641.png';
 import hokusaiPortrait from '@assets/image_1747800012190.png';
+import VideoPlayer from './VideoPlayer';
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
@@ -19,7 +20,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     futureSelfDescription: '',
-    visualizationNotes: ''
+    visualizationNotes: '',
+    additionalNotes: ''
   });
 
   // Load existing data when component mounts
@@ -100,19 +102,11 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
       <div className="flex flex-col xl:grid xl:grid-cols-3 gap-6 lg:gap-8 mb-8">
         {/* Video Section */}
-        <div className="xl:col-span-2 bg-gray-50 p-4 sm:p-6 rounded-lg border">
-          <div className="aspect-video mb-4">
-            <iframe
-              className="w-full h-full rounded-lg"
-              style={{ pointerEvents: 'auto', position: 'relative' }}
-              frameBorder="0"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              title="AST FUTURE SELF VIDEO V3"
-              src="https://www.youtube.com/embed/N9uCPe3xF5A?autoplay=1&controls=1&modestbranding=1&rel=0&showinfo=0&enablejsapi=1"
-            />
-          </div>
+        <div className="xl:col-span-2">
+          <VideoPlayer
+            stepId="4-4"
+            autoplay={true}
+          />
 
           <div>
             <p className="text-sm text-gray-700 mb-3">
@@ -186,8 +180,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             Additional Notes and Reflections
           </h3>
           <Textarea
-            value={formData.visualizationNotes}
-            onChange={(e) => handleInputChange('visualizationNotes', e.target.value)}
+            value={formData.additionalNotes}
+            onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
             placeholder="Add any additional thoughts about your future self visualization..."
             className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
           />
