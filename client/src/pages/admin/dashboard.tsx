@@ -60,9 +60,14 @@ export default function AdminDashboard() {
     <div className="container mx-auto py-10 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <Button variant="outline" onClick={() => navigate('/')}>
-          Return to Dashboard
-        </Button>
+        <div className="flex space-x-2">
+          <Button variant="outline" onClick={() => navigate('/allstarteams')}>
+            AllStar Teams Workshop
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/imaginal-agility')}>
+            Imaginal Agility Workshop
+          </Button>
+        </div>
       </div>
 
       <Card>
