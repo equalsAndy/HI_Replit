@@ -15,6 +15,25 @@ workshopDataRouter.get('/videos/workshop/:workshopType', async (req: Request, re
   try {
     const { workshopType } = req.params;
     
+    // DEBUG: Test without workshop type filter first for step 1-1
+    if (workshopType === 'allstarteams') {
+      console.log('=== DEBUG: Testing step 1-1 video fetch ===');
+      const testVideo = await db.select()
+        .from(schema.videos)
+        .where(eq(schema.videos.stepId, '1-1'));
+      
+      console.log('Found video for step 1-1:', testVideo);
+      
+      // Also test the workshop filter
+      const workshopVideos = await db
+        .select()
+        .from(schema.videos)
+        .where(eq(schema.videos.workshopType, workshopType));
+      
+      console.log(`Found ${workshopVideos.length} videos for workshop ${workshopType}`);
+      console.log('First few videos:', workshopVideos.slice(0, 3));
+    }
+    
     // Query videos from database
     const videos = await db
       .select()
@@ -1594,6 +1613,51 @@ workshopDataRouter.get('/final-reflection', async (req: Request, res: Response) 
       error: 'Failed to retrieve assessment',
       code: 'FETCH_ERROR'
     });
+  }
+});
+
+// DEBUG endpoint to test step 1-1 video fetching
+workshopDataRouter.get('/debug/step-1-1', async (req: Request, res: Response) => {
+  try {
+    console.log('=== DEBUG ENDPOINT: Testing step 1-1 video ===');
+    
+    // Test without any filters
+    const allVideos = await db.select().from(schema.videos);
+    console.log(`Total videos in database: ${allVideos.length}`);
+    
+    // Test step ID filter
+    const stepVideos = await db.select()
+      .from(schema.videos)
+      .where(eq(schema.videos.stepId, '1-1'));
+    console.log('Videos with stepId "1-1":', stepVideos);
+    
+    // Test workshop type filter
+    const allstarVideos = await db.select()
+      .from(schema.videos)
+      .where(eq(schema.videos.workshopType, 'allstarteams'));
+    console.log('AllStarTeams videos:', allstarVideos.length);
+    
+    // Test combined filter
+    const combinedVideos = await db.select()
+      .from(schema.videos)
+      .where(
+        and(
+          eq(schema.videos.stepId, '1-1'),
+          eq(schema.videos.workshopType, 'allstarteams')
+        )
+      );
+    console.log('Combined filter result:', combinedVideos);
+    
+    res.json({
+      success: true,
+      totalVideos: allVideos.length,
+      stepVideos,
+      allstarVideosCount: allstarVideos.length,
+      combinedVideos
+    });
+  } catch (error) {
+    console.error('Debug endpoint error:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 
