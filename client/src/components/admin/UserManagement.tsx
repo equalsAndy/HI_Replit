@@ -526,7 +526,7 @@ export function UserManagement() {
                           <TableHead className="min-w-[180px]">User</TableHead>
                           <TableHead className="w-[100px]">Username</TableHead>
                           <TableHead className="w-[80px]">Role</TableHead>
-                          <TableHead className="w-[80px]">Progress</TableHead>
+                          <TableHead className="w-[120px]">Current Step</TableHead>
                           <TableHead className="w-[80px]">Test User</TableHead>
                           <TableHead className="w-[100px]">Created</TableHead>
                           <TableHead className="w-[70px]">Status</TableHead>
@@ -562,18 +562,61 @@ export function UserManagement() {
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
                           </TableCell>
-                          <TableCell className="w-[80px]">
+                          <TableCell className="w-[120px]">
                             <div className="space-y-1">
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="font-medium">{user.progress || 0}%</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-1.5">
-                                <div 
-                                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300" 
-                                  style={{ width: `${user.progress || 0}%` }}
-                                ></div>
-                              </div>
-                              <div className="flex items-center gap-1">
+                              {(() => {
+                                // Parse navigation progress to get current step
+                                let currentStep = 'Not Started';
+                                let stepType = 'none';
+                                
+                                if (user.navigationProgress) {
+                                  try {
+                                    const progress = JSON.parse(user.navigationProgress);
+                                    const completedSteps = progress.completedSteps || [];
+                                    const currentStepId = progress.currentStepId;
+                                    
+                                    // Check if user completed final reflection (3-4 for AllStarTeams)
+                                    if (completedSteps.includes('3-4')) {
+                                      currentStep = 'Complete';
+                                      stepType = 'complete';
+                                    } else if (currentStepId) {
+                                      currentStep = currentStepId;
+                                      stepType = 'active';
+                                    } else if (completedSteps.length > 0) {
+                                      // Get the last completed step
+                                      const lastStep = completedSteps[completedSteps.length - 1];
+                                      currentStep = `${lastStep} ✓`;
+                                      stepType = 'completed';
+                                    }
+                                  } catch (e) {
+                                    // If parsing fails, check for any data
+                                    if (user.hasAssessment || user.hasStarCard || user.hasFlowAttributes) {
+                                      currentStep = 'In Progress';
+                                      stepType = 'active';
+                                    }
+                                  }
+                                } else if (user.hasAssessment || user.hasStarCard || user.hasFlowAttributes) {
+                                  currentStep = 'In Progress';
+                                  stepType = 'active';
+                                }
+                                
+                                const getStepColor = () => {
+                                  switch (stepType) {
+                                    case 'complete': return 'text-green-700 bg-green-50 border-green-200';
+                                    case 'active': return 'text-blue-700 bg-blue-50 border-blue-200';
+                                    case 'completed': return 'text-purple-700 bg-purple-50 border-purple-200';
+                                    default: return 'text-gray-500 bg-gray-50 border-gray-200';
+                                  }
+                                };
+                                
+                                return (
+                                  <div className={`px-2 py-1 rounded border text-xs font-medium text-center ${getStepColor()}`}>
+                                    {currentStep}
+                                  </div>
+                                );
+                              })()}
+                              
+                              <div className="flex items-center justify-center gap-1 mt-1">
                                 {user.hasAssessment && (
                                   <TooltipProvider>
                                     <Tooltip>

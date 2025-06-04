@@ -323,7 +323,7 @@ class UserManagementService {
       // Get all users without complex calculations to avoid SQL errors
       const result = await db.select().from(users);
       
-      // Return users without password field
+      // Return users without password field but include navigationProgress
       const usersWithoutPasswords = result.map(user => {
         const { password, ...userWithoutPassword } = user;
         return {
@@ -331,7 +331,8 @@ class UserManagementService {
           progress: 0,
           hasAssessment: false,
           hasStarCard: false,
-          hasFlowAttributes: false
+          hasFlowAttributes: false,
+          navigationProgress: user.navigationProgress // Include navigation progress for admin
         };
       });
       
