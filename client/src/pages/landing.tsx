@@ -17,7 +17,7 @@ export default function Landing() {
     retry: false // Don't retry if authentication fails
   });
 
-  const user = userData?.user;
+  const user = (userData as any)?.user;
   const isAuthenticated = !!user;
 
   // Redirect authenticated users to appropriate location

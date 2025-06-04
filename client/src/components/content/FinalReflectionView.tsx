@@ -7,7 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool } from 'lucide-react';
 import { debounce } from 'lodash';
 
-import ladderGraphic from '@assets/image_1747800627533.png';
+// Placeholder for ladder graphic - will use SVG instead
 
 const FinalReflectionView: React.FC<ContentViewProps> = ({
   navigate,

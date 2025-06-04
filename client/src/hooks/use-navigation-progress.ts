@@ -211,19 +211,35 @@ export function useNavigationProgress() {
 
       if (response.ok) {
         const result = await response.json();
-        if (result.success && result.navigationProgress) {
-          const dbProgress = JSON.parse(result.navigationProgress);
-          
-          // Merge database progress with local storage (database takes precedence)
-          const mergedProgress = {
-            ...progress,
-            ...dbProgress,
-            completedSteps: dbProgress.completedSteps || progress.completedSteps,
-            lastVisitedAt: new Date().toISOString()
-          };
-          
-          setProgress(mergedProgress);
-          console.log('Navigation progress loaded from database:', mergedProgress);
+        if (result.success) {
+          if (result.navigationProgress) {
+            // User has progress data in database
+            const dbProgress = JSON.parse(result.navigationProgress);
+            
+            // Database takes precedence over localStorage
+            const mergedProgress = {
+              ...progress,
+              ...dbProgress,
+              completedSteps: dbProgress.completedSteps || [],
+              lastVisitedAt: new Date().toISOString()
+            };
+            
+            setProgress(mergedProgress);
+            console.log('Navigation progress loaded from database:', mergedProgress);
+          } else {
+            // Database has null progress - clear any cached localStorage data
+            console.log('Database has null progress, clearing localStorage cache');
+            const resetProgress = {
+              completedSteps: [],
+              currentStepId: '',
+              appType: null,
+              lastVisitedAt: new Date().toISOString(),
+              unlockedSections: ['1'],
+              videoProgress: {}
+            };
+            setProgress(resetProgress);
+            localStorage.removeItem('navigationProgress');
+          }
         }
       }
     } catch (error) {
