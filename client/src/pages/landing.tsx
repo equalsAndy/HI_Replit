@@ -1,11 +1,97 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 
 export default function Landing() {
   const [, navigate] = useLocation();
+  
+  // Check if user is already authenticated
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: Infinity,
+    refetchInterval: false,
+    retry: false // Don't retry if authentication fails
+  });
+
+  const user = userData?.user;
+  const isAuthenticated = !!user;
+
+  // Redirect authenticated users to appropriate location
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      // If user is admin, redirect to admin dashboard
+      if (user.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
+
+      // For other users, redirect to their last completed step in the most recent workshop
+      if (user.navigationProgress) {
+        try {
+          const progress = JSON.parse(user.navigationProgress);
+          const appType = progress.appType;
+          const completedSteps = progress.completedSteps || [];
+          const currentStepId = progress.currentStepId;
+
+          // Determine the redirect path based on app type and progress
+          if (appType === 'ast' || appType === 'allstarteams') {
+            // Set session storage for AllStarTeams
+            sessionStorage.setItem('selectedApp', 'ast');
+            
+            // If user has progress, go to AllStarTeams workshop
+            if (completedSteps.length > 0 || currentStepId) {
+              navigate('/allstarteams');
+            } else {
+              // No progress yet, redirect to workshop start
+              navigate('/auth?app=ast');
+            }
+          } else if (appType === 'ia' || appType === 'imaginal-agility') {
+            // Set session storage for Imaginal Agility
+            sessionStorage.setItem('selectedApp', 'imaginal-agility');
+            
+            // If user has progress, go to Imaginal Agility workshop
+            if (completedSteps.length > 0 || currentStepId) {
+              navigate('/imaginal-agility');
+            } else {
+              // No progress yet, redirect to workshop start
+              navigate('/auth?app=imaginal-agility');
+            }
+          } else {
+            // No app type specified, redirect to dashboard
+            navigate('/dashboard');
+          }
+        } catch (error) {
+          console.error('Error parsing navigation progress:', error);
+          // Fallback to dashboard if parsing fails
+          navigate('/dashboard');
+        }
+      } else {
+        // No navigation progress, redirect to dashboard to let user choose
+        navigate('/dashboard');
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render the landing page if user is authenticated (they'll be redirected)
+  if (isAuthenticated) {
+    return null;
+  }
   
   return (
     <div className="min-h-screen flex flex-col">
