@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { z } from 'zod';
 import { userManagementService } from '../services/user-management-service';
 import { inviteService } from '../services/invite-service';
+import { ExportService } from '../services/export-service';
 import { requireAuth } from '../middleware/auth';
 import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
 import { formatInviteCode } from '../utils/invite-code';
@@ -454,6 +455,65 @@ router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res:
   } catch (error) {
     console.error('Error deleting user data:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+/**
+ * Export user data (admin only)
+ */
+router.get('/users/:userId/export', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid user ID'
+      });
+    }
+
+    // Get admin info for metadata
+    const adminUsername = (req.session as any).username || (req.session as any).name || 'admin';
+    
+    const exportData = await ExportService.exportUserData(userId, adminUsername);
+    
+    // Set headers for file download
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+    const filename = `user-${exportData.userInfo.username}-export-${timestamp}.json`;
+    
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    
+    res.json(exportData);
+  } catch (error) {
+    console.error('Error exporting user data:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Export failed'
+    });
+  }
+});
+
+/**
+ * Validate user data for export (admin only)
+ */
+router.get('/users/:userId/validate', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    if (isNaN(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid user ID' 
+      });
+    }
+    
+    const validation = await ExportService.validateUserData(userId);
+    res.json({ success: true, validation });
+  } catch (error) {
+    console.error('Error validating user data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Validation failed'
+    });
   }
 });
 
