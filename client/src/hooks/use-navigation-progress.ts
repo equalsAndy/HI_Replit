@@ -416,14 +416,14 @@ export function useNavigationProgress() {
     // Only mark steps complete based on actual data verification, not pre-existing state
     for (const stepId of allSteps) {
       // Video steps require actual video completion
-      if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+      if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
         const videoProgress = progress.videoProgress[stepId] || 0;
         
         // Step-specific completion thresholds
         let requiredProgress = 1; // Default 1%
         if (stepId === '1-1') {
           requiredProgress = 0.5; // 0.5% for intro
-        } else if (['2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+        } else if (['2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
           requiredProgress = 85; // 85% for main content videos
         }
         
@@ -616,6 +616,29 @@ export function useNavigationProgress() {
         lastVisitedAt: new Date().toISOString()
       };
       console.log(`🎬 Updated progress state:`, newProgress.videoProgress);
+      
+      // Auto-complete step if video meets threshold and not already completed
+      if (!prev.completedSteps.includes(stepId)) {
+        let requiredProgress = 1; // Default 1%
+        if (stepId === '1-1') {
+          requiredProgress = 0.5; // 0.5% for intro
+        } else if (['2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
+          requiredProgress = 85; // 85% for main content videos
+        }
+        
+        if (percentage >= requiredProgress) {
+          console.log(`✅ Auto-completing video step ${stepId} at ${percentage.toFixed(2)}%`);
+          newProgress.completedSteps = [...prev.completedSteps, stepId];
+          newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
+          
+          // Show completion notification
+          toast({
+            title: "Step Complete!",
+            description: `Step ${stepId} has been completed`,
+            variant: "default"
+          });
+        }
+      }
       
       // Persist to database when reaching key thresholds
       if (percentage >= 1 && (!prev.videoProgress[stepId] || prev.videoProgress[stepId] < 1)) {
