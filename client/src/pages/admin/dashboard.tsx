@@ -62,7 +62,7 @@ export default function AdminDashboard() {
         <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => navigate('/allstarteams')}>
-            AllStar Teams Workshop
+            AllStarTeams Workshop
           </Button>
           <Button variant="outline" onClick={() => navigate('/imaginal-agility')}>
             Imaginal Agility Workshop
