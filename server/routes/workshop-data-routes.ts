@@ -1032,10 +1032,12 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
       }
     });
   } catch (error) {
+    console.error('Cantril ladder save error:', error);
     res.status(400).json({
       success: false,
       error: error instanceof Error ? error.message : 'Save failed',
-      code: 'SAVE_ERROR'
+      code: 'SAVE_ERROR',
+      details: error instanceof Error ? error.stack : 'Unknown error'
     });
   }
 });
