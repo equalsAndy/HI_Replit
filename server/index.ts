@@ -97,10 +97,26 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Backup root route handler for development
+// Enhanced fallback route handler for development
 if (process.env.NODE_ENV === 'development') {
   app.get('/', (req, res, next) => {
     console.log('[Express] Root route accessed, delegating to Vite...');
+    next(); // Let Vite handle it
+  });
+
+  // Add catch-all route for SPA routing in development
+  app.get('*', (req, res, next) => {
+    // Skip API routes
+    if (req.path.startsWith('/api/')) {
+      return next();
+    }
+    
+    // Skip static asset requests
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map)$/)) {
+      return next();
+    }
+    
+    console.log(`[Express] SPA route accessed: ${req.path}, delegating to Vite...`);
     next(); // Let Vite handle it
   });
 }
