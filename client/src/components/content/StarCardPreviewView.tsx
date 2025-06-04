@@ -23,8 +23,11 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
+    console.log(`🎬 StarCardPreviewView video progress: ${percentage.toFixed(2)}%`);
+    
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
+      console.log(`🎬 StarCardPreviewView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };
@@ -55,6 +58,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
           title="Review Your Star Card"
           aspectRatio="16:9"
           autoplay={true}
+          onProgress={handleVideoProgress}
         />
       </div>
 
