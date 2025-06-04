@@ -294,7 +294,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
-                      const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
+                      
+                      // Override step accessibility when reset is detected
+                      let isAccessible;
+                      if (resetDetected) {
+                        // When reset is detected, only allow the first step
+                        isAccessible = step.id === '1-1';
+                      } else {
+                        isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
+                      }
                       
                       return (
                         <TooltipProvider key={step.id}>
