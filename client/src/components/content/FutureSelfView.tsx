@@ -28,16 +28,26 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     const loadExistingData = async () => {
       try {
+        console.log('FutureSelfView: Loading existing data...');
         const response = await fetch('/api/workshop-data/future-self', {
           credentials: 'include'
         });
         const result = await response.json();
         
+        console.log('FutureSelfView: API response:', result);
+        
         if (result.success && result.data) {
-          setFormData(result.data);
+          // Ensure all fields exist, even if not in saved data
+          const loadedData = {
+            futureSelfDescription: result.data.futureSelfDescription || '',
+            visualizationNotes: result.data.visualizationNotes || '',
+            additionalNotes: result.data.additionalNotes || ''
+          };
+          console.log('FutureSelfView: Setting form data:', loadedData);
+          setFormData(loadedData);
         }
       } catch (error) {
-        console.log('No existing data found');
+        console.log('FutureSelfView: No existing data found:', error);
       }
     };
     
