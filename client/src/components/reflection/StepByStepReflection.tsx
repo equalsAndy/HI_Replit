@@ -364,8 +364,33 @@ export default function StepByStepReflection({
     }
   };
 
+  // Helper function to get current reflection text
+  const getCurrentReflectionText = (): string => {
+    switch(currentStep) {
+      case 1: return reflections.strength1;
+      case 2: return reflections.strength2;
+      case 3: return reflections.strength3;
+      case 4: return reflections.strength4;
+      case 5: return reflections.teamValues;
+      case 6: return reflections.uniqueContribution;
+      default: return '';
+    }
+  };
+
+  // Check if current reflection meets minimum requirements
+  const isCurrentReflectionValid = (): boolean => {
+    const currentText = getCurrentReflectionText();
+    return currentText.trim().length >= 10;
+  };
+
   // Next/previous step handlers
   const handleNext = async () => {
+    // Check if current reflection is valid before proceeding
+    if (!isCurrentReflectionValid()) {
+      console.log(`Reflection ${currentStep} needs at least 10 characters. Current: ${getCurrentReflectionText().trim().length}`);
+      return; // Prevent advancing
+    }
+
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
       setShowExamples(false);
@@ -883,6 +908,18 @@ export default function StepByStepReflection({
                 } rounded-md bg-white`}
               />
 
+              {/* Character count and validation indicator */}
+              <div className="mt-2 flex items-center justify-between">
+                <div className={`text-xs ${
+                  isCurrentReflectionValid() 
+                    ? 'text-green-600' 
+                    : 'text-red-500'
+                }`}>
+                  {getCurrentReflectionText().trim().length}/10 characters minimum
+                  {isCurrentReflectionValid() ? ' ✓' : ' (required)'}
+                </div>
+              </div>
+
               <div className="mt-3">
                 <button 
                   onClick={() => setShowExamples(!showExamples)}
@@ -957,8 +994,13 @@ export default function StepByStepReflection({
 
             <Button 
               onClick={handleNext}
+              disabled={!isCurrentReflectionValid()}
               variant="default"
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className={`${
+                isCurrentReflectionValid() 
+                  ? "bg-indigo-600 hover:bg-indigo-700" 
+                  : "bg-gray-400 cursor-not-allowed"
+              }`}
             >
               {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
             </Button>
