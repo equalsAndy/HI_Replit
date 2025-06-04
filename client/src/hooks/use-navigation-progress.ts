@@ -79,12 +79,18 @@ const invalidateWorkshopQueries = (queryClient: any) => {
   queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
   queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
   queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/user/me'] });
   queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
   queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
   queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
   queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-assessment'] });
   queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
   queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/step-by-step-reflection'] });
+  
+  // Force remove cached navigation progress queries
+  queryClient.removeQueries({ queryKey: ['navigation-progress'] });
+  queryClient.removeQueries({ queryKey: ['/api/user/me'] });
+  queryClient.removeQueries({ queryKey: ['/api/user/profile'] });
   
   console.log('✅ Workshop queries invalidated');
 };
@@ -118,27 +124,39 @@ export function useNavigationProgress() {
     refetchIntervalInBackground: true
   });
 
-  // Simplified reset detection - only for actual progress changes
+  // Enhanced reset detection - detects when server progress becomes null
   useEffect(() => {
     if (serverProgress !== undefined) {
       const currentProgress = serverProgress;
       const lastKnownProgress = lastKnownProgressRef.current;
       
-      // Only trigger if we had actual progress data before and now it's explicitly null
-      // This prevents false positives for users who naturally have null progress
-      if (lastKnownProgress && 
-          lastKnownProgress.completedSteps && 
-          lastKnownProgress.completedSteps.length > 0 && 
-          currentProgress === null) {
+      // Check if we've transitioned from having progress to null (reset scenario)
+      const hasBeenReset = (
+        lastKnownProgress !== null && 
+        currentProgress === null
+      ) || (
+        lastKnownProgress && 
+        lastKnownProgress.completedSteps && 
+        lastKnownProgress.completedSteps.length > 0 && 
+        currentProgress === null
+      );
+      
+      // Also check if local storage has progress but server doesn't (another reset indicator)
+      const localProgress = localStorage.getItem('navigationProgress');
+      const hasLocalProgress = localProgress && JSON.parse(localProgress).completedSteps?.length > 0;
+      const hasServerProgress = currentProgress && currentProgress.completedSteps?.length > 0;
+      
+      if (hasBeenReset || (hasLocalProgress && !hasServerProgress)) {
         console.log('🚨 USER RESET DETECTED - clearing all caches');
+        console.log('Reset reason:', hasBeenReset ? 'Server progress became null' : 'Local progress exists but server has none');
         
-        // Clear localStorage
+        // Clear localStorage immediately
         clearWorkshopLocalStorage();
         
         // Invalidate all workshop-related queries
         invalidateWorkshopQueries(queryClient);
         
-        // Reset local progress state
+        // Reset local progress state immediately
         const resetData = {
           completedSteps: [],
           currentStepId: '',
@@ -149,10 +167,15 @@ export function useNavigationProgress() {
         };
         setProgress(resetData);
         
+        // Force a page reload to ensure all components see the reset
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+        
         // Notify user
         toast({
           title: "Workshop Reset",
-          description: "Your progress has been reset by an administrator. Starting fresh.",
+          description: "Your progress has been reset. The page will refresh to show changes.",
           variant: "default"
         });
       }

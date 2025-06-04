@@ -154,16 +154,19 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       console.error(`Error deleting flow attribute assessments for user ${userId}:`, error);
     }
     
-    // Step 3: Reset user progress
+    // Step 3: Reset user progress and navigation
     try {
-      // Update the user's timestamp to mark when data was reset
+      // Clear navigation progress and update timestamp
       await db
         .update(schema.users)
-        .set({ updatedAt: new Date() })
+        .set({ 
+          navigationProgress: null,
+          updatedAt: new Date() 
+        })
         .where(eq(schema.users.id, userId));
       
       deletedData.userProgress = true;
-      console.log(`Updated timestamp for user ${userId} to mark data reset`);
+      console.log(`Cleared navigation progress and updated timestamp for user ${userId}`);
       
       // If workshop participation data exists, delete that too
       try {
