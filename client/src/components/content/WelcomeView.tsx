@@ -14,11 +14,20 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   setCurrentContent,
   isImaginalAgility = false
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const { updateVideoProgress } = useNavigationProgress();
-
   // Different content based on which app is active
   const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
+  
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const { updateVideoProgress, progress } = useNavigationProgress();
+
+  // Check if video progress already meets the threshold on component mount
+  useEffect(() => {
+    const currentProgress = progress?.videoProgress?.[stepId] || 0;
+    if (currentProgress >= 0.5) {
+      setHasReachedMinimum(true);
+      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 0.5%, enabling button`);
+    }
+  }, [progress?.videoProgress]);
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -62,8 +71,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     console.log(`🎬 WelcomeView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
     
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
+    // Check if minimum watch requirement is met (0.5%)
+    if (percentage >= 0.5 && !hasReachedMinimum) {
       console.log(`🎬 WelcomeView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
