@@ -1,37 +1,44 @@
 import { ReactNode } from 'react';
 import { useLocation } from 'wouter';
-import { ChevronDown, ChevronRight, Check, LucideIcon } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, Lock, LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { NavigationSection, NavigationStep, useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { NavigationSection } from '@/shared/types';
 import { cn } from '@/lib/utils';
 
 interface CollapsibleSectionProps {
-  section: NavigationSection;
+  section: NavigationSection & {
+    progressDisplay?: string;
+    isComplete?: boolean;
+    locked?: boolean;
+  };
   icon?: LucideIcon;
   children?: ReactNode;
 }
 
 export function CollapsibleSection({ section, icon: Icon, children }: CollapsibleSectionProps) {
   const [location, navigate] = useLocation();
-  const { toggleSectionExpanded, expandedSections, completedSteps, currentStepId, setCurrentStep } = useNavigationProgress();
+  const { progress, isStepAccessibleByProgression } = useNavigationProgress();
   
-  // Check if this section is expanded
-  const isExpanded = expandedSections.includes(section.id);
+  // Check if this section is expanded (default open for unlocked sections)
+  const isExpanded = true; // Always show steps for better UX
   
-  // Calculate section progress
-  const totalSteps = section.steps.length;
-  const completedStepsCount = section.steps.filter(step => completedSteps.includes(step.id)).length;
-  const sectionProgress = totalSteps > 0 ? Math.round((completedStepsCount / totalSteps) * 100) : 0;
-  const isCompleted = totalSteps > 0 && completedStepsCount === totalSteps;
-  
-  // Handle toggling section expansion
-  const handleToggle = () => {
-    toggleSectionExpanded(section.id);
-  };
+  // Get section progress from props (calculated in NavigationSidebar)
+  const progressDisplay = section.progressDisplay || `0/${section.totalSteps}`;
+  const isCompleted = section.isComplete || false;
+  const isLocked = section.locked || false;
   
   // Handle clicking on a step
-  const handleStepClick = (step: NavigationStep) => {
-    setCurrentStep(step.id);
+  const handleStepClick = (step: any) => {
+    if (isLocked) {
+      return; // Don't allow navigation to locked sections
+    }
+    
+    // Check if step is accessible
+    if (!isStepAccessibleByProgression(step.id)) {
+      return; // Don't allow navigation to inaccessible steps
+    }
+    
     navigate(step.path);
   };
   
@@ -40,16 +47,23 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
       {/* Section Header */}
       <div 
         className={cn(
-          "flex justify-between items-center p-4 cursor-pointer hover:bg-gray-50 transition-colors",
-          isCompleted ? "bg-green-50" : ""
+          "flex justify-between items-center p-4 transition-colors",
+          isCompleted ? "bg-green-50" : "",
+          isLocked ? "bg-gray-50 opacity-75" : "cursor-pointer hover:bg-gray-50"
         )}
-        onClick={handleToggle}
       >
         <div className="flex items-center">
-          {Icon && <Icon className="h-5 w-5 text-indigo-600 mr-2" />}
-          <span className="font-medium text-gray-900">
+          {isLocked ? (
+            <Lock className="h-5 w-5 text-gray-400 mr-2" />
+          ) : (
+            Icon && <Icon className="h-5 w-5 text-indigo-600 mr-2" />
+          )}
+          <span className={cn(
+            "font-medium",
+            isLocked ? "text-gray-400" : "text-gray-900"
+          )}>
             {section.title}
-            {isCompleted && (
+            {isCompleted && !isLocked && (
               <span className="ml-2 text-green-600 text-sm">
                 (Complete)
               </span>
@@ -58,19 +72,31 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
         </div>
         
         <div className="flex items-center">
-          {/* Progress information */}
-          {!isCompleted && totalSteps > 0 && (
-            <div className="mr-3 text-sm text-gray-500 flex items-center">
-              <span className="hidden sm:inline">{completedStepsCount} of {totalSteps} complete</span>
-              <span className="sm:hidden">{completedStepsCount}/{totalSteps}</span>
-            </div>
-          )}
+          {/* Progress indicator - X/Y format */}
+          <div className={cn(
+            "mr-3 text-sm flex items-center",
+            isLocked ? "text-gray-400" : "text-gray-500"
+          )}>
+            <span className="hidden sm:inline">
+              {isCompleted ? 'Complete' : `${progressDisplay} complete`}
+            </span>
+            <span className="sm:hidden">{progressDisplay}</span>
+          </div>
           
-          {/* Expansion indicator */}
-          {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-indigo-600" />
-          ) : (
-            <ChevronRight className="h-5 w-5 text-indigo-600" />
+          {/* Completion check or lock icon */}
+          {isCompleted && !isLocked ? (
+            <Check className="h-4 w-4 text-green-600 mr-2" />
+          ) : isLocked ? (
+            <Lock className="h-4 w-4 text-gray-400 mr-2" />
+          ) : null}
+          
+          {/* Expansion indicator (only for unlocked sections) */}
+          {!isLocked && (
+            isExpanded ? (
+              <ChevronDown className="h-5 w-5 text-indigo-600" />
+            ) : (
+              <ChevronRight className="h-5 w-5 text-indigo-600" />
+            )
           )}
         </div>
       </div>
@@ -91,16 +117,18 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
           ) : (
             <ul className="divide-y divide-gray-100">
               {section.steps.map((step) => {
-                const isStepCompleted = completedSteps.includes(step.id);
-                const isStepCurrent = step.id === currentStepId;
+                const isStepCompleted = progress.completedSteps.includes(step.id);
+                const isStepCurrent = step.id === progress.currentStepId;
+                const isStepAccessible = isStepAccessibleByProgression(step.id);
                 
                 return (
                   <li key={step.id}>
                     <div 
                       className={cn(
-                        "flex items-center p-4 hover:bg-gray-50 cursor-pointer transition-colors",
+                        "flex items-center p-4 transition-colors",
                         isStepCurrent ? "bg-indigo-50" : "",
-                        isStepCompleted ? "bg-green-50" : ""
+                        isStepCompleted ? "bg-green-50" : "",
+                        isStepAccessible && !isLocked ? "hover:bg-gray-50 cursor-pointer" : "opacity-50 cursor-not-allowed"
                       )}
                       onClick={() => handleStepClick(step)}
                     >
@@ -111,7 +139,9 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
                           ? "bg-green-100 text-green-600 border border-green-200" 
                           : isStepCurrent
                             ? "bg-indigo-100 text-indigo-600 border border-indigo-200"
-                            : "bg-gray-100 text-gray-400 border border-gray-200"
+                            : isStepAccessible 
+                              ? "bg-gray-100 text-gray-400 border border-gray-200"
+                              : "bg-gray-50 text-gray-300 border border-gray-100"
                       )}>
                         {isStepCompleted ? (
                           <Check className="h-3.5 w-3.5" />
