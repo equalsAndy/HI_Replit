@@ -97,30 +97,6 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Enhanced fallback route handler for development
-if (process.env.NODE_ENV === 'development') {
-  app.get('/', (req, res, next) => {
-    console.log('[Express] Root route accessed, delegating to Vite...');
-    next(); // Let Vite handle it
-  });
-
-  // Add catch-all route for SPA routing in development
-  app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
-    
-    // Skip static asset requests
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|map)$/)) {
-      return next();
-    }
-    
-    console.log(`[Express] SPA route accessed: ${req.path}, delegating to Vite...`);
-    next(); // Let Vite handle it
-  });
-}
-
 // Root route is handled by Vite middleware for the React app
 
 // In production, serve static files from the dist directory
@@ -170,21 +146,18 @@ if (process.env.NODE_ENV === 'production') {
 // Create HTTP server
 const server = createServer(app);
 
-// In development mode, use Vite to serve the client
-if (process.env.NODE_ENV === 'development') {
-  import('./vite').then(({ setupVite }) => {
-    setupVite(app, server).then(() => {
+// Setup Vite middleware before starting the server
+async function initializeServer() {
+  // In development mode, use Vite to serve the client
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      const { setupVite } = await import('./vite');
+      await setupVite(app, server);
       console.log('Vite middleware setup complete');
-
-      // The catch-all route is already handled by Vite middleware in server/vite.ts
-      // We don't need to add another one here
-
-    }).catch(err => {
+    } catch (err) {
       console.error('Failed to setup Vite:', err);
-    });
-  }).catch(err => {
-    console.error('Failed to import Vite setup:', err);
-  });
+    }
+  }
 }
 
 // Function to find an available port
@@ -210,8 +183,15 @@ const findAvailablePort = (startPort: number): Promise<number> => {
 
 // Start the server with port conflict resolution
 console.log('Initializing database connection...');
-findAvailablePort(port)
-  .then((availablePort) => {
+
+async function startServer() {
+  try {
+    // Initialize Vite middleware first
+    await initializeServer();
+    
+    // Find available port and start server
+    const availablePort = await findAvailablePort(port);
+    
     server.listen(availablePort, '0.0.0.0', () => {
       console.log(`✅ Server successfully started on port ${availablePort}`);
       console.log(`🌐 Access your app at: http://0.0.0.0:${availablePort}`);
@@ -220,11 +200,13 @@ findAvailablePort(port)
         console.log(`⚠️  Note: Requested port ${port} was busy, using port ${availablePort} instead`);
       }
     });
-  })
-  .catch((error) => {
+  } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
-  });
+  }
+}
+
+startServer();
 
 // Handle server shutdown gracefully
 process.on('SIGTERM', () => {
