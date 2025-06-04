@@ -9,6 +9,7 @@ import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
+import AdminDashboard from '@/pages/admin/dashboard';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -59,8 +60,8 @@ const App: React.FC = () => {
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
 
                     {/* Admin routes */}
-                    <Route path="/admin" component={React.lazy(() => import('@/pages/admin/dashboard'))} />
-                    <Route path="/admin/dashboard" component={React.lazy(() => import('@/pages/admin/dashboard'))} />
+                    <Route path="/admin" component={AdminDashboard} />
+                    <Route path="/admin/dashboard" component={AdminDashboard} />
 
                     {/* Reset and test routes */}
                     <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
