@@ -78,24 +78,38 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       // Initialize player function
       const initializePlayer = () => {
         const videoId = processedUrl.match(/embed\/([^?]+)/)?.[1];
-        if (videoId) {
+        console.log('🎬 Attempting to initialize player with videoId:', videoId);
+        
+        if (videoId && iframeRef.current) {
           try {
-            const ytPlayer = new window.YT.Player(iframeRef.current, {
+            // Create a unique ID for the iframe if it doesn't have one
+            const iframe = iframeRef.current;
+            if (!iframe.id) {
+              iframe.id = `youtube-player-${stepId}-${Date.now()}`;
+            }
+            
+            console.log('🎬 Creating YouTube player for iframe:', iframe.id);
+            
+            const ytPlayer = new window.YT.Player(iframe.id, {
+              videoId: videoId,
               events: {
-                onReady: () => {
+                onReady: (event: any) => {
                   console.log('🎬 YouTube player ready for step:', stepId);
-                  setPlayer(ytPlayer);
+                  setPlayer(event.target);
                   if (onProgress) {
-                    startProgressTracking(ytPlayer);
+                    startProgressTracking(event.target);
                   }
                 },
                 onStateChange: (event: any) => {
+                  console.log('🎬 Player state changed:', event.data);
                   if (event.data === window.YT.PlayerState.PLAYING) {
+                    console.log('🎬 Video started playing, starting progress tracking');
                     if (onProgress) {
-                      startProgressTracking(ytPlayer);
+                      startProgressTracking(event.target);
                     }
                   } else if (event.data === window.YT.PlayerState.PAUSED || 
                             event.data === window.YT.PlayerState.ENDED) {
+                    console.log('🎬 Video paused/ended, stopping progress tracking');
                     stopProgressTracking();
                   }
                 }
@@ -103,9 +117,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
             });
           } catch (error) {
             console.error('🎬 YouTube API initialization failed:', error);
-            // Fallback: simulate progress for testing
-            startFallbackProgressTracking();
           }
+        } else {
+          console.error('🎬 Cannot initialize player - missing videoId or iframe ref');
         }
       };
 
@@ -122,11 +136,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           setTimeout(initializePlayer, 500); // Small delay to ensure API is ready
         };
         
-        // Fallback if API doesn't load within 5 seconds
+        // Check API load after timeout
         setTimeout(() => {
           if (!window.YT || !window.YT.Player) {
-            console.log('🎬 YouTube API timeout, using fallback progress tracking');
-            startFallbackProgressTracking();
+            console.error('🎬 YouTube API failed to load after 5 seconds');
           }
         }, 5000);
       } else {
