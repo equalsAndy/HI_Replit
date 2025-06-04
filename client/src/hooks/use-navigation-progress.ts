@@ -1,6 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
+import { 
+  isStepCompleted, 
+  getSectionProgress, 
+  getUnlockedSections, 
+  getNextStepId,
+  isStepAccessible,
+  SECTION_STEPS,
+  type NavigationProgressData 
+} from '@/utils/progressionLogic';
 
 interface NavigationProgress {
   completedSteps: string[];
