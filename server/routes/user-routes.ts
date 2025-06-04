@@ -23,6 +23,76 @@ const upload = multer({
 });
 
 /**
+ * Get the current user's basic info (alias for /profile for frontend compatibility)
+ */
+router.get('/me', async (req, res) => {
+  try {
+    console.log('Me request - Session data:', req.session);
+    console.log('Me request - Cookies:', req.cookies);
+    
+    // Check session or cookie authentication - prioritize session over cookie
+    let userId = req.session?.userId;
+    
+    console.log('Session userId:', req.session?.userId);
+    console.log('Cookie userId:', req.cookies?.userId);
+    
+    // Only use cookie as fallback if no session exists
+    if (!userId && req.cookies?.userId) {
+      userId = parseInt(req.cookies.userId);
+      console.log('Using cookie fallback, userId:', userId);
+    } else if (userId) {
+      console.log('Using session userId:', userId);
+    }
+    
+    console.log(`Me request - Resolved user ID: ${userId}`);
+    
+    if (!userId) {
+      console.log('Me request - No user ID found, authentication failed');
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+    
+    console.log(`Fetching user info for user ID: ${userId}`);
+    
+    const result = await userManagementService.getUserById(userId);
+
+    if (!result.success) {
+      console.log(`User info not found for ID: ${userId}`);
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    console.log(`Raw user data from service:`, result.user);
+
+    // Return simplified user info for /me endpoint
+    const userInfo = {
+      id: result.user.id,
+      name: result.user.name,
+      email: result.user.email,
+      role: result.user.role,
+      username: result.user.username,
+      organization: result.user.organization,
+      jobTitle: result.user.jobTitle
+    };
+
+    console.log(`Final user info being returned:`, userInfo);
+
+    // Return user data directly (not wrapped in success object for /me endpoint)
+    res.json(userInfo);
+  } catch (error) {
+    console.error('Error getting user info:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to load user info. Please try again later.'
+    });
+  }
+});
+
+/**
  * Get the current user's profile
  */
 router.get('/profile', async (req, res) => {
