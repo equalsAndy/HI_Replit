@@ -28,11 +28,7 @@ export const users = pgTable('users', {
 });
 
 // Create insert schema for users  
-export const insertUserSchema = createInsertSchema(users).omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true
-});
+export const insertUserSchema = createInsertSchema(users).omit(['id', 'createdAt', 'updatedAt']);
 
 // Type definitions for TypeScript
 export type User = typeof users.$inferSelect;
@@ -55,11 +51,7 @@ export const videos = pgTable('videos', {
 });
 
 // Create insert schema for videos
-export const insertVideoSchema = createInsertSchema(videos).omit({ 
-  id: true, 
-  createdAt: true, 
-  updatedAt: true 
-});
+export const insertVideoSchema = createInsertSchema(videos).omit(['id', 'createdAt', 'updatedAt']);
 
 // Type definitions for videos
 export type Video = typeof videos.$inferSelect;
@@ -80,12 +72,7 @@ export const invites = pgTable('invites', {
 });
 
 // Create insert schema for invites
-export const insertInviteSchema = createInsertSchema(invites).omit({ 
-  id: true, 
-  createdAt: true, 
-  usedAt: true, 
-  usedBy: true 
-});
+export const insertInviteSchema = createInsertSchema(invites).omit(['id', 'createdAt', 'usedAt', 'usedBy']);
 
 // Type definitions for TypeScript
 export type Invite = typeof invites.$inferSelect;

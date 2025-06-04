@@ -27,7 +27,8 @@ export async function apiRequest(
 }
 
 // Default fetcher for React Query
-async function defaultFetcher([url]: [string]) {
+async function defaultFetcher({ queryKey }: { queryKey: readonly unknown[] }) {
+  const url = queryKey.join('/');
   return apiRequest(url);
 }
 
