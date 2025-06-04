@@ -305,10 +305,19 @@ export function useNavigationProgress() {
     // Always start with empty for a clean state
     let actuallyCompleted: string[] = [];
 
-    // Only check completions if we have assessment data AND video progress data
+    // Only check completions if we have actual data to validate against
     if (userAssessments && Object.keys(userAssessments).length > 0) {
-      // Check which steps are actually completed
+      // For video steps, only mark complete if we have video progress data
       actuallyCompleted = allSteps.filter(stepId => {
+        // Video steps require video progress
+        if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+          const videoProgress = progress.videoProgress[stepId] || 0;
+          const isComplete = videoProgress >= 1;
+          console.log(`🔍 Video step ${stepId}: ${videoProgress}% (complete: ${isComplete})`);
+          return isComplete;
+        }
+        
+        // Assessment steps require actual assessment data
         const isComplete = checkStepCompletion(stepId);
         console.log(`🔍 Step ${stepId} completion check: ${isComplete}`);
         return isComplete;
