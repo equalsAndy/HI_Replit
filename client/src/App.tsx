@@ -60,7 +60,7 @@ const App: React.FC = () => {
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
 
                     {/* Admin routes */}
-                    <Route path="/admin" component={AdminPage} />
+                    <Route path="/admin" component={React.lazy(() => import('@/pages/admin/dashboard'))} />
                     <Route path="/admin/dashboard" component={React.lazy(() => import('@/pages/admin/dashboard'))} />
 
                     {/* Reset and test routes */}
