@@ -583,7 +583,7 @@ export function useNavigationProgress() {
     return unlocked;
   };
 
-  // Update video progress
+  // Update video progress with database persistence
   const updateVideoProgress = (stepId: string, percentage: number) => {
     console.log(`🎬 Updating video progress for ${stepId}: ${percentage}%`);
     setProgress(prev => {
@@ -592,11 +592,41 @@ export function useNavigationProgress() {
         videoProgress: {
           ...prev.videoProgress,
           [stepId]: percentage
-        }
+        },
+        lastVisitedAt: new Date().toISOString()
       };
       console.log(`🎬 Updated progress state:`, newProgress.videoProgress);
+      
+      // Persist to database when reaching key thresholds
+      if (percentage >= 1 && (!prev.videoProgress[stepId] || prev.videoProgress[stepId] < 1)) {
+        console.log(`🎬 Persisting video progress to database for ${stepId}: ${percentage}%`);
+        syncProgressToDatabase(newProgress);
+      }
+      
       return newProgress;
     });
+  };
+
+  // Sync progress to database helper
+  const syncProgressToDatabase = async (progressData: NavigationProgress) => {
+    try {
+      const response = await fetch('/api/user/navigation-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(progressData)
+      });
+      
+      if (response.ok) {
+        console.log('✅ Video progress synced to database');
+      } else {
+        console.error('❌ Failed to sync video progress to database');
+      }
+    } catch (error) {
+      console.error('❌ Error syncing video progress:', error);
+    }
   };
 
   // Check if step can be unlocked (within an unlocked section)

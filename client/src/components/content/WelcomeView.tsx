@@ -15,6 +15,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   isImaginalAgility = false
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const { updateVideoProgress } = useNavigationProgress();
 
   // Different content based on which app is active
   const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
@@ -56,6 +57,10 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       console.log(`🎬 WelcomeView video progress: ${percentage.toFixed(2)}%`);
       lastLoggedProgressRef.current = percentage;
     }
+    
+    // Update navigation progress tracking
+    console.log(`🎬 WelcomeView calling updateVideoProgress(${stepId}, ${percentage})`);
+    updateVideoProgress(stepId, percentage);
     
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
