@@ -104,6 +104,22 @@ const invalidateWorkshopQueries = (queryClient: any) => {
   console.log('✅ Workshop queries invalidated');
 };
 
+// Query for user assessments to check completion states
+const useUserAssessments = () => {
+  return useQuery({
+    queryKey: ['user-assessments'],
+    queryFn: async () => {
+      const response = await fetch('/api/workshop-data/userAssessments', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch assessments');
+      const result = await response.json();
+      return result.currentUser?.assessments || {};
+    },
+    staleTime: 10000 // Cache for 10 seconds
+  });
+};
+
 export function useNavigationProgress() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -117,6 +133,9 @@ export function useNavigationProgress() {
     unlockedSections: ['1'], // Only Introduction is unlocked initially
     videoProgress: {}
   });
+
+  // Get user assessments for completion detection
+  const { data: userAssessments = {} } = useUserAssessments();
 
   // Query for server navigation progress with reset detection
   const { data: serverProgress } = useQuery({
@@ -263,16 +282,52 @@ export function useNavigationProgress() {
     }
   };
 
-  // Mark a step as completed
-  const markStepCompleted = (stepId: string) => {
-    setProgress(prev => ({
-      ...prev,
-      completedSteps: prev.completedSteps.includes(stepId) 
-        ? prev.completedSteps 
-        : [...prev.completedSteps, stepId],
-      currentStepId: stepId,
+  // Convert assessments to array format for progression logic
+  const assessmentsArray = Object.keys(userAssessments).map(assessmentType => ({
+    assessmentType,
+    results: JSON.stringify(userAssessments[assessmentType])
+  }));
+
+  // Check if a step is completed using progression logic
+  const checkStepCompletion = (stepId: string): boolean => {
+    const completionResult = isStepCompleted(stepId, assessmentsArray, progress);
+    return completionResult.isComplete;
+  };
+
+  // Recalculate progress based on current data
+  const recalculateProgress = (): NavigationProgress => {
+    const allSteps = [
+      '1-1', '2-1', '2-2', '2-3', '2-4', 
+      '3-1', '3-2', '3-3', '3-4',
+      '4-1', '4-2', '4-3', '4-4', '4-5'
+    ];
+
+    // Check which steps are actually completed
+    const actuallyCompleted = allSteps.filter(stepId => checkStepCompletion(stepId));
+    
+    // Get unlocked sections based on completed steps
+    const unlockedSections = getUnlockedSections(actuallyCompleted);
+    
+    // Get next step ID
+    const nextStepId = getNextStepId(actuallyCompleted);
+
+    return {
+      ...progress,
+      completedSteps: actuallyCompleted,
+      currentStepId: nextStepId || actuallyCompleted[actuallyCompleted.length - 1] || '1-1',
+      unlockedSections,
       lastVisitedAt: new Date().toISOString()
-    }));
+    };
+  };
+
+  // Mark a step as completed (triggers recalculation based on data)
+  const markStepCompleted = (stepId: string) => {
+    // Recalculate progress based on actual data in database
+    const updatedProgress = recalculateProgress();
+    setProgress(updatedProgress);
+    
+    // Sync with database
+    syncWithDatabase();
   };
 
   // Update current step
@@ -360,6 +415,16 @@ export function useNavigationProgress() {
     localStorage.removeItem('navigationProgress');
   };
 
+  // Add section progress calculation functions
+  const getSectionProgressData = (sectionSteps: string[]) => {
+    return getSectionProgress(sectionSteps, progress.completedSteps);
+  };
+
+  // Check if step is accessible based on progression rules
+  const isStepAccessibleByProgression = (stepId: string) => {
+    return isStepAccessible(stepId, progress.completedSteps);
+  };
+
   return {
     progress,
     markStepCompleted,
@@ -369,6 +434,12 @@ export function useNavigationProgress() {
     loadFromDatabase,
     updateVideoProgress,
     isStepUnlocked,
-    getNextUnlockedSection
+    getNextUnlockedSection,
+    // New progression logic functions
+    checkStepCompletion,
+    recalculateProgress,
+    getSectionProgressData,
+    isStepAccessibleByProgression,
+    SECTION_STEPS
   };
 }

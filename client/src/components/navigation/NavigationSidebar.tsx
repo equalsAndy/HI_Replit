@@ -1,9 +1,10 @@
 import { Book, Star, PieChart, Target, CheckCircle } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { CollapsibleSection } from './CollapsibleSection';
+import { navigationSections } from './navigationData';
 
 export function NavigationSidebar() {
-  const { progress } = useNavigationProgress();
+  const { progress, getSectionProgressData, SECTION_STEPS } = useNavigationProgress();
   
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {
@@ -26,17 +27,28 @@ export function NavigationSidebar() {
     }
   };
   
-  if (!progress || !progress.sections || progress.sections.length === 0) {
-    return (
-      <div className="p-6 bg-white border border-gray-200 rounded-md">
-        <p className="text-gray-600 text-sm">Loading navigation...</p>
-      </div>
-    );
-  }
-  
+  // Create sections with real-time progress data
+  const sectionsWithProgress = navigationSections.map(section => {
+    // Get section progress based on completed steps
+    const sectionStepIds = section.steps.map(step => step.id);
+    const progressData = getSectionProgressData(sectionStepIds);
+    
+    // Check if section is unlocked
+    const isUnlocked = progress.unlockedSections.includes(section.id);
+    
+    return {
+      ...section,
+      totalSteps: progressData.total,
+      completedSteps: progressData.completed,
+      locked: !isUnlocked,
+      progressDisplay: progressData.display,
+      isComplete: progressData.isComplete
+    };
+  });
+
   return (
     <div className="space-y-4">
-      {progress.sections.map((section) => (
+      {sectionsWithProgress.map((section) => (
         <CollapsibleSection 
           key={section.id} 
           section={section} 
