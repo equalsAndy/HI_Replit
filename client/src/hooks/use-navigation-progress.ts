@@ -501,15 +501,47 @@ export function useNavigationProgress() {
       return { isComplete: true };
     }
     
-    // Reflection steps require text input completion
+    // Reflection steps require text input completion with minimum 10 characters
     if (['2-4', '3-4', '4-2', '4-3', '4-5'].includes(stepId)) {
-      // Check if required reflections are saved in userAssessments
-      const hasReflections = userAssessments && Object.keys(userAssessments).some(key => 
-        key.includes('reflection') || key.includes('strengths') || key.includes('values') || key.includes('passions')
-      );
+      const MINIMUM_REFLECTION_LENGTH = 10;
       
-      if (!hasReflections) {
-        return { isComplete: false, reason: 'All reflection fields must be completed' };
+      // Map steps to their required reflection fields
+      const stepReflectionFields = {
+        '2-4': ['strengthsReflection', 'valuesReflection', 'passionsReflection'],
+        '3-4': ['flowAttributesText'], // Flow attributes text before adding to star card
+        '4-2': ['ladderReflection'],
+        '4-3': ['futureVisionReflection'],
+        '4-5': ['finalReflection']
+      };
+      
+      const requiredFields = stepReflectionFields[stepId as keyof typeof stepReflectionFields] || [];
+      
+      for (const field of requiredFields) {
+        const fieldValue = userAssessments?.[field];
+        if (!fieldValue || typeof fieldValue !== 'string' || fieldValue.trim().length < MINIMUM_REFLECTION_LENGTH) {
+          return { 
+            isComplete: false, 
+            reason: `Reflection must be at least ${MINIMUM_REFLECTION_LENGTH} characters long` 
+          };
+        }
+      }
+      
+      return { isComplete: true };
+    }
+    
+    // Step 3-4 specifically requires flow attributes to be added to star card
+    if (stepId === '3-4') {
+      // Check if star card has flow attributes added
+      const starCardData = userAssessments?.starCard;
+      const hasFlowAttributes = starCardData?.flowAttributes && 
+        Array.isArray(starCardData.flowAttributes) && 
+        starCardData.flowAttributes.length > 0;
+      
+      if (!hasFlowAttributes) {
+        return { 
+          isComplete: false, 
+          reason: 'Flow attributes must be added to your star card before proceeding to ladder of wellbeing' 
+        };
       }
       return { isComplete: true };
     }

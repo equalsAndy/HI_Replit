@@ -18,7 +18,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
-  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
   const [formData, setFormData] = useState({
     currentFactors: '',
     futureImprovements: '',

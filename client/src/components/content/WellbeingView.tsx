@@ -14,7 +14,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
-  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
   const [saving, setSaving] = useState(false);
 
   const handleSave = async () => {
