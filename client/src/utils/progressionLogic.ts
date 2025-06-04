@@ -220,6 +220,16 @@ export const getSectionProgress = (sectionSteps: string[], completedSteps: strin
     completedSteps.includes(stepId)
   ).length;
   
+  // Debug logging for false positive detection
+  console.log(`📊 Section Progress Debug:`, {
+    sectionSteps,
+    completedSteps,
+    completedInSection,
+    total: sectionSteps.length,
+    display: `${completedInSection}/${sectionSteps.length}`,
+    stackTrace: new Error().stack?.split('\n').slice(1, 3)
+  });
+  
   return {
     completed: completedInSection,
     total: sectionSteps.length,
