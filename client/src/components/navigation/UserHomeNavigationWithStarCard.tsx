@@ -73,7 +73,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   const [localFlowData, setLocalFlowData] = useState<any>(null);
   
-  // Check for server reset state and force cache clear
+  // Check for server reset state and override completed steps
   useEffect(() => {
     const checkServerResetState = async () => {
       try {
@@ -86,11 +86,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           if (!serverHasProgress && localHasProgress) {
             console.log('🚨 SERVER RESET DETECTED - clearing navigation state');
             setResetDetected(true);
-            
-            // Force page reload to ensure clean state
-            setTimeout(() => {
-              window.location.reload();
-            }, 100);
+          } else if (serverHasProgress) {
+            // If server has progress, use it instead of local cache
+            setResetDetected(false);
           }
         }
       } catch (error) {
@@ -98,10 +96,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       }
     };
     
-    // Only check if we have local progress but potentially server doesn't
-    if (completedSteps && completedSteps.length > 0) {
-      checkServerResetState();
-    }
+    checkServerResetState();
   }, [completedSteps]);
 
   // Reset local state when user progress is reset
@@ -295,7 +290,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isStarCardResource = step.id === '5-3';
                       
                       // Resources section items never show checkmarks
-                      const isCompleted = isResourceSection ? false : completedSteps.includes(step.id);
+                      const isCompleted = isResourceSection ? false : effectiveCompletedSteps.includes(step.id);
                       
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
