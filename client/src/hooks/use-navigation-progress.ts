@@ -532,11 +532,7 @@ export function useNavigationProgress() {
     const validation = validateStepCompletion(stepId);
     if (!validation.isComplete) {
       console.log(`❌ Step ${stepId} validation failed: ${validation.reason}`);
-      toast({
-        title: "Step Not Complete",
-        description: validation.reason || "This step must be fully completed before proceeding.",
-        variant: "destructive"
-      });
+      // Validation failed - step cannot be completed yet
       return;
     }
     
@@ -631,12 +627,7 @@ export function useNavigationProgress() {
           newProgress.completedSteps = [...prev.completedSteps, stepId];
           newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
           
-          // Show completion notification
-          toast({
-            title: "Step Complete!",
-            description: `Step ${stepId} has been completed`,
-            variant: "default"
-          });
+          // Step completed automatically - no notification needed
         }
       }
       
