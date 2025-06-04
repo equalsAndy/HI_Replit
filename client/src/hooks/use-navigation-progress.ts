@@ -454,11 +454,11 @@ export function useNavigationProgress() {
   const validateStepCompletion = (stepId: string): { isComplete: boolean; reason?: string } => {
     console.log(`🔍 Validating completion for step ${stepId}`);
     
-    // Video steps require 100% completion
+    // Video steps require 1% completion
     if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
       const videoProgress = progress.videoProgress[stepId] || 0;
-      if (videoProgress < 100) {
-        return { isComplete: false, reason: `Video must be watched to completion (${videoProgress}% watched)` };
+      if (videoProgress < 1) {
+        return { isComplete: false, reason: `Video must be watched to at least 1% (${videoProgress.toFixed(2)}% watched)` };
       }
       console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
       return { isComplete: true };
