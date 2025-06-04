@@ -74,6 +74,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             title={videoTitle}
             aspectRatio="16:9"
             autoplay={true}
+            onProgress={handleVideoProgress}
           />
         </div>
 

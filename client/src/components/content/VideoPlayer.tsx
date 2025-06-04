@@ -12,6 +12,7 @@ interface VideoPlayerProps {
   aspectRatio?: '16:9' | '4:3' | '21:9';
   autoplay?: boolean;
   customParams?: VideoUrlParams;
+  onProgress?: (percentage: number) => void;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -23,10 +24,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   fallbackUrl,
   aspectRatio = '16:9',
   autoplay = true,
-  customParams = {}
+  customParams = {},
+  onProgress
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [processedUrl, setProcessedUrl] = useState<string>('');
+  const [player, setPlayer] = useState<any>(null);
+  const [progressCheckInterval, setProgressCheckInterval] = useState<NodeJS.Timeout | null>(null);
   
   // Try to get video by stepId first, then by section
   const { data: videoByStepId, isLoading: isLoadingStepId } = useVideoByStepId(
@@ -67,6 +71,87 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       setProcessedUrl(processed.embedUrl);
     }
   }, [video?.url, fallbackUrl, autoplay, customParams]);
+
+  // Initialize YouTube API and progress tracking
+  useEffect(() => {
+    if (iframeRef.current && processedUrl && onProgress) {
+      // Initialize player function
+      const initializePlayer = () => {
+        const videoId = processedUrl.match(/embed\/([^?]+)/)?.[1];
+        if (videoId) {
+          const ytPlayer = new window.YT.Player(iframeRef.current, {
+            events: {
+              onReady: () => {
+                console.log('🎬 YouTube player ready');
+                setPlayer(ytPlayer);
+                startProgressTracking(ytPlayer);
+              },
+              onStateChange: (event: any) => {
+                if (event.data === window.YT.PlayerState.PLAYING) {
+                  startProgressTracking(ytPlayer);
+                } else if (event.data === window.YT.PlayerState.PAUSED || 
+                          event.data === window.YT.PlayerState.ENDED) {
+                  stopProgressTracking();
+                }
+              }
+            }
+          });
+        }
+      };
+
+      // Load YouTube API if not already loaded
+      if (!window.YT) {
+        const tag = document.createElement('script');
+        tag.src = 'https://www.youtube.com/iframe_api';
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+        
+        window.onYouTubeIframeAPIReady = () => {
+          initializePlayer();
+        };
+      } else {
+        initializePlayer();
+      }
+      
+      handleAutoplayFallback(iframeRef.current);
+    }
+    
+    return () => {
+      stopProgressTracking();
+    };
+  }, [processedUrl, onProgress]);
+
+  // Progress tracking functions
+  const startProgressTracking = (ytPlayer: any) => {
+    if (progressCheckInterval) {
+      clearInterval(progressCheckInterval);
+    }
+    
+    const interval = setInterval(() => {
+      if (ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getDuration) {
+        const currentTime = ytPlayer.getCurrentTime();
+        const duration = ytPlayer.getDuration();
+        
+        if (duration > 0) {
+          const percentage = (currentTime / duration) * 100;
+          console.log(`🎬 Video progress: ${percentage.toFixed(2)}%`);
+          
+          if (onProgress) {
+            onProgress(percentage);
+          }
+        }
+      }
+    }, 1000); // Check every second
+    
+    setProgressCheckInterval(interval);
+  };
+
+  const stopProgressTracking = () => {
+    if (progressCheckInterval) {
+      clearInterval(progressCheckInterval);
+      setProgressCheckInterval(null);
+    }
+  };
 
   // Handle autoplay fallback after iframe loads
   useEffect(() => {
