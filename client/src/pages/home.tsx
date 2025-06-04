@@ -38,9 +38,9 @@ export default function Home() {
     
     // If logged in, redirect to the appropriate workshop
     if (workshopType === 'allstarteams') {
-      setLocation("/workshop/allstarteams");
+      setLocation("/allstarteams");
     } else {
-      setLocation("/workshop/imaginalagility");
+      setLocation("/imaginal-agility");
     }
   };
 
