@@ -193,8 +193,7 @@ export default function AllStarTeams() {
           if (lastUserId !== null && lastUserId !== currentUserId) {
             queryClient.clear();
             queryClient.invalidateQueries();
-            // Clear progress for new user
-            setCompletedSteps([]);
+            // Navigation progress will be reloaded from database automatically
             localStorage.removeItem(progressStorageKey);
           }
           lastUserId = currentUserId;
@@ -223,14 +222,14 @@ export default function AllStarTeams() {
   // Fetch star card data separately to debug the issue
   const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useQuery({
     queryKey: ['/api/user/star-card-data'],
-    enabled: !!user?.id,
+    enabled: !!(user as any)?.id,
     staleTime: 10000,
   });
 
   // Clear workshop progress when user changes OR when any user has progress: 0
   React.useEffect(() => {
     // Extract actual user data from the response wrapper
-    const actualUser = user?.user || user;
+    const actualUser = (user as any)?.user || user;
 
     if (actualUser?.id) {
       const lastUserId = localStorage.getItem('last-user-id');
@@ -282,8 +281,7 @@ export default function AllStarTeams() {
           localStorage.removeItem(key);
         });
 
-        // Reset completed steps state
-        setCompletedSteps([]);
+        // Navigation progress will be reset through the hook
 
         // Force refresh of all cached data by invalidating queries
         queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
@@ -362,7 +360,7 @@ export default function AllStarTeams() {
       }
     },
     onSuccess: () => {
-      setCompletedSteps([]);
+      // Navigation progress will be reset through the hook
 
       // Clear all possible localStorage keys for maximum compatibility
       localStorage.removeItem(progressStorageKey);
