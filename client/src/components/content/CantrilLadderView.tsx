@@ -22,7 +22,9 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   const [formData, setFormData] = useState({
     currentFactors: '',
     futureImprovements: '',
-    specificChanges: ''
+    specificChanges: '',
+    quarterlyProgress: '',
+    quarterlyActions: ''
   });
 
   // Fetch user's actual wellbeing data from the visualization API
@@ -137,6 +139,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               What are the main elements contributing to your current well-being?
             </p>
             <textarea 
+              value={formData.currentFactors}
+              onChange={(e) => handleInputChange('currentFactors', e.target.value)}
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Consider your work, relationships, health, finances, and personal growth..."
             />
@@ -148,6 +152,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               What achievements or changes would make your life better in one year?
             </p>
             <textarea 
+              value={formData.futureImprovements}
+              onChange={(e) => handleInputChange('futureImprovements', e.target.value)}
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe specific improvements you hope to see in your life..."
             />
@@ -159,6 +165,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                 How will your experience be noticeably different in tangible ways?
               </p>
               <textarea 
+                value={formData.specificChanges}
+                onChange={(e) => handleInputChange('specificChanges', e.target.value)}
                 className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
                 placeholder="Describe concrete changes you'll experience..."
               />
@@ -176,6 +184,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               Name one specific indicator that you're moving up the ladder.
             </p>
             <textarea 
+              value={formData.quarterlyProgress}
+              onChange={(e) => handleInputChange('quarterlyProgress', e.target.value)}
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe a measurable sign of progress..."
             />
