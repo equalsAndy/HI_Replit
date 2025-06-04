@@ -213,36 +213,27 @@ export function useNavigationProgress() {
     }
   }, [serverProgress, toast, queryClient]);
 
-  // Load progress from local storage on mount with validation
+  // Force clean initialization - bypass localStorage for testing
   useEffect(() => {
-    const savedProgress = localStorage.getItem('navigationProgress');
-    if (savedProgress) {
-      try {
-        const parsed = JSON.parse(savedProgress);
-        
-        // Add suspicious progress detection
-        if (parsed.completedSteps && detectSuspiciousProgress(parsed.completedSteps)) {
-          console.log('🚨 DETECTED SUSPICIOUS PROGRESS - Clearing and resetting');
-          clearSuspiciousLocalStorage();
-          
-          // Reset to clean initial state
-          setProgress({
-            completedSteps: [],
-            currentStepId: '1-1',
-            appType: 'ast',
-            lastVisitedAt: new Date().toISOString(),
-            unlockedSections: ['1'],
-            videoProgress: {}
-          });
-          return;
-        }
-        
-        setProgress(parsed);
-      } catch (error) {
-        console.error('Error parsing saved navigation progress:', error);
-        localStorage.removeItem('navigationProgress');
-      }
-    }
+    console.log('🔄 FORCING CLEAN STATE INITIALIZATION');
+    
+    // Clear all navigation-related localStorage
+    ['navigationProgress', 'allstarteams-navigation-progress', 'imaginal-agility-navigation-progress'].forEach(key => {
+      localStorage.removeItem(key);
+    });
+    
+    // Set clean initial state
+    const cleanState = {
+      completedSteps: [],
+      currentStepId: '1-1',
+      appType: 'ast',
+      lastVisitedAt: new Date().toISOString(),
+      unlockedSections: ['1'],
+      videoProgress: {}
+    };
+    
+    setProgress(cleanState);
+    console.log('✅ Clean state initialized:', cleanState);
   }, []);
 
   // Save progress to local storage whenever it changes
