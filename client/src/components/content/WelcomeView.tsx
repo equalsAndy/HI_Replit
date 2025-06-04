@@ -67,6 +67,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
+          {console.log(`📺 WelcomeView: Passing stepId "${stepId}" to VideoPlayer`)}
           <VideoPlayer
             workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
             stepId={stepId}
