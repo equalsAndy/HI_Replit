@@ -23,6 +23,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useEffect, useState } from 'react';
+
 interface UserHomeNavigationProps {
   drawerOpen: boolean;
   toggleDrawer: () => void;
@@ -51,11 +55,60 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
 
+  // Reset detection hooks
+  const { progress: navigationProgress } = useNavigationProgress();
+  const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
+  const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
+  
+  // Local state that resets when user progress is reset
+  const [localStarCardData, setLocalStarCardData] = useState({
+    thinking: 0,
+    acting: 0,
+    feeling: 0,
+    planning: 0
+  });
+  
+  const [localFlowData, setLocalFlowData] = useState<any>(null);
+  
+  // Reset local state when user progress is reset
+  useEffect(() => {
+    if (isStarCardReset || navigationProgress === null) {
+      console.log('🧹 RESETTING star card local state');
+      setLocalStarCardData({
+        thinking: 0,
+        acting: 0,
+        feeling: 0,
+        planning: 0
+      });
+    } else if (starCardData || starCard) {
+      const effectiveData = starCardData || starCard;
+      setLocalStarCardData({
+        thinking: effectiveData?.thinking || 0,
+        acting: effectiveData?.acting || 0,
+        feeling: effectiveData?.feeling || 0,
+        planning: effectiveData?.planning || 0
+      });
+    }
+  }, [isStarCardReset, navigationProgress, starCardData, starCard]);
+
+  useEffect(() => {
+    if (isFlowReset || navigationProgress === null) {
+      console.log('🧹 RESETTING flow attributes local state');
+      setLocalFlowData(null);
+    } else if (flowData || flowAttributesData) {
+      setLocalFlowData(flowData || flowAttributesData);
+    }
+  }, [isFlowReset, navigationProgress, flowData, flowAttributesData]);
+
+  // Use local data for display (will be null/empty if user was reset)
+  const effectiveStarCard = navigationProgress === null ? localStarCardData : (starCardData || starCard || localStarCardData);
+  const effectiveFlowData = navigationProgress === null ? null : (flowData || flowAttributesData || localFlowData);
+
   // Determine if the Star Card is complete and flow attributes are available
-  const hasStarCard = starCard && starCard.thinking && starCard.acting && starCard.feeling && starCard.planning;
-  const hasFlowAttributes = flowAttributesData?.attributes && 
-                           Array.isArray(flowAttributesData.attributes) && 
-                           flowAttributesData.attributes.length > 0;
+  const hasStarCard = effectiveStarCard && effectiveStarCard.thinking && effectiveStarCard.acting && effectiveStarCard.feeling && effectiveStarCard.planning;
+  const hasFlowAttributes = effectiveFlowData?.attributes && 
+                           Array.isArray(effectiveFlowData.attributes) && 
+                           effectiveFlowData.attributes.length > 0;
   const isStarCardComplete = hasStarCard && hasFlowAttributes;
   
   // Helper function to convert step IDs to content keys used in the app

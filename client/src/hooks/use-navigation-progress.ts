@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
-import { queryClient } from '@/lib/queryClient';
+import { useState, useEffect, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
 
 interface NavigationProgress {
   completedSteps: string[];
@@ -10,7 +11,89 @@ interface NavigationProgress {
   videoProgress: { [stepId: string]: number };
 }
 
+// Helper function to clear workshop localStorage
+const clearWorkshopLocalStorage = () => {
+  console.log('🧹 CLEARING workshop localStorage...');
+  
+  const keysToRemove = [
+    'navigationProgress',
+    'allstarteams-navigation-progress',
+    'imaginal-agility-navigation-progress',
+    'allstar_navigation_progress',
+    'allstarteams_starCard',
+    'allstarteams_flowAttributes',
+    'allstarteams_progress',
+    'allstarteams_completedActivities',
+    'allstarteams_strengths',
+    'allstarteams_values',
+    'allstarteams_passions',
+    'allstarteams_growthAreas',
+    'workshop_progress',
+    'currentContent',
+    'completedSteps',
+    'starCardData',
+    'user-preferences',
+    'workshop-progress',
+    'assessment-data'
+  ];
+  
+  keysToRemove.forEach(key => {
+    if (localStorage.getItem(key)) {
+      console.log('🧹 Removing localStorage key:', key);
+      localStorage.removeItem(key);
+    }
+  });
+  
+  // Clear any keys containing workshop-related terms
+  Object.keys(localStorage).forEach(key => {
+    if (key.includes('workshop') || 
+        key.includes('ast') || 
+        key.includes('assessment') ||
+        key.includes('starcard') ||
+        key.includes('flow') ||
+        key.includes('allstarteams') ||
+        key.includes('imaginal-agility')) {
+      console.log('🧹 Removing localStorage key:', key);
+      localStorage.removeItem(key);
+    }
+  });
+  
+  console.log('✅ Workshop localStorage cleared');
+};
+
+// Helper function to invalidate React Query caches
+const invalidateWorkshopQueries = (queryClient: any) => {
+  console.log('🔄 INVALIDATING workshop queries...');
+  
+  // Invalidate all workshop-related queries
+  queryClient.invalidateQueries({ queryKey: ['starcard'] });
+  queryClient.invalidateQueries({ queryKey: ['navigation-progress'] });
+  queryClient.invalidateQueries({ queryKey: ['user-assessments'] });
+  queryClient.invalidateQueries({ queryKey: ['flow-assessment'] });
+  queryClient.invalidateQueries({ queryKey: ['flow-attributes'] });
+  queryClient.invalidateQueries({ queryKey: ['rounding-out'] });
+  queryClient.invalidateQueries({ queryKey: ['future-self'] });
+  queryClient.invalidateQueries({ queryKey: ['cantril-ladder'] });
+  queryClient.invalidateQueries({ queryKey: ['final-insights'] });
+  queryClient.invalidateQueries({ queryKey: ['step-by-step-reflection'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/user'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-assessment'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
+  queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/step-by-step-reflection'] });
+  
+  console.log('✅ Workshop queries invalidated');
+};
+
 export function useNavigationProgress() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const lastKnownProgressRef = useRef<NavigationProgress | null>(null);
+  
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
     currentStepId: '',
@@ -19,6 +102,63 @@ export function useNavigationProgress() {
     unlockedSections: ['1'], // Only Introduction is unlocked initially
     videoProgress: {}
   });
+
+  // Query for server navigation progress with reset detection
+  const { data: serverProgress } = useQuery({
+    queryKey: ['navigation-progress'],
+    queryFn: async () => {
+      const response = await fetch('/api/user/navigation-progress', {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch progress');
+      const result = await response.json();
+      return result.success ? (result.navigationProgress ? JSON.parse(result.navigationProgress) : null) : null;
+    },
+    refetchInterval: 30000, // Check every 30 seconds for reset
+    refetchIntervalInBackground: true
+  });
+
+  // Reset detection logic
+  useEffect(() => {
+    const currentProgress = serverProgress;
+    const lastKnownProgress = lastKnownProgressRef.current;
+    
+    // If we had progress before but now it's null, user was reset
+    if (lastKnownProgress !== null && currentProgress === null) {
+      console.log('🚨 USER RESET DETECTED - clearing all caches');
+      
+      // Clear localStorage
+      clearWorkshopLocalStorage();
+      
+      // Invalidate all workshop-related queries
+      invalidateWorkshopQueries(queryClient);
+      
+      // Reset local progress state
+      const resetData = {
+        completedSteps: [],
+        currentStepId: '',
+        appType: null,
+        lastVisitedAt: new Date().toISOString(),
+        unlockedSections: ['1'],
+        videoProgress: {}
+      };
+      setProgress(resetData);
+      
+      // Notify user
+      toast({
+        title: "Workshop Reset",
+        description: "Your progress has been reset by an administrator. Starting fresh.",
+        variant: "default"
+      });
+      
+      // Force page reload after short delay
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+    
+    lastKnownProgressRef.current = currentProgress;
+  }, [serverProgress, toast, queryClient]);
 
   // Load progress from local storage on mount
   useEffect(() => {
