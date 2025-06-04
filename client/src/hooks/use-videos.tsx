@@ -23,7 +23,7 @@ export function useVideos() {
 export function useVideosByWorkshop(workshopType: string) {
   return useQuery<Video[]>({
     queryKey: [`/api/workshop-data/videos/workshop/${workshopType}`],
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 0, // Always fetch fresh data for video debugging
   });
 }
 
