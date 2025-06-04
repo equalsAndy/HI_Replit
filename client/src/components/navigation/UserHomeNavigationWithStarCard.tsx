@@ -25,7 +25,6 @@ import {
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useProgressionTracker } from '@/hooks/use-progression-tracker';
 
 interface UserHomeNavigationProps {
   drawerOpen: boolean;
@@ -60,19 +59,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
   
-  // Progression tracker hook for AllStarTeams logic
-  const {
-    progressionState,
-    isStepUnlocked,
-    isStepCompleted,
-    getUnlockedSections,
-    getSectionProgress,
-    getNextButtonText
-  } = useProgressionTracker();
-  
   // Override completed steps if server shows reset state
   const [resetDetected, setResetDetected] = useState(false);
-  const effectiveCompletedSteps = resetDetected ? [] : progressionState.completedSteps;
+  const effectiveCompletedSteps = resetDetected ? [] : completedSteps;
   
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
@@ -281,16 +270,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       <>
                         <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
                         
-                        {/* Progress indicator for sections using progression logic */}
-                        {section.id !== '5' && section.id !== '6' && (
-                          (() => {
-                            const sectionProgress = getSectionProgress(section.id);
-                            return (
-                              <span className="ml-auto text-xs text-gray-500">
-                                {sectionProgress.completed}/{sectionProgress.total}
-                              </span>
-                            );
-                          })()
+                        {/* Progress indicator for sections other than More Information (section 5) */}
+                        {section.id !== '5' && (
+                          <span className="ml-auto text-xs text-gray-500">
+                            {section.completedSteps}/{section.totalSteps}
+                          </span>
                         )}
                       </>
                     )}
@@ -305,27 +289,19 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
                       
-                      // Use AllStarTeams progression logic for step completion and accessibility
-                      const isCompleted = isResourceSection ? false : isStepCompleted(step.id);
+                      // Resources section items never show checkmarks
+                      const isCompleted = isResourceSection ? false : effectiveCompletedSteps.includes(step.id);
                       
-                      // Check if sections 5 and 6 are unlocked (after 4-5 completion)
-                      const unlockedSections = getUnlockedSections();
-                      const isSectionUnlocked = unlockedSections.includes(section.id);
+                      // Special accessibility check for Star Card resource
+                      const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
                       
                       // Override step accessibility when reset is detected
                       let isAccessible;
                       if (resetDetected) {
                         // When reset is detected, only allow the first step
                         isAccessible = step.id === '1-1';
-                      } else if (!isSectionUnlocked) {
-                        // Section is locked
-                        isAccessible = false;
-                      } else if (isResourceSection) {
-                        // Resources section accessibility (sections 5 and 6)
-                        isAccessible = progressionState.completedSteps.includes('4-5'); // Final Reflection completed
                       } else {
-                        // Use progression logic for step accessibility
-                        isAccessible = isStepUnlocked(step.id);
+                        isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
                       }
                       
                       return (
@@ -383,7 +359,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                             </TooltipTrigger>
                             {!isAccessible && (
                               <TooltipContent side="right">
-                                <p className="text-xs">Complete previous steps first</p>
+                                {isSpecialAccessRestricted ? (
+                                  <p className="text-xs">Complete Strengths Assessment and Flow Attributes first</p>
+                                ) : (
+                                  <p className="text-xs">Complete previous steps first</p>
+                                )}
                               </TooltipContent>
                             )}
                           </Tooltip>

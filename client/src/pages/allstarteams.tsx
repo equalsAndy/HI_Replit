@@ -14,7 +14,6 @@ import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useProgressionTracker } from '@/hooks/use-progression-tracker';
 
 // Constants for different apps
 const APP_PROGRESS_KEYS = {
@@ -38,15 +37,6 @@ export default function AllStarTeams() {
     loadFromDatabase,
     resetProgress
   } = useNavigationProgress();
-
-  // AllStarTeams progression tracker
-  const {
-    progressionState,
-    isStepUnlocked,
-    isStepCompleted,
-    getUnlockedSections,
-    markStepCompleted: markProgressionStepCompleted
-  } = useProgressionTracker();
 
   // Set app to AllStarTeams on component mount and check authentication
   useEffect(() => {
@@ -674,8 +664,8 @@ export default function AllStarTeams() {
           drawerOpen={drawerOpen}
           toggleDrawer={toggleDrawer}
           navigationSections={updatedNavigationSections}
-          completedSteps={progressionState.completedSteps}
-          isStepAccessible={(sectionId, stepId) => isStepUnlocked(stepId)}
+          completedSteps={completedSteps}
+          isStepAccessible={isStepAccessible}
           handleStepClick={handleStepClick}
           starCard={starCard}
           flowAttributesData={flowAttributesData}
