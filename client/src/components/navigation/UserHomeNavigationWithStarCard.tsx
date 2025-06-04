@@ -59,9 +59,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
   
-  // Override completed steps if server shows reset state
-  const [resetDetected, setResetDetected] = useState(false);
-  const effectiveCompletedSteps = resetDetected ? [] : completedSteps;
+  // Use the actual completed steps without reset override
+  const effectiveCompletedSteps = completedSteps;
   
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
@@ -73,35 +72,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   const [localFlowData, setLocalFlowData] = useState<any>(null);
   
-  // Check for server reset state and override completed steps
-  useEffect(() => {
-    const checkServerResetState = async () => {
-      try {
-        const response = await fetch('/api/user/navigation-progress', { credentials: 'include' });
-        if (response.ok) {
-          const result = await response.json();
-          const serverHasProgress = result.success && result.navigationProgress;
-          const localHasProgress = completedSteps && completedSteps.length > 0;
-          
-          if (!serverHasProgress && localHasProgress) {
-            console.log('🚨 SERVER RESET DETECTED - clearing navigation state');
-            setResetDetected(true);
-          } else if (serverHasProgress) {
-            // If server has progress, use it instead of local cache
-            setResetDetected(false);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking server reset state:', error);
-      }
-    };
-    
-    checkServerResetState();
-  }, [completedSteps]);
+  // Removed problematic reset detection that was interfering with progression
 
   // Reset local state when user progress is reset
   useEffect(() => {
-    if (isStarCardReset || navigationProgress === null || resetDetected) {
+    if (isStarCardReset || navigationProgress === null) {
       console.log('🧹 RESETTING star card local state');
       setLocalStarCardData({
         thinking: 0,
@@ -118,7 +93,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         planning: effectiveData?.planning || 0
       });
     }
-  }, [isStarCardReset, navigationProgress, starCardData, starCard, resetDetected]);
+  }, [isStarCardReset, navigationProgress, starCardData, starCard]);
 
   useEffect(() => {
     if (isFlowReset || navigationProgress === null) {
@@ -295,14 +270,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
                       
-                      // Override step accessibility when reset is detected
-                      let isAccessible;
-                      if (resetDetected) {
-                        // When reset is detected, only allow the first step
-                        isAccessible = step.id === '1-1';
-                      } else {
-                        isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
-                      }
+                      // Check step accessibility normally
+                      const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
                       
                       return (
                         <TooltipProvider key={step.id}>
