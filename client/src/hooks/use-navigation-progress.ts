@@ -10,6 +10,7 @@ import {
   SECTION_STEPS,
   type NavigationProgressData 
 } from '@/utils/progressionLogic';
+import { detectSuspiciousProgress, clearSuspiciousLocalStorage } from '../utils/progressValidation';
 
 interface NavigationProgress {
   completedSteps: string[];
@@ -218,12 +219,12 @@ export function useNavigationProgress() {
     if (savedProgress) {
       try {
         const parsed = JSON.parse(savedProgress);
-        // Only load if it's not showing false positives (all steps completed)
-        const totalSteps = ['1-1', '1-2', '1-3', '1-4', '1-5', '2-1', '2-2', '2-3', '2-4', '2-5', '3-1', '3-2', '3-3', '3-4', '3-5', '4-1', '4-2', '4-3', '4-4', '4-5'];
-        if (parsed.completedSteps && parsed.completedSteps.length >= totalSteps.length) {
-          console.log('🚨 Detected false positive progress data, resetting to clean state');
-          // Clear localStorage and start fresh
-          localStorage.removeItem('navigationProgress');
+        
+        // Add suspicious progress detection
+        if (parsed.completedSteps && detectSuspiciousProgress(parsed.completedSteps)) {
+          console.log('🚨 DETECTED SUSPICIOUS PROGRESS - Clearing and resetting');
+          clearSuspiciousLocalStorage();
+          
           // Reset to clean initial state
           setProgress({
             completedSteps: [],
@@ -235,6 +236,7 @@ export function useNavigationProgress() {
           });
           return;
         }
+        
         setProgress(parsed);
       } catch (error) {
         console.error('Error parsing saved navigation progress:', error);
