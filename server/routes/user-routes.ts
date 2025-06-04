@@ -1,9 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { userManagementService } from '../services/user-management-service';
-import { NavigationSyncService } from '../services/navigation-sync-service';
 import { requireAuth } from '../middleware/auth';
-import { isAdmin } from '../middleware/roles';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
 
@@ -609,67 +607,6 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
     });
   } catch (error) {
     console.error('Error uploading photo:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
-
-/**
- * Sync navigation progress for a specific user (Admin only)
- */
-router.post('/sync-navigation/:userId', requireAuth, isAdmin, async (req, res) => {
-  try {
-    const userId = parseInt(req.params.userId);
-    
-    if (isNaN(userId)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Invalid user ID'
-      });
-    }
-
-    console.log(`[API] Syncing navigation progress for user ${userId}`);
-    
-    const success = await NavigationSyncService.syncUserProgress(userId);
-    
-    if (success) {
-      res.json({
-        success: true,
-        message: `Navigation progress synced successfully for user ${userId}`
-      });
-    } else {
-      res.status(500).json({
-        success: false,
-        error: 'Failed to sync navigation progress'
-      });
-    }
-  } catch (error) {
-    console.error('Error syncing navigation progress:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Internal server error'
-    });
-  }
-});
-
-/**
- * Sync navigation progress for all users (Admin only)
- */
-router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
-  try {
-    console.log('[API] Starting bulk navigation progress sync');
-    
-    const syncedCount = await NavigationSyncService.syncAllUsersProgress();
-    
-    res.json({
-      success: true,
-      message: `Navigation progress synced for ${syncedCount} users`,
-      syncedCount
-    });
-  } catch (error) {
-    console.error('Error during bulk navigation sync:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

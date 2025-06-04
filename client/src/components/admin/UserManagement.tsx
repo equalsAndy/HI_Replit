@@ -585,27 +585,6 @@ export function UserManagement() {
                                 // First check if user has any assessment data regardless of navigation progress
                                 const hasAnyData = user.hasAssessment || user.hasStarCard || user.hasFlowAttributes;
 
-                                // Determine progress based on actual assessment data first
-                                const determineStepFromData = () => {
-                                  // If user has all three types of data, they've likely completed most of the workshop
-                                  if (user.hasAssessment && user.hasStarCard && user.hasFlowAttributes) {
-                                    return { step: 'Near Complete (3-4)', type: 'active' };
-                                  }
-                                  // If user has star card and flow attributes but no assessment, they're in flow section
-                                  else if (user.hasStarCard && user.hasFlowAttributes) {
-                                    return { step: 'Flow Section (3-2)', type: 'active' };
-                                  }
-                                  // If user only has star card, they're past the star card creation
-                                  else if (user.hasStarCard) {
-                                    return { step: 'Star Review (2-3)', type: 'active' };
-                                  }
-                                  // If user has any assessment data, they've started
-                                  else if (hasAnyData) {
-                                    return { step: 'In Progress', type: 'active' };
-                                  }
-                                  return null;
-                                };
-
                                 if (user.navigationProgress) {
                                   try {
                                     const progress = JSON.parse(user.navigationProgress);
@@ -624,29 +603,22 @@ export function UserManagement() {
                                       const lastStep = completedSteps[completedSteps.length - 1];
                                       currentStep = `${lastStep} ✓`;
                                       stepType = 'completed';
-                                    } else {
-                                      // No progress in navigation but check actual data
-                                      const dataBasedStep = determineStepFromData();
-                                      if (dataBasedStep) {
-                                        currentStep = dataBasedStep.step;
-                                        stepType = dataBasedStep.type;
-                                      }
+                                    } else if (hasAnyData) {
+                                      // Navigation progress exists but no completed steps, but user has data
+                                      currentStep = 'In Progress';
+                                      stepType = 'active';
                                     }
                                   } catch (e) {
-                                    // If parsing fails, use data-based assessment
-                                    const dataBasedStep = determineStepFromData();
-                                    if (dataBasedStep) {
-                                      currentStep = dataBasedStep.step;
-                                      stepType = dataBasedStep.type;
+                                    // If parsing fails, check for any data
+                                    if (hasAnyData) {
+                                      currentStep = 'In Progress';
+                                      stepType = 'active';
                                     }
                                   }
-                                } else {
-                                  // No navigation progress, use data-based assessment
-                                  const dataBasedStep = determineStepFromData();
-                                  if (dataBasedStep) {
-                                    currentStep = dataBasedStep.step;
-                                    stepType = dataBasedStep.type;
-                                  }
+                                } else if (hasAnyData) {
+                                  // No navigation progress recorded but user has assessment data
+                                  currentStep = 'In Progress';
+                                  stepType = 'active';
                                 }
 
                                 const getStepColor = () => {
