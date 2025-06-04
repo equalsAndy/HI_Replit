@@ -738,14 +738,27 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           <div className="flex justify-center mt-8">
             <Button 
               onClick={() => {
-                if (isCardComplete || starCardFlowAttributes.length > 0) {
+                if (isCardComplete) {
                   markStepCompleted('3-4');
+                  setCurrentContent("wellbeing");
+                } else {
+                  toast({
+                    title: "Step Not Complete",
+                    description: "Please select and save 4 flow attributes to your Star Card before proceeding.",
+                    variant: "destructive"
+                  });
                 }
-                setCurrentContent("wellbeing");
               }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              disabled={!isCardComplete}
+              className={`${isCardComplete 
+                ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              }`}
             >
-              Next: Ladder of Well-being <ChevronRight className="ml-2 h-4 w-4" />
+              {isCardComplete 
+                ? "Next: Ladder of Well-being" 
+                : "Complete flow attributes to continue"
+              } <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>

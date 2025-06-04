@@ -122,11 +122,14 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
             disabled={!hasReachedMinimum}
             className={`${
               hasReachedMinimum 
-                ? "bg-indigo-700 hover:bg-indigo-800" 
-                : "bg-gray-300 cursor-not-allowed"
+                ? "bg-indigo-700 hover:bg-indigo-800 text-white" 
+                : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            Next: Star Strengths Self-Assessment
+            {hasReachedMinimum 
+              ? "Next: Star Strengths Self-Assessment" 
+              : "Watch video to continue"
+            }
           </Button>
         </div>
       </div>

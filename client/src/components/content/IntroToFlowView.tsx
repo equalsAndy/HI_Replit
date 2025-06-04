@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
 
@@ -13,6 +13,17 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  
+  // Handle video progress updates
+  const handleVideoProgress = (percentage: number) => {
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
+      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
+      setHasReachedMinimum(true);
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
@@ -26,6 +37,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
           title="Introduction to Flow State"
           aspectRatio="16:9"
           autoplay={true}
+          onProgress={handleVideoProgress}
         />
       </div>
 
@@ -109,17 +121,26 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
         <Button
           onClick={() => {
-            if (markStepCompleted) {
-              markStepCompleted('3-1');
-            }
-            if (setCurrentContent) {
-              setCurrentContent('flow-assessment');
+            if (hasReachedMinimum) {
+              if (markStepCompleted) {
+                markStepCompleted('3-1');
+              }
+              if (setCurrentContent) {
+                setCurrentContent('flow-assessment');
+              }
             }
           }}
+          disabled={!hasReachedMinimum}
           variant="default"
-          className="bg-indigo-600 hover:bg-indigo-700"
+          className={`${hasReachedMinimum 
+            ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
-          Continue to Flow Assessment
+          {hasReachedMinimum 
+            ? "Continue to Flow Assessment" 
+            : "Watch video to continue"
+          }
         </Button>
       </div>
     </div>
