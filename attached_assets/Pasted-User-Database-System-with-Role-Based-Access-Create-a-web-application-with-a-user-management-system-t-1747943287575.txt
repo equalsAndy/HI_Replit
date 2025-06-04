@@ -1,0 +1,209 @@
+User Database System with Role-Based Access
+Create a web application with a user management system that supports three distinct user roles and profile management.
+Integration Requirements
+Workshop App Integration
+
+Critical: This user database must integrate with the existing "allstarteams workshop app"
+Star Card Display: Participant profile data (name, job title, company, profile picture) should be displayed on their "star cards" throughout the allstarteams workshop app
+The user database should provide an API or data connection that the workshop app can access to pull participant profile information
+Ensure profile pictures, job titles, and company information appear consistently on star cards wherever they show up in the workshop interface
+
+Core Requirements
+User Roles
+
+Admin - Full system access, can create other admins and facilitators, view all data, and delete any participant data
+Facilitator - Can create participant accounts (up to 10), manage their own cohorts, edit participant profile data, delete their own participants' data
+Participant - Can manage their own profile
+
+Initial System Setup
+
+First Admin Account: Brad Topliff (brad@selfactual.ai) should be created as the initial system administrator
+Admins can create additional admin accounts
+Facilitators receive username and password credentials created by admins
+
+Key Features
+1. Account Creation & Management System
+
+Admins can create facilitator accounts with username and password
+Facilitators can create participant accounts (up to 10 per facilitator)
+Participants are automatically assigned to the facilitator who created them
+Required fields for participant creation: Name and Email address
+Optional: Assign participants to named cohorts for grouping
+System automatically generates unique 8-character access codes for each participant
+Facilitators can regenerate access codes if participants lose them
+Display generated codes on screen for facilitators to manually share with participants
+Facilitator Deactivation: When facilitators are deactivated, keep them in system; admins can replace them while cohorts remain intact
+
+2. Data Management & Deletion
+
+Facilitators can delete their own participants' data with confirmation
+Admins can delete any participant data with confirmation
+Two deletion options:
+
+Clear Profile Data: Removes profile information but keeps account active
+Delete Account: Completely removes participant account and all data
+
+
+Multi-step confirmation process:
+
+Initial delete button click
+Confirmation modal with participant details
+Type confirmation text or check multiple boxes
+Final "Delete" button
+
+
+Deletion logs for audit trail (who deleted what and when)
+Participants use their unique code to first access the system
+
+3. Participant Access & Profile Setup
+
+Participants use their unique code to first access the system
+On first login, participants must create their profile:
+
+Edit/confirm their name and email address
+Add job title (optional field)
+Add company name (optional field)
+Upload profile picture (optional, support common image formats, 2MB max file size)
+
+
+After initial setup, participants can return anytime to edit their profile
+Facilitators can also edit participant profile data for their own participants
+
+4. Database Schema
+Create tables for:
+
+Users (id, name, email, role, unique_code, created_by_facilitator_id, is_active, created_at, updated_at)
+Facilitators (id, user_id, max_participants, is_active, deactivated_at)
+Cohorts (id, name, facilitator_id, created_at)
+Participants (id, user_id, facilitator_id, cohort_id, profile_completed, profile_completion_percentage)
+Profiles (user_id, job_title, company, profile_picture_url, completed_at)
+Deletion_logs (id, deleted_by_user_id, deleted_participant_id, deletion_type, participant_name, deletion_reason, deleted_at)
+Sessions/Authentication (with 3-hour timeout)
+
+5. User Interface Requirements
+
+Login page: Accept unique codes for participants, standard login for admin/facilitator
+Admin dashboard:
+
+Create new admin accounts
+Create and manage facilitator accounts (activate/deactivate)
+View all facilitators and their participant counts
+Access all participant data across facilitators
+Delete any participant data with confirmation process
+System-wide analytics and completion tracking
+
+
+Facilitator dashboard:
+
+Create new participant accounts (up to 10)
+Create and manage cohorts
+View only their own participants grouped by cohort
+Profile completion progress tracking with percentage indicators
+Real-time completion status display for each participant
+Copy/display access codes for sharing with participants
+Regenerate access codes for participants
+Edit participant profile data
+Delete their own participants' data with confirmation process
+
+
+Participant profile page:
+
+Clean, user-friendly form for profile information
+Image upload with preview
+Save/update functionality
+
+
+Navigation: Role-appropriate menu system
+Deletion Confirmation System:
+
+Multi-step confirmation modal
+Display participant details before deletion
+Require typing "DELETE" or participant name to confirm
+Clear distinction between "Clear Profile" and "Delete Account"
+Optional deletion reason field
+Cannot be undone warning
+
+
+
+6. Technical Specifications
+
+Use a modern web framework (React, Vue, or vanilla HTML/CSS/JS)
+Implement secure file upload for profile pictures (2MB max file size)
+Include form validation and error handling
+Responsive design that works on mobile and desktop
+Use SQLite or PostgreSQL for the database
+Implement basic security measures (input sanitization, file type validation)
+Password Requirements: Standard security (min 8 characters, uppercase, lowercase, number, special character)
+Session Management: 3-hour automatic timeout for security
+Data isolation: Facilitators can only access their own participants and cohorts
+Role-based access control throughout the application
+API Integration: Provide REST API endpoints for the allstarteams workshop app to access participant profile data
+Star Card Data: API should return participant name, job title, company, and profile picture URL for workshop integration
+
+7. Access Code System
+
+Generate cryptographically secure, unique 8-character codes
+Codes should be easy to type (avoid ambiguous characters like 0/O, 1/l)
+One-time use: code becomes invalid after first successful login
+Include code expiration (optional: 30-day expiry)
+
+User Flows
+Admin Flow:
+
+Login to dashboard (initial admin: Brad Topliff - brad@selfactual.ai)
+Create additional admin accounts and facilitator accounts (username/password)
+Manage facilitator activation/deactivation status
+View system-wide participant data and analytics
+Access all facilitator and participant information
+Delete any participant data using confirmation process
+
+Facilitator Flow:
+
+Login with username and password (3-hour session timeout)
+Create cohorts (optional grouping for participants)
+Click "Add Participant"
+Enter participant name and email
+Optionally assign to a cohort
+System generates and displays unique code
+Manually share code with participant (via email, message, etc.)
+View their own participants organized by cohort with completion progress
+Monitor real-time profile completion status for their participants
+Edit participant profile data as needed
+Regenerate access codes if participants lose them
+Delete their own participants' data using confirmation process
+
+Participant Flow:
+
+Receive unique access code from facilitator
+Visit site and enter code
+Complete profile setup form
+Upload profile picture (optional)
+Save profile and access personal dashboard
+
+Data Deletion Flow (Admin/Facilitator):
+
+Navigate to participant list
+Click delete button next to participant
+Confirmation modal appears with participant details
+Choose deletion type: "Clear Profile" or "Delete Account"
+Type "DELETE" or participant name to confirm
+Optionally enter deletion reason
+Click final "Delete" button
+System logs deletion and removes data
+Success confirmation message displayed
+
+Future Features (For Later Implementation)
+
+Search and filter functionality for participant lists
+Bulk participant import via CSV with cohort assignment
+Data export functionality (participant data by cohort or facilitator)
+Cohort management: rename, delete, move participants between cohorts
+Advanced facilitator analytics: completion rates, cohort comparisons
+Backup and data export functionality for the entire system
+Enhanced integration capabilities with workshop app (real-time updates, webhooks)
+Advanced reporting and analytics beyond basic completion tracking
+Bulk operations (bulk delete, bulk cohort assignment)
+System notifications when participants complete profiles
+
+Please create a fully functional application with clean, professional styling and include sample data for testing.
+IMPORTANT INTEGRATION NOTE: This user database system must integrate with the existing "allstarteams workshop app" to display participant profile data on star cards. Ensure the database provides appropriate API endpoints or data connections for the workshop app to access participant profile information (name, job title, company, profile picture) and display it consistently on star cards throughout the workshop interface.

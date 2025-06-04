@@ -1,0 +1,212 @@
+# AllStarTeams Workshop Data Persistence Agent Prompt
+
+## Goal
+Ensure all user inputs from the AllStarTeams workshop are captured, persisted in the database, displayed when data exists, and persist after user logout/login. All workshop data (except profile information like name, picture) should be deleted when admin resets/deletes user data.
+
+## 🚨 CRITICAL IMPLEMENTATION REQUIREMENTS
+
+**DO NOT MODIFY EXISTING INTERFACES**: Do not alter existing assessment interfaces, UI components, the attribute picker, or any user interactions. Only add data persistence functionality. The current assessment interfaces work correctly and should not be altered.
+
+**USER JOURNEY**: Users complete the workshop once sequentially, then view/download their star cards and AI-generated report. This is not a repeated-use system.
+
+## Current Database Schema & Field Mapping
+
+### Core Tables Used:
+1. **users** - Profile information (preserved during reset)
+2. **userAssessments** - All assessment data (cleared during reset)
+3. **User navigation progress** - Stored in users.navigationProgress JSON field
+
+### AllStarTeams Workshop Data Fields to Persist:
+
+#### 1. Star Card Assessment Data
+**Database Location**: `userAssessments` table where `assessmentType = 'starCard'`
+**Fields in results JSON**:
+- `thinking` (number 0-100)
+- `acting` (number 0-100) 
+- `feeling` (number 0-100)
+- `planning` (number 0-100)
+- `imageUrl` (string, required)
+
+#### 2. Flow Assessment Data
+**Database Location**: `userAssessments` table where `assessmentType = 'flowAssessment'`
+**Fields in results JSON**:
+- `flowScore` (number, calculated total)
+- `answers` (object with question IDs 1-12 and scores 1-5)
+- `totalQuestions` (number, always 12)
+- `maxScore` (number, always 60)
+
+#### 3. Flow Attributes Selection
+**Database Location**: `userAssessments` table where `assessmentType = 'flowAttributes'`
+**Fields in results JSON**:
+- `attributes` (array of exactly 4 selected attribute strings)
+- `flowScore` (number, required)
+
+#### 4. Rounding Out Reflection
+**Database Location**: `userAssessments` table where `assessmentType = 'roundingOutReflection'`
+**Fields in results JSON**:
+- `strengths` (string, text input)
+- `values` (string, text input)
+- `passions` (string, text input)
+- `growthAreas` (string, text input)
+
+#### 5. Future Self Reflection
+**Database Location**: `userAssessments` table where `assessmentType = 'futureSelfReflection'`
+**Fields in results JSON**:
+- `futureSelfDescription` (string, text area input)
+- `visualizationNotes` (string, required)
+
+#### 6. Cantril Ladder (Well-being) Assessment
+**Database Location**: `userAssessments` table where `assessmentType = 'cantrilLadder'`
+**Fields in results JSON**:
+- `currentWellbeing` (number 0-10)
+- `futureWellbeing` (number 0-10)
+- `pastWellbeing` (number 0-10)
+
+#### 7. Final Insights Reflection
+**Database Location**: `userAssessments` table where `assessmentType = 'finalReflection'`
+**Fields in results JSON**:
+- `keyInsights` (string, text area)
+- `actionSteps` (string, text area)
+- `commitments` (string, text area)
+
+#### 8. Navigation Progress
+**Database Location**: `users.navigationProgress` JSON field
+**Fields**:
+- `completedSteps` (array of step IDs like "1-1", "2-3")
+- `currentStepId` (string, current step)
+- `appType` (string, "ast" for AllStarTeams)
+- `lastVisitedAt` (ISO date string)
+- `unlockedSections` (array of section numbers)
+- `videoProgress` (object with step IDs and watch percentages)
+
+#### 9. Profile Information (PRESERVED during reset)
+**Database Location**: `users` table
+**Fields NOT to delete**:
+- `name`, `email`, `profilePicture`, `organization`, `jobTitle`, `username`, `role`
+
+## Data Validation Rules
+
+### Strict Validation Requirements:
+- **Star Card**: `thinking + acting + feeling + planning` must equal exactly 100
+- **Flow Attributes**: Exactly 4 items required (do not alter attribute picker)
+- **Flow Assessment**: All answers required (1-12 with values 1-5)
+- **Text Fields**: 1-1000 characters, required, HTML stripped
+- **Cantril Ladder**: All wellbeing scores required (integers 0-10)
+- **All Fields**: Everything is required unless specifically noted as optional
+
+### Friendly Error Messages:
+- Character limit: "Keep it brief - try summarizing your thoughts in a few sentences"
+- Required field: "This reflection helps build your profile - please share a thought or two"
+- Invalid input: "Please use standard text only - special formatting isn't needed"
+- Save failure: "Having trouble saving - we'll keep trying automatically"
+
+## Technical Implementation Requirements
+
+### Auto-Save Strategy (Smart Triggers):
+- **Text areas**: Save on typing pause (750ms) OR every 10 keystrokes OR field blur
+- **Assessment scores**: Immediate save (no debounce)
+- **Navigation**: Save progress on step completion
+
+### Error Handling & Resilience:
+1. **Failed saves**: Silent retry (3-5 attempts with exponential backoff)
+2. **Persistent failures**: Escalate to user notification with local storage backup
+3. **Database outages**: Queue operations with local storage, auto-sync when reconnected
+4. **Data integrity**: Use atomic transactions for individual saves
+
+### User Experience:
+- **Save indicators**: Context-sensitive (immediate checkmarks for assessments, subtle indicators for text)
+- **Concurrent sessions**: Tab locking - only one active editing session per user
+- **Device conflicts**: Timestamp-based resolution with user notification
+- **Data recovery**: Display existing data when user returns to any step
+
+### Data Versioning:
+- **Milestone snapshots**: Save complete data snapshots at major section completions
+- **Version limit**: Keep last 3-5 versions per assessment type
+- **Schema flexibility**: Use flexible JSON structure, additive-only changes
+
+### Authentication & Security:
+- **Role-based access**: Leverage Replit's built-in authentication
+  - **Users**: Access only their own data
+  - **Admins**: Access/reset any user data
+  - **Facilitators**: Planned for future (not implemented)
+- **Rate limiting**: 60 saves per minute per user (generous for smooth UX)
+- **Audit logging**: Log admin actions only (admin ID, target user, timestamp, IP)
+
+### API Response Format:
+```javascript
+// Success
+{ success: true, data: { ...workshopData } }
+// Error (with friendly messages)
+{ success: false, error: "Keep it brief - try summarizing your thoughts in a few sentences" }
+```
+
+### Caching Strategy:
+- **Session caching**: Cache user's workshop data in memory during active session
+- **Static data**: Cache assessment questions and UI content
+- **Simple approach**: Prioritize simplicity over complex caching
+
+## Current API Endpoints to Enhance:
+
+### Data Retrieval:
+- `GET /api/workshop-data/starcard` - Get star card data
+- `GET /api/workshop-data/flow-attributes` - Get flow attributes
+- `GET /api/user/assessments` - Get all assessments
+- `GET /api/user/navigation-progress` - Get navigation progress
+
+### Data Persistence:
+- `POST /api/workshop-data/starcard` - Save star card
+- `POST /api/workshop-data/flow-attributes` - Save flow attributes  
+- `POST /api/workshop-data/assessments` - Save any assessment
+- `POST /api/user/navigation-progress` - Save progress
+
+### Data Reset:
+- `POST /api/admin/reset-user-data/:userId` - Reset all workshop data (preserve profile)
+
+## Required Enhancements:
+
+### 1. Missing Assessment Endpoints
+Create endpoints for assessments not yet handled:
+- Rounding Out Reflection
+- Future Self Reflection  
+- Cantril Ladder Assessment
+- Final Insights Reflection
+
+### 2. Real-time Persistence
+- Auto-save user inputs with smart triggers (see strategy above)
+- Local storage backup for failed saves
+- Automatic retry with exponential backoff
+
+### 3. Data Recovery & Display
+- Load and display existing data when user returns to any step
+- Show save status with context-sensitive indicators
+- Handle version conflicts gracefully
+
+### 4. Admin Controls
+- Comprehensive reset functionality (clear assessments, preserve profile)
+- Audit logging for admin actions
+- Data validation before storage
+
+### 5. Monitoring & Analytics
+- Track save success/failure rates by endpoint
+- Monitor average response times for auto-save operations
+- Log user completion rates by assessment type
+
+## Implementation Priority:
+1. **Text area auto-save** - Highest data loss risk
+2. **Assessment scores persistence** - Core functionality
+3. **Navigation progress tracking** - User experience
+4. **Error handling & retry logic** - Reliability
+5. **Admin tools & monitoring** - Management capabilities
+
+## Files to Modify:
+- `server/routes/workshop-data-routes.ts` - Add missing endpoints
+- `client/src/components/content/*.tsx` - Add persistence to input components  
+- `server/services/reset-service.ts` - Ensure proper data separation
+- `shared/schema.ts` - Document assessment types and validation rules
+
+## Future Considerations:
+- **AI Report Generation**: Endpoint structure prepared for future AI report integration
+- **Facilitator Access**: Role-based permissions planned but not implemented
+- **Advanced Analytics**: Framework supports future learning insights and progression tracking
+
+This prompt ensures comprehensive data persistence across the entire AllStarTeams workshop experience while maintaining proper data separation for reset functionality and protecting existing user interfaces.

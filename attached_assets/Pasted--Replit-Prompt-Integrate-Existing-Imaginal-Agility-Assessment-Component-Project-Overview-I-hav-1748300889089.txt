@@ -1,0 +1,194 @@
+# Replit Prompt: Integrate Existing Imaginal Agility Assessment Component
+
+## Project Overview
+I have a complete React component for the new Imaginal Agility Assessment that needs to be integrated into our existing Heliotrope Imaginal Workshops app. Please take this working component and adapt it to work seamlessly with our current system architecture.
+
+## Existing Component Code
+```javascript
+// [I will provide the complete React component code from the artifact]
+// This includes:
+// - 21-question assessment structure
+// - 5-point Likert scale with proper ordering
+// - Demo mode with random answer generation
+// - Spider chart results with Recharts
+// - Complete scoring logic for all 5 capacities + imagination sub-dimensions
+// - Responsive design and professional styling
+```
+
+## Integration Tasks Needed
+
+### 1. Modal Integration
+**Convert the component to work in a modal:**
+- Wrap the component in our existing modal patterns
+- Add proper modal header with close button
+- Handle modal open/close state management
+- Ensure modal is responsive and follows our existing modal styling
+- Add backdrop click and ESC key handling
+
+### 2. Database Integration
+**Connect to our existing data layer:**
+- Replace the demo `window.location.reload()` with proper state management
+- Use our existing API routes (likely in `workshop-data-routes.ts`)
+- Save assessment results to our `userAssessments` table with `assessmentType: 'imaginationAssessment'`
+- Follow our existing authentication and user session patterns
+- Use our existing database connection and ORM patterns
+
+### 3. Styling Integration
+**Match our existing app design:**
+- Replace any custom colors with our existing Tailwind classes
+- Use our existing component patterns and spacing
+- Ensure the purple theme matches our Imaginal Agility branding
+- Follow our existing responsive design patterns
+- Use our existing typography and button styles
+
+### 4. Navigation Integration
+**Connect to our existing assessment flow:**
+- Replace this component with our current imagination assessment
+- Trigger the modal from the existing assessment button/link
+- Integrate with our existing navigation progress tracking
+- Use our existing toast notifications for success/error states
+- Follow our existing user flow patterns
+
+### 5. Chart Library Integration
+**Ensure chart compatibility:**
+- Verify Recharts is available (or install if needed)
+- Use our existing chart styling patterns if any
+- Ensure charts are responsive within our modal structure
+- Match chart colors to our existing design system
+
+### 6. API Integration
+**Connect to our backend:**
+```javascript
+// Replace demo functionality with real API calls like:
+const handleAssessmentComplete = async (assessmentData) => {
+  try {
+    const response = await fetch('/api/workshop-data/assessment', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        assessmentType: 'imaginationAssessment',
+        responses: assessmentData.responses,
+        scores: assessmentData.scores
+      })
+    });
+    // Handle success/error with existing patterns
+  } catch (error) {
+    // Use existing error handling
+  }
+};
+```
+
+### 7. State Management Integration
+**Use our existing state patterns:**
+- Integrate with our existing user context/hooks
+- Use our existing loading states and error handling
+- Follow our existing form state management patterns
+- Connect with our existing progress tracking system
+
+### 8. Component Structure Integration
+**File placement and exports:**
+- Place component in appropriate directory structure
+- Use our existing import/export patterns
+- Follow our existing component naming conventions
+- Add proper TypeScript types if we use TypeScript
+
+## Specific Integration Points
+
+### Replace Current Assessment
+- Find where the current imagination assessment is triggered
+- Replace the trigger to open this new modal component
+- Maintain the same user journey and context
+- Keep existing navigation flow intact
+
+### Results Integration
+- Save results to existing user profile system
+- Display results in existing dashboard/profile areas
+- Allow retaking assessment with existing patterns
+- Integrate with existing assessment history tracking
+
+### Error Handling
+- Use our existing error boundary patterns
+- Follow our existing user feedback systems
+- Use our existing loading spinners and states
+- Implement proper validation with our existing patterns
+
+## Technical Requirements
+
+### Props and Interface
+```typescript
+interface ImaginalAgilityAssessmentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete: (results: AssessmentResults) => void;
+  userId?: string; // if needed for our auth system
+}
+```
+
+### Data Structure for Our System
+```javascript
+// Ensure the component outputs data in our expected format:
+{
+  assessmentType: 'imaginationAssessment',
+  completedAt: new Date().toISOString(),
+  responses: {
+    // all 21 question responses
+  },
+  scores: {
+    imagination: number,
+    curiosity: number,
+    empathy: number,
+    creativity: number,
+    courage: number,
+    subDimensions: {
+      generativeFluency: number,
+      temporalFlexibility: number,
+      // ... etc
+    }
+  }
+}
+```
+
+## Implementation Steps
+
+1. **Analysis Phase:**
+   - Examine our existing modal components
+   - Review our current assessment patterns
+   - Check our database schema for userAssessments
+   - Identify our API route patterns
+
+2. **Integration Phase:**
+   - Create modal wrapper component
+   - Connect to our database/API layer
+   - Apply our styling system
+   - Integrate with our navigation system
+
+3. **Testing Phase:**
+   - Test complete assessment flow in modal
+   - Verify database saves correctly
+   - Test demo mode functionality
+   - Ensure responsive design works
+   - Test integration with existing user flow
+
+4. **Replacement Phase:**
+   - Replace current imagination assessment trigger
+   - Update any references to old assessment
+   - Ensure backward compatibility if needed
+
+## Success Criteria
+- ✅ Modal opens/closes properly with our existing patterns
+- ✅ Assessment saves to our database correctly
+- ✅ Styling matches our existing app design
+- ✅ Demo mode works for testing
+- ✅ Spider chart displays properly within modal
+- ✅ Navigation integrates seamlessly with existing flow
+- ✅ Error handling follows our existing patterns
+- ✅ Responsive design works on all our supported devices
+
+## Notes
+- The component code is complete and functional
+- Focus on integration rather than rebuilding functionality
+- Maintain all existing features (21 questions, demo mode, spider chart)
+- Follow our existing code patterns and conventions
+- Test thoroughly before replacing current assessment
+
+Please integrate this component into our system while maintaining all its functionality and ensuring it works seamlessly with our existing app architecture.

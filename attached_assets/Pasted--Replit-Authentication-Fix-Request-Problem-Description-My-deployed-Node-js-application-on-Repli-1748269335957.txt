@@ -1,0 +1,95 @@
+# Replit Authentication Fix Request
+
+## Problem Description
+My deployed Node.js application on Replit is experiencing authentication issues. The admin user gets 403 Forbidden errors when accessing admin routes, despite working locally.
+
+**Error Details:**
+- Status: 403 Forbidden on `/api/admin/invites` and `/api/admin/users`
+- Console shows: "updateAppFromUrl - App param: null Location: /admin"
+- SessionStorage shows "ast" but authentication is failing
+
+## Current Tech Stack
+- **Backend**: Node.js with Express
+- **Database**: PostgreSQL 
+- **Authentication**: Session-based (express-session + connect-pg-simple)
+- **Session Storage**: PostgreSQL sessions table
+- **Password Hashing**: bcrypt
+
+## Authentication System Details
+
+### Session Configuration:
+```javascript
+app.use(session({
+  store: new pgSession({
+    pool: db.pool,
+    tableName: 'sessions'
+  }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  rolling: true,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000,
+    sameSite: 'lax'
+  }
+}));
+```
+
+### Admin User Credentials:
+- Username: `admin`
+- Password: `Heliotrope@2025`
+- User ID: 1 (has admin failsafe)
+- Email: admin@heliotropeimaginal.com
+
+### Middleware Stack:
+- `requireAuth` middleware validates sessions
+- `isAdmin` middleware checks `userRole === 'admin'` OR `userId === 1`
+- Admin routes protected by both middlewares
+
+## Suspected Issues
+
+1. **Session Cookie Problems**: Cookies may not be persisting in deployment environment
+2. **Database Connection**: PostgreSQL sessions table may not be accessible
+3. **Environment Variables**: Missing or incorrect secrets in deployment
+4. **HTTPS/HTTP Cookie Settings**: Secure cookie settings may be incompatible
+
+## Environment Variables Needed
+```
+DATABASE_URL=postgresql://username:password@host:port/database
+SESSION_SECRET=your-session-secret
+NODE_ENV=production
+```
+
+## Debugging Steps Attempted
+- Verified admin user exists in database
+- Checked session middleware configuration
+- Tested authentication flow locally (works)
+- Deployment works but authentication fails
+
+## What I Need Help With
+
+**Primary Request**: Fix the session-based authentication so admin user can access protected routes in Replit deployment.
+
+**Specific Help Needed**:
+1. **Session Storage**: Ensure PostgreSQL sessions are working in deployment
+2. **Cookie Configuration**: Fix cookie settings for Replit environment  
+3. **Database Connection**: Verify PostgreSQL connection and sessions table access
+4. **Environment Setup**: Confirm all required secrets are properly configured
+5. **Middleware Debugging**: Check if authentication middleware is properly executing
+
+## Expected Behavior
+- Admin user should login successfully at `/login`
+- Session should persist across requests
+- Admin routes (`/api/admin/*`) should be accessible
+- No 403 errors on authenticated admin requests
+
+## Files to Focus On
+- Session configuration in main server file
+- Authentication middleware (`server/middleware/auth.ts`)
+- Admin role middleware (`server/middleware/roles.ts`) 
+- Database connection setup
+- Environment variable configuration in Replit Secrets
+
+**Please help identify and fix the authentication issue preventing admin access in the Replit deployment environment.**

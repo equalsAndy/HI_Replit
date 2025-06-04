@@ -1,0 +1,59 @@
+# Replit "Cannot GET /" Error - Complete Fix Request
+
+I'm getting a "Cannot GET /" error in my Replit app and need you to systematically debug and fix this issue once and for all.
+
+## Please analyze and fix the following:
+
+### 1. **Port Conflict Resolution** 
+- **PRIMARY ISSUE**: Multiple server instances are competing for port 5000 (EADDRINUSE errors)
+- Check for existing processes using port 5000 and kill them if needed
+- Ensure only one server instance is running at a time
+- Verify the workflow isn't starting multiple competing processes
+- Address EADDRINUSE errors that prevent server startup
+- Provide commands to clean up zombie processes
+
+### 2. **Process Management in Replit**
+- Check for duplicate or conflicting startup commands
+- Verify .replit configuration isn't causing multiple instances
+- Ensure proper process cleanup when restarting
+- Identify and stop any background processes holding port 5000
+
+### 3. **File Structure & Entry Point**
+- Review my `.replit` configuration file for duplicate or conflicting commands
+- Check that startup commands aren't creating multiple server instances
+- Verify workflow configuration isn't causing process conflicts
+- Ensure all required dependencies are installed
+
+### 4. **Development vs Production Environment**
+- Verify Vite middleware is properly handling routes in development
+- Check that static file serving works correctly in production
+- Ensure catch-all route for client-side routing is configured
+- Test both development and production builds
+- Address environment-specific routing issues
+
+### 5. **Error Handling & Process Cleanup**
+- Add proper error handling and logging
+- Include startup confirmation messages
+- Add middleware for better debugging
+
+## What I need from you:
+
+1. **Diagnose** the specific cause of my error by examining my current code
+2. **Provide a complete working solution** with all necessary files
+3. **Explain what was wrong** and why the fix works
+4. **Include a minimal test route** to verify the fix works
+5. **Add proper error handling** to prevent future issues
+6. **Ensure Replit-specific compatibility** (correct port, host, file structure)
+
+## Expected deliverables:
+
+- ✅ Port conflict resolution strategy and commands
+- ✅ Process management commands for Replit (kill zombie processes)
+- ✅ Environment-specific route handling verification
+- ✅ Workflow configuration check and fixes
+- ✅ Updated `.replit` configuration if needed
+- ✅ Clear explanation of what was causing the conflicts
+- ✅ Testing instructions to verify the fix
+- ✅ Prevention strategies for future port conflicts
+
+Please provide a complete, copy-paste ready solution that will work in Replit's environment. Make sure to include comments explaining the Replit-specific requirements.

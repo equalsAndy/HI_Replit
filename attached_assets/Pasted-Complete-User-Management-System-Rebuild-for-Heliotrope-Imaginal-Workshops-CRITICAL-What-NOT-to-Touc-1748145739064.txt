@@ -1,0 +1,322 @@
+Complete User Management System Rebuild for Heliotrope Imaginal Workshops
+CRITICAL: What NOT to Touch
+DO NOT ALTER:
+
+Any workshop content, components, or functionality
+Star card system (only ensure compatibility with new profile data)
+Video content management
+Workshop progress tracking logic
+Any existing workshop-related components in client/src/components/
+Assessment systems (starCards, flowAttributes database tables)
+The 5 existing test users and test admin functionality - PRESERVE THESE
+
+PRESERVE:
+
+Current database tables: starCards, flowAttributes, sessions
+Workshop video and content systems
+Test user system and test admin access
+All workshop-related routes and components
+
+Step 1: Clean Removal of Current User Management
+Remove only user management related code:
+
+server/auth-routes.ts (rebuild completely)
+server/admin-routes.ts (rebuild completely)
+client/src/components/admin/* (rebuild completely)
+User management UI components only
+Keep database schema.ts but modify user-related tables only
+
+Step 2: Enhanced Database Schema
+Modify existing schema.ts to add:
+typescript// Add to existing users table
+users: {
+  // existing fields...
+  inviteCode: varchar('invite_code', { length: 12 }).unique(),
+  codeUsed: boolean('code_used').default(false),
+  organization: varchar('organization', { length: 30 }),
+  jobTitle: varchar('job_title', { length: 30 }),
+  profilePicture: text('profile_picture'), // URL or base64
+  createdByFacilitator: integer('created_by_facilitator').references(() => users.id),
+  // keep all existing fields
+}
+
+// Add pending invites tracking
+pendingInvites: {
+  id: serial('id').primaryKey(),
+  inviteCode: varchar('invite_code', { length: 12 }).unique(),
+  email: varchar('email', { length: 255 }),
+  name: varchar('name', { length: 100 }),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  cohortId: integer('cohort_id').references(() => cohorts.id).nullable(),
+}
+Step 3: Code Generation System
+Create 12-character invite codes:
+
+Character set: ABCDEFGHJKMNPQRSTUVWXYZ23456789 (no confusing chars)
+One-time use only
+Expires when successfully used
+Admins/facilitators can regenerate if needed
+
+Step 4: Role-Based User Creation
+Admin Permissions:
+
+Create facilitators, admins, and participants
+View/manage all users and cohorts
+Reassign participants and cohorts between facilitators
+Access all system functionality
+
+Facilitator Permissions:
+
+Create participants only
+Create cohorts (auto-assigned as facilitator)
+View/manage only their assigned participants and cohorts
+Generated participants auto-assigned to them
+
+Participant Permissions:
+
+Standard user access to workshops
+Can edit name, organization, job title, profile picture
+Cannot edit email (admin/facilitator only)
+
+Step 5: User Creation Workflow
+For Admins/Facilitators:
+
+Add user form with:
+
+Name (required)
+Email (required)
+Role selection (admin: all roles, facilitator: participant only)
+Cohort assignment (optional, dropdown of available cohorts)
+
+
+System generates 12-character code
+Display code to admin/facilitator to share with user
+Track pending invites with status
+
+For New Users (Code Entry):
+
+Login page has "Have an invite code?" option
+Code entry creates profile setup modal:
+
+Pre-filled name and email (name editable, email read-only)
+Username creation (follow rules below)
+Password creation or generation
+Organization (30 char limit)
+Job Title (30 char limit)
+Profile picture upload
+
+
+Complete profile creation activates account and marks code as used
+
+Step 6: Username Requirements
+
+3-20 characters long
+Letters, numbers, underscores, hyphens only
+Must start with letter or number
+No consecutive underscores/hyphens
+Case-insensitive (stored lowercase)
+Unique across system
+Reserved words blocked: admin, system, test, support, help, api, root
+
+Step 7: Password Requirements
+
+Minimum 8 characters
+At least one uppercase letter
+At least one lowercase letter
+At least one number
+At least one special character (!@#$%^&*)
+System can generate secure passwords meeting these rules
+
+Step 8: New UI Components Needed
+Admin Dashboard:
+
+User management table with search/filter
+Pending invites tracker with status
+Cohort management with facilitator assignment
+Role management tools
+Bulk operations where appropriate
+
+Facilitator Dashboard:
+
+My participants view
+My cohorts view
+Create participant form
+Create cohort form
+Pending invites for my users
+
+Profile Management:
+
+User profile edit modal
+Password change functionality
+Profile picture upload/management
+
+Invite Code Modal:
+
+Clean, intuitive profile setup
+Username availability checking
+Password strength indicator
+Profile picture preview
+
+Step 9: Security & Validation
+
+All password hashing with bcrypt (existing standard)
+Server-side role validation on all operations
+Input sanitization and validation
+File upload validation for profile pictures
+Rate limiting on invite code generation
+Secure session management (maintain existing)
+
+Step 10: Data Integration
+Star Card Compatibility:
+Ensure new profile data (name, organization, jobTitle, profilePicture) integrates smoothly with existing star card system.
+Workshop Integration:
+
+Maintain existing workshop progress tracking
+Preserve user assessment data relationships
+Keep all existing workshop functionality intact
+
+Step 11: Cohort Management Enhancement
+
+Facilitators auto-assigned to cohorts they create
+Participants can be assigned during creation or later
+Users don't require cohort membership
+Admin reassignment capabilities
+Clear cohort ownership tracking
+
+Step 12: Pending Invites Dashboard
+Show for admins/facilitators:
+
+Pending codes with recipient info
+Code generation date
+Expiration status
+Ability to regenerate codes
+Workshop progress tracking for completed users
+
+Step 13: User and Cohort Deletion
+User Deletion Permissions:
+Admins can delete:
+
+Any participant, facilitator, or admin
+Cannot delete themselves (require another admin)
+
+Facilitators can delete:
+
+Only participants assigned to them
+Cannot delete other facilitators or admins
+Cannot delete themselves
+
+User Deletion Process:
+
+Soft Delete Implementation:
+
+Add deletedAt timestamp to users table
+Mark user as deleted instead of hard delete
+Preserve workshop progress and assessment data
+Hide deleted users from normal views
+Admin option to permanently delete after 30 days
+
+
+Deletion Confirmation:
+
+Two-step confirmation process
+Show user's workshop progress and data that will be affected
+Warning about data preservation/loss
+Final confirmation with typed username
+
+
+Data Handling:
+
+Preserve star cards and assessment data (for analytics)
+Maintain workshop progress records
+Remove from active cohorts
+Invalidate all sessions
+Keep user ID for data integrity
+
+
+
+Cohort Deletion Permissions:
+Admins can delete:
+
+Any cohort in the system
+View all participants that will be affected
+
+Facilitators can delete:
+
+Only cohorts they created or are assigned to
+View their participants that will be affected
+
+Cohort Deletion Process:
+
+Pre-deletion Check:
+
+Show all participants in the cohort
+Display workshop progress that might be affected
+Option to reassign participants to another cohort
+Option to remove participants from cohort without deletion
+
+
+Deletion Options:
+
+Delete cohort only (participants remain, just unassigned)
+Delete cohort and reassign participants to another cohort
+Warning if any participants will be left without cohorts
+
+
+Confirmation Process:
+
+Show impact summary
+Require typed cohort name for confirmation
+Final warning about participant reassignment
+
+
+
+Bulk Operations:
+
+Select multiple users for deletion
+Bulk cohort reassignment before deletion
+Batch operations with progress indicators
+Comprehensive action logs
+
+Safety Measures:
+
+Action logging for all deletions
+Email notifications to affected users (configurable)
+Recovery options for soft deletes
+Admin audit trail
+Prevent deletion of users with critical system roles
+
+UI Components:
+
+Delete confirmation modals
+Impact preview screens
+Recovery interface for soft deletes
+Audit log viewer for admins
+Bulk selection interface
+
+Implementation Priority:
+
+Database schema updates (including soft delete fields)
+Backend API routes (auth and admin)
+Core user creation/invite system
+Profile setup modal and code entry
+Admin/facilitator dashboards
+Enhanced cohort management
+User and cohort deletion system with safety measures
+Integration testing with existing workshop system
+
+Success Criteria:
+
+✅ Seamless invite code workflow
+✅ Role-based permissions working correctly
+✅ Safe user/cohort deletion with data preservation
+✅ Star card integration maintained
+✅ Workshop functionality unaffected
+✅ Test users and admin preserved
+✅ Clean, intuitive admin interface
+✅ Secure authentication maintained
+✅ Mobile-responsive design
+✅ Comprehensive audit logging
+
+Start with database schema updates and work systematically through each component. Ensure thorough testing at each step to verify workshop systems remain intact.

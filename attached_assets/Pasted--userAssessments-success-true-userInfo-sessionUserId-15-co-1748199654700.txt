@@ -1,0 +1,119 @@
+{
+  "userAssessments": {
+    "success": true,
+    "userInfo": {
+      "sessionUserId": 15,
+      "cookieUserId": 1
+    },
+    "currentUser": {
+      "assessments": {
+        "starCard": {
+          "id": 3,
+          "userId": 15,
+          "type": "starCard",
+          "created": "2025-05-25T18:56:01.752Z",
+          "formattedResults": {
+            "thinking": 24,
+            "feeling": 19,
+            "acting": 31,
+            "planning": 26
+          }
+        }
+      },
+      "starCard": {
+        "thinking": 24,
+        "feeling": 19,
+        "acting": 31,
+        "planning": 26
+      }
+    },
+    "allUsers": {
+      "1": [
+        {
+          "id": 4,
+          "userId": 1,
+          "type": "starCard",
+          "created": "2025-05-25T18:58:18.747Z",
+          "formattedResults": {
+            "thinking": 24,
+            "feeling": 26,
+            "acting": 21,
+            "planning": 29
+          }
+        }
+      ],
+      "15": [
+        {
+          "id": 3,
+          "userId": 15,
+          "type": "starCard",
+          "created": "2025-05-25T18:56:01.752Z",
+          "formattedResults": {
+            "thinking": 24,
+            "feeling": 19,
+            "acting": 31,
+            "planning": 26
+          }
+        }
+      ]
+    },
+    "raw": {
+      "assessmentCount": 2,
+      "allAssessments": [
+        {
+          "id": 3,
+          "userId": 15,
+          "type": "starCard",
+          "created": "2025-05-25T18:56:01.752Z",
+          "formattedResults": {
+            "thinking": 24,
+            "feeling": 19,
+            "acting": 31,
+            "planning": 26
+          }
+        },
+        {
+          "id": 4,
+          "userId": 1,
+          "type": "starCard",
+          "created": "2025-05-25T18:58:18.747Z",
+          "formattedResults": {
+            "thinking": 24,
+            "feeling": 26,
+            "acting": 21,
+            "planning": 29
+          }
+        }
+      ]
+    }
+  },
+  "starCard": {
+    "success": true,
+    "thinking": 24,
+    "feeling": 19,
+    "acting": 31,
+    "planning": 26
+  },
+  "flowAttributes": {
+    "status": "No flow attributes found",
+    "isEmpty": true
+  },
+  "userProfile": {
+    "success": true,
+    "user": {
+      "id": 15,
+      "username": "participant1",
+      "name": "Participant One",
+      "email": "participant1@example.com",
+      "role": "participant",
+      "organization": "Client Company A",
+      "jobTitle": "Team Member",
+      "profilePicture": null,
+      "isTestUser": true,
+      "createdAt": "2025-05-25T15:02:43.180Z",
+      "updatedAt": "2025-05-25T15:02:43.180Z",
+      "progress": 0,
+      "title": "Team Member"
+    }
+  }
+}

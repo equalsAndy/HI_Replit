@@ -1,0 +1,32 @@
+Prompt for Agent: Integrate Test User Banner System with Database
+Goal: Connect the existing TestUserBanner component (client/src/components/test-users/TestUserBanner.tsx) to work with the NavBar (client/src/components/layout/NavBar.tsx) and allstarteams page (client/src/pages/allstarteams.tsx) by:
+
+Database Schema Update: Add an isTestUser boolean field to the users table in shared/schema.ts
+User Management Integration: Update client/src/components/admin/UserManagement.tsx to allow admins to toggle test user status for any user
+API Routes: Modify server/routes/admin-routes.ts to include endpoints for updating test user status
+Service Layer: Update server/services/user-management-service.ts to handle test user status changes
+Frontend Detection: Fix the test user detection logic in client/src/components/test-users/TestUserBanner.tsx to use the database field instead of regex matching usernames
+NavBar Integration: Ensure client/src/components/layout/NavBar.tsx properly shows the TestUserBanner for authenticated test users
+Workshop Pages: Verify that client/src/pages/allstarteams.tsx and client/src/pages/imaginal-agility.tsx display both NavBar and TestUserBanner correctly
+Key Files to Modify:
+
+shared/schema.ts - Add isTestUser field to users table
+server/services/user-management-service.ts - Add methods to update test user status
+server/routes/admin-routes.ts - Add endpoint for toggling test user status
+client/src/components/admin/UserManagement.tsx - Add UI to manage test user status
+client/src/components/test-users/TestUserBanner.tsx - Use database field instead of username regex
+client/src/components/layout/NavBar.tsx - Ensure proper TestUserBanner integration
+client/src/pages/allstarteams.tsx - Verify NavBar and TestUserBanner are both present
+Expected Behavior:
+
+Admins can designate any user as a test user via the admin panel
+Test users see both the NavBar and TestUserBanner with reset functionality
+Non-test users see only the NavBar
+The TestUserBanner shows the yellow "You are using a test account" message with Switch App and Reset Data buttons
+Technical Requirements:
+
+Use the existing TestUserBanner component from client/src/components/test-users/TestUserBanner.tsx
+Maintain all existing reset data functionality
+Preserve the current NavBar styling and functionality
+Ensure proper authentication checks and role-based permissions
+This should connect the new user management system with the existing workshop application flow properly.

@@ -1,0 +1,108 @@
+# Imaginal Agility Workshop Progression Logic - Agent Prompt
+
+## IMPORTANT: Scope Limitations
+**ONLY implement the progression logic specified in this prompt. Do NOT:**
+- Add additional features not mentioned here
+- Create new UI components beyond what's described
+- Modify existing functionality that isn't part of the progression system
+- Add extra validation, warnings, or helper features
+- Implement functionality that "seems helpful" but isn't specified
+- Change the existing design system, styling, or layout
+- Add additional database fields beyond those listed
+- Create new user flows or shortcuts not described
+
+**STICK STRICTLY to the progression rules, completion criteria, and data persistence requirements outlined below.**
+
+## Overview
+You are managing a sequential learning progression system for the Imaginal Agility workshop app. Users must complete sections in order, with each completion unlocking the next section. All progress persists across browser sessions and logins via database storage.
+
+## Core Progression Rules
+
+### Initial State
+- On first login: Only "Introduction to Imaginal Agility" is active, all other sections disabled
+- Progress indicators show current completion (e.g., "2/6" means 2 of 6 completed)
+- Completed sections display **light purple checkmarks** and remain accessible for revisiting
+
+### Video Content Pattern
+- **ALL videos auto-play** on section entry
+- Minimum 1% watch time required before "Next" button enables
+- "Next" button OR video completion triggers progression
+- Pattern: Auto-play video + ≥1% + "Next: [Next Section]" → unlock next section
+
+### Assessment Modal Pattern
+- Modal assessments collect data through all questions
+- Completion shows results screen with "Next: [Next Section]" button
+- Results + progression button saves data to database
+- Revisiting completed assessments shows results in content view (not assessment)
+
+## Activity Type Icons
+The app uses existing SVG icons to indicate activity types:
+- **Book Icon**: Video content or content with activities
+- **Lightning Icon**: Assessments or interactive activities
+
+## Detailed Section Progression
+
+### Imaginal Agility Program (6/6)
+Sequential unlock: Introduction → Triple Challenge → Solution → 5 Capabilities → Assessment → Results
+
+1. **Introduction to Imaginal Agility** (Book Icon)
+   - **Auto-play** video on first login
+   - ≥1% watch required before "Next: The Triple Challenge" enables
+   - Completion → light purple checkmark + unlock "The Triple Challenge"
+
+2. **The Triple Challenge** (Book Icon)
+   - **Auto-play** video + ≥1% + "Next: The Imaginal Agility Solution"
+   - Completion → light purple checkmark + unlock "The Imaginal Agility Solution"
+
+3. **The Imaginal Agility Solution** (Book Icon)
+   - **Auto-play** video + ≥1% + "Next: Your 5 Capabilities (5Cs)"
+   - Completion → light purple checkmark + unlock "Your 5 Capabilities (5Cs)"
+
+4. **Your 5 Capabilities (5Cs)** (Book Icon)
+   - **Auto-play** video + ≥1% + "Next: Take the Imagination Assessment"
+   - Completion → light purple checkmark + unlock "Take the Imagination Assessment"
+
+5. **Take the Imagination Assessment** (Lightning Icon)
+   - Modal assessment → all questions → results screen
+   - "Next: Review your Results" button saves data to database
+   - Revisiting shows results in content view
+   - Completion → light purple checkmark + unlock "Review your Results"
+
+6. **Review your Results** (Book Icon)
+   - Display spider graph and post-assessment content based on assessment data
+   - Content viewing completes the section
+   - Completion → light purple checkmark + program complete (6/6)
+
+## Database Requirements
+
+### Save to Database:
+- Imagination Assessment results (at results screen)
+- Spider graph data (generated from assessment)
+- Section completion states
+- Progress indicators (X/6 completion counts)
+- Video watch progress and completion status
+
+### Persistence Rules:
+- All progress persists across browser sessions and logins
+- Users can revisit any completed section
+- Assessment retakes only available via profile modal "delete everything and start over" (not implemented yet)
+- Completed sections maintain light purple checkmarks permanently
+
+## Error Handling
+- If user attempts to access locked section → redirect to current unlocked section
+- If required data missing → prevent progression until completed
+- If database save fails → retry or show error, don't allow progression
+
+## Special Behaviors
+- Modal assessment: First visit = assessment, return visits = results view
+- Videos: Auto-play on section entry, progress tracked
+- Progress counters: Update in real-time as sections complete
+- Spider graph: Generated from assessment data and displayed in "Review your Results"
+
+## Visual Design Specifications
+- **Checkmark color**: Light purple (not green) for completed sections
+- **Icons**: Use existing SVG Book and Lightning icons from design system
+- **Progress indicator**: Shows "X/6" format in real-time
+
+## Final Reminder: Stay Within Scope
+**Implement ONLY the features and logic specified in this prompt. Do not add any additional functionality, UI enhancements, or "helpful" features not explicitly described above. Focus solely on the progression system as outlined.**

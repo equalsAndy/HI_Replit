@@ -1,0 +1,161 @@
+# Phase 1B.1: Diagnose and Fix Drizzle Schema Errors
+
+## 🎯 IMMEDIATE GOAL
+Stop the compilation loop. Diagnose the exact Drizzle TypeScript schema errors and fix them properly so we can proceed with Phase 1B implementation.
+
+## 🚨 STOP THE LOOP
+**DO NOT** keep editing the schema file repeatedly. Instead, follow this diagnostic process step by step.
+
+## Step 1: Show the Exact Error Messages
+
+First, run the TypeScript compiler and show me the **complete, unedited error output**:
+
+```bash
+# Run TypeScript check and show full errors
+npx tsc --noEmit
+```
+
+**Copy and paste the EXACT error messages here.** Don't try to fix anything yet.
+
+Look for errors like:
+- `Type 'boolean' is not assignable to type 'never'`
+- Drizzle omit syntax errors
+- Schema compilation failures
+
+## Step 2: Identify the Drizzle Version
+
+Check what version of Drizzle is being used:
+
+```bash
+# Check package.json for drizzle version
+cat package.json | grep drizzle
+```
+
+**Show me the exact version numbers.**
+
+## Step 3: Show Current Schema Code
+
+Display the current `shared/schema.ts` file (or the problematic parts) so I can see what syntax is being used:
+
+```typescript
+// Show the current omit syntax being used
+// Look for patterns like:
+// omit: { fieldName: true }  // Old syntax?
+// omit: ['fieldName']        // New syntax?
+```
+
+## Step 4: Drizzle Omit Syntax Reference
+
+Based on the Drizzle version, here are the correct syntax patterns:
+
+### Drizzle v0.28+ (Recent versions):
+```typescript
+// Correct omit syntax for recent Drizzle
+export const userInsertSchema = createSelectSchema(users, {
+  // Omit fields using array syntax
+}).omit(['id', 'createdAt', 'updatedAt']);
+
+// Or using pick/omit methods
+export const userInsertSchema = createSelectSchema(users).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+```
+
+### Drizzle v0.20-v0.27 (Older versions):
+```typescript
+// Older omit syntax
+export const userInsertSchema = createSelectSchema(users, {
+  // Field refinements here
+});
+```
+
+## Step 5: Common Drizzle Schema Patterns
+
+### For userAssessments table:
+```typescript
+// Example of correct schema for userAssessments
+export const userAssessmentsInsertSchema = createInsertSchema(userAssessments);
+export const userAssessmentsSelectSchema = createSelectSchema(userAssessments);
+
+// If you need to omit fields:
+export const userAssessmentsPublicSchema = createSelectSchema(userAssessments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true
+});
+```
+
+### For users table:
+```typescript
+// Example of correct schema for users
+export const usersInsertSchema = createInsertSchema(users);
+export const usersSelectSchema = createSelectSchema(users);
+
+// Public schema without sensitive fields
+export const usersPublicSchema = createSelectSchema(users).omit({
+  password: true,
+  email: true  // if needed
+});
+```
+
+## Step 6: Fix Strategy
+
+Once we see the exact errors:
+
+1. **Identify incompatible syntax patterns**
+2. **Update to correct Drizzle syntax for the version**
+3. **Test compilation** with `npx tsc --noEmit`
+4. **Verify no other TypeScript errors**
+
+## Step 7: Validation
+
+After fixes:
+```bash
+# Ensure TypeScript compiles cleanly
+npx tsc --noEmit
+
+# Ensure the app still starts
+npm run dev
+```
+
+## Common Issues and Solutions
+
+### Issue: `Type 'boolean' is not assignable to type 'never'`
+**Cause**: Using old omit syntax with new Drizzle version
+**Fix**: Update omit syntax to match Drizzle version
+
+### Issue: Import errors for createSelectSchema
+**Cause**: Import from wrong Drizzle package
+**Fix**: Use correct import:
+```typescript
+import { createInsertSchema, createSelectSchema } from 'drizzle-zod';
+// or
+import { createInsertSchema, createSelectSchema } from 'drizzle-orm/zod';
+```
+
+### Issue: Schema not found errors
+**Cause**: Missing schema exports
+**Fix**: Ensure all schemas are properly exported
+
+## Instructions for Claude
+
+1. **Run the diagnostic steps above in order**
+2. **Show me the results of each step** before trying any fixes
+3. **Do not make changes until** we identify the root cause
+4. **Make minimal, targeted fixes** based on the specific errors found
+5. **Test after each change** to ensure it works
+
+## Success Criteria
+
+✅ TypeScript compiles without errors (`npx tsc --noEmit` passes)  
+✅ Application starts successfully  
+✅ No runtime schema errors  
+✅ Ready to proceed with Phase 1B implementation  
+
+## Once Fixed
+
+After schema errors are resolved, immediately return to **Phase 1B: Auto-Save Text Inputs** implementation. The schema fixes should not interfere with the data persistence work.
+
+**Claude: Start with Step 1 - show me the exact TypeScript error messages. Do not try to fix anything until we complete the diagnostic steps.**

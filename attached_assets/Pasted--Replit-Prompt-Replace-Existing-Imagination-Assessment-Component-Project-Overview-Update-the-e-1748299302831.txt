@@ -1,0 +1,185 @@
+# Replit Prompt: Replace Existing Imagination Assessment Component
+
+## Project Overview
+Update the existing imagination assessment in the Heliotrope Imaginal Workshops app by replacing it with the HI Imagination Assessment V3. This is NOT a new learning path - simply replacing the current imagination assessment component with the new 5-capacity assessment while maintaining all existing app structure, navigation, and styling.
+
+## Scope: Component Replacement Only
+- **Replace:** Existing imagination assessment content/questions
+- **Keep:** All existing navigation, styling, database structure, UI patterns
+- **Maintain:** Current user flow and assessment placement in the app
+- **Update:** Only the assessment questions, scoring, and results visualization
+
+## Core Requirements
+
+### 1. Assessment Structure (Replace Existing Questions)
+Update the existing imagination assessment to measure these five capacities:
+
+**IMAGINATION** (13 questions total across 7 sub-dimensions):
+- Generative Fluency (2 questions): "I can easily come up with multiple, unconventional ideas." + "I often generate new ideas in my daily life."
+- Temporal Flexibility (2 questions): "I can vividly imagine different possible futures or pasts." + "I often reflect on alternative outcomes before making decisions."
+- Perspectival Agility (2 questions): "I can imagine experiences beyond my current reality." + "I frequently consider other people's viewpoints in discussions."
+- Boundary Permeability (2 questions): "I'm comfortable blending ideas from different domains (e.g., science and art)." + "I actively seek inspiration from outside my usual field."
+- Ambiguity Tolerance (2 questions): "I can explore complex ideas without needing quick answers." + "I feel comfortable with uncertainty when solving problems."
+- Embodied Translation (2 questions): "I can turn abstract ideas into tangible actions or prototypes." + "I take steps to bring my ideas to life."
+- Playful Wonder (1 question): "I allow myself to daydream, imagine, or wonder—even if it feels unproductive."
+
+**CURIOSITY** (2 questions):
+- "I frequently seek out new experiences or knowledge."
+- "I enjoy exploring unfamiliar topics."
+
+**EMPATHY** (2 questions):
+- "I'm good at understanding how others feel."
+- "I try to see situations through others' eyes."
+
+**CREATIVITY** (2 questions):
+- "I engage regularly in creative activities (e.g., art, writing, design)."
+- "I often come up with novel solutions to everyday challenges."
+
+**COURAGE** (2 questions):
+- "I take risks to pursue ideas or values I believe in."
+- "I stand up for what I believe, even when it's unpopular."
+
+### 2. Implementation Approach
+
+**What to Update:**
+- Replace current imagination assessment questions with the 15 questions above
+- Update scoring to calculate 5 main capacity scores (Imagination, Curiosity, Empathy, Creativity, Courage)
+- Replace current results visualization with 5-axis radar chart
+- Update any assessment intro text to mention the 5 capacities
+
+**What to Keep:**
+- Existing 5-point Likert scale (1=Strongly Disagree to 5=Strongly Agree)
+- Current UI components and styling
+- Existing navigation flow and progress tracking
+- Current database storage approach
+- Existing assessment placement in the app flow
+- All existing responsive design and mobile patterns
+
+### 3. Scoring Updates
+
+**Replace Current Scoring With:**
+```javascript
+// Calculate sub-dimension averages for Imagination (13 questions total)
+const generativeFluencyScore = (generativeFluency1 + generativeFluency2) / 2;
+const temporalFlexibilityScore = (temporalFlexibility1 + temporalFlexibility2) / 2;
+const perspectivalAgilityScore = (perspectivalAgility1 + perspectivalAgility2) / 2;
+const boundaryPermeabilityScore = (boundaryPermeability1 + boundaryPermeability2) / 2;
+const ambiguityToleranceScore = (ambiguityTolerance1 + ambiguityTolerance2) / 2;
+const embodiedTranslationScore = (embodiedTranslation1 + embodiedTranslation2) / 2;
+const playfulWonderScore = playfulWonder; // single question
+
+// Overall Imagination score (average of 7 sub-dimensions)
+const imaginationScore = (
+  generativeFluencyScore +
+  temporalFlexibilityScore +
+  perspectivalAgilityScore +
+  boundaryPermeabilityScore +
+  ambiguityToleranceScore +
+  embodiedTranslationScore +
+  playfulWonderScore
+) / 7;
+
+// Calculate other capacity averages
+const curiosityScore = (curiosity1 + curiosity2) / 2;
+const empathyScore = (empathy1 + empathy2) / 2;
+const creativityScore = (creativity1 + creativity2) / 2;
+const courageScore = (courage1 + courage2) / 2;
+```
+
+### 4. Results Visualization Update
+
+**Replace Current Chart With:**
+- 5-axis radar chart showing: Imagination, Curiosity, Empathy, Creativity, Courage
+- Use existing chart library (recharts) and styling patterns
+- Keep existing results page layout and UI components
+- Maintain existing color scheme and responsive design
+
+### 5. Database Storage Update
+
+**Update Assessment Data Structure:**
+```javascript
+// Store in existing userAssessments table with updated structure
+{
+  assessmentType: 'imaginationAssessment', // keep existing
+  data: {
+    // Replace current data structure with:
+    responses: {
+      imagination: [q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, q13], // 13 questions
+      curiosity: [q14, q15], // 2 questions  
+      empathy: [q16, q17], // 2 questions
+      creativity: [q18, q19], // 2 questions
+      courage: [q20, q21] // 2 questions
+    },
+    scores: {
+      imagination: {
+        overall: calculatedOverallScore,
+        subDimensions: {
+          generativeFluency: calculatedScore,
+          temporalFlexibility: calculatedScore,
+          perspectivalAgility: calculatedScore,
+          boundaryPermeability: calculatedScore,
+          ambiguityTolerance: calculatedScore,
+          embodiedTranslation: calculatedScore,
+          playfulWonder: calculatedScore
+        }
+      },
+      curiosity: calculatedScore,
+      empathy: calculatedScore,
+      creativity: calculatedScore,
+      courage: calculatedScore
+    }
+  }
+}
+```
+
+### 6. Files to Update (Existing Components Only)
+
+**Primary Files to Modify:**
+- The existing imagination assessment component (likely `ImaginalAssessmentContent.tsx` or similar)
+- The existing results/visualization component for imagination assessment
+- Any existing scoring/calculation utilities for imagination assessment
+
+**Keep Unchanged:**
+- Navigation components and routing
+- Database schema and API routes
+- Authentication and session management
+- Main app structure and other assessments
+- UI component library and styling system
+
+### 7. User Experience Requirements
+
+**Maintain Existing UX:**
+- Same assessment flow and navigation patterns
+- Same progress indicators and step tracking
+- Same responsive behavior and mobile design
+- Same integration with user profile and dashboard
+- Same test user functionality and reset capabilities
+
+**Update Only:**
+- Question content and assessment intro text
+- Results interpretation and visualization
+- Score calculation methodology
+
+### 8. Quality Assurance
+
+**Test That:**
+- All 21 questions display correctly with existing styling (13 Imagination + 2 Curiosity + 2 Empathy + 2 Creativity + 2 Courage)
+- Scoring calculations work properly for all 5 capacities and 7 imagination sub-dimensions
+- Radar chart displays correctly on all screen sizes
+- Results save to database in updated format
+- Existing navigation and progress tracking still work
+- Assessment integrates seamlessly with rest of app flow
+
+## Success Criteria
+- Existing imagination assessment is replaced with new 5-capacity assessment
+- All app styling, navigation, and functionality remains unchanged
+- New assessment feels native to the existing app experience
+- Users can complete the updated assessment and view results normally
+- No disruption to other app features or assessments
+
+## Implementation Notes
+- This is a **component update**, not a new feature
+- Maintain all existing code patterns and conventions
+- Use existing error handling and user feedback systems
+- Keep existing accessibility features and responsive design
+- Preserve existing admin functionality and user management
