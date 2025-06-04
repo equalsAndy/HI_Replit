@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon } from 'lucide-react';
+import { Loader2, UserPlus, Mail, RefreshCw, Check, X, PencilIcon, Download } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
@@ -226,6 +226,58 @@ const AdminPage: React.FC = () => {
       });
     } finally {
       setIsUpdatingUser(false);
+    }
+  };
+
+  // Handle downloading user data export
+  const handleDownloadUserData = async (user: User) => {
+    try {
+      const response = await fetch(`/api/admin/users/${user.id}/export`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Export failed');
+      }
+
+      // Get the filename from the Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        : `user-${user.username}-export-${Date.now()}.json`;
+
+      // Get the JSON data
+      const exportData = await response.json();
+
+      // Create a blob and download
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: 'application/json',
+      });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Export successful',
+        description: `User data for ${user.username} has been downloaded.`,
+      });
+    } catch (error) {
+      console.error('Error exporting user data:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Export failed',
+        description: error.message || 'Failed to export user data. Please try again.',
+      });
     }
   };
 
@@ -460,6 +512,15 @@ const AdminPage: React.FC = () => {
                                   >
                                     <PencilIcon className="h-3 w-3 mr-1" />
                                     Edit
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 border-green-200"
+                                    onClick={() => handleDownloadUserData(user)}
+                                  >
+                                    <Download className="h-3 w-3 mr-1" />
+                                    Download Data
                                   </Button>
                                   <Button
                                     variant="outline"
