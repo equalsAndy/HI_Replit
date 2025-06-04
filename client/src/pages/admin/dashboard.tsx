@@ -23,16 +23,17 @@ export default function AdminDashboard() {
   const { data: currentUser, isLoading: isLoadingUser } = useQuery<{
     id: number;
     name: string;
+    role: string;
     title?: string;
     organization?: string;
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/user/me'],
     retry: false,
   });
   
-  // Redirect non-admin users (for now, we'll consider only user ID 1 as admin)
+  // Redirect non-admin users
   React.useEffect(() => {
-    if (currentUser && currentUser.id !== 1) {
+    if (currentUser && currentUser.role !== 'admin') {
       toast({
         title: 'Access denied',
         description: 'You do not have permission to access the admin dashboard.',
