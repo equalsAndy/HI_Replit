@@ -21,10 +21,18 @@ export function useVideos() {
 }
 
 export function useVideosByWorkshop(workshopType: string) {
-  return useQuery<Video[]>({
+  const query = useQuery<Video[]>({
     queryKey: ['/api/workshop-data/videos/workshop', workshopType],
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+  
+  // Debug logging
+  console.log(`useVideosByWorkshop Debug - workshopType: ${workshopType}`);
+  console.log(`useVideosByWorkshop Debug - data:`, query.data);
+  console.log(`useVideosByWorkshop Debug - isLoading:`, query.isLoading);
+  console.log(`useVideosByWorkshop Debug - error:`, query.error);
+  
+  return query;
 }
 
 export function useVideoBySection(workshopType: string, section: string) {

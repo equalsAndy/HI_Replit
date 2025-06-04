@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
+import VideoPlayer from './VideoPlayer';
 
 const WellBeingView: React.FC<ContentViewProps> = ({
   navigate,
@@ -40,15 +41,12 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
 
       <div className="mb-8">
-        <div className="aspect-w-16 aspect-h-9 mb-8">
-          <iframe 
-            src="https://www.youtube.com/embed/yidsMx8B678" 
-            title="Cantril Ladder of Well-Being" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowFullScreen
-            className="w-full h-80 rounded border border-gray-200"
-          ></iframe>
+        <div className="mb-8">
+          <VideoPlayer
+            workshopType="allstarteams"
+            stepId="4-1"
+            autoplay={true}
+          />
         </div>
 
         <div className="prose max-w-none mb-6">

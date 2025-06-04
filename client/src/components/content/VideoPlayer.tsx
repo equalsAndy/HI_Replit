@@ -42,6 +42,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const isLoading = isLoadingStepId || isLoadingSection;
   const video = videoByStepId || videoBySection;
 
+  // Debug logging
+  useEffect(() => {
+    console.log(`VideoPlayer Debug - stepId: ${stepId}, section: ${section}`);
+    console.log(`VideoPlayer Debug - videoByStepId:`, videoByStepId);
+    console.log(`VideoPlayer Debug - videoBySection:`, videoBySection);
+    console.log(`VideoPlayer Debug - final video:`, video);
+    console.log(`VideoPlayer Debug - isLoading:`, isLoading);
+  }, [stepId, section, videoByStepId, videoBySection, video, isLoading]);
+
   // Process the video URL when it changes
   useEffect(() => {
     const rawUrl = video?.url || fallbackUrl;
