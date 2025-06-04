@@ -450,27 +450,88 @@ export function useNavigationProgress() {
     };
   };
 
-  // Mark a step as completed (triggers recalculation based on data)
+  // Validate step completion before marking complete
+  const validateStepCompletion = (stepId: string): { isComplete: boolean; reason?: string } => {
+    console.log(`🔍 Validating completion for step ${stepId}`);
+    
+    // Video steps require 100% completion
+    if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
+      const videoProgress = progress.videoProgress[stepId] || 0;
+      if (videoProgress < 100) {
+        return { isComplete: false, reason: `Video must be watched to completion (${videoProgress}% watched)` };
+      }
+      console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
+      return { isComplete: true };
+    }
+    
+    // Assessment steps require assessment data
+    if (stepId === '2-2') {
+      // Star Card assessment
+      if (!userAssessments?.starCard) {
+        return { isComplete: false, reason: 'Star Card assessment must be completed' };
+      }
+      return { isComplete: true };
+    }
+    
+    if (stepId === '3-2') {
+      // Flow attributes assessment
+      if (!userAssessments?.flowAttributes) {
+        return { isComplete: false, reason: 'Flow assessment must be completed' };
+      }
+      return { isComplete: true };
+    }
+    
+    // Reflection steps require text input completion
+    if (['2-4', '3-4', '4-2', '4-3', '4-5'].includes(stepId)) {
+      // Check if required reflections are saved in userAssessments
+      const hasReflections = userAssessments && Object.keys(userAssessments).some(key => 
+        key.includes('reflection') || key.includes('strengths') || key.includes('values') || key.includes('passions')
+      );
+      
+      if (!hasReflections) {
+        return { isComplete: false, reason: 'All reflection fields must be completed' };
+      }
+      return { isComplete: true };
+    }
+    
+    // Default: allow completion for other steps
+    return { isComplete: true };
+  };
+
+  // Mark a step as completed with strict validation
   const markStepCompleted = (stepId: string) => {
     console.log(`markStepCompleted called with:`, stepId, "completedSteps:", progress.completedSteps);
     
-    // For video steps, mark completed immediately when called (user clicked next after watching)
-    if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+    // Prevent completing steps that are already complete
+    if (progress.completedSteps.includes(stepId)) {
+      console.log(`Step ${stepId} already completed`);
+      return;
+    }
+    
+    // Validate completion requirements
+    const validation = validateStepCompletion(stepId);
+    if (!validation.isComplete) {
+      console.log(`❌ Step ${stepId} validation failed: ${validation.reason}`);
+      toast({
+        title: "Step Not Complete",
+        description: validation.reason || "This step must be fully completed before proceeding.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    console.log(`✅ Step ${stepId} validation passed - marking complete`);
+    
+    // For video steps, mark completed when validation passes
+    if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
       const completedSet = new Set([...progress.completedSteps, stepId]);
       const newCompletedSteps = [...completedSet];
-      
-      // Store video completion in progress tracking
-      const newVideoProgress = {
-        ...progress.videoProgress,
-        [stepId]: 100 // Mark as fully watched when user clicks next
-      };
       
       const newProgress = {
         ...progress,
         completedSteps: newCompletedSteps,
         currentStepId: getNextStepId(newCompletedSteps) || stepId,
         unlockedSections: getUnlockedSections(newCompletedSteps),
-        videoProgress: newVideoProgress,
         lastVisitedAt: new Date().toISOString()
       };
       setProgress(newProgress);
