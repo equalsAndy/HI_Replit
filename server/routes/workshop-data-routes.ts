@@ -966,6 +966,124 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
 });
 
 /**
+ * Cantril Ladder (Well-being) Reflection endpoints
+ */
+// POST /api/workshop-data/cantril-ladder
+workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { currentFactors, futureImprovements, specificChanges } = req.body;
+    
+    // Create the reflections data object (optional validation since these are reflection fields)
+    const reflectionData = {
+      currentFactors: currentFactors || '',
+      futureImprovements: futureImprovements || '',
+      specificChanges: specificChanges || ''
+    };
+    
+    // Check if user already has cantril ladder reflection data
+    const existingReflection = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'cantrilLadderReflection')
+        )
+      );
+    
+    if (existingReflection.length > 0) {
+      // Update existing reflection
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(reflectionData)
+        })
+        .where(eq(schema.userAssessments.id, existingReflection[0].id));
+    } else {
+      // Create new reflection
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'cantrilLadderReflection',
+        results: JSON.stringify(reflectionData)
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: reflectionData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'cantrilLadderReflection' 
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+      code: 'SAVE_ERROR'
+    });
+  }
+});
+
+// GET /api/workshop-data/cantril-ladder
+workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'cantrilLadderReflection')
+        )
+      );
+    
+    if (!assessment || assessment.length === 0) {
+      return res.json({ success: true, data: null });
+    }
+    
+    const results = JSON.parse(assessment[0].results);
+    res.json({
+      success: true,
+      data: results,
+      meta: { assessmentType: 'cantrilLadderReflection' }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve assessment',
+      code: 'FETCH_ERROR'
+    });
+  }
+});
+
+/**
  * Final Insights Reflection endpoints
  */
 // POST /api/workshop-data/final-insights
