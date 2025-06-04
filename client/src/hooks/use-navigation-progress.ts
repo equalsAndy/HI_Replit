@@ -212,15 +212,24 @@ export function useNavigationProgress() {
     }
   }, [serverProgress, toast, queryClient]);
 
-  // Load progress from local storage on mount
+  // Load progress from local storage on mount with validation
   useEffect(() => {
     const savedProgress = localStorage.getItem('navigationProgress');
     if (savedProgress) {
       try {
         const parsed = JSON.parse(savedProgress);
+        // Only load if it's not showing false positives (all steps completed)
+        const totalSteps = ['1-1', '1-2', '1-3', '1-4', '1-5', '2-1', '2-2', '2-3', '2-4', '2-5', '3-1', '3-2', '3-3', '3-4', '3-5', '4-1', '4-2', '4-3', '4-4', '4-5'];
+        if (parsed.completedSteps && parsed.completedSteps.length >= totalSteps.length) {
+          console.log('🚨 Detected false positive progress data, resetting to clean state');
+          // Clear localStorage and start fresh
+          localStorage.removeItem('navigationProgress');
+          return;
+        }
         setProgress(parsed);
       } catch (error) {
         console.error('Error parsing saved navigation progress:', error);
+        localStorage.removeItem('navigationProgress');
       }
     }
   }, []);
@@ -305,23 +314,29 @@ export function useNavigationProgress() {
     // Always start with empty for a clean state
     let actuallyCompleted: string[] = [];
 
-    // Only check completions if we have actual data to validate against
-    if (userAssessments && Object.keys(userAssessments).length > 0) {
-      // For video steps, only mark complete if we have video progress data
-      actuallyCompleted = allSteps.filter(stepId => {
-        // Video steps require video progress
-        if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
-          const videoProgress = progress.videoProgress[stepId] || 0;
-          const isComplete = videoProgress >= 1;
-          console.log(`🔍 Video step ${stepId}: ${videoProgress}% (complete: ${isComplete})`);
-          return isComplete;
+    // Start with clean state - no false positives
+    actuallyCompleted = [];
+    
+    // Only mark steps complete based on actual data verification, not pre-existing state
+    for (const stepId of allSteps) {
+      // Video steps require actual video completion
+      if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+        const videoProgress = progress.videoProgress[stepId] || 0;
+        if (videoProgress >= 1) {
+          actuallyCompleted.push(stepId);
+          console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
         }
-        
-        // Assessment steps require actual assessment data
+        continue;
+      }
+      
+      // Assessment steps require actual assessment data
+      if (userAssessments && Object.keys(userAssessments).length > 0) {
         const isComplete = checkStepCompletion(stepId);
-        console.log(`🔍 Step ${stepId} completion check: ${isComplete}`);
-        return isComplete;
-      });
+        if (isComplete) {
+          actuallyCompleted.push(stepId);
+          console.log(`✅ Assessment step ${stepId} verified complete`);
+        }
+      }
     }
     
     // Get unlocked sections based on completed steps
@@ -341,11 +356,27 @@ export function useNavigationProgress() {
 
   // Mark a step as completed (triggers recalculation based on data)
   const markStepCompleted = (stepId: string) => {
-    // Recalculate progress based on actual data in database
+    console.log(`markStepCompleted called with:`, stepId, "completedSteps:", progress.completedSteps);
+    
+    // For video steps, mark completed immediately when called (user clicked next after watching)
+    if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
+      const completedSet = new Set([...progress.completedSteps, stepId]);
+      const newCompletedSteps = [...completedSet];
+      const newProgress = {
+        ...progress,
+        completedSteps: newCompletedSteps,
+        currentStepId: getNextStepId(newCompletedSteps) || stepId,
+        unlockedSections: getUnlockedSections(newCompletedSteps),
+        lastVisitedAt: new Date().toISOString()
+      };
+      setProgress(newProgress);
+      syncWithDatabase();
+      return;
+    }
+    
+    // For other steps, recalculate based on actual data
     const updatedProgress = recalculateProgress();
     setProgress(updatedProgress);
-    
-    // Sync with database
     syncWithDatabase();
   };
 
