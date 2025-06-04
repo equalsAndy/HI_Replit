@@ -781,7 +781,7 @@ export function UserManagement() {
                                         className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
                                         onClick={() => restoreUserMutation.mutate(user.id)}
                                       >
-                                        <UndoIconclassName="h-3 w-3 mr-1" />
+                                        <UndoIcon className="h-3 w-3 mr-1" />
                                         Restore
                                       </Button>
                                     </TooltipTrigger>
