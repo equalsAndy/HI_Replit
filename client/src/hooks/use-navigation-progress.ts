@@ -213,35 +213,87 @@ export function useNavigationProgress() {
     }
   }, [serverProgress, toast, queryClient]);
 
-  // Force clean initialization - bypass localStorage for testing
+  // Load navigation progress from database on component mount
   useEffect(() => {
-    console.log('🔄 FORCING CLEAN STATE INITIALIZATION');
-    
-    // Clear all navigation-related localStorage
-    ['navigationProgress', 'allstarteams-navigation-progress', 'imaginal-agility-navigation-progress'].forEach(key => {
-      localStorage.removeItem(key);
-    });
-    
-    // Set clean initial state
-    const cleanState = {
-      completedSteps: [],
-      currentStepId: '1-1',
-      appType: 'ast',
-      lastVisitedAt: new Date().toISOString(),
-      unlockedSections: ['1'],
-      videoProgress: {}
+    const initializeProgress = async () => {
+      console.log('🔄 INITIALIZING navigation progress from database');
+      
+      try {
+        const response = await fetch('/api/user/navigation-progress', {
+          method: 'GET',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.progress) {
+            const dbProgress = JSON.parse(result.progress);
+            console.log('✅ Loaded progress from database:', dbProgress);
+            
+            // Use database progress if available
+            setProgress({
+              ...dbProgress,
+              lastVisitedAt: new Date().toISOString()
+            });
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading navigation progress from database:', error);
+      }
+      
+      // Fallback to clean initial state if no database progress
+      const cleanState = {
+        completedSteps: [],
+        currentStepId: '1-1',
+        appType: 'ast' as const,
+        lastVisitedAt: new Date().toISOString(),
+        unlockedSections: ['1'],
+        videoProgress: {}
+      };
+      
+      setProgress(cleanState);
+      console.log('✅ Clean state initialized (no database progress):', cleanState);
     };
     
-    setProgress(cleanState);
-    console.log('✅ Clean state initialized:', cleanState);
+    initializeProgress();
   }, []);
 
-  // Save progress to local storage whenever it changes
+  // Save progress to both local storage and database whenever it changes
   useEffect(() => {
+    // Don't sync initial empty state
+    if (progress.completedSteps.length === 0 && progress.currentStepId === '1-1') {
+      return;
+    }
+    
     localStorage.setItem('navigationProgress', JSON.stringify(progress));
+    
+    // Auto-sync with database
+    const syncToDatabase = async () => {
+      try {
+        const response = await fetch('/api/user/navigation-progress', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify(progress),
+        });
+
+        if (response.ok) {
+          console.log('✅ Navigation progress auto-synced with database');
+        } else {
+          console.error('❌ Failed to sync navigation progress with database');
+        }
+      } catch (error) {
+        console.error('❌ Error syncing navigation progress:', error);
+      }
+    };
+    
+    syncToDatabase();
   }, [progress]);
 
-  // Sync with database
+  // Manual sync function for backward compatibility
   const syncWithDatabase = async () => {
     try {
       const response = await fetch('/api/user/navigation-progress', {
