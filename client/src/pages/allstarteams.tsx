@@ -229,7 +229,7 @@ export default function AllStarTeams() {
   // Clear workshop progress when user changes OR when any user has progress: 0
   React.useEffect(() => {
     // Extract actual user data from the response wrapper
-    const actualUser = (user as any)?.user || user;
+    const actualUser = (user as any)?.user || (user as any);
 
     if (actualUser?.id) {
       const lastUserId = localStorage.getItem('last-user-id');
@@ -325,11 +325,11 @@ export default function AllStarTeams() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      if (!user?.id) {
+      if (!(user as any)?.id) {
         throw new Error("User ID is required to reset progress");
       }
 
-      const response = await fetch(`/api/test-users/reset/${user.id}`, {
+      const response = await fetch(`/api/test-users/reset/${(user as any).id}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -547,29 +547,29 @@ export default function AllStarTeams() {
   // Data check for debugging
   const hasData = React.useMemo(() => {
     const hasStarCardData = starCard && (
-      (starCard.thinking && starCard.thinking > 0) || 
-      (starCard.feeling && starCard.feeling > 0) || 
-      (starCard.acting && starCard.acting > 0) || 
-      (starCard.planning && starCard.planning > 0)
+      ((starCard as any).thinking && (starCard as any).thinking > 0) || 
+      ((starCard as any).feeling && (starCard as any).feeling > 0) || 
+      ((starCard as any).acting && (starCard as any).acting > 0) || 
+      ((starCard as any).planning && (starCard as any).planning > 0)
     );
 
     const hasFlowData = flowAttributesData && 
-                        flowAttributesData.attributes && 
-                        Array.isArray(flowAttributesData.attributes) && 
-                        flowAttributesData.attributes.length > 0;
+                        (flowAttributesData as any).attributes && 
+                        Array.isArray((flowAttributesData as any).attributes) && 
+                        (flowAttributesData as any).attributes.length > 0;
 
     const starCardData1 = {
-      thinking: starCard?.thinking || 0,
-      acting: starCard?.acting || 0,
-      feeling: starCard?.feeling || 0,
-      planning: starCard?.planning || 0,
-      imageUrl: !!starCard?.imageUrl
+      thinking: (starCard as any)?.thinking || 0,
+      acting: (starCard as any)?.acting || 0,
+      feeling: (starCard as any)?.feeling || 0,
+      planning: (starCard as any)?.planning || 0,
+      imageUrl: !!(starCard as any)?.imageUrl
     };
 
     const flowAttributes = {
-      hasAttributes: !!flowAttributesData?.attributes,
-      attributesLength: flowAttributesData?.attributes?.length || 0,
-      flowScore: flowAttributesData?.flowScore || 0
+      hasAttributes: !!(flowAttributesData as any)?.attributes,
+      attributesLength: (flowAttributesData as any)?.attributes?.length || 0,
+      flowScore: (flowAttributesData as any)?.flowScore || 0
     };
 
     // Debug log for data checking
