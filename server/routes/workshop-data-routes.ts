@@ -984,13 +984,15 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
       });
     }
     
-    const { currentFactors, futureImprovements, specificChanges } = req.body;
+    const { currentFactors, futureImprovements, specificChanges, quarterlyProgress, quarterlyActions } = req.body;
     
     // Create the reflections data object (optional validation since these are reflection fields)
     const reflectionData = {
       currentFactors: currentFactors || '',
       futureImprovements: futureImprovements || '',
-      specificChanges: specificChanges || ''
+      specificChanges: specificChanges || '',
+      quarterlyProgress: quarterlyProgress || '',
+      quarterlyActions: quarterlyActions || ''
     };
     
     // Check if user already has cantril ladder reflection data

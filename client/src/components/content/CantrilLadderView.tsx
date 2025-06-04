@@ -196,6 +196,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               Name 1-2 concrete steps you'll take before your first quarterly check-in.
             </p>
             <textarea 
+              value={formData.quarterlyActions}
+              onChange={(e) => handleInputChange('quarterlyActions', e.target.value)}
               className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
               placeholder="Describe specific actions you'll take..."
             />
