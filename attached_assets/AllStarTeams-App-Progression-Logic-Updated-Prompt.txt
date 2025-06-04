@@ -1,0 +1,208 @@
+
+# AllStarTeams App Progression Logic - Agent Prompt (Updated)
+
+## IMPORTANT: Scope Limitations
+**ONLY implement the progression logic specified in this prompt. Do NOT:**
+- Add additional features not mentioned here
+- Create new UI components beyond what's described
+- Modify existing functionality that isn't part of the progression system
+- Add extra validation, warnings, or helper features
+- Implement functionality that "seems helpful" but isn't specified
+- Change the existing design system, styling, or layout
+- Add additional database fields beyond those listed
+- Create new user flows or shortcuts not described
+
+**STICK STRICTLY to the progression rules, completion criteria, and data persistence requirements outlined below.**
+
+## Overview
+You are managing a sequential learning progression system for the AllStarTeams workshop app. Users must complete sections in order, with each completion unlocking the next section. All progress persists across browser sessions and logins via database storage.
+
+## Current Technical Implementation
+- Navigation structure defined in: `client/src/components/navigation/navigationData.ts`
+- Progression rules defined in: `client/src/lib/progressionRules.ts`
+- Navigation progress hook: `client/src/hooks/use-navigation-progress.ts`
+- Navigation sync service: `server/services/navigation-sync-service.ts`
+- Content components in: `client/src/components/content/allstarteams/`
+
+## Core Progression Rules
+
+### Initial State
+- On first login: Only "Introduction Video" (step 1-1) is active, all other sections disabled
+- Progress indicators show current completion (e.g., "2/4" means 2 of 4 completed)
+- Completed sections display green checkmarks and remain accessible for revisiting
+
+### Video Content Pattern
+- **ALL videos auto-play** on section entry using VideoPlayer component
+- Minimum 1% watch time required before "Next" button enables
+- Video progress tracked via `useVideoProgress` hook
+- Pattern: Auto-play video + ≥1% + "Next: [Next Section]" → unlock next section
+
+### Assessment Modal Pattern
+- Modal assessments use AssessmentModal component
+- Completion shows results screen with "Next: [Next Section]" button
+- Results + progression button saves data to database via `/api/user/assessments`
+- Revisiting completed assessments shows results in content view (not modal)
+
+### Reflection Pattern
+- Reflection sections use StepByStepReflection component
+- ALL questions must be answered for completion
+- Completion unlocks next section via `markStepCompleted`
+- Data saves to database when section completes
+
+## Activity Type Icons (from navigationData.ts)
+- **Book Icon**: Video content or content with activities
+- **Activity Icon**: Assessments or interactive activities  
+- **PenTool Icon**: Reflection/writing activities
+
+## Detailed Section Progression (Current Structure)
+
+### Section 1: AllStarTeams Introduction (1/1)
+**Step 1-1: Introduction** (Book Icon) - `contentKey: 'welcome'`
+- **Auto-play** on first login using WelcomeView component
+- ≥1% watch required before "Next: Intro to Star Strengths" enables
+- Completion → green checkmark + unlock step 2-1
+
+### Section 2: DISCOVER YOUR STAR STRENGTHS (4/4)
+Sequential unlock: Intro → Assessment → Preview → Reflect
+
+1. **Step 2-1: Intro to Star Strengths** (Book Icon) - `contentKey: 'intro-strengths'`
+   - Uses IntroStrengthsView component
+   - **Auto-play** video + ≥1% + "Next: Star Strengths Self-Assessment"
+
+2. **Step 2-2: Star Strengths Self-Assessment** (Activity Icon) - `contentKey: 'strengths-assessment'`
+   - Uses AssessmentView component with modal
+   - Modal assessment → all questions → results screen
+   - "Next: Review Your Star Card" button saves data to `/api/user/assessments`
+   - Revisiting shows results in content view
+
+3. **Step 2-3: Review Your Star Card** (Book Icon) - `contentKey: 'star-card-preview'`
+   - Uses StarCardPreviewView component
+   - Displays generated star card from assessment data
+   - **Auto-play** video + ≥1% + "Next: Strength Reflection"
+
+4. **Step 2-4: Strength Reflection** (PenTool Icon) - `contentKey: 'strengths-reflection'`
+   - Uses ReflectionView component
+   - 6 reflection questions via StepByStepReflection
+   - ALL questions must be answered
+   - Completion → green checkmark + unlock step 3-1
+
+### Section 3: IDENTIFY YOUR FLOW (4/4)
+Sequential unlock: Intro → Assessment → Rounding → Add Flow
+
+1. **Step 3-1: Intro to Flow** (Book Icon) - `contentKey: 'intro-flow'`
+   - Uses IntroToFlowView component
+   - **Auto-play** video + ≥1% + "Next: Flow Assessment"
+
+2. **Step 3-2: Flow Assessment** (Activity Icon) - `contentKey: 'flow-assessment'`
+   - Uses FlowAssessmentView component
+   - Modal assessment → all questions → results + save to DB
+   - "Next: Rounding Out" enables progression
+   - Revisiting shows results in content view
+
+3. **Step 3-3: Rounding Out** (Book Icon) - `contentKey: 'flow-rounding-out'`
+   - Uses FlowRoundingOutView component
+   - **Auto-play** video + ≥1% + 4 reflection inputs
+   - ALL inputs must be completed via RoundingOutReflection component
+   - "Next: Add Flow to Star Card" enables
+
+4. **Step 3-4: Add Flow to Star Card** (Activity Icon) - `contentKey: 'flow-star-card'`
+   - Uses FlowStarCardView component
+   - Word picker: select exactly 4 words
+   - "Add Attributes to Star Card" → save to `/api/workshop-data/flow-attributes` + disable picker
+   - "Next" button enables → unlock step 4-1
+   - Edit mode: re-enable picker → select 4 → "Add to Card Again" → return to disabled mode
+
+### Section 4: VISUALIZE YOUR POTENTIAL (5/5)
+Sequential unlock: Ladder → Reflections → Visualizing → Future Self → Final
+
+1. **Step 4-1: Ladder of Well-being** (Book Icon) - `contentKey: 'cantril-ladder'`
+   - Uses CantrilLadderView component
+   - **Auto-play** video + ≥1% + Cantril Ladder activity (2 sliders)
+   - "I'm Done" button saves slider values to database
+
+2. **Step 4-2: Well-being Reflections** (Book Icon) - `contentKey: 'wellbeing-reflection'`
+   - Uses WellBeingView component
+   - Display ladder graphic from previous section choices
+   - Reflection questions related to ladder results
+   - ALL questions answered → save to DB + unlock next
+
+3. **Step 4-3: Visualizing You** (Book Icon) - `contentKey: 'visualizing-you'`
+   - Uses VisualizingYouView component
+   - Vision board/image selection activity
+   - Completion saves data to DB + unlock next
+
+4. **Step 4-4: Your Future Self** (PenTool Icon) - `contentKey: 'future-self'`
+   - Uses FutureSelfView component
+   - **Auto-play** video + ≥1% + reflection questions
+   - ALL questions answered → save to DB + unlock next
+
+5. **Step 4-5: Final Reflection** (PenTool Icon) - `contentKey: 'your-statement'`
+   - Uses FinalReflectionView component
+   - One final question
+   - Answer → save to DB + unlock Section 5
+
+### Section 5: RESOURCES (3/3)
+Unlocked after Final Reflection completion
+
+1. **Step 5-1: Workshop Guide** - `contentKey: 'star-card-resource'`
+   - Uses StarCardResourceView component
+   - Reference material (accessible anytime)
+
+2. **Your Star Report** - `contentKey: 'holistic-report'`
+   - Uses HolisticReportView component
+   - AI-generated PDF (placeholder implementation)
+
+3. **Your Star Card** - `contentKey: 'your-star-card'`
+   - Uses YourStarCardView component
+   - Final compiled version, downloadable
+
+## Database Requirements
+
+### Current API Endpoints:
+- `/api/user/assessments` - Strengths & Flow assessment results
+- `/api/workshop-data/starcard` - Star card data
+- `/api/workshop-data/flow-attributes` - Selected flow attributes
+- `/api/user/navigation-progress` - Section completion states
+
+### Save to Database:
+- Strengths Assessment results (at results screen)
+- Star Card data (at preview generation)
+- Flow Assessment results (at results screen)
+- Selected flow attributes (when added to star card)
+- Cantril Ladder slider positions
+- All reflection question responses
+- Vision board/image selections
+- Future self narrative responses
+- Final reflection response
+- Section completion states via navigationProgress table
+- Progress indicators (X/Y completion counts)
+
+### Persistence Rules:
+- All progress persists via database `navigationProgress` table
+- Users can revisit any completed section
+- Assessment retakes available via profile modal reset
+- Completed sections maintain green checkmarks permanently
+- Progress syncs on login via `navigation-sync-service.ts`
+
+## Error Handling
+- If user attempts to access locked section → redirect to current unlocked section
+- If required data missing → prevent progression until completed
+- If database save fails → retry or show error, don't allow progression
+- Use `useNavigationProgress` hook for state management
+
+## Special Behaviors
+- Modal assessments: First visit = assessment modal, return visits = results view
+- Word picker: Disabled state with edit option after initial completion
+- Videos: Auto-play on section entry, progress tracked via YouTube API
+- Progress counters: Update in real-time as sections complete
+- TestUserBanner integration for reset functionality
+
+## Key Implementation Files to Reference:
+- `client/src/components/navigation/navigationData.ts` - Section definitions
+- `client/src/lib/progressionRules.ts` - Completion criteria
+- `client/src/hooks/use-navigation-progress.ts` - Progress state management
+- `server/services/navigation-sync-service.ts` - Database sync logic
+- `client/src/components/content/allstarteams/AllStarTeamsContent.tsx` - Content routing
+
+## Final Reminder: Stay Within Scope
+**Implement ONLY the features and logic specified in this prompt. Do not add any additional functionality, UI enhancements, or "helpful" features not explicitly described above. Focus solely on the progression system as outlined, using the existing component structure and API endpoints.**
