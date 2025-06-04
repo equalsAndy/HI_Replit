@@ -41,7 +41,12 @@ export function useVideoBySection(workshopType: string, section: string) {
 export function useVideoByStepId(workshopType: string, stepId: string) {
   const { data: videos, ...query } = useVideosByWorkshop(workshopType);
   
+  console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}"`);
+  console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId })));
+  
   const video = videos?.find(v => v.stepId === stepId);
+  
+  console.log(`🎥 Found video for step ${stepId}:`, video ? { title: video.title, editableId: video.editableId, url: video.url } : 'No video found');
   
   return {
     ...query,
@@ -53,5 +58,6 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
 export function useVideoByStep(stepId: string) {
   // Determine workshop type based on step ID pattern
   const workshopType = stepId.includes('-') ? 'allstarteams' : 'imaginal-agility';
+  console.log(`🎥 useVideoByStep: stepId "${stepId}" -> workshopType "${workshopType}"`);
   return useVideoByStepId(workshopType, stepId);
 }
