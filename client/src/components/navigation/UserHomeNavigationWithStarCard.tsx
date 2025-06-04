@@ -25,6 +25,7 @@ import {
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useProgressionTracker } from '@/hooks/use-progression-tracker';
 
 interface UserHomeNavigationProps {
   drawerOpen: boolean;
@@ -59,9 +60,19 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
   
+  // Progression tracker hook for AllStarTeams logic
+  const {
+    progressionState,
+    isStepUnlocked,
+    isStepCompleted,
+    getUnlockedSections,
+    getSectionProgress,
+    getNextButtonText
+  } = useProgressionTracker();
+  
   // Override completed steps if server shows reset state
   const [resetDetected, setResetDetected] = useState(false);
-  const effectiveCompletedSteps = resetDetected ? [] : completedSteps;
+  const effectiveCompletedSteps = resetDetected ? [] : progressionState.completedSteps;
   
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
