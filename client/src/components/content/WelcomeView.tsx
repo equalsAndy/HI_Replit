@@ -42,9 +42,17 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     ? "triple-challenge"
     : "intro-strengths";
 
+  // Track last logged progress to prevent spam
+  const lastLoggedProgressRef = useRef(0);
+  
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
-    console.log(`🎬 WelcomeView video progress: ${percentage.toFixed(2)}%`);
+    // Only log significant progress changes (every 10% or initial threshold)
+    if (Math.abs(percentage - lastLoggedProgressRef.current) >= 10 || 
+        (percentage >= 1 && !hasReachedMinimum)) {
+      console.log(`🎬 WelcomeView video progress: ${percentage.toFixed(2)}%`);
+      lastLoggedProgressRef.current = percentage;
+    }
     
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
