@@ -113,7 +113,7 @@ export const isStepCompleted = (
   
   switch (stepId) {
     case '1-1': // Introduction Video
-      return isVideoCompleted(stepId, navigationProgress, 1);
+      return isVideoCompleted(stepId, navigationProgress, 0.5);
     
     case '2-1': // Intro to Star Strengths
       return isVideoCompleted(stepId, navigationProgress, 1);
