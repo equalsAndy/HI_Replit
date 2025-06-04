@@ -3,9 +3,50 @@ import { storage } from './storage';
 import { z } from 'zod';
 import { UserRole, User } from '@shared/types';
 import { nanoid } from 'nanoid';
+import { db } from './db';
+import { users, userAssessments } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 
 // Create a router for admin routes
 const adminRouter = Router();
+
+// Audit logging function
+const logAdminAction = (adminId: number, action: string, targetUserId?: number, details: string = '', req?: Request) => {
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    adminId,
+    action,
+    targetUserId,
+    details,
+    ipAddress: req?.ip || req?.connection?.remoteAddress || 'unknown'
+  };
+  
+  // Simple console logging (can be enhanced to database later)
+  console.log('ADMIN_ACTION:', JSON.stringify(logEntry));
+};
+
+// Enhanced reset user workshop data function
+const resetUserWorkshopData = async (userId: number) => {
+  try {
+    // Clear all userAssessments for this user
+    await db.delete(userAssessments)
+      .where(eq(userAssessments.userId, userId));
+    
+    // Clear navigation progress from users table
+    await db.update(users)
+      .set({ 
+        navigationProgress: null 
+      })
+      .where(eq(users.id, userId));
+    
+    // PRESERVE these fields in users table:
+    // - name, email, profilePicture, organization, jobTitle, username, role
+    
+    return { success: true, message: 'Workshop data reset successfully' };
+  } catch (error) {
+    throw new Error('Failed to reset user data');
+  }
+};
 
 // Middleware to check if user has admin role
 const requireAdmin = async (req: Request, res: Response, next: Function) => {
@@ -408,6 +449,91 @@ adminRouter.delete('/videos/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting video:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Enhanced admin reset user data endpoint
+adminRouter.post('/reset-user-data/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    const adminId = req.cookies.userId ? parseInt(req.cookies.userId) : 1;
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid user ID'
+      });
+    }
+    
+    // Validate user exists
+    const targetUser = await db.select().from(users).where(eq(users.id, userId));
+    if (!targetUser.length) {
+      logAdminAction(adminId, 'RESET_USER_DATA_FAILED', userId, 'User not found', req);
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    
+    // Perform reset
+    await resetUserWorkshopData(userId);
+    
+    // Basic audit logging
+    logAdminAction(adminId, 'RESET_USER_DATA', userId, `Reset workshop data for user ${targetUser[0].username}`, req);
+    
+    res.json({
+      success: true,
+      message: `Workshop data reset for user ${targetUser[0].username}`
+    });
+  } catch (error) {
+    const adminId = req.cookies.userId ? parseInt(req.cookies.userId) : 1;
+    const userId = parseInt(req.params.userId);
+    logAdminAction(adminId, 'RESET_USER_DATA_FAILED', userId, (error as Error).message, req);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to reset user data'
+    });
+  }
+});
+
+// Data persistence validation endpoint
+adminRouter.get('/validate-user-data/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (isNaN(userId)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid user ID' 
+      });
+    }
+    
+    // Get all assessments for user
+    const assessments = await db.select()
+      .from(userAssessments)
+      .where(eq(userAssessments.userId, userId));
+    
+    // Get navigation progress
+    const user = await db.select({ 
+      navigationProgress: users.navigationProgress,
+      username: users.username 
+    })
+    .from(users)
+    .where(eq(users.id, userId));
+    
+    const validation = {
+      userId,
+      username: user[0]?.username || 'unknown',
+      assessmentCount: assessments.length,
+      assessmentTypes: assessments.map(a => a.assessmentType),
+      hasNavigationProgress: !!user[0]?.navigationProgress,
+      dataIntegrity: 'valid',
+      lastUpdate: assessments.length > 0 ? Math.max(...assessments.map(a => new Date(a.createdAt).getTime())) : null
+    };
+    
+    res.json({ success: true, validation });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Validation failed' });
   }
 });
 

@@ -16,8 +16,21 @@ import { queryClient } from '@/lib/queryClient';
 import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
+import AutoSync from '@/components/AutoSync';
+import { useQuery } from '@tanstack/react-query';
 
 // No need for a custom history hook, we'll use the default wouter behavior
+
+// Component to conditionally render AutoSync with user data
+const AutoSyncWrapper: React.FC = () => {
+  const { data: user } = useQuery({
+    queryKey: ['/api/user/me'],
+    retry: false,
+    refetchOnWindowFocus: false
+  });
+
+  return user?.id ? <AutoSync userId={user.id} /> : null;
+};
 
 const App: React.FC = () => {
   // Use error boundary to catch any rendering or navigation errors
@@ -29,6 +42,7 @@ const App: React.FC = () => {
           <ApplicationProvider>
             <DemoModeProvider>
               <div className="min-h-screen bg-background">
+                <AutoSyncWrapper />
                 <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                   <Switch>
                     {/* Main routes */}
