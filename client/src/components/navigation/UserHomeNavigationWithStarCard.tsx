@@ -25,7 +25,6 @@ import {
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useEffect, useState } from 'react';
 
 interface UserHomeNavigationProps {
   drawerOpen: boolean;

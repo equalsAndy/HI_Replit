@@ -39,6 +39,9 @@ const flowQuestions: FlowQuestion[] = [
   { id: 12, text: "I want to recapture this experience again—it's deeply rewarding." },
 ];
 
+import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+
 interface FlowAssessmentProps {
   isCompleted?: boolean;
   onTabChange?: (tabId: string) => void;
@@ -47,6 +50,10 @@ interface FlowAssessmentProps {
 }
 
 export default function FlowAssessment({ isCompleted = false, onTabChange, existingFlowScore, readOnly = false }: FlowAssessmentProps) {
+  // Reset detection hooks
+  const { progress: navigationProgress } = useNavigationProgress();
+  const { assessmentData: flowAssessmentData, isReset: isFlowReset } = useAssessmentWithReset('flow-assessment', '/api/workshop-data/flow-assessment');
+  
   // State for tracking answers - initialize with saved answers if available in localStorage
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
     // Try to load saved answers from localStorage
@@ -68,6 +75,30 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   const [autoAdvancePending, setAutoAdvancePending] = useState(false);
   const [adjustingQuestionId, setAdjustingQuestionId] = useState<number | null>(null);
   const [showScoring, setShowScoring] = useState(false);
+  
+  // Reset flow assessment state when user progress is reset
+  useEffect(() => {
+    if (isFlowReset || navigationProgress === null) {
+      console.log('🧹 RESETTING flow assessment state');
+      setAnswers({});
+      setCurrentQuestion(0);
+      setShowResult(false);
+      setAutoAdvance(true);
+      setError(null);
+      setAutoAdvancePending(false);
+      setAdjustingQuestionId(null);
+      setShowScoring(false);
+      localStorage.removeItem('flowAssessmentAnswers');
+    } else if (flowAssessmentData) {
+      // Load existing assessment data if available
+      if (flowAssessmentData.answers) {
+        setAnswers(flowAssessmentData.answers);
+      }
+      if (flowAssessmentData.completed) {
+        setShowResult(true);
+      }
+    }
+  }, [isFlowReset, navigationProgress, flowAssessmentData]);
   
   // Save answers to localStorage whenever they change
   useEffect(() => {

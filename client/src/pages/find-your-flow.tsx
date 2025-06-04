@@ -17,6 +17,8 @@ import { useDemoMode } from '@/hooks/use-demo-mode';
 import { VideoPlayer } from '@/components/content/VideoPlayer';
 import type { User, StarCard as StarCardType, FlowAttributes } from "@shared/schema";
 import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import {
   DndContext, 
   closestCenter,
