@@ -281,11 +281,16 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       <>
                         <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
                         
-                        {/* Progress indicator for sections other than More Information (section 5) */}
-                        {section.id !== '5' && (
-                          <span className="ml-auto text-xs text-gray-500">
-                            {section.completedSteps}/{section.totalSteps}
-                          </span>
+                        {/* Progress indicator for sections using progression logic */}
+                        {section.id !== '5' && section.id !== '6' && (
+                          (() => {
+                            const sectionProgress = getSectionProgress(section.id);
+                            return (
+                              <span className="ml-auto text-xs text-gray-500">
+                                {sectionProgress.completed}/{sectionProgress.total}
+                              </span>
+                            );
+                          })()
                         )}
                       </>
                     )}
@@ -300,19 +305,27 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
                       
-                      // Resources section items never show checkmarks
-                      const isCompleted = isResourceSection ? false : effectiveCompletedSteps.includes(step.id);
+                      // Use AllStarTeams progression logic for step completion and accessibility
+                      const isCompleted = isResourceSection ? false : isStepCompleted(step.id);
                       
-                      // Special accessibility check for Star Card resource
-                      const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
+                      // Check if sections 5 and 6 are unlocked (after 4-5 completion)
+                      const unlockedSections = getUnlockedSections();
+                      const isSectionUnlocked = unlockedSections.includes(section.id);
                       
                       // Override step accessibility when reset is detected
                       let isAccessible;
                       if (resetDetected) {
                         // When reset is detected, only allow the first step
                         isAccessible = step.id === '1-1';
+                      } else if (!isSectionUnlocked) {
+                        // Section is locked
+                        isAccessible = false;
+                      } else if (isResourceSection) {
+                        // Resources section accessibility (sections 5 and 6)
+                        isAccessible = progressionState.completedSteps.includes('4-5'); // Final Reflection completed
                       } else {
-                        isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
+                        // Use progression logic for step accessibility
+                        isAccessible = isStepUnlocked(step.id);
                       }
                       
                       return (
@@ -370,11 +383,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                             </TooltipTrigger>
                             {!isAccessible && (
                               <TooltipContent side="right">
-                                {isSpecialAccessRestricted ? (
-                                  <p className="text-xs">Complete Strengths Assessment and Flow Attributes first</p>
-                                ) : (
-                                  <p className="text-xs">Complete previous steps first</p>
-                                )}
+                                <p className="text-xs">Complete previous steps first</p>
                               </TooltipContent>
                             )}
                           </Tooltip>
