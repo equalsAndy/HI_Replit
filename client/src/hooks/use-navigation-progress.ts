@@ -418,7 +418,8 @@ export function useNavigationProgress() {
       // Video steps require actual video completion
       if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
         const videoProgress = progress.videoProgress[stepId] || 0;
-        if (videoProgress >= 1) {
+        const requiredProgress = stepId === '1-1' ? 0.5 : 1; // Use 0.5% for step 1-1, 1% for others
+        if (videoProgress >= requiredProgress) {
           actuallyCompleted.push(stepId);
           console.log(`✅ Video step ${stepId} verified complete: ${videoProgress}%`);
         }

@@ -1,4 +1,20 @@
-import { ProgressionRules } from '@/shared/types';
+// Progression Rules type definition
+interface ProgressionRules {
+  sequentialUnlock: boolean;
+  completionCriteria: {
+    [stepId: string]: {
+      type: string;
+      requirements: {
+        minWatchPercent?: number;
+        allQuestionsAnswered?: boolean;
+        dataSubmitted?: boolean;
+        wordsSelected?: number;
+        slidersCompleted?: boolean;
+        exactWordCount?: number;
+      };
+    };
+  };
+}
 
 /**
  * AllStarTeams Progression Rules
