@@ -5,6 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool } from 'lucide-react';
+import wellbeingLadderImage from '@/assets/wellbeing-ladder.png';
 
 const YourStatementView: React.FC<ContentViewProps> = ({
   navigate,
@@ -14,12 +15,22 @@ const YourStatementView: React.FC<ContentViewProps> = ({
   const [statement, setStatement] = useState<string>('');
   const [saving, setSaving] = useState(false);
 
+  // Check if minimum requirements are met
+  const hasMinimumContent = statement.trim().length >= 20;
+
   const handleSave = async () => {
+    if (!hasMinimumContent) {
+      return; // Don't proceed if minimum requirements aren't met
+    }
+
     setSaving(true);
 
     try {
-      await apiRequest('/api/visualization', 'POST', {
-        futureLetterText: statement
+      await apiRequest('/api/visualization', {
+        method: 'POST',
+        body: JSON.stringify({
+          futureLetterText: statement
+        })
       });
 
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
@@ -60,7 +71,7 @@ const YourStatementView: React.FC<ContentViewProps> = ({
         <div className="flex flex-col items-center justify-center">
           <div className="w-3/4 max-w-[250px] mb-6">
             <img 
-              src={ladderGraphic} 
+              src={wellbeingLadderImage} 
               alt="Development Ladder" 
               className="w-full h-auto"
             />
@@ -117,10 +128,19 @@ I am becoming someone who..."
       <div className="flex justify-end">
         <Button 
           onClick={handleSave}
-          disabled={saving}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          disabled={saving || !hasMinimumContent}
+          className={`${
+            hasMinimumContent && !saving
+              ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
+              : "bg-gray-300 cursor-not-allowed text-gray-500"
+          }`}
         >
-          {saving ? 'Saving...' : 'Complete'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving 
+            ? 'Saving...' 
+            : hasMinimumContent 
+              ? 'Complete' 
+              : 'Add statement to complete'
+          } <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

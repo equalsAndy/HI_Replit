@@ -91,7 +91,15 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     }));
   };
 
+  // Check if minimum requirements are met
+  const hasMinimumContent = formData.futureSelfDescription.trim().length >= 10 || 
+                           formData.visualizationNotes.trim().length >= 10;
+
   const handleSubmit = async () => {
+    if (!hasMinimumContent) {
+      return; // Don't proceed if minimum requirements aren't met
+    }
+    
     try {
       markStepCompleted('4-4');
       setCurrentContent('your-statement');
@@ -203,10 +211,20 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       <div className="flex justify-center sm:justify-end pb-4 sm:pb-0">
         <Button 
           onClick={handleSubmit}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
+          disabled={!hasMinimumContent}
+          className={`${
+            hasMinimumContent 
+              ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
+              : "bg-gray-300 cursor-not-allowed text-gray-500"
+          } w-full sm:w-auto`}
           size="lg"
         >
-          <span className="text-sm sm:text-base">Next: Final Reflection</span>
+          <span className="text-sm sm:text-base">
+            {hasMinimumContent 
+              ? "Next: Final Reflection" 
+              : "Add reflection to continue"
+            }
+          </span>
           <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
