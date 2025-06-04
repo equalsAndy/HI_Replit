@@ -74,7 +74,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // Initialize YouTube API and progress tracking
   useEffect(() => {
-    if (iframeRef.current && processedUrl && onProgress) {
+    if (iframeRef.current && processedUrl) {
       // Initialize player function
       const initializePlayer = () => {
         const videoId = processedUrl.match(/embed\/([^?]+)/)?.[1];
@@ -82,13 +82,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
           const ytPlayer = new window.YT.Player(iframeRef.current, {
             events: {
               onReady: () => {
-                console.log('🎬 YouTube player ready');
+                console.log('🎬 YouTube player ready for step:', stepId);
                 setPlayer(ytPlayer);
-                startProgressTracking(ytPlayer);
+                if (onProgress) {
+                  startProgressTracking(ytPlayer);
+                }
               },
               onStateChange: (event: any) => {
                 if (event.data === window.YT.PlayerState.PLAYING) {
-                  startProgressTracking(ytPlayer);
+                  if (onProgress) {
+                    startProgressTracking(ytPlayer);
+                  }
                 } else if (event.data === window.YT.PlayerState.PAUSED || 
                           event.data === window.YT.PlayerState.ENDED) {
                   stopProgressTracking();
