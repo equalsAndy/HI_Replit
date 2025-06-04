@@ -127,8 +127,8 @@ export function useNavigationProgress() {
   
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
-    currentStepId: '',
-    appType: null,
+    currentStepId: '1-1', // Start with first step
+    appType: 'ast',
     lastVisitedAt: new Date().toISOString(),
     unlockedSections: ['1'], // Only Introduction is unlocked initially
     videoProgress: {}
@@ -301,6 +301,17 @@ export function useNavigationProgress() {
       '3-1', '3-2', '3-3', '3-4',
       '4-1', '4-2', '4-3', '4-4', '4-5'
     ];
+
+    // Only calculate if we have assessment data loaded
+    if (!userAssessments || Object.keys(userAssessments).length === 0) {
+      return {
+        ...progress,
+        completedSteps: [],
+        currentStepId: '1-1',
+        unlockedSections: ['1'],
+        lastVisitedAt: new Date().toISOString()
+      };
+    }
 
     // Check which steps are actually completed
     const actuallyCompleted = allSteps.filter(stepId => checkStepCompletion(stepId));

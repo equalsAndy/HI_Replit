@@ -44,8 +44,10 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
+    console.log(`🎬 WelcomeView video progress: ${percentage.toFixed(2)}%`);
     // Check if minimum watch requirement is met (1%)
     if (percentage >= 1 && !hasReachedMinimum) {
+      console.log(`🎬 WelcomeView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };
