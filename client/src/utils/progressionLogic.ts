@@ -37,7 +37,7 @@ export const assessmentValidators = {
   stepByStepReflection: (data: any): boolean => {
     const requiredFields = ['strength1', 'strength2', 'strength3', 'strength4', 'teamValues', 'uniqueContribution'];
     return data && requiredFields.every(field => 
-      data[field] && typeof data[field] === 'string' && data[field].trim().length > 0
+      data[field] && typeof data[field] === 'string' && data[field].trim().length >= 10
     );
   },
 

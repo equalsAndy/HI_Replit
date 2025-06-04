@@ -507,7 +507,7 @@ export function useNavigationProgress() {
       
       // Map steps to their required reflection fields
       const stepReflectionFields = {
-        '2-4': ['strengthsReflection', 'valuesReflection', 'passionsReflection'],
+        '2-4': ['strength1', 'strength2', 'strength3', 'strength4', 'teamValues', 'uniqueContribution'],
         '3-4': ['flowAttributesText'], // Flow attributes text before adding to star card
         '4-2': ['ladderReflection'],
         '4-3': ['futureVisionReflection'],
@@ -517,8 +517,16 @@ export function useNavigationProgress() {
       const requiredFields = stepReflectionFields[stepId as keyof typeof stepReflectionFields] || [];
       
       for (const field of requiredFields) {
-        const fieldValue = userAssessments?.[field];
+        // For step 2-4, check stepByStepReflection assessment results
+        let fieldValue;
+        if (stepId === '2-4') {
+          fieldValue = userAssessments?.stepByStepReflection?.results?.reflections?.[field];
+        } else {
+          fieldValue = userAssessments?.[field];
+        }
+        
         if (!fieldValue || typeof fieldValue !== 'string' || fieldValue.trim().length < MINIMUM_REFLECTION_LENGTH) {
+          console.log(`❌ Field ${field} validation failed:`, fieldValue?.length || 0, 'characters');
           return { 
             isComplete: false, 
             reason: `Reflection must be at least ${MINIMUM_REFLECTION_LENGTH} characters long` 
@@ -572,8 +580,8 @@ export function useNavigationProgress() {
     
     // For video steps, mark completed when validation passes
     if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-      const completedSet = new Set([...progress.completedSteps, stepId]);
-      const newCompletedSteps = [...completedSet];
+      const uniqueSteps = [...new Set([...progress.completedSteps, stepId])];
+      const newCompletedSteps = uniqueSteps;
       
       const newProgress = {
         ...progress,
