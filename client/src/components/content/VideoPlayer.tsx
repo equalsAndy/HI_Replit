@@ -79,42 +79,59 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const initializePlayer = () => {
         const videoId = processedUrl.match(/embed\/([^?]+)/)?.[1];
         if (videoId) {
-          const ytPlayer = new window.YT.Player(iframeRef.current, {
-            events: {
-              onReady: () => {
-                console.log('🎬 YouTube player ready for step:', stepId);
-                setPlayer(ytPlayer);
-                if (onProgress) {
-                  startProgressTracking(ytPlayer);
-                }
-              },
-              onStateChange: (event: any) => {
-                if (event.data === window.YT.PlayerState.PLAYING) {
+          try {
+            const ytPlayer = new window.YT.Player(iframeRef.current, {
+              events: {
+                onReady: () => {
+                  console.log('🎬 YouTube player ready for step:', stepId);
+                  setPlayer(ytPlayer);
                   if (onProgress) {
                     startProgressTracking(ytPlayer);
                   }
-                } else if (event.data === window.YT.PlayerState.PAUSED || 
-                          event.data === window.YT.PlayerState.ENDED) {
-                  stopProgressTracking();
+                },
+                onStateChange: (event: any) => {
+                  if (event.data === window.YT.PlayerState.PLAYING) {
+                    if (onProgress) {
+                      startProgressTracking(ytPlayer);
+                    }
+                  } else if (event.data === window.YT.PlayerState.PAUSED || 
+                            event.data === window.YT.PlayerState.ENDED) {
+                    stopProgressTracking();
+                  }
                 }
               }
-            }
-          });
+            });
+          } catch (error) {
+            console.error('🎬 YouTube API initialization failed:', error);
+            // Fallback: simulate progress for testing
+            startFallbackProgressTracking();
+          }
         }
       };
 
       // Load YouTube API if not already loaded
-      if (!window.YT) {
+      if (!window.YT || !window.YT.Player) {
+        console.log('🎬 Loading YouTube API...');
         const tag = document.createElement('script');
         tag.src = 'https://www.youtube.com/iframe_api';
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
         
         window.onYouTubeIframeAPIReady = () => {
-          initializePlayer();
+          console.log('🎬 YouTube API loaded successfully');
+          setTimeout(initializePlayer, 500); // Small delay to ensure API is ready
         };
+        
+        // Fallback if API doesn't load within 5 seconds
+        setTimeout(() => {
+          if (!window.YT || !window.YT.Player) {
+            console.log('🎬 YouTube API timeout, using fallback progress tracking');
+            startFallbackProgressTracking();
+          }
+        }, 5000);
       } else {
-        initializePlayer();
+        console.log('🎬 YouTube API already loaded');
+        setTimeout(initializePlayer, 100);
       }
       
       handleAutoplayFallback(iframeRef.current);
