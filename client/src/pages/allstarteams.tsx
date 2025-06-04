@@ -25,7 +25,6 @@ export default function AllStarTeams() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
-  const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
@@ -37,6 +36,9 @@ export default function AllStarTeams() {
     loadFromDatabase,
     resetProgress
   } = useNavigationProgress();
+  
+  // Use navigation progress state instead of separate completedSteps state
+  const completedSteps = navProgress?.completedSteps || [];
 
   // Set app to AllStarTeams on component mount and check authentication
   useEffect(() => {
@@ -146,7 +148,6 @@ export default function AllStarTeams() {
             queryClient.clear();
             
             // Reset local state
-            setCompletedSteps([]);
             setCurrentContent("welcome");
             
             // Reset navigation progress
@@ -208,41 +209,11 @@ export default function AllStarTeams() {
     return () => clearInterval(interval);
   }, [progressStorageKey]);
 
-  // Load completed steps from localStorage
-  useEffect(() => {
-    const savedProgressJSON = localStorage.getItem(progressStorageKey);
-    if (savedProgressJSON) {
-      try {
-        const savedProgress = JSON.parse(savedProgressJSON);
-        // Handle both formats: array and object with completed property
-        if (Array.isArray(savedProgress)) {
-          setCompletedSteps(savedProgress);
-        } else if (savedProgress && typeof savedProgress === 'object' && 'completed' in savedProgress) {
-          // Handle object format: { completed: [...] }
-          if (Array.isArray(savedProgress.completed)) {
-            setCompletedSteps(savedProgress.completed);
-          } else {
-            console.error("Saved progress has invalid completed property:", savedProgress);
-            setCompletedSteps([]);
-          }
-        } else {
-          console.error("Saved progress has unsupported format:", savedProgress);
-          setCompletedSteps([]);
-        }
-      } catch (e) {
-        console.error("Error parsing saved progress:", e);
-        // Initialize as empty array if parsing fails
-        setCompletedSteps([]);
-      }
-    }
-  }, [progressStorageKey]);
+  // Navigation progress is now loaded from database via useNavigationProgress hook
+  // No need for localStorage-based completed steps loading
 
-  // Save completed steps to localStorage whenever it changes
-  useEffect(() => {
-    if (completedSteps.length > 0) {
-      localStorage.setItem(progressStorageKey, JSON.stringify(completedSteps));
-    }
-  }, [completedSteps, progressStorageKey]);
+  // Navigation progress is now automatically persisted to database
+  // No need for localStorage-based saving
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
@@ -432,31 +403,15 @@ export default function AllStarTeams() {
   // Function to mark a step as completed
   const markStepCompleted = (stepId: string) => {
     console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
-    // Defensive check to ensure completedSteps is an array
-    if (Array.isArray(completedSteps)) {
-      if (!completedSteps.includes(stepId)) {
-        setCompletedSteps(prev => Array.isArray(prev) ? [...prev, stepId] : [stepId]);
+    
+    // Use navigation progress validation system only
+    markNavStepCompleted(stepId);
+    updateCurrentStep(stepId, 'ast');
 
-        // Also mark in navigation progress and sync with database
-        markNavStepCompleted(stepId);
-        updateCurrentStep(stepId, 'ast');
-
-        // Sync with database (async, non-blocking)
-        syncWithDatabase().catch(error => {
-          console.error('Failed to sync navigation progress with database:', error);
-        });
-      }
-    } else {
-      console.error("completedSteps is not an array:", completedSteps);
-      setCompletedSteps([stepId]);
-
-      // Also update navigation progress for this case
-      markNavStepCompleted(stepId);
-      updateCurrentStep(stepId, 'ast');
-      syncWithDatabase().catch(error => {
-        console.error('Failed to sync navigation progress with database:', error);
-      });
-    }
+    // Sync with database (async, non-blocking)
+    syncWithDatabase().catch(error => {
+      console.error('Failed to sync navigation progress with database:', error);
+    });
   };
 
   // Function to determine if a step is accessible
