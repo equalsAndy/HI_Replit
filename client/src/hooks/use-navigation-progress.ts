@@ -224,6 +224,15 @@ export function useNavigationProgress() {
           console.log('🚨 Detected false positive progress data, resetting to clean state');
           // Clear localStorage and start fresh
           localStorage.removeItem('navigationProgress');
+          // Reset to clean initial state
+          setProgress({
+            completedSteps: [],
+            currentStepId: '1-1',
+            appType: 'ast',
+            lastVisitedAt: new Date().toISOString(),
+            unlockedSections: ['1'],
+            videoProgress: {}
+          });
           return;
         }
         setProgress(parsed);
@@ -362,11 +371,19 @@ export function useNavigationProgress() {
     if (['1-1', '2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
       const completedSet = new Set([...progress.completedSteps, stepId]);
       const newCompletedSteps = [...completedSet];
+      
+      // Store video completion in progress tracking
+      const newVideoProgress = {
+        ...progress.videoProgress,
+        [stepId]: 100 // Mark as fully watched when user clicks next
+      };
+      
       const newProgress = {
         ...progress,
         completedSteps: newCompletedSteps,
         currentStepId: getNextStepId(newCompletedSteps) || stepId,
         unlockedSections: getUnlockedSections(newCompletedSteps),
+        videoProgress: newVideoProgress,
         lastVisitedAt: new Date().toISOString()
       };
       setProgress(newProgress);
