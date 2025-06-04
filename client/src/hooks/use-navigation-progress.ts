@@ -230,30 +230,24 @@ export function useNavigationProgress() {
             const dbProgress = JSON.parse(result.progress);
             console.log('✅ Loaded progress from database:', dbProgress);
             
-            // Use database progress if available
-            setProgress({
-              ...dbProgress,
-              lastVisitedAt: new Date().toISOString()
-            });
-            return;
+            // Use database progress if it has meaningful data
+            if (dbProgress.appType && (dbProgress.completedSteps.length > 0 || dbProgress.currentStepId !== '1-1')) {
+              setProgress({
+                ...dbProgress,
+                lastVisitedAt: new Date().toISOString()
+              });
+              return;
+            }
           }
         }
       } catch (error) {
         console.error('Error loading navigation progress from database:', error);
       }
       
-      // Fallback to clean initial state if no database progress
-      const cleanState = {
-        completedSteps: [],
-        currentStepId: '1-1',
-        appType: 'ast' as const,
-        lastVisitedAt: new Date().toISOString(),
-        unlockedSections: ['1'],
-        videoProgress: {}
-      };
-      
-      setProgress(cleanState);
-      console.log('✅ Clean state initialized (no database progress):', cleanState);
+      // Calculate initial state based on existing user data
+      const initialProgress = recalculateProgressFromData();
+      setProgress(initialProgress);
+      console.log('✅ Initial state calculated from user data:', initialProgress);
     };
     
     initializeProgress();
@@ -355,6 +349,54 @@ export function useNavigationProgress() {
   const checkStepCompletion = (stepId: string): boolean => {
     const completionResult = isStepCompleted(stepId, assessmentsArray, progress);
     return completionResult.isComplete;
+  };
+
+  // Calculate progress from user data without overriding existing state
+  const recalculateProgressFromData = (): NavigationProgress => {
+    const allSteps = [
+      '1-1', '2-1', '2-2', '2-3', '2-4', 
+      '3-1', '3-2', '3-3', '3-4',
+      '4-1', '4-2', '4-3', '4-4', '4-5'
+    ];
+
+    let actuallyCompleted: string[] = [];
+    
+    // Check what steps should be completed based on user assessment data
+    console.log('🔍 Checking user assessments:', userAssessments);
+    
+    if (userAssessments && Object.keys(userAssessments).length > 0) {
+      // If user has starCard assessment, they've completed the star assessment flow
+      if (userAssessments.starCard) {
+        actuallyCompleted.push('1-1', '2-1', '2-2'); // Introduction, video, assessment
+        console.log('✅ Star Card assessment found - marking steps 1-1, 2-1, 2-2 complete');
+      }
+      
+      // If user has flowAttributes, they've completed flow assessment
+      if (userAssessments.flowAttributes) {
+        actuallyCompleted.push('3-1', '3-2'); // Flow intro and assessment
+        console.log('✅ Flow Attributes assessment found - marking steps 3-1, 3-2 complete');
+      }
+    } else {
+      // Also check for star card data in global state as fallback
+      const starCardData = (window as any).globalStarCardData;
+      if (starCardData && (starCardData.thinking > 0 || starCardData.acting > 0 || starCardData.feeling > 0 || starCardData.planning > 0)) {
+        actuallyCompleted.push('1-1', '2-1', '2-2');
+        console.log('✅ Star Card data found in global state - marking steps 1-1, 2-1, 2-2 complete');
+      }
+    }
+    
+    // Get unlocked sections and next step
+    const unlockedSections = getUnlockedSections(actuallyCompleted);
+    const nextStepId = getNextStepId(actuallyCompleted);
+
+    return {
+      completedSteps: actuallyCompleted,
+      currentStepId: nextStepId || '1-1',
+      appType: 'ast' as const,
+      lastVisitedAt: new Date().toISOString(),
+      unlockedSections,
+      videoProgress: {}
+    };
   };
 
   // Recalculate progress based on current data
