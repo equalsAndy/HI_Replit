@@ -59,6 +59,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
   
+  // Override completed steps if server shows reset state
+  const [resetDetected, setResetDetected] = useState(false);
+  const effectiveCompletedSteps = resetDetected ? [] : completedSteps;
+  
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
     thinking: 0,
@@ -69,9 +73,40 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   const [localFlowData, setLocalFlowData] = useState<any>(null);
   
+  // Check for server reset state and force cache clear
+  useEffect(() => {
+    const checkServerResetState = async () => {
+      try {
+        const response = await fetch('/api/user/navigation-progress', { credentials: 'include' });
+        if (response.ok) {
+          const result = await response.json();
+          const serverHasProgress = result.success && result.navigationProgress;
+          const localHasProgress = completedSteps && completedSteps.length > 0;
+          
+          if (!serverHasProgress && localHasProgress) {
+            console.log('🚨 SERVER RESET DETECTED - clearing navigation state');
+            setResetDetected(true);
+            
+            // Force page reload to ensure clean state
+            setTimeout(() => {
+              window.location.reload();
+            }, 100);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking server reset state:', error);
+      }
+    };
+    
+    // Only check if we have local progress but potentially server doesn't
+    if (completedSteps && completedSteps.length > 0) {
+      checkServerResetState();
+    }
+  }, [completedSteps]);
+
   // Reset local state when user progress is reset
   useEffect(() => {
-    if (isStarCardReset || navigationProgress === null) {
+    if (isStarCardReset || navigationProgress === null || resetDetected) {
       console.log('🧹 RESETTING star card local state');
       setLocalStarCardData({
         thinking: 0,
@@ -88,7 +123,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         planning: effectiveData?.planning || 0
       });
     }
-  }, [isStarCardReset, navigationProgress, starCardData, starCard]);
+  }, [isStarCardReset, navigationProgress, starCardData, starCard, resetDetected]);
 
   useEffect(() => {
     if (isFlowReset || navigationProgress === null) {
