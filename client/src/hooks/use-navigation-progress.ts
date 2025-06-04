@@ -261,8 +261,8 @@ export function useNavigationProgress() {
 
   // Save progress to both local storage and database whenever it changes
   useEffect(() => {
-    // Don't sync initial empty state
-    if (progress.completedSteps.length === 0 && progress.currentStepId === '1-1') {
+    // Don't sync completely empty state, but allow sync of initial state with appType
+    if (progress.completedSteps.length === 0 && progress.currentStepId === '' && !progress.appType) {
       return;
     }
     
