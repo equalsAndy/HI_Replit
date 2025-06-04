@@ -17,7 +17,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
 
   // Different content based on which app is active
-  const stepId = isImaginalAgility ? "1-1" : "2-1";
+  const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -67,7 +67,6 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         {/* YouTube Video Player */}
         <div className="mb-8 max-w-4xl mx-auto">
-          {console.log(`📺 WelcomeView: Passing stepId "${stepId}" to VideoPlayer`)}
           <VideoPlayer
             workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
             stepId={stepId}
