@@ -390,7 +390,7 @@ export default function AllStarTeams() {
     return null;
   };
 
-  // Handle step click with automatic progression
+  // Handle step click with SIMPLIFIED LINEAR PROGRESSION - NO AUTO-COMPLETION
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Get navigation info for this step
     const navInfo = navigationSequence[stepId];
@@ -398,31 +398,20 @@ export default function AllStarTeams() {
     if (!navInfo) {
       // For steps not defined in the sequence (like resource items)
       setCurrentContent(`placeholder-${stepId}`);
-      markStepCompleted(stepId);
+      // DO NOT auto-mark as completed - only Next button progression should do this
       return;
     }
-
-    // Handle assessments specially - don't mark as completed yet
-    const isAssessment = stepId === '2-2' || stepId === '3-2';
 
     // Set the content based on the navigation mapping
     setCurrentContent(navInfo.contentKey);
 
-    // Mark previous step as completed if it exists
-    if (navInfo.prev && !completedSteps.includes(navInfo.prev)) {
-      markStepCompleted(navInfo.prev);
-    }
-
-    // For non-assessment steps, mark as completed when clicked
-    if (!isAssessment) {
-      markStepCompleted(stepId);
-    }
+    // SIMPLIFIED MODE: Menu clicks should NEVER mark steps as completed
+    // Only Next button progression should mark steps complete
+    console.log(`🧭 SIMPLIFIED MODE: Menu navigation to ${stepId} - NO auto-completion`);
 
     // For the flow assessment, navigate to the flow assessment page instead of opening modal
     if (stepId === '3-2') {
-      // Mark it as completed directly
-      markStepCompleted('3-2');
-      // Go to flow-assessment content
+      // DO NOT mark as completed - only Next button should do this
       setCurrentContent('flow-assessment');
     }
   };

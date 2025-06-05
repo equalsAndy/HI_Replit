@@ -908,17 +908,7 @@ export default function StepByStepReflection({
                 } rounded-md bg-white`}
               />
 
-              {/* Character count and validation indicator */}
-              <div className="mt-2 flex items-center justify-between">
-                <div className={`text-xs ${
-                  isCurrentReflectionValid() 
-                    ? 'text-green-600' 
-                    : 'text-red-500'
-                }`}>
-                  {getCurrentReflectionText().trim().length}/10 characters minimum
-                  {isCurrentReflectionValid() ? ' ✓' : ' (required)'}
-                </div>
-              </div>
+
 
               <div className="mt-3">
                 <button 
