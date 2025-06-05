@@ -33,7 +33,7 @@ export function useSimpleNavigation() {
 
   const queryClient = useQueryClient();
 
-  // Load from database only once on mount
+  // Load from database and recalculate unlocked steps based on video progress
   useEffect(() => {
     const loadProgress = async () => {
       try {
@@ -43,7 +43,15 @@ export function useSimpleNavigation() {
           if (data.navigationProgress) {
             const parsed = JSON.parse(data.navigationProgress);
             console.log('📥 Loaded progress from database:', parsed);
-            setProgress(parsed);
+            
+            // Recalculate unlocked steps based on actual video progress
+            const recalculatedProgress = {
+              ...parsed,
+              unlockedSteps: calculateUnlockedSteps(parsed.completedSteps || [], parsed.videoProgress || {})
+            };
+            
+            console.log('🔄 Recalculated unlocked steps:', recalculatedProgress.unlockedSteps);
+            setProgress(recalculatedProgress);
           }
         }
       } catch (error) {
@@ -53,6 +61,38 @@ export function useSimpleNavigation() {
     
     loadProgress();
   }, []);
+
+  // Calculate which steps should be unlocked based on video progress and completed steps
+  const calculateUnlockedSteps = (completedSteps: string[], videoProgress: { [stepId: string]: number }): string[] => {
+    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const unlocked = ['1-1']; // First step always unlocked
+    
+    for (let i = 0; i < allSteps.length - 1; i++) {
+      const currentStep = allSteps[i];
+      const nextStep = allSteps[i + 1];
+      
+      let canUnlockNext = false;
+      
+      // For video steps, check 5% threshold
+      if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(currentStep)) {
+        const currentVideoProgress = videoProgress[currentStep] || 0;
+        canUnlockNext = currentVideoProgress >= 5; // 5% threshold
+        
+        console.log(`📹 Step ${currentStep}: ${currentVideoProgress}% (need 5% to unlock ${nextStep}) - ${canUnlockNext ? 'UNLOCKED' : 'LOCKED'}`);
+      } 
+      // For assessment steps, check if completed
+      else if (completedSteps.includes(currentStep)) {
+        canUnlockNext = true;
+        console.log(`📝 Step ${currentStep}: Completed - UNLOCKS ${nextStep}`);
+      }
+      
+      if (canUnlockNext && !unlocked.includes(nextStep)) {
+        unlocked.push(nextStep);
+      }
+    }
+    
+    return unlocked;
+  };
 
   // Update video progress with dual-threshold system (5% for Next button, 90% for completion)
   const updateVideoProgress = (stepId: string, percentage: number) => {

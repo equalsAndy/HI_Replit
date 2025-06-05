@@ -62,21 +62,21 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Get navigation progress at component level
   const { progress: navigationProgress } = useNavigationProgress();
   
-  // Check if step meets completion criteria using corrected video progress
-  const isStepComplete = () => {
+  // Calculate start time for video resume based on current progress
+  const calculateStartTime = (): number => {
     const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
     const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+    const currentProgress = Math.max(videoProgress, globalProgress);
     
-    // Fix: 0.8 means 80%, not 0.8% - only apply correction if value is very small (actual decimal)
-    const correctedVideoProgress = videoProgress > 0 && videoProgress < 0.01 ? videoProgress * 100 : videoProgress;
-    const correctedGlobalProgress = globalProgress > 0 && globalProgress < 0.01 ? globalProgress * 100 : globalProgress;
+    // Convert percentage to seconds (assuming average video duration of 150 seconds)
+    // Only resume if progress is between 5% and 95% to avoid edge cases
+    if (currentProgress >= 5 && currentProgress < 95) {
+      const startTimeSeconds = (currentProgress / 100) * 150;
+      console.log(`🎬 WelcomeView: Resuming from ${currentProgress}% = ${startTimeSeconds} seconds`);
+      return startTimeSeconds;
+    }
     
-    const currentProgress = Math.max(correctedVideoProgress, correctedGlobalProgress);
-    const isComplete = currentProgress >= 5; // 5% threshold for Next button
-    
-    console.log(`🎬 WelcomeView isStepComplete check - Video: ${correctedVideoProgress}%, Global: ${correctedGlobalProgress}%, Max: ${currentProgress}%, Complete: ${isComplete}`);
-    
-    return isComplete;
+    return 0; // Start from beginning
   };
   
   // Handle video progress updates
@@ -137,6 +137,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             aspectRatio="16:9"
             autoplay={true}
             onProgress={handleVideoProgress}
+            startTime={calculateStartTime()}
           />
         </div>
 

@@ -13,6 +13,7 @@ interface VideoPlayerProps {
   autoplay?: boolean;
   customParams?: VideoUrlParams;
   onProgress?: (percentage: number) => void;
+  startTime?: number; // Start time in seconds for resume functionality
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -25,7 +26,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   aspectRatio = '16:9',
   autoplay = true,
   customParams = {},
-  onProgress
+  onProgress,
+  startTime = 0
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [processedUrl, setProcessedUrl] = useState<string>('');
@@ -96,6 +98,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onReady: (event: any) => {
                   console.log('🎬 YouTube player ready for step:', stepId);
                   setPlayer(event.target);
+                  
+                  // Resume from startTime if provided
+                  if (startTime > 0) {
+                    console.log(`🎬 Resuming video from ${startTime} seconds`);
+                    event.target.seekTo(startTime, true);
+                  }
+                  
                   // Start tracking immediately when player is ready
                   if (onProgress) {
                     console.log('🎬 Starting progress tracking on player ready');
