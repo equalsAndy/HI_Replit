@@ -555,7 +555,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       onClose();
 
       // Invalidate star card query to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Call onComplete callback if provided
       if (onComplete) {
