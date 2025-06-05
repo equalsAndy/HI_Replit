@@ -469,14 +469,27 @@ export function useNavigationProgress() {
     
     // Priority 1: Global video tracking state (most current)
     if ((window as any).currentVideoProgress?.[stepId] !== undefined) {
-      const globalProgress = (window as any).currentVideoProgress[stepId];
+      let globalProgress = (window as any).currentVideoProgress[stepId];
+      
+      // Apply correction: if value is between 0-1, it's a decimal that represents percentage
+      if (globalProgress > 0 && globalProgress <= 1) {
+        globalProgress = globalProgress * 100;
+        console.log(`  🔧 Corrected global progress from decimal to percentage: ${globalProgress}%`);
+      }
+      
       console.log(`  ✅ Found in global state: ${globalProgress}%`);
       return globalProgress;
     }
     
     // Priority 2: Component navigation state
-    const savedProgress = progress?.videoProgress?.[stepId] || 0;
+    let savedProgress = progress?.videoProgress?.[stepId] || 0;
     if (savedProgress > 0) {
+      // Apply correction: if value is between 0-1, it's a decimal that represents percentage
+      if (savedProgress > 0 && savedProgress <= 1) {
+        savedProgress = savedProgress * 100;
+        console.log(`  🔧 Corrected saved progress from decimal to percentage: ${savedProgress}%`);
+      }
+      
       console.log(`  ✅ Found in saved state: ${savedProgress}%`);
       return savedProgress;
     }
