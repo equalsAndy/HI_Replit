@@ -461,14 +461,42 @@ export function useNavigationProgress() {
     };
   };
 
+  // Helper: Get most current video progress with robust fallback
+  const getCurrentVideoProgress = (stepId: string): number => {
+    console.log(`🔍 Getting current progress for ${stepId}...`);
+    
+    // Priority 1: Global video tracking state (most current)
+    if ((window as any).currentVideoProgress?.[stepId] !== undefined) {
+      const globalProgress = (window as any).currentVideoProgress[stepId];
+      console.log(`  ✅ Found in global state: ${globalProgress}%`);
+      return globalProgress;
+    }
+    
+    // Priority 2: Component navigation state
+    const savedProgress = progress?.videoProgress?.[stepId] || 0;
+    if (savedProgress > 0) {
+      console.log(`  ✅ Found in saved state: ${savedProgress}%`);
+      return savedProgress;
+    }
+    
+    console.warn(`  ❌ No video progress found for ${stepId}, defaulting to 0%`);
+    return 0;
+  };
+
+  // Helper: Identify video steps in AllStarTeams workshop
+  const isVideoStep = (stepId: string): boolean => {
+    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+    return videoSteps.includes(stepId);
+  };
+
   // Validate step completion before marking complete
   const validateStepCompletion = (stepId: string): { isComplete: boolean; reason?: string } => {
-    console.log(`🔍 Validating completion for step ${stepId}`);
+    console.log(`🔍 VALIDATION START: Step ${stepId}`);
     
     // Video steps require completion based on step-specific thresholds
-    if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-      // Get current video progress from latest state
-      const currentProgress = progress.videoProgress[stepId] || 0;
+    if (isVideoStep(stepId)) {
+      // Get current video progress using robust fallback system
+      const currentProgress = getCurrentVideoProgress(stepId);
       
       // Different completion thresholds for different video steps
       let requiredProgress = 1; // Default 1% for most videos
@@ -478,10 +506,18 @@ export function useNavigationProgress() {
         requiredProgress = 85; // 85% for main content videos to ensure they're actually watched
       }
       
+      // Enhanced debugging logs
+      console.log(`📹 Video Progress Debug for ${stepId}:`);
+      console.log(`  📊 Global state: ${(window as any).currentVideoProgress?.[stepId] || 'undefined'}%`);
+      console.log(`  📊 Saved state: ${progress?.videoProgress?.[stepId] || 'undefined'}%`);
+      console.log(`  🎯 Current progress: ${currentProgress}%`);
+      console.log(`  🚨 Threshold: ${requiredProgress}%`);
+      
       if (currentProgress < requiredProgress) {
+        console.log(`  ❌ VALIDATION FAILED`);
         return { isComplete: false, reason: `Video must be watched to at least ${requiredProgress}% (${currentProgress.toFixed(2)}% watched)` };
       }
-      console.log(`✅ Video step ${stepId} verified complete: ${currentProgress.toFixed(2)}% >= ${requiredProgress}%`);
+      console.log(`  ✅ VALIDATION PASSED`);
       return { isComplete: true };
     }
     
@@ -643,13 +679,24 @@ export function useNavigationProgress() {
 
   // Update video progress with database persistence
   const updateVideoProgress = (stepId: string, percentage: number) => {
-    console.log(`🎬 Updating video progress for ${stepId}: ${percentage}%`);
+    const roundedProgress = Math.round(percentage * 100) / 100;
+    
+    console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${roundedProgress}%`);
+    
+    // Store in global state for immediate validation access
+    if (!(window as any).currentVideoProgress) {
+      (window as any).currentVideoProgress = {};
+      console.log('📹 Initialized global video progress tracking');
+    }
+    (window as any).currentVideoProgress[stepId] = roundedProgress;
+    console.log(`  ✅ Stored in global state`);
+    
     setProgress(prev => {
       const newProgress = {
         ...prev,
         videoProgress: {
           ...prev.videoProgress,
-          [stepId]: percentage
+          [stepId]: roundedProgress
         },
         lastVisitedAt: new Date().toISOString()
       };
@@ -664,18 +711,16 @@ export function useNavigationProgress() {
           requiredProgress = 85; // 85% for main content videos
         }
         
-        if (percentage >= requiredProgress) {
-          console.log(`✅ Auto-completing video step ${stepId} at ${percentage.toFixed(2)}%`);
+        if (roundedProgress >= requiredProgress) {
+          console.log(`✅ Auto-completing video step ${stepId} at ${roundedProgress.toFixed(2)}%`);
           newProgress.completedSteps = [...prev.completedSteps, stepId];
           newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
-          
-          // Step completed automatically - no notification needed
         }
       }
       
       // Persist to database when reaching key thresholds
-      if (percentage >= 1 && (!prev.videoProgress[stepId] || prev.videoProgress[stepId] < 1)) {
-        console.log(`🎬 Persisting video progress to database for ${stepId}: ${percentage}%`);
+      if (roundedProgress >= 1 && (!prev.videoProgress[stepId] || prev.videoProgress[stepId] < 1)) {
+        console.log(`🎬 Persisting video progress to database for ${stepId}: ${roundedProgress}%`);
         syncProgressToDatabase(newProgress);
       }
       
