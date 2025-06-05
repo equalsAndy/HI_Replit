@@ -420,11 +420,11 @@ export function useNavigationProgress() {
         const videoProgress = progress.videoProgress[stepId] || 0;
         
         // Step-specific completion thresholds
-        let requiredProgress = 1; // Default 1%
+        let requiredProgress = 5; // Default 5%
         if (stepId === '1-1') {
-          requiredProgress = 0.5; // 0.5% for intro
+          requiredProgress = 5; // 5% for intro
         } else if (['2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-          requiredProgress = 85; // 85% for main content videos
+          requiredProgress = 5; // 5% for main content videos
         }
         
         if (videoProgress >= requiredProgress) {

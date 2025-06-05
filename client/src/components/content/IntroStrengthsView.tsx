@@ -13,13 +13,13 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(true);
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-1";
 
   // Handle video progress
   const handleVideoProgress = (percentage: number) => {
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
+    // Check if minimum watch requirement is met (5%)
+    if (percentage >= 5 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
     }
   };
