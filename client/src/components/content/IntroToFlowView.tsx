@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 
 interface ContentViewProps {
   navigate?: any;
@@ -14,12 +15,33 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const stepId = "3-1";
+  const { updateVideoProgress, progress, canProceedToNext } = useSimpleNavigation();
+
+  // Check if video progress already meets the 5% threshold on component mount
+  useEffect(() => {
+    const currentProgress = progress?.videoProgress?.[stepId] || 0;
+    if (currentProgress >= 5) {
+      setHasReachedMinimum(true);
+      console.log(`🎬 IntroToFlowView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
+    }
+  }, [progress?.videoProgress]);
   
-  // Handle video progress updates
+  // Handle video progress updates with dual-threshold system
   const handleVideoProgress = (percentage: number) => {
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
-      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
+    // Correct interpretation: if value is between 0-1, it's a decimal that represents percentage
+    let correctedPercentage = percentage;
+    if (percentage > 0 && percentage <= 1) {
+      correctedPercentage = percentage * 100;
+      console.log(`🎬 Corrected video progress from ${percentage} to ${correctedPercentage}%`);
+    }
+    
+    console.log(`🎬 IntroToFlowView calling updateVideoProgress(${stepId}, ${correctedPercentage})`);
+    updateVideoProgress(stepId, correctedPercentage);
+    
+    // Check if minimum watch requirement is met (5%)
+    if (correctedPercentage >= 5 && !hasReachedMinimum) {
+      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${correctedPercentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };
@@ -121,7 +143,7 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
         <Button
           onClick={() => {
-            if (hasReachedMinimum) {
+            if (canProceedToNext(stepId)) {
               if (markStepCompleted) {
                 markStepCompleted('3-1');
               }
@@ -130,16 +152,16 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
               }
             }
           }}
-          disabled={!hasReachedMinimum}
+          disabled={!canProceedToNext(stepId)}
           variant="default"
-          className={`${hasReachedMinimum 
+          className={`${canProceedToNext(stepId) 
             ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {hasReachedMinimum 
+          {canProceedToNext(stepId) 
             ? "Continue to Flow Assessment" 
-            : "Watch video to continue"
+            : "Watch video to continue (5% minimum)"
           }
         </Button>
       </div>

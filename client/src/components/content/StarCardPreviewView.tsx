@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -18,16 +19,33 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   starCard
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-
   const stepId = "2-3";
+  const { updateVideoProgress, progress, canProceedToNext } = useSimpleNavigation();
 
-  // Handle video progress updates
+  // Check if video progress already meets the 5% threshold on component mount
+  useEffect(() => {
+    const currentProgress = progress?.videoProgress?.[stepId] || 0;
+    if (currentProgress >= 5) {
+      setHasReachedMinimum(true);
+      console.log(`🎬 StarCardPreviewView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
+    }
+  }, [progress?.videoProgress]);
+
+  // Handle video progress updates with dual-threshold system
   const handleVideoProgress = (percentage: number) => {
-    console.log(`🎬 StarCardPreviewView video progress: ${percentage.toFixed(2)}%`);
+    // Correct interpretation: if value is between 0-1, it's a decimal that represents percentage
+    let correctedPercentage = percentage;
+    if (percentage > 0 && percentage <= 1) {
+      correctedPercentage = percentage * 100;
+      console.log(`🎬 Corrected video progress from ${percentage} to ${correctedPercentage}%`);
+    }
     
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
-      console.log(`🎬 StarCardPreviewView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
+    console.log(`🎬 StarCardPreviewView calling updateVideoProgress(${stepId}, ${correctedPercentage})`);
+    updateVideoProgress(stepId, correctedPercentage);
+    
+    // Check if minimum watch requirement is met (5%)
+    if (correctedPercentage >= 5 && !hasReachedMinimum) {
+      console.log(`🎬 StarCardPreviewView: Minimum threshold reached at ${correctedPercentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };
