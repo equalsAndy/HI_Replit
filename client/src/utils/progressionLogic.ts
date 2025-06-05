@@ -163,12 +163,14 @@ export const isStepCompleted = (
 const isVideoCompleted = (
   stepId: string, 
   navigationProgress: NavigationProgressData, 
-  minPercentage: number = 1
+  minPercentage: number = 5
 ): CompletionDetectionResult => {
   const progress = navigationProgress?.videoProgress?.[stepId] || 0;
-  const isComplete = progress >= minPercentage;
+  const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+  const currentProgress = Math.max(progress, globalProgress);
+  const isComplete = currentProgress >= minPercentage;
   
-  console.log(`🎬 Video completion check - Step: ${stepId}, Progress: ${progress}%, Required: ${minPercentage}%, Complete: ${isComplete}`);
+  console.log(`🎬 Video completion check - Step: ${stepId}, Progress: ${currentProgress}%, Required: ${minPercentage}%, Complete: ${isComplete}`);
   
   return {
     isComplete,

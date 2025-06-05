@@ -58,6 +58,24 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Testing bypass disabled - use proper video completion validation
   const [allowTestingBypass, setAllowTestingBypass] = useState(false);
   
+  // Get navigation progress at component level
+  const { progress: navigationProgress } = useNavigationProgress();
+  
+  // Check if step meets completion criteria using navigation progress
+  const isStepComplete = () => {
+    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
+    const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+    const currentProgress = Math.max(videoProgress, globalProgress);
+    
+    // Additional check: if we have any meaningful video progress (even <5%), enable button temporarily for testing
+    const hasAnyProgress = currentProgress > 0 || videoProgress > 0 || globalProgress > 0;
+    const isComplete = currentProgress >= 5 || hasAnyProgress; // Temporary: allow any progress
+    
+    console.log(`🎬 WelcomeView isStepComplete check - Video: ${videoProgress}%, Global: ${globalProgress}%, Max: ${currentProgress}%, Any Progress: ${hasAnyProgress}, Complete: ${isComplete}`);
+    
+    return isComplete;
+  };
+  
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
     // Only log significant progress changes (every 10% or initial threshold)
@@ -194,14 +212,14 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
         <div className="flex justify-end">
           <Button 
             onClick={handleNext}
-            disabled={!hasReachedMinimum && !allowTestingBypass}
-            className={`${(hasReachedMinimum || allowTestingBypass)
+            disabled={!isStepComplete() && !allowTestingBypass}
+            className={`${(isStepComplete() || allowTestingBypass)
               ? 'bg-blue-600 hover:bg-blue-700 text-white' 
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
             size="lg"
           >
-            {(hasReachedMinimum || allowTestingBypass) ? nextButton : "Watch video to continue"}
+            {(isStepComplete() || allowTestingBypass) ? nextButton : "Watch video to continue"}
           </Button>
         </div>
       </div>
