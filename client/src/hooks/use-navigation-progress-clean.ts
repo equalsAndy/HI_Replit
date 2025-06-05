@@ -179,7 +179,8 @@ export function useNavigationProgressClean() {
               unlockedSteps: calculateUnlockedSteps(dbProgress.completedSteps || [])
             }));
             
-            console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
+            console.log('✅ SIMPLIFIED MODE: Progress loaded from database', dbProgress);
+            console.log('🧭 CURRENT STEP ID from database:', dbProgress.currentStepId);
           }
         }
       } catch (error) {

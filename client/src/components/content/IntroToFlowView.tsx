@@ -124,26 +124,22 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
 
         <Button
           onClick={() => {
-            if (canProceedToNext(stepId)) {
-              if (markStepCompleted) {
-                markStepCompleted('3-1');
-              }
-              if (setCurrentContent) {
-                setCurrentContent('flow-assessment');
-              }
+            // SIMPLIFIED MODE: Next button always active, mark step complete and navigate
+            if (markStepCompleted) {
+              markStepCompleted('3-1');
+            }
+            if (setCurrentContent) {
+              setCurrentContent('flow-assessment');
             }
           }}
-          disabled={!canProceedToNext(stepId)}
+          disabled={!hasReachedMinimum}
           variant="default"
-          className={`${canProceedToNext(stepId) 
+          className={`${hasReachedMinimum 
             ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
             : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
-          {canProceedToNext(stepId) 
-            ? "Continue to Flow Assessment" 
-            : "Watch video to continue (5% minimum)"
-          }
+          Continue to Flow Assessment
         </Button>
       </div>
     </div>
