@@ -364,17 +364,15 @@ export default function AllStarTeams() {
   const handleAssessmentComplete = (result: any) => {
     console.log("Assessment completed with result:", result);
 
-    // When assessment is completed, make sure previous steps are also marked as completed
-    markStepCompleted('1-1'); // Introduction Video
-    markStepCompleted('2-1'); // Intro to Strengths
-    markStepCompleted('2-2'); // The assessment itself
+    // When assessment is completed, mark only the assessment step as complete
+    markNavStepCompleted('2-2'); // The assessment itself
 
-    // Check if we need to navigate to the Star Card Preview directly
-    if (result?.navigateToStarCardPreview) {
-      console.log("Navigating to star card preview");
-      markStepCompleted('2-3'); // Star card preview step
-      setCurrentContent('star-card-preview'); // Navigate to Star Card Preview
-    }
+    // DO NOT auto-navigate - user should manually click "Continue to Your Star Card" 
+    // and then use Next button to proceed to step 2-3
+    console.log("Assessment complete. User should now click Continue and then Next to proceed to step 2-3");
+    
+    // Refresh the star card data to ensure it's available for the next step
+    queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
   };
 
   // Define a structure to map stepIds to navigation sequence for automatic progress
