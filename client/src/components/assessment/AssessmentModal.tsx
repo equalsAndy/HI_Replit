@@ -548,9 +548,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
     option !== rankings.leastLikeMe
   ) || [];
 
-  // Continue assessment button - directs to Star Card Preview
-  const continueAssessment = () => {
-    // Make sure we have valid assessment results
+  // Handle assessment completion - close modal and navigate to results on step 2-3
+  const handleAssessmentCompletion = async () => {
     if (!assessmentResults) {
       toast({
         title: "Assessment results not available",
@@ -560,36 +559,46 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       return;
     }
 
-    // Close the modal first
-    onClose();
-
-    // If we have an onComplete handler, call it with the assessment results
-    if (onComplete) {
-      // Clone the results to make sure we don't have any reference issues
-      const quadrantData = {
-        thinking: assessmentResults.thinking,
-        feeling: assessmentResults.feeling,
-        acting: assessmentResults.acting,
-        planning: assessmentResults.planning
-      };
-
-      // Pass the data with manual navigation flag - user should click Next to proceed
-      onComplete({
-        quadrantData,
-        manualNavigation: true // Changed from navigateToStarCardPreview to prevent auto-navigation
+    try {
+      // Save the assessment results to the backend
+      const saveResponse = await fetch('/api/assessment/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          thinking: assessmentResults.thinking,
+          feeling: assessmentResults.feeling,
+          acting: assessmentResults.acting,
+          planning: assessmentResults.planning
+        })
       });
 
-      // Also update query cache to ensure the star card data is available
-      if (starCard) {
-        const updatedStarCard = {
-          ...starCard,
-          thinking: quadrantData.thinking,
-          acting: quadrantData.acting,
-          feeling: quadrantData.feeling,
-          planning: quadrantData.planning
-        };
-        queryClient.setQueryData(['/api/starcard'], updatedStarCard);
+      if (saveResponse.ok) {
+        // Close the modal immediately
+        onClose();
+        
+        // Call completion handler to mark step complete and refresh data
+        if (onComplete) {
+          onComplete({
+            quadrantData: assessmentResults,
+            showResultsOnStep: true // Flag to show results on step 2-3
+          });
+        }
+
+        toast({
+          title: "Assessment Complete!",
+          description: "Your strengths profile has been saved. Your results are now displayed below.",
+        });
+      } else {
+        throw new Error('Failed to save assessment results');
       }
+    } catch (error) {
+      console.error('Error saving assessment:', error);
+      toast({
+        title: "Error saving assessment",
+        description: "Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
