@@ -138,33 +138,19 @@ export function useNavigationProgress() {
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
-  // Query for server navigation progress with reset detection
-  const { data: serverProgress } = useQuery({
-    queryKey: ['navigation-progress'],
-    queryFn: async () => {
-      const response = await fetch('/api/user/navigation-progress', {
-        credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to fetch progress');
-      const result = await response.json();
-      return result.success ? (result.navigationProgress ? JSON.parse(result.navigationProgress) : null) : null;
-    },
-    refetchInterval: 30000, // Check every 30 seconds for reset
-    refetchIntervalInBackground: true
-  });
+  // DISABLED: Reset detection was causing continuous loops
+  // The system was clearing progress data unnecessarily
+  const serverProgress = null;
 
-  // Temporarily disable reset detection to prevent progress loss
-  // This was causing a loop where progress was being reset continuously
+  // Load navigation progress from database on component mount - ONCE ONLY
   useEffect(() => {
-    if (serverProgress !== undefined) {
-      lastKnownProgressRef.current = serverProgress;
-    }
-  }, [serverProgress]);
-
-  // Load navigation progress from database on component mount
-  useEffect(() => {
+    let hasInitialized = false;
+    
     const initializeProgress = async () => {
-      console.log('🔄 INITIALIZING navigation progress from database');
+      if (hasInitialized) return; // Prevent multiple initializations
+      hasInitialized = true;
+      
+      console.log('🔄 INITIALIZING navigation progress from database (ONCE)');
       
       try {
         const response = await fetch('/api/user/navigation-progress', {
@@ -176,11 +162,11 @@ export function useNavigationProgress() {
           const result = await response.json();
           if (result.success && result.progress) {
             const dbProgress = JSON.parse(result.progress);
-            console.log('✅ Loaded progress from database:', dbProgress);
+            console.log('✅ Loaded progress from database (FINAL):', dbProgress);
             
             // Always use database progress if it exists and has valid data structure
             if (dbProgress && dbProgress.appType) {
-              console.log('✅ Using database progress with video data preserved');
+              console.log('✅ Setting database progress as FINAL state');
               setProgress({
                 ...dbProgress,
                 lastVisitedAt: new Date().toISOString()
@@ -193,7 +179,7 @@ export function useNavigationProgress() {
         console.error('Error loading navigation progress from database:', error);
       }
       
-      // Don't recalculate - use minimal default state to prevent data loss
+      // Use minimal default state only if no database progress exists
       const defaultProgress = {
         completedSteps: [],
         currentStepId: '1-1',
@@ -307,7 +293,7 @@ export function useNavigationProgress() {
     return completionResult.isComplete;
   };
 
-  // Calculate progress from user data without overriding existing state
+  // Calculate progress from user data including video progress
   const recalculateProgressFromData = (): NavigationProgress => {
     const allSteps = [
       '1-1', '2-1', '2-2', '2-3', '2-4', 
@@ -316,6 +302,19 @@ export function useNavigationProgress() {
     ];
 
     let actuallyCompleted: string[] = [];
+    
+    // First check video progress to mark video steps as complete
+    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+    videoSteps.forEach(stepId => {
+      const videoProgress = progress?.videoProgress?.[stepId] || 0;
+      // Mark video step complete if it has 90% progress for green checkmark
+      if (videoProgress >= 90) {
+        if (!actuallyCompleted.includes(stepId)) {
+          actuallyCompleted.push(stepId);
+          console.log(`✅ Video step ${stepId} completed with ${videoProgress}% progress`);
+        }
+      }
+    });
     
     // Check what steps should be completed based on user assessment data
     console.log('🔍 Checking user assessments:', userAssessments);
@@ -340,6 +339,9 @@ export function useNavigationProgress() {
         console.log('✅ Star Card data found in global state - marking steps 1-1, 2-1, 2-2 complete');
       }
     }
+    
+    // Remove duplicates and sort
+    actuallyCompleted = Array.from(new Set(actuallyCompleted));
     
     // Get unlocked sections and next step
     const unlockedSections = getUnlockedSections(actuallyCompleted);
