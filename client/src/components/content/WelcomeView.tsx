@@ -18,7 +18,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const { updateVideoProgress, progress } = useNavigationProgress();
+  const { updateVideoProgress, progress } = useSimpleNavigation();
 
   // Check if video progress already meets the threshold on component mount
   useEffect(() => {

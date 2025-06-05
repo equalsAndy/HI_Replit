@@ -58,27 +58,28 @@ export function useSimpleNavigation() {
   const updateVideoProgress = (stepId: string, percentage: number) => {
     console.log(`🎬 Video progress: ${stepId} = ${percentage}%`);
     
-    setProgress(prev => ({
-      ...prev,
+    const newProgress = {
+      ...progress,
       videoProgress: {
-        ...prev.videoProgress,
+        ...progress.videoProgress,
         [stepId]: percentage
       },
       lastVisitedAt: new Date().toISOString()
-    }));
+    };
+    
+    setProgress(newProgress);
 
-    // Save to database immediately for video progress
-    if (percentage >= 5) {
-      saveProgressToDatabase(stepId, percentage);
-    }
+    // Save to database for any video progress - immediate call
+    console.log(`🔄 About to save video progress: ${stepId} = ${percentage}%`);
+    saveProgressToDatabase(stepId, percentage);
   };
 
   // Save progress to database
-  const saveProgressToDatabase = async (stepId?: string, videoPercentage?: number) => {
+  const saveProgressToDatabase = async (stepId?: string, videoPercentage?: number, progressData?: any) => {
     try {
-      let updatedProgress = progress;
+      let updatedProgress = progressData || progress;
       
-      if (stepId && videoPercentage !== undefined) {
+      if (stepId && videoPercentage !== undefined && !progressData) {
         updatedProgress = {
           ...progress,
           videoProgress: {
@@ -88,12 +89,23 @@ export function useSimpleNavigation() {
         };
       }
 
-      await apiRequest('/api/user/navigation-progress', {
+      console.log(`💾 Saving video progress to database: ${stepId} = ${videoPercentage}%`);
+      
+      const response = await fetch('/api/user/navigation-progress', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
         body: JSON.stringify({ navigationProgress: JSON.stringify(updatedProgress) })
       });
-      
-      console.log('💾 Progress saved to database');
+
+      if (response.ok) {
+        console.log(`✅ Video progress saved: ${stepId} = ${videoPercentage}%`);
+      } else {
+        const errorText = await response.text();
+        console.error(`❌ Failed to save progress - Status: ${response.status}, Error: ${errorText}`);
+      }
     } catch (error) {
       console.error('❌ Failed to save progress:', error);
     }
