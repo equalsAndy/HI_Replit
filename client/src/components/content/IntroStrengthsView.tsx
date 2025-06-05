@@ -14,29 +14,22 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(true); // Simplified: always true
   const stepId = "2-1";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
 
-  // Check if video progress already meets the NEW 5% threshold on component mount
+  // Simplified mode: Next button always active for video steps
   useEffect(() => {
-    const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) { // Updated to 5% threshold
-      setHasReachedMinimum(true);
-      console.log(`🎬 IntroStrengthsView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
-    }
-  }, [progress?.videoProgress]);
+    setHasReachedMinimum(true);
+    console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+    console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
+  }, [stepId]);
 
-  // Handle video progress with dual-threshold system
+  // Handle video progress - still track but don't use for validation
   const handleVideoProgress = (percentage: number) => {
     console.log(`🎬 IntroStrengthsView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
-    
-    // Check if minimum watch requirement is met (5%)
-    if (percentage >= 5 && !hasReachedMinimum) {
-      console.log(`🎬 IntroStrengthsView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
-      setHasReachedMinimum(true);
-    }
+    console.log(`🎬 VIDEO PROGRESS TRACKED (SIMPLIFIED MODE - not used for unlocking): ${stepId} = ${percentage}%`);
   };
 
   // Handle completion and progression
@@ -135,14 +128,14 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         <div className="flex justify-end mt-6">
           <Button 
             onClick={handleNext}
-            disabled={!canProceedToNext(stepId)}
+            disabled={!hasReachedMinimum}
             className={`${
-              canProceedToNext(stepId) 
+              hasReachedMinimum 
                 ? "bg-indigo-700 hover:bg-indigo-800 text-white" 
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            {canProceedToNext(stepId) 
+            {hasReachedMinimum 
               ? "Next: Star Strengths Self-Assessment" 
               : "Watch video to continue (5% minimum)"
             }
