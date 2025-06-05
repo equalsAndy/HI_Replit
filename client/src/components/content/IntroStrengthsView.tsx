@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -16,26 +16,33 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-1";
-  const { updateVideoProgress, progress } = useNavigationProgress();
+  const { updateVideoProgress, progress, canProceedToNext } = useSimpleNavigation();
 
-  // Check if video progress already meets the threshold on component mount
+  // Check if video progress already meets the NEW 5% threshold on component mount
   useEffect(() => {
     const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) {
+    if (currentProgress >= 5) { // Updated to 5% threshold
       setHasReachedMinimum(true);
       console.log(`🎬 IntroStrengthsView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
     }
   }, [progress?.videoProgress]);
 
-  // Handle video progress
+  // Handle video progress with dual-threshold system
   const handleVideoProgress = (percentage: number) => {
-    // Update navigation progress tracking
-    updateVideoProgress(stepId, percentage);
+    // Correct interpretation: if value is between 0-1, it's a decimal that represents percentage
+    let correctedPercentage = percentage;
+    if (percentage > 0 && percentage <= 1) {
+      correctedPercentage = percentage * 100;
+      console.log(`🎬 Corrected video progress from ${percentage} to ${correctedPercentage}%`);
+    }
+    
+    console.log(`🎬 IntroStrengthsView calling updateVideoProgress(${stepId}, ${correctedPercentage})`);
+    updateVideoProgress(stepId, correctedPercentage);
     
     // Check if minimum watch requirement is met (5%)
-    if (percentage >= 5 && !hasReachedMinimum) {
+    if (correctedPercentage >= 5 && !hasReachedMinimum) {
+      console.log(`🎬 IntroStrengthsView: Minimum threshold reached at ${correctedPercentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
-      console.log(`🎬 IntroStrengthsView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
     }
   };
 
@@ -59,6 +66,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
             title="Intro to Star Strengths"
             aspectRatio="16:9"
             autoplay={true}
+            onProgress={handleVideoProgress}
           />
         </div>
 
@@ -134,16 +142,16 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         <div className="flex justify-end mt-6">
           <Button 
             onClick={handleNext}
-            disabled={!hasReachedMinimum}
+            disabled={!canProceedToNext(stepId)}
             className={`${
-              hasReachedMinimum 
+              canProceedToNext(stepId) 
                 ? "bg-indigo-700 hover:bg-indigo-800 text-white" 
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
           >
-            {hasReachedMinimum 
+            {canProceedToNext(stepId) 
               ? "Next: Star Strengths Self-Assessment" 
-              : "Watch video to continue"
+              : "Watch video to continue (5% minimum)"
             }
           </Button>
         </div>
