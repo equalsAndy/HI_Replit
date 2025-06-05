@@ -348,7 +348,8 @@ export function useNavigationProgress() {
   // Mode-aware validation function
   const validateStepCompletionMode = (stepId: string): boolean => {
     if (CURRENT_PROGRESSION_MODE === 'simplified') {
-      return validateStepCompletionSimplified(stepId, userAssessments);
+      const result = validateStepCompletionSimplified(stepId);
+      return result.isComplete;
     } else {
       return true; // Complex mode disabled for now
     }
@@ -398,8 +399,8 @@ export function useNavigationProgress() {
 
   // Check if a step is completed using progression logic
   const checkStepCompletion = (stepId: string): boolean => {
-    const completionResult = isStepCompleted(stepId, assessmentsArray, progress);
-    return completionResult.isComplete;
+    // For simplified mode, check database completed steps
+    return progress?.completedSteps?.includes(stepId) || false;
   };
 
   // Calculate progress from user data including video progress

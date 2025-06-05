@@ -71,9 +71,10 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     
     // Convert percentage to seconds (assuming average video duration of 150 seconds)
     // Only resume if progress is between 5% and 95% to avoid edge cases
-    if (videoProgress >= 5 && videoProgress < 95) {
-      const startTimeSeconds = (videoProgress / 100) * 150;
-      console.log(`🎬 WelcomeView: Resuming from ${videoProgress}% = ${startTimeSeconds} seconds`);
+    const progressNumber = typeof videoProgress === 'number' ? videoProgress : 0;
+    if (progressNumber >= 5 && progressNumber < 95) {
+      const startTimeSeconds = (progressNumber / 100) * 150;
+      console.log(`🎬 WelcomeView: Resuming from ${progressNumber}% = ${startTimeSeconds} seconds`);
       return startTimeSeconds;
     }
     

@@ -67,7 +67,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
           isImaginalAgility={isImaginalAgility}
         />
       );
@@ -76,20 +75,20 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'intro-strengths':
       return (
         <IntroStrengthsView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
         />
       );
 
     case 'strengths-assessment':
       return (
         <AssessmentView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
           setIsAssessmentModalOpen={setIsAssessmentModalOpen}
         />
       );
@@ -97,10 +96,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'star-card-preview':
       return (
         <StarCardPreviewView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
         />
       );
 
