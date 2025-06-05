@@ -346,7 +346,7 @@ export function useNavigationProgress() {
   };
 
   // Mode-aware validation function
-  const validateStepCompletion = (stepId: string): boolean => {
+  const validateStepCompletionMode = (stepId: string): boolean => {
     if (CURRENT_PROGRESSION_MODE === 'simplified') {
       return validateStepCompletionSimplified(stepId, userAssessments);
     } else {
