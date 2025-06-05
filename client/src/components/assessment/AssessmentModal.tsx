@@ -219,13 +219,16 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         description: "Your Star Card has been created!",
       });
 
-      // Set results and show results view
+      // Set results and close modal immediately to show results in content view
       setAssessmentResults(results);
-      setView('results');
+      onClose();
 
       // Call onComplete callback if provided
       if (onComplete) {
-        onComplete(data);
+        onComplete({
+          quadrantData: results,
+          showResultsInContentView: true
+        });
       }
     } catch (error) {
       console.error('Error completing assessment:', error);
@@ -509,10 +512,12 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         throw new Error('Failed to complete assessment');
       }
 
-      // Set results and show results view
+      // Set results and close modal immediately to show results in content view
       setAssessmentResults(results);
       setIsLoading(false);
-      setView('results');
+      
+      // Close modal and show results in 2-2 content view
+      onClose();
 
       // Invalidate star card query to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
@@ -521,16 +526,16 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       if (onComplete) {
         onComplete({ 
           quadrantData: results,
-          demoData: true 
+          showResultsInContentView: true 
         });
       }
     } catch (error) {
       console.error('Error completing assessment:', error);
 
-      // Even if there's an error, still show results
+      // Even if there's an error, close modal and show results in content view
       setAssessmentResults(results);
       setIsLoading(false);
-      setView('results');
+      onClose();
     }
   };
 
