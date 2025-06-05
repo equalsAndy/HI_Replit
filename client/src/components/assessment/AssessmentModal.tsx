@@ -560,7 +560,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       return;
     }
 
-    // Close the modal
+    // Close the modal first
     onClose();
 
     // If we have an onComplete handler, call it with the assessment results
@@ -573,10 +573,10 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
         planning: assessmentResults.planning
       };
 
-      // Pass the data and navigation flag to the parent component
+      // Pass the data with manual navigation flag - user should click Next to proceed
       onComplete({
         quadrantData,
-        navigateToStarCardPreview: true
+        manualNavigation: true // Changed from navigateToStarCardPreview to prevent auto-navigation
       });
 
       // Also update query cache to ensure the star card data is available
