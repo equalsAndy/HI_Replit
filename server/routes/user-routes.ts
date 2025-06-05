@@ -393,7 +393,7 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
 });
 
 /**
- * Update user navigation progress (POST endpoint for frontend compatibility)
+ * Update user navigation progress with atomic video progress handling
  */
 router.post('/navigation-progress', requireAuth, async (req, res) => {
   try {
@@ -404,28 +404,83 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       });
     }
     
-    const progressData = req.body;
+    const { navigationProgress } = req.body;
     
-    if (!progressData || typeof progressData !== 'object') {
+    if (!navigationProgress || typeof navigationProgress !== 'string') {
       return res.status(400).json({
         success: false,
-        error: 'Progress data must be a valid object'
+        error: 'Navigation progress must be a valid JSON string'
       });
     }
     
-    // Convert progress object to JSON string for storage
-    const navigationProgress = JSON.stringify(progressData);
+    // Parse the incoming progress data
+    let incomingData;
+    try {
+      incomingData = JSON.parse(navigationProgress);
+    } catch (parseError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid JSON in navigation progress'
+      });
+    }
     
-    // Log progress update for debugging
-    console.log(`Updating navigation progress for user ${req.session.userId}:`, {
-      completedSteps: progressData.completedSteps?.length || 0,
-      currentStep: progressData.currentStepId,
-      appType: progressData.appType,
-      lastVisited: progressData.lastVisitedAt ? new Date(progressData.lastVisitedAt).toISOString() : 'unknown'
+    // Get current user data to perform atomic merge
+    const currentUserResult = await userManagementService.getUserById(req.session.userId);
+    if (!currentUserResult.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+    
+    // Parse current navigation progress
+    let currentProgress = {
+      completedSteps: [],
+      currentStepId: '1-1',
+      appType: 'ast',
+      lastVisitedAt: new Date().toISOString(),
+      unlockedSteps: ['1-1'],
+      videoProgress: {}
+    };
+    
+    if (currentUserResult.user?.navigationProgress) {
+      try {
+        const parsed = JSON.parse(currentUserResult.user.navigationProgress);
+        if (parsed.navigationProgress) {
+          currentProgress = { ...currentProgress, ...JSON.parse(parsed.navigationProgress) };
+        } else {
+          currentProgress = { ...currentProgress, ...parsed };
+        }
+      } catch (e) {
+        console.log('Using default progress due to parse error');
+      }
+    }
+    
+    // Perform atomic merge with highest video progress values
+    const mergedProgress = {
+      ...currentProgress,
+      ...incomingData,
+      videoProgress: {
+        ...currentProgress.videoProgress,
+        ...incomingData.videoProgress
+      }
+    };
+    
+    // Ensure video progress always maintains highest values
+    Object.keys(incomingData.videoProgress || {}).forEach(stepId => {
+      const currentValue = currentProgress.videoProgress[stepId] || 0;
+      const newValue = incomingData.videoProgress[stepId] || 0;
+      mergedProgress.videoProgress[stepId] = Math.max(currentValue, newValue);
     });
     
+    console.log(`🔄 Atomic video progress merge for user ${req.session.userId}:`);
+    console.log(`   Current:`, currentProgress.videoProgress);
+    console.log(`   Incoming:`, incomingData.videoProgress);
+    console.log(`   Merged:`, mergedProgress.videoProgress);
+    
+    // Save the atomically merged progress
     const result = await userManagementService.updateUser(req.session.userId, {
-      navigationProgress
+      navigationProgress: JSON.stringify({ navigationProgress: JSON.stringify(mergedProgress) })
     });
     
     if (!result.success) {
@@ -436,11 +491,12 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       });
     }
     
-    console.log(`Successfully updated navigation progress for user ${req.session.userId}`);
+    console.log(`✅ Atomic progress saved for user ${req.session.userId}`);
     
     res.json({
       success: true,
-      message: 'Navigation progress updated successfully',
+      message: 'Navigation progress updated atomically',
+      progress: mergedProgress,
       timestamp: new Date().toISOString()
     });
   } catch (error) {

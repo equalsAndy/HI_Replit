@@ -66,11 +66,22 @@ export function useSimpleNavigation() {
     console.log(`  ✅ Stored in global state`);
     
     setProgress(prev => {
+      const currentProgress = prev.videoProgress[stepId] || 0;
+      const newPercentage = Math.max(percentage, currentProgress); // Always maintain highest progress
+      
+      // Only update if the new percentage is actually higher
+      if (newPercentage <= currentProgress) {
+        console.log(`🔄 Skipping update - Current: ${currentProgress}%, New: ${percentage}%, Keeping: ${currentProgress}%`);
+        return prev; // No change needed
+      }
+
+      console.log(`📈 Progress increased: ${stepId} from ${currentProgress}% to ${newPercentage}%`);
+      
       const newProgress = {
         ...prev,
         videoProgress: {
           ...prev.videoProgress,
-          [stepId]: Math.max(percentage, prev.videoProgress[stepId] || 0) // Always maintain highest progress
+          [stepId]: newPercentage
         },
         lastVisitedAt: new Date().toISOString()
       };
@@ -79,8 +90,8 @@ export function useSimpleNavigation() {
       console.log(`📊 Thresholds for ${stepId}: Next=5%, Complete=90%`);
       
       // Auto-complete step when it reaches 90% threshold
-      if (!prev.completedSteps.includes(stepId) && percentage >= 90) {
-        console.log(`✅ Auto-completing video step ${stepId} at ${percentage}% (>= 90%)`);
+      if (!prev.completedSteps.includes(stepId) && newPercentage >= 90) {
+        console.log(`✅ Auto-completing video step ${stepId} at ${newPercentage}% (>= 90%)`);
         newProgress.completedSteps = [...prev.completedSteps, stepId];
         
         // Update unlocked steps based on 5% threshold for next button access
@@ -118,29 +129,39 @@ export function useSimpleNavigation() {
         newProgress.unlockedSteps = updateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
       }
       
-      // Save to database with corrected progress data
-      saveProgressToDatabase(stepId, percentage, newProgress);
+      // Only save to database if progress actually increased
+      if (newPercentage > currentProgress) {
+        // Debounce database saves to prevent race conditions
+        setTimeout(() => {
+          saveProgressToDatabase(stepId, newPercentage, newProgress);
+        }, 100);
+      }
       
       return newProgress;
     });
   };
 
-  // Save progress to database
+  // Save progress to database with atomic updates to prevent race conditions
   const saveProgressToDatabase = async (stepId?: string, videoPercentage?: number, progressData?: any) => {
     try {
-      let updatedProgress = progressData || progress;
+      // Use the provided progressData or construct from current state
+      let updatedProgress = progressData;
       
-      if (stepId && videoPercentage !== undefined && !progressData) {
+      if (!updatedProgress) {
+        // Get the current progress state to ensure we have the latest data
+        const currentState = progress;
         updatedProgress = {
-          ...progress,
+          ...currentState,
           videoProgress: {
-            ...progress.videoProgress,
-            [stepId]: videoPercentage
-          }
+            ...currentState.videoProgress,
+            [stepId!]: Math.max(videoPercentage || 0, currentState.videoProgress[stepId!] || 0) // Ensure highest value
+          },
+          lastVisitedAt: new Date().toISOString()
         };
       }
 
-      console.log(`💾 Saving video progress to database: ${stepId} = ${videoPercentage}%`);
+      console.log(`💾 Saving atomic video progress: ${stepId} = ${videoPercentage}%`);
+      console.log(`📋 Complete progress state:`, updatedProgress.videoProgress);
       
       const response = await fetch('/api/user/navigation-progress', {
         method: 'POST',
@@ -152,13 +173,13 @@ export function useSimpleNavigation() {
       });
 
       if (response.ok) {
-        console.log(`✅ Video progress saved: ${stepId} = ${videoPercentage}%`);
+        console.log(`✅ Atomic progress saved: ${stepId} = ${videoPercentage}%`);
       } else {
         const errorText = await response.text();
-        console.error(`❌ Failed to save progress - Status: ${response.status}, Error: ${errorText}`);
+        console.error(`❌ Failed to save atomic progress - Status: ${response.status}, Error: ${errorText}`);
       }
     } catch (error) {
-      console.error('❌ Failed to save progress:', error);
+      console.error('❌ Failed to save atomic progress:', error);
     }
   };
 
