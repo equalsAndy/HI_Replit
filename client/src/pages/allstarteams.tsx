@@ -84,7 +84,7 @@ export default function AllStarTeams() {
             queryClient.clear();
             queryClient.invalidateQueries();
             // Navigation progress will be reloaded from database automatically
-            localStorage.removeItem(progressStorageKey);
+            // No localStorage keys needed in simplified mode
           }
           lastUserId = currentUserId;
         }
@@ -96,7 +96,7 @@ export default function AllStarTeams() {
     checkUserAndRefresh();
     const interval = setInterval(checkUserAndRefresh, 1500);
     return () => clearInterval(interval);
-  }, [progressStorageKey]);
+  }, []);
 
   // Navigation progress is now loaded from database via useNavigationProgress hook
   // No need for localStorage-based completed steps loading
@@ -253,7 +253,7 @@ export default function AllStarTeams() {
       // Navigation progress will be reset through the hook
 
       // Clear all possible localStorage keys for maximum compatibility
-      localStorage.removeItem(progressStorageKey);
+      // No localStorage keys needed in simplified mode
       localStorage.removeItem('allstarteams-navigation-progress');
       localStorage.removeItem('imaginal-agility-navigation-progress');
       localStorage.removeItem('allstar_navigation_progress');
