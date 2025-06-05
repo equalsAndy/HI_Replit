@@ -109,6 +109,7 @@ export default function AllStarTeams() {
     if (navProgress?.currentStepId) {
       const currentStepId = navProgress.currentStepId;
       console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
+      console.log(`🧭 AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
       
       // Map step ID to content key and navigate there
       const navInfo = navigationSequence[currentStepId];
@@ -117,6 +118,17 @@ export default function AllStarTeams() {
         setCurrentContent(navInfo.contentKey);
       } else {
         console.log(`🧭 AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on current content`);
+        // Force navigation based on current step ID
+        if (currentStepId === '4-1') {
+          console.log(`🧭 AUTO-NAVIGATION: Force navigating to wellbeing for step 4-1`);
+          setCurrentContent('wellbeing');
+        } else if (currentStepId === '3-1') {
+          console.log(`🧭 AUTO-NAVIGATION: Force navigating to intro-to-flow for step 3-1`);
+          setCurrentContent('intro-to-flow');
+        } else if (currentStepId === '2-4') {
+          console.log(`🧭 AUTO-NAVIGATION: Force navigating to reflection for step 2-4`);
+          setCurrentContent('reflection');
+        }
       }
     }
   }, [navProgress?.currentStepId]);

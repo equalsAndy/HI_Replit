@@ -23,16 +23,27 @@ import VideoPlayer from './VideoPlayer';
 import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 
-interface ContentViewsProps {
+interface ContentViewProps {
   currentContent: string;
   navigate?: any;
   markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
-  starCard?: any;
   user?: any;
   flowAttributesData?: any;
   setIsAssessmentModalOpen?: (open: boolean) => void;
   isImaginalAgility?: boolean;
+}
+
+interface PlaceholderViewProps {
+  title: string;
+  currentContent: string;
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+}
+
+interface ContentViewsProps extends ContentViewProps {
+  starCard?: any;
 }
 
 const ContentViews: React.FC<ContentViewsProps> = ({

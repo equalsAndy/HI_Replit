@@ -314,18 +314,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
                       
-                      // Green checkmark logic: show for completed steps OR video steps with ≥90% progress
+                      // SIMPLIFIED MODE: Green checkmark logic - only show for completed steps in database
                       let isCompleted = false;
                       if (!isResourceSection) {
-                        if (effectiveCompletedSteps.includes(step.id)) {
-                          isCompleted = true;
-                        } else if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(step.id)) {
-                          // Check video progress for green checkmark (90% threshold)
-                          const savedProgress = navigationProgress?.videoProgress?.[step.id] || 0;
-                          const globalProgress = (window as any).currentVideoProgress?.[step.id] || 0;
-                          const currentProgress = Math.max(savedProgress, globalProgress);
-                          isCompleted = currentProgress >= 90;
-                        }
+                        isCompleted = effectiveCompletedSteps.includes(step.id);
+                        console.log(`🔍 SIMPLIFIED MODE: Step ${step.id} completion check - completed: ${isCompleted}`);
                       }
                       
                       // Special accessibility check for Star Card resource
