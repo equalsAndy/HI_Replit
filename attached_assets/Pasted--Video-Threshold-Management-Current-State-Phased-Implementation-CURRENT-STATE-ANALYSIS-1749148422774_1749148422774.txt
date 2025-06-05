@@ -1,0 +1,286 @@
+# Video Threshold Management - Current State + Phased Implementation
+
+## 🔍 **CURRENT STATE ANALYSIS**
+
+### Existing Video Progress System:
+- **Storage**: `users.navigationProgress.videoProgress` (JSON field)
+- **Format**: Percentages 0-100 (not decimals 0-1)
+- **Current Thresholds**: Hardcoded 1% for both next button and completion
+- **Video Steps**: `['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4']`
+- **Global State**: `window.currentVideoProgress[stepId]` for immediate validation
+
+### Current Schema Structure (CONFIRMED):
+```typescript
+users.navigationProgress = {
+  completedSteps: string[],
+  currentStepId: string,
+  unlockedSteps: string[], // StepId-based unlocking
+  videoProgress: {
+    "1-1": 85.5,  // Stored as percentages 0-100
+    "2-1": 12.3,
+    "2-3": 0,
+    // etc...
+  }
+  // other fields...
+}
+```
+
+### Current Code Location:
+- **File**: `client/src/hooks/use-navigation-progress.ts`
+- **Function**: `validateStepCompletion()` and `updateVideoProgress()`
+- **Current Logic**: 1% threshold for everything
+
+## 🎯 **PHASE 1: UPDATE TO NEW HARDCODED THRESHOLDS**
+
+### Goal: Implement New Video Progression Logic
+Replace current 1% threshold with new dual-threshold system:
+
+- **0-4%**: Next button disabled, step locked
+- **5%**: Next button enabled, next stepId unlocked  
+- **6-89%**: Can proceed but no green checkmark
+- **90%+**: Green checkmark appears, step marked complete
+
+### Phase 1 Implementation:
+
+#### 1. Update Video Threshold Constants
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+// REPLACE: Current 1% logic
+// WITH: New dual-threshold system
+
+const VIDEO_THRESHOLDS = {
+  NEXT_BUTTON: 5,    // 5% to enable Next button and unlock next step
+  COMPLETION: 90     // 90% to show green checkmark and mark complete
+} as const;
+
+// Apply to all video steps uniformly
+const getVideoThresholds = (stepId: string) => {
+  // Phase 1: Same thresholds for all video steps
+  // Phase 2: Will be admin-configurable per step
+  return {
+    nextButtonThreshold: VIDEO_THRESHOLDS.NEXT_BUTTON,
+    completionThreshold: VIDEO_THRESHOLDS.COMPLETION
+  };
+};
+```
+
+#### 2. Update Validation Logic
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+// CURRENT: Single 1% threshold
+const validateStepCompletion = (stepId: string): boolean => {
+  if (isVideoStep(stepId)) {
+    const currentProgress = getCurrentVideoProgress(stepId);
+    let requiredProgress = 1; // Current: 1% for everything
+    return currentProgress >= requiredProgress;
+  }
+  // ...
+};
+
+// NEW: Dual threshold system
+const validateStepCompletion = (stepId: string): boolean => {
+  console.log(`🔍 VALIDATION START: Step ${stepId}`);
+  
+  if (isVideoStep(stepId)) {
+    const currentProgress = getCurrentVideoProgress(stepId);
+    const thresholds = getVideoThresholds(stepId);
+    const isValid = currentProgress >= thresholds.nextButtonThreshold;
+    
+    console.log(`📹 Video Progress Debug for ${stepId}:`);
+    console.log(`  🎯 Current progress: ${currentProgress}%`);
+    console.log(`  🚨 Next Button Threshold: ${thresholds.nextButtonThreshold}%`);
+    console.log(`  🏁 Completion Threshold: ${thresholds.completionThreshold}%`);
+    console.log(`  ${isValid ? '✅ CAN PROCEED' : '❌ CANNOT PROCEED'}`);
+    
+    return isValid;
+  }
+  
+  // Non-video step validation unchanged
+  return validateNonVideoStep(stepId);
+};
+```
+
+#### 3. Add Green Checkmark Logic
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+// NEW: Separate function for green checkmark display
+const shouldShowGreenCheckmark = (stepId: string): boolean => {
+  if (isVideoStep(stepId)) {
+    const currentProgress = getCurrentVideoProgress(stepId);
+    const thresholds = getVideoThresholds(stepId);
+    const isComplete = currentProgress >= thresholds.completionThreshold;
+    
+    console.log(`🏆 Green Checkmark Check for ${stepId}:`);
+    console.log(`  📊 Progress: ${currentProgress}%`);
+    console.log(`  🎯 Completion Threshold: ${thresholds.completionThreshold}%`);
+    console.log(`  ${isComplete ? '✅ SHOW GREEN CHECKMARK' : '⏳ NO CHECKMARK YET'}`);
+    
+    return isComplete;
+  }
+  
+  // Non-video steps: show checkmark when completed
+  return progress.completedSteps.includes(stepId);
+};
+```
+
+#### 4. Update Step Unlocking Logic
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+// UPDATE: calculateUnlockedSteps function
+const calculateUnlockedSteps = (completedSteps: string[], videoProgress: { [stepId: string]: number }): string[] => {
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const unlocked = ['1-1']; // First step always unlocked
+  
+  for (let i = 0; i < allSteps.length - 1; i++) {
+    const currentStep = allSteps[i];
+    const nextStep = allSteps[i + 1];
+    
+    let canUnlockNext = false;
+    
+    // For video steps, check NEW 5% threshold
+    if (isVideoStep(currentStep)) {
+      const currentVideoProgress = videoProgress[currentStep] || 0;
+      const thresholds = getVideoThresholds(currentStep);
+      canUnlockNext = currentVideoProgress >= thresholds.nextButtonThreshold; // 5%
+      
+      console.log(`📹 Step ${currentStep}: ${currentVideoProgress}% (need ${thresholds.nextButtonThreshold}% to unlock ${nextStep}) - ${canUnlockNext ? 'UNLOCKED' : 'LOCKED'}`);
+    } 
+    // For assessment steps, check if completed
+    else if (completedSteps.includes(currentStep)) {
+      canUnlockNext = true;
+      console.log(`📝 Step ${currentStep}: Completed - UNLOCKS ${nextStep}`);
+    }
+    
+    if (canUnlockNext && !unlocked.includes(nextStep)) {
+      unlocked.push(nextStep);
+    }
+  }
+  
+  return unlocked;
+};
+```
+
+#### 5. Update Auto-Completion Logic
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+// UPDATE: updateVideoProgress function
+const updateVideoProgress = (stepId: string, percentage: number) => {
+  const normalizedProgress = normalizeVideoProgress(percentage);
+  
+  console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${normalizedProgress}%`);
+  
+  // Update global state immediately
+  window.currentVideoProgress[stepId] = normalizedProgress;
+  
+  setProgress(prev => {
+    const newProgress = {
+      ...prev,
+      videoProgress: {
+        ...prev.videoProgress,
+        [stepId]: Math.max(normalizedProgress, prev.videoProgress[stepId] || 0)
+      },
+      lastVisitedAt: new Date().toISOString()
+    };
+    
+    // Auto-complete step when it reaches COMPLETION threshold (90%)
+    const thresholds = getVideoThresholds(stepId);
+    if (!prev.completedSteps.includes(stepId) && normalizedProgress >= thresholds.completionThreshold) {
+      console.log(`✅ Auto-completing video step ${stepId} at ${normalizedProgress}% (>= ${thresholds.completionThreshold}%)`);
+      newProgress.completedSteps = [...prev.completedSteps, stepId];
+    }
+    
+    // Recalculate unlocked steps based on NEW 5% threshold
+    newProgress.unlockedSteps = calculateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
+    
+    return newProgress;
+  });
+};
+```
+
+#### 6. Export New Functions
+**File**: `client/src/hooks/use-navigation-progress.ts`
+
+```typescript
+return {
+  // ... existing exports
+  shouldShowGreenCheckmark,  // NEW: For menu green checkmarks
+  getVideoThresholds,        // NEW: For components to check thresholds
+  
+  // Updated functions that now use new thresholds:
+  validateStepCompletion,    // Now uses 5% threshold
+  updateVideoProgress,       // Now auto-completes at 90%
+  calculateUnlockedSteps,    // Now unlocks at 5%
+  
+  // Convenience functions:
+  canProceedToNext: (stepId: string) => {
+    const videoProgress = getCurrentVideoProgress(stepId);
+    const thresholds = getVideoThresholds(stepId);
+    return videoProgress >= thresholds.nextButtonThreshold;
+  }
+};
+```
+
+## 🧪 **PHASE 1 TESTING**
+
+### Test Cases:
+1. **0-4%**: Verify Next button disabled, step locked
+2. **5%**: Verify Next button enabled, next step unlocked
+3. **6-89%**: Verify can proceed but no green checkmark
+4. **90%+**: Verify green checkmark appears
+
+### Testing Steps:
+```typescript
+// 1. Load video step (e.g., 1-1)
+// 2. Simulate video progress: window.currentVideoProgress['1-1'] = 3
+// 3. Check: Next button disabled, step 2-1 locked
+// 4. Simulate progress: window.currentVideoProgress['1-1'] = 5  
+// 5. Check: Next button enabled, step 2-1 unlocked
+// 6. Simulate progress: window.currentVideoProgress['1-1'] = 50
+// 7. Check: Can proceed, but no green checkmark
+// 8. Simulate progress: window.currentVideoProgress['1-1'] = 90
+// 9. Check: Green checkmark appears, step marked complete
+```
+
+## 🚀 **PHASE 2: ADMIN INTERFACE (FUTURE)**
+
+### Phase 2 Goals (Not Implemented in Phase 1):
+- Add admin interface for threshold configuration
+- Move from hardcoded thresholds to database-stored admin settings
+- Per-step threshold customization
+- Real-time threshold updates
+
+### Phase 2 Will:
+- Extend existing schema with admin config storage
+- Add admin video management interface
+- Update `getVideoThresholds()` to read from admin settings instead of constants
+
+## ✅ **PHASE 1 SUCCESS CRITERIA**
+
+After Phase 1 implementation:
+- [ ] Video steps require 5% to enable Next button and unlock next step
+- [ ] Video steps require 90% to show green checkmark and mark complete
+- [ ] Progression logic: 0-4% locked → 5% unlocked → 90% completed
+- [ ] All video steps use same thresholds (uniform implementation)
+- [ ] StepId-based unlocking works correctly
+- [ ] Global video progress state maintains immediate validation
+- [ ] Database persistence continues working with new thresholds
+
+## 🚨 **IMPLEMENTATION NOTES**
+
+### Key Points:
+- **Phase 1**: Hardcoded 5%/90% thresholds for all video steps
+- **Schema**: Uses existing `users.navigationProgress.videoProgress` structure
+- **Storage**: Video progress stored as percentages 0-100 (confirmed)
+- **Unlocking**: StepId-based, not section-based
+- **Future**: Admin interface capability designed in but not implemented
+
+### Files to Modify:
+- `client/src/hooks/use-navigation-progress.ts` (primary changes)
+- Test with existing video components (no component changes needed)
+
+This Phase 1 implementation provides the exact progression logic you specified while maintaining your current architecture and preparing for future admin configurability.

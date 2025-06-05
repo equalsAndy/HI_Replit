@@ -18,6 +18,7 @@ interface NavigationProgress {
   appType: 'ast' | 'ia' | null;
   lastVisitedAt: string;
   unlockedSections: string[];
+  unlockedSteps?: string[]; // Added for step-level unlocking
   videoProgress: { [stepId: string]: number };
 }
 
@@ -132,6 +133,7 @@ export function useNavigationProgress() {
     appType: 'ast',
     lastVisitedAt: new Date().toISOString(),
     unlockedSections: ['1'], // Only Introduction is unlocked initially
+    unlockedSteps: ['1-1'], // Initialize with first step unlocked
     videoProgress: {}
   });
 
@@ -432,7 +434,52 @@ export function useNavigationProgress() {
     return videoSteps.includes(stepId);
   };
 
-  // Validate step completion before marking complete
+  // Video threshold constants for dual-threshold system
+  const VIDEO_THRESHOLDS = {
+    NEXT_BUTTON: 5,    // 5% to enable Next button and unlock next step
+    COMPLETION: 90     // 90% to show green checkmark and mark complete
+  } as const;
+
+  // Get video thresholds for a specific step
+  const getVideoThresholds = (stepId: string) => {
+    // Phase 1: Same thresholds for all video steps
+    // Phase 2: Will be admin-configurable per step
+    return {
+      nextButtonThreshold: VIDEO_THRESHOLDS.NEXT_BUTTON,
+      completionThreshold: VIDEO_THRESHOLDS.COMPLETION
+    };
+  };
+
+  // Check if step meets Next button threshold (5%)
+  const canProceedToNext = (stepId: string): boolean => {
+    if (isVideoStep(stepId)) {
+      const currentProgress = getCurrentVideoProgress(stepId);
+      const thresholds = getVideoThresholds(stepId);
+      return currentProgress >= thresholds.nextButtonThreshold;
+    }
+    return progress.completedSteps.includes(stepId);
+  };
+
+  // Check if step should show green checkmark (90% for videos)
+  const shouldShowGreenCheckmark = (stepId: string): boolean => {
+    if (isVideoStep(stepId)) {
+      const currentProgress = getCurrentVideoProgress(stepId);
+      const thresholds = getVideoThresholds(stepId);
+      const isComplete = currentProgress >= thresholds.completionThreshold;
+      
+      console.log(`🏆 Green Checkmark Check for ${stepId}:`);
+      console.log(`  📊 Progress: ${currentProgress}%`);
+      console.log(`  🎯 Completion Threshold: ${thresholds.completionThreshold}%`);
+      console.log(`  ${isComplete ? '✅ SHOW GREEN CHECKMARK' : '⏳ NO CHECKMARK YET'}`);
+      
+      return isComplete;
+    }
+    
+    // Non-video steps: show checkmark when completed
+    return progress.completedSteps.includes(stepId);
+  };
+
+  // Validate step completion before marking complete (uses 5% threshold for progression)
   const validateStepCompletion = (stepId: string): { isComplete: boolean; reason?: string } => {
     console.log(`🔍 VALIDATION START: Step ${stepId}`);
     
@@ -440,27 +487,21 @@ export function useNavigationProgress() {
     if (isVideoStep(stepId)) {
       // Get current video progress using robust fallback system
       const currentProgress = getCurrentVideoProgress(stepId);
-      
-      // Different completion thresholds for different video steps
-      let requiredProgress = 5; // 5% for Next button activation and menu unlocking
-      if (stepId === '1-1') {
-        requiredProgress = 5; // 5% for step 1-1 intro
-      } else if (['2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
-        requiredProgress = 5; // 5% for main content videos for Next button
-      }
+      const thresholds = getVideoThresholds(stepId);
       
       // Enhanced debugging logs
       console.log(`📹 Video Progress Debug for ${stepId}:`);
       console.log(`  📊 Global state: ${(window as any).currentVideoProgress?.[stepId] || 'undefined'}%`);
       console.log(`  📊 Saved state: ${progress?.videoProgress?.[stepId] || 'undefined'}%`);
       console.log(`  🎯 Current progress: ${currentProgress}%`);
-      console.log(`  🚨 Threshold: ${requiredProgress}%`);
+      console.log(`  🚨 Next Button Threshold: ${thresholds.nextButtonThreshold}%`);
+      console.log(`  🏁 Completion Threshold: ${thresholds.completionThreshold}%`);
       
-      if (currentProgress < requiredProgress) {
+      if (currentProgress < thresholds.nextButtonThreshold) {
         console.log(`  ❌ VALIDATION FAILED`);
-        return { isComplete: false, reason: `Video must be watched to at least ${requiredProgress}% (${currentProgress.toFixed(2)}% watched)` };
+        return { isComplete: false, reason: `Video must be watched to at least ${thresholds.nextButtonThreshold}% (${currentProgress.toFixed(2)}% watched)` };
       }
-      console.log(`  ✅ VALIDATION PASSED`);
+      console.log(`  ✅ VALIDATION PASSED (Can proceed but may not show checkmark yet)`);
       return { isComplete: true };
     }
     
@@ -620,7 +661,7 @@ export function useNavigationProgress() {
     return unlocked;
   };
 
-  // Update video progress with database persistence
+  // Update video progress with database persistence and dual-threshold system
   const updateVideoProgress = (stepId: string, percentage: number) => {
     const roundedProgress = Math.round(percentage * 100) / 100;
     
@@ -639,31 +680,57 @@ export function useNavigationProgress() {
         ...prev,
         videoProgress: {
           ...prev.videoProgress,
-          [stepId]: roundedProgress
+          [stepId]: Math.max(roundedProgress, prev.videoProgress[stepId] || 0) // Always maintain highest progress
         },
         lastVisitedAt: new Date().toISOString()
       };
+      
+      const thresholds = getVideoThresholds(stepId);
       console.log(`🎬 Updated progress state:`, newProgress.videoProgress);
+      console.log(`📊 Thresholds for ${stepId}: Next=${thresholds.nextButtonThreshold}%, Complete=${thresholds.completionThreshold}%`);
       
-      // Auto-complete step if video meets threshold and not already completed
-      if (!prev.completedSteps.includes(stepId)) {
-        let requiredProgress = 5; // 5% for auto-completion and unlocking next steps
+      // Auto-complete step when it reaches COMPLETION threshold (90%)
+      if (!prev.completedSteps.includes(stepId) && roundedProgress >= thresholds.completionThreshold) {
+        console.log(`✅ Auto-completing video step ${stepId} at ${roundedProgress}% (>= ${thresholds.completionThreshold}%)`);
+        newProgress.completedSteps = [...prev.completedSteps, stepId];
+        newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
+      }
+      
+      // Update unlocked steps based on NEW 5% threshold for next button access
+      const updateUnlockedSteps = (completedSteps: string[], videoProgress: { [stepId: string]: number }): string[] => {
+        const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+        const unlocked = ['1-1']; // First step always unlocked
         
-        if (roundedProgress >= requiredProgress) {
-          console.log(`✅ Auto-completing video step ${stepId} at ${roundedProgress.toFixed(2)}%`);
-          newProgress.completedSteps = [...prev.completedSteps, stepId];
-          newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
+        for (let i = 0; i < allSteps.length - 1; i++) {
+          const currentStep = allSteps[i];
+          const nextStep = allSteps[i + 1];
+          
+          let canUnlockNext = false;
+          
+          // For video steps, check NEW 5% threshold
+          if (isVideoStep(currentStep)) {
+            const currentVideoProgress = videoProgress[currentStep] || 0;
+            const stepThresholds = getVideoThresholds(currentStep);
+            canUnlockNext = currentVideoProgress >= stepThresholds.nextButtonThreshold; // 5%
+            
+            console.log(`📹 Step ${currentStep}: ${currentVideoProgress}% (need ${stepThresholds.nextButtonThreshold}% to unlock ${nextStep}) - ${canUnlockNext ? 'UNLOCKED' : 'LOCKED'}`);
+          } 
+          // For assessment steps, check if completed
+          else if (completedSteps.includes(currentStep)) {
+            canUnlockNext = true;
+            console.log(`📝 Step ${currentStep}: Completed - UNLOCKS ${nextStep}`);
+          }
+          
+          if (canUnlockNext && !unlocked.includes(nextStep)) {
+            unlocked.push(nextStep);
+          }
         }
-      }
+        
+        return unlocked;
+      };
       
-      // Always update to highest progress achieved (maintain maximum progress)
-      const existingProgress = prev.videoProgress[stepId] || 0;
-      if (roundedProgress > existingProgress) {
-        console.log(`📈 Video progress increased from ${existingProgress}% to ${roundedProgress}%`);
-      } else {
-        console.log(`📊 Video progress maintained at ${existingProgress}% (current: ${roundedProgress}%)`);
-        newProgress.videoProgress[stepId] = existingProgress; // Keep highest progress
-      }
+      // Recalculate unlocked steps with new thresholds
+      newProgress.unlockedSteps = updateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
       
       // Persist to database for any video progress increase
       if (roundedProgress > (prev.videoProgress[stepId] || 0)) {
@@ -758,6 +825,13 @@ export function useNavigationProgress() {
     recalculateProgress,
     getSectionProgressData,
     isStepAccessibleByProgression,
-    SECTION_STEPS
+    SECTION_STEPS,
+    // New dual-threshold functions
+    shouldShowGreenCheckmark,  // For menu green checkmarks (90% threshold)
+    getVideoThresholds,        // For components to check thresholds
+    canProceedToNext,          // For Next button validation (5% threshold)
+    validateStepCompletion,    // Updated validation with new thresholds
+    getCurrentVideoProgress,   // Helper for getting current video progress
+    isVideoStep               // Helper for identifying video steps
   };
 }

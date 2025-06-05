@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps extends ContentViewProps {
