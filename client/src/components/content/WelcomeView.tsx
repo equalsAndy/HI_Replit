@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
 import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps extends ContentViewProps {
@@ -20,12 +21,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const { updateVideoProgress, progress } = useSimpleNavigation();
 
-  // Check if video progress already meets the threshold on component mount
+  // Check if video progress already meets the NEW 5% threshold on component mount
   useEffect(() => {
     const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 1) {
+    if (currentProgress >= 5) { // Updated to 5% threshold
       setHasReachedMinimum(true);
-      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 1%, enabling button`);
+      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
     }
   }, [progress?.videoProgress]);
   const title = isImaginalAgility 
