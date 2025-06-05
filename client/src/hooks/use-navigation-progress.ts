@@ -230,8 +230,10 @@ export function useNavigationProgress() {
             const dbProgress = JSON.parse(result.progress);
             console.log('✅ Loaded progress from database:', dbProgress);
             
-            // Use database progress if it has meaningful data
-            if (dbProgress.appType && (dbProgress.completedSteps.length > 0 || dbProgress.currentStepId !== '1-1')) {
+            // Use database progress if it has meaningful data or video progress
+            if (dbProgress.appType && (dbProgress.completedSteps.length > 0 || 
+                dbProgress.currentStepId !== '1-1' || 
+                Object.keys(dbProgress.videoProgress || {}).length > 0)) {
               setProgress({
                 ...dbProgress,
                 lastVisitedAt: new Date().toISOString()
@@ -395,7 +397,7 @@ export function useNavigationProgress() {
       appType: 'ast' as const,
       lastVisitedAt: new Date().toISOString(),
       unlockedSections,
-      videoProgress: {}
+      videoProgress: progress?.videoProgress || {}
     };
   };
 
@@ -722,8 +724,8 @@ export function useNavigationProgress() {
         newProgress.videoProgress[stepId] = existingProgress; // Keep highest progress
       }
       
-      // Persist to database when reaching key thresholds
-      if (roundedProgress >= 1 && (!prev.videoProgress[stepId] || prev.videoProgress[stepId] < 1)) {
+      // Persist to database for any video progress increase
+      if (roundedProgress > (prev.videoProgress[stepId] || 0)) {
         console.log(`🎬 Persisting video progress to database for ${stepId}: ${roundedProgress}%`);
         syncProgressToDatabase(newProgress);
       }
