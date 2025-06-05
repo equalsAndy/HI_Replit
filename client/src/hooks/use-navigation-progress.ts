@@ -682,8 +682,23 @@ export function useNavigationProgress() {
   };
 
   // Update video progress with database persistence and dual-threshold system
-  const updateVideoProgress = (stepId: string, percentage: number) => {
+  const updateVideoProgress = (stepId: string, percentage: number, isPositionUpdate = false) => {
     const roundedProgress = Math.round(percentage * 100) / 100;
+    
+    if (isPositionUpdate) {
+      // Update current position (for resume playback) - always update
+      console.log(`🎬 VIDEO POSITION UPDATE: ${stepId} = ${roundedProgress}%`);
+      
+      setProgress(prev => ({
+        ...prev,
+        videoPositions: {
+          ...prev.videoPositions,
+          [stepId]: roundedProgress
+        }
+      }));
+      
+      return;
+    }
     
     console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${roundedProgress}%`);
     
@@ -701,6 +716,10 @@ export function useNavigationProgress() {
         videoProgress: {
           ...prev.videoProgress,
           [stepId]: Math.max(roundedProgress, prev.videoProgress[stepId] || 0) // Always maintain highest progress
+        },
+        videoPositions: {
+          ...prev.videoPositions,
+          [stepId]: roundedProgress // Also update position for this progress update
         },
         lastVisitedAt: new Date().toISOString()
       };
@@ -831,85 +850,6 @@ export function useNavigationProgress() {
     return isStepAccessible(stepId, progress.completedSteps);
   };
 
-  // Dual-state video progress update function
-  const updateVideoProgress = async (stepId: string, percentage: number, isPositionUpdate = false) => {
-    try {
-      const clampedPercentage = Math.max(0, Math.min(100, percentage));
-      
-      if (isPositionUpdate) {
-        // Update current position (for resume playback) - always update
-        console.log(`🎬 VIDEO POSITION UPDATE: ${stepId} = ${clampedPercentage}%`);
-        
-        setProgress(prev => ({
-          ...prev,
-          videoPositions: {
-            ...prev.videoPositions,
-            [stepId]: clampedPercentage
-          }
-        }));
-        
-        // Save position to server
-        try {
-          await fetch(`/api/participants/video-position/${stepId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ 
-              position: clampedPercentage,
-              timestamp: new Date().toISOString()
-            })
-          });
-        } catch (error) {
-          console.error('Failed to save video position:', error);
-        }
-        
-        return;
-      }
-      
-      // Handle maximum progress updates (for achievements/unlocking)
-      console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${clampedPercentage}%`);
-      
-      const currentProgress = progress.videoProgress[stepId] || 0;
-      
-      // Only update if the new progress is higher than current (maximum progress tracking)
-      if (clampedPercentage > currentProgress) {
-        console.log(`🔄 Updating max progress from ${currentProgress}% to ${clampedPercentage}%`);
-        
-        setProgress(prev => ({
-          ...prev,
-          videoProgress: {
-            ...prev.videoProgress,
-            [stepId]: clampedPercentage
-          }
-        }));
-
-        // Save progress to server
-        try {
-          await fetch(`/api/participants/video-progress/${stepId}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ 
-              progress: clampedPercentage,
-              timestamp: new Date().toISOString()
-            })
-          });
-        } catch (error) {
-          console.error('Failed to save video progress:', error);
-        }
-      } else {
-        console.log(`🔄 Skipping update - Current max: ${currentProgress}%, New: ${clampedPercentage}%, Keeping: ${currentProgress}%`);
-      }
-    } catch (error) {
-      console.error('❌ Failed to update video progress:', error);
-    }
-  };
-
-  // Helper: Get current video progress (max progress for achievements)
-  const getCurrentVideoProgress = (stepId: string): number => {
-    return progress.videoProgress[stepId] || 0;
-  };
-
   // Helper: Get current video position (for resume playback)
   const getCurrentVideoPosition = (stepId: string): number => {
     return progress.videoPositions[stepId] || 0;
@@ -918,43 +858,6 @@ export function useNavigationProgress() {
   // Helper: Update video position for resume tracking
   const updateVideoPosition = (stepId: string, position: number) => {
     updateVideoProgress(stepId, position, true);
-  };
-
-  // Helper: Check if step can proceed with 5% threshold
-  const canProceedToNext = (stepId: string): boolean => {
-    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
-    if (videoSteps.includes(stepId)) {
-      return getCurrentVideoProgress(stepId) >= 5;
-    }
-    return progress.completedSteps.includes(stepId);
-  };
-
-  // Helper: Check if step shows green checkmark with 90% threshold
-  const shouldShowGreenCheckmark = (stepId: string): boolean => {
-    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
-    if (videoSteps.includes(stepId)) {
-      return getCurrentVideoProgress(stepId) >= 90;
-    }
-    return progress.completedSteps.includes(stepId);
-  };
-
-  // Helper: Check if step is a video step
-  const isVideoStep = (stepId: string): boolean => {
-    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
-    return videoSteps.includes(stepId);
-  };
-
-  // Helper: Get video thresholds for a step
-  const getVideoThresholds = (stepId: string) => {
-    return {
-      nextButton: 5,    // 5% for Next button activation
-      greenCheck: 90    // 90% for green checkmark
-    };
-  };
-
-  // Helper: Validate step completion with new thresholds
-  const validateStepCompletion = (stepId: string): boolean => {
-    return canProceedToNext(stepId);
   };
 
   return {
@@ -979,6 +882,8 @@ export function useNavigationProgress() {
     canProceedToNext,          // For Next button validation (5% threshold)
     validateStepCompletion,    // Updated validation with new thresholds
     getCurrentVideoProgress,   // Helper for getting current video progress
+    getCurrentVideoPosition,   // Helper for getting video resume position
+    updateVideoPosition,       // Helper for updating video position
     isVideoStep               // Helper for identifying video steps
   };
 }
