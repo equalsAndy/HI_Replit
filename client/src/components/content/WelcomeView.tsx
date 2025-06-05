@@ -79,9 +79,15 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   };
 
   // Handle completion and progression
-  const handleNext = () => {
-    markStepCompleted(stepId);
-    setCurrentContent(nextContentId);
+  const handleNext = async () => {
+    try {
+      console.log(`🚀 Next button clicked for step: ${stepId}`);
+      await markStepCompleted(stepId);
+      console.log(`✅ Step ${stepId} marked complete, navigating to ${nextContentId}`);
+      setCurrentContent(nextContentId);
+    } catch (error) {
+      console.error(`❌ Error completing step ${stepId}:`, error);
+    }
   };
 
   return (

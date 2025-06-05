@@ -499,11 +499,11 @@ export function useNavigationProgress() {
       const currentProgress = getCurrentVideoProgress(stepId);
       
       // Different completion thresholds for different video steps
-      let requiredProgress = 1; // Default 1% for most videos
+      let requiredProgress = 5; // 5% for Next button activation and menu unlocking
       if (stepId === '1-1') {
-        requiredProgress = 0.5; // 0.5% for step 1-1 intro
+        requiredProgress = 5; // 5% for step 1-1 intro
       } else if (['2-1', '3-1', '4-1', '4-4'].includes(stepId)) {
-        requiredProgress = 85; // 85% for main content videos to ensure they're actually watched
+        requiredProgress = 5; // 5% for main content videos for Next button
       }
       
       // Enhanced debugging logs
@@ -704,18 +704,22 @@ export function useNavigationProgress() {
       
       // Auto-complete step if video meets threshold and not already completed
       if (!prev.completedSteps.includes(stepId)) {
-        let requiredProgress = 1; // Default 1%
-        if (stepId === '1-1') {
-          requiredProgress = 0.5; // 0.5% for intro
-        } else if (['2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-          requiredProgress = 85; // 85% for main content videos
-        }
+        let requiredProgress = 5; // 5% for auto-completion and unlocking next steps
         
         if (roundedProgress >= requiredProgress) {
           console.log(`✅ Auto-completing video step ${stepId} at ${roundedProgress.toFixed(2)}%`);
           newProgress.completedSteps = [...prev.completedSteps, stepId];
           newProgress.unlockedSections = getUnlockedSections(newProgress.completedSteps);
         }
+      }
+      
+      // Always update to highest progress achieved (maintain maximum progress)
+      const existingProgress = prev.videoProgress[stepId] || 0;
+      if (roundedProgress > existingProgress) {
+        console.log(`📈 Video progress increased from ${existingProgress}% to ${roundedProgress}%`);
+      } else {
+        console.log(`📊 Video progress maintained at ${existingProgress}% (current: ${roundedProgress}%)`);
+        newProgress.videoProgress[stepId] = existingProgress; // Keep highest progress
       }
       
       // Persist to database when reaching key thresholds
