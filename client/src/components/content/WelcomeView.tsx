@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
-import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoPlayer from './VideoPlayer';
 
@@ -19,16 +18,22 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const { updateVideoProgress, progress } = useSimpleNavigation();
+  
+  // Get navigation progress using the correct hook
+  const { 
+    progress: navigationProgress, 
+    updateVideoProgress,
+    canProceedToNext
+  } = useNavigationProgress();
 
-  // Check if video progress already meets the NEW 5% threshold on component mount
+  // Check if video progress already meets the 5% threshold on component mount
   useEffect(() => {
-    const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) { // Updated to 5% threshold
+    const currentProgress = navigationProgress?.videoProgress?.[stepId] || 0;
+    if (currentProgress >= 5) {
       setHasReachedMinimum(true);
       console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
     }
-  }, [progress?.videoProgress]);
+  }, [navigationProgress?.videoProgress, stepId]);
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -59,24 +64,15 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Testing bypass disabled - use proper video completion validation
   const [allowTestingBypass, setAllowTestingBypass] = useState(false);
   
-  // Get navigation progress at component level  
-  const { 
-    progress: navigationProgress, 
-    getCurrentVideoPosition, 
-    canProceedToNext, 
-    updateVideoProgress,
-    updateVideoPosition 
-  } = useSimpleNavigation();
-  
-  // Calculate start time for video resume based on current position
+  // Calculate start time for video resume based on current progress
   const calculateStartTime = (): number => {
-    const videoPosition = getCurrentVideoPosition(stepId);
+    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
     
     // Convert percentage to seconds (assuming average video duration of 150 seconds)
-    // Only resume if position is between 5% and 95% to avoid edge cases
-    if (videoPosition >= 5 && videoPosition < 95) {
-      const startTimeSeconds = (videoPosition / 100) * 150;
-      console.log(`🎬 WelcomeView: Resuming from position ${videoPosition}% = ${startTimeSeconds} seconds`);
+    // Only resume if progress is between 5% and 95% to avoid edge cases
+    if (videoProgress >= 5 && videoProgress < 95) {
+      const startTimeSeconds = (videoProgress / 100) * 150;
+      console.log(`🎬 WelcomeView: Resuming from ${videoProgress}% = ${startTimeSeconds} seconds`);
       return startTimeSeconds;
     }
     
