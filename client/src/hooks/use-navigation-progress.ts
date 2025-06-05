@@ -181,11 +181,19 @@ export function useNavigationProgress() {
     console.log('✅ Setting clean progress state');
     setProgress(cleanProgress);
     
-    // Clear any existing global video progress and initialize with clean state
+    // FORCE COMPLETE RESET - Clear all possible cached sources
     (window as any).currentVideoProgress = cleanProgress.videoProgress;
-    
-    // Clear localStorage to prevent cached data issues
     localStorage.removeItem('navigationProgress');
+    localStorage.removeItem('userProgress');
+    localStorage.removeItem('videoProgress');
+    sessionStorage.clear();
+    
+    // Force clear any existing cached state
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('progress') || key.includes('video') || key.includes('navigation')) {
+        localStorage.removeItem(key);
+      }
+    });
   }, []);
 
   // Save progress to both local storage and database whenever it changes
@@ -421,27 +429,14 @@ export function useNavigationProgress() {
     
     // Priority 1: Global video tracking state (most current)
     if ((window as any).currentVideoProgress?.[stepId] !== undefined) {
-      let globalProgress = (window as any).currentVideoProgress[stepId];
-      
-      // Apply correction: if value is between 0-1, it's a decimal that represents percentage
-      if (globalProgress > 0 && globalProgress <= 1) {
-        globalProgress = globalProgress * 100;
-        console.log(`  🔧 Corrected global progress from decimal to percentage: ${globalProgress}%`);
-      }
-      
+      const globalProgress = (window as any).currentVideoProgress[stepId];
       console.log(`  ✅ Found in global state: ${globalProgress}%`);
       return globalProgress;
     }
     
     // Priority 2: Component navigation state
-    let savedProgress = progress?.videoProgress?.[stepId] || 0;
+    const savedProgress = progress?.videoProgress?.[stepId] || 0;
     if (savedProgress > 0) {
-      // Apply correction: if value is between 0-1, it's a decimal that represents percentage
-      if (savedProgress > 0 && savedProgress <= 1) {
-        savedProgress = savedProgress * 100;
-        console.log(`  🔧 Corrected saved progress from decimal to percentage: ${savedProgress}%`);
-      }
-      
       console.log(`  ✅ Found in saved state: ${savedProgress}%`);
       return savedProgress;
     }
