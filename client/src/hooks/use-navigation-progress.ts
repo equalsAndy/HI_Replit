@@ -580,8 +580,9 @@ export function useNavigationProgress() {
     
     // For video steps, mark completed when validation passes
     if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-      const uniqueSteps = [...new Set([...progress.completedSteps, stepId])];
-      const newCompletedSteps = uniqueSteps;
+      const stepSet = new Set(progress.completedSteps);
+      stepSet.add(stepId);
+      const newCompletedSteps = Array.from(stepSet);
       
       const newProgress = {
         ...progress,

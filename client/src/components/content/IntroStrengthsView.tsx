@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -15,12 +16,26 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-1";
+  const { updateVideoProgress, progress } = useNavigationProgress();
+
+  // Check if video progress already meets the threshold on component mount
+  useEffect(() => {
+    const currentProgress = progress?.videoProgress?.[stepId] || 0;
+    if (currentProgress >= 5) {
+      setHasReachedMinimum(true);
+      console.log(`🎬 IntroStrengthsView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
+    }
+  }, [progress?.videoProgress]);
 
   // Handle video progress
   const handleVideoProgress = (percentage: number) => {
+    // Update navigation progress tracking
+    updateVideoProgress(stepId, percentage);
+    
     // Check if minimum watch requirement is met (5%)
     if (percentage >= 5 && !hasReachedMinimum) {
       setHasReachedMinimum(true);
+      console.log(`🎬 IntroStrengthsView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
     }
   };
 
