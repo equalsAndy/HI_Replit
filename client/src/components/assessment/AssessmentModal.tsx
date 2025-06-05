@@ -498,56 +498,77 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
   // Function to handle completion when user clicks continue after demo data
   const completeWithDemoData = async () => {
+    console.log('=== DEMO DATA COMPLETION START ===');
     setIsLoading(true);
 
-    // Fill any remaining questions with random answers
-    const completeAnswers = { ...answers };
-
-    // Ensure all questions have answers
-    assessmentQuestions.forEach(question => {
-      if (!completeAnswers[question.id]) {
-        const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
-        completeAnswers[question.id] = [
-          { optionId: shuffledOptions[0].id, rank: 1 },
-          { optionId: shuffledOptions[1].id, rank: 2 },
-          { optionId: shuffledOptions[2].id, rank: 3 },
-          { optionId: shuffledOptions[3].id, rank: 4 }
-        ];
-      }
-    });
-
-    // Calculate results based on the completed answers
-    const results = calculateQuadrantScores(
-      Object.entries(completeAnswers).map(([questionId, rankings]) => ({
-        questionId: parseInt(questionId),
-        rankings
-      })),
-      optionCategoryMapping
-    );
-
     try {
+      // Fill any remaining questions with random answers
+      console.log('Preparing complete answers...');
+      const completeAnswers = { ...answers };
+
+      // Ensure all questions have answers
+      assessmentQuestions.forEach(question => {
+        if (!completeAnswers[question.id]) {
+          const shuffledOptions = [...question.options].sort(() => Math.random() - 0.5);
+          completeAnswers[question.id] = [
+            { optionId: shuffledOptions[0].id, rank: 1 },
+            { optionId: shuffledOptions[1].id, rank: 2 },
+            { optionId: shuffledOptions[2].id, rank: 3 },
+            { optionId: shuffledOptions[3].id, rank: 4 }
+          ];
+        }
+      });
+
+      console.log('Complete answers prepared:', Object.keys(completeAnswers).length, 'questions');
+
+      // Calculate results based on the completed answers
+      console.log('Calculating quadrant scores...');
+      const results = calculateQuadrantScores(
+        Object.entries(completeAnswers).map(([questionId, rankings]) => ({
+          questionId: parseInt(questionId),
+          rankings
+        })),
+        optionCategoryMapping
+      );
+
+      console.log('Calculated results:', results);
+
       // Format data for server
+      console.log('Formatting data for server...');
       const formattedAnswers = Object.entries(completeAnswers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       }));
+
+      const requestBody = {
+        quadrantData: results,
+        answers: formattedAnswers
+      };
+
+      console.log('Request body prepared, making API request...');
 
       // Send to server
       const response = await fetch('/api/workshop-data/assessment/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          quadrantData: results,
-          answers: formattedAnswers
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response ok:', response.ok);
+
       if (!response.ok) {
-        throw new Error('Failed to complete assessment');
+        const errorText = await response.text();
+        console.error('Server response error:', errorText);
+        throw new Error(`Failed to complete assessment: ${response.status} ${errorText}`);
       }
 
+      const responseData = await response.json();
+      console.log('Server response data:', responseData);
+
       // Set results and close modal immediately to show results in content view
+      console.log('Setting assessment results and closing modal...');
       setAssessmentResults(results);
       setIsLoading(false);
       
@@ -555,20 +576,26 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       onClose();
 
       // Invalidate star card query to refresh data
+      console.log('Invalidating star card queries...');
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Call onComplete callback if provided
       if (onComplete) {
+        console.log('Calling onComplete callback...');
         onComplete({ 
           quadrantData: results,
           showResultsInContentView: true 
         });
       }
+
+      console.log('=== DEMO DATA COMPLETION SUCCESS ===');
     } catch (error) {
-      console.error('Error completing assessment:', error);
+      console.error('=== DEMO DATA COMPLETION ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
 
       // Even if there's an error, close modal and show results in content view
-      setAssessmentResults(results);
+      setAssessmentResults(null);
       setIsLoading(false);
       onClose();
     }
