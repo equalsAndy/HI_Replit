@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '@/shared/types';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useNavigationProgressSimplified } from '@/hooks/use-navigation-progress-simplified';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps extends ContentViewProps {
@@ -24,7 +24,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     progress: navigationProgress, 
     updateVideoProgress,
     canProceedToNext
-  } = useNavigationProgress();
+  } = useNavigationProgressSimplified();
 
   // Check if video progress already meets the 5% threshold on component mount
   useEffect(() => {

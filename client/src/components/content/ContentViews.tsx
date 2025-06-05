@@ -1,5 +1,4 @@
 import React from 'react';
-import { ContentViewProps } from '../../../shared/types';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
 import AssessmentView from './AssessmentView';
@@ -24,9 +23,16 @@ import VideoPlayer from './VideoPlayer';
 import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 
-interface ContentViewsProps extends ContentViewProps {
+interface ContentViewsProps {
   currentContent: string;
-  setIsAssessmentModalOpen: (isOpen: boolean) => void;
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+  starCard?: any;
+  user?: any;
+  flowAttributesData?: any;
+  setIsAssessmentModalOpen?: (open: boolean) => void;
+  isImaginalAgility?: boolean;
 }
 
 const ContentViews: React.FC<ContentViewsProps> = ({

@@ -50,8 +50,13 @@ export interface Workshop {
 }
 
 export interface ContentViewProps {
+  currentContent: string;
   navigate?: any;
   markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
   starCard?: any;
+  user?: any;
+  flowAttributesData?: any;
+  setIsAssessmentModalOpen?: (open: boolean) => void;
+  isImaginalAgility?: boolean;
 }
