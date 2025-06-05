@@ -15,12 +15,6 @@ import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useNavigationProgressSimplified } from '@/hooks/use-navigation-progress-simplified';
 
-// Constants for different apps
-const APP_PROGRESS_KEYS = {
-  'allstarteams': 'allstarteams-navigation-progress',
-  'imaginal-agility': 'imaginal-agility-navigation-progress'
-};
-
 export default function AllStarTeams() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
@@ -32,10 +26,11 @@ export default function AllStarTeams() {
     progress: navProgress,
     updateVideoProgress,
     markStepCompleted: markNavStepCompleted,
-    isStepUnlocked,
-    isStepCompleted,
-    getVideoProgress,
-    saveProgressToDatabase
+    setCurrentStep,
+    isStepAccessible: isStepUnlocked,
+    canProceedToNext,
+    shouldShowGreenCheckmark: isStepCompleted,
+    getVideoProgress
   } = useNavigationProgressSimplified();
   
   // Use navigation progress state instead of separate completedSteps state

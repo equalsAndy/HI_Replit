@@ -345,18 +345,12 @@ export function useNavigationProgress() {
     }
   };
 
-  // Convert assessments to array format for progression logic
-  const assessmentsArray = Object.keys(userAssessments).map(assessmentType => ({
-    assessmentType,
-    results: JSON.stringify(userAssessments[assessmentType])
-  }));
-
-  // Mode-aware validation
-  const validateStepCompletionNew = (stepId: string): { isComplete: boolean; reason?: string } => {
+  // Mode-aware validation function
+  const validateStepCompletion = (stepId: string): boolean => {
     if (CURRENT_PROGRESSION_MODE === 'simplified') {
-      return validateStepCompletionSimplified(stepId);
+      return validateStepCompletionSimplified(stepId, userAssessments);
     } else {
-      return { isComplete: true }; // Complex mode disabled for now
+      return true; // Complex mode disabled for now
     }
   };
 
