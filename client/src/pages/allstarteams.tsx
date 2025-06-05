@@ -274,10 +274,7 @@ export default function AllStarTeams() {
       queryClient.removeQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
       queryClient.removeQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
-      // Reset navigation progress as well
-      if (typeof resetProgress === 'function') {
-        resetProgress();
-      }
+      // Reset functionality disabled to prevent auto-reset loops
 
       toast({
         title: "Progress Reset",
@@ -298,14 +295,9 @@ export default function AllStarTeams() {
   const markStepCompleted = (stepId: string) => {
     console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
     
-    // Use navigation progress validation system only
+    // Use simple navigation system only
     markNavStepCompleted(stepId);
-    updateCurrentStep(stepId, 'ast');
-
-    // Sync with database (async, non-blocking)
-    syncWithDatabase().catch(error => {
-      console.error('Failed to sync navigation progress with database:', error);
-    });
+    console.log(`Step ${stepId} marked as completed`);
   };
 
   // Function to determine if a step is accessible - strict sequential progression
@@ -527,8 +519,7 @@ export default function AllStarTeams() {
         <div className="flex-1 overflow-auto p-6">
           <ContentViews
             currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
+            markStepCompleted={markNavStepCompleted}
             setCurrentContent={setCurrentContent}
             starCard={starCard}
             user={user}
