@@ -150,15 +150,16 @@ export function useNavigationProgress() {
   useEffect(() => {
     console.log('🔄 STATIC progress initialization - using fixed state');
     
-    // Use a fixed, known-good state to stop the reset loop
-    const fixedProgress = {
-      completedSteps: ['1-1'],
-      currentStepId: '2-1',
+    // Use a clean initial state with no progress
+    const cleanProgress = {
+      completedSteps: [],
+      currentStepId: '1-1',
       appType: 'ast' as const,
       lastVisitedAt: new Date().toISOString(),
-      unlockedSections: ['1', '2'],
+      unlockedSections: ['1'],
+      unlockedSteps: ['1-1'],
       videoProgress: {
-        '1-1': 80,
+        '1-1': 0,
         '2-1': 0,
         '2-3': 0,
         '3-1': 0,
@@ -177,13 +178,14 @@ export function useNavigationProgress() {
       }
     };
     
-    console.log('✅ Setting fixed progress state to stop reset loop');
-    setProgress(fixedProgress);
+    console.log('✅ Setting clean progress state');
+    setProgress(cleanProgress);
     
-    // Initialize global video progress
-    if (!(window as any).currentVideoProgress) {
-      (window as any).currentVideoProgress = fixedProgress.videoProgress;
-    }
+    // Clear any existing global video progress and initialize with clean state
+    (window as any).currentVideoProgress = cleanProgress.videoProgress;
+    
+    // Clear localStorage to prevent cached data issues
+    localStorage.removeItem('navigationProgress');
   }, []);
 
   // Save progress to both local storage and database whenever it changes
