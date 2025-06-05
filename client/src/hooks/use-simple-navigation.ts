@@ -54,24 +54,75 @@ export function useSimpleNavigation() {
     loadProgress();
   }, []);
 
-  // Update video progress without triggering resets
+  // Update video progress with dual-threshold system (5% for Next button, 90% for completion)
   const updateVideoProgress = (stepId: string, percentage: number) => {
-    console.log(`🎬 Video progress: ${stepId} = ${percentage}%`);
+    console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${percentage}%`);
     
-    const newProgress = {
-      ...progress,
-      videoProgress: {
-        ...progress.videoProgress,
-        [stepId]: percentage
-      },
-      lastVisitedAt: new Date().toISOString()
-    };
+    // Store in global state for immediate validation access
+    if (!(window as any).currentVideoProgress) {
+      (window as any).currentVideoProgress = {};
+    }
+    (window as any).currentVideoProgress[stepId] = percentage;
+    console.log(`  ✅ Stored in global state`);
     
-    setProgress(newProgress);
+    setProgress(prev => {
+      const newProgress = {
+        ...prev,
+        videoProgress: {
+          ...prev.videoProgress,
+          [stepId]: Math.max(percentage, prev.videoProgress[stepId] || 0) // Always maintain highest progress
+        },
+        lastVisitedAt: new Date().toISOString()
+      };
 
-    // Save to database for any video progress - immediate call
-    console.log(`🔄 About to save video progress: ${stepId} = ${percentage}%`);
-    saveProgressToDatabase(stepId, percentage);
+      // Check thresholds for dual-threshold system
+      console.log(`📊 Thresholds for ${stepId}: Next=5%, Complete=90%`);
+      
+      // Auto-complete step when it reaches 90% threshold
+      if (!prev.completedSteps.includes(stepId) && percentage >= 90) {
+        console.log(`✅ Auto-completing video step ${stepId} at ${percentage}% (>= 90%)`);
+        newProgress.completedSteps = [...prev.completedSteps, stepId];
+        
+        // Update unlocked steps based on 5% threshold for next button access
+        const updateUnlockedSteps = (completedSteps: string[], videoProgress: { [stepId: string]: number }): string[] => {
+          const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+          const unlocked = ['1-1']; // First step always unlocked
+          
+          for (let i = 0; i < allSteps.length - 1; i++) {
+            const currentStep = allSteps[i];
+            const nextStep = allSteps[i + 1];
+            
+            let canUnlockNext = false;
+            
+            // For video steps, check 5% threshold
+            if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(currentStep)) {
+              const currentVideoProgress = videoProgress[currentStep] || 0;
+              canUnlockNext = currentVideoProgress >= 5; // 5% threshold
+              
+              console.log(`📹 Step ${currentStep}: ${currentVideoProgress}% (need 5% to unlock ${nextStep}) - ${canUnlockNext ? 'UNLOCKED' : 'LOCKED'}`);
+            } 
+            // For assessment steps, check if completed
+            else if (completedSteps.includes(currentStep)) {
+              canUnlockNext = true;
+              console.log(`📝 Step ${currentStep}: Completed - UNLOCKS ${nextStep}`);
+            }
+            
+            if (canUnlockNext && !unlocked.includes(nextStep)) {
+              unlocked.push(nextStep);
+            }
+          }
+          
+          return unlocked;
+        };
+        
+        newProgress.unlockedSteps = updateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
+      }
+      
+      // Save to database with corrected progress data
+      saveProgressToDatabase(stepId, percentage, newProgress);
+      
+      return newProgress;
+    });
   };
 
   // Save progress to database
@@ -165,6 +216,44 @@ export function useSimpleNavigation() {
     return progress.videoProgress[stepId] || 0;
   };
 
+  // Helper: Check if step can proceed to next (5% threshold for videos)
+  const canProceedToNext = (stepId: string): boolean => {
+    if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
+      const videoProgress = progress.videoProgress[stepId] || 0;
+      const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+      const currentProgress = Math.max(videoProgress, globalProgress);
+      return currentProgress >= 5; // 5% threshold for Next button
+    }
+    return progress.completedSteps.includes(stepId);
+  };
+
+  // Helper: Check if step should show green checkmark (90% for videos)
+  const shouldShowGreenCheckmark = (stepId: string): boolean => {
+    if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
+      const videoProgress = progress.videoProgress[stepId] || 0;
+      const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+      const currentProgress = Math.max(videoProgress, globalProgress);
+      const isComplete = currentProgress >= 90; // 90% threshold for green checkmark
+      
+      console.log(`🏆 Green Checkmark Check for ${stepId}:`);
+      console.log(`  📊 Progress: ${currentProgress}%`);
+      console.log(`  🎯 Completion Threshold: 90%`);
+      console.log(`  ${isComplete ? '✅ SHOW GREEN CHECKMARK' : '⏳ NO CHECKMARK YET'}`);
+      
+      return isComplete;
+    }
+    
+    // Non-video steps: show checkmark when completed
+    return progress.completedSteps.includes(stepId);
+  };
+
+  // Helper: Get current video progress
+  const getCurrentVideoProgress = (stepId: string): number => {
+    const videoProgress = progress.videoProgress[stepId] || 0;
+    const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+    return Math.max(videoProgress, globalProgress);
+  };
+
   return {
     progress,
     updateVideoProgress,
@@ -172,6 +261,10 @@ export function useSimpleNavigation() {
     isStepUnlocked,
     isStepCompleted,
     getVideoProgress,
-    saveProgressToDatabase
+    saveProgressToDatabase,
+    // New dual-threshold functions
+    canProceedToNext,           // For Next button validation (5% threshold)
+    shouldShowGreenCheckmark,   // For menu green checkmarks (90% threshold)
+    getCurrentVideoProgress     // Helper for getting current video progress
   };
 }
