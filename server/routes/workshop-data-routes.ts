@@ -356,11 +356,19 @@ workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response
 
 // Complete assessment
 workshopDataRouter.post('/assessment/complete', async (req: Request, res: Response) => {
+  console.log('=== ASSESSMENT COMPLETION START ===');
+  console.log('Request body:', JSON.stringify(req.body, null, 2));
+  console.log('Session data:', req.session);
+  console.log('Cookies:', req.cookies);
+  
   try {
     // Get user ID from session (primary) or cookie (fallback) for better reliability
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
+    console.log('Initial userId determination:', userId);
+    
     if (!userId) {
+      console.log('ERROR: No user ID found in session or cookies');
       return res.status(401).json({
         success: false,
         message: 'Not authenticated'
