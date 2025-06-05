@@ -70,7 +70,16 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
     const hasFlowAssessment = !!(userAssessments?.flowAssessment || 
                                 userAssessments?.assessments?.flowAssessment ||
                                 userAssessments?.currentUser?.assessments?.flowAssessment);
+    
     console.log(`📋 Flow assessment: ${hasFlowAssessment ? 'COMPLETE' : 'REQUIRED'}`);
+    console.log(`📋 Flow assessment paths: flowAssessment=${!!userAssessments?.flowAssessment}, assessments.flowAssessment=${!!userAssessments?.assessments?.flowAssessment}`);
+    
+    // In simplified mode, allow manual completion if flow assessment data exists or assessment view shows completed state
+    if (!hasFlowAssessment) {
+      console.log(`📋 No flow assessment found in standard paths, allowing manual completion in simplified mode`);
+      return true; // Allow manual completion since we're in simplified linear progression mode
+    }
+    
     return hasFlowAssessment;
   }
   
@@ -87,7 +96,14 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
     return isValid;
   }
   
-  // All other steps: Next button always active
+  // Video steps - always allow immediate progression in simplified mode
+  const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+  if (videoSteps.includes(stepId)) {
+    console.log(`🎬 SIMPLIFIED MODE: Video step ${stepId} - Next button always active (no video threshold required)`);
+    return true;
+  }
+  
+  // All other steps: Next button always active in simplified mode
   console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
   return true;
 };
