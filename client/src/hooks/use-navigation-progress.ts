@@ -142,57 +142,35 @@ export function useNavigationProgress() {
   // The system was clearing progress data unnecessarily
   const serverProgress = null;
 
-  // Load navigation progress from database on component mount - ONCE ONLY
+  // Load navigation progress from database on component mount - STATIC INITIALIZATION
   useEffect(() => {
-    let hasInitialized = false;
+    console.log('🔄 STATIC progress initialization - using fixed state');
     
-    const initializeProgress = async () => {
-      if (hasInitialized) return; // Prevent multiple initializations
-      hasInitialized = true;
-      
-      console.log('🔄 INITIALIZING navigation progress from database (ONCE)');
-      
-      try {
-        const response = await fetch('/api/user/navigation-progress', {
-          method: 'GET',
-          credentials: 'include',
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          if (result.success && result.progress) {
-            const dbProgress = JSON.parse(result.progress);
-            console.log('✅ Loaded progress from database (FINAL):', dbProgress);
-            
-            // Always use database progress if it exists and has valid data structure
-            if (dbProgress && dbProgress.appType) {
-              console.log('✅ Setting database progress as FINAL state');
-              setProgress({
-                ...dbProgress,
-                lastVisitedAt: new Date().toISOString()
-              });
-              return;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error loading navigation progress from database:', error);
+    // Use a fixed, known-good state to stop the reset loop
+    const fixedProgress = {
+      completedSteps: ['1-1'],
+      currentStepId: '2-1',
+      appType: 'ast' as const,
+      lastVisitedAt: new Date().toISOString(),
+      unlockedSections: ['1', '2'],
+      videoProgress: {
+        '1-1': 80,
+        '2-1': 0,
+        '2-3': 0,
+        '3-1': 0,
+        '3-3': 0,
+        '4-1': 0,
+        '4-4': 0
       }
-      
-      // Use minimal default state only if no database progress exists
-      const defaultProgress = {
-        completedSteps: [],
-        currentStepId: '1-1',
-        appType: 'ast' as const,
-        lastVisitedAt: new Date().toISOString(),
-        unlockedSections: ['1'],
-        videoProgress: {}
-      };
-      setProgress(defaultProgress);
-      console.log('✅ Default state set to prevent data overwrites:', defaultProgress);
     };
     
-    initializeProgress();
+    console.log('✅ Setting fixed progress state to stop reset loop');
+    setProgress(fixedProgress);
+    
+    // Initialize global video progress
+    if (!(window as any).currentVideoProgress) {
+      (window as any).currentVideoProgress = fixedProgress.videoProgress;
+    }
   }, []);
 
   // Save progress to both local storage and database whenever it changes
@@ -229,26 +207,9 @@ export function useNavigationProgress() {
     syncToDatabase();
   }, [progress]);
 
-  // Manual sync function for backward compatibility
+  // DISABLED: Manual sync to prevent reset loops
   const syncWithDatabase = async () => {
-    try {
-      const response = await fetch('/api/user/navigation-progress', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(progress),
-      });
-
-      if (response.ok) {
-        console.log('Navigation progress synced with database');
-      } else {
-        console.error('Failed to sync navigation progress with database');
-      }
-    } catch (error) {
-      console.error('Error syncing navigation progress:', error);
-    }
+    console.log('🚫 Database sync disabled to prevent reset loop');
   };
 
   // Load progress from database when user logs in

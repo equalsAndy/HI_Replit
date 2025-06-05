@@ -1,0 +1,37 @@
+{
+  "userInfo": {
+    "id": 1,
+    "username": "admin",
+    "name": "Admin User",
+    "email": "admin@example.com",
+    "role": "admin",
+    "organization": "",
+    "jobTitle": "",
+    "profilePicture": "data:image/png;base64,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",
+    "isTestUser": true,
+    "createdAt": "2025-05-22T22:40:22.135Z",
+    "updatedAt": "2025-06-05T17:17:59.428Z"
+  },
+  "navigationProgress": {
+    "completedSteps": [
+      "1-1"
+    ],
+    "currentStepId": "2-1",
+    "appType": "ast",
+    "lastVisitedAt": "2025-06-05T17:17:58.820Z",
+    "unlockedSections": [
+      "1",
+      "2"
+    ],
+    "videoProgress": {}
+  },
+  "assessments": {},
+  "workshopParticipation": [],
+  "exportMetadata": {
+    "exportedAt": "2025-06-05T17:18:49.249Z",
+    "exportedBy": "admin",
+    "dataVersion": "2.0",
+    "workshopSteps": "2-1 through 4-5",
+    "totalAssessments": 0
+  }
+}
