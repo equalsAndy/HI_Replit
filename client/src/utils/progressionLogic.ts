@@ -113,10 +113,10 @@ export const isStepCompleted = (
   
   switch (stepId) {
     case '1-1': // Introduction Video
-      return isVideoCompleted(stepId, navigationProgress, 5);
+      return isVideoCompleted(stepId, navigationProgress, 1);
     
     case '2-1': // Intro to Star Strengths
-      return isVideoCompleted(stepId, navigationProgress, 5);
+      return isVideoCompleted(stepId, navigationProgress, 1);
     
     case '2-2': // Star Strengths Self-Assessment
       return isAssessmentCompleted('starCard', userAssessments);

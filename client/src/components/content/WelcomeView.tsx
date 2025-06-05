@@ -23,9 +23,9 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Check if video progress already meets the threshold on component mount
   useEffect(() => {
     const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) {
+    if (currentProgress >= 1) {
       setHasReachedMinimum(true);
-      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
+      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 1%, enabling button`);
     }
   }, [progress?.videoProgress]);
   const title = isImaginalAgility 
@@ -71,8 +71,8 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     console.log(`🎬 WelcomeView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
     
-    // Check if minimum watch requirement is met (5%)
-    if (percentage >= 5 && !hasReachedMinimum) {
+    // Check if minimum watch requirement is met (1%)
+    if (percentage >= 1 && !hasReachedMinimum) {
       console.log(`🎬 WelcomeView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }

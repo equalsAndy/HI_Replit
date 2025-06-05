@@ -412,40 +412,41 @@ export default function AllStarTeams() {
     });
   };
 
-  // Function to determine if a step is accessible
+  // Function to determine if a step is accessible - strict sequential progression
   const isStepAccessible = (sectionId: string, stepId: string) => {
     // Defensive check to ensure completedSteps is an array
     if (!Array.isArray(completedSteps)) {
       console.error("completedSteps is not an array in isStepAccessible:", completedSteps);
-      return sectionId === '1' && stepId === '1-1'; // Only allow first step if completedSteps is invalid
+      return stepId === '1-1'; // Only allow Introduction video if completedSteps is invalid
     }
 
-    const sectionIndex = parseInt(sectionId) - 1;
-    const stepIndex = parseInt(stepId.split('-')[1]) - 1;
+    // Original requirement: Only Introduction Video (1-1) is active initially
+    if (stepId === '1-1') return true;
 
-    // If it's the first step of the first section, it's always accessible
-    if (sectionIndex === 0 && stepIndex === 0) return true;
-
-    // If it's the Intro to Flow step (3-1), check if reflection step (2-4) is completed
-    if (sectionId === '3' && stepId === '3-1') {
-      // Make it accessible if either the previous section is complete
-      // or if we've specifically completed the reflection step
-      return completedSteps.includes('2-4') || completedSteps.includes('2-3');
+    // Sequential step progression as per original requirements
+    const allSteps = [
+      '1-1', '2-1', '2-2', '2-3', '2-4', 
+      '3-1', '3-2', '3-3', '3-4',
+      '4-1', '4-2', '4-3', '4-4', '4-5'
+    ];
+    
+    const stepPosition = allSteps.indexOf(stepId);
+    if (stepPosition === -1) {
+      // Resource sections (5-x, 6-x) unlock after Final Reflection (4-5)
+      if (sectionId === '5' || sectionId === '6') {
+        return completedSteps.includes('4-5');
+      }
+      return false;
     }
-
-    // For the first step of other sections, check if all steps in previous section are completed
-    if (stepIndex === 0 && sectionIndex > 0) {
-      const prevSection = activeNavigationSections[sectionIndex - 1];
-      if (!prevSection || !prevSection.steps) {
-        console.error("Previous section or steps not found:", { sectionIndex, activeNavigationSections });
+    
+    // A step is accessible only if all previous steps are completed
+    for (let i = 0; i < stepPosition; i++) {
+      if (!completedSteps.includes(allSteps[i])) {
         return false;
       }
-      return prevSection.steps.every(step => completedSteps.includes(step.id));
     }
-
-    // For other steps, check if the previous step in the same section is completed
-    const prevStepId = `${sectionId}-${stepIndex}`;
-    return completedSteps.includes(prevStepId);
+    
+    return true;
   };
 
   // Handle assessment completion

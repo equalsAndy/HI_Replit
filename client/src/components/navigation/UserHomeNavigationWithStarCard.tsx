@@ -245,10 +245,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       <>
                         <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
                         
-                        {/* Progress indicator for sections other than More Information (section 5) */}
-                        {section.id !== '5' && (
+                        {/* Dynamic progress indicator based on completed steps */}
+                        {section.id !== '5' && section.id !== '6' && (
                           <span className="ml-auto text-xs text-gray-500">
-                            {section.completedSteps}/{section.totalSteps}
+                            {getSectionProgress(section.id, effectiveCompletedSteps).display}
                           </span>
                         )}
                       </>
