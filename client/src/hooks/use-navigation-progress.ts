@@ -467,7 +467,8 @@ export function useNavigationProgress() {
     
     // Video steps require completion based on step-specific thresholds
     if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId)) {
-      const videoProgress = progress.videoProgress[stepId] || 0;
+      // Get current video progress from latest state
+      const currentProgress = progress.videoProgress[stepId] || 0;
       
       // Different completion thresholds for different video steps
       let requiredProgress = 1; // Default 1% for most videos
@@ -477,10 +478,10 @@ export function useNavigationProgress() {
         requiredProgress = 85; // 85% for main content videos to ensure they're actually watched
       }
       
-      if (videoProgress < requiredProgress) {
-        return { isComplete: false, reason: `Video must be watched to at least ${requiredProgress}% (${videoProgress.toFixed(2)}% watched)` };
+      if (currentProgress < requiredProgress) {
+        return { isComplete: false, reason: `Video must be watched to at least ${requiredProgress}% (${currentProgress.toFixed(2)}% watched)` };
       }
-      console.log(`✅ Video step ${stepId} verified complete: ${videoProgress.toFixed(2)}% >= ${requiredProgress}%`);
+      console.log(`✅ Video step ${stepId} verified complete: ${currentProgress.toFixed(2)}% >= ${requiredProgress}%`);
       return { isComplete: true };
     }
     
