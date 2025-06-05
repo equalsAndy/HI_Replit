@@ -345,13 +345,24 @@ export function useNavigationProgress() {
     const unlockedSections = getUnlockedSections(actuallyCompleted);
     const nextStepId = getNextStepId(actuallyCompleted);
 
+    // Initialize video progress for all video steps if not present
+    const allVideoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+    const initializedVideoProgress = { ...(progress?.videoProgress || {}) };
+    
+    // Ensure all video steps have progress tracking initialized
+    allVideoSteps.forEach(stepId => {
+      if (!(stepId in initializedVideoProgress)) {
+        initializedVideoProgress[stepId] = 0;
+      }
+    });
+
     return {
       completedSteps: actuallyCompleted,
       currentStepId: nextStepId || '1-1',
       appType: 'ast' as const,
       lastVisitedAt: new Date().toISOString(),
       unlockedSections,
-      videoProgress: progress?.videoProgress || {}
+      videoProgress: initializedVideoProgress
     };
   };
 

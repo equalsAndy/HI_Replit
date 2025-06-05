@@ -66,9 +66,9 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
     const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
     
-    // Apply correction to stored progress values too
-    const correctedVideoProgress = videoProgress > 0 && videoProgress <= 1 ? videoProgress * 100 : videoProgress;
-    const correctedGlobalProgress = globalProgress > 0 && globalProgress <= 1 ? globalProgress * 100 : globalProgress;
+    // Fix: 0.8 means 80%, not 0.8% - only apply correction if value is very small (actual decimal)
+    const correctedVideoProgress = videoProgress > 0 && videoProgress < 0.01 ? videoProgress * 100 : videoProgress;
+    const correctedGlobalProgress = globalProgress > 0 && globalProgress < 0.01 ? globalProgress * 100 : globalProgress;
     
     const currentProgress = Math.max(correctedVideoProgress, correctedGlobalProgress);
     const isComplete = currentProgress >= 5; // 5% threshold for Next button
