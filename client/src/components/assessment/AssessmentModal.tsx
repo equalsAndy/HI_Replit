@@ -533,7 +533,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       }));
 
       // Send to server
-      const response = await fetch('/api/assessment/complete', {
+      const response = await fetch('/api/workshop-data/assessment/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
