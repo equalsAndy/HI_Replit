@@ -181,57 +181,91 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
   // Complete the assessment
   const completeAssessment = async () => {
+    console.log('=== CLIENT ASSESSMENT COMPLETION START ===');
+    console.log('Current answers:', answers);
+    console.log('Current question index:', currentQuestionIndex);
+    console.log('Total questions:', assessmentQuestions.length);
+    
     setIsSubmitting(true);
 
     try {
       // Calculate final results
+      console.log('Calculating quadrant scores...');
       const results = getQuadrantScores();
+      console.log('Calculated results:', results);
+
+      // Validate results
+      if (!results || typeof results !== 'object') {
+        throw new Error('Invalid results calculated: ' + JSON.stringify(results));
+      }
 
       // Format answer data for server
+      console.log('Formatting answers for server...');
       const formattedAnswers = Object.entries(answers).map(([questionId, rankings]) => ({
         questionId: parseInt(questionId),
         rankings
       }));
+      console.log('Formatted answers:', formattedAnswers);
+
+      const requestBody = {
+        quadrantData: results,
+        answers: formattedAnswers
+      };
+      console.log('Request body to send:', JSON.stringify(requestBody, null, 2));
 
       // Save to server
+      console.log('Making API request to /api/workshop-data/assessment/complete...');
       const response = await fetch('/api/workshop-data/assessment/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({
-          quadrantData: results,
-          answers: formattedAnswers
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
       if (!response.ok) {
-        throw new Error('Failed to complete assessment');
+        const errorText = await response.text();
+        console.error('Server response error:', errorText);
+        throw new Error(`Failed to complete assessment: ${response.status} ${errorText}`);
       }
 
       const data = await response.json();
+      console.log('Server response data:', data);
 
       // Invalidate star card query to refresh data
+      console.log('Invalidating star card queries...');
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
 
       // Show toast notification
+      console.log('Showing success toast...');
       toast({
         title: "Assessment Complete!",
         description: "Your Star Card has been created!",
       });
 
       // Set results and close modal immediately to show results in content view
+      console.log('Setting assessment results and closing modal...');
       setAssessmentResults(results);
       onClose();
 
       // Call onComplete callback if provided
       if (onComplete) {
+        console.log('Calling onComplete callback...');
         onComplete({
           quadrantData: results,
           showResultsInContentView: true
         });
       }
+
+      console.log('=== CLIENT ASSESSMENT COMPLETION SUCCESS ===');
     } catch (error) {
-      console.error('Error completing assessment:', error);
+      console.error('=== CLIENT ASSESSMENT COMPLETION ERROR ===');
+      console.error('Error details:', error);
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+      
       toast({
         title: "Error completing assessment",
         description: "Please try again later.",
@@ -239,6 +273,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       });
     } finally {
       setIsSubmitting(false);
+      console.log('Assessment completion attempt finished');
     }
   };
 
