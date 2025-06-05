@@ -25,6 +25,7 @@ import {
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { getSectionProgress, SECTION_STEPS } from '@/utils/progressionLogic';
 
 interface UserHomeNavigationProps {
   drawerOpen: boolean;
@@ -61,6 +62,55 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
+
+  // Calculate section progress based on completed steps
+  const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
+    const sectionSteps: { [key: string]: string[] } = {
+      '1': ['1-1'],                              // Introduction (1/1)
+      '2': ['2-1', '2-2', '2-3', '2-4'],        // Star Strengths (4/4)
+      '3': ['3-1', '3-2', '3-3', '3-4'],        // Flow (4/4)
+      '4': ['4-1', '4-2', '4-3', '4-4', '4-5']  // Potential (5/5)
+    };
+    
+    const steps = sectionSteps[sectionId] || [];
+    const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
+    const completedInSection = steps.filter(stepId => safeCompletedSteps.includes(stepId)).length;
+    
+    return {
+      completed: completedInSection,
+      total: steps.length,
+      display: `${completedInSection}/${steps.length}`,
+      isComplete: completedInSection === steps.length
+    };
+  };
+
+  // Sequential step accessibility check - strict progression as per original requirements
+  const isStepAccessibleSequential = (stepId: string, completedSteps: string[]) => {
+    // Only Introduction Video (1-1) is active initially
+    if (stepId === '1-1') return true;
+
+    // Sequential step progression
+    const allSteps = [
+      '1-1', '2-1', '2-2', '2-3', '2-4', 
+      '3-1', '3-2', '3-3', '3-4',
+      '4-1', '4-2', '4-3', '4-4', '4-5'
+    ];
+    
+    const stepPosition = allSteps.indexOf(stepId);
+    if (stepPosition === -1) {
+      // Resource sections unlock after Final Reflection (4-5)
+      return completedSteps.includes('4-5');
+    }
+    
+    // A step is accessible only if all previous steps are completed
+    for (let i = 0; i < stepPosition; i++) {
+      if (!completedSteps.includes(allSteps[i])) {
+        return false;
+      }
+    }
+    
+    return true;
+  };
   
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
@@ -248,7 +298,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                         {/* Dynamic progress indicator based on completed steps */}
                         {section.id !== '5' && section.id !== '6' && (
                           <span className="ml-auto text-xs text-gray-500">
-                            {getSectionProgress(section.id, effectiveCompletedSteps).display}
+                            {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
                           </span>
                         )}
                       </>
@@ -270,7 +320,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
                       
-                      // Check step accessibility normally
+                      // Check step accessibility using sequential progression logic
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
                       
                       return (
