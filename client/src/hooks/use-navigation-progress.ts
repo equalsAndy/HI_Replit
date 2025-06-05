@@ -12,6 +12,14 @@ import {
 } from '@/utils/progressionLogic';
 import { detectSuspiciousProgress, clearSuspiciousLocalStorage } from '../utils/progressValidation';
 
+// FEATURE FLAG SYSTEM - Easy toggle for restoration
+const PROGRESSION_MODE = {
+  SIMPLIFIED: 'simplified',
+  COMPLEX: 'complex'
+} as const;
+
+const CURRENT_PROGRESSION_MODE = 'simplified' as const;
+
 interface NavigationProgress {
   completedSteps: string[];
   currentStepId: string;
@@ -287,6 +295,57 @@ export function useNavigationProgress() {
     assessmentType,
     results: JSON.stringify(userAssessments[assessmentType])
   }));
+
+  // Mode-aware validation
+  const validateStepCompletionNew = (stepId: string): { isComplete: boolean; reason?: string } => {
+    if (CURRENT_PROGRESSION_MODE === 'simplified') {
+      return validateStepCompletionSimplified(stepId);
+    } else {
+      return { isComplete: true }; // Complex mode disabled for now
+    }
+  };
+
+  // SIMPLIFIED MODE: Only validate non-video requirements
+  const validateStepCompletionSimplified = (stepId: string): { isComplete: boolean; reason?: string } => {
+    console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+    
+    // Assessment steps - still require completion
+    if (stepId === '2-2') {
+      const isValid = !!userAssessments?.starCard;
+      console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+      return { isComplete: isValid, reason: isValid ? undefined : 'Star Card assessment required' };
+    }
+    
+    if (stepId === '3-2') {
+      const isValid = !!userAssessments?.flowAssessment;
+      console.log(`📋 Flow assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+      return { isComplete: isValid, reason: isValid ? undefined : 'Flow assessment required' };
+    }
+    
+    // Mixed requirement steps - only validate activity parts (not video)
+    if (stepId === '4-1') {
+      const isValid = checkCantrilLadderSubmission(stepId); // Sliders only, not video
+      console.log(`🎚️ Cantril Ladder activity: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+      return { isComplete: isValid, reason: isValid ? undefined : 'Cantril Ladder activity required' };
+    }
+    
+    // Add other mixed-requirement validations as needed
+    if (stepId === '4-2') {
+      const isValid = !!userAssessments?.cantrilLadderReflection;
+      console.log(`📝 Well-being reflection: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+      return { isComplete: isValid, reason: isValid ? undefined : 'Well-being reflection required' };
+    }
+    
+    // All other steps: Next button always active
+    console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
+    return { isComplete: true };
+  };
+
+  // Helper for Cantril Ladder validation
+  const checkCantrilLadderSubmission = (stepId: string): boolean => {
+    // Check if sliders completed and "I'm Done" button clicked
+    return !!userAssessments?.cantrilLadder;
+  };
 
   // Check if a step is completed using progression logic
   const checkStepCompletion = (stepId: string): boolean => {
