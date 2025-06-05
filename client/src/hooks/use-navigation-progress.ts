@@ -153,65 +153,13 @@ export function useNavigationProgress() {
     refetchIntervalInBackground: true
   });
 
-  // Enhanced reset detection - detects when server progress becomes null
+  // Temporarily disable reset detection to prevent progress loss
+  // This was causing a loop where progress was being reset continuously
   useEffect(() => {
     if (serverProgress !== undefined) {
-      const currentProgress = serverProgress;
-      const lastKnownProgress = lastKnownProgressRef.current;
-      
-      // Check if we've transitioned from having progress to null (reset scenario)
-      const hasBeenReset = (
-        lastKnownProgress !== null && 
-        currentProgress === null
-      ) || (
-        lastKnownProgress && 
-        lastKnownProgress.completedSteps && 
-        lastKnownProgress.completedSteps.length > 0 && 
-        currentProgress === null
-      );
-      
-      // Also check if local storage has progress but server doesn't (another reset indicator)
-      const localProgress = localStorage.getItem('navigationProgress');
-      const hasLocalProgress = localProgress && JSON.parse(localProgress).completedSteps?.length > 0;
-      const hasServerProgress = currentProgress && currentProgress.completedSteps?.length > 0;
-      
-      if (hasBeenReset || (hasLocalProgress && !hasServerProgress)) {
-        console.log('🚨 USER RESET DETECTED - clearing all caches');
-        console.log('Reset reason:', hasBeenReset ? 'Server progress became null' : 'Local progress exists but server has none');
-        
-        // Clear localStorage immediately
-        clearWorkshopLocalStorage();
-        
-        // Invalidate all workshop-related queries
-        invalidateWorkshopQueries(queryClient);
-        
-        // Reset local progress state immediately
-        const resetData = {
-          completedSteps: [],
-          currentStepId: '',
-          appType: null,
-          lastVisitedAt: new Date().toISOString(),
-          unlockedSections: ['1'],
-          videoProgress: {}
-        };
-        setProgress(resetData);
-        
-        // Force a page reload to ensure all components see the reset
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-        
-        // Notify user
-        toast({
-          title: "Workshop Reset",
-          description: "Your progress has been reset. The page will refresh to show changes.",
-          variant: "default"
-        });
-      }
-      
-      lastKnownProgressRef.current = currentProgress;
+      lastKnownProgressRef.current = serverProgress;
     }
-  }, [serverProgress, toast, queryClient]);
+  }, [serverProgress]);
 
   // Load navigation progress from database on component mount
   useEffect(() => {
@@ -245,10 +193,17 @@ export function useNavigationProgress() {
         console.error('Error loading navigation progress from database:', error);
       }
       
-      // Calculate initial state based on existing user data
-      const initialProgress = recalculateProgressFromData();
-      setProgress(initialProgress);
-      console.log('✅ Initial state calculated from user data:', initialProgress);
+      // Don't recalculate - use minimal default state to prevent data loss
+      const defaultProgress = {
+        completedSteps: [],
+        currentStepId: '1-1',
+        appType: 'ast' as const,
+        lastVisitedAt: new Date().toISOString(),
+        unlockedSections: ['1'],
+        videoProgress: {}
+      };
+      setProgress(defaultProgress);
+      console.log('✅ Default state set to prevent data overwrites:', defaultProgress);
     };
     
     initializeProgress();
