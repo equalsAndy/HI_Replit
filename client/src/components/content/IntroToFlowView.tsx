@@ -14,29 +14,17 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "3-1";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
 
-  // Check if video progress already meets the 5% threshold on component mount
-  useEffect(() => {
-    const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) {
-      setHasReachedMinimum(true);
-      console.log(`🎬 IntroToFlowView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
-    }
-  }, [progress?.videoProgress]);
+  // SIMPLIFIED MODE: Next button always active for video steps
+  const hasReachedMinimum = true; // Always true in simplified linear progression
   
-  // Handle video progress updates with dual-threshold system
+  // Handle video progress updates (for tracking only, not for unlocking)
   const handleVideoProgress = (percentage: number) => {
     console.log(`🎬 IntroToFlowView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
-    
-    // Check if minimum watch requirement is met (5%)
-    if (percentage >= 5 && !hasReachedMinimum) {
-      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
-      setHasReachedMinimum(true);
-    }
+    console.log(`🎬 SIMPLIFIED MODE: Video progress tracked but Next button already active`);
   };
 
   return (

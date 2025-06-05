@@ -104,6 +104,23 @@ export default function AllStarTeams() {
   // Navigation progress is now automatically persisted to database
   // No need for localStorage-based saving
 
+  // Auto-navigate to current step on page load
+  React.useEffect(() => {
+    if (progress?.currentStepId && progress?.completedSteps) {
+      const currentStepId = progress.currentStepId;
+      console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
+      
+      // Map step ID to content key and navigate there
+      const navInfo = navigationSequence[currentStepId];
+      if (navInfo) {
+        console.log(`🧭 AUTO-NAVIGATION: Navigating to content: ${navInfo.contentKey}`);
+        setCurrentContent(navInfo.contentKey);
+      } else {
+        console.log(`🧭 AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on current content`);
+      }
+    }
+  }, [progress?.currentStepId, progress?.completedSteps]);
+
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: 30000,

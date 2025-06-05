@@ -18,29 +18,17 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-3";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
 
-  // Check if video progress already meets the 5% threshold on component mount
-  useEffect(() => {
-    const currentProgress = progress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) {
-      setHasReachedMinimum(true);
-      console.log(`🎬 StarCardPreviewView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
-    }
-  }, [progress?.videoProgress]);
+  // SIMPLIFIED MODE: Next button always active for video steps
+  const hasReachedMinimum = true; // Always true in simplified linear progression
 
-  // Handle video progress updates with dual-threshold system
+  // Handle video progress updates (for tracking only, not for unlocking)
   const handleVideoProgress = (percentage: number) => {
     console.log(`🎬 StarCardPreviewView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
-    
-    // Check if minimum watch requirement is met (5%)
-    if (percentage >= 5 && !hasReachedMinimum) {
-      console.log(`🎬 StarCardPreviewView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
-      setHasReachedMinimum(true);
-    }
+    console.log(`🎬 SIMPLIFIED MODE: Video progress tracked but Next button already active`);
   };
 
   // Handle completion and progression
