@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
-import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -16,7 +16,7 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-1";
-  const { updateVideoProgress, progress, canProceedToNext } = useSimpleNavigation();
+  const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
 
   // Check if video progress already meets the NEW 5% threshold on component mount
   useEffect(() => {

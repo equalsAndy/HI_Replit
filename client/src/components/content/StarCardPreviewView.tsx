@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
-import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -20,7 +20,7 @@ const StarCardPreviewView: React.FC<ContentViewProps> = ({
 }) => {
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   const stepId = "2-3";
-  const { updateVideoProgress, progress, canProceedToNext } = useSimpleNavigation();
+  const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
 
   // Check if video progress already meets the 5% threshold on component mount
   useEffect(() => {
