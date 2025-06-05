@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-// Simplified navigation system - removed ContentViewProps import
-import { useNavigationProgressSimplified } from '@/hooks/use-navigation-progress-simplified';
+import { useNavigationProgressClean } from '@/hooks/use-navigation-progress-clean';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps {
@@ -24,21 +23,18 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Get navigation progress using the correct hook
+  // Get navigation progress using the clean hook
   const { 
     progress: navigationProgress, 
     updateVideoProgress,
-    canProceedToNext
-  } = useNavigationProgressSimplified();
+    validateStepCompletion
+  } = useNavigationProgressClean();
 
-  // Check if video progress already meets the 5% threshold on component mount
+  // Simplified mode: Next button always active for video steps
   useEffect(() => {
-    const currentProgress = navigationProgress?.videoProgress?.[stepId] || 0;
-    if (currentProgress >= 5) {
-      setHasReachedMinimum(true);
-      console.log(`🎬 WelcomeView: Found existing progress ${currentProgress.toFixed(2)}% >= 5%, enabling button`);
-    }
-  }, [navigationProgress?.videoProgress, stepId]);
+    setHasReachedMinimum(true);
+    console.log(`🎬 SIMPLIFIED MODE: Next button always active for video step ${stepId}`);
+  }, [stepId]);
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
     : "Welcome to AllStarTeams Workshop";
@@ -84,9 +80,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     return 0; // Start from beginning
   };
 
-  // Check if step meets completion criteria using dual-threshold system
+  // Simplified linear progression: Next button always active for video steps
   const isStepComplete = (): boolean => {
-    return canProceedToNext(stepId);
+    console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+    console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
+    return true;
   };
   
   // Handle video progress updates
