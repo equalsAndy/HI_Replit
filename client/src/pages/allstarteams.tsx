@@ -44,11 +44,9 @@ export default function AllStarTeams() {
   // Set app to AllStarTeams on component mount (authentication handled by useAuth hook elsewhere)
   useEffect(() => {
     setCurrentApp('allstarteams');
-    // Load navigation progress from database without authentication redirect
-    loadFromDatabase().catch(error => {
-      console.error('Failed to load navigation progress:', error);
-    });
-  }, [setCurrentApp, loadFromDatabase]);
+    // Simple navigation hook handles loading automatically
+    console.log('App initialized with simple navigation');
+  }, [setCurrentApp]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
@@ -73,91 +71,8 @@ export default function AllStarTeams() {
     }
   }, []);
 
-  // Comprehensive reset detection with immediate cache clearing
-  useEffect(() => {
-    const checkForResetAndClearCache = async () => {
-      try {
-        // Check server navigation progress
-        const navResponse = await fetch('/api/user/navigation-progress', { credentials: 'include' });
-        if (navResponse.ok) {
-          const navResult = await navResponse.json();
-          const serverProgress = navResult.success && navResult.navigationProgress 
-            ? JSON.parse(navResult.navigationProgress) 
-            : null;
-          
-          // Check local storage for cached progress
-          const localProgress = localStorage.getItem('navigationProgress');
-          const localCompletedSteps = localProgress ? JSON.parse(localProgress).completedSteps : [];
-          
-          // If local has progress but server doesn't, clear everything
-          const hasLocalProgress = localCompletedSteps && localCompletedSteps.length > 0;
-          const hasServerProgress = serverProgress && serverProgress.completedSteps && serverProgress.completedSteps.length > 0;
-          
-          if (hasLocalProgress && !hasServerProgress) {
-            console.log('🚨 RESET DETECTED - Server progress is null but local cache has data. Clearing everything.');
-            
-            // Clear all workshop-related localStorage
-            const keysToRemove = [
-              'navigationProgress',
-              'allstarteams-navigation-progress',
-              'imaginal-agility-navigation-progress',
-              'allstar_navigation_progress',
-              'allstarteams_starCard',
-              'allstarteams_flowAttributes',
-              'allstarteams_progress',
-              'allstarteams_completedActivities',
-              'starCardData',
-              'workshop_progress',
-              'currentContent',
-              'completedSteps'
-            ];
-            
-            keysToRemove.forEach(key => {
-              localStorage.removeItem(key);
-            });
-            
-            // Clear any workshop-related keys
-            Object.keys(localStorage).forEach(key => {
-              if (key.includes('workshop') || key.includes('ast') || key.includes('assessment') || 
-                  key.includes('starcard') || key.includes('flow') || key.includes('allstarteams')) {
-                localStorage.removeItem(key);
-              }
-            });
-            
-            // Invalidate all React Query caches
-            queryClient.invalidateQueries();
-            queryClient.clear();
-            
-            // Reset local state
-            setCurrentContent("welcome");
-            
-            // Reset navigation progress
-            if (resetProgress) {
-              resetProgress();
-            }
-            
-            // Force page reload to ensure clean state
-            setTimeout(() => {
-              window.location.reload();
-            }, 500);
-            
-            toast({
-              title: "Workshop Reset",
-              description: "Your progress has been reset. The page will refresh to show changes.",
-              variant: "default"
-            });
-            
-            return; // Don't continue with other checks
-          }
-        }
-      } catch (error) {
-        console.error('Error checking for reset:', error);
-      }
-    };
-    
-    // Run reset check immediately when component mounts
-    checkForResetAndClearCache();
-  }, []); // Empty dependency array to run only once on mount
+  // Reset detection DISABLED - was causing continuous auto-reset loops
+  // This prevents video progress from being captured and stored properly
 
   // Add user session tracking to refresh data when user changes
   useEffect(() => {
