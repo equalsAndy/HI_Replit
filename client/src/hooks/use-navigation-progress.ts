@@ -230,9 +230,26 @@ export function useNavigationProgress() {
     syncToDatabase();
   }, [progress]);
 
-  // DISABLED: Manual sync to prevent reset loops
+  // Selective sync to prevent reset loops while maintaining video progress persistence
   const syncWithDatabase = async () => {
-    console.log('🚫 Database sync disabled to prevent reset loop');
+    try {
+      const response = await fetch('/api/user/navigation-progress', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(progress)
+      });
+      
+      if (response.ok) {
+        console.log('✅ Navigation progress synced to database');
+      } else {
+        console.error('❌ Failed to sync navigation progress to database');
+      }
+    } catch (error) {
+      console.error('❌ Error syncing navigation progress:', error);
+    }
   };
 
   // Load progress from database when user logs in
@@ -857,6 +874,15 @@ export function useNavigationProgress() {
     updateVideoProgress(stepId, position, true);
   };
 
+  // Helper function for checking if step is completed
+  const isStepCompleted = (stepId: string) => progress.completedSteps.includes(stepId);
+  
+  // Helper function for getting video progress
+  const getVideoProgress = (stepId: string) => getCurrentVideoProgress(stepId);
+  
+  // Helper function for saving progress to database
+  const saveProgressToDatabase = () => syncWithDatabase();
+
   return {
     progress,
     markStepCompleted,
@@ -867,6 +893,10 @@ export function useNavigationProgress() {
     updateVideoProgress,
     isStepUnlocked,
     getNextUnlockedSection,
+    // Required by allstarteams.tsx
+    isStepCompleted,
+    getVideoProgress,
+    saveProgressToDatabase,
     // New progression logic functions
     checkStepCompletion,
     recalculateProgress,
