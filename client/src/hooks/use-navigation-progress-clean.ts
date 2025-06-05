@@ -38,18 +38,26 @@ const useUserAssessments = () => {
 // SIMPLIFIED MODE: Only validate non-video requirements
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+  console.log(`📊 UserAssessments structure:`, userAssessments);
   
   // Assessment steps - still require completion
   if (stepId === '2-2') {
-    const isValid = !!userAssessments?.starCard;
-    console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
-    return isValid;
+    // Check for starCard in multiple possible locations in the data structure
+    const hasStarCard = !!(userAssessments?.starCard || 
+                           userAssessments?.assessments?.starCard ||
+                           userAssessments?.currentUser?.assessments?.starCard);
+    console.log(`📋 Star Card assessment: ${hasStarCard ? 'COMPLETE' : 'REQUIRED'}`);
+    console.log(`📋 Checking paths: starCard=${!!userAssessments?.starCard}, assessments.starCard=${!!userAssessments?.assessments?.starCard}, currentUser.assessments.starCard=${!!userAssessments?.currentUser?.assessments?.starCard}`);
+    return hasStarCard;
   }
   
   if (stepId === '3-2') {
-    const isValid = !!userAssessments?.flowAssessment;
-    console.log(`📋 Flow assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
-    return isValid;
+    // Check for flow assessment in multiple possible locations
+    const hasFlowAssessment = !!(userAssessments?.flowAssessment || 
+                                userAssessments?.assessments?.flowAssessment ||
+                                userAssessments?.currentUser?.assessments?.flowAssessment);
+    console.log(`📋 Flow assessment: ${hasFlowAssessment ? 'COMPLETE' : 'REQUIRED'}`);
+    return hasFlowAssessment;
   }
   
   // Mixed requirement steps - only validate activity parts (not video)
