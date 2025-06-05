@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '@/shared/types';
+// Simplified navigation system - removed ContentViewProps import
 import { useNavigationProgressSimplified } from '@/hooks/use-navigation-progress-simplified';
 import VideoPlayer from './VideoPlayer';
 
-interface WelcomeViewProps extends ContentViewProps {
+interface WelcomeViewProps {
+  currentContent: string;
+  navigate?: any;
+  markStepCompleted?: (stepId: string) => void;
+  setCurrentContent?: (content: string) => void;
+  starCard?: any;
   isImaginalAgility?: boolean;
 }
 

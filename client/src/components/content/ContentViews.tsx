@@ -52,6 +52,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'welcome':
       return (
         <WelcomeView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

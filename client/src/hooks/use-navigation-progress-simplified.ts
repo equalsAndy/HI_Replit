@@ -89,6 +89,7 @@ export function useNavigationProgressSimplified() {
   // Simplified database sync with debouncing
   const syncToDatabase = async (progressData: NavigationProgress) => {
     try {
+      console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
       const response = await fetch('/api/user/navigation-progress', {
         method: 'POST',
         headers: {
@@ -101,11 +102,23 @@ export function useNavigationProgressSimplified() {
       if (response.ok) {
         console.log('✅ SIMPLIFIED MODE: Progress synced to database');
       } else {
-        console.error('❌ SIMPLIFIED MODE: Failed to sync progress to database');
+        const error = await response.text();
+        console.error('❌ SIMPLIFIED MODE: Failed to sync progress to database:', error);
       }
     } catch (error) {
       console.error('❌ SIMPLIFIED MODE: Error syncing progress:', error);
     }
+  };
+
+  // Debounced sync to reduce database calls
+  const debouncedSync = useRef<NodeJS.Timeout>();
+  const scheduleSync = (progressData: NavigationProgress) => {
+    if (debouncedSync.current) {
+      clearTimeout(debouncedSync.current);
+    }
+    debouncedSync.current = setTimeout(() => {
+      syncToDatabase(progressData);
+    }, 1000); // Sync after 1 second of inactivity
   };
 
   // SIMPLIFIED MODE: Only validate non-video requirements
@@ -228,13 +241,17 @@ export function useNavigationProgressSimplified() {
       // Update current position (for resume playback) - always update
       console.log(`🎬 SIMPLIFIED MODE: VIDEO POSITION UPDATE: ${stepId} = ${roundedProgress}%`);
       
-      setProgress(prev => ({
-        ...prev,
-        videoPositions: {
-          ...prev.videoPositions,
-          [stepId]: roundedProgress
-        }
-      }));
+      setProgress(prev => {
+        const newProgress = {
+          ...prev,
+          videoPositions: {
+            ...prev.videoPositions,
+            [stepId]: roundedProgress
+          }
+        };
+        scheduleSync(newProgress);
+        return newProgress;
+      });
       
       return;
     }
@@ -256,6 +273,7 @@ export function useNavigationProgressSimplified() {
       };
       
       console.log(`📊 SIMPLIFIED MODE: Video progress saved but not used for step completion`);
+      scheduleSync(newProgress); // Schedule database sync
       
       return newProgress;
     });
