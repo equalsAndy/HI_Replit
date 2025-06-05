@@ -106,7 +106,7 @@ export default function AllStarTeams() {
 
   // Auto-navigate to current step on page load
   React.useEffect(() => {
-    if (navProgress?.currentStepId && navProgress?.completedSteps) {
+    if (navProgress?.currentStepId) {
       const currentStepId = navProgress.currentStepId;
       console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
       
@@ -119,7 +119,7 @@ export default function AllStarTeams() {
         console.log(`🧭 AUTO-NAVIGATION: No navigation mapping for ${currentStepId}, staying on current content`);
       }
     }
-  }, [navProgress?.currentStepId, navProgress?.completedSteps]);
+  }, [navProgress?.currentStepId]);
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
