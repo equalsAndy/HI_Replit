@@ -9,6 +9,7 @@ interface NavigationProgress {
   lastVisitedAt: string;
   unlockedSteps: string[];
   videoProgress: { [stepId: string]: number };
+  videoPositions: { [stepId: string]: number };
 }
 
 // Simple hook without reset detection to stop the auto-reset loop
@@ -22,6 +23,15 @@ export function useSimpleNavigation() {
     unlockedSteps: ['1-1', '2-1'],
     videoProgress: {
       '1-1': 80,
+      '2-1': 0,
+      '2-3': 0,
+      '3-1': 0,
+      '3-3': 0,
+      '4-1': 0,
+      '4-4': 0
+    },
+    videoPositions: {
+      '1-1': 0,
       '2-1': 0,
       '2-3': 0,
       '3-1': 0,
@@ -44,10 +54,16 @@ export function useSimpleNavigation() {
             const parsed = JSON.parse(data.navigationProgress);
             console.log('📥 Loaded progress from database:', parsed);
             
+            // Ensure videoPositions exists for backward compatibility
+            const progressWithPositions = {
+              ...parsed,
+              videoPositions: parsed.videoPositions || {}
+            };
+            
             // Recalculate unlocked steps based on actual video progress
             const recalculatedProgress = {
-              ...parsed,
-              unlockedSteps: calculateUnlockedSteps(parsed.completedSteps || [], parsed.videoProgress || {})
+              ...progressWithPositions,
+              unlockedSteps: calculateUnlockedSteps(progressWithPositions.completedSteps || [], progressWithPositions.videoProgress || {})
             };
             
             console.log('🔄 Recalculated unlocked steps:', recalculatedProgress.unlockedSteps);
@@ -94,86 +110,76 @@ export function useSimpleNavigation() {
     return unlocked;
   };
 
-  // Update video progress with dual-threshold system (5% for Next button, 90% for completion)
-  const updateVideoProgress = (stepId: string, percentage: number) => {
-    console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${percentage}%`);
+  // Update video progress with dual-state system (max progress + current position)
+  const updateVideoProgress = (stepId: string, percentage: number, isCurrentPosition: boolean = false) => {
+    console.log(`🎬 VIDEO PROGRESS UPDATE: ${stepId} = ${percentage}% (${isCurrentPosition ? 'POSITION' : 'MAX PROGRESS'})`);
     
     // Store in global state for immediate validation access
     if (!(window as any).currentVideoProgress) {
       (window as any).currentVideoProgress = {};
     }
-    (window as any).currentVideoProgress[stepId] = percentage;
-    console.log(`  ✅ Stored in global state`);
     
     setProgress(prev => {
-      const currentProgress = prev.videoProgress[stepId] || 0;
-      const newPercentage = Math.max(percentage, currentProgress); // Always maintain highest progress
+      const currentMaxProgress = prev.videoProgress[stepId] || 0;
+      const currentPosition = prev.videoPositions?.[stepId] || 0;
       
-      // Only update if the new percentage is actually higher
-      if (newPercentage <= currentProgress) {
-        console.log(`🔄 Skipping update - Current: ${currentProgress}%, New: ${percentage}%, Keeping: ${currentProgress}%`);
-        return prev; // No change needed
+      let newMaxProgress = currentMaxProgress;
+      let newPosition = currentPosition;
+      
+      if (isCurrentPosition) {
+        // Update current position for resume functionality
+        newPosition = percentage;
+        // Also update max progress if current position exceeds it
+        if (percentage > currentMaxProgress) {
+          newMaxProgress = percentage;
+        }
+      } else {
+        // Update max progress (for achievements/unlocking)
+        newMaxProgress = Math.max(percentage, currentMaxProgress);
+        // Position stays the same unless it's higher
+        if (percentage > currentPosition) {
+          newPosition = percentage;
+        }
+      }
+      
+      // Only update if there's actual change
+      if (newMaxProgress === currentMaxProgress && newPosition === currentPosition) {
+        console.log(`🔄 No change needed - Max: ${currentMaxProgress}%, Pos: ${currentPosition}%`);
+        return prev;
       }
 
-      console.log(`📈 Progress increased: ${stepId} from ${currentProgress}% to ${newPercentage}%`);
+      console.log(`📈 Updated ${stepId} - Max: ${currentMaxProgress}% → ${newMaxProgress}%, Pos: ${currentPosition}% → ${newPosition}%`);
       
       const newProgress = {
         ...prev,
         videoProgress: {
           ...prev.videoProgress,
-          [stepId]: newPercentage
+          [stepId]: newMaxProgress
+        },
+        videoPositions: {
+          ...(prev.videoPositions || {}),
+          [stepId]: newPosition
         },
         lastVisitedAt: new Date().toISOString()
       };
 
-      // Check thresholds for dual-threshold system
-      console.log(`📊 Thresholds for ${stepId}: Next=5%, Complete=90%`);
+      // Store in global state
+      (window as any).currentVideoProgress[stepId] = newMaxProgress;
+      
+      // Check thresholds for dual-threshold system (based on max progress)
+      console.log(`📊 Thresholds for ${stepId}: Next=5%, Complete=90% (Max Progress: ${newMaxProgress}%)`);
       
       // Auto-complete step when it reaches 90% threshold
-      if (!prev.completedSteps.includes(stepId) && newPercentage >= 90) {
-        console.log(`✅ Auto-completing video step ${stepId} at ${newPercentage}% (>= 90%)`);
+      if (!prev.completedSteps.includes(stepId) && newMaxProgress >= 90) {
+        console.log(`✅ Auto-completing video step ${stepId} at ${newMaxProgress}% (>= 90%)`);
         newProgress.completedSteps = [...prev.completedSteps, stepId];
-        
-        // Update unlocked steps based on 5% threshold for next button access
-        const updateUnlockedSteps = (completedSteps: string[], videoProgress: { [stepId: string]: number }): string[] => {
-          const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-          const unlocked = ['1-1']; // First step always unlocked
-          
-          for (let i = 0; i < allSteps.length - 1; i++) {
-            const currentStep = allSteps[i];
-            const nextStep = allSteps[i + 1];
-            
-            let canUnlockNext = false;
-            
-            // For video steps, check 5% threshold
-            if (['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(currentStep)) {
-              const currentVideoProgress = videoProgress[currentStep] || 0;
-              canUnlockNext = currentVideoProgress >= 5; // 5% threshold
-              
-              console.log(`📹 Step ${currentStep}: ${currentVideoProgress}% (need 5% to unlock ${nextStep}) - ${canUnlockNext ? 'UNLOCKED' : 'LOCKED'}`);
-            } 
-            // For assessment steps, check if completed
-            else if (completedSteps.includes(currentStep)) {
-              canUnlockNext = true;
-              console.log(`📝 Step ${currentStep}: Completed - UNLOCKS ${nextStep}`);
-            }
-            
-            if (canUnlockNext && !unlocked.includes(nextStep)) {
-              unlocked.push(nextStep);
-            }
-          }
-          
-          return unlocked;
-        };
-        
-        newProgress.unlockedSteps = updateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
+        newProgress.unlockedSteps = calculateUnlockedSteps(newProgress.completedSteps, newProgress.videoProgress);
       }
       
-      // Only save to database if progress actually increased
-      if (newPercentage > currentProgress) {
-        // Debounce database saves to prevent race conditions
+      // Save to database if max progress increased
+      if (newMaxProgress > currentMaxProgress) {
         setTimeout(() => {
-          saveProgressToDatabase(stepId, newPercentage, newProgress);
+          saveProgressToDatabase(stepId, newMaxProgress, newProgress);
         }, 100);
       }
       
@@ -308,11 +314,21 @@ export function useSimpleNavigation() {
     return progress.completedSteps.includes(stepId);
   };
 
-  // Helper: Get current video progress
+  // Helper: Get current video progress (max progress for achievements)
   const getCurrentVideoProgress = (stepId: string): number => {
     const videoProgress = progress.videoProgress[stepId] || 0;
     const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
     return Math.max(videoProgress, globalProgress);
+  };
+
+  // Helper: Get current video position (for resume playback)
+  const getCurrentVideoPosition = (stepId: string): number => {
+    return progress.videoPositions[stepId] || 0;
+  };
+
+  // Helper: Update video position for resume tracking
+  const updateVideoPosition = (stepId: string, position: number) => {
+    updateVideoProgress(stepId, position, true);
   };
 
   return {
@@ -326,6 +342,8 @@ export function useSimpleNavigation() {
     // New dual-threshold functions
     canProceedToNext,           // For Next button validation (5% threshold)
     shouldShowGreenCheckmark,   // For menu green checkmarks (90% threshold)
-    getCurrentVideoProgress     // Helper for getting current video progress
+    getCurrentVideoProgress,    // Helper for getting max video progress
+    getCurrentVideoPosition,    // Helper for getting video resume position
+    updateVideoPosition         // Helper for updating video position
   };
 }

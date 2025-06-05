@@ -62,17 +62,15 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Get navigation progress at component level
   const { progress: navigationProgress } = useNavigationProgress();
   
-  // Calculate start time for video resume based on current progress
+  // Calculate start time for video resume based on current position
   const calculateStartTime = (): number => {
-    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
-    const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
-    const currentProgress = Math.max(videoProgress, globalProgress);
+    const videoPosition = getCurrentVideoPosition(stepId);
     
     // Convert percentage to seconds (assuming average video duration of 150 seconds)
-    // Only resume if progress is between 5% and 95% to avoid edge cases
-    if (currentProgress >= 5 && currentProgress < 95) {
-      const startTimeSeconds = (currentProgress / 100) * 150;
-      console.log(`🎬 WelcomeView: Resuming from ${currentProgress}% = ${startTimeSeconds} seconds`);
+    // Only resume if position is between 5% and 95% to avoid edge cases
+    if (videoPosition >= 5 && videoPosition < 95) {
+      const startTimeSeconds = (videoPosition / 100) * 150;
+      console.log(`🎬 WelcomeView: Resuming from position ${videoPosition}% = ${startTimeSeconds} seconds`);
       return startTimeSeconds;
     }
     
@@ -81,14 +79,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   // Check if step meets completion criteria using dual-threshold system
   const isStepComplete = (): boolean => {
-    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
-    const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
-    const currentProgress = Math.max(videoProgress, globalProgress);
-    const isComplete = currentProgress >= 5; // 5% threshold for Next button
-    
-    console.log(`🎬 WelcomeView Next button check - Progress: ${currentProgress}%, Complete: ${isComplete}`);
-    
-    return isComplete;
+    return canProceedToNext(stepId);
   };
   
   // Handle video progress updates
