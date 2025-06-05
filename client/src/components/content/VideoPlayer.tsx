@@ -96,7 +96,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
                 onReady: (event: any) => {
                   console.log('🎬 YouTube player ready for step:', stepId);
                   setPlayer(event.target);
+                  // Start tracking immediately when player is ready
                   if (onProgress) {
+                    console.log('🎬 Starting progress tracking on player ready');
                     startProgressTracking(event.target);
                   }
                 },
@@ -171,31 +173,36 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     
     const interval = setInterval(() => {
       if (ytPlayer && ytPlayer.getCurrentTime && ytPlayer.getDuration) {
-        const currentTime = ytPlayer.getCurrentTime();
-        const duration = ytPlayer.getDuration();
-        
-        if (duration > 0) {
-          const percentage = (currentTime / duration) * 100;
+        try {
+          const currentTime = ytPlayer.getCurrentTime();
+          const duration = ytPlayer.getDuration();
           
-          // Treat videos as 100% complete if they're within 2% of the end
-          // This handles cases where YouTube doesn't report exact 100%
-          const adjustedPercentage = percentage >= 98 ? 100 : percentage;
+          console.log(`🎬 Video tracking - Current: ${currentTime}s, Duration: ${duration}s`);
           
-          // Only log significant progress changes (every 10% or when reaching key thresholds)
-          if (Math.abs(adjustedPercentage - lastLoggedProgressRef.current) >= 10 || 
-              (adjustedPercentage >= 1 && lastLoggedProgressRef.current < 1) ||
-              (adjustedPercentage >= 0.5 && lastLoggedProgressRef.current < 0.5) ||
-              (adjustedPercentage === 100 && lastLoggedProgressRef.current < 100)) {
+          if (duration > 0) {
+            const percentage = (currentTime / duration) * 100;
+            
+            // Treat videos as 100% complete if they're within 2% of the end
+            const adjustedPercentage = percentage >= 98 ? 100 : percentage;
+            
+            // Log all progress updates for debugging
             console.log(`🎬 Video progress: ${adjustedPercentage.toFixed(2)}%`);
-            lastLoggedProgressRef.current = adjustedPercentage;
+            
+            // Always call onProgress to ensure tracking works
+            if (onProgress) {
+              onProgress(adjustedPercentage);
+            }
+          } else {
+            // Try to get duration again if it's 0
+            console.log(`🎬 Duration is 0, attempting to get duration again`);
           }
-          
-          if (onProgress) {
-            onProgress(adjustedPercentage);
-          }
+        } catch (error) {
+          console.error(`🎬 Error in progress tracking:`, error);
         }
+      } else {
+        console.log(`🎬 Player methods not available yet`);
       }
-    }, 1000); // Check every second
+    }, 500); // Check every 500ms for more responsive tracking
     
     setProgressCheckInterval(interval);
   };

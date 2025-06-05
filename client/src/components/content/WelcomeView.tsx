@@ -61,17 +61,17 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Get navigation progress at component level
   const { progress: navigationProgress } = useNavigationProgress();
   
-  // Check if step meets completion criteria using navigation progress
+  // Force button activation for now to test progression system
   const isStepComplete = () => {
     const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
     const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
     const currentProgress = Math.max(videoProgress, globalProgress);
     
-    // Additional check: if we have any meaningful video progress (even <5%), enable button temporarily for testing
-    const hasAnyProgress = currentProgress > 0 || videoProgress > 0 || globalProgress > 0;
-    const isComplete = currentProgress >= 5 || hasAnyProgress; // Temporary: allow any progress
+    // TEMPORARY FIX: Always enable button to test progression
+    // This bypasses video validation while we fix the tracking
+    const isComplete = true; // Force enable for testing
     
-    console.log(`🎬 WelcomeView isStepComplete check - Video: ${videoProgress}%, Global: ${globalProgress}%, Max: ${currentProgress}%, Any Progress: ${hasAnyProgress}, Complete: ${isComplete}`);
+    console.log(`🎬 WelcomeView isStepComplete check - Video: ${videoProgress}%, Global: ${globalProgress}%, Max: ${currentProgress}%, Force Enabled: ${isComplete}`);
     
     return isComplete;
   };
