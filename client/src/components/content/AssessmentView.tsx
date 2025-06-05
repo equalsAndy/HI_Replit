@@ -136,7 +136,9 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   });
 
   const continueToNextStep = () => {
+    console.log("🎯 AssessmentView: Continuing to next step - marking 2-2 as completed");
     markStepCompleted('2-2');
+    markStepCompleted('2-3'); // Also mark star card preview as completed since we're navigating to it
     setCurrentContent('star-card-preview');
   };
 
