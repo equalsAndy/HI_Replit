@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
-import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useSimpleNavigation } from '@/hooks/use-simple-navigation';
 
 // Constants for different apps
 const APP_PROGRESS_KEYS = {
@@ -28,14 +28,15 @@ export default function AllStarTeams() {
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
-  const { 
-    progress: navProgress, 
-    markStepCompleted: markNavStepCompleted, 
-    updateCurrentStep, 
-    syncWithDatabase, 
-    loadFromDatabase,
-    resetProgress
-  } = useNavigationProgress();
+  const {
+    progress: navProgress,
+    updateVideoProgress,
+    markStepCompleted: markNavStepCompleted,
+    isStepUnlocked,
+    isStepCompleted,
+    getVideoProgress,
+    saveProgressToDatabase
+  } = useSimpleNavigation();
   
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];
