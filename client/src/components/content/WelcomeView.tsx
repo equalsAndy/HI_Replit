@@ -59,8 +59,14 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   // Testing bypass disabled - use proper video completion validation
   const [allowTestingBypass, setAllowTestingBypass] = useState(false);
   
-  // Get navigation progress at component level
-  const { progress: navigationProgress } = useNavigationProgress();
+  // Get navigation progress at component level  
+  const { 
+    progress: navigationProgress, 
+    getCurrentVideoPosition, 
+    canProceedToNext, 
+    updateVideoProgress,
+    updateVideoPosition 
+  } = useSimpleNavigation();
   
   // Calculate start time for video resume based on current position
   const calculateStartTime = (): number => {
