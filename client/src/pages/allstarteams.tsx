@@ -40,34 +40,14 @@ export default function AllStarTeams() {
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];
 
-  // Set app to AllStarTeams on component mount and check authentication
+  // Set app to AllStarTeams on component mount (authentication handled by useAuth hook elsewhere)
   useEffect(() => {
     setCurrentApp('allstarteams');
-
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        const response = await fetch('/api/user/profile');
-        if (response.status === 401) {
-          toast({
-            title: "Authentication Required",
-            description: "Please log in to access this workshop.",
-          });
-          // Save the workshop selection before redirecting
-          localStorage.setItem('selectedApp', 'ast');
-          navigate('/auth?app=ast');
-        } else {
-          // User is authenticated, load navigation progress from database
-          await loadFromDatabase();
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        navigate('/auth?app=ast');
-      }
-    };
-
-    checkAuth();
-  }, [navigate, toast, loadFromDatabase]);
+    // Load navigation progress from database without authentication redirect
+    loadFromDatabase().catch(error => {
+      console.error('Failed to load navigation progress:', error);
+    });
+  }, [setCurrentApp, loadFromDatabase]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 

@@ -331,7 +331,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
                       
-                      // Check step accessibility using sequential progression logic
+                      // Check step accessibility using the passed function from parent (which includes navigation progress state)
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
                       
                       return (
