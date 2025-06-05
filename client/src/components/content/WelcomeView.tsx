@@ -86,27 +86,20 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
-    // Correct interpretation: if value is between 0-1, it's a decimal that represents percentage
-    let correctedPercentage = percentage;
-    if (percentage > 0 && percentage <= 1) {
-      correctedPercentage = percentage * 100;
-      console.log(`🎬 Corrected video progress from ${percentage} to ${correctedPercentage}%`);
-    }
-    
     // Only log significant progress changes (every 10% or initial threshold)
-    if (Math.abs(correctedPercentage - lastLoggedProgressRef.current) >= 10 || 
-        (correctedPercentage >= 1 && !hasReachedMinimum)) {
-      console.log(`🎬 WelcomeView video progress: ${correctedPercentage.toFixed(2)}%`);
-      lastLoggedProgressRef.current = correctedPercentage;
+    if (Math.abs(percentage - lastLoggedProgressRef.current) >= 10 || 
+        (percentage >= 1 && !hasReachedMinimum)) {
+      console.log(`🎬 WelcomeView video progress: ${percentage.toFixed(2)}%`);
+      lastLoggedProgressRef.current = percentage;
     }
     
-    // Update navigation progress tracking with corrected percentage
-    console.log(`🎬 WelcomeView calling updateVideoProgress(${stepId}, ${correctedPercentage})`);
-    updateVideoProgress(stepId, correctedPercentage);
+    // Update navigation progress tracking with actual percentage
+    console.log(`🎬 WelcomeView calling updateVideoProgress(${stepId}, ${percentage})`);
+    updateVideoProgress(stepId, percentage);
     
     // Check if minimum watch requirement is met (5%)
-    if (correctedPercentage >= 5 && !hasReachedMinimum) {
-      console.log(`🎬 WelcomeView: Minimum threshold reached at ${correctedPercentage.toFixed(2)}%`);
+    if (percentage >= 5 && !hasReachedMinimum) {
+      console.log(`🎬 WelcomeView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };

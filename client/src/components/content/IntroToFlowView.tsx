@@ -29,19 +29,12 @@ const IntroToFlowView: React.FC<ContentViewProps> = ({
   
   // Handle video progress updates with dual-threshold system
   const handleVideoProgress = (percentage: number) => {
-    // Correct interpretation: if value is between 0-1, it's a decimal that represents percentage
-    let correctedPercentage = percentage;
-    if (percentage > 0 && percentage <= 1) {
-      correctedPercentage = percentage * 100;
-      console.log(`🎬 Corrected video progress from ${percentage} to ${correctedPercentage}%`);
-    }
-    
-    console.log(`🎬 IntroToFlowView calling updateVideoProgress(${stepId}, ${correctedPercentage})`);
-    updateVideoProgress(stepId, correctedPercentage);
+    console.log(`🎬 IntroToFlowView calling updateVideoProgress(${stepId}, ${percentage})`);
+    updateVideoProgress(stepId, percentage);
     
     // Check if minimum watch requirement is met (5%)
-    if (correctedPercentage >= 5 && !hasReachedMinimum) {
-      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${correctedPercentage.toFixed(2)}%`);
+    if (percentage >= 5 && !hasReachedMinimum) {
+      console.log(`🎬 IntroToFlowView: Minimum threshold reached at ${percentage.toFixed(2)}%`);
       setHasReachedMinimum(true);
     }
   };
