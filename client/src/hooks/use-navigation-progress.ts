@@ -230,10 +230,9 @@ export function useNavigationProgress() {
             const dbProgress = JSON.parse(result.progress);
             console.log('✅ Loaded progress from database:', dbProgress);
             
-            // Use database progress if it has meaningful data or video progress
-            if (dbProgress.appType && (dbProgress.completedSteps.length > 0 || 
-                dbProgress.currentStepId !== '1-1' || 
-                Object.keys(dbProgress.videoProgress || {}).length > 0)) {
+            // Always use database progress if it exists and has valid data structure
+            if (dbProgress && dbProgress.appType) {
+              console.log('✅ Using database progress with video data preserved');
               setProgress({
                 ...dbProgress,
                 lastVisitedAt: new Date().toISOString()
