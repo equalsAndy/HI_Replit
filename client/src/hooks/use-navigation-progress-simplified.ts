@@ -227,7 +227,7 @@ export function useNavigationProgressSimplified() {
       console.log(`  ➡️ Next step: ${nextStepId}`);
       
       // Sync to database
-      syncToDatabase(newProgress);
+      scheduleSync(newProgress);
       
       return newProgress;
     });
