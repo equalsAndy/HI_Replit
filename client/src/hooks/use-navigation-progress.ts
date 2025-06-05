@@ -20,6 +20,61 @@ const PROGRESSION_MODE = {
 
 const CURRENT_PROGRESSION_MODE = 'simplified' as const;
 
+// SIMPLIFIED MODE: Only validate non-video requirements
+const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
+  console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+  
+  // Assessment steps - still require completion
+  if (stepId === '2-2') {
+    const isValid = !!userAssessments?.starCard;
+    console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  if (stepId === '3-2') {
+    const isValid = !!userAssessments?.flowAssessment;
+    console.log(`📋 Flow assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  // Mixed requirement steps - only validate activity parts (not video)
+  if (stepId === '4-1') {
+    const isValid = !!userAssessments?.cantrilLadder;
+    console.log(`🎚️ Cantril Ladder activity: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  if (stepId === '4-2') {
+    const isValid = !!userAssessments?.cantrilLadderReflection;
+    console.log(`📝 Well-being reflection: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  // All other steps: Next button always active
+  console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
+  return true;
+};
+
+// SIMPLIFIED: Linear progression only
+const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const unlocked = ['1-1']; // First step always unlocked
+  
+  // Simple linear unlocking: each completed step unlocks exactly the next one
+  for (let i = 0; i < allSteps.length - 1; i++) {
+    const currentStep = allSteps[i];
+    const nextStep = allSteps[i + 1];
+    
+    if (completedSteps.includes(currentStep)) {
+      unlocked.push(nextStep);
+      console.log(`📝 SIMPLIFIED MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+    }
+  }
+  
+  console.log('🔓 SIMPLIFIED MODE: Unlocked steps (linear only):', unlocked);
+  return unlocked;
+};
+
 interface NavigationProgress {
   completedSteps: string[];
   currentStepId: string;
