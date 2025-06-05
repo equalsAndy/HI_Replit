@@ -78,6 +78,18 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     
     return 0; // Start from beginning
   };
+
+  // Check if step meets completion criteria using dual-threshold system
+  const isStepComplete = (): boolean => {
+    const videoProgress = navigationProgress?.videoProgress?.[stepId] || 0;
+    const globalProgress = (window as any).currentVideoProgress?.[stepId] || 0;
+    const currentProgress = Math.max(videoProgress, globalProgress);
+    const isComplete = currentProgress >= 5; // 5% threshold for Next button
+    
+    console.log(`🎬 WelcomeView Next button check - Progress: ${currentProgress}%, Complete: ${isComplete}`);
+    
+    return isComplete;
+  };
   
   // Handle video progress updates
   const handleVideoProgress = (percentage: number) => {
@@ -230,7 +242,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             }`}
             size="lg"
           >
-            {(isStepComplete() || allowTestingBypass) ? nextButton : "Watch video to continue"}
+            {(isStepComplete() || allowTestingBypass) ? nextButton : "Watch video to continue (5% minimum)"}
           </Button>
         </div>
       </div>
