@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
-import { useNavigationProgressClean } from '@/hooks/use-navigation-progress-clean';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 export default function AllStarTeams() {
   const [location, navigate] = useLocation();
@@ -31,7 +31,7 @@ export default function AllStarTeams() {
     canProceedToNext,
     shouldShowGreenCheckmark: isStepCompleted,
     getVideoProgress
-  } = useNavigationProgressClean();
+  } = useNavigationProgress();
   
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];

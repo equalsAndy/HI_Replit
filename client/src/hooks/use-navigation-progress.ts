@@ -211,21 +211,43 @@ export function useNavigationProgress() {
 
   // Load navigation progress from database on component mount
   useEffect(() => {
-    console.log('🔄 Loading progress from database...');
+    console.log('🔄 NAVIGATION HOOK: Starting database load...');
+    console.log('🔄 NAVIGATION HOOK: Hook initialized, loading progress from database...');
     
     const loadProgressFromDatabase = async () => {
       try {
+        console.log('🔄 NAVIGATION HOOK: Making fetch request to /api/user/navigation-progress');
         const response = await fetch('/api/user/navigation-progress', {
           credentials: 'include'
         });
+        
+        console.log('🔄 NAVIGATION HOOK: Response status:', response.status);
         
         if (response.ok) {
           const data = await response.json();
           console.log('📊 Database progress loaded:', data);
           
           if (data.navigationProgress) {
-            const dbProgress = JSON.parse(data.navigationProgress);
-            console.log('📊 Parsed database progress:', dbProgress);
+            let dbProgress;
+            
+            // Handle nested JSON structure
+            if (typeof data.navigationProgress === 'string') {
+              const firstParse = JSON.parse(data.navigationProgress);
+              
+              // Check if there's a nested navigationProgress property
+              if (firstParse.navigationProgress && typeof firstParse.navigationProgress === 'string') {
+                // Parse the nested navigationProgress to get the actual data
+                dbProgress = JSON.parse(firstParse.navigationProgress);
+                console.log('📊 Parsed nested database progress:', dbProgress);
+              } else {
+                // Direct progress data
+                dbProgress = firstParse;
+                console.log('📊 Parsed direct database progress:', dbProgress);
+              }
+            } else {
+              dbProgress = data.navigationProgress;
+              console.log('📊 Using object database progress:', dbProgress);
+            }
             
             // Merge database progress with required defaults
             const mergedProgress = {
