@@ -177,14 +177,20 @@ export function useNavigationProgress() {
     const isStepCompleted = (stepId: string): boolean => {
       // Assessment steps require actual completion
       if (stepId === '2-2') {
-        return !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
+        const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
+        console.log(`🔍 Step 2-2 completion check - hasStarCard: ${hasStarCard}`, userAssessments);
+        return hasStarCard;
       }
       if (stepId === '3-2') {
-        return !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
+        const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
+        console.log(`🔍 Step 3-2 completion check - hasFlowAttributes: ${hasFlowAttributes}`, userAssessments);
+        return hasFlowAttributes;
       }
       
       // All other steps (including videos) are completed when explicitly marked via Next button
-      return currentProgress.completedSteps.includes(stepId);
+      const isMarkedComplete = currentProgress.completedSteps.includes(stepId);
+      console.log(`🔍 Step ${stepId} completion check - isMarkedComplete: ${isMarkedComplete}`);
+      return isMarkedComplete;
     };
 
     // Recalculate completed steps
@@ -246,20 +252,27 @@ export function useNavigationProgress() {
 
   const syncProgressToDatabase = async (progressData: NavigationProgress) => {
     try {
+      console.log('🔄 Syncing progress to database:', progressData);
+      
       const response = await fetch('/api/user/navigation-progress', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ progress: progressData })
+        body: JSON.stringify({ 
+          navigationProgress: JSON.stringify(progressData) 
+        })
       });
 
       if (!response.ok) {
-        console.error('Failed to sync progress to database');
+        const errorText = await response.text();
+        console.error('Failed to sync progress to database:', response.status, errorText);
+      } else {
+        console.log('✅ Progress synced successfully');
       }
     } catch (error) {
-      console.error('Error syncing progress:', error);
+      console.error('❌ Error syncing progress:', error);
     }
   };
 
