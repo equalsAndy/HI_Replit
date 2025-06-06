@@ -97,6 +97,11 @@ export const assessmentValidators = {
   },
 
   finalReflection: (data: any): boolean => {
+    // Check for either the old format (keyInsights, actionSteps, commitments) or new format (futureLetterText)
+    if (data && data.futureLetterText && typeof data.futureLetterText === 'string' && data.futureLetterText.trim().length > 0) {
+      return true;
+    }
+    // Fallback to old format for backward compatibility
     const requiredFields = ['keyInsights', 'actionSteps', 'commitments'];
     return data && requiredFields.every(field => 
       data[field] && typeof data[field] === 'string' && data[field].trim().length > 0
