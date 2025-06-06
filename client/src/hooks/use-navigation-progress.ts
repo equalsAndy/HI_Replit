@@ -230,13 +230,11 @@ export function useNavigationProgress() {
     const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
     const newCompletedSteps = allSteps.filter(isStepCompleted);
     
-    // Calculate unlocked sections and steps
-    const unlockedSections = new Set(['1']); // Always unlock section 1
+    // Calculate unlocked steps - sequential unlocking
     const unlockedSteps = new Set(['1-1']); // Always unlock first step
     
-    // Progressive unlocking logic
+    // Progressive step unlocking logic
     if (newCompletedSteps.includes('1-1')) {
-      unlockedSections.add('2');
       unlockedSteps.add('2-1');
     }
     if (newCompletedSteps.includes('2-1')) {
@@ -249,7 +247,6 @@ export function useNavigationProgress() {
       unlockedSteps.add('2-4');
     }
     if (newCompletedSteps.includes('2-4')) {
-      unlockedSections.add('3');
       unlockedSteps.add('3-1');
     }
     if (newCompletedSteps.includes('3-1')) {
@@ -262,7 +259,6 @@ export function useNavigationProgress() {
       unlockedSteps.add('3-4');
     }
     if (newCompletedSteps.includes('3-4')) {
-      unlockedSections.add('4');
       unlockedSteps.add('4-1');
     }
     if (newCompletedSteps.includes('4-1')) {
@@ -274,10 +270,42 @@ export function useNavigationProgress() {
     if (newCompletedSteps.includes('4-3')) {
       unlockedSteps.add('4-4');
     }
+    
+    // Calculate unlocked sections based on unlocked steps
+    const unlockedSections = new Set(['1']); // Always unlock section 1
+    if (Array.from(unlockedSteps).some(step => step.startsWith('2-'))) {
+      unlockedSections.add('2');
+    }
+    if (Array.from(unlockedSteps).some(step => step.startsWith('3-'))) {
+      unlockedSections.add('3');
+    }
+    if (Array.from(unlockedSteps).some(step => step.startsWith('4-'))) {
+      unlockedSections.add('4');
+    }
+
+    // Calculate the current step ID based on progress
+    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    let currentStepId = '1-1'; // Default to first step
+    
+    // Find the first incomplete step as the current step
+    for (const stepId of allStepsInOrder) {
+      if (!newCompletedSteps.includes(stepId)) {
+        currentStepId = stepId;
+        break;
+      }
+    }
+    
+    // If all steps are complete, stay on the last step
+    if (newCompletedSteps.length === allStepsInOrder.length) {
+      currentStepId = allStepsInOrder[allStepsInOrder.length - 1];
+    }
+    
+    console.log(`🎯 Current step calculated as: ${currentStepId} (completed: ${newCompletedSteps.length}/${allStepsInOrder.length})`);
 
     return {
       ...currentProgress,
       completedSteps: newCompletedSteps,
+      currentStepId,
       unlockedSections: Array.from(unlockedSections),
       unlockedSteps: Array.from(unlockedSteps)
     };
