@@ -3,9 +3,10 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import allStarTeamsLogo from "/all-star-teams-logo-250px.svg";
-import imaginalAgilityLogo from "/HI_Logo_horizontal.png";
-import logoHorizontal from "/HI_Logo_horizontal.png";
+// Using direct paths for assets
+const allStarTeamsLogo = "/all-star-teams-logo-250px.svg";
+const imaginalAgilityLogo = "/HI_Logo_horizontal.png";
+const logoHorizontal = "/HI_Logo_horizontal.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -19,7 +20,7 @@ export default function Home() {
     retry: false // Don't retry if authentication fails
   });
   
-  const user = userData?.user;
+  const user = (userData as any)?.user;
   const isAuthenticated = !!user;
 
   // Handle workshop selection
