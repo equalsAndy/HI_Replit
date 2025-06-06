@@ -190,6 +190,7 @@ export function useNavigationProgress() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const lastKnownProgressRef = useRef<NavigationProgress | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
   
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
@@ -201,6 +202,129 @@ export function useNavigationProgress() {
     videoProgress: {},
     videoPositions: {} // New: track current playback positions
   });
+
+  // Direct initialization on hook creation
+  useEffect(() => {
+    if (isInitialized) return;
+    
+    console.log('🔄 NAVIGATION HOOK: Force initializing progress from database...');
+    
+    const initializeProgress = async () => {
+      try {
+        const response = await fetch('/api/user/navigation-progress', {
+          credentials: 'include'
+        });
+        
+        console.log('🔄 NAVIGATION HOOK: Database response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📊 NAVIGATION HOOK: Database data loaded:', data);
+          
+          if (data.progress) {
+            let dbProgress;
+            
+            console.log('📊 NAVIGATION HOOK: Raw progress data:', data.progress);
+            
+            // Handle deeply nested JSON structure
+            if (typeof data.progress === 'string') {
+              try {
+                let currentData = data.progress;
+                let parseLevel = 0;
+                
+                // Keep parsing until we get to actual progress data
+                while (typeof currentData === 'string' && parseLevel < 5) {
+                  const parsed = JSON.parse(currentData);
+                  console.log(`📊 NAVIGATION HOOK: Parse level ${parseLevel}:`, parsed);
+                  
+                  if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
+                    currentData = parsed.navigationProgress;
+                    parseLevel++;
+                  } else if (parsed.completedSteps || parsed.currentStepId) {
+                    // Found actual progress data
+                    dbProgress = parsed;
+                    break;
+                  } else {
+                    // This might be the progress data itself
+                    dbProgress = parsed;
+                    break;
+                  }
+                }
+                
+                // If we still have a string, try one more parse
+                if (typeof currentData === 'string' && !dbProgress) {
+                  dbProgress = JSON.parse(currentData);
+                }
+                
+                console.log('📊 NAVIGATION HOOK: Final parsed progress:', dbProgress);
+              } catch (error) {
+                console.error('❌ NAVIGATION HOOK: Failed to parse progress:', error);
+                dbProgress = null;
+              }
+            } else {
+              dbProgress = data.progress;
+              console.log('📊 NAVIGATION HOOK: Using object progress:', dbProgress);
+            }
+            
+            // Apply loaded progress
+            const loadedProgress = {
+              completedSteps: dbProgress.completedSteps || [],
+              currentStepId: dbProgress.currentStepId || '1-1',
+              appType: dbProgress.appType || 'ast' as const,
+              lastVisitedAt: dbProgress.lastVisitedAt || new Date().toISOString(),
+              unlockedSections: dbProgress.unlockedSections || ['1'],
+              unlockedSteps: dbProgress.unlockedSteps || ['1-1'],
+              videoProgress: dbProgress.videoProgress || {},
+              videoPositions: dbProgress.videoPositions || {}
+            };
+            
+            console.log('✅ NAVIGATION HOOK: Setting loaded progress:', loadedProgress);
+            setProgress(loadedProgress);
+            
+            // Auto-navigate to current step
+            if (loadedProgress.currentStepId && loadedProgress.currentStepId !== '1-1') {
+              console.log(`🧭 NAVIGATION HOOK: Auto-navigating to step: ${loadedProgress.currentStepId}`);
+              
+              const stepContentMap = {
+                '1-1': 'welcome',
+                '2-1': 'intro-strengths', 
+                '2-2': 'strengths-assessment',
+                '2-3': 'star-card-preview',
+                '2-4': 'reflection-2-4',
+                '3-1': 'intro-flow',
+                '3-2': 'flow-assessment',
+                '3-3': 'rounding-out',
+                '3-4': 'reflection-3-4',
+                '4-1': 'ladder-wellbeing',
+                '4-2': 'reflection-4-2',
+                '4-3': 'potential-visualization',
+                '4-4': 'future-self'
+              };
+              
+              const targetContent = stepContentMap[loadedProgress.currentStepId];
+              if (targetContent) {
+                console.log(`🧭 NAVIGATION HOOK: Dispatching auto-navigation to: ${targetContent}`);
+                window.dispatchEvent(new CustomEvent('autoNavigateToContent', {
+                  detail: { 
+                    content: targetContent, 
+                    stepId: loadedProgress.currentStepId 
+                  }
+                }));
+              }
+            }
+          }
+        } else {
+          console.log('⚠️ NAVIGATION HOOK: Failed to load progress, using defaults');
+        }
+      } catch (error) {
+        console.error('❌ NAVIGATION HOOK: Error loading progress:', error);
+      } finally {
+        setIsInitialized(true);
+      }
+    };
+    
+    initializeProgress();
+  }, [isInitialized]);
 
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();

@@ -26,11 +26,11 @@ export default function AllStarTeams() {
     progress: navProgress,
     updateVideoProgress,
     markStepCompleted: markNavStepCompleted,
-    setCurrentStep,
-    isStepAccessible: isStepUnlocked,
+    updateCurrentStep: setCurrentStep,
+    isStepAccessibleByProgression: isStepUnlocked,
     canProceedToNext,
     shouldShowGreenCheckmark: isStepCompleted,
-    getVideoProgress
+    getCurrentVideoProgress: getVideoProgress
   } = useNavigationProgress();
   
   // Use navigation progress state instead of separate completedSteps state
