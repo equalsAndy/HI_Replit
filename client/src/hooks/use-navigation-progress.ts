@@ -18,15 +18,16 @@ const useUserAssessments = () => {
   return useQuery({
     queryKey: ['user-assessments'],
     queryFn: async () => {
-      const response = await fetch('/api/workshop-data/userAssessments', {
+      const response = await fetch('/api/user/assessments', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch assessments');
       const result = await response.json();
-      return result.currentUser?.assessments || {};
+      console.log('📊 User assessments loaded:', result);
+      return result.currentUser || {};
     },
-    staleTime: 10000,
-    retry: false
+    staleTime: 5000,
+    retry: 1
   });
 };
 
