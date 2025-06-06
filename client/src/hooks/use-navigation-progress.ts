@@ -209,45 +209,76 @@ export function useNavigationProgress() {
   // The system was clearing progress data unnecessarily
   const serverProgress = null;
 
-  // Load navigation progress from database on component mount - STATIC INITIALIZATION
+  // Load navigation progress from database on component mount
   useEffect(() => {
-    console.log('🔄 STATIC progress initialization - using fixed state');
+    console.log('🔄 Loading progress from database...');
     
-    // Use a clean initial state with no progress
-    const cleanProgress = {
-      completedSteps: [],
-      currentStepId: '1-1',
-      appType: 'ast' as const,
-      lastVisitedAt: new Date().toISOString(),
-      unlockedSections: ['1'],
-      unlockedSteps: ['1-1'],
-      videoProgress: {
-        '1-1': 0,
-        '2-1': 0,
-        '2-3': 0,
-        '3-1': 0,
-        '3-3': 0,
-        '4-1': 0,
-        '4-4': 0
-      },
-      videoPositions: {
-        '1-1': 0,
-        '2-1': 0,
-        '2-3': 0,
-        '3-1': 0,
-        '3-3': 0,
-        '4-1': 0,
-        '4-4': 0
+    const loadProgressFromDatabase = async () => {
+      try {
+        const response = await fetch('/api/user/navigation-progress', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('📊 Database progress loaded:', data);
+          
+          if (data.navigationProgress) {
+            const dbProgress = JSON.parse(data.navigationProgress);
+            console.log('📊 Parsed database progress:', dbProgress);
+            
+            // Merge database progress with required defaults
+            const mergedProgress = {
+              completedSteps: dbProgress.completedSteps || [],
+              currentStepId: dbProgress.currentStepId || '1-1',
+              appType: dbProgress.appType || 'ast' as const,
+              lastVisitedAt: dbProgress.lastVisitedAt || new Date().toISOString(),
+              unlockedSections: dbProgress.unlockedSections || ['1'],
+              unlockedSteps: dbProgress.unlockedSteps || ['1-1'],
+              videoProgress: dbProgress.videoProgress || {},
+              videoPositions: dbProgress.videoPositions || {}
+            };
+            
+            console.log('✅ Setting merged progress from database:', mergedProgress);
+            setProgress(mergedProgress);
+            return;
+          }
+        }
+        
+        console.log('⚠️ No database progress found, using clean state');
+        // Only use clean state if no database progress exists
+        const cleanProgress = {
+          completedSteps: [],
+          currentStepId: '1-1',
+          appType: 'ast' as const,
+          lastVisitedAt: new Date().toISOString(),
+          unlockedSections: ['1'],
+          unlockedSteps: ['1-1'],
+          videoProgress: {},
+          videoPositions: {}
+        };
+        
+        setProgress(cleanProgress);
+        
+      } catch (error) {
+        console.error('❌ Failed to load progress from database:', error);
+        // Fallback to clean state
+        const cleanProgress = {
+          completedSteps: [],
+          currentStepId: '1-1',
+          appType: 'ast' as const,
+          lastVisitedAt: new Date().toISOString(),
+          unlockedSections: ['1'],
+          unlockedSteps: ['1-1'],
+          videoProgress: {},
+          videoPositions: {}
+        };
+        
+        setProgress(cleanProgress);
       }
     };
     
-    console.log('✅ Setting clean progress state');
-    setProgress(cleanProgress);
-    
-    // FORCE COMPLETE RESET - Clear all possible cached sources
-    (window as any).currentVideoProgress = cleanProgress.videoProgress;
-    localStorage.removeItem('navigationProgress');
-    localStorage.removeItem('userProgress');
+    loadProgressFromDatabase();
     localStorage.removeItem('videoProgress');
     sessionStorage.clear();
     
