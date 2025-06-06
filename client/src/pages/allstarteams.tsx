@@ -42,6 +42,7 @@ export default function AllStarTeams() {
     
     const loadProgressFromDatabase = async () => {
       try {
+        console.log('🔄 Starting progress load from database...');
         const response = await fetch('/api/user/navigation-progress', {
           credentials: 'include'
         });
@@ -87,18 +88,22 @@ export default function AllStarTeams() {
             if (progress.completedSteps && progress.completedSteps.length > 0) {
               console.log(`✅ Marking ${progress.completedSteps.length} steps as completed:`, progress.completedSteps);
               progress.completedSteps.forEach(stepId => {
+                console.log(`✅ Marking step ${stepId} as completed`);
                 markNavStepCompleted(stepId);
               });
             }
           }
+        } else {
+          console.log('❌ Failed to fetch navigation progress:', response.status);
         }
       } catch (error) {
         console.error('❌ Failed to load progress from database:', error);
       }
     };
     
-    loadProgressFromDatabase();
-  }, [setCurrentApp, setCurrentStep, markNavStepCompleted]);
+    // Add a small delay to ensure navigation hook is ready
+    setTimeout(loadProgressFromDatabase, 100);
+  }, []);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
