@@ -36,74 +36,26 @@ export default function AllStarTeams() {
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];
 
-  // Load navigation progress from database and sync UI
+  // Set app type for navigation and listen for auto-navigation events
   useEffect(() => {
     setCurrentApp('allstarteams');
     
-    const loadProgressFromDatabase = async () => {
-      try {
-        console.log('🔄 Starting progress load from database...');
-        const response = await fetch('/api/user/navigation-progress', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('🔄 Loading progress from database:', data);
-          
-          if (data.navigationProgress) {
-            const progress = JSON.parse(data.navigationProgress);
-            console.log('📊 Parsed progress:', progress);
-            
-            // Set current step from database
-            if (progress.currentStepId) {
-              console.log(`🧭 Navigating to current step: ${progress.currentStepId}`);
-              setCurrentStep(progress.currentStepId);
-              
-              // Auto-navigate to the current step content
-              const stepContentMap = {
-                '1-1': 'welcome',
-                '2-1': 'intro-strengths', 
-                '2-2': 'strengths-assessment',
-                '2-3': 'star-card-preview',
-                '2-4': 'reflection-2-4',
-                '3-1': 'intro-flow',
-                '3-2': 'flow-assessment',
-                '3-3': 'rounding-out',
-                '3-4': 'reflection-3-4',
-                '4-1': 'ladder-wellbeing',
-                '4-2': 'reflection-4-2',
-                '4-3': 'potential-visualization',
-                '4-4': 'future-self'
-              };
-              
-              const contentForStep = stepContentMap[progress.currentStepId];
-              if (contentForStep) {
-                console.log(`🎯 Setting content to: ${contentForStep}`);
-                setCurrentContent(contentForStep);
-              }
-            }
-            
-            // Mark completed steps with checkboxes
-            if (progress.completedSteps && progress.completedSteps.length > 0) {
-              console.log(`✅ Marking ${progress.completedSteps.length} steps as completed:`, progress.completedSteps);
-              progress.completedSteps.forEach(stepId => {
-                console.log(`✅ Marking step ${stepId} as completed`);
-                markNavStepCompleted(stepId);
-              });
-            }
-          }
-        } else {
-          console.log('❌ Failed to fetch navigation progress:', response.status);
-        }
-      } catch (error) {
-        console.error('❌ Failed to load progress from database:', error);
-      }
+    // Listen for auto-navigation events from the navigation hook
+    const handleAutoNavigation = (event: CustomEvent) => {
+      const { content, stepId } = event.detail;
+      console.log(`🧭 AUTO-NAVIGATION: Received navigation event - content: ${content}, step: ${stepId}`);
+      
+      // Set current content and step
+      setCurrentContent(content);
+      setCurrentStep(stepId);
     };
     
-    // Add a small delay to ensure navigation hook is ready
-    setTimeout(loadProgressFromDatabase, 100);
-  }, []);
+    window.addEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
+    
+    return () => {
+      window.removeEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
+    };
+  }, [setCurrentApp, setCurrentContent, setCurrentStep]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 

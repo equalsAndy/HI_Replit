@@ -241,6 +241,41 @@ export function useNavigationProgress() {
             
             console.log('✅ Setting merged progress from database:', mergedProgress);
             setProgress(mergedProgress);
+            
+            // Auto-navigate to current step content if available
+            if (mergedProgress.currentStepId) {
+              console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${mergedProgress.currentStepId}`);
+              
+              // Map step IDs to content views
+              const stepContentMap = {
+                '1-1': 'welcome',
+                '2-1': 'intro-strengths', 
+                '2-2': 'strengths-assessment',
+                '2-3': 'star-card-preview',
+                '2-4': 'reflection-2-4',
+                '3-1': 'intro-flow',
+                '3-2': 'flow-assessment',
+                '3-3': 'rounding-out',
+                '3-4': 'reflection-3-4',
+                '4-1': 'ladder-wellbeing',
+                '4-2': 'reflection-4-2',
+                '4-3': 'potential-visualization',
+                '4-4': 'future-self'
+              };
+              
+              const targetContent = stepContentMap[mergedProgress.currentStepId];
+              if (targetContent) {
+                console.log(`🧭 AUTO-NAVIGATION: Navigating to content: ${targetContent}`);
+                // Dispatch a custom event that the AllStarTeams page can listen to
+                window.dispatchEvent(new CustomEvent('autoNavigateToContent', {
+                  detail: { 
+                    content: targetContent, 
+                    stepId: mergedProgress.currentStepId 
+                  }
+                }));
+              }
+            }
+            
             return;
           }
         }
