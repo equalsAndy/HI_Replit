@@ -379,20 +379,7 @@ export default function AllStarTeams() {
     console.log("Assessment completed with result:", result);
 
     // Special handling for assessment completion - mark step complete but stay on current step
-    // We need to update progress without auto-advancing the current step
-    const currentProgress = navigationProgress.data;
-    if (currentProgress) {
-      const updatedProgress = {
-        ...currentProgress,
-        completedSteps: [...new Set([...currentProgress.completedSteps, '2-2'])],
-        // Keep currentStepId as 2-2 so user stays on the assessment results view
-        currentStepId: '2-2',
-        lastVisitedAt: new Date().toISOString()
-      };
-      
-      // Update progress without triggering navigation
-      updateNavigationProgress(updatedProgress, false); // false = don't auto-navigate
-    }
+    markStepCompleted('2-2');
 
     // DO NOT auto-navigate - user should manually click Next button to proceed to step 2-3
     console.log("Assessment complete. User should now click Next button to proceed to step 2-3");
