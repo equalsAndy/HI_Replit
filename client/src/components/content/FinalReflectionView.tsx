@@ -76,8 +76,11 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
     setSaving(true);
     
     try {
-      await apiRequest('/api/workshop-data/final-reflection', 'POST', {
-        futureLetterText: statement
+      await apiRequest('/api/workshop-data/final-reflection', {
+        method: 'POST',
+        body: JSON.stringify({
+          futureLetterText: statement
+        })
       });
       
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });

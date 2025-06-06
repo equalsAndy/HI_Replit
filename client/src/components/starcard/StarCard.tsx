@@ -2,12 +2,13 @@ import React, { useState, useRef, useMemo, memo } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { FlowAttribute, ProfileData, QuadrantData } from '@shared/schema';
+import { QuadrantData } from '@shared/schema';
 import { downloadElementAsImage } from '@/lib/html2canvas';
 import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import allStarTeamsLogo from '@assets/all-star-teams-logo-250px.png';
-import cloudImage from '@assets/starcardcloudimage.png';
+// Using placeholder data for missing assets
+const allStarTeamsLogo = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjUwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjUwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzRGNDZFNSIvPjx0ZXh0IHg9IjEyNSIgeT0iNTUiIGZvbnQtZmFtaWx5PSJBcmlhbCwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIxNiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiPkFMTCBTVEFSIFRFQU1TPC90ZXh0Pjwvc3ZnPg==";
+const cloudImage = "/starcardcloudimage.png";
 
 // Profile data interface
 interface ProfileData {
