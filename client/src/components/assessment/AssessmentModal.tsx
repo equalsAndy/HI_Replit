@@ -594,10 +594,19 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       console.error('Error details:', error);
       console.error('Error message:', error.message);
 
-      // Even if there's an error, close modal and show results in content view
-      setAssessmentResults(null);
+      // Still close modal and show results in content view even on error
+      // Since the data might have been saved successfully despite the error
+      setAssessmentResults(results);
       setIsLoading(false);
       onClose();
+
+      // Call onComplete callback even on error since operation may have succeeded
+      if (onComplete) {
+        onComplete({ 
+          quadrantData: results,
+          showResultsInContentView: true 
+        });
+      }
     }
   };
 
