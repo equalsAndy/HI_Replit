@@ -33,29 +33,25 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     staleTime: 0
   });
 
-  // Load persisted values from localStorage or API
+  // Load persisted values from API, use default values if no data exists
   useEffect(() => {
-    // First try API data
     if (visualizationData) {
       const data = visualizationData as any;
-      if (data.wellBeingLevel !== undefined) {
+      
+      // Only update if data exists in database, otherwise keep defaults (5, 5)
+      if (data && data.wellBeingLevel !== undefined) {
         setWellBeingLevel(data.wellBeingLevel);
+      } else {
+        setWellBeingLevel(5); // Default value
       }
-      if (data.futureWellBeingLevel !== undefined) {
+      
+      if (data && data.futureWellBeingLevel !== undefined) {
         setFutureWellBeingLevel(data.futureWellBeingLevel);
+      } else {
+        setFutureWellBeingLevel(5); // Default value
       }
-    } else {
-      // Fallback to localStorage
-      const savedWellBeing = localStorage.getItem('wellbeingData');
-      if (savedWellBeing) {
-        try {
-          const parsed = JSON.parse(savedWellBeing);
-          setWellBeingLevel(parsed.wellBeingLevel || 5);
-          setFutureWellBeingLevel(parsed.futureWellBeingLevel || 7);
-        } catch (error) {
-          console.log('Error parsing saved wellbeing data');
-        }
-      }
+      
+      console.log('CantrilLadder: Using values - current:', data?.wellBeingLevel || 5, 'future:', data?.futureWellBeingLevel || 5);
     }
   }, [visualizationData]);
 

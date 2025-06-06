@@ -25,6 +25,9 @@ router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/workshop-data', workshopDataRoutes);
 
+// Add visualization endpoints directly at the API root level
+router.use('/', workshopDataRoutes);
+
 // Base API route to check if the API is running
 router.get('/', (req, res) => {
   res.json({

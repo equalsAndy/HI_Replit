@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Slider } from '@/components/ui/slider';
@@ -52,29 +53,39 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  // Check for existing flow score in local storage
-  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(() => {
-    try {
-      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
-      return !!savedAnswers;
-    } catch (e) {
-      return false;
-    }
-  });
-
+  // Check for existing flow assessment data from database
+  const [hasCompletedAssessment, setHasCompletedAssessment] = useState(false);
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<number, number>>(() => {
-    try {
-      const savedAnswers = localStorage.getItem('flowAssessmentAnswers');
-      return savedAnswers ? JSON.parse(savedAnswers) : {};
-    } catch (e) {
-      return {};
-    }
-  });
+  const [answers, setAnswers] = useState<Record<number, number>>({});
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [showScoringInfo, setShowScoringInfo] = useState(true);
+
+  // Load existing flow assessment data from database
+  const { data: userAssessments } = useQuery({
+    queryKey: ['/api/user/assessments'],
+    staleTime: 0
+  });
+
+  // Initialize state from database data
+  useEffect(() => {
+    const assessmentData = userAssessments as any;
+    if (assessmentData?.flowAssessment) {
+      const flowData = assessmentData.flowAssessment;
+      setAnswers(flowData.answers || {});
+      setHasCompletedAssessment(true);
+      setShowResults(true);
+      console.log('Flow Assessment: Loaded existing data from database', flowData);
+    } else {
+      // Clear any localStorage data if no database data exists
+      localStorage.removeItem('flowAssessmentAnswers');
+      setAnswers({});
+      setHasCompletedAssessment(false);
+      setShowResults(false);
+      console.log('Flow Assessment: No existing data found, starting fresh');
+    }
+  }, [userAssessments]);
 
   // Get current question
   const question = flowQuestions[currentQuestion];

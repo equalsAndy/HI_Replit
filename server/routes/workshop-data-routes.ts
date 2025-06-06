@@ -1669,4 +1669,145 @@ workshopDataRouter.get('/debug/step-1-1', async (req: Request, res: Response) =>
   }
 });
 
+/**
+ * Visualization/Well-being endpoints for Cantril Ladder
+ */
+// POST /api/visualization
+workshopDataRouter.post('/visualization', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { wellBeingLevel, futureWellBeingLevel } = req.body;
+    
+    // Validation
+    if (wellBeingLevel !== undefined && (typeof wellBeingLevel !== 'number' || wellBeingLevel < 0 || wellBeingLevel > 10)) {
+      return res.status(400).json({
+        success: false,
+        error: 'wellBeingLevel must be a number between 0 and 10',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+    
+    if (futureWellBeingLevel !== undefined && (typeof futureWellBeingLevel !== 'number' || futureWellBeingLevel < 0 || futureWellBeingLevel > 10)) {
+      return res.status(400).json({
+        success: false,
+        error: 'futureWellBeingLevel must be a number between 0 and 10',
+        code: 'VALIDATION_ERROR'
+      });
+    }
+    
+    const assessmentData = {
+      wellBeingLevel: wellBeingLevel || 5,
+      futureWellBeingLevel: futureWellBeingLevel || 5
+    };
+    
+    // Check if assessment already exists
+    const existingAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'cantrilLadder')
+        )
+      );
+    
+    if (existingAssessment.length > 0) {
+      // Update existing
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(assessmentData)
+        })
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id));
+    } else {
+      // Create new
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'cantrilLadder',
+        results: JSON.stringify(assessmentData)
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: assessmentData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'cantrilLadder' 
+      }
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+      code: 'SAVE_ERROR'
+    });
+  }
+});
+
+// GET /api/visualization
+workshopDataRouter.get('/visualization', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'cantrilLadder')
+        )
+      );
+    
+    if (!assessment || assessment.length === 0) {
+      // Return default values if no data exists
+      return res.json({ 
+        success: true, 
+        data: null,
+        wellBeingLevel: 5,
+        futureWellBeingLevel: 5
+      });
+    }
+    
+    const results = JSON.parse(assessment[0].results);
+    res.json({
+      success: true,
+      data: results,
+      wellBeingLevel: results.wellBeingLevel || 5,
+      futureWellBeingLevel: results.futureWellBeingLevel || 5,
+      meta: { assessmentType: 'cantrilLadder' }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve assessment',
+      code: 'FETCH_ERROR'
+    });
+  }
+});
+
 export default workshopDataRouter;
