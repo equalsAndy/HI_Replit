@@ -176,29 +176,51 @@ export function useNavigationProgress() {
     
     // Step completion detection
     const isStepCompleted = (stepId: string): boolean => {
-      // Assessment steps require actual completion
+      // Assessment steps require actual completion from database
       if (stepId === '2-2') {
         const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
-        console.log(`🔍 Step 2-2 completion check - hasStarCard: ${hasStarCard}`, userAssessments);
+        console.log(`🔍 Step 2-2 completion check - hasStarCard: ${hasStarCard}`);
         return hasStarCard;
       }
       if (stepId === '3-2') {
         const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
-        console.log(`🔍 Step 3-2 completion check - hasFlowAssessment: ${hasFlowAssessment}`, userAssessments);
+        console.log(`🔍 Step 3-2 completion check - hasFlowAssessment: ${hasFlowAssessment}`);
         return hasFlowAssessment;
       }
       if (stepId === '3-4') {
         const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
-        console.log(`🔍 Step 3-4 completion check - hasFlowAttributes: ${hasFlowAttributes}`, userAssessments);
+        console.log(`🔍 Step 3-4 completion check - hasFlowAttributes: ${hasFlowAttributes}`);
         return hasFlowAttributes;
       }
       if (stepId === '4-1') {
         const hasCantrilLadder = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
-        console.log(`🔍 Step 4-1 completion check - hasCantrilLadder: ${hasCantrilLadder}`, userAssessments);
+        console.log(`🔍 Step 4-1 completion check - hasCantrilLadder: ${hasCantrilLadder}`);
         return hasCantrilLadder;
       }
       
-      // All other steps (including videos) are completed when explicitly marked via Next button
+      // For content/video steps, check if they should be auto-completed based on next assessment completion
+      if (stepId === '2-1' && (userAssessments?.starCard || userAssessments?.assessments?.starCard)) {
+        console.log(`🔍 Step 2-1 auto-completion - starCard exists`);
+        return true;
+      }
+      if (stepId === '2-3' && (userAssessments?.stepByStepReflection || userAssessments?.assessments?.stepByStepReflection)) {
+        console.log(`🔍 Step 2-3 auto-completion - stepByStepReflection exists`);
+        return true;
+      }
+      if (stepId === '2-4' && (userAssessments?.roundingOutReflection || userAssessments?.assessments?.roundingOutReflection)) {
+        console.log(`🔍 Step 2-4 auto-completion - roundingOutReflection exists`);
+        return true;
+      }
+      if (stepId === '3-1' && (userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment)) {
+        console.log(`🔍 Step 3-1 auto-completion - flowAssessment exists`);
+        return true;
+      }
+      if (stepId === '3-3' && (userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes)) {
+        console.log(`🔍 Step 3-3 auto-completion - flowAttributes exists`);
+        return true;
+      }
+      
+      // All other steps rely on explicit completion tracking
       const isMarkedComplete = currentProgress.completedSteps.includes(stepId);
       console.log(`🔍 Step ${stepId} completion check - isMarkedComplete: ${isMarkedComplete}`);
       return isMarkedComplete;
