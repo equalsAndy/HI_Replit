@@ -4,10 +4,10 @@ import { ContentViewProps } from '../../shared/types';
 import { Textarea } from '@/components/ui/textarea';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
-import { ChevronRight, PenTool } from 'lucide-react';
+import { ChevronRight, PenTool, TrendingUp } from 'lucide-react';
 import { debounce } from 'lodash';
 
-import ladderGraphic from '@assets/image_1747800627533.png';
+// import ladderGraphic from '@assets/image_1747800627533.png'; // Commented out missing asset
 
 const FinalReflectionView: React.FC<ContentViewProps> = ({
   navigate,
@@ -117,11 +117,9 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         </div>
         
         <div className="flex flex-col items-center justify-center">
-          <div className="w-3/4 max-w-[250px] mb-6">
-            <img 
-              src={ladderGraphic} 
-              alt="Development Ladder" 
-              className="w-full h-auto"
+          <div className="w-3/4 max-w-[250px] mb-6 flex justify-center">
+            <TrendingUp 
+              className="w-32 h-32 text-indigo-400"
             />
           </div>
           
