@@ -190,8 +190,6 @@ export function useNavigationProgress() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const lastKnownProgressRef = useRef<NavigationProgress | null>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
     currentStepId: '1-1', // Start with first step
@@ -203,71 +201,26 @@ export function useNavigationProgress() {
     videoPositions: {} // New: track current playback positions
   });
 
-  // Direct initialization on hook creation
+  // Load navigation progress from database on component mount
   useEffect(() => {
-    if (isInitialized) return;
+    console.log('🔄 Loading progress from database...');
     
-    console.log('🔄 NAVIGATION HOOK: Force initializing progress from database...');
-    
-    const initializeProgress = async () => {
+    const loadProgressFromDatabase = async () => {
       try {
         const response = await fetch('/api/user/navigation-progress', {
           credentials: 'include'
         });
         
-        console.log('🔄 NAVIGATION HOOK: Database response status:', response.status);
-        
         if (response.ok) {
           const data = await response.json();
-          console.log('📊 NAVIGATION HOOK: Database data loaded:', data);
+          console.log('📊 Database progress loaded:', data);
           
-          if (data.progress) {
-            let dbProgress;
+          if (data.navigationProgress) {
+            const dbProgress = JSON.parse(data.navigationProgress);
+            console.log('📊 Parsed database progress:', dbProgress);
             
-            console.log('📊 NAVIGATION HOOK: Raw progress data:', data.progress);
-            
-            // Handle deeply nested JSON structure
-            if (typeof data.progress === 'string') {
-              try {
-                let currentData = data.progress;
-                let parseLevel = 0;
-                
-                // Keep parsing until we get to actual progress data
-                while (typeof currentData === 'string' && parseLevel < 5) {
-                  const parsed = JSON.parse(currentData);
-                  console.log(`📊 NAVIGATION HOOK: Parse level ${parseLevel}:`, parsed);
-                  
-                  if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
-                    currentData = parsed.navigationProgress;
-                    parseLevel++;
-                  } else if (parsed.completedSteps || parsed.currentStepId) {
-                    // Found actual progress data
-                    dbProgress = parsed;
-                    break;
-                  } else {
-                    // This might be the progress data itself
-                    dbProgress = parsed;
-                    break;
-                  }
-                }
-                
-                // If we still have a string, try one more parse
-                if (typeof currentData === 'string' && !dbProgress) {
-                  dbProgress = JSON.parse(currentData);
-                }
-                
-                console.log('📊 NAVIGATION HOOK: Final parsed progress:', dbProgress);
-              } catch (error) {
-                console.error('❌ NAVIGATION HOOK: Failed to parse progress:', error);
-                dbProgress = null;
-              }
-            } else {
-              dbProgress = data.progress;
-              console.log('📊 NAVIGATION HOOK: Using object progress:', dbProgress);
-            }
-            
-            // Apply loaded progress
-            const loadedProgress = {
+            // Merge database progress with required defaults
+            const mergedProgress = {
               completedSteps: dbProgress.completedSteps || [],
               currentStepId: dbProgress.currentStepId || '1-1',
               appType: dbProgress.appType || 'ast' as const,
@@ -278,13 +231,14 @@ export function useNavigationProgress() {
               videoPositions: dbProgress.videoPositions || {}
             };
             
-            console.log('✅ NAVIGATION HOOK: Setting loaded progress:', loadedProgress);
-            setProgress(loadedProgress);
+            console.log('✅ Setting merged progress from database:', mergedProgress);
+            setProgress(mergedProgress);
             
-            // Auto-navigate to current step
-            if (loadedProgress.currentStepId && loadedProgress.currentStepId !== '1-1') {
-              console.log(`🧭 NAVIGATION HOOK: Auto-navigating to step: ${loadedProgress.currentStepId}`);
+            // Auto-navigate to current step content if available
+            if (mergedProgress.currentStepId) {
+              console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${mergedProgress.currentStepId}`);
               
+              // Map step IDs to content views
               const stepContentMap = {
                 '1-1': 'welcome',
                 '2-1': 'intro-strengths', 
@@ -301,71 +255,73 @@ export function useNavigationProgress() {
                 '4-4': 'future-self'
               };
               
-              const targetContent = stepContentMap[loadedProgress.currentStepId];
+              const targetContent = stepContentMap[mergedProgress.currentStepId];
               if (targetContent) {
-                console.log(`🧭 NAVIGATION HOOK: Dispatching auto-navigation to: ${targetContent}`);
+                console.log(`🧭 AUTO-NAVIGATION: Navigating to content: ${targetContent}`);
+                // Dispatch a custom event that the AllStarTeams page can listen to
                 window.dispatchEvent(new CustomEvent('autoNavigateToContent', {
                   detail: { 
                     content: targetContent, 
-                    stepId: loadedProgress.currentStepId 
+                    stepId: mergedProgress.currentStepId 
                   }
                 }));
               }
             }
+            
+            return;
           }
-        } else {
-          console.log('⚠️ NAVIGATION HOOK: Failed to load progress, using defaults');
         }
+        
+        console.log('⚠️ No database progress found, using clean state');
+        // Only use clean state if no database progress exists
+        const cleanProgress = {
+          completedSteps: [],
+          currentStepId: '1-1',
+          appType: 'ast' as const,
+          lastVisitedAt: new Date().toISOString(),
+          unlockedSections: ['1'],
+          unlockedSteps: ['1-1'],
+          videoProgress: {},
+          videoPositions: {}
+        };
+        
+        setProgress(cleanProgress);
+        
       } catch (error) {
-        console.error('❌ NAVIGATION HOOK: Error loading progress:', error);
-      } finally {
-        setIsInitialized(true);
+        console.error('❌ Failed to load progress from database:', error);
+        // Fallback to clean state
+        const cleanProgress = {
+          completedSteps: [],
+          currentStepId: '1-1',
+          appType: 'ast' as const,
+          lastVisitedAt: new Date().toISOString(),
+          unlockedSections: ['1'],
+          unlockedSteps: ['1-1'],
+          videoProgress: {},
+          videoPositions: {}
+        };
+        
+        setProgress(cleanProgress);
       }
     };
     
-    initializeProgress();
-  }, [isInitialized]);
+    loadProgressFromDatabase();
+    localStorage.removeItem('videoProgress');
+    sessionStorage.clear();
+    
+    // Force clear any existing cached state
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('progress') || key.includes('video') || key.includes('navigation')) {
+        localStorage.removeItem(key);
+      }
+    });
+  }, []);
 
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
-  // DISABLED: Reset detection was causing continuous loops
-  // The system was clearing progress data unnecessarily
-  const serverProgress = null;
-
-  // Load navigation progress from database on component mount
-  useEffect(() => {
-    console.log('🔄 NAVIGATION HOOK: Starting database load...');
-    console.log('🔄 NAVIGATION HOOK: Hook initialized, loading progress from database...');
-    
-    const loadProgressFromDatabase = async () => {
-      try {
-        console.log('🔄 NAVIGATION HOOK: Making fetch request to /api/user/navigation-progress');
-        const response = await fetch('/api/user/navigation-progress', {
-          credentials: 'include'
-        });
-        
-        console.log('🔄 NAVIGATION HOOK: Response status:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('📊 Database progress loaded:', data);
-          
-          if (data.navigationProgress) {
-            let dbProgress;
-            
-            // Handle nested JSON structure
-            if (typeof data.navigationProgress === 'string') {
-              const firstParse = JSON.parse(data.navigationProgress);
-              
-              // Check if there's a nested navigationProgress property
-              if (firstParse.navigationProgress && typeof firstParse.navigationProgress === 'string') {
-                // Parse the nested navigationProgress to get the actual data
-                dbProgress = JSON.parse(firstParse.navigationProgress);
-                console.log('📊 Parsed nested database progress:', dbProgress);
-              } else {
-                // Direct progress data
-                dbProgress = firstParse;
+  // Get user assessments for completion detection
+  const { data: userAssessments = {} } = useUserAssessments();
                 console.log('📊 Parsed direct database progress:', dbProgress);
               }
             } else {
