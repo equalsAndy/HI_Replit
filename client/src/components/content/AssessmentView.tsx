@@ -30,30 +30,30 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
 
-  // Load assessment data directly from the API when component mounts and poll for updates
+  // Load assessment data directly from the starcard API when component mounts and poll for updates
   React.useEffect(() => {
     const fetchAssessmentData = async () => {
-      setIsLoadingAssessment(true);
       try {
-        const response = await fetch('/api/workshop-data/userAssessments', {
+        const response = await fetch('/api/workshop-data/starcard', {
           credentials: 'include'
         });
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Assessment API response:", data);
+          console.log("StarCard API response:", data);
 
-          // Look for star card assessment in the response
-          if (data?.currentUser?.assessments?.starCard) {
-            setAssessmentData(data.currentUser.assessments.starCard);
+          // Check if we have valid assessment data
+          if (data && (data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0)) {
+            setAssessmentData({
+              formattedResults: data
+            });
+            console.log("✅ Assessment data detected, switching to results view");
           }
         } else {
-          console.error("Failed to fetch assessment data:", response.status);
+          console.log("No assessment data available yet");
         }
       } catch (error) {
         console.error("Error fetching assessment data:", error);
-      } finally {
-        setIsLoadingAssessment(false);
       }
     };
 

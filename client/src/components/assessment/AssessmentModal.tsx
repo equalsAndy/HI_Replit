@@ -598,9 +598,9 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       // Since the data might have been saved successfully despite the error
       // Calculate results for display even if there was a network/parsing error
       const fallbackResults = calculateQuadrantScores(
-        Object.entries(completeAnswers).map(([questionId, rankings]) => ({
+        Object.entries(answers).map(([questionId, rankings]) => ({
           questionId: parseInt(questionId),
-          rankings
+          rankings: rankings as RankedOption[]
         })),
         optionCategoryMapping
       );
