@@ -30,7 +30,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
 
-  // Load assessment data directly from the API when component mounts
+  // Load assessment data directly from the API when component mounts and poll for updates
   React.useEffect(() => {
     const fetchAssessmentData = async () => {
       setIsLoadingAssessment(true);
@@ -58,6 +58,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     };
 
     fetchAssessmentData();
+
+    // Poll every 2 seconds to check for new assessment data
+    const pollInterval = setInterval(fetchAssessmentData, 2000);
+
+    // Cleanup interval on unmount
+    return () => clearInterval(pollInterval);
   }, []);
 
   // Use the fetched data or fall back to the prop

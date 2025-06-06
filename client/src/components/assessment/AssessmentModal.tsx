@@ -596,14 +596,23 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
 
       // Still close modal and show results in content view even on error
       // Since the data might have been saved successfully despite the error
-      setAssessmentResults(results);
+      // Calculate results for display even if there was a network/parsing error
+      const fallbackResults = calculateQuadrantScores(
+        Object.entries(completeAnswers).map(([questionId, rankings]) => ({
+          questionId: parseInt(questionId),
+          rankings
+        })),
+        optionCategoryMapping
+      );
+      
+      setAssessmentResults(fallbackResults);
       setIsLoading(false);
       onClose();
 
       // Call onComplete callback even on error since operation may have succeeded
       if (onComplete) {
         onComplete({ 
-          quadrantData: results,
+          quadrantData: fallbackResults,
           showResultsInContentView: true 
         });
       }
