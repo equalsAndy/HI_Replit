@@ -175,6 +175,7 @@ export function useNavigationProgress() {
     
     // Step completion detection
     const isStepCompleted = (stepId: string): boolean => {
+      // Assessment steps require actual completion
       if (stepId === '2-2') {
         return !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
       }
@@ -182,7 +183,7 @@ export function useNavigationProgress() {
         return !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
       }
       
-      // For other steps, check if they're in completedSteps
+      // All other steps (including videos) are completed when explicitly marked via Next button
       return currentProgress.completedSteps.includes(stepId);
     };
 
@@ -279,15 +280,63 @@ export function useNavigationProgress() {
     console.log(`✅ Marking step ${stepId} as completed`);
     
     const newCompletedSteps = Array.from(new Set([...progress.completedSteps, stepId]));
+    
+    // Calculate what should be unlocked based on completion
+    const unlockedSections = new Set(['1']); // Always unlock section 1
+    const unlockedSteps = new Set(['1-1']); // Always unlock first step
+    
+    // Progressive unlocking logic
+    if (newCompletedSteps.includes('1-1')) {
+      unlockedSections.add('2');
+      unlockedSteps.add('2-1');
+    }
+    if (newCompletedSteps.includes('2-1')) {
+      unlockedSteps.add('2-2');
+    }
+    if (newCompletedSteps.includes('2-2')) {
+      unlockedSteps.add('2-3');
+    }
+    if (newCompletedSteps.includes('2-3')) {
+      unlockedSteps.add('2-4');
+    }
+    if (newCompletedSteps.includes('2-4')) {
+      unlockedSections.add('3');
+      unlockedSteps.add('3-1');
+    }
+    if (newCompletedSteps.includes('3-1')) {
+      unlockedSteps.add('3-2');
+    }
+    if (newCompletedSteps.includes('3-2')) {
+      unlockedSteps.add('3-3');
+    }
+    if (newCompletedSteps.includes('3-3')) {
+      unlockedSteps.add('3-4');
+    }
+    if (newCompletedSteps.includes('3-4')) {
+      unlockedSections.add('4');
+      unlockedSteps.add('4-1');
+    }
+    if (newCompletedSteps.includes('4-1')) {
+      unlockedSteps.add('4-2');
+    }
+    if (newCompletedSteps.includes('4-2')) {
+      unlockedSteps.add('4-3');
+    }
+    if (newCompletedSteps.includes('4-3')) {
+      unlockedSteps.add('4-4');
+    }
+    
     const updatedProgress = {
       ...progress,
       completedSteps: newCompletedSteps,
+      unlockedSections: Array.from(unlockedSections),
+      unlockedSteps: Array.from(unlockedSteps),
       lastVisitedAt: new Date().toISOString()
     };
     
-    const recalculatedProgress = { ...updatedProgress, ...recalculateProgress() };
-    setProgress(recalculatedProgress);
-    syncProgressToDatabase(recalculatedProgress);
+    console.log(`📊 Updated progress:`, updatedProgress);
+    setProgress(updatedProgress);
+    syncProgressToDatabase(updatedProgress);
   };
 
   const updateVideoProgress = (stepId: string, progressPercent: number, currentPosition?: number) => {
