@@ -183,9 +183,19 @@ export function useNavigationProgress() {
         return hasStarCard;
       }
       if (stepId === '3-2') {
+        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
+        console.log(`🔍 Step 3-2 completion check - hasFlowAssessment: ${hasFlowAssessment}`, userAssessments);
+        return hasFlowAssessment;
+      }
+      if (stepId === '3-4') {
         const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
-        console.log(`🔍 Step 3-2 completion check - hasFlowAttributes: ${hasFlowAttributes}`, userAssessments);
+        console.log(`🔍 Step 3-4 completion check - hasFlowAttributes: ${hasFlowAttributes}`, userAssessments);
         return hasFlowAttributes;
+      }
+      if (stepId === '4-1') {
+        const hasCantrilLadder = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
+        console.log(`🔍 Step 4-1 completion check - hasCantrilLadder: ${hasCantrilLadder}`, userAssessments);
+        return hasCantrilLadder;
       }
       
       // All other steps (including videos) are completed when explicitly marked via Next button
