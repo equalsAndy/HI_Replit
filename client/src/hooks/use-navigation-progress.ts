@@ -403,7 +403,7 @@ export function useNavigationProgress() {
         syncProgressToDatabase(calculated);
       }
     }
-  }, [userAssessments]);
+  }, [userAssessments, progress.completedSteps.length]);
 
   const currentCalculatedProgress = recalculateProgress();
 
