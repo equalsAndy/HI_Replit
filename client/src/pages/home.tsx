@@ -4,8 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import allStarTeamsLogo from "@/assets/all-star-teams-logo-250px.png";
-import imaginalAgilityLogo from "/HI_Logo_horizontal.png";
-import logoHorizontal from "/HI_Logo_horizontal.png";
+import imaginalAgilityLogo from "@/assets/HI_Logo_horizontal.png";
+import logoHorizontal from "@/assets/HI_Logo_horizontal.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();

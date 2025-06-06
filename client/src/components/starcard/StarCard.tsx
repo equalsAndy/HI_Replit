@@ -7,7 +7,7 @@ import { downloadElementAsImage } from '@/lib/html2canvas';
 import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
-import cloudImage from '/starcardcloudimage.png';
+import cloudImage from '@/assets/starcardcloudimage.png';
 
 // Profile data interface
 interface ProfileData {
