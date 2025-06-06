@@ -7,11 +7,8 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import { debounce } from '@/lib/utils';
 
-// Temporarily commented out until images are provided
-// const hokusaiWave = "/image_1747799995641.png";
-// const hokusaiPortrait = "/image_1747800012190.png";
-const hokusaiWave = null;
-const hokusaiPortrait = null;
+const hokusaiWave = "/image_1747799995641.png";
+const hokusaiPortrait = "/image_1747800012190.png";
 import VideoPlayer from './VideoPlayer';
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
