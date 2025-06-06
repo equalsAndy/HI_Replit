@@ -59,8 +59,8 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
 
     fetchAssessmentData();
 
-    // Poll every 2 seconds to check for new assessment data
-    const pollInterval = setInterval(fetchAssessmentData, 2000);
+    // Poll every 1 second to check for new assessment data for faster response
+    const pollInterval = setInterval(fetchAssessmentData, 1000);
 
     // Cleanup interval on unmount
     return () => clearInterval(pollInterval);
