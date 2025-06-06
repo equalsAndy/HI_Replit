@@ -3,10 +3,9 @@ import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-// Using direct paths for assets
-const allStarTeamsLogo = "/all-star-teams-logo-250px.svg";
-const imaginalAgilityLogo = "/HI_Logo_horizontal.png";
-const logoHorizontal = "/HI_Logo_horizontal.png";
+import allStarTeamsLogo from "@/assets/all-star-teams-logo-250px.png";
+import imaginalAgilityLogo from "/HI_Logo_horizontal.png";
+import logoHorizontal from "/HI_Logo_horizontal.png";
 
 export default function Home() {
   const [, setLocation] = useLocation();
