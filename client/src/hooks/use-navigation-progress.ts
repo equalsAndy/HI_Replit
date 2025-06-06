@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -393,8 +393,22 @@ export function useNavigationProgress() {
     return recalculatedProgress.completedSteps.includes(stepId);
   };
 
+  // Force update progress when assessments are detected
+  useEffect(() => {
+    if (userAssessments && (userAssessments.starCard || userAssessments.assessments?.starCard)) {
+      const calculated = recalculateProgress();
+      if (calculated.completedSteps.length > progress.completedSteps.length) {
+        console.log('🔄 Assessment detected - updating stored progress:', calculated.completedSteps);
+        setProgress(calculated);
+        syncProgressToDatabase(calculated);
+      }
+    }
+  }, [userAssessments]);
+
+  const currentCalculatedProgress = recalculateProgress();
+
   return {
-    progress: recalculateProgress(),
+    progress: currentCalculatedProgress,
     updateVideoProgress,
     markStepCompleted,
     updateCurrentStep,
