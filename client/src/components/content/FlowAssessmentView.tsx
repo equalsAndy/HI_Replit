@@ -75,31 +75,50 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       
       console.log('🔍 Flow Assessment: Checking assessment data structure:', assessmentData);
       
-      // Check both direct and nested assessment data structures
-      const flowData = assessmentData.flowAssessment || assessmentData.assessments?.flowAssessment;
+      // Check multiple possible data structures for flow assessment
+      const flowData = assessmentData.flowAssessment || 
+                      assessmentData.assessments?.flowAssessment ||
+                      (assessmentData.assessments && assessmentData.assessments.find((a: any) => a.type === 'flowAssessment'));
       
       console.log('🔍 Flow Assessment: FlowData found:', flowData);
       
-      if (flowData && flowData.answers) {
-        console.log('✅ Flow Assessment: Found existing data with answers:', flowData);
-        setAnswers(flowData.answers);
-        setHasCompletedAssessment(true);
-        setShowResults(true);
-        setCurrentQuestion(flowQuestions.length - 1); // Set to last question for results view
-      } else if (flowData && flowData.flowScore) {
-        console.log('✅ Flow Assessment: Found existing data with flowScore but no answers, reconstructing:', flowData);
-        // If we have a flow score but no answers, create mock answers that would give this score
-        const mockAnswers: Record<number, number> = {};
-        const avgScore = Math.round(flowData.flowScore / flowQuestions.length);
-        flowQuestions.forEach(q => {
-          mockAnswers[q.id] = Math.max(1, Math.min(5, avgScore));
-        });
-        setAnswers(mockAnswers);
-        setHasCompletedAssessment(true);
-        setShowResults(true);
-        setCurrentQuestion(flowQuestions.length - 1);
+      if (flowData) {
+        // Check if we have complete answers
+        if (flowData.answers && Object.keys(flowData.answers).length >= flowQuestions.length) {
+          console.log('✅ Flow Assessment: Found existing data with complete answers:', flowData);
+          setAnswers(flowData.answers);
+          setHasCompletedAssessment(true);
+          setShowResults(false); // Show results view directly
+          setCurrentQuestion(flowQuestions.length - 1);
+        } else if (flowData.flowScore && flowData.flowScore > 0) {
+          console.log('✅ Flow Assessment: Found existing data with flowScore, reconstructing answers:', flowData);
+          // Reconstruct answers from the saved answers or create representative ones
+          let reconstructedAnswers: Record<number, number> = {};
+          
+          if (flowData.answers && Object.keys(flowData.answers).length > 0) {
+            reconstructedAnswers = flowData.answers;
+          } else {
+            // Create representative answers that would give this score
+            const avgScore = Math.round(flowData.flowScore / flowQuestions.length);
+            flowQuestions.forEach(q => {
+              reconstructedAnswers[q.id] = Math.max(1, Math.min(5, avgScore));
+            });
+          }
+          
+          setAnswers(reconstructedAnswers);
+          setHasCompletedAssessment(true);
+          setShowResults(false); // Show results view directly
+          setCurrentQuestion(flowQuestions.length - 1);
+        } else {
+          console.log('⚠️ Flow Assessment: Found flowData but no valid score or answers, starting fresh');
+          localStorage.removeItem('flowAssessmentAnswers');
+          setAnswers({});
+          setHasCompletedAssessment(false);
+          setShowResults(false);
+          setCurrentQuestion(0);
+        }
       } else {
-        console.log('❌ Flow Assessment: No existing data found, starting fresh. FlowData was:', flowData);
+        console.log('❌ Flow Assessment: No existing data found, starting fresh');
         localStorage.removeItem('flowAssessmentAnswers');
         setAnswers({});
         setHasCompletedAssessment(false);
