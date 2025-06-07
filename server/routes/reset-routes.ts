@@ -79,6 +79,14 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         console.log(`No workshop participation to reset for user ${userId}`);
       }
       
+      // 5. Clear navigation progress
+      try {
+        await db.execute(sql`UPDATE users SET navigation_progress = NULL, updated_at = NOW() WHERE id = ${userId}`);
+        console.log(`Cleared navigation progress for user ${userId}`);
+      } catch (err) {
+        console.log(`Error clearing navigation progress for user ${userId}:`, err);
+      }
+      
       // Add cache prevention headers
       res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
       res.setHeader('Pragma', 'no-cache');
