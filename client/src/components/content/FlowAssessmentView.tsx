@@ -186,15 +186,14 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
       // Save to server database
       saveFlowAssessmentToServer(flowScore, answers);
 
-      // Mark step as completed
-      markStepCompleted('3-2');
-
       // Save assessment to localStorage
       localStorage.setItem('flowAssessmentAnswers', JSON.stringify(answers));
       setHasCompletedAssessment(true);
 
       // Show results modal
       setShowResults(true);
+      
+      // DO NOT auto-mark completed or navigate - let user do it manually from results
     }
   };
 

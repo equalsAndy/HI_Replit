@@ -353,8 +353,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         duration: 5000
       });
 
-      // Mark step completed
-      markStepCompleted('3-4');
+      // DO NOT auto-mark completed - let user do it manually from the interface
     },
     onError: (error: Error) => {
       toast({
