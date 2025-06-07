@@ -325,27 +325,16 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               </div>
             </div>
 
-            <div className="flex justify-end space-x-4">
-              {/* Test button to verify click handler works */}
-              <button 
-                onClick={() => {
-                  console.log("🔥 TEST BUTTON CLICKED!");
-                  alert("Test button works!");
-                }}
-                className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded"
-              >
-                Test Click
-              </button>
-              
+            <div className="flex justify-end">
               <Button 
                 onClick={() => {
                   console.log("🔥 NAVIGATION BUTTON CLICKED!");
                   console.log("🔥 Current step ID:", currentStepId);
-                  console.log("🔥 Should navigate from 2-2 to 2-3");
                   
-                  // Direct navigation implementation
-                  setCurrentStep('2-3');
-                  console.log("✅ Set current step to 2-3");
+                  // Navigate to step 2-3 with star-card-preview content
+                  markStepCompleted('2-2');
+                  setCurrentContent('star-card-preview');
+                  console.log("✅ Marked 2-2 complete and set content to star-card-preview");
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700"
                 type="button"
