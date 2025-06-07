@@ -441,7 +441,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   });
 
   // If we have completed assessment data with a score, show detailed results
-  if (completedAssessmentData && completedAssessmentData.flowScore !== undefined && showResult) {
+  if (completedAssessmentData && completedAssessmentData.flowScore !== undefined && completedAssessmentData.completed) {
     const interpretation = getInterpretation(completedAssessmentData.flowScore);
     
     return (
