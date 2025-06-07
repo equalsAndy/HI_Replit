@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ContentViewProps } from '../../shared/types';
-import FlowAssessment from '../flow/FlowAssessmentNew';
+import FlowAssessment from '../flow/FlowAssessment';
 
 const FlowAssessmentView: React.FC<ContentViewProps> = ({
   navigate,
