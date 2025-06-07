@@ -1,0 +1,389 @@
+### State Management
+```typescript
+const [progress, setProgress] = useState<NavigationProgress>({
+  completedSteps: [],
+  currentStepId: '1-1',
+  appType: 'ast',
+  lastVisitedAt: new Date().toISOString(),
+  unlockedSteps: ['1-1'],
+  videoProgress: {}
+});
+
+// Debounced database sync
+const debouncedSync = useRef<NodeJS.Timeout>();
+const scheduleSync = (progressData: NavigationProgress)# NAVIGATION HOOK IMPLEMENTATION - DETAILED SPECIFICATION
+
+## **CRITICAL PROJECT CONSTRAINTS**
+```typescript
+// ADD TO PROJECT INSTRUCTIONS:
+IMPLEMENTATION CONSTRAINTS:
+- ASK PERMISSION before modifying ANY file other than the target file
+- ASK PERMISSION before creating new files, utilities, or dependencies  
+- VERIFY all API endpoints exist before using them
+- PROVIDE testing strategy and manual verification steps
+- EXPLAIN any architectural decisions that deviate from specification
+- NO SILENT FILE SWITCHING - stick to specified target file
+```
+
+## **PRIMARY TARGET**
+**File:** `client/src/hooks/use-navigation-progress.ts`
+**Goal:** Create navigation hook for linear learning progression
+
+## **SYSTEM ARCHITECTURE**
+
+### Database Schema
+```typescript
+// Table: users, Column: navigationProgress (TEXT/JSON)
+// CRITICAL: Maximum 2 levels of JSON nesting
+interface NavigationProgress {
+  completedSteps: string[];           // ['1-1', '2-2', '3-4', '5-1']
+  currentStepId: string;              // '5-2'
+  appType: 'ast' | 'ia';             // 'ast'
+  lastVisitedAt: string;             // ISO timestamp
+  unlockedSteps: string[];           // ['1-1', '2-1', '2-2', '2-3', '4-1', '5-1', '5-2']
+  videoProgress: {                   // Level 2 nesting
+    [stepId: string]: {              // Level 3 - MAXIMUM ALLOWED
+      farthest: number;              // 85.5
+      current: number;               // 23.7
+    }
+  };
+  // FORBIDDEN: No navigationProgress.navigationProgress nesting
+  // NO SECTION TRACKING: Only individual step progression
+}
+```
+
+### API Endpoints (VERIFY THESE EXIST)
+```typescript
+// Required endpoints - verify before use:
+POST /api/user/navigation-progress    // Sync progress to database
+GET  /api/user/profile               // Load user with navigationProgress
+GET  /api/workshop-data/userAssessments // Load assessment completion data
+
+// Expected response format:
+// /api/workshop-data/userAssessments
+{
+  starCard: { thinking: 25, acting: 30, feeling: 20, planning: 25 },        // 2-2 assessment
+  flowAssessment: { flowScore: 45, answers: {...} },                        // 3-2 assessment
+  cantrilLadder: { currentWellbeing: 7, futureWellbeing: 9 },              // 4-1 assessment
+  cantrilLadderReflection: { currentFactors: "text", futureImprovements: "text" } // 4-2 reflections (non-blocking)
+}
+```
+
+## **HARDWIRED PROGRESSION RULES**
+
+### Step Sequence (Complete & Final)
+```typescript
+const ALL_STEPS = [
+  '1-1', '2-1', '2-2', '2-3', '2-4',           // Section 1-2
+  '3-1', '3-2', '3-3', '3-4',                  // Section 3
+  '4-1', '4-2', '4-3', '4-4', '4-5',           // Section 4
+  '5-1', '5-2', '5-3', '5-4',                  // Section 5 (5-2,5-3,5-4 unlock together)
+  '6-1'                                        // Section 6 (only step defined)
+];
+
+const VIDEO_STEPS = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+const ASSESSMENT_STEPS = ['2-2', '3-2', '4-1'];  // 4-2 removed - it's reflections, not assessment
+const REFLECTION_STEPS = ['4-2'];  // 4-2 is reflections, non-blocking in simplified mode
+```
+
+### Final Progression Logic
+```typescript
+// SIMPLIFIED MODE: Assessment steps block progression, reflections and video steps don't
+const validateStepCompletion = (stepId: string, userAssessments: any): boolean => {
+  // Assessment requirements (blocking)
+  if (stepId === '2-2') return !!userAssessments?.starCard;
+  if (stepId === '3-2') return !!userAssessments?.flowAssessment;
+  if (stepId === '4-1') return !!userAssessments?.cantrilLadder;
+  
+  // 4-2 is reflections, not assessment - non-blocking in simplified mode
+  // Video steps and reflection steps: always passable in simplified mode
+  return true;
+};
+
+// FINAL unlock logic with confirmed branch points
+const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
+  const unlocked = ['1-1']; // Always start here
+  
+  // Linear progression through main sequence
+  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  
+  for (let i = 0; i < mainSequence.length - 1; i++) {
+    const currentStep = mainSequence[i];
+    const nextStep = mainSequence[i + 1];
+    
+    if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
+      unlocked.push(nextStep);
+    }
+  }
+  
+  // SPECIAL BRANCH POINT 1: 3-4 completion ALSO unlocks 5-1 (parallel to 4-1)
+  if (completedSteps.includes('3-4') && !unlocked.includes('5-1')) {
+    unlocked.push('5-1');
+  }
+  
+  // SPECIAL BRANCH POINT 2: 4-5 completion unlocks 6-1, 5-2, 5-3, 5-4 ALL AT ONCE
+  if (completedSteps.includes('4-5')) {
+    const section5Resources = ['5-2', '5-3', '5-4', '6-1'];
+    section5Resources.forEach(stepId => {
+      if (!unlocked.includes(stepId)) {
+        unlocked.push(stepId);
+      }
+    });
+  }
+  
+  return unlocked;
+};
+```
+
+## **GLOBAL STATE MANAGEMENT**
+
+### Window-Level Video Tracking (Evaluate This Approach)
+```typescript
+// Current specification uses window object
+// QUESTION: Should we evaluate alternatives (React Context, Zustand)?
+declare global {
+  interface Window {
+    currentVideoProgress: {
+      [stepId: string]: {
+        farthest: number;  // Maximum progress achieved
+        current: number;   // Last playback position
+      }
+    }
+  }
+}
+
+// Initialize and maintain
+const initializeVideoTracking = () => {
+  if (!window.currentVideoProgress) {
+    window.currentVideoProgress = {};
+  }
+};
+```
+
+## **CORE HOOK IMPLEMENTATION**
+
+### State Management
+```typescript
+const [progress, setProgress] = useState<NavigationProgress>({
+  completedSteps: [],
+  currentStepId: '1-1',
+  appType: 'ast',
+  lastVisitedAt: new Date().toISOString(),
+  unlockedSteps: ['1-1'],
+  videoProgress: {}
+});
+
+// Debounced database sync
+const debouncedSync = useRef<NodeJS.Timeout>();
+const scheduleSync = (progressData: NavigationProgress) => {
+  if (debouncedSync.current) {
+    clearTimeout(debouncedSync.current);
+  }
+  debouncedSync.current = setTimeout(() => {
+    syncToDatabase(progressData);
+  }, 1000);
+};
+
+// Step completion with branched unlocking
+const markStepCompleted = (stepId: string) => {
+  setProgress(prev => {
+    const newCompletedSteps = prev.completedSteps.includes(stepId) 
+      ? prev.completedSteps 
+      : [...prev.completedSteps, stepId];
+    
+    const newProgress = {
+      ...prev,
+      completedSteps: newCompletedSteps,
+      unlockedSteps: calculateUnlockedSteps(newCompletedSteps),
+      lastVisitedAt: new Date().toISOString()
+    };
+    
+    scheduleSync(newProgress);
+    return newProgress;
+  });
+};
+```
+
+## **TESTING REQUIREMENTS**
+
+### Unit Tests Required
+```typescript
+// Test progression logic
+describe('calculateUnlockedSteps', () => {
+  test('linear progression unlocks next step', () => {
+    expect(calculateUnlockedSteps(['1-1'])).toContain('2-1');
+  });
+  
+  test('3-4 completion unlocks both 4-1 and 5-1', () => {
+    const unlocked = calculateUnlockedSteps(['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4']);
+    expect(unlocked).toContain('4-1');
+    expect(unlocked).toContain('5-1');
+  });
+  
+  test('4-5 completion unlocks resources', () => {
+    const completed = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const unlocked = calculateUnlockedSteps(completed);
+    expect(unlocked).toContain('6-1');
+    expect(unlocked).toContain('5-2');
+    expect(unlocked).toContain('5-3');
+    expect(unlocked).toContain('5-4');
+  });
+});
+
+// Test assessment validation
+describe('validateStepCompletion', () => {
+  test('assessment steps require completion data', () => {
+    expect(validateStepCompletion('2-2', {})).toBe(false);
+    expect(validateStepCompletion('2-2', { starCard: { thinking: 25 } })).toBe(true);
+    expect(validateStepCompletion('3-2', {})).toBe(false);
+    expect(validateStepCompletion('4-1', {})).toBe(false);
+  });
+  
+  test('reflection steps pass in simplified mode', () => {
+    expect(validateStepCompletion('4-2', {})).toBe(true); // 4-2 is reflections, non-blocking
+  });
+  
+  test('video steps always pass in simplified mode', () => {
+    expect(validateStepCompletion('1-1', {})).toBe(true);
+  });
+});
+```
+
+### Integration Tests Required
+```typescript
+// Test with mock API calls
+describe('navigation hook integration', () => {
+  test('loads progress from API on mount', async () => {
+    // Mock API response
+    // Test hook initialization
+    // Verify state matches API data
+  });
+  
+  test('syncs progress to database with debouncing', async () => {
+    // Test debounced sync functionality
+    // Verify API calls are made correctly
+  });
+  
+  test('handles API failures gracefully', async () => {
+    // Mock API failure
+    // Verify graceful degradation
+  });
+});
+```
+
+### Manual Testing Checklist
+```typescript
+// Manual verification steps
+const MANUAL_TESTS = [
+  '✓ Fresh user starts at 1-1, only 1-1 unlocked',
+  '✓ Complete 1-1, unlocks 2-1',
+  '✓ Linear progression through sections 1-4',
+  '✓ Assessment steps (2-2, 3-2, 4-1) block progression until completed',
+  '✓ Reflection steps (4-2) do not block progression in simplified mode',
+  '✓ 3-4 completion unlocks both 4-1 and 5-1',
+  '✓ 4-1 remains the "next step" after 3-4',
+  '✓ 4-5 completion unlocks 6-1, 5-2, 5-3, 5-4 simultaneously',
+  '✓ Video progress tracks but doesn\'t affect unlocking in simplified mode',
+  '✓ JSON parse errors show recovery options',
+  '✓ Network failures don\'t break app functionality',
+  '✓ Browser refresh preserves progress',
+  '✓ Debounced sync prevents excessive API calls'
+];
+```
+
+## **IMPLEMENTATION SUMMARY**
+
+### Core Requirements Checklist
+✅ **File Management**: Ask permission as group before modifying files beyond target  
+✅ **Architecture**: Evaluate alternatives for complex decisions (window state, etc.)  
+✅ **API Verification**: Confirm all endpoints exist before implementation  
+✅ **Testing**: Comprehensive unit, integration, and manual testing required  
+
+### Step Progression Logic
+✅ **Linear**: 1-1 → 2-1 → 2-2 → ... → 4-5  
+✅ **Branch 1**: 3-4 completion unlocks 5-1 (4-1 remains next step)  
+✅ **Branch 2**: 4-5 completion unlocks 6-1, 5-2, 5-3, 5-4 simultaneously  
+✅ **Assessment Blocking**: 2-2, 3-2, 4-1 require completion data (4-2 is reflections, non-blocking)  
+✅ **No Section Tracking**: Pure step-based unlocking only  
+
+### Technical Architecture
+✅ **Mode**: Simplified (video tracked but not used for unlocking)  
+✅ **Database**: users.navigationProgress JSON field (max 2 nesting levels)  
+✅ **Error Recovery**: Refresh/clear browser options, contact facilitator  
+✅ **Feature Flag**: Simple boolean to prevent accidental mode switching  
+✅ **Global State**: Evaluate window approach vs alternatives  
+
+### Success Criteria
+- Hook manages linear + branched step progression correctly
+- Assessment steps block progression until completed
+- Video progress tracks dual state (farthest/current) but doesn't affect unlocking
+- Error handling provides user recovery options
+- All testing requirements met (unit, integration, manual)
+- JSON nesting safeguards prevent database corruption
+- Debounced sync prevents excessive API calls
+
+**Ready for implementation with these exact specifications.**
+
+### JSON Parse Error Recovery
+```typescript
+// Error recovery with user notification options
+const handleJSONParseError = (error: Error, rawData: string) => {
+  console.error('Failed to parse navigation progress:', error);
+  
+  // Show user-friendly error with recovery options
+  const showRecoveryOptions = () => {
+    const message = `
+      Navigation data appears corrupted. Recovery options:
+      
+      1. Refresh the page (Ctrl+F5 or Cmd+R)
+      2. Clear browser data (Settings > Clear browsing data)
+      3. Contact your facilitator for assistance
+      
+      Your progress will be restored from the last successful save.
+    `;
+    
+    // Could be shown via toast, modal, or console depending on UI availability
+    console.warn(message);
+    
+    // Future: Add modal/toast UI when available
+    // setErrorState({ type: 'PARSE_ERROR', message, recoveryOptions: [...] });
+  };
+  
+  showRecoveryOptions();
+  
+  // Return safe default state
+  return {
+    completedSteps: [],
+    currentStepId: '1-1',
+    appType: 'ast',
+    lastVisitedAt: new Date().toISOString(),
+    unlockedSteps: ['1-1'],
+    videoProgress: {}
+  };
+};
+
+// Network failure graceful degradation
+const handleNetworkError = (error: Error, operation: string) => {
+  console.warn(`Network error during ${operation}:`, error);
+  
+  // Graceful degradation - continue with local state
+  // Future: Queue operations for retry when connection restored
+  return false; // Indicate failure but don't break app
+};
+```
+
+### Future Profile Reset Feature
+```typescript
+// Placeholder for future profile modal reset feature
+const prepareDataDownload = () => {
+  // Future: Generate downloadable JSON of all user progress
+  // Future: Implement from profile modal
+  console.log('Data download feature - coming soon');
+};
+
+const resetUserData = () => {
+  // Future: Reset all progress after data download
+  // Future: Implement from profile modal
+  console.log('Data reset feature - coming soon');
+};
+```
