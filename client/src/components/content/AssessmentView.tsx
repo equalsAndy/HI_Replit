@@ -30,9 +30,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
 
-  // Load assessment data directly from the starcard API when component mounts and poll for updates
+  // Load assessment data once when component mounts
   React.useEffect(() => {
     const fetchAssessmentData = async () => {
+      if (isLoadingAssessment) return;
+      
+      setIsLoadingAssessment(true);
       try {
         const response = await fetch('/api/workshop-data/starcard', {
           credentials: 'include'
@@ -54,16 +57,12 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
         }
       } catch (error) {
         console.error("Error fetching assessment data:", error);
+      } finally {
+        setIsLoadingAssessment(false);
       }
     };
 
     fetchAssessmentData();
-
-    // Poll every 1 second to check for new assessment data for faster response
-    const pollInterval = setInterval(fetchAssessmentData, 1000);
-
-    // Cleanup interval on unmount
-    return () => clearInterval(pollInterval);
   }, []);
 
   // Use the fetched data or fall back to the prop
@@ -144,7 +143,8 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const continueToNextStep = () => {
     console.log("🎯 AssessmentView: Continuing to next step - marking 2-2 as completed");
     markStepCompleted('2-2');
-    // The markStepCompleted will trigger automatic navigation to step 2-3
+    // Navigate directly to 2-3 after marking completion
+    navigate('2-3');
   };
 
   return (
