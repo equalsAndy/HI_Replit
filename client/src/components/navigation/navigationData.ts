@@ -151,14 +151,11 @@ export const navigationSections: NavigationSection[] = [
     id: '6', 
     title: 'MORE INFORMATION', 
     path: '/more-information',
-    totalSteps: 4,
+    totalSteps: 1,
     completedSteps: 0,
     locked: false,
     steps: [
-      { id: '6-1', label: 'Methodology', path: '/more-information/methodology', type: 'Learning', contentKey: 'methodology', icon: Brain },
-      { id: '6-2', label: 'Neuroscience', path: '/more-information/neuroscience', type: 'Learning', contentKey: 'neuroscience', icon: Brain },
-      { id: '6-3', label: 'Compendium', path: '/more-information/compendium', type: 'Learning', contentKey: 'compendium', icon: Brain },
-      { id: '6-4', label: 'Background', path: '/more-information/background', type: 'Learning', contentKey: 'background', icon: Brain }
+      { id: '6-1', label: 'Workshop Details', path: '/more-information/workshop-details', type: 'Learning', contentKey: 'methodology', icon: Brain }
     ]
   }
 ];
