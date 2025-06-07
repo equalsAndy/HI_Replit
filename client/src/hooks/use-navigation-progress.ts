@@ -549,7 +549,7 @@ export function useNavigationProgress() {
       '2-3': 'Next: Reflection',
       '2-4': 'Next: Intro to Flow',
       '3-1': 'Next: Flow Assessment',
-      '3-2': 'Next: Rounding Out', 
+      '3-2': 'Next: Review Your Star Card', 
       '3-3': 'Next: Add Flow to Star Card',
       '3-4': 'Next: Ladder of Well-being',
       '4-1': 'Next: Well-being Reflections',

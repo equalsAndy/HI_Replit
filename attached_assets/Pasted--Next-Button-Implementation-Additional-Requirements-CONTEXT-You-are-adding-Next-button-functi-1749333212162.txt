@@ -1,0 +1,582 @@
+# Next Button Implementation - Additional Requirements
+
+## CONTEXT
+You are adding Next button functionality AND user restoration logic to the existing navigation hook. This is an **ADDITION** to your current navigation implementation work.
+
+## CRITICAL CONSTRAINTS
+- **DO NOT MODIFY** existing navigation progression logic you've already implemented
+- **ADD ONLY** the Next button specific functions, user restoration, and completed step visualization
+- **NEXT BUTTON EXCEPTION**: You MAY modify Next button UI components as needed
+- **ASK PERMISSION** before modifying other UI components or creating new files
+- **FOCUS ON** both hook-level functionality AND Next button UI component integration
+
+## MISSING FUNCTIONALITY TO ADD
+
+### User Restoration Logic (CRITICAL)
+Users need to return to their saved step, not always start at 1-1:
+
+```typescript
+// Required functions to ADD:
+loadUserProgress: () => Promise<void>,           // Load from database on app init
+restoreUserToCurrentStep: () => Promise<void>,  // Navigate to saved currentStepId
+getCurrentStep: () => string,                   // Get current active step
+```
+
+### Completed Step Visualization (CRITICAL)
+Navigation menus need to show green checkmarks for completed steps:
+
+```typescript
+// Required functions to ADD:
+isStepCompleted: (stepId: string) => boolean,    // Check if step shows green checkmark
+getCompletedSteps: () => string[],               // Get all completed steps
+isCurrentStep: (stepId: string) => boolean,      // Check if step is currently active
+canNavigateToStep: (stepId: string) => boolean,  // Check if step is clickable
+```
+
+## NEXT BUTTON REQUIREMENTS
+
+### Required New Functions to Add
+Add these functions to your existing navigation hook return interface:
+
+```typescript
+// ADD to existing return object:
+{
+  // ... existing functions
+  
+  // Next button functions:
+  getNextStepId: (currentStepId: string) => string | null,
+  getNextButtonText: (currentStepId: string) => string,
+  getNextButtonState: (currentStepId: string) => 'enabled' | 'disabled' | 'loading',
+  getBlockingReason: (currentStepId: string) => string | null,
+  handleNextButtonClick: (currentStepId: string) => Promise<{success: boolean, error?: string}>,
+  
+  // User restoration functions (CRITICAL):
+  loadUserProgress: () => Promise<void>,
+  restoreUserToCurrentStep: () => Promise<void>,
+  getCurrentStep: () => string,
+  
+  // Completed step visualization (CRITICAL):
+  isStepCompleted: (stepId: string) => boolean,
+  getCompletedSteps: () => string[],
+  isCurrentStep: (stepId: string) => boolean,
+  canNavigateToStep: (stepId: string) => boolean,
+  getStepDisplayState: (stepId: string) => {state: string, clickable: boolean, showCheckmark: boolean}
+}
+```
+
+```typescript
+// CRITICAL: Add to hook initialization
+const loadUserProgress = async (): Promise<void> => {
+  try {
+    // Load from /api/user/profile
+    const response = await fetch('/api/user/profile', { credentials: 'include' });
+    const userData = await response.json();
+    const savedProgress = userData.navigationProgress;
+    
+    if (savedProgress) {
+      const parsed = typeof savedProgress === 'string' ? JSON.parse(savedProgress) : savedProgress;
+      setProgress(parsed);
+      
+      // CRITICAL: Restore user to their saved step
+      if (parsed.currentStepId && parsed.currentStepId !== '1-1') {
+        await restoreUserToCurrentStep(parsed.currentStepId);
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load user progress:', error);
+    setProgress(getDefaultProgress());
+  }
+};
+
+// CRITICAL: Navigate user to their saved step
+const restoreUserToCurrentStep = async (stepId?: string): Promise<void> => {
+  const targetStep = stepId || progress.currentStepId;
+  
+  if (!targetStep || targetStep === '1-1') return;
+  
+  // Validate step is accessible
+  if (!progress.unlockedSteps.includes(targetStep)) {
+    console.warn(`Step ${targetStep} not unlocked, falling back`);
+    const latestUnlocked = getLatestUnlockedStep();
+    setProgress(prev => ({ ...prev, currentStepId: latestUnlocked }));
+    return;
+  }
+  
+  // Navigate to step in UI (depends on your routing system)
+  console.log(`Restoring user to step: ${targetStep}`);
+};
+
+// Helper: Get latest accessible step as fallback
+const getLatestUnlockedStep = (): string => {
+  const unlockedSteps = progress.unlockedSteps;
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
+  
+  for (let i = allSteps.length - 1; i >= 0; i--) {
+    if (unlockedSteps.includes(allSteps[i])) {
+      return allSteps[i];
+    }
+  }
+  return '1-1';
+};
+```
+
+### Completed Step Logic Implementation
+Implement step state checking for navigation UI:
+
+```typescript
+// Check if step shows green checkmark
+const isStepCompleted = (stepId: string): boolean => {
+  return progress.completedSteps.includes(stepId);
+};
+
+// Check if step is currently active
+const isCurrentStep = (stepId: string): boolean => {
+  return progress.currentStepId === stepId;
+};
+
+// Check if step is clickable in navigation
+const canNavigateToStep = (stepId: string): boolean => {
+  return progress.unlockedSteps.includes(stepId) || progress.completedSteps.includes(stepId);
+};
+
+// Get all completed steps
+const getCompletedSteps = (): string[] => {
+  return progress.completedSteps;
+};
+
+// Get current step
+const getCurrentStep = (): string => {
+  return progress.currentStepId || '1-1';
+};
+
+// Update current step when user navigates (UPDATE existing function)
+const setCurrentStep = async (stepId: string): Promise<void> => {
+  if (!canNavigateToStep(stepId)) {
+    console.warn(`Cannot navigate to step ${stepId} - not accessible`);
+    return;
+  }
+  
+  setProgress(prev => ({
+    ...prev,
+    currentStepId: stepId,
+    lastVisitedAt: new Date().toISOString()
+  }));
+  
+  // Sync to database
+  scheduleSync(progress);
+};
+```
+
+### Navigation UI State Helper
+For navigation menu/sidebar integration:
+
+```typescript
+// Get step display state for UI components
+const getStepDisplayState = (stepId: string): {
+  state: 'current' | 'completed' | 'unlocked' | 'locked';
+  clickable: boolean;
+  showCheckmark: boolean;
+} => {
+  if (isCurrentStep(stepId)) {
+    return { state: 'current', clickable: true, showCheckmark: false };
+  }
+  
+  if (isStepCompleted(stepId)) {
+    return { state: 'completed', clickable: true, showCheckmark: true };
+  }
+  
+  if (progress.unlockedSteps.includes(stepId)) {
+    return { state: 'unlocked', clickable: true, showCheckmark: false };
+  }
+  
+  return { state: 'locked', clickable: false, showCheckmark: false };
+};
+```
+
+```typescript
+// ADD to existing return object:
+{
+  // ... existing functions
+  
+  // New Next button functions:
+  getNextStepId: (currentStepId: string) => string | null,
+  getNextButtonText: (currentStepId: string) => string,
+  getNextButtonState: (currentStepId: string) => 'enabled' | 'disabled' | 'loading',
+  getBlockingReason: (currentStepId: string) => string | null,
+  handleNextButtonClick: (currentStepId: string) => Promise<{success: boolean, error?: string}>
+}
+```
+
+### Button Text Format
+**EXACT FORMAT**: `"Next: [Step Display Name]"`
+
+**Step Display Names** (implement as lookup object):
+```typescript
+const STEP_DISPLAY_NAMES = {
+  '1-1': 'Introduction',
+  '2-1': 'Intro to Star Strengths', 
+  '2-2': 'Star Assessment',
+  '2-3': 'Review Your Star Card',
+  '2-4': 'Strength Reflection',
+  '3-1': 'Intro to Flow',
+  '3-2': 'Flow Assessment', 
+  '3-3': 'Rounding Out',
+  '3-4': 'Add Flow to Star Card',
+  '4-1': 'Ladder of Well-being',
+  '4-2': 'Well-being Reflections',
+  '4-3': 'Visualizing You',
+  '4-4': 'Your Future Self',
+  '4-5': 'Final Reflection',
+  '5-1': 'Workshop Guide',
+  '5-2': 'Your Star Report', 
+  '5-3': 'Your Star Card',
+  '5-4': 'Additional Resources',
+  '6-1': 'More Information'
+};
+```
+
+### Button State Logic
+```typescript
+// Button states based on step completion
+const getNextButtonState = (currentStepId: string): 'enabled' | 'disabled' | 'loading' => {
+  // Use your existing validateStepCompletion function
+  const canProceed = validateStepCompletion(currentStepId, userAssessments);
+  
+  if (isLoading) return 'loading';
+  return canProceed ? 'enabled' : 'disabled';
+};
+```
+
+### Error Messages (Inline Display)
+**SPECIFIC MESSAGES** for each blocking step:
+```typescript
+const getBlockingReason = (stepId: string): string | null => {
+  switch (stepId) {
+    case '2-2': return 'Complete the Star Card assessment to continue';
+    case '3-2': return 'Complete the Flow assessment to continue';
+    case '4-1': return 'Complete the Cantril Ladder to continue';
+    default: 
+      // Check if it's an assessment step that blocks
+      if (ASSESSMENT_STEPS.includes(stepId)) {
+        return 'Complete this step to continue';
+      }
+      return null; // No blocking
+  }
+};
+```
+
+### Navigation Sequence Logic
+**CRITICAL**: After step 3-4, next step is 4-1 (NOT 5-1)
+```typescript
+const getNextStepId = (currentStepId: string): string | null => {
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
+  const currentIndex = allSteps.indexOf(currentStepId);
+  
+  if (currentIndex === -1 || currentIndex === allSteps.length - 1) {
+    return null; // No next step
+  }
+  
+  // SPECIAL CASE: After 3-4, next step is 4-1 (not 5-1)
+  if (currentStepId === '3-4') {
+    return '4-1';
+  }
+  
+  // Regular linear progression
+  return allSteps[currentIndex + 1];
+};
+```
+
+### Click Handler with Loading State
+```typescript
+const handleNextButtonClick = async (currentStepId: string): Promise<{success: boolean, error?: string}> => {
+  try {
+    // Set loading state (implement loading state management)
+    setIsLoading(true);
+    
+    // Validate current step
+    const canProceed = validateStepCompletion(currentStepId, userAssessments);
+    
+    if (!canProceed) {
+      setIsLoading(false);
+      return {
+        success: false,
+        error: getBlockingReason(currentStepId)
+      };
+    }
+    
+    // Mark current step completed (use existing function)
+    await markStepCompleted(currentStepId);
+    
+    // Get next step
+    const nextStepId = getNextStepId(currentStepId);
+    if (!nextStepId) {
+      setIsLoading(false);
+      return { success: false, error: 'No next step available' };
+    }
+    
+    // Navigate to next step (use existing function)
+    await setCurrentStep(nextStepId);
+    
+    // Minimum 500ms loading for smooth UX
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    setIsLoading(false);
+    return { success: true };
+    
+  } catch (error) {
+    setIsLoading(false);
+    return { success: false, error: 'Navigation failed. Please try again.' };
+  }
+};
+```
+
+### Loading State Management
+Add loading state to your existing hook:
+```typescript
+// ADD to existing hook state
+const [isLoading, setIsLoading] = useState(false);
+
+// Loading state prevents double-clicks and shows spinner
+// Minimum 500ms duration for smooth UX
+// Button remains disabled during loading
+```
+
+## NEXT BUTTON UI COMPONENT MODIFICATIONS
+
+### Allowed UI Changes
+You are **PERMITTED** to modify Next button UI components to implement the required behavior:
+
+```typescript
+// ALLOWED: Modify Next button components in these files:
+MODIFIABLE_FILES: [
+  'client/src/components/ui/NextButton.tsx',
+  'client/src/components/content/*NextButton*.tsx',
+  'client/src/components/shared/NavigationButton.tsx',
+  'Any component file containing Next button implementation'
+]
+
+// REQUIRED: Implement these UI behaviors:
+UI_REQUIREMENTS: {
+  buttonText: '"Next: [Step Name]" format',
+  buttonStates: 'enabled | disabled | loading | error',
+  clickBehavior: 'Integrate with hook validation',
+  errorDisplay: 'Inline error messages below button',
+  loadingState: 'Spinner + disabled during navigation',
+  styling: 'Visual states for enabled/disabled/loading/error'
+}
+```
+
+### Required UI Implementation
+If Next button components need modification, implement this pattern:
+
+```typescript
+// Next button component integration:
+const NextButtonComponent = ({ currentStepId, onNavigate, className }) => {
+  const { 
+    getNextButtonText,
+    getNextButtonState, 
+    getBlockingReason,
+    handleNextButtonClick 
+  } = useNavigationProgress();
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const buttonText = getNextButtonText(currentStepId);
+  const buttonState = getNextButtonState(currentStepId);
+  const blockingReason = getBlockingReason(currentStepId);
+  
+  const handleClick = async () => {
+    if (buttonState === 'disabled') {
+      // Show inline error for disabled button clicks
+      setErrorMessage(blockingReason);
+      return;
+    }
+    
+    setIsLoading(true);
+    setErrorMessage(null);
+    
+    const result = await handleNextButtonClick(currentStepId);
+    
+    setIsLoading(false);
+    
+    if (!result.success) {
+      setErrorMessage(result.error);
+    } else if (onNavigate) {
+      // Navigate to next step
+      onNavigate(getNextStepId(currentStepId));
+    }
+  };
+  
+  return (
+    <div className="next-button-container">
+      <button
+        onClick={handleClick}
+        disabled={buttonState === 'disabled' || isLoading}
+        className={`next-button ${buttonState} ${className}`}
+      >
+        {isLoading && <SpinnerIcon />}
+        {buttonText}
+      </button>
+      
+      {/* Inline error message */}
+      {errorMessage && (
+        <div className="next-button-error">
+          {errorMessage}
+        </div>
+      )}
+    </div>
+  );
+};
+```
+
+### UI State Requirements
+```typescript
+// Implement these visual states:
+BUTTON_STATES: {
+  enabled: {
+    appearance: 'Green background, white text, clickable cursor',
+    behavior: 'Clickable, navigates to next step'
+  },
+  disabled: {
+    appearance: 'Gray background, gray text, not-allowed cursor',
+    behavior: 'Shows error message when clicked'
+  },
+  loading: {
+    appearance: 'Gray background, spinner icon, disabled cursor',
+    behavior: 'Prevents clicks, shows loading spinner'
+  },
+  error: {
+    appearance: 'Red border, error message below',
+    behavior: 'Shows specific blocking reason'
+  }
+}
+
+// Error message styling:
+ERROR_MESSAGE: {
+  position: 'Below button, inline',
+  styling: 'Red text, small font, fade-in animation',
+  content: 'Specific blocking reason from getBlockingReason()'
+}
+```
+
+## IMPLEMENTATION STEPS
+
+### Step 1: Add State Management
+- Add `isLoading` state to existing hook
+- Add loading state setter function
+
+### Step 2: Implement Lookup Functions  
+- `STEP_DISPLAY_NAMES` object
+- `getNextStepId` with special case for 3-4 → 4-1
+- `getBlockingReason` with specific error messages
+
+### Step 3: Implement Button State Functions
+- `getNextButtonState` using existing validation
+- `getNextButtonText` using display names lookup
+- Integration with existing `validateStepCompletion`
+
+### Step 4: Implement Click Handler
+- Validation before navigation
+- Loading state management  
+- Integration with existing `markStepCompleted` and `setCurrentStep`
+- Error handling and return format
+
+### Step 5: Add to Hook Return Interface
+- Export all new functions
+- Maintain backward compatibility with existing functions
+
+## TESTING REQUIREMENTS
+
+### Unit Tests to Add
+```typescript
+describe('Next button functionality', () => {
+  test('getNextStepId handles special case 3-4 → 4-1', () => {
+    expect(getNextStepId('3-4')).toBe('4-1');
+    expect(getNextStepId('3-4')).not.toBe('5-1');
+  });
+  
+  test('getNextButtonText formats correctly', () => {
+    expect(getNextButtonText('1-1')).toBe('Next: Intro to Star Strengths');
+    expect(getNextButtonText('2-1')).toBe('Next: Star Assessment');
+  });
+  
+  test('getBlockingReason returns specific messages', () => {
+    expect(getBlockingReason('2-2')).toContain('Star Card assessment');
+    expect(getBlockingReason('3-2')).toContain('Flow assessment');
+    expect(getBlockingReason('1-1')).toBeNull(); // Video step, no blocking
+  });
+});
+```
+
+### Manual Testing
+- [ ] Next button shows "Next: Step Name" format
+- [ ] Button disabled for incomplete assessments
+- [ ] Button enabled for video/reflection steps  
+- [ ] Error messages display inline when clicked
+- [ ] Loading state prevents double-clicks
+- [ ] Navigation follows correct sequence
+- [ ] Button styling matches state (enabled/disabled/loading/error)
+- [ ] Error messages appear below button with proper styling
+- [ ] Spinner appears during loading state
+- [ ] Button click integration works with hook functions
+
+### User Restoration Testing (NEW)
+- [ ] User returns to correct currentStepId on app load/login
+- [ ] loadUserProgress fetches data from /api/user/profile correctly
+- [ ] restoreUserToCurrentStep navigates to saved step automatically  
+- [ ] Corrupted currentStepId falls back to latest unlocked step
+- [ ] Missing progress data defaults to step 1-1 safely
+- [ ] setCurrentStep updates database when user navigates manually
+
+### Completed Step Testing (NEW)
+- [ ] Green checkmarks appear for all steps in completedSteps array
+- [ ] isStepCompleted returns true only for completed steps
+- [ ] isCurrentStep correctly identifies the active step
+- [ ] canNavigateToStep allows access to unlocked and completed steps
+- [ ] getStepDisplayState returns correct state for navigation UI
+- [ ] Navigation menu shows visual hierarchy: current > completed > unlocked > locked
+- [ ] Users can click back to completed steps from navigation
+- [ ] Current step highlighted differently from completed steps
+
+## SUCCESS CRITERIA
+
+✅ **All Next button functions implemented and working**  
+✅ **Button text follows exact "Next: Step Name" format**  
+✅ **Navigation sequence correct (3-4 → 4-1)**  
+✅ **Loading state prevents double-clicks**  
+✅ **Error messages are specific and inline**  
+✅ **Integration with existing validation/navigation functions**  
+✅ **No breaking changes to existing hook functionality**  
+✅ **Next button UI components updated to support new behavior**
+✅ **Button states visually match requirements (enabled/disabled/loading/error)**
+✅ **Inline error messages display correctly below buttons**
+
+### User Restoration Success Criteria (NEW)
+✅ **loadUserProgress fetches and parses data from database on app init**
+✅ **restoreUserToCurrentStep navigates user to saved step automatically**
+✅ **getCurrentStep returns correct active step at all times**
+✅ **Corrupted/missing data handled gracefully with safe fallbacks**
+✅ **setCurrentStep updates database when user navigates**
+
+### Completed Step Visualization Success Criteria (NEW)
+✅ **isStepCompleted correctly identifies completed steps**
+✅ **getCompletedSteps returns current completed steps array**
+✅ **isCurrentStep identifies active step correctly**
+✅ **canNavigateToStep allows proper step access control**
+✅ **getStepDisplayState provides correct UI state data**
+✅ **shouldShowGreenCheckmark works for navigation UI integration**
+✅ **Users can navigate back to completed steps**
+✅ **Visual hierarchy clear: current > completed > unlocked > locked**  
+
+## LIMITATIONS
+
+❌ **DO NOT implement new UI components** - only modify existing Next button components  
+❌ **DO NOT modify existing progression logic** - only add Next button behavior  
+❌ **DO NOT add keyboard navigation** - future feature  
+❌ **DO NOT change existing function signatures** - maintain compatibility  
+✅ **MAY modify Next button UI components** - as needed for proper behavior
+✅ **MAY update Next button styling and states** - to match requirements
+✅ **MAY add error message displays** - inline below Next buttons
+
+This implementation adds Next button functionality to your existing navigation hook and updates Next button UI components to support the new behavior without disrupting other parts of the application.
