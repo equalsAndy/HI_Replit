@@ -73,23 +73,41 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     if (userAssessments && typeof userAssessments === 'object') {
       const assessmentData = userAssessments as Record<string, any>;
       
+      console.log('🔍 Flow Assessment: Checking assessment data structure:', assessmentData);
+      
       // Check both direct and nested assessment data structures
       const flowData = assessmentData.flowAssessment || assessmentData.assessments?.flowAssessment;
       
+      console.log('🔍 Flow Assessment: FlowData found:', flowData);
+      
       if (flowData && flowData.answers) {
-        console.log('✅ Flow Assessment: Found existing data:', flowData);
+        console.log('✅ Flow Assessment: Found existing data with answers:', flowData);
         setAnswers(flowData.answers);
         setHasCompletedAssessment(true);
         setShowResults(true);
         setCurrentQuestion(flowQuestions.length - 1); // Set to last question for results view
+      } else if (flowData && flowData.flowScore) {
+        console.log('✅ Flow Assessment: Found existing data with flowScore but no answers, reconstructing:', flowData);
+        // If we have a flow score but no answers, create mock answers that would give this score
+        const mockAnswers: Record<number, number> = {};
+        const avgScore = Math.round(flowData.flowScore / flowQuestions.length);
+        flowQuestions.forEach(q => {
+          mockAnswers[q.id] = Math.max(1, Math.min(5, avgScore));
+        });
+        setAnswers(mockAnswers);
+        setHasCompletedAssessment(true);
+        setShowResults(true);
+        setCurrentQuestion(flowQuestions.length - 1);
       } else {
-        console.log('❌ Flow Assessment: No existing data found, starting fresh');
+        console.log('❌ Flow Assessment: No existing data found, starting fresh. FlowData was:', flowData);
         localStorage.removeItem('flowAssessmentAnswers');
         setAnswers({});
         setHasCompletedAssessment(false);
         setShowResults(false);
         setCurrentQuestion(0);
       }
+    } else {
+      console.log('❌ Flow Assessment: No userAssessments data available');
     }
   }, [userAssessments]);
 

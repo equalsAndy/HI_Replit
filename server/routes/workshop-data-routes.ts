@@ -879,7 +879,7 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
       });
     }
     
-    const { currentFactors, futureImprovements, specificChanges, quarterlyProgress, quarterlyActions } = req.body;
+    const { currentFactors, futureImprovements, specificChanges, quarterlyProgress, quarterlyActions, wellBeingLevel, futureWellBeingLevel } = req.body;
     
     // Create the reflections data object (optional validation since these are reflection fields)
     const reflectionData = {
@@ -889,6 +889,44 @@ workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) =
       quarterlyProgress: quarterlyProgress || '',
       quarterlyActions: quarterlyActions || ''
     };
+    
+    // Create separate ladder assessment data for exports (if ladder values provided)
+    if (wellBeingLevel !== undefined && futureWellBeingLevel !== undefined) {
+      const ladderData = {
+        wellBeingLevel: Number(wellBeingLevel),
+        futureWellBeingLevel: Number(futureWellBeingLevel)
+      };
+      
+      // Check if user already has cantril ladder assessment data
+      const existingLadder = await db
+        .select()
+        .from(schema.userAssessments)
+        .where(
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'cantrilLadder')
+          )
+        );
+      
+      if (existingLadder.length > 0) {
+        // Update existing ladder assessment
+        await db
+          .update(schema.userAssessments)
+          .set({
+            results: JSON.stringify(ladderData)
+          })
+          .where(eq(schema.userAssessments.id, existingLadder[0].id));
+      } else {
+        // Create new ladder assessment
+        await db.insert(schema.userAssessments).values({
+          userId,
+          assessmentType: 'cantrilLadder',
+          results: JSON.stringify(ladderData)
+        });
+      }
+      
+      console.log('Cantril Ladder values saved for export:', ladderData);
+    }
     
     // Check if user already has cantril ladder reflection data
     const existingReflection = await db

@@ -33,12 +33,33 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     staleTime: 0
   });
 
-  // Load persisted values from API, use default values if no data exists
+  // Fetch assessment data to load saved ladder values
+  const { data: userAssessments } = useQuery({
+    queryKey: ['/api/user/assessments'],
+    staleTime: 0
+  });
+
+  // Load persisted values from assessment data first, then visualization API as fallback
   useEffect(() => {
-    if (visualizationData) {
+    let ladderLoaded = false;
+    
+    // Try to load from assessment data first (highest priority)
+    if (userAssessments && typeof userAssessments === 'object') {
+      const assessmentData = userAssessments as Record<string, any>;
+      const cantrilData = assessmentData.cantrilLadder || assessmentData.assessments?.cantrilLadder;
+      
+      if (cantrilData && cantrilData.wellBeingLevel !== undefined && cantrilData.futureWellBeingLevel !== undefined) {
+        console.log('CantrilLadder: Loading from assessment data:', cantrilData);
+        setWellBeingLevel(cantrilData.wellBeingLevel);
+        setFutureWellBeingLevel(cantrilData.futureWellBeingLevel);
+        ladderLoaded = true;
+      }
+    }
+    
+    // Fallback to visualization API if no assessment data found
+    if (!ladderLoaded && visualizationData) {
       const data = visualizationData as any;
       
-      // Only update if data exists in database, otherwise keep defaults (5, 5)
       if (data && data.wellBeingLevel !== undefined) {
         setWellBeingLevel(data.wellBeingLevel);
       } else {
@@ -51,9 +72,16 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         setFutureWellBeingLevel(5); // Default value
       }
       
-      console.log('CantrilLadder: Using values - current:', data?.wellBeingLevel || 5, 'future:', data?.futureWellBeingLevel || 5);
+      console.log('CantrilLadder: Loading from visualization data:', data?.wellBeingLevel || 5, data?.futureWellBeingLevel || 5);
     }
-  }, [visualizationData]);
+    
+    // If no data found anywhere, use defaults
+    if (!ladderLoaded && !visualizationData) {
+      setWellBeingLevel(5);
+      setFutureWellBeingLevel(5);
+      console.log('CantrilLadder: Using default values (5, 5)');
+    }
+  }, [visualizationData, userAssessments]);
 
   // Load existing text data when component mounts
   useEffect(() => {
