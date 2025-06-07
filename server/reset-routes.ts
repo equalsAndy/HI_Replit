@@ -154,19 +154,30 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
       console.error(`Error deleting flow attribute assessments for user ${userId}:`, error);
     }
     
-    // Step 3: Reset user progress and navigation
+    // Step 3: Reset user progress and navigation to initial state
     try {
-      // Clear navigation progress and update timestamp
+      // Reset navigation progress to initial state instead of null
+      const initialProgress = {
+        completedSteps: [],
+        currentStepId: "1-1",
+        appType: "ast",
+        lastVisitedAt: new Date().toISOString(),
+        unlockedSteps: ["1-1"],
+        videoProgress: {},
+        unlockedSections: ["1"],
+        videoPositions: {}
+      };
+      
       await db
         .update(schema.users)
         .set({ 
-          navigationProgress: null,
+          navigationProgress: JSON.stringify(initialProgress),
           updatedAt: new Date() 
         })
         .where(eq(schema.users.id, userId));
       
       deletedData.userProgress = true;
-      console.log(`Cleared navigation progress and updated timestamp for user ${userId}`);
+      console.log(`Reset navigation progress to initial state for user ${userId}`);
       
       // If workshop participation data exists, delete that too
       try {
