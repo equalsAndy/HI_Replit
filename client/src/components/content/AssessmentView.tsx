@@ -154,7 +154,18 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   });
 
   // Use the navigation hook for reliable navigation
-  const { setCurrentStep, progress, getNextStepForButton } = useNavigationProgress();
+  const { setCurrentStep, progress } = useNavigationProgress();
+  
+  // Get the next step in the main sequence
+  const getNextStepForButton = (currentStepId: string): string | null => {
+    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const currentIndex = mainSequence.indexOf(currentStepId);
+    
+    if (currentIndex !== -1 && currentIndex < mainSequence.length - 1) {
+      return mainSequence[currentIndex + 1];
+    }
+    return null;
+  };
   
   // Get the next step name for the button
   const getNextStepName = (stepId: string): string => {
@@ -345,7 +356,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 onClick={continueToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                Next: Intro to Flow <ArrowRight className="h-4 w-4 ml-2" />
+                Next: {nextStepName} <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
