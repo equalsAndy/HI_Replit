@@ -337,10 +337,9 @@ router.post('/assessments', requireAuth, async (req, res) => {
 
     // Save the assessment to the userAssessments table
     const newAssessment = await db.insert(schema.userAssessments).values({
-      userId: req.session.userId,
+      userId: req.session.userId!,
       assessmentType,
-      results: JSON.stringify(results),
-      createdAt: new Date()
+      results: JSON.stringify(results)
     }).returning();
 
     console.log(`Saved ${assessmentType} assessment for user ${req.session.userId}:`, results);

@@ -94,10 +94,33 @@ export class ExportService {
       assessments.forEach(assessment => {
         try {
           const results = JSON.parse(assessment.results);
-          exportData.assessments[assessment.assessmentType] = {
-            ...results,
-            createdAt: assessment.createdAt.toISOString()
-          };
+          
+          // Special handling for flow attributes to ensure proper structure
+          if (assessment.assessmentType === 'flowAttributes') {
+            exportData.assessments[assessment.assessmentType] = {
+              flowScore: results.flowScore || 0,
+              attributes: results.attributes || [],
+              createdAt: assessment.createdAt.toISOString()
+            };
+          } else if (assessment.assessmentType === 'cantrilLadder') {
+            // Special handling for Cantril Ladder data
+            exportData.assessments[assessment.assessmentType] = {
+              wellBeingLevel: results.wellBeingLevel || results.currentLevel || 5,
+              futureWellBeingLevel: results.futureWellBeingLevel || results.futureLevel || 5,
+              currentFactors: results.currentFactors || '',
+              futureImprovements: results.futureImprovements || '',
+              specificChanges: results.specificChanges || '',
+              quarterlyProgress: results.quarterlyProgress || '',
+              quarterlyActions: results.quarterlyActions || '',
+              createdAt: assessment.createdAt.toISOString()
+            };
+          } else {
+            // Standard assessment handling
+            exportData.assessments[assessment.assessmentType] = {
+              ...results,
+              createdAt: assessment.createdAt.toISOString()
+            };
+          }
         } catch (error) {
           console.error(`Error parsing assessment ${assessment.assessmentType} for user ${userId}:`, error);
           // Include raw data if JSON parsing fails

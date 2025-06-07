@@ -251,7 +251,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     enabled: true,
   });
 
-  const user = userData?.user;
+  const user = (userData as any)?.user;
 
   // Set up the sensors for drag and drop - defined at component level to avoid conditional hooks
   const sensors = useSensors(
@@ -328,7 +328,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     mutationFn: async (data: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
       return await apiRequest('/api/workshop-data/flow-attributes', {
         method: 'POST',
-        body: data
+        body: { attributes: data.attributes } as any
       });
     },
     onSuccess: () => {
