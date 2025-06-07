@@ -100,16 +100,22 @@ export default function StepByStepReflection({
   useEffect(() => {
     const loadExistingData = async () => {
       try {
+        console.log('🔄 Loading existing reflection data...');
         const response = await fetch('/api/workshop-data/step-by-step-reflection', {
           credentials: 'include'
         });
         const result = await response.json();
         
+        console.log('📥 Reflection data response:', result);
+        
         if (result.success && result.data) {
+          console.log('✅ Setting reflection data:', result.data);
           setReflections(result.data);
+        } else {
+          console.log('⚠️ No reflection data found or failed to load');
         }
       } catch (error) {
-        console.log('No existing reflection data found');
+        console.error('❌ Error loading reflection data:', error);
       }
     };
     

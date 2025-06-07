@@ -17,7 +17,7 @@ async function testReflectionPersistence() {
   try {
     // Save reflection data
     console.log('Saving reflection data...');
-    const saveResponse = await fetch('http://localhost:5001/api/workshop-data/step-by-step-reflection', {
+    const saveResponse = await fetch('http://0.0.0.0:5001/api/workshop-data/step-by-step-reflection', {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -31,7 +31,7 @@ async function testReflectionPersistence() {
     
     // Load reflection data back
     console.log('Loading reflection data...');
-    const loadResponse = await fetch('http://localhost:5001/api/workshop-data/step-by-step-reflection', {
+    const loadResponse = await fetch('http://0.0.0.0:5001/api/workshop-data/step-by-step-reflection', {
       headers: {
         'Cookie': 'connect.sid=s%3A3HHDBuEpCiUNGHDG-dV5FcEcJLcxiEdc.9QV6ZGTKLsv3yDrxEgTGCHSFBiKWZYK%2BYKrj8MdCJPM'
       }
