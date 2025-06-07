@@ -154,56 +154,14 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   });
 
   // Use the navigation hook for reliable navigation
-  const { setCurrentStep, progress } = useNavigationProgress();
-  
-  // Get the next step in the main sequence
-  const getNextStepForButton = (currentStepId: string): string | null => {
-    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-    const currentIndex = mainSequence.indexOf(currentStepId);
-    
-    if (currentIndex !== -1 && currentIndex < mainSequence.length - 1) {
-      return mainSequence[currentIndex + 1];
-    }
-    return null;
-  };
-  
-  // Get the next step name for the button
-  const getNextStepName = (stepId: string): string => {
-    const stepNames: Record<string, string> = {
-      '1-1': 'Intro to Star Strengths',
-      '2-1': 'Assessment',
-      '2-2': 'Review your Star Card',
-      '2-3': 'Reflection',
-      '2-4': 'Intro to Flow',
-      '3-1': 'What is Flow',
-      '3-2': 'Flow Assessment',
-      '3-3': 'Your Flow Results',
-      '3-4': 'Cantril Ladder',
-      '4-1': 'Your Resilience',
-      '4-2': 'Implementation',
-      '4-3': 'Action Planning',
-      '4-4': 'Resources',
-      '4-5': 'Next Steps'
-    };
-    return stepNames[stepId] || 'Next Step';
-  };
+  const { setCurrentStep } = useNavigationProgress();
   
   const continueToNextStep = () => {
-    const currentStepId = progress.currentStepId;
-    const nextStepId = getNextStepForButton(currentStepId);
-    
-    console.log(`🎯 AssessmentView: Advancing from ${currentStepId} to ${nextStepId}`);
-    
-    if (nextStepId) {
-      // Mark the current step as completed and advance to next step
-      markStepCompleted(currentStepId);
-      setCurrentStep(nextStepId);
-    }
+    console.log("🎯 AssessmentView: Star card preview complete, advancing to reflection");
+    // Mark the star card preview step (2-3) as completed and advance to reflection (2-4)
+    markStepCompleted('2-3');
+    setCurrentStep('2-4');
   };
-  
-  const currentStepId = progress.currentStepId;
-  const nextStepId = getNextStepForButton(currentStepId);
-  const nextStepName = nextStepId ? getNextStepName(nextStepId) : 'Continue';
 
   return (
     <>
@@ -356,7 +314,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 onClick={continueToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                Next: {nextStepName} <ArrowRight className="h-4 w-4 ml-2" />
+                Next: Reflection <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
