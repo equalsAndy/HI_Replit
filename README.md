@@ -11,11 +11,12 @@ This project uses:
 ## Navigation Progress Implementation Constraints
 
 ### CRITICAL CONSTRAINTS
-- ASK PERMISSION as a group before modifying files beyond target file
-- ASK PERMISSION before creating new files if something is missing
-- EVALUATE ALTERNATIVES for complex architecture decisions (like global state)
-- VERIFY all API endpoints exist before using them
-- PROVIDE comprehensive testing (unit, integration, manual checklist)
+- **ASK PERMISSION** as a group before modifying files beyond target file (EXCEPT Next button components)
+- **ASK PERMISSION** before creating new files if something is missing
+- **NEXT BUTTON EXCEPTION**: May modify Next button UI components as needed to implement proper behavior
+- **EVALUATE ALTERNATIVES** for complex architecture decisions (like global state)
+- **VERIFY** all API endpoints exist before using them
+- **PROVIDE** comprehensive testing (unit, integration, manual checklist)
 
 ### TARGET FILE
 Build navigation hook at `client/src/hooks/use-navigation-progress.ts`
@@ -29,6 +30,28 @@ Build navigation hook at `client/src/hooks/use-navigation-progress.ts`
 - **Branch**: 4-5 completion unlocks 6-1, 5-2, 5-3, 5-4 (all simultaneously)
 - **Assessment blocking**: 2-2 (starCard), 3-2 (flowAssessment), 4-1 (cantrilLadder)
 - **Reflection steps**: 4-2 and others (non-blocking in simplified mode)
+
+### USER RESTORATION LOGIC
+- **Load currentStepId** from database on app initialization
+- **Navigate user** to their current step (not always 1-1)
+- **Show green checkmarks** for all steps in completedSteps array
+- **Update currentStepId** when user navigates between steps
+- **Handle corrupted/missing** progress data gracefully
+
+### NEXT BUTTON BEHAVIOR
+- **Format**: "Next: [Step Name]" (e.g., "Next: Star Assessment")
+- **Video steps**: Enabled immediately (simplified mode)
+- **Assessment steps**: Disabled until completed, inline error if clicked
+- **Reflection steps**: Enabled immediately (simplified mode)
+- **Loading state**: Spinner + disabled during navigation (suggest: 500ms transition)
+- **Error display**: Inline message below button with specific requirement
+- **UI COMPONENTS**: Fix/modify Next button components as needed for proper behavior
+
+### GREEN CHECKMARK BEHAVIOR
+- **Show green checkmark** if stepId exists in completedSteps array
+- **Completed steps** remain accessible (can navigate back)
+- **Current step** highlighted differently from completed steps
+- **Visual hierarchy**: current > completed > unlocked > locked
 
 ### ARCHITECTURE
 - **Mode**: SIMPLIFIED (track video but don't use for unlocking)
