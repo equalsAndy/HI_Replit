@@ -997,7 +997,18 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
     
     console.log('Cantril ladder GET request for userId:', userId);
     
-    const assessment = await db
+    // Get both cantrilLadder and cantrilLadderReflection assessments
+    const ladderAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'cantrilLadder')
+        )
+      );
+    
+    const reflectionAssessment = await db
       .select()
       .from(schema.userAssessments)
       .where(
@@ -1007,21 +1018,51 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
         )
       );
     
-    console.log('Cantril ladder assessment found:', assessment.length > 0 ? 'YES' : 'NO');
+    console.log('Cantril ladder assessment found:', ladderAssessment.length > 0 ? 'YES' : 'NO');
+    console.log('Cantril reflection assessment found:', reflectionAssessment.length > 0 ? 'YES' : 'NO');
     
-    if (!assessment || assessment.length === 0) {
-      console.log('No cantril ladder data found for user:', userId);
-      return res.json({ success: true, data: null });
+    // Combine both datasets for the frontend
+    let combinedData: any = {
+      wellBeingLevel: 5, // Default values
+      futureWellBeingLevel: 5,
+      currentFactors: '',
+      futureImprovements: '',
+      specificChanges: '',
+      quarterlyProgress: '',
+      quarterlyActions: ''
+    };
+    
+    // Add ladder values if they exist
+    if (ladderAssessment.length > 0) {
+      const ladderResults = JSON.parse(ladderAssessment[0].results);
+      combinedData.wellBeingLevel = ladderResults.wellBeingLevel || 5;
+      combinedData.futureWellBeingLevel = ladderResults.futureWellBeingLevel || 5;
+      console.log('Ladder values found:', { wellBeingLevel: combinedData.wellBeingLevel, futureWellBeingLevel: combinedData.futureWellBeingLevel });
     }
     
-    const results = JSON.parse(assessment[0].results);
-    console.log('Cantril ladder results being returned:', results);
+    // Add reflection values if they exist
+    if (reflectionAssessment.length > 0) {
+      const reflectionResults = JSON.parse(reflectionAssessment[0].results);
+      combinedData.currentFactors = reflectionResults.currentFactors || '';
+      combinedData.futureImprovements = reflectionResults.futureImprovements || '';
+      combinedData.specificChanges = reflectionResults.specificChanges || '';
+      combinedData.quarterlyProgress = reflectionResults.quarterlyProgress || '';
+      combinedData.quarterlyActions = reflectionResults.quarterlyActions || '';
+      console.log('Reflection values found');
+    }
+    
+    console.log('Combined cantril ladder data being returned:', combinedData);
     res.json({
       success: true,
-      data: results,
-      meta: { assessmentType: 'cantrilLadderReflection' }
+      data: combinedData,
+      meta: { 
+        assessmentType: 'cantrilLadder',
+        hasLadderData: ladderAssessment.length > 0,
+        hasReflectionData: reflectionAssessment.length > 0
+      }
     });
   } catch (error) {
+    console.error('Cantril ladder GET error:', error);
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve assessment',
