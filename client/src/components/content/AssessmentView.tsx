@@ -156,10 +156,13 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   // Use the navigation hook for reliable navigation
   const { setCurrentStep, getNextButtonText, handleNextButtonClick, progress } = useNavigationProgress();
   
+  // Get current step from progress state
+  const currentStepId = progress.currentStepId || '1-1';
+  
   const continueToNextStep = async () => {
-    console.log("🎯 AssessmentView: Star card preview complete, advancing to next step");
+    console.log(`🎯 AssessmentView: Assessment complete, advancing from step ${currentStepId}`);
     // Use the navigation hook's handleNextButtonClick for proper navigation
-    const result = await handleNextButtonClick('2-3');
+    const result = await handleNextButtonClick(currentStepId);
     if (result.success) {
       console.log("✅ Successfully navigated to next step");
     } else {
@@ -167,8 +170,8 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     }
   };
   
-  // Get the proper next button text
-  const nextButtonText = getNextButtonText('2-3');
+  // Get the proper next button text based on current step
+  const nextButtonText = getNextButtonText(currentStepId);
 
   return (
     <>
