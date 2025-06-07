@@ -366,6 +366,39 @@ export function useNavigationProgress() {
   const currentStepId = progress.currentStepId;
   const completedSteps = progress.completedSteps;
 
+  // Additional compatibility functions
+  const getSectionProgressData = (stepIds: string[]) => {
+    const completedCount = stepIds.filter(stepId => progress.completedSteps.includes(stepId)).length;
+    return {
+      completed: completedCount,
+      total: stepIds.length,
+      percentage: Math.round((completedCount / stepIds.length) * 100)
+    };
+  };
+
+  const SECTION_STEPS = {
+    introduction: ['1-1'],
+    starStrengths: ['2-1', '2-2', '2-3', '2-4'],
+    flow: ['3-1', '3-2', '3-3', '3-4'],
+    wellbeing: ['4-1', '4-2', '4-3', '4-4', '4-5']
+  };
+
+  const getLastPosition = () => {
+    // Return last video position data for resume functionality
+    const videoSteps = ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'];
+    for (const stepId of videoSteps.reverse()) {
+      const videoData = progress.videoProgress[stepId];
+      if (videoData && videoData.current > 0) {
+        return {
+          stepId,
+          position: videoData.current,
+          duration: 100 // Simplified for compatibility
+        };
+      }
+    }
+    return null;
+  };
+
   return {
     progress,
     updateVideoProgress,
@@ -385,6 +418,14 @@ export function useNavigationProgress() {
     updateNavigationSections,
     calculateOverallProgress,
     currentStepId,
-    completedSteps
+    completedSteps,
+    // Additional compatibility exports
+    getSectionProgressData,
+    SECTION_STEPS,
+    getLastPosition,
+    // Additional aliases for compatibility
+    updateCurrentStep: setCurrentStep,
+    isStepAccessibleByProgression: isStepAccessible,
+    getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0
   };
 }
