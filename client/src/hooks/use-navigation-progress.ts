@@ -263,6 +263,30 @@ export function useNavigationProgress() {
         console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
         return isComplete;
       }
+      if (stepId === '4-2') {
+        // Complete 4-2 if cantril ladder reflection data exists
+        const hasCantrilReflection = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
+        const hasProgressedPast = currentProgress.completedSteps.some(step => 
+          step.startsWith('4-') && parseInt(step.split('-')[1]) > 2
+        );
+        const isComplete = hasCantrilReflection || hasProgressedPast;
+        console.log(`🔍 Step 4-2 (Well-being Reflections) - hasCantrilReflection: ${hasCantrilReflection}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
+        return isComplete;
+      }
+      if (stepId === '4-3') {
+        // Complete 4-3 if user has progressed past it or has visualization data
+        const hasProgressedPast = currentProgress.completedSteps.some(step => 
+          step.startsWith('4-') && parseInt(step.split('-')[1]) > 3
+        );
+        console.log(`🔍 Step 4-3 (Visualizing You) - hasProgressedPast: ${hasProgressedPast}`);
+        return hasProgressedPast;
+      }
+      if (stepId === '4-4') {
+        // Complete 4-4 if user has progressed past it (4-5 completed)
+        const hasProgressedPast = currentProgress.completedSteps.includes('4-5');
+        console.log(`🔍 Step 4-4 (Your Future Self) - hasProgressedPast: ${hasProgressedPast}`);
+        return hasProgressedPast;
+      }
       if (stepId === '4-5') {
         // Check for final reflection assessment
         const hasFinalReflection = !!(userAssessments?.finalReflection || userAssessments?.assessments?.finalReflection);
