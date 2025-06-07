@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useNavigationProgressClean } from '@/hooks/use-navigation-progress-clean';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps {
@@ -23,12 +23,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   
-  // Get navigation progress using the clean hook
+  // Get navigation progress using the main hook
   const { 
     progress: navigationProgress, 
     updateVideoProgress,
-    validateStepCompletion
-  } = useNavigationProgressClean();
+    markStepCompleted: navMarkStepCompleted
+  } = useNavigationProgress();
 
   // Simplified mode: Next button always active for video steps
   useEffect(() => {
@@ -112,9 +112,21 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const handleNext = async () => {
     try {
       console.log(`🚀 Next button clicked for step: ${stepId}`);
-      await markStepCompleted(stepId);
-      console.log(`✅ Step ${stepId} marked complete, navigating to ${nextContentId}`);
-      setCurrentContent(nextContentId);
+      
+      // Try both markStepCompleted functions - props first, then navigation hook
+      if (markStepCompleted) {
+        await markStepCompleted(stepId);
+        console.log(`✅ Step ${stepId} marked complete via props, navigating to ${nextContentId}`);
+      } else if (navMarkStepCompleted) {
+        await navMarkStepCompleted(stepId);
+        console.log(`✅ Step ${stepId} marked complete via navigation hook, navigating to ${nextContentId}`);
+      } else {
+        console.log(`⚠️ No markStepCompleted function available`);
+      }
+      
+      if (setCurrentContent) {
+        setCurrentContent(nextContentId);
+      }
     } catch (error) {
       console.error(`❌ Error completing step ${stepId}:`, error);
     }
