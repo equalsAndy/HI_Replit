@@ -17,7 +17,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     const checkExistingAssessment = async () => {
       try {
         console.log('🔍 FlowAssessmentView: Checking for existing flow assessment...');
-        const response = await fetch('/api/user/assessments', {
+        const response = await fetch('/api/workshop-data/flow-assessment', {
           credentials: 'include'
         });
         if (response.ok) {
