@@ -36,3 +36,21 @@ Build navigation hook at `client/src/hooks/use-navigation-progress.ts`
 - **Database**: users.navigationProgress (JSON, max 2 nesting levels)
 - **Error recovery**: Refresh/clear browser options, contact facilitator
 - **NO section-level tracking** - pure step unlocking only
+
+## Port Conflict Resolution
+
+If you encounter "Cannot GET /" errors or port conflicts, run these commands automatically:
+
+### Kill existing processes and free ports
+```bash
+pkill -f "tsx server/index.ts" || true
+lsof -ti:5000 | xargs kill -9 2>/dev/null || true
+lsof -ti:5001 | xargs kill -9 2>/dev/null || true
+```
+
+### Start fresh server
+```bash
+npm run dev
+```
+
+These commands are also available in the "Kill app and ports 5000, 5001" workflow.
