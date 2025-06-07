@@ -342,7 +342,7 @@ export function useNavigationProgress() {
     }
 
     // Calculate the current step ID based on progress
-    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
     let currentStepId = '1-1'; // Default to first step
     
     // Find the first incomplete step as the current step
@@ -354,7 +354,8 @@ export function useNavigationProgress() {
     }
     
     // If all steps are complete, stay on the last step
-    if (newCompletedSteps.length === allStepsInOrder.length) {
+    if (newCompletedSteps.length >= allStepsInOrder.length || 
+        allStepsInOrder.every(step => newCompletedSteps.includes(step))) {
       currentStepId = allStepsInOrder[allStepsInOrder.length - 1];
     }
     
