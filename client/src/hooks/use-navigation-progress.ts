@@ -512,97 +512,6 @@ export function useNavigationProgress() {
     syncProgressToDatabase(updatedProgress);
   };
 
-
-    }
-    if (newCompletedSteps.includes('3-1')) {
-      unlockedSteps.add('3-2');
-    }
-    if (newCompletedSteps.includes('3-2')) {
-      unlockedSteps.add('3-3');
-    }
-    if (newCompletedSteps.includes('3-3')) {
-      unlockedSteps.add('3-4');
-    }
-    if (newCompletedSteps.includes('3-4')) {
-      unlockedSections.add('4');
-      unlockedSteps.add('4-1');
-    }
-    if (newCompletedSteps.includes('4-1')) {
-      unlockedSteps.add('4-2');
-    }
-    if (newCompletedSteps.includes('4-2')) {
-      unlockedSteps.add('4-3');
-    }
-    if (newCompletedSteps.includes('4-3')) {
-      unlockedSteps.add('4-4');
-    }
-
-    // Calculate next step to navigate to
-    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
-    const currentIndex = allStepsInOrder.indexOf(stepId);
-    let nextStepId = stepId; // Default to current step
-    if (currentIndex >= 0 && currentIndex < allStepsInOrder.length - 1) {
-      nextStepId = allStepsInOrder[currentIndex + 1];
-    }
-    
-    const updatedProgress = {
-      ...progress,
-      completedSteps: newCompletedSteps,
-      currentStepId: nextStepId,
-      unlockedSections: Array.from(unlockedSections),
-      unlockedSteps: Array.from(unlockedSteps),
-      lastVisitedAt: new Date().toISOString()
-    };
-    
-    console.log(`📊 Updated progress:`, updatedProgress);
-    setProgress(updatedProgress);
-    syncProgressToDatabase(updatedProgress);
-  };
-
-  const updateVideoProgress = (stepId: string, progressPercent: number, currentPosition?: number) => {
-    const updatedProgress = {
-      ...progress,
-      videoProgress: {
-        ...progress.videoProgress,
-        [stepId]: Math.max(progress.videoProgress[stepId] || 0, progressPercent)
-      },
-      videoPositions: currentPosition !== undefined ? {
-        ...progress.videoPositions,
-        [stepId]: currentPosition
-      } : progress.videoPositions
-    };
-    
-    setProgress(updatedProgress);
-    syncProgressToDatabase(updatedProgress);
-  };
-
-  const getCurrentVideoProgress = (stepId: string) => {
-    return progress.videoProgress[stepId] || 0;
-  };
-
-  const getCurrentVideoPosition = (stepId: string) => {
-    return progress.videoPositions[stepId] || 0;
-  };
-
-  const isStepAccessibleByProgression = (stepId: string): boolean => {
-    // Use current progress state for step accessibility
-    const isUnlocked = progress.unlockedSteps?.includes(stepId) || false;
-    console.log(`🔓 Step ${stepId} accessibility: ${isUnlocked}`);
-    return isUnlocked;
-  };
-
-  const canProceedToNext = (currentStepId: string): boolean => {
-    // Always allow proceeding for now (simplified mode)
-    return true;
-  };
-
-  const shouldShowGreenCheckmark = (stepId: string): boolean => {
-    // Use the current progress state for UI display
-    const isCompleted = progress.completedSteps.includes(stepId);
-    console.log(`🎯 Green checkmark for ${stepId}: ${isCompleted}`);
-    return isCompleted;
-  };
-
   const markStepCompleted = (stepId: string) => {
     console.log(`✅ Marking step ${stepId} as completed`);
     
@@ -672,6 +581,50 @@ export function useNavigationProgress() {
     
     setProgress(updatedProgress);
     syncProgressToDatabase(updatedProgress);
+  };
+
+  const updateVideoProgress = (stepId: string, progressPercent: number, currentPosition?: number) => {
+    const updatedProgress = {
+      ...progress,
+      videoProgress: {
+        ...progress.videoProgress,
+        [stepId]: Math.max(progress.videoProgress[stepId] || 0, progressPercent)
+      },
+      videoPositions: currentPosition !== undefined ? {
+        ...progress.videoPositions,
+        [stepId]: currentPosition
+      } : progress.videoPositions
+    };
+    
+    setProgress(updatedProgress);
+    syncProgressToDatabase(updatedProgress);
+  };
+
+  const getCurrentVideoProgress = (stepId: string) => {
+    return progress.videoProgress[stepId] || 0;
+  };
+
+  const getCurrentVideoPosition = (stepId: string) => {
+    return progress.videoPositions[stepId] || 0;
+  };
+
+  const isStepAccessibleByProgression = (stepId: string): boolean => {
+    // Use current progress state for step accessibility
+    const isUnlocked = progress.unlockedSteps?.includes(stepId) || false;
+    console.log(`🔓 Step ${stepId} accessibility: ${isUnlocked}`);
+    return isUnlocked;
+  };
+
+  const canProceedToNext = (currentStepId: string): boolean => {
+    // Always allow proceeding for now (simplified mode)
+    return true;
+  };
+
+  const shouldShowGreenCheckmark = (stepId: string): boolean => {
+    // Use the current progress state for UI display
+    const isCompleted = progress.completedSteps.includes(stepId);
+    console.log(`🎯 Green checkmark for ${stepId}: ${isCompleted}`);
+    return isCompleted;
   };
 
   // Force update progress when assessments change (including reset)
