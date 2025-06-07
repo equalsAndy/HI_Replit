@@ -532,8 +532,8 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
     );
   }
   
-  // If the assessment is already completed (but no score is available), show a basic completion message
-  if (isCompleted) {
+  // If the assessment is already completed (but no score is available AND we haven't loaded assessment data yet), show a basic completion message
+  if (isCompleted && !completedAssessmentData) {
     return (
       <div className="space-y-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
