@@ -467,30 +467,14 @@ export function useNavigationProgress() {
     return progress.videoProgress[stepId]?.current || 0;
   };
 
-  // Next button functionality with validation and error messages
+  // Next button functionality - simple linear progression
   const getNextStepForButton = (currentStepId: string): string | null => {
     const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
     const currentIndex = allSteps.indexOf(currentStepId);
     
-    // Main sequence progression
-    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-    if (mainSequence.includes(currentStepId)) {
-      const mainIndex = mainSequence.indexOf(currentStepId);
-      if (mainIndex < mainSequence.length - 1) {
-        return mainSequence[mainIndex + 1];
-      }
-    }
-    
-    // Resource sequence progression
-    const resourceSteps = ['5-1', '5-2', '5-3', '5-4', '6-1'];
-    if (resourceSteps.includes(currentStepId)) {
-      const resourceIndex = resourceSteps.indexOf(currentStepId);
-      if (resourceIndex < resourceSteps.length - 1) {
-        return resourceSteps[resourceIndex + 1];
-      }
-    }
-    
-    return null; // No next step
+    return currentIndex === -1 || currentIndex === allSteps.length - 1 
+      ? null 
+      : allSteps[currentIndex + 1];
   };
 
   const getNextButtonState = (stepId: string) => {
