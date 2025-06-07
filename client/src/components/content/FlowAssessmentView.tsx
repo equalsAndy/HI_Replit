@@ -72,19 +72,23 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     if (userAssessments && typeof userAssessments === 'object') {
       const assessmentData = userAssessments as Record<string, any>;
-      if (assessmentData.flowAssessment) {
-        const flowData = assessmentData.flowAssessment;
-        setAnswers(flowData.answers || {});
+      
+      // Check both direct and nested assessment data structures
+      const flowData = assessmentData.flowAssessment || assessmentData.assessments?.flowAssessment;
+      
+      if (flowData && flowData.answers) {
+        console.log('✅ Flow Assessment: Found existing data:', flowData);
+        setAnswers(flowData.answers);
         setHasCompletedAssessment(true);
         setShowResults(true);
-        console.log('Flow Assessment: Loaded existing data from database', flowData);
+        setCurrentQuestion(flowQuestions.length - 1); // Set to last question for results view
       } else {
-        // Clear any localStorage data if no database data exists
+        console.log('❌ Flow Assessment: No existing data found, starting fresh');
         localStorage.removeItem('flowAssessmentAnswers');
         setAnswers({});
         setHasCompletedAssessment(false);
         setShowResults(false);
-        console.log('Flow Assessment: No existing data found, starting fresh');
+        setCurrentQuestion(0);
       }
     }
   }, [userAssessments]);

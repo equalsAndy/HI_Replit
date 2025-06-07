@@ -80,7 +80,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
-  // Debounced save function for text inputs
+  // Debounced save function for all data (text inputs + ladder values)
   const debouncedSave = useCallback(
     debounce(async (dataToSave) => {
       try {
@@ -88,26 +88,31 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify(dataToSave)
+          body: JSON.stringify({
+            ...dataToSave,
+            wellBeingLevel,
+            futureWellBeingLevel
+          })
         });
         
         const result = await response.json();
         if (result.success) {
-          console.log('Auto-saved successfully');
+          console.log('Cantril Ladder auto-saved successfully:', { wellBeingLevel, futureWellBeingLevel });
         }
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        console.error('Cantril Ladder auto-save failed:', error);
       }
     }, 1000),
-    []
+    [wellBeingLevel, futureWellBeingLevel]
   );
 
-  // Trigger save whenever form data changes
+  // Trigger save whenever form data OR ladder values change
   useEffect(() => {
-    if (Object.values(formData).some(value => value.trim().length > 0)) {
+    if (Object.values(formData).some(value => value.trim().length > 0) || wellBeingLevel !== 5 || futureWellBeingLevel !== 5) {
+      console.log('Cantril Ladder data changed, triggering save:', { wellBeingLevel, futureWellBeingLevel, formData });
       debouncedSave(formData);
     }
-  }, [formData, debouncedSave]);
+  }, [formData, wellBeingLevel, futureWellBeingLevel, debouncedSave]);
 
   // Handle text input changes
   const handleInputChange = (field: string, value: string) => {
@@ -134,6 +139,49 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
         {/* Reflections section - positioned like sliders section in WellBeingView */}
         <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
+          {/* Interactive sliders for wellbeing levels */}
+          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <h3 className="text-md font-medium text-gray-800 mb-4">Set Your Well-being Levels</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Current Well-being Level: {wellBeingLevel}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={wellBeingLevel}
+                  onChange={(e) => setWellBeingLevel(Number(e.target.value))}
+                  className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0 (Worst)</span>
+                  <span>10 (Best)</span>
+                </div>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Future Well-being Level (1 year): {futureWellBeingLevel}
+                </label>
+                <input
+                  type="range"
+                  min="0"
+                  max="10"
+                  value={futureWellBeingLevel}
+                  onChange={(e) => setFutureWellBeingLevel(Number(e.target.value))}
+                  className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <div className="flex justify-between text-xs text-gray-500 mt-1">
+                  <span>0 (Worst)</span>
+                  <span>10 (Best)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
             <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
             <p className="text-gray-700 text-sm mb-2">
