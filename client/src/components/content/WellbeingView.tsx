@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Slider } from '@/components/ui/slider';
-import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
@@ -44,12 +43,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       console.log('WellbeingView: Auto-saving ladder values:', { currentLevel, futureLevel });
       
       // Save to visualization API
-      await apiRequest('/api/visualization', {
+      await fetch('/api/visualization', {
         method: 'POST',
-        body: {
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
           wellBeingLevel: currentLevel,
           futureWellBeingLevel: futureLevel,
-        }
+        })
       });
 
       // Also save to assessments for data export
@@ -85,9 +86,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     setSaving(true);
 
     try {
-      await apiRequest('/api/visualization', 'POST', {
-        wellBeingLevel,
-        futureWellBeingLevel,
+      await fetch('/api/visualization', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          wellBeingLevel,
+          futureWellBeingLevel,
+        })
       });
 
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
