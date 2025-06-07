@@ -277,11 +277,13 @@ export function useNavigationProgress() {
       }
       if (stepId === '4-3') {
         // Complete 4-3 if user has progressed past it or has visualization data
+        const hasVisualizingData = !!(userAssessments?.visualizingPotential || userAssessments?.assessments?.visualizingPotential);
         const hasProgressedPast = currentProgress.completedSteps.some(step => 
           step.startsWith('4-') && parseInt(step.split('-')[1]) > 3
         );
-        console.log(`🔍 Step 4-3 (Visualizing You) - hasProgressedPast: ${hasProgressedPast}`);
-        return hasProgressedPast;
+        const isComplete = hasVisualizingData || hasProgressedPast;
+        console.log(`🔍 Step 4-3 (Visualizing You) - hasVisualizingData: ${hasVisualizingData}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
+        return isComplete;
       }
       if (stepId === '4-4') {
         // Complete 4-4 if user has progressed past it (4-5 completed)
