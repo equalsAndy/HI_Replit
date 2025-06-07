@@ -157,10 +157,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const { setCurrentStep } = useNavigationProgress();
   
   const continueToNextStep = () => {
-    console.log("🎯 AssessmentView: Continuing to next step - marking 2-2 as completed");
-    markStepCompleted('2-2');
-    // Navigate directly to 2-3 after marking completion
-    setCurrentStep('2-3');
+    console.log("🎯 AssessmentView: Star card preview complete, advancing to reflection");
+    // Mark the star card preview step (2-3) as completed and advance to reflection (2-4)
+    markStepCompleted('2-3');
+    setCurrentStep('2-4');
   };
 
   return (
