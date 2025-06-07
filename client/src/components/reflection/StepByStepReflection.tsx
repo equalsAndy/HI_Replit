@@ -140,7 +140,7 @@ export default function StepByStepReflection({
 
   // Trigger save whenever reflections change
   useEffect(() => {
-    if (Object.values(reflections).some(value => value.trim().length > 0)) {
+    if (Object.values(reflections).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
       debouncedSave(reflections);
     }
   }, [reflections, debouncedSave]);
@@ -380,14 +380,16 @@ export default function StepByStepReflection({
   // Check if current reflection meets minimum requirements
   const isCurrentReflectionValid = (): boolean => {
     const currentText = getCurrentReflectionText();
-    return currentText.trim().length >= 10;
+    return currentText && typeof currentText === 'string' && currentText.trim().length >= 10;
   };
 
   // Next/previous step handlers
   const handleNext = async () => {
     // Check if current reflection is valid before proceeding
     if (!isCurrentReflectionValid()) {
-      console.log(`Reflection ${currentStep} needs at least 10 characters. Current: ${getCurrentReflectionText().trim().length}`);
+      const currentText = getCurrentReflectionText();
+      const textLength = currentText && typeof currentText === 'string' ? currentText.trim().length : 0;
+      console.log(`Reflection ${currentStep} needs at least 10 characters. Current: ${textLength}`);
       return; // Prevent advancing
     }
 
