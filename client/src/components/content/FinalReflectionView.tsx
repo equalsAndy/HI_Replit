@@ -76,17 +76,26 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
     setSaving(true);
     
     try {
-      await apiRequest('/api/workshop-data/final-reflection', {
+      const response = await fetch('/api/workshop-data/final-reflection', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
         body: JSON.stringify({
           futureLetterText: statement
         })
       });
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
-      markStepCompleted('4-5');
-      // No longer redirects to recap since it's been removed
-      navigate('/resources');
+
+      const result = await response.json();
+      if (result.success) {
+        console.log('Final reflection saved successfully');
+        queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
+        markStepCompleted('4-5');
+        console.log('Step 4-5 marked as completed');
+      } else {
+        throw new Error(result.error || 'Save failed');
+      }
     } catch (error) {
       console.error('Error saving statement:', error);
     } finally {

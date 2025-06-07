@@ -263,6 +263,12 @@ export function useNavigationProgress() {
         console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
         return isComplete;
       }
+      if (stepId === '4-5') {
+        // Check for final reflection assessment
+        const hasFinalReflection = !!(userAssessments?.finalReflection || userAssessments?.assessments?.finalReflection);
+        console.log(`🔍 Step 4-5 (Final Reflection) - hasFinalReflection: ${hasFinalReflection}`);
+        return hasFinalReflection;
+      }
       
       // Content/video steps auto-complete when user has progressed past them
       if (stepId === '1-1') {
@@ -315,7 +321,7 @@ export function useNavigationProgress() {
     };
 
     // Recalculate completed steps
-    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
+    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
     const newCompletedSteps = allSteps.filter(isStepCompleted);
     
     // Calculate unlocked steps - sequential unlocking
@@ -358,6 +364,9 @@ export function useNavigationProgress() {
     if (newCompletedSteps.includes('4-3')) {
       unlockedSteps.add('4-4');
     }
+    if (newCompletedSteps.includes('4-4')) {
+      unlockedSteps.add('4-5');
+    }
     
     // Calculate unlocked sections based on unlocked steps
     const unlockedSections = new Set(['1']); // Always unlock section 1
@@ -372,7 +381,7 @@ export function useNavigationProgress() {
     }
 
     // Calculate the current step ID based on progress
-    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
+    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
     let currentStepId = '1-1'; // Default to first step
     
     // Find the first incomplete step as the current step
