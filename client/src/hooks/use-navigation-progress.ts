@@ -156,15 +156,16 @@ export function useNavigationProgress() {
                   '2-1': 'intro-strengths', 
                   '2-2': 'strengths-assessment',
                   '2-3': 'star-card-preview',
-                  '2-4': 'reflection-2-4',
-                  '3-1': 'intro-flow',
+                  '2-4': 'reflection',
+                  '3-1': 'intro-to-flow',
                   '3-2': 'flow-assessment',
-                  '3-3': 'rounding-out',
-                  '3-4': 'reflection-3-4',
-                  '4-1': 'ladder-wellbeing',
-                  '4-2': 'wellbeing-reflections',
-                  '4-3': 'potential-visualization',
-                  '4-4': 'future-self'
+                  '3-3': 'flow-rounding-out',
+                  '3-4': 'flow-star-card',
+                  '4-1': 'wellbeing',
+                  '4-2': 'cantril-ladder',
+                  '4-3': 'visualizing-you',
+                  '4-4': 'future-self',
+                  '4-5': 'your-statement'
                 };
                 
                 const targetContent = stepContentMap[loadedProgress.currentStepId];
