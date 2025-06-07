@@ -149,6 +149,21 @@ const handleNetworkError = (error: Error, operation: string): boolean => {
   return false; // Indicate failure but don't break app
 };
 
+// Infer completed steps based on current step position
+const inferCompletedSteps = (currentStepId: string): string[] => {
+  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const currentIndex = mainSequence.indexOf(currentStepId);
+  
+  if (currentIndex > 0) {
+    // User is beyond first step, so mark all previous steps as completed
+    const completedSteps = mainSequence.slice(0, currentIndex);
+    console.log(`🔍 INFERRING: User at step ${currentStepId} (index ${currentIndex}) → completed steps:`, completedSteps);
+    return completedSteps;
+  }
+  
+  return [];
+};
+
 // Get next step prioritizing main sequence over resources
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
@@ -203,12 +218,20 @@ export function useNavigationProgress() {
             try {
               const dbProgress = JSON.parse(result.user.navigationProgress);
               
+              // Infer completed steps if not properly tracked
+              let completedSteps = dbProgress.completedSteps || [];
+              if (completedSteps.length === 0 && dbProgress.currentStepId && dbProgress.currentStepId !== '1-1') {
+                completedSteps = inferCompletedSteps(dbProgress.currentStepId);
+                console.log(`🔄 FIXED: Inferred completed steps for user at ${dbProgress.currentStepId}:`, completedSteps);
+              }
+              
               setProgress(prev => ({
                 ...prev,
                 ...dbProgress,
+                completedSteps,
                 appType: 'ast',
                 lastVisitedAt: new Date().toISOString(),
-                unlockedSteps: calculateUnlockedSteps(dbProgress.completedSteps || [])
+                unlockedSteps: calculateUnlockedSteps(completedSteps)
               }));
               
               console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
