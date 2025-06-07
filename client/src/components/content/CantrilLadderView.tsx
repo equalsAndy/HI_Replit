@@ -136,7 +136,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
   // Trigger save only when form data changes (NOT ladder values)
   useEffect(() => {
-    if (Object.values(formData).some(value => value.trim().length > 0)) {
+    if (Object.values(formData).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
       console.log('Cantril Ladder reflections changed, triggering save:', formData);
       debouncedSave(formData);
     }
