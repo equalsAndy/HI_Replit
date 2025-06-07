@@ -332,46 +332,21 @@ export default function AllStarTeams() {
   const markStepCompleted = (stepId: string) => {
     console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
     
-    // Use simple navigation system only
+    // Use the navigation progress hook's markStepCompleted function
     markNavStepCompleted(stepId);
     console.log(`Step ${stepId} marked as completed`);
   };
 
-  // Function to determine if a step is accessible - strict sequential progression
+  // Function to determine if a step is accessible - uses unlocked steps from navigation progress
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    // Defensive check to ensure completedSteps is an array
-    if (!Array.isArray(completedSteps)) {
-      console.error("completedSteps is not an array in isStepAccessible:", completedSteps);
-      return stepId === '1-1'; // Only allow Introduction video if completedSteps is invalid
-    }
-
-    // Original requirement: Only Introduction Video (1-1) is active initially
-    if (stepId === '1-1') return true;
-
-    // Sequential step progression as per original requirements
-    const allSteps = [
-      '1-1', '2-1', '2-2', '2-3', '2-4', 
-      '3-1', '3-2', '3-3', '3-4',
-      '4-1', '4-2', '4-3', '4-4', '4-5'
-    ];
+    // Use navigation progress unlocked steps instead of completed steps
+    const unlockedSteps = navProgress?.unlockedSteps || [];
     
-    const stepPosition = allSteps.indexOf(stepId);
-    if (stepPosition === -1) {
-      // Resource sections (5-x, 6-x) unlock after Final Reflection (4-5)
-      if (sectionId === '5' || sectionId === '6') {
-        return completedSteps.includes('4-5');
-      }
-      return false;
-    }
+    // Check if step is in unlocked steps
+    const isUnlocked = unlockedSteps.includes(stepId);
+    console.log(`🔓 Step accessibility check: ${stepId} - unlocked: ${isUnlocked}, available steps: ${unlockedSteps.join(', ')}`);
     
-    // A step is accessible only if all previous steps are completed
-    for (let i = 0; i < stepPosition; i++) {
-      if (!completedSteps.includes(allSteps[i])) {
-        return false;
-      }
-    }
-    
-    return true;
+    return isUnlocked;
   };
 
   // Handle assessment completion
