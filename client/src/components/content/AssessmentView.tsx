@@ -157,10 +157,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const { setCurrentStep } = useNavigationProgress();
   
   const continueToNextStep = () => {
-    console.log("🎯 AssessmentView: Star card preview complete, advancing to reflection");
-    // Mark the star card preview step (2-3) as completed and advance to reflection (2-4)
-    markStepCompleted('2-3');
-    setCurrentStep('2-4');
+    console.log("🎯 AssessmentView: Assessment results viewed, advancing to next step in flow");
+    // Mark the current step as completed and advance to next step (3-1: Intro to Flow)
+    markStepCompleted('2-4');
+    setCurrentStep('3-1');
   };
 
   return (
@@ -314,7 +314,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 onClick={continueToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                Next: Reflection <ArrowRight className="h-4 w-4 ml-2" />
+                Next: Intro to Flow <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
