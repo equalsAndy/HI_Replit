@@ -546,7 +546,7 @@ export function useNavigationProgress() {
       '1-1': 'Next: Intro to Star Strengths',
       '2-1': 'Next: Star Assessment', 
       '2-2': 'Next: Review Your Star Card',
-      '2-3': 'Next: Reflection',
+      '2-3': 'Next: Review Your Star Card',
       '2-4': 'Next: Intro to Flow',
       '3-1': 'Next: Flow Assessment',
       '3-2': 'Next: Review Your Star Card', 
