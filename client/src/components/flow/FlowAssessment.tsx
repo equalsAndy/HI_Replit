@@ -450,6 +450,153 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
     );
   }
 
+  // Show results in content view instead of modal
+  if (showResult) {
+    const totalScore = calculateScore();
+    const interpretation = getInterpretation(totalScore);
+    
+    return (
+      <div className="space-y-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4 mx-auto">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">Your Flow Assessment Results</h3>
+            <p className="text-gray-600 mb-4">Based on your responses to all {flowQuestions.length} questions.</p>
+            
+            <div className="mb-4">
+              <p className="text-2xl font-bold text-indigo-700">
+                {totalScore} / {flowQuestions.length * 5}
+              </p>
+              <p className="text-lg font-semibold">
+                {interpretation.level}
+              </p>
+            </div>
+            
+            <div className="mb-6 p-4 bg-indigo-50 rounded-lg text-left">
+              <p>{interpretation.description}</p>
+            </div>
+
+            {/* Questions and Answers Summary - Read-only */}
+            <div className="mb-6 text-left">
+              <h4 className="font-semibold mb-3">Your Answers Summary</h4>
+              {/* Comment out adjustment functionality
+              <p className="text-sm text-gray-600 mb-3">
+                Review your answers below. Click an answer or the Adjust button to modify your responses.
+              </p>
+              */}
+              
+              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50 sticky top-0">
+                    <tr>
+                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Question
+                      </th>
+                      <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Your Answer
+                      </th>
+                      {/* Comment out action column
+                      <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Action
+                      </th>
+                      */}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {flowQuestions.map((q) => (
+                      <tr key={q.id} className={q.id % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
+                        <td className="px-3 py-2 text-xs text-gray-700">
+                          <span className="font-semibold mr-1">Question #{q.id}:</span> {q.text}
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <div className="flex justify-center">
+                            <div 
+                              className={`
+                                px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm
+                                ${answers[q.id] === 1 ? 'bg-red-600' : 
+                                  answers[q.id] === 2 ? 'bg-orange-500' : 
+                                  answers[q.id] === 3 ? 'bg-indigo-600' : 
+                                  answers[q.id] === 4 ? 'bg-green-600' : 
+                                  answers[q.id] === 5 ? 'bg-purple-600' : 'bg-gray-400'}
+                              `}
+                            >
+                              {answers[q.id] ? valueToLabel(answers[q.id]) : 'Not answered'}
+                            </div>
+                          </div>
+                        </td>
+                        {/* Comment out adjustment functionality
+                        <td className="px-3 py-2 text-right">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (adjustingQuestionId === q.id) {
+                                setAdjustingQuestionId(null);
+                              } else {
+                                setAdjustingQuestionId(q.id);
+                              }
+                            }}
+                            className="text-xs"
+                          >
+                            {adjustingQuestionId === q.id ? 'Cancel' : 'Adjust'}
+                          </Button>
+                        </td>
+                        */}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Scoring Information */}
+            <div className="mb-6 border border-gray-200 rounded-md overflow-hidden">
+              <button 
+                onClick={() => setShowScoring(!showScoring)}
+                className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+              >
+                <h4 className="font-semibold">Scoring & Interpretation</h4>
+                <span className="text-gray-500">
+                  {showScoring ? 
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                    :
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                    </svg>
+                  }
+                </span>
+              </button>
+              
+              {showScoring && (
+                <div className="p-3 space-y-2 bg-white">
+                  <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
+                  <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
+                  <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
+                  <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-center space-x-4">
+              <Button 
+                onClick={() => onTabChange ? onTabChange("roundingout") : null}
+                className="bg-indigo-700 hover:bg-indigo-800"
+              >
+                Continue to Rounding Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
@@ -696,179 +843,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
         </div>
       </div>
       
-      {/* Results Dialog */}
-      <Dialog open={showResult} onOpenChange={setShowResult}>
-        <DialogContent className="max-w-4xl">
-          <DialogHeader>
-            <DialogTitle>Your Flow Assessment Results</DialogTitle>
-            <DialogDescription>
-              Based on your responses to all {flowQuestions.length} questions.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="text-center mb-4">
-              <p className="text-2xl font-bold text-indigo-700">
-                {calculateScore()} / {flowQuestions.length * 5}
-              </p>
-              <p className="text-lg font-semibold">
-                {getInterpretation(calculateScore()).level}
-              </p>
-            </div>
-            
-            <div className="mb-4 p-4 bg-indigo-50 rounded-lg">
-              <p>{getInterpretation(calculateScore()).description}</p>
-            </div>
-            
-            {/* Questions and Answers Recap */}
-            <div className="mb-6">
-              <h4 className="font-semibold mb-3">Your Answers Summary</h4>
-              <p className="text-sm text-gray-600 mb-3">
-                Review your answers below. Click an answer or the Adjust button to modify your responses.
-              </p>
-              
-              <div className="max-h-60 overflow-y-auto border border-gray-200 rounded-md">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50 sticky top-0">
-                    <tr>
-                      <th scope="col" className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Question
-                      </th>
-                      <th scope="col" className="px-3 py-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Your Answer
-                      </th>
-                      <th scope="col" className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Action
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {flowQuestions.map((q) => (
-                      <tr key={q.id} className={q.id % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
-                        <td className="px-3 py-2 text-xs text-gray-700">
-                          <span className="font-semibold mr-1">Question #{q.id}:</span> {q.text}
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <div className="flex justify-center">
-                            {/* Only show a color-coded oval with the answer label */}
-                            <div 
-                              className={`
-                                px-4 py-1.5 rounded-full text-white text-sm font-medium shadow-sm
-                                ${answers[q.id] === 1 ? 'bg-red-600' : 
-                                  answers[q.id] === 2 ? 'bg-orange-500' : 
-                                  answers[q.id] === 3 ? 'bg-indigo-600' : 
-                                  answers[q.id] === 4 ? 'bg-green-600' : 
-                                  answers[q.id] === 5 ? 'bg-purple-600' : 'bg-gray-400'}
-                              `}
-                            >
-                              {answers[q.id] ? valueToLabel(answers[q.id]) : 'Not answered'}
-                            </div>
-                          </div>
-                          
-                          {/* Show adjustment options when this question is being adjusted */}
-                          {adjustingQuestionId === q.id && (
-                            <div className="mt-3 flex justify-center space-x-2">
-                              {[1, 2, 3, 4, 5].map((value) => {
-                                // Define badge color for each value
-                                const badgeColors = {
-                                  1: 'bg-red-600 hover:bg-red-700',
-                                  2: 'bg-orange-500 hover:bg-orange-600',
-                                  3: 'bg-indigo-600 hover:bg-indigo-700',
-                                  4: 'bg-green-600 hover:bg-green-700',
-                                  5: 'bg-purple-600 hover:bg-purple-700',
-                                };
-                                
-                                const activeColor = badgeColors[value as keyof typeof badgeColors];
-                                
-                                return (
-                                  <div
-                                    key={value}
-                                    onClick={() => {
-                                      // Update the answer
-                                      setAnswers(prev => ({
-                                        ...prev,
-                                        [q.id]: value
-                                      }));
-                                      
-                                      // Close the adjustment interface
-                                      setAdjustingQuestionId(null);
-                                    }}
-                                    className={`
-                                      cursor-pointer px-3 py-1 rounded-full
-                                      ${activeColor} text-white shadow-sm text-xs
-                                      ${answers[q.id] === value ? 'ring-2 ring-white' : ''}
-                                    `}
-                                  >
-                                    {valueToLabel(value)}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                        </td>
-                        <td className="px-3 py-2 text-right text-xs">
-                          <span 
-                            id={`adjust-btn-${q.id}`}
-                            onClick={() => {
-                              setAdjustingQuestionId(adjustingQuestionId === q.id ? null : q.id); 
-                            }}
-                            className="inline-flex items-center px-2 py-1 rounded-md bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors cursor-pointer"
-                          >
-                            <SliderIcon className="h-3 w-3 mr-1" /> Adjust
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            <div className="mb-6 border border-gray-200 rounded-md overflow-hidden">
-              <button 
-                onClick={() => setShowScoring(!showScoring)}
-                className="w-full flex justify-between items-center p-3 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
-              >
-                <h4 className="font-semibold">Scoring & Interpretation</h4>
-                <span className="text-gray-500">
-                  {showScoring ? 
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
-                    </svg>
-                    :
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                    </svg>
-                  }
-                </span>
-              </button>
-              
-              {showScoring && (
-                <div className="p-3 space-y-2 bg-white">
-                  <p className="text-sm"><span className="font-medium">50-60: Flow Fluent</span> - You reliably access flow and have developed strong internal and external conditions to sustain it.</p>
-                  <p className="text-sm"><span className="font-medium">39-49: Flow Aware</span> - You are familiar with the experience but have room to reinforce routines or reduce blockers.</p>
-                  <p className="text-sm"><span className="font-medium">26-38: Flow Blocked</span> - You occasionally experience flow but face challenges in entry, recovery, or sustaining focus.</p>
-                  <p className="text-sm"><span className="font-medium">12-25: Flow Distant</span> - You rarely feel in flow; foundational improvements to clarity, challenge, and environment are needed.</p>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <DialogFooter className="flex justify-end">
-            <Button 
-              onClick={() => {
-                closeResultDialog();
-                if (onTabChange) {
-                  onTabChange("roundingout");
-                }
-              }} 
-              className="bg-indigo-700 hover:bg-indigo-800"
-            >
-              Continue to Rounding Out
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Modal dialog removed - results now shown in content view */}
     </div>
   );
 }
