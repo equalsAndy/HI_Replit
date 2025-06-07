@@ -386,7 +386,7 @@ export function useNavigationProgress() {
   };
 
   // ENHANCED: Manual progression with immediate counter updates
-  const markStepCompleted = (stepId: string) => {
+  const markStepCompleted = async (stepId: string) => {
     console.log(`🎯 SIMPLIFIED MODE: Manual progression - marking step ${stepId} completed`);
     
     // Check if already completed
@@ -395,10 +395,32 @@ export function useNavigationProgress() {
       return;
     }
     
-    // Validate completion (assessments/activities still required)
-    if (!validateStepCompletion(stepId)) {
-      console.log(`❌ Step ${stepId} validation failed - assessment/activity incomplete`);
-      return;
+    // For step 2-2 (assessment results), check if StarCard exists
+    if (stepId === '2-2') {
+      try {
+        const response = await fetch('/api/workshop-data/starcard', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          const hasValidStarCard = data && data.success && (
+            data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0
+          );
+          
+          if (!hasValidStarCard) {
+            console.log(`❌ Step ${stepId} validation failed - StarCard assessment incomplete`);
+            return;
+          }
+          console.log(`✅ Step ${stepId} validation passed - StarCard assessment complete`);
+        } else {
+          console.log(`❌ Step ${stepId} validation failed - could not verify StarCard`);
+          return;
+        }
+      } catch (error) {
+        console.error(`❌ Error validating step ${stepId}:`, error);
+        return;
+      }
     }
     
     console.log(`✅ SIMPLIFIED MODE: Completing step ${stepId} via Next button click`);
