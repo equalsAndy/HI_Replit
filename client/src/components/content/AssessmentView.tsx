@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 // import { StarCard } from '@/shared/types';
 import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 
 interface AssessmentViewProps {
   navigate: (to: string) => void;
@@ -152,11 +153,14 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     isComplete: isAssessmentComplete
   });
 
+  // Use the navigation hook for reliable navigation
+  const { setCurrentStep } = useNavigationProgress();
+  
   const continueToNextStep = () => {
     console.log("🎯 AssessmentView: Continuing to next step - marking 2-2 as completed");
     markStepCompleted('2-2');
     // Navigate directly to 2-3 after marking completion
-    navigate('2-3');
+    setCurrentStep('2-3');
   };
 
   return (
