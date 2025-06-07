@@ -92,9 +92,11 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             console.log('🔍 Flow Assessment: FlowData found:', flowData);
             
             if (flowData && flowData.answers && flowData.flowScore !== undefined) {
-              // Load existing answers and show results
+              // Load existing answers 
               setAnswers(flowData.answers);
+              // Always show results if we have completed assessment data
               if (flowData.completed) {
+                console.log('✅ Flow Assessment: Found completed assessment - showing results');
                 setShowResult(true);
               }
               console.log('✅ Flow Assessment: Loaded existing assessment with score:', flowData.flowScore);
@@ -114,6 +116,14 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
       checkForExistingAssessment();
     }
   }, [isFlowReset, navigationProgress]);
+
+  // If the assessment is marked as completed (from props), show results immediately
+  useEffect(() => {
+    if (isCompleted && Object.keys(answers).length > 0) {
+      console.log('✅ Flow Assessment: Step marked as completed - showing results');
+      setShowResult(true);
+    }
+  }, [isCompleted, answers]);
 
   // Reset flow assessment state when user progress is reset
   useEffect(() => {
