@@ -149,19 +149,41 @@ const handleNetworkError = (error: Error, operation: string): boolean => {
   return false; // Indicate failure but don't break app
 };
 
-// Infer completed steps based on current step position
-const inferCompletedSteps = (currentStepId: string): string[] => {
+// Auto-mark steps as completed up to current position with validation
+const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): string[] => {
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   const currentIndex = mainSequence.indexOf(currentStepId);
+  const completedSteps: string[] = [];
   
-  if (currentIndex > 0) {
-    // User is beyond first step, so mark all previous steps as completed
-    const completedSteps = mainSequence.slice(0, currentIndex);
-    console.log(`🔍 INFERRING: User at step ${currentStepId} (index ${currentIndex}) → completed steps:`, completedSteps);
-    return completedSteps;
+  if (currentIndex <= 0) {
+    return []; // At or before first step
   }
   
-  return [];
+  console.log(`🎯 AUTO-MARKING: User at step ${currentStepId} (index ${currentIndex})`);
+  
+  // Mark all steps up to current as completed, but validate assessments
+  for (let i = 0; i < currentIndex; i++) {
+    const stepId = mainSequence[i];
+    
+    // Always mark regular steps as completed if user has progressed past them
+    if (!['2-2', '3-2', '4-1'].includes(stepId)) {
+      completedSteps.push(stepId);
+      console.log(`  ✅ Auto-completed: ${stepId} (regular step)`);
+    } else {
+      // Assessment steps - validate but still mark as completed if user progressed
+      const isValid = validateStepCompletionSimplified(stepId, userAssessments);
+      completedSteps.push(stepId);
+      
+      if (isValid) {
+        console.log(`  ✅ Auto-completed: ${stepId} (assessment validated)`);
+      } else {
+        console.log(`  ⚠️ Auto-completed: ${stepId} (assessment missing but user progressed)`);
+      }
+    }
+  }
+  
+  console.log(`🎯 AUTO-MARKED COMPLETED:`, completedSteps);
+  return completedSteps;
 };
 
 // Get next step prioritizing main sequence over resources
@@ -218,23 +240,33 @@ export function useNavigationProgress() {
             try {
               const dbProgress = JSON.parse(result.user.navigationProgress);
               
-              // Infer completed steps if not properly tracked
+              // Auto-mark steps as completed up to current position
               let completedSteps = dbProgress.completedSteps || [];
-              if (completedSteps.length === 0 && dbProgress.currentStepId && dbProgress.currentStepId !== '1-1') {
-                completedSteps = inferCompletedSteps(dbProgress.currentStepId);
-                console.log(`🔄 FIXED: Inferred completed steps for user at ${dbProgress.currentStepId}:`, completedSteps);
+              if (dbProgress.currentStepId && dbProgress.currentStepId !== '1-1') {
+                const autoMarkedSteps = autoMarkStepsCompleted(dbProgress.currentStepId, userAssessments);
+                // Merge with existing completed steps (user might have completed additional resource steps)
+                const mergedSteps = [...new Set([...completedSteps, ...autoMarkedSteps])];
+                completedSteps = mergedSteps;
+                console.log(`🔄 AUTO-MARKED: Fixed completed steps for user at ${dbProgress.currentStepId}`);
               }
               
-              setProgress(prev => ({
-                ...prev,
+              const updatedProgress = {
                 ...dbProgress,
                 completedSteps,
                 appType: 'ast',
                 lastVisitedAt: new Date().toISOString(),
                 unlockedSteps: calculateUnlockedSteps(completedSteps)
-              }));
+              };
+
+              setProgress(prev => ({ ...prev, ...updatedProgress }));
               
-              console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
+              // Auto-save corrected progress back to database if we made changes
+              if (completedSteps.length !== (dbProgress.completedSteps || []).length) {
+                console.log('💾 AUTO-SAVING: Corrected completed steps to database');
+                setTimeout(() => syncToDatabase(updatedProgress), 1000);
+              }
+              
+              console.log('✅ SIMPLIFIED MODE: Progress loaded and corrected');
             } catch (parseError) {
               console.error('JSON parse error in navigation progress:', parseError);
               const fallbackProgress = handleJSONParseError(parseError as Error, result.user.navigationProgress);
