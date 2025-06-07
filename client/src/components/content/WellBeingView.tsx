@@ -193,12 +193,16 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     setSaving(true);
 
     try {
-      await apiRequest('/api/visualization', {
+      await fetch('/api/visualization', {
         method: 'POST',
-        body: {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
           wellBeingLevel,
           futureWellBeingLevel,
-        }
+        })
       });
 
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
