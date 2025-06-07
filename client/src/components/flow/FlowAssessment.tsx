@@ -95,7 +95,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             if (flowData && flowData.answers && flowData.flowScore !== undefined) {
               // Load existing answers 
               setAnswers(flowData.answers);
-              // Store the completed assessment data
+              // Store the completed assessment data immediately
               setCompletedAssessmentData(flowData);
               // Always show results if we have completed assessment data
               if (flowData.completed) {
@@ -116,10 +116,9 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
       }
     };
 
-    if (!isFlowReset && navigationProgress !== null) {
-      checkForExistingAssessment();
-    }
-  }, [isFlowReset, navigationProgress]);
+    // Load data immediately on component mount, regardless of reset state
+    checkForExistingAssessment();
+  }, []); // Remove dependencies to run immediately on mount
 
   // If the assessment is marked as completed (from props), show results immediately
   useEffect(() => {
