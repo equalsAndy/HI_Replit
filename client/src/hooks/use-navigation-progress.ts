@@ -196,6 +196,8 @@ export function useNavigationProgress() {
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
+
+
   const recalculateProgress = (): NavigationProgress => {
     // If no assessments exist, reset to fresh state
     const hasAnyAssessments = !!(
