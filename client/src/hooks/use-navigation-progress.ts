@@ -172,6 +172,37 @@ export function useNavigationProgress() {
   const { data: userAssessments = {} } = useUserAssessments();
 
   const recalculateProgress = (): NavigationProgress => {
+    // If no assessments exist, reset to fresh state
+    const hasAnyAssessments = !!(
+      userAssessments?.starCard || 
+      userAssessments?.assessments?.starCard ||
+      userAssessments?.flowAssessment || 
+      userAssessments?.assessments?.flowAssessment ||
+      userAssessments?.flowAttributes || 
+      userAssessments?.assessments?.flowAttributes ||
+      userAssessments?.cantrilLadder || 
+      userAssessments?.assessments?.cantrilLadder ||
+      userAssessments?.stepByStepReflection || 
+      userAssessments?.assessments?.stepByStepReflection ||
+      userAssessments?.roundingOutReflection || 
+      userAssessments?.assessments?.roundingOutReflection
+    );
+
+    // If no assessments and navigation progress exists, reset everything
+    if (!hasAnyAssessments && progress.completedSteps.length > 0) {
+      console.log(`🔄 No assessments found - resetting navigation progress to fresh state`);
+      return {
+        completedSteps: [],
+        currentStepId: '1-1',
+        unlockedSteps: ['1-1'],
+        unlockedSections: ['1'],
+        appType: 'ast',
+        lastVisitedAt: new Date().toISOString(),
+        videoProgress: {},
+        videoPositions: {}
+      };
+    }
+
     const currentProgress = { ...progress };
     
     // Step completion detection
@@ -453,17 +484,23 @@ export function useNavigationProgress() {
     return recalculatedProgress.completedSteps.includes(stepId);
   };
 
-  // Force update progress when assessments are detected
+  // Force update progress when assessments change (including reset)
   useEffect(() => {
-    if (userAssessments && (userAssessments.starCard || userAssessments.assessments?.starCard)) {
-      const calculated = recalculateProgress();
-      if (calculated.completedSteps.length > progress.completedSteps.length) {
-        console.log('🔄 Assessment detected - updating stored progress:', calculated.completedSteps);
-        setProgress(calculated);
-        syncProgressToDatabase(calculated);
-      }
+    const calculated = recalculateProgress();
+    
+    // Update if completed steps have changed (increase or decrease)
+    if (JSON.stringify(calculated.completedSteps) !== JSON.stringify(progress.completedSteps) ||
+        calculated.currentStepId !== progress.currentStepId) {
+      console.log('🔄 Assessment state changed - updating progress:', {
+        oldCompleted: progress.completedSteps,
+        newCompleted: calculated.completedSteps,
+        oldCurrent: progress.currentStepId,
+        newCurrent: calculated.currentStepId
+      });
+      setProgress(calculated);
+      syncProgressToDatabase(calculated);
     }
-  }, [userAssessments, progress.completedSteps.length]);
+  }, [userAssessments]);
 
   const currentCalculatedProgress = recalculateProgress();
 
