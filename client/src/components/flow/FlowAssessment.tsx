@@ -76,6 +76,42 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   const [adjustingQuestionId, setAdjustingQuestionId] = useState<number | null>(null);
   const [showScoring, setShowScoring] = useState(false);
   
+  // Check for existing assessment data from API
+  useEffect(() => {
+    const checkForExistingAssessment = async () => {
+      try {
+        const response = await fetch('/api/user/assessments', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔍 Flow Assessment: Checking assessment data structure:', data);
+          
+          if (data.success && data.currentUser?.assessments?.flowAssessment) {
+            const flowData = data.currentUser.assessments.flowAssessment;
+            console.log('🔍 Flow Assessment: FlowData found:', flowData);
+            
+            if (flowData.formattedResults?.answers && flowData.formattedResults?.flowScore) {
+              // Load existing answers and show results
+              setAnswers(flowData.formattedResults.answers);
+              setShowResult(true);
+              console.log('✅ Flow Assessment: Loaded existing assessment with score:', flowData.formattedResults.flowScore);
+              return;
+            }
+          }
+          console.log('🔍 Flow Assessment: Full data structure:', JSON.stringify(data, null, 2));
+        }
+        console.log('❌ Flow Assessment: No existing data found, starting fresh');
+      } catch (error) {
+        console.error('❌ Flow Assessment: Error checking for existing data:', error);
+      }
+    };
+
+    if (!isFlowReset && navigationProgress !== null) {
+      checkForExistingAssessment();
+    }
+  }, [isFlowReset, navigationProgress]);
+
   // Reset flow assessment state when user progress is reset
   useEffect(() => {
     if (isFlowReset || navigationProgress === null) {
