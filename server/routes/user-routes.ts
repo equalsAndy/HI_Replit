@@ -445,11 +445,30 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
     
     if (currentUserResult.user?.navigationProgress) {
       try {
-        const parsed = JSON.parse(currentUserResult.user.navigationProgress);
-        if (parsed.navigationProgress) {
-          currentProgress = { ...currentProgress, ...JSON.parse(parsed.navigationProgress) };
-        } else {
-          currentProgress = { ...currentProgress, ...parsed };
+        let progressData = currentUserResult.user.navigationProgress;
+        let parsed;
+        
+        // Handle deeply nested JSON by parsing until we get actual progress data
+        for (let i = 0; i < 5; i++) {
+          try {
+            parsed = JSON.parse(progressData);
+            
+            // If this has navigationProgress as a string, parse deeper
+            if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
+              progressData = parsed.navigationProgress;
+            } else if (parsed.completedSteps || parsed.currentStepId) {
+              // Found actual progress data
+              currentProgress = { ...currentProgress, ...parsed };
+              break;
+            } else {
+              // This might be the progress data itself
+              currentProgress = { ...currentProgress, ...parsed };
+              break;
+            }
+          } catch (innerError) {
+            console.log('Parse failed at level', i);
+            break;
+          }
         }
       } catch (e) {
         console.log('Using default progress due to parse error');
@@ -478,9 +497,9 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
     console.log(`   Incoming:`, incomingData.videoProgress);
     console.log(`   Merged:`, mergedProgress.videoProgress);
     
-    // Save the atomically merged progress
+    // Save the atomically merged progress (single stringify only)
     const result = await userManagementService.updateUser(req.session.userId, {
-      navigationProgress: JSON.stringify({ navigationProgress: JSON.stringify(mergedProgress) })
+      navigationProgress: JSON.stringify(mergedProgress)
     });
     
     if (!result.success) {
