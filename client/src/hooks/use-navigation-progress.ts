@@ -229,9 +229,14 @@ export function useNavigationProgress() {
         return hasFlowAttributes;
       }
       if (stepId === '4-1') {
+        // Check for cantril ladder in assessments OR if user has progressed past it (4-2+ completed)
         const hasCantrilLadder = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
-        console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}`);
-        return hasCantrilLadder;
+        const hasProgressedPast = currentProgress.completedSteps.some(step => 
+          step.startsWith('4-') && parseInt(step.split('-')[1]) > 1
+        );
+        const isComplete = hasCantrilLadder || hasProgressedPast;
+        console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
+        return isComplete;
       }
       
       // Content/video steps auto-complete when user has progressed past them
