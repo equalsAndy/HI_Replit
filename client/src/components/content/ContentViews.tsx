@@ -166,6 +166,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
     // Visualize your Potential
     case 'wellbeing':
+    case 'ladder-wellbeing':
       return (
         <WellBeingView 
           navigate={navigate}
