@@ -371,9 +371,31 @@ export function useNavigationProgress() {
   const updateCurrentStep = (stepId: string) => {
     console.log(`🎯 Updating current step to: ${stepId}`);
     
+    // When visiting a step, ensure it's unlocked and mark previous steps as completed
+    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
+    const currentStepIndex = allStepsInOrder.indexOf(stepId);
+    
+    // Unlock current step and all previous steps
+    const newUnlockedSteps = new Set(progress.unlockedSteps);
+    for (let i = 0; i <= currentStepIndex; i++) {
+      newUnlockedSteps.add(allStepsInOrder[i]);
+    }
+    
+    // Mark previous non-assessment steps as completed when navigating forward
+    const newCompletedSteps = new Set(progress.completedSteps);
+    for (let i = 0; i < currentStepIndex; i++) {
+      const prevStep = allStepsInOrder[i];
+      // Only auto-complete content steps, not assessment steps
+      if (!['2-2', '3-2', '3-4', '4-1'].includes(prevStep)) {
+        newCompletedSteps.add(prevStep);
+      }
+    }
+    
     const updatedProgress = {
       ...progress,
       currentStepId: stepId,
+      unlockedSteps: Array.from(newUnlockedSteps),
+      completedSteps: Array.from(newCompletedSteps),
       lastVisitedAt: new Date().toISOString()
     };
     
@@ -470,8 +492,10 @@ export function useNavigationProgress() {
   };
 
   const isStepAccessibleByProgression = (stepId: string): boolean => {
-    const recalculatedProgress = recalculateProgress();
-    return recalculatedProgress.unlockedSteps?.includes(stepId) || false;
+    // Use current progress state for step accessibility
+    const isUnlocked = progress.unlockedSteps?.includes(stepId) || false;
+    console.log(`🔓 Step ${stepId} accessibility: ${isUnlocked}`);
+    return isUnlocked;
   };
 
   const canProceedToNext = (currentStepId: string): boolean => {
@@ -480,8 +504,10 @@ export function useNavigationProgress() {
   };
 
   const shouldShowGreenCheckmark = (stepId: string): boolean => {
-    const recalculatedProgress = recalculateProgress();
-    return recalculatedProgress.completedSteps.includes(stepId);
+    // Use the current progress state for UI display
+    const isCompleted = progress.completedSteps.includes(stepId);
+    console.log(`🎯 Green checkmark for ${stepId}: ${isCompleted}`);
+    return isCompleted;
   };
 
   // Force update progress when assessments change (including reset)
@@ -502,10 +528,8 @@ export function useNavigationProgress() {
     }
   }, [userAssessments]);
 
-  const currentCalculatedProgress = recalculateProgress();
-
   return {
-    progress: currentCalculatedProgress,
+    progress,
     updateVideoProgress,
     markStepCompleted,
     updateCurrentStep,
