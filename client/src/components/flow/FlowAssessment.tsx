@@ -91,15 +91,19 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             const flowData = data.currentUser.assessments.flowAssessment;
             console.log('🔍 Flow Assessment: FlowData found:', flowData);
             
-            if (flowData.formattedResults?.answers && flowData.formattedResults?.flowScore) {
+            if (flowData && flowData.formattedResults?.answers && flowData.formattedResults?.flowScore !== undefined) {
               // Load existing answers and show results
               setAnswers(flowData.formattedResults.answers);
               setShowResult(true);
               console.log('✅ Flow Assessment: Loaded existing assessment with score:', flowData.formattedResults.flowScore);
               return;
             }
+          } else {
+            console.log('🔍 Flow Assessment: Data structure check failed');
+            console.log('🔍 Flow Assessment: data.success:', data.success);
+            console.log('🔍 Flow Assessment: data.currentUser:', data.currentUser);
+            console.log('🔍 Flow Assessment: flowAssessment exists:', !!data.currentUser?.assessments?.flowAssessment);
           }
-          console.log('🔍 Flow Assessment: Full data structure:', JSON.stringify(data, null, 2));
         }
         console.log('❌ Flow Assessment: No existing data found, starting fresh');
       } catch (error) {
