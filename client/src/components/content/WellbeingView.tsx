@@ -73,14 +73,15 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   // Auto-save when values change with debounce
   useEffect(() => {
-    if (wellBeingLevel !== 5 || futureWellBeingLevel !== 5) {
+    // Only auto-save if component has loaded data and values have been changed by user interaction
+    if (visualizationData !== undefined) {
       const timeoutId = setTimeout(() => {
         autoSave(wellBeingLevel, futureWellBeingLevel);
       }, 1000);
       
       return () => clearTimeout(timeoutId);
     }
-  }, [wellBeingLevel, futureWellBeingLevel, autoSave]);
+  }, [wellBeingLevel, futureWellBeingLevel, autoSave, visualizationData]);
 
   const handleSave = async () => {
     setSaving(true);
