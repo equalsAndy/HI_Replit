@@ -60,3 +60,20 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Kill app and ports 5000, 5001"
+mode = "sequential"
+author = 36344449
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "$ pkill -f \"tsx server/index.ts\" || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "$ lsof -ti:5000 | xargs kill -9 2>/dev/null || true"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "$ lsof -ti:5001 | xargs kill -9 2>/dev/null || true"
