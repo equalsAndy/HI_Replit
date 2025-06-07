@@ -12,8 +12,9 @@ interface NavigationProgress {
   videoPositions: { [stepId: string]: number };
 }
 
-// Simple hook without reset detection to stop the auto-reset loop
-export function useSimpleNavigation() {
+// ARCHIVED: Simple hook without reset detection to stop the auto-reset loop
+// Contains dual-threshold video system (5% for next, 90% for complete)
+export function useSimpleNavigationArchived() {
   // Fixed initial state to prevent reset loops
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: ['1-1'],

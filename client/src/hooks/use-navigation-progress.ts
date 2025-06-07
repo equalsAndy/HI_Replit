@@ -1,16 +1,26 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+
+// FEATURE FLAG SYSTEM - Easy toggle for restoration
+const PROGRESSION_MODE = {
+  SIMPLIFIED: 'simplified',
+  COMPLEX: 'complex'
+} as const;
+
+const CURRENT_PROGRESSION_MODE = 'simplified' as const;
 
 interface NavigationProgress {
   completedSteps: string[];
   currentStepId: string;
-  appType: 'ast' | 'ia' | null;
+  appType: 'ast' | 'ia';
   lastVisitedAt: string;
-  unlockedSections: string[];
-  unlockedSteps?: string[]; // Added for step-level unlocking
-  videoProgress: { [stepId: string]: number };
-  videoPositions: { [stepId: string]: number }; // New: track current playback positions
+  unlockedSteps: string[];
+  videoProgress: { [stepId: string]: { farthest: number; current: number } };
+}
+
+interface VideoProgressData {
+  farthest: number;
+  current: number;
 }
 
 // Query for user assessments to check completion states
@@ -18,620 +28,363 @@ const useUserAssessments = () => {
   return useQuery({
     queryKey: ['user-assessments'],
     queryFn: async () => {
-      const response = await fetch('/api/user/assessments', {
+      const response = await fetch('/api/workshop-data/userAssessments', {
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch assessments');
       const result = await response.json();
-      console.log('📊 User assessments loaded:', result);
-      return result.currentUser || {};
+      return result.currentUser?.assessments || {};
     },
-    staleTime: 5000,
-    retry: 1
+    staleTime: 10000,
+    retry: false
   });
 };
 
-export function useNavigationProgress() {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const lastKnownProgressRef = useRef<NavigationProgress | null>(null);
+// SIMPLIFIED MODE: Only validate non-video requirements
+const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
+  console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
+  
+  // Assessment steps - still require completion
+  if (stepId === '2-2') {
+    const isValid = !!userAssessments?.starCard;
+    console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  if (stepId === '3-2') {
+    const isValid = !!userAssessments?.flowAssessment;
+    console.log(`📋 Flow assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  // Mixed requirement steps - only validate activity parts (not video)
+  if (stepId === '4-1') {
+    const isValid = !!userAssessments?.cantrilLadder;
+    console.log(`🎚️ Cantril Ladder activity: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  if (stepId === '4-2') {
+    const isValid = !!userAssessments?.cantrilLadderReflection;
+    console.log(`📝 Well-being reflection: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  // All other steps: Next button always active
+  console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
+  return true;
+};
 
+// SIMPLIFIED: Linear progression only
+const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const unlocked = ['1-1']; // First step always unlocked
+  
+  // Simple linear unlocking: each completed step unlocks exactly the next one
+  for (let i = 0; i < allSteps.length - 1; i++) {
+    const currentStep = allSteps[i];
+    const nextStep = allSteps[i + 1];
+    
+    if (completedSteps.includes(currentStep)) {
+      unlocked.push(nextStep);
+      console.log(`📝 SIMPLIFIED MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+    }
+  }
+  
+  console.log('🔓 SIMPLIFIED MODE: Unlocked steps (linear only):', unlocked);
+  return unlocked;
+};
+
+// Get next step in linear sequence
+const getNextStepId = (completedSteps: string[]): string => {
+  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  
+  for (const step of allSteps) {
+    if (!completedSteps.includes(step)) {
+      return step;
+    }
+  }
+  
+  // All steps completed, return last step
+  return allSteps[allSteps.length - 1];
+};
+
+export function useNavigationProgress() {
+  const queryClient = useQueryClient();
+  const debouncedSync = useRef<NodeJS.Timeout>();
+  
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
-    currentStepId: '1-1', // Start with first step
+    currentStepId: '1-1',
     appType: 'ast',
     lastVisitedAt: new Date().toISOString(),
-    unlockedSections: ['1'], // Only Introduction is unlocked initially
-    unlockedSteps: ['1-1'], // Initialize with first step unlocked
-    videoProgress: {},
-    videoPositions: {} // New: track current playback positions
+    unlockedSteps: ['1-1'],
+    videoProgress: {}
   });
-
-  // Load navigation progress from database on component mount
-  useEffect(() => {
-    console.log('🔄 Loading progress from database...');
-    
-    const loadProgressFromDatabase = async () => {
-      try {
-        const response = await fetch('/api/user/navigation-progress', {
-          credentials: 'include'
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('📊 Database progress loaded:', data);
-          
-          if (data.progress) {
-            let dbProgress;
-            
-            console.log('📊 Raw progress data:', data.progress);
-            
-            // Handle deeply nested JSON structure
-            if (typeof data.progress === 'string') {
-              try {
-                let currentData = data.progress;
-                let parseLevel = 0;
-                let allParsedLevels = [];
-                
-                // Keep parsing until we get to actual progress data
-                while (typeof currentData === 'string' && parseLevel < 5) {
-                  const parsed = JSON.parse(currentData);
-                  allParsedLevels.push(parsed);
-                  console.log(`📊 Parse level ${parseLevel}:`, parsed);
-                  
-                  if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
-                    currentData = parsed.navigationProgress;
-                    parseLevel++;
-                  } else if (parsed.completedSteps || parsed.currentStepId) {
-                    // Found actual progress data
-                    dbProgress = parsed;
-                    break;
-                  } else {
-                    // This might be the progress data itself
-                    dbProgress = parsed;
-                    break;
-                  }
-                }
-                
-                // If we still have a string, try one more parse
-                if (typeof currentData === 'string' && !dbProgress) {
-                  try {
-                    dbProgress = JSON.parse(currentData);
-                  } catch (e) {
-                    console.log('Final parse failed, checking all parsed levels for best progress data');
-                  }
-                }
-                
-                // If we have multiple parsed levels, find the one with the most completed steps
-                if (!dbProgress || !dbProgress.completedSteps || dbProgress.completedSteps.length === 0) {
-                  console.log('🔍 Looking for best progress data in all parsed levels...');
-                  let bestProgress = null;
-                  let maxCompletedSteps = 0;
-                  
-                  for (const level of allParsedLevels) {
-                    if (level.completedSteps && Array.isArray(level.completedSteps) && level.completedSteps.length > maxCompletedSteps) {
-                      bestProgress = level;
-                      maxCompletedSteps = level.completedSteps.length;
-                    }
-                  }
-                  
-                  if (bestProgress && maxCompletedSteps > 0) {
-                    console.log(`🎯 Found better progress data with ${maxCompletedSteps} completed steps:`, bestProgress);
-                    dbProgress = bestProgress;
-                  }
-                }
-                
-                console.log('📊 Final parsed progress:', dbProgress);
-              } catch (error) {
-                console.error('❌ Failed to parse progress:', error);
-                dbProgress = null;
-              }
-            } else {
-              dbProgress = data.progress;
-              console.log('📊 Using object progress:', dbProgress);
-            }
-            
-            if (dbProgress && (dbProgress.completedSteps || dbProgress.currentStepId)) {
-              // Apply loaded progress
-              const loadedProgress = {
-                completedSteps: dbProgress.completedSteps || [],
-                currentStepId: dbProgress.currentStepId || '1-1',
-                appType: dbProgress.appType || 'ast' as const,
-                lastVisitedAt: dbProgress.lastVisitedAt || new Date().toISOString(),
-                unlockedSections: dbProgress.unlockedSections || ['1'],
-                unlockedSteps: dbProgress.unlockedSteps || ['1-1'],
-                videoProgress: dbProgress.videoProgress || {},
-                videoPositions: dbProgress.videoPositions || {}
-              };
-            
-              console.log('✅ Setting loaded progress:', loadedProgress);
-              setProgress(loadedProgress);
-              
-              // Auto-navigation disabled to allow manual navigation
-              console.log(`🧭 Auto-navigation disabled - current step: ${loadedProgress.currentStepId}`);
-            } else {
-              console.log('⚠️ No valid progress data found, using defaults');
-            }
-          }
-        } else {
-          console.log('⚠️ Failed to load progress, using defaults');
-        }
-      } catch (error) {
-        console.error('❌ Error loading progress:', error);
-      }
-    };
-    
-    loadProgressFromDatabase();
-  }, []);
 
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
-
-
-  const recalculateProgress = (): NavigationProgress => {
-    // If no assessments exist, reset to fresh state
-    const hasAnyAssessments = !!(
-      userAssessments?.starCard || 
-      userAssessments?.assessments?.starCard ||
-      userAssessments?.flowAssessment || 
-      userAssessments?.assessments?.flowAssessment ||
-      userAssessments?.flowAttributes || 
-      userAssessments?.assessments?.flowAttributes ||
-      userAssessments?.cantrilLadder || 
-      userAssessments?.assessments?.cantrilLadder ||
-      userAssessments?.stepByStepReflection || 
-      userAssessments?.assessments?.stepByStepReflection ||
-      userAssessments?.roundingOutReflection || 
-      userAssessments?.assessments?.roundingOutReflection
-    );
-
-    // If no assessments and navigation progress exists, reset everything
-    if (!hasAnyAssessments && progress.completedSteps.length > 0) {
-      console.log(`🔄 No assessments found - resetting navigation progress to fresh state`);
-      return {
-        completedSteps: [],
-        currentStepId: '1-1',
-        unlockedSteps: ['1-1'],
-        unlockedSections: ['1'],
-        appType: 'ast',
-        lastVisitedAt: new Date().toISOString(),
-        videoProgress: {},
-        videoPositions: {}
-      };
-    }
-
-    const currentProgress = { ...progress };
-    
-    // Step completion detection
-    const isStepCompleted = (stepId: string): boolean => {
-      // Assessment steps require actual completion from database
-      if (stepId === '2-2') {
-        const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
-        console.log(`🔍 Step 2-2 (Star Card Assessment) - hasStarCard: ${hasStarCard}`);
-        return hasStarCard;
-      }
-      if (stepId === '2-3') {
-        const hasStepByStep = !!(userAssessments?.stepByStepReflection || userAssessments?.assessments?.stepByStepReflection);
-        console.log(`🔍 Step 2-3 (Step by Step Reflection) - hasStepByStep: ${hasStepByStep}`);
-        return hasStepByStep;
-      }
-      if (stepId === '3-2') {
-        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
-        console.log(`🔍 Step 3-2 (Flow Assessment) - hasFlowAssessment: ${hasFlowAssessment}`);
-        return hasFlowAssessment;
-      }
-      if (stepId === '3-4') {
-        const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
-        console.log(`🔍 Step 3-4 (Flow Attributes) - hasFlowAttributes: ${hasFlowAttributes}`);
-        return hasFlowAttributes;
-      }
-      if (stepId === '4-1') {
-        // Check for cantril ladder in assessments OR if user has progressed past it (4-2+ completed)
-        const hasCantrilLadder = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
-        const hasProgressedPast = currentProgress.completedSteps.some(step => 
-          step.startsWith('4-') && parseInt(step.split('-')[1]) > 1
-        );
-        const isComplete = hasCantrilLadder || hasProgressedPast;
-        console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
-        return isComplete;
-      }
-      if (stepId === '4-2') {
-        // Complete 4-2 if cantril ladder reflection data exists
-        const hasCantrilReflection = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
-        const hasProgressedPast = currentProgress.completedSteps.some(step => 
-          step.startsWith('4-') && parseInt(step.split('-')[1]) > 2
-        );
-        const isComplete = hasCantrilReflection || hasProgressedPast;
-        console.log(`🔍 Step 4-2 (Well-being Reflections) - hasCantrilReflection: ${hasCantrilReflection}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
-        return isComplete;
-      }
-      if (stepId === '4-3') {
-        // Complete 4-3 if user has progressed past it or has visualization data
-        const hasVisualizingData = !!(userAssessments?.visualizingPotential || userAssessments?.assessments?.visualizingPotential);
-        const hasProgressedPast = currentProgress.completedSteps.some(step => 
-          step.startsWith('4-') && parseInt(step.split('-')[1]) > 3
-        );
-        const isComplete = hasVisualizingData || hasProgressedPast;
-        console.log(`🔍 Step 4-3 (Visualizing You) - hasVisualizingData: ${hasVisualizingData}, hasProgressedPast: ${hasProgressedPast}, isComplete: ${isComplete}`);
-        return isComplete;
-      }
-      if (stepId === '4-4') {
-        // Complete 4-4 if user has progressed past it (4-5 completed)
-        const hasProgressedPast = currentProgress.completedSteps.includes('4-5');
-        console.log(`🔍 Step 4-4 (Your Future Self) - hasProgressedPast: ${hasProgressedPast}`);
-        return hasProgressedPast;
-      }
-      if (stepId === '4-5') {
-        // Check for final reflection assessment
-        const hasFinalReflection = !!(userAssessments?.finalReflection || userAssessments?.assessments?.finalReflection);
-        console.log(`🔍 Step 4-5 (Final Reflection) - hasFinalReflection: ${hasFinalReflection}`);
-        return hasFinalReflection;
-      }
-      
-      // Content/video steps auto-complete when user has progressed past them or clicked next
-      if (stepId === '1-1') {
-        // Complete 1-1 if any assessment exists (user has progressed) OR if user has moved to any step beyond 1-1
-        const hasAnyAssessment = !!(
-          userAssessments?.starCard || userAssessments?.assessments?.starCard
-        );
-        const hasProgressedBeyond = currentProgress.completedSteps.some(step => step !== '1-1') || 
-                                   currentProgress.currentStepId !== '1-1';
-        if (hasAnyAssessment || hasProgressedBeyond) {
-          console.log(`🔍 Step 1-1 auto-completion - hasAssessment: ${hasAnyAssessment}, hasProgressedBeyond: ${hasProgressedBeyond}`);
-          return true;
+  // Load progress from database on mount
+  useEffect(() => {
+    const loadProgress = async () => {
+      try {
+        console.log('🔄 SIMPLIFIED MODE: Loading progress from database...');
+        const response = await fetch('/api/user/profile', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.user?.navigationProgress) {
+            const dbProgress = JSON.parse(result.user.navigationProgress);
+            
+            setProgress(prev => ({
+              ...prev,
+              ...dbProgress,
+              appType: 'ast',
+              lastVisitedAt: new Date().toISOString(),
+              unlockedSteps: calculateUnlockedSteps(dbProgress.completedSteps || [])
+            }));
+            
+            console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
+          }
         }
+      } catch (error) {
+        console.error('❌ Error loading navigation progress:', error);
       }
-      if (stepId === '2-1') {
-        // Complete 2-1 if star card assessment exists
-        const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
-        if (hasStarCard) {
-          console.log(`🔍 Step 2-1 auto-completion - starCard exists`);
-          return true;
-        }
-      }
-      if (stepId === '2-4') {
-        // Complete 2-4 if flow assessment exists (user progressed to section 3)
-        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
-        if (hasFlowAssessment) {
-          console.log(`🔍 Step 2-4 auto-completion - user progressed to flow section`);
-          return true;
-        }
-      }
-      if (stepId === '3-1') {
-        // Complete 3-1 if flow assessment exists
-        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
-        if (hasFlowAssessment) {
-          console.log(`🔍 Step 3-1 auto-completion - flowAssessment exists`);
-          return true;
-        }
-      }
-      if (stepId === '3-3') {
-        // Complete 3-3 if flow attributes exists
-        const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
-        if (hasFlowAttributes) {
-          console.log(`🔍 Step 3-3 auto-completion - flowAttributes exists`);
-          return true;
-        }
-      }
-      
-      // All other steps rely on explicit completion tracking
-      const isMarkedComplete = currentProgress.completedSteps.includes(stepId);
-      console.log(`🔍 Step ${stepId} explicit completion check - isMarkedComplete: ${isMarkedComplete}`);
-      return isMarkedComplete;
     };
+    
+    loadProgress();
+  }, []);
 
-    // Recalculate completed steps
-    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-    const newCompletedSteps = allSteps.filter(isStepCompleted);
-    
-    // Calculate unlocked steps - sequential unlocking
-    const unlockedSteps = new Set(['1-1']); // Always unlock first step
-    
-    // Progressive step unlocking logic
-    if (newCompletedSteps.includes('1-1')) {
-      unlockedSteps.add('2-1');
-    }
-    if (newCompletedSteps.includes('2-1')) {
-      unlockedSteps.add('2-2');
-    }
-    if (newCompletedSteps.includes('2-2')) {
-      unlockedSteps.add('2-3');
-    }
-    if (newCompletedSteps.includes('2-3')) {
-      unlockedSteps.add('2-4');
-    }
-    if (newCompletedSteps.includes('2-4')) {
-      unlockedSteps.add('3-1');
-    }
-    if (newCompletedSteps.includes('3-1')) {
-      unlockedSteps.add('3-2');
-    }
-    if (newCompletedSteps.includes('3-2')) {
-      unlockedSteps.add('3-3');
-    }
-    if (newCompletedSteps.includes('3-3')) {
-      unlockedSteps.add('3-4');
-    }
-    if (newCompletedSteps.includes('3-4')) {
-      unlockedSteps.add('4-1');
-    }
-    if (newCompletedSteps.includes('4-1')) {
-      unlockedSteps.add('4-2');
-    }
-    if (newCompletedSteps.includes('4-2')) {
-      unlockedSteps.add('4-3');
-    }
-    if (newCompletedSteps.includes('4-3')) {
-      unlockedSteps.add('4-4');
-    }
-    if (newCompletedSteps.includes('4-4')) {
-      unlockedSteps.add('4-5');
-    }
-    
-    // Calculate unlocked sections based on unlocked steps
-    const unlockedSections = new Set(['1']); // Always unlock section 1
-    if (Array.from(unlockedSteps).some(step => step.startsWith('2-'))) {
-      unlockedSections.add('2');
-    }
-    if (Array.from(unlockedSteps).some(step => step.startsWith('3-'))) {
-      unlockedSections.add('3');
-    }
-    if (Array.from(unlockedSteps).some(step => step.startsWith('4-'))) {
-      unlockedSections.add('4');
-    }
-    // Unlock section 5 (NEXT STEPS) when Final Reflection (4-5) is completed
-    if (newCompletedSteps.includes('4-5')) {
-      unlockedSections.add('5');
-      unlockedSteps.add('5-1'); // Unlock Download Star Card
-      unlockedSteps.add('5-2'); // Unlock Holistic Report
-      unlockedSteps.add('5-3'); // Unlock Growth Plan
-      unlockedSteps.add('5-4'); // Unlock Team Workshop Prep
-    }
-    // Always unlock section 6 (MORE INFORMATION)
-    unlockedSections.add('6');
-    unlockedSteps.add('6-1');
-
-    // Calculate the current step ID based on progress
-    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-    let currentStepId = '1-1'; // Default to first step
-    
-    // Find the first incomplete step as the current step
-    for (const stepId of allStepsInOrder) {
-      if (!newCompletedSteps.includes(stepId)) {
-        currentStepId = stepId;
-        break;
-      }
-    }
-    
-    // If all steps are complete, stay on the last step
-    if (newCompletedSteps.length >= allStepsInOrder.length || 
-        allStepsInOrder.every(step => newCompletedSteps.includes(step))) {
-      currentStepId = allStepsInOrder[allStepsInOrder.length - 1];
-    }
-    
-    console.log(`🎯 Current step calculated as: ${currentStepId} (completed: ${newCompletedSteps.length}/${allStepsInOrder.length})`);
-
-    return {
-      ...currentProgress,
-      completedSteps: newCompletedSteps,
-      currentStepId,
-      unlockedSections: Array.from(unlockedSections),
-      unlockedSteps: Array.from(unlockedSteps)
-    };
-  };
-
-  const syncProgressToDatabase = async (progressData: NavigationProgress) => {
+  // Simplified database sync with debouncing
+  const syncToDatabase = async (progressData: NavigationProgress) => {
     try {
-      console.log('🔄 Syncing progress to database:', progressData);
-      
+      console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
       const response = await fetch('/api/user/navigation-progress', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify({ 
-          navigationProgress: JSON.stringify(progressData) 
+        body: JSON.stringify({
+          navigationProgress: JSON.stringify(progressData)
         })
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Failed to sync progress to database:', response.status, errorText);
+      
+      if (response.ok) {
+        console.log('✅ SIMPLIFIED MODE: Progress synced to database');
       } else {
-        console.log('✅ Progress synced successfully');
+        const error = await response.text();
+        console.error('❌ SIMPLIFIED MODE: Failed to sync progress to database:', error);
       }
     } catch (error) {
-      console.error('❌ Error syncing progress:', error);
+      console.error('❌ SIMPLIFIED MODE: Error syncing progress:', error);
     }
   };
 
-  const updateCurrentStep = (stepId: string) => {
-    console.log(`🎯 Updating current step to: ${stepId}`);
-    
-    // When visiting a step, ensure it's unlocked and mark previous steps as completed
-    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
-    const currentStepIndex = allStepsInOrder.indexOf(stepId);
-    
-    // Unlock current step and all previous steps
-    const newUnlockedSteps = new Set(progress.unlockedSteps);
-    for (let i = 0; i <= currentStepIndex; i++) {
-      newUnlockedSteps.add(allStepsInOrder[i]);
+  // Debounced sync to reduce database calls
+  const scheduleSync = (progressData: NavigationProgress) => {
+    if (debouncedSync.current) {
+      clearTimeout(debouncedSync.current);
     }
-    
-    // Mark previous non-assessment steps as completed when navigating forward
-    const newCompletedSteps = new Set(progress.completedSteps);
-    for (let i = 0; i < currentStepIndex; i++) {
-      const prevStep = allStepsInOrder[i];
-      // Only auto-complete content steps, not assessment steps
-      if (!['2-2', '3-2', '3-4', '4-1'].includes(prevStep)) {
-        newCompletedSteps.add(prevStep);
-      }
-    }
-    
-    const updatedProgress = {
-      ...progress,
-      currentStepId: stepId,
-      unlockedSteps: Array.from(newUnlockedSteps),
-      completedSteps: Array.from(newCompletedSteps),
-      lastVisitedAt: new Date().toISOString()
-    };
-    
-    setProgress(updatedProgress);
-    syncProgressToDatabase(updatedProgress);
+    debouncedSync.current = setTimeout(() => {
+      syncToDatabase(progressData);
+    }, 1000); // Sync after 1 second of inactivity
   };
 
-  const markStepCompleted = (stepId: string) => {
-    console.log(`✅ Marking step ${stepId} as completed`);
+  // Mode-aware validation
+  const validateStepCompletion = (stepId: string): boolean => {
+    if (CURRENT_PROGRESSION_MODE === 'simplified') {
+      return validateStepCompletionSimplified(stepId, userAssessments);
+    } else {
+      return true; // Complex mode disabled for now
+    }
+  };
+
+  // Enhanced video progress tracking with mode-aware logging
+  const updateVideoProgress = (stepId: string, percentage: number, isResumption: boolean = false) => {
+    const normalizedProgress = Math.min(100, Math.max(0, percentage));
     
-    // Add step to completed steps
-    const newCompletedSteps = [...new Set([...progress.completedSteps, stepId])];
+    // Enhanced logging for simplified mode
+    console.log(`🎬 VIDEO PROGRESS TRACKED (SIMPLIFIED MODE - not used for unlocking): ${stepId} = ${normalizedProgress}%`);
     
-    // Calculate what should be unlocked based on completed steps
-    const unlockedSteps = new Set(['1-1']); // Always unlock first step
-    const unlockedSections = new Set(['1', '6']); // Always unlock section 1 and 6
-    
-    // Progressive step unlocking logic
-    if (newCompletedSteps.includes('1-1')) {
-      unlockedSteps.add('2-1');
-      unlockedSections.add('2');
-    }
-    if (newCompletedSteps.includes('2-1')) {
-      unlockedSteps.add('2-2');
-    }
-    if (newCompletedSteps.includes('2-2')) {
-      unlockedSteps.add('2-3');
-    }
-    if (newCompletedSteps.includes('2-3')) {
-      unlockedSteps.add('2-4');
-    }
-    if (newCompletedSteps.includes('2-4')) {
-      unlockedSteps.add('3-1');
-      unlockedSections.add('3');
-    }
-    if (newCompletedSteps.includes('3-1')) {
-      unlockedSteps.add('3-2');
-    }
-    if (newCompletedSteps.includes('3-2')) {
-      unlockedSteps.add('3-3');
-    }
-    if (newCompletedSteps.includes('3-3')) {
-      unlockedSteps.add('3-4');
-    }
-    if (newCompletedSteps.includes('3-4')) {
-      unlockedSteps.add('4-1');
-      unlockedSections.add('4');
-    }
-    if (newCompletedSteps.includes('4-1')) {
-      unlockedSteps.add('4-2');
-    }
-    if (newCompletedSteps.includes('4-2')) {
-      unlockedSteps.add('4-3');
-    }
-    if (newCompletedSteps.includes('4-3')) {
-      unlockedSteps.add('4-4');
-    }
-    if (newCompletedSteps.includes('4-4')) {
-      unlockedSteps.add('4-5');
+    // Continue all existing dual tracking logic for future restoration
+    if (!(window as any).currentVideoProgress) {
+      (window as any).currentVideoProgress = {};
     }
     
-    const updatedProgress = {
-      ...progress,
-      completedSteps: newCompletedSteps,
-      unlockedSteps: Array.from(unlockedSteps),
-      unlockedSections: Array.from(unlockedSections),
-      lastVisitedAt: new Date().toISOString()
-    };
+    if (!(window as any).currentVideoProgress[stepId] || typeof (window as any).currentVideoProgress[stepId] === 'number') {
+      const existingProgress = (window as any).currentVideoProgress[stepId] || 0;
+      (window as any).currentVideoProgress[stepId] = {
+        farthest: typeof existingProgress === 'number' ? existingProgress : 0,
+        current: normalizedProgress
+      };
+    }
     
-    console.log(`📊 Step ${stepId} marked complete. Updated progress:`, {
-      completedSteps: updatedProgress.completedSteps,
-      unlockedSteps: updatedProgress.unlockedSteps
+    const globalData = (window as any).currentVideoProgress[stepId] as VideoProgressData;
+    
+    if (isResumption) {
+      globalData.current = normalizedProgress;
+      console.log(`  📍 SIMPLIFIED MODE: Updated current position (for resumption): ${normalizedProgress}%`);
+    } else {
+      globalData.current = normalizedProgress;
+      globalData.farthest = Math.max(globalData.farthest, normalizedProgress);
+      console.log(`  📊 SIMPLIFIED MODE: Tracked progress - current: ${normalizedProgress}%, farthest: ${globalData.farthest}%`);
+    }
+    
+    // Continue database persistence but don't use for unlocking in simplified mode
+    setProgress(prev => {
+      const newProgress = {
+        ...prev,
+        videoProgress: {
+          ...prev.videoProgress,
+          [stepId]: {
+            farthest: Math.max(globalData.farthest, prev.videoProgress[stepId]?.farthest || 0),
+            current: normalizedProgress
+          }
+        },
+        lastVisitedAt: new Date().toISOString()
+      };
+      
+      // NOTE: In simplified mode, don't auto-complete based on video progress
+      console.log(`📊 SIMPLIFIED MODE: Video progress saved but not used for step completion`);
+      
+      // Sync to database for future restoration
+      scheduleSync(newProgress);
+      
+      return newProgress;
     });
+  };
+
+  // ENHANCED: Manual progression with immediate counter updates
+  const markStepCompleted = (stepId: string) => {
+    console.log(`🎯 SIMPLIFIED MODE: Manual progression - marking step ${stepId} completed`);
     
-    setProgress(updatedProgress);
-    syncProgressToDatabase(updatedProgress);
-  };
-
-  const updateVideoProgress = (stepId: string, progressPercent: number, currentPosition?: number) => {
-    const updatedProgress = {
-      ...progress,
-      videoProgress: {
-        ...progress.videoProgress,
-        [stepId]: Math.max(progress.videoProgress[stepId] || 0, progressPercent)
-      },
-      videoPositions: currentPosition !== undefined ? {
-        ...progress.videoPositions,
-        [stepId]: currentPosition
-      } : progress.videoPositions
-    };
+    // Check if already completed
+    if (progress.completedSteps.includes(stepId)) {
+      console.log(`Step ${stepId} already completed`);
+      return;
+    }
     
-    setProgress(updatedProgress);
-    syncProgressToDatabase(updatedProgress);
+    // Validate completion (assessments/activities still required)
+    if (!validateStepCompletion(stepId)) {
+      console.log(`❌ Step ${stepId} validation failed - assessment/activity incomplete`);
+      return;
+    }
+    
+    console.log(`✅ SIMPLIFIED MODE: Completing step ${stepId} via Next button click`);
+    
+    setProgress(prev => {
+      const newCompletedSteps = [...prev.completedSteps, stepId];
+      const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps);
+      const nextStepId = getNextStepId(newCompletedSteps);
+      
+      const newProgress = {
+        ...prev,
+        completedSteps: newCompletedSteps,
+        currentStepId: nextStepId,
+        unlockedSteps: newUnlockedSteps,
+        lastVisitedAt: new Date().toISOString()
+      };
+      
+      console.log(`📊 SIMPLIFIED MODE: Progress counters updated immediately`);
+      console.log(`  ✅ Completed: ${newCompletedSteps.length} steps`);
+      console.log(`  🔓 Unlocked: ${newUnlockedSteps.length} steps`);
+      console.log(`  ➡️ Next step: ${nextStepId}`);
+      
+      // Sync to database
+      scheduleSync(newProgress);
+      
+      return newProgress;
+    });
   };
 
-  const getCurrentVideoProgress = (stepId: string) => {
-    return progress.videoProgress[stepId] || 0;
+  // Set current step (for navigation)
+  const setCurrentStep = (stepId: string) => {
+    console.log(`🔄 SIMPLIFIED MODE: Navigating to step ${stepId}`);
+    
+    setProgress(prev => {
+      const newProgress = {
+        ...prev,
+        currentStepId: stepId,
+        lastVisitedAt: new Date().toISOString()
+      };
+      
+      scheduleSync(newProgress);
+      return newProgress;
+    });
   };
 
-  const getCurrentVideoPosition = (stepId: string) => {
-    return progress.videoPositions[stepId] || 0;
+  // Check if step is accessible (unlocked)
+  const isStepAccessible = (stepId: string): boolean => {
+    return progress.unlockedSteps.includes(stepId);
   };
 
-  const isStepAccessibleByProgression = (stepId: string): boolean => {
-    // Use current progress state for step accessibility
-    const isUnlocked = progress.unlockedSteps?.includes(stepId) || false;
-    console.log(`🔓 Step ${stepId} accessibility: ${isUnlocked}`);
-    return isUnlocked;
-  };
-
-  const canProceedToNext = (currentStepId: string): boolean => {
-    // Always allow proceeding for now (simplified mode)
+  // Check if Next button should be enabled (simplified mode)
+  const canProceedToNext = (stepId: string): boolean => {
+    if (CURRENT_PROGRESSION_MODE === 'simplified') {
+      return validateStepCompletion(stepId);
+    }
     return true;
   };
 
+  // Check if step should show green checkmark
   const shouldShowGreenCheckmark = (stepId: string): boolean => {
-    // Use the current progress state for UI display
-    const isCompleted = progress.completedSteps.includes(stepId);
-    console.log(`🎯 Green checkmark for ${stepId}: ${isCompleted}`);
-    return isCompleted;
+    return progress.completedSteps.includes(stepId);
   };
 
-  // Force update progress when assessments change (including reset)
-  useEffect(() => {
-    console.log('🔄 Assessment data changed, recalculating progress...');
-    console.log('📊 Current assessments:', userAssessments);
-    
-    const calculated = recalculateProgress();
-    
-    // Always update if there are meaningful changes
-    const progressChanged = JSON.stringify(calculated.completedSteps) !== JSON.stringify(progress.completedSteps) ||
-                           calculated.currentStepId !== progress.currentStepId ||
-                           JSON.stringify(calculated.unlockedSteps) !== JSON.stringify(progress.unlockedSteps);
-    
-    if (progressChanged) {
-      console.log('🔄 Assessment-driven progress update:', {
-        oldCompleted: progress.completedSteps,
-        newCompleted: calculated.completedSteps,
-        oldCurrent: progress.currentStepId,
-        newCurrent: calculated.currentStepId,
-        oldUnlocked: progress.unlockedSteps,
-        newUnlocked: calculated.unlockedSteps
-      });
-      setProgress(calculated);
-      syncProgressToDatabase(calculated);
-    }
-  }, [userAssessments]);
+  // Get video progress for display (if needed)
+  const getVideoProgress = (stepId: string): number => {
+    return progress.videoProgress[stepId]?.current || 0;
+  };
+
+  // Legacy compatibility functions for archived hooks
+  const isStepUnlocked = (stepId: string): boolean => {
+    return progress.unlockedSteps.includes(stepId);
+  };
+
+  const isStepCompleted = (stepId: string): boolean => {
+    return progress.completedSteps.includes(stepId);
+  };
+
+  const saveProgressToDatabase = () => {
+    syncToDatabase(progress);
+  };
+
+  // Navigation sections compatibility
+  const updateNavigationSections = () => {
+    // No-op for simplified mode
+  };
+
+  const calculateOverallProgress = () => {
+    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    return Math.round((progress.completedSteps.length / allSteps.length) * 100);
+  };
+
+  const currentStepId = progress.currentStepId;
+  const completedSteps = progress.completedSteps;
 
   return {
     progress,
     updateVideoProgress,
     markStepCompleted,
-    updateCurrentStep,
-    isStepAccessibleByProgression,
+    setCurrentStep,
+    isStepAccessible,
     canProceedToNext,
     shouldShowGreenCheckmark,
-    getCurrentVideoProgress,
-    getCurrentVideoPosition
+    getVideoProgress,
+    validateStepCompletion,
+    isVideoStep: (stepId: string) => ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId),
+    CURRENT_PROGRESSION_MODE,
+    // Legacy compatibility for existing code
+    isStepUnlocked,
+    isStepCompleted,
+    saveProgressToDatabase,
+    updateNavigationSections,
+    calculateOverallProgress,
+    currentStepId,
+    completedSteps
   };
 }

@@ -142,7 +142,9 @@ const getNextStepId = (completedSteps: string[]): string => {
   return allSteps[allSteps.length - 1];
 };
 
-export function useNavigationProgressClean() {
+// ARCHIVED: Clean version with feature flag system
+// Contains toggle between simplified/complex modes
+export function useNavigationProgressCleanArchived() {
   const debouncedSync = useRef<NodeJS.Timeout>();
   
   const [progress, setProgress] = useState<NavigationProgress>({
