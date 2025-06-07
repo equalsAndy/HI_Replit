@@ -11,24 +11,31 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
 
   // Check for existing assessment and mark step as completed
   useEffect(() => {
+    console.log('🔍 FlowAssessmentView: useEffect triggered, hasMarkedCompleted:', hasMarkedCompleted);
     if (hasMarkedCompleted) return;
 
     const checkExistingAssessment = async () => {
       try {
+        console.log('🔍 FlowAssessmentView: Checking for existing flow assessment...');
         const response = await fetch('/api/user/assessments', {
           credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
+          console.log('🔍 FlowAssessmentView: Assessment API response:', data);
           
           if (data.success && data.currentUser?.assessments?.flowAssessment?.formattedResults) {
-            console.log('✅ Found existing flow assessment - marking step 3-2 as completed');
+            console.log('✅ FlowAssessmentView: Found existing flow assessment - marking step 3-2 as completed');
             markStepCompleted?.('3-2');
             setHasMarkedCompleted(true);
+          } else {
+            console.log('❌ FlowAssessmentView: No flow assessment found in API response');
           }
+        } else {
+          console.log('❌ FlowAssessmentView: Assessment API response not ok:', response.status);
         }
       } catch (error) {
-        console.error('Error checking for existing assessment:', error);
+        console.error('❌ FlowAssessmentView: Error checking for existing assessment:', error);
       }
     };
 
