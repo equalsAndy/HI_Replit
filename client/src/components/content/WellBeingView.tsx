@@ -22,6 +22,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
@@ -40,6 +41,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       if (data.futureWellBeingLevel !== undefined) {
         setFutureWellBeingLevel(data.futureWellBeingLevel);
       }
+      setIsInitialized(true);
     } else {
       // Fallback to localStorage if API data not available
       const savedWellBeing = localStorage.getItem('wellbeingData');
@@ -52,18 +54,44 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           console.log('Error parsing saved wellbeing data');
         }
       }
+      setIsInitialized(true);
     }
   }, [visualizationData]);
 
-  // Save to localStorage whenever values change
+  // Save to localStorage and database whenever values change (but not during initialization)
   useEffect(() => {
+    if (!isInitialized) return;
+
     const wellbeingData = {
       wellBeingLevel,
       futureWellBeingLevel,
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('wellbeingData', JSON.stringify(wellbeingData));
-  }, [wellBeingLevel, futureWellBeingLevel]);
+
+    // Auto-save to database with debouncing
+    const timeoutId = setTimeout(async () => {
+      try {
+        await fetch('/api/visualization', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+            wellBeingLevel,
+            futureWellBeingLevel,
+          })
+        });
+        console.log('Auto-saved wellbeing data:', { wellBeingLevel, futureWellBeingLevel });
+        queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
+      } catch (error) {
+        console.error('Error auto-saving well-being data:', error);
+      }
+    }, 1000); // 1 second debounce
+
+    return () => clearTimeout(timeoutId);
+  }, [wellBeingLevel, futureWellBeingLevel, isInitialized]);
 
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
@@ -165,9 +193,12 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     setSaving(true);
 
     try {
-      await apiRequest('POST', '/api/visualization', {
-        wellBeingLevel,
-        futureWellBeingLevel,
+      await apiRequest('/api/visualization', {
+        method: 'POST',
+        body: {
+          wellBeingLevel,
+          futureWellBeingLevel,
+        }
       });
 
       queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
