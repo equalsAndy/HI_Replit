@@ -403,12 +403,7 @@ export default function StepByStepReflection({
       // We're on the last step, mark reflection as completed
       if (markStepCompleted) {
         markStepCompleted('2-4'); // Mark reflection step as completed
-      }
-
-      // Navigate to Intro to Flow
-      if (setCurrentContent) {
-        setCurrentContent('intro-to-flow');
-        console.log("Navigating to intro-flow");
+        console.log("StepByStepReflection: Marked 2-4 as completed, should auto-advance to 3-1");
       }
     }
   };
