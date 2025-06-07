@@ -1,0 +1,36 @@
+Looking at your codebase, you have multiple navigation hooks that serve different purposes and represent different stages of development:
+
+Current Navigation Hooks:
+use-simple-navigation.ts - Legacy hook with complex video progress tracking and dual-threshold system (5% for next button, 90% for completion)
+
+use-navigation-progress.ts - Complex hook with assessment-based progression logic and automatic step completion based on database assessments
+
+use-navigation-progress-clean.ts - Simplified version with feature flags to toggle between simplified/complex modes
+
+use-navigation-progress-simplified.ts - Current active hook using simplified linear progression mode
+
+What Each Hook Does:
+use-simple-navigation.ts
+Purpose: Original complex system with video progress thresholds
+Features: Dual video tracking (max progress + current position), auto-completion at 90%, database sync
+Status: Legacy, not actively used
+use-navigation-progress.ts
+Purpose: Assessment-driven progression with complex unlocking logic
+Features: Recalculates progress based on user assessments, auto-completes steps when assessments exist
+Status: Complex system, replaced by simplified approach
+use-navigation-progress-clean.ts
+Purpose: Cleaner version with feature flag system
+Features: Can toggle between simplified/complex modes, maintains dual tracking for future restoration
+Status: Transitional hook
+use-navigation-progress-simplified.ts
+Purpose: Currently active - Simple linear progression
+Features:
+Linear step unlocking (each completed step unlocks the next)
+Video progress tracked but not used for unlocking
+Assessment validation still required for assessment steps
+Simplified database sync with debouncing
+Status: Active in production
+Why Multiple Hooks Exist:
+The multiple hooks represent an evolution from a complex video-threshold and assessment-driven system to a simplified linear progression system. The simplified system was implemented to reduce complexity while maintaining the ability to restore advanced features later through feature flags.
+
+The current active hook (use-navigation-progress-simplified.ts) focuses on user-controlled progression rather than automatic unlocking based on video watch percentages or assessment completion.
