@@ -327,14 +327,27 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
 
             <div className="flex justify-end">
               <Button 
-                onClick={() => {
+                onClick={async () => {
                   console.log("🔥 NAVIGATION BUTTON CLICKED!");
                   console.log("🔥 Current step ID:", currentStepId);
                   
-                  // Navigate to step 2-3 with star-card-preview content
-                  markStepCompleted('2-2');
-                  setCurrentContent('star-card-preview');
-                  console.log("✅ Marked 2-2 complete and set content to star-card-preview");
+                  try {
+                    // Mark step 2-2 as completed first
+                    console.log("📝 Marking step 2-2 as completed...");
+                    await markStepCompleted('2-2');
+                    console.log("✅ Step 2-2 marked as completed");
+                    
+                    // Wait a moment for the state to update
+                    setTimeout(() => {
+                      console.log("🎯 Setting content to star-card-preview");
+                      setCurrentContent('star-card-preview');
+                      console.log("✅ Navigation complete");
+                    }, 100);
+                  } catch (error) {
+                    console.error("❌ Error in navigation:", error);
+                    // Still navigate even if marking completion fails
+                    setCurrentContent('star-card-preview');
+                  }
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700"
                 type="button"
