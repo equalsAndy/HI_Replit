@@ -177,6 +177,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       );
 
     case 'cantril-ladder':
+    case 'wellbeing-reflections':
       return (
         <CantrilLadderView 
           navigate={navigate}

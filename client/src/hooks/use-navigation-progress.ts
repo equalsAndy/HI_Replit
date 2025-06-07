@@ -162,7 +162,7 @@ export function useNavigationProgress() {
                   '3-3': 'rounding-out',
                   '3-4': 'reflection-3-4',
                   '4-1': 'ladder-wellbeing',
-                  '4-2': 'reflection-4-2',
+                  '4-2': 'wellbeing-reflections',
                   '4-3': 'potential-visualization',
                   '4-4': 'future-self'
                 };
