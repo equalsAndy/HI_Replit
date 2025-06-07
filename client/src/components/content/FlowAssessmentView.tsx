@@ -8,6 +8,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
   setCurrentContent,
 }) => {
   const [hasMarkedCompleted, setHasMarkedCompleted] = useState(false);
+  const [isAssessmentCompleted, setIsAssessmentCompleted] = useState(false);
 
   // Check for existing assessment and mark step as completed
   useEffect(() => {
@@ -28,8 +29,10 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
             console.log('✅ FlowAssessmentView: Found existing flow assessment - marking step 3-2 as completed');
             markStepCompleted?.('3-2');
             setHasMarkedCompleted(true);
+            setIsAssessmentCompleted(true);
           } else {
             console.log('❌ FlowAssessmentView: No completed flow assessment found in API response');
+            setIsAssessmentCompleted(false);
           }
         } else {
           console.log('❌ FlowAssessmentView: Assessment API response not ok:', response.status);
@@ -49,7 +52,7 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
     }
   };
 
-  return <FlowAssessment onTabChange={handleTabChange} />;
+  return <FlowAssessment onTabChange={handleTabChange} isCompleted={isAssessmentCompleted} />;
 };
 
 export default FlowAssessmentView;
