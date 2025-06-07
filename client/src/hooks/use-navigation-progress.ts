@@ -71,10 +71,12 @@ export function useNavigationProgress() {
               try {
                 let currentData = data.progress;
                 let parseLevel = 0;
+                let allParsedLevels = [];
                 
                 // Keep parsing until we get to actual progress data
                 while (typeof currentData === 'string' && parseLevel < 5) {
                   const parsed = JSON.parse(currentData);
+                  allParsedLevels.push(parsed);
                   console.log(`📊 Parse level ${parseLevel}:`, parsed);
                   
                   if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
@@ -93,7 +95,30 @@ export function useNavigationProgress() {
                 
                 // If we still have a string, try one more parse
                 if (typeof currentData === 'string' && !dbProgress) {
-                  dbProgress = JSON.parse(currentData);
+                  try {
+                    dbProgress = JSON.parse(currentData);
+                  } catch (e) {
+                    console.log('Final parse failed, checking all parsed levels for best progress data');
+                  }
+                }
+                
+                // If we have multiple parsed levels, find the one with the most completed steps
+                if (!dbProgress || !dbProgress.completedSteps || dbProgress.completedSteps.length === 0) {
+                  console.log('🔍 Looking for best progress data in all parsed levels...');
+                  let bestProgress = null;
+                  let maxCompletedSteps = 0;
+                  
+                  for (const level of allParsedLevels) {
+                    if (level.completedSteps && Array.isArray(level.completedSteps) && level.completedSteps.length > maxCompletedSteps) {
+                      bestProgress = level;
+                      maxCompletedSteps = level.completedSteps.length;
+                    }
+                  }
+                  
+                  if (bestProgress && maxCompletedSteps > 0) {
+                    console.log(`🎯 Found better progress data with ${maxCompletedSteps} completed steps:`, bestProgress);
+                    dbProgress = bestProgress;
+                  }
                 }
                 
                 console.log('📊 Final parsed progress:', dbProgress);
