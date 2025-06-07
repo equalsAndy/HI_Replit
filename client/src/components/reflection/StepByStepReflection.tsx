@@ -410,10 +410,18 @@ export default function StepByStepReflection({
       // Save reflections before completing
       await saveReflections();
 
-      // We're on the last step, mark reflection as completed
+      // We're on the last step, mark reflection as completed and advance to next section
       if (markStepCompleted) {
         markStepCompleted('2-4'); // Mark reflection step as completed
-        console.log("StepByStepReflection: Marked 2-4 as completed, should auto-advance to 3-1");
+        console.log("StepByStepReflection: Marked 2-4 as completed, advancing to 3-1");
+        
+        // Use setCurrentContent to navigate to the next section (Intro to Flow)
+        if (setCurrentContent) {
+          setTimeout(() => {
+            setCurrentContent('intro-to-flow');
+            console.log("StepByStepReflection: Navigated to intro-to-flow content");
+          }, 500);
+        }
       }
     }
   };
