@@ -198,12 +198,21 @@ export default function FlowAssessment({ onTabChange }: FlowAssessmentProps) {
               Your flow assessment is complete. Continue to the next section to add flow attributes to your Star Card.
             </p>
             
-            <Button 
-              onClick={() => onTabChange ? onTabChange("roundingout") : null}
-              className="bg-indigo-700 hover:bg-indigo-800"
-            >
-              Continue to Rounding Out
-            </Button>
+            <div className="flex gap-3 justify-center">
+              <Button 
+                onClick={() => setExistingResults(null)}
+                variant="outline"
+                className="border-indigo-700 text-indigo-700 hover:bg-indigo-50"
+              >
+                Retake Assessment
+              </Button>
+              <Button 
+                onClick={() => onTabChange ? onTabChange("roundingout") : null}
+                className="bg-indigo-700 hover:bg-indigo-800"
+              >
+                Continue to Rounding Out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
