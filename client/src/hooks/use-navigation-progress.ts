@@ -556,6 +556,33 @@ export function useNavigationProgress() {
     }
   };
 
+  // Get next button text in "Next: [Step Name]" format
+  const getNextButtonText = (currentStepId: string): string => {
+    const STEP_DISPLAY_NAMES = {
+      '1-1': 'Next: Intro to Star Strengths',
+      '2-1': 'Next: Star Assessment', 
+      '2-2': 'Next: Review Your Star Card',
+      '2-3': 'Next: Reflection',
+      '2-4': 'Next: Intro to Flow',
+      '3-1': 'Next: Flow Assessment',
+      '3-2': 'Next: Rounding Out', 
+      '3-3': 'Next: Add Flow to Star Card',
+      '3-4': 'Next: Ladder of Well-being',
+      '4-1': 'Next: Well-being Reflections',
+      '4-2': 'Next: Visualizing You',
+      '4-3': 'Next: Your Future Self',
+      '4-4': 'Next: Final Reflection',
+      '4-5': 'Next: Workshop Guide',
+      '5-1': 'Next: Your Star Report', 
+      '5-2': 'Next: Your Star Card',
+      '5-3': 'Next: Additional Resources',
+      '5-4': 'Next: More Information',
+      '6-1': 'Complete Workshop'
+    };
+
+    return STEP_DISPLAY_NAMES[currentStepId] || 'Next';
+  };
+
   // User restoration functionality
   const restoreUserToCurrentStep = async () => {
     const currentStep = progress.currentStepId;
@@ -680,6 +707,7 @@ export function useNavigationProgress() {
     // Enhanced Next Button Functionality
     getNextStepId: getNextStepForButton,
     getNextButtonState,
+    getNextButtonText,
     handleNextButtonClick,
     
     // User Restoration and Navigation
