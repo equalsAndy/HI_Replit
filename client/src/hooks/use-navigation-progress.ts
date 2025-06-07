@@ -64,10 +64,10 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
     return isValid;
   }
   
+  // 4-2 is reflections, non-blocking in simplified mode
   if (stepId === '4-2') {
-    const isValid = !!userAssessments?.cantrilLadderReflection;
-    console.log(`📝 Well-being reflection: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
-    return isValid;
+    console.log(`📝 Well-being reflection: NON-BLOCKING (reflections in simplified mode)`);
+    return true;
   }
   
   // All other steps: Next button always active
@@ -75,38 +75,64 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
   return true;
 };
 
-// SIMPLIFIED: Linear progression only
+// SIMPLIFIED: Linear progression with resource branches
 const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
-  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   const unlocked = ['1-1']; // First step always unlocked
   
-  // Simple linear unlocking: each completed step unlocks exactly the next one
-  for (let i = 0; i < allSteps.length - 1; i++) {
-    const currentStep = allSteps[i];
-    const nextStep = allSteps[i + 1];
+  // Linear progression through main sequence
+  for (let i = 0; i < mainSequence.length - 1; i++) {
+    const currentStep = mainSequence[i];
+    const nextStep = mainSequence[i + 1];
     
-    if (completedSteps.includes(currentStep)) {
+    if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
       unlocked.push(nextStep);
       console.log(`📝 SIMPLIFIED MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
     }
   }
   
-  console.log('🔓 SIMPLIFIED MODE: Unlocked steps (linear only):', unlocked);
+  // BRANCH 1: 3-4 completion unlocks 5-1 (parallel branch, 4-1 remains next step)
+  if (completedSteps.includes('3-4') && !unlocked.includes('5-1')) {
+    unlocked.push('5-1');
+    console.log(`🌟 BRANCH: Step 3-4 completed → unlocked 5-1 (resource branch)`);
+  }
+  
+  // BRANCH 2: 4-5 completion unlocks all remaining resources
+  if (completedSteps.includes('4-5')) {
+    const resources = ['5-2', '5-3', '5-4', '6-1'];
+    resources.forEach(stepId => {
+      if (!unlocked.includes(stepId)) {
+        unlocked.push(stepId);
+        console.log(`🏆 COMPLETION: Step 4-5 completed → unlocked ${stepId} (final resource)`);
+      }
+    });
+  }
+  
+  console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
   return unlocked;
 };
 
-// Get next step in linear sequence
+// Get next step prioritizing main sequence over resources
 const getNextStepId = (completedSteps: string[]): string => {
-  const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+  const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   
-  for (const step of allSteps) {
+  // Priority 1: Continue main sequence
+  for (const step of mainSequence) {
     if (!completedSteps.includes(step)) {
       return step;
     }
   }
   
-  // All steps completed, return last step
-  return allSteps[allSteps.length - 1];
+  // Priority 2: If main sequence complete, point to resources (but user navigates via menu)
+  const resources = ['5-1', '5-2', '5-3', '5-4', '6-1'];
+  for (const step of resources) {
+    if (!completedSteps.includes(step)) {
+      return step;
+    }
+  }
+  
+  // All completed, stay at final main sequence step
+  return '4-5';
 };
 
 export function useNavigationProgress() {
@@ -359,8 +385,14 @@ export function useNavigationProgress() {
   };
 
   const calculateOverallProgress = () => {
-    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-    return Math.round((progress.completedSteps.length / allSteps.length) * 100);
+    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    const completedMainSteps = progress.completedSteps.filter(step => mainSequence.includes(step));
+    return Math.round((completedMainSteps.length / mainSequence.length) * 100);
+  };
+
+  // Check if congratulations modal should be shown (4-5 just completed)
+  const shouldShowCongratulationsModal = (): boolean => {
+    return progress.completedSteps.includes('4-5');
   };
 
   const currentStepId = progress.currentStepId;
@@ -380,7 +412,9 @@ export function useNavigationProgress() {
     introduction: ['1-1'],
     starStrengths: ['2-1', '2-2', '2-3', '2-4'],
     flow: ['3-1', '3-2', '3-3', '3-4'],
-    wellbeing: ['4-1', '4-2', '4-3', '4-4', '4-5']
+    wellbeing: ['4-1', '4-2', '4-3', '4-4', '4-5'],
+    resources: ['5-1', '5-2', '5-3', '5-4'],
+    workshop: ['6-1']
   };
 
   const getLastPosition = () => {
@@ -426,6 +460,8 @@ export function useNavigationProgress() {
     // Additional aliases for compatibility
     updateCurrentStep: setCurrentStep,
     isStepAccessibleByProgression: isStepAccessible,
-    getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0
+    getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0,
+    // New completion modal detection
+    shouldShowCongratulationsModal
   };
 }
