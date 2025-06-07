@@ -338,17 +338,17 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               </button>
               
               <Button 
-                onClick={(e) => {
-                  console.log("🔥 BUTTON CLICKED! Starting navigation...");
+                onClick={() => {
+                  console.log("🔥 NAVIGATION BUTTON CLICKED!");
                   console.log("🔥 Current step ID:", currentStepId);
-                  console.log("🔥 Button event:", e);
-                  e.preventDefault();
-                  e.stopPropagation();
-                  continueToNextStep();
+                  console.log("🔥 Should navigate from 2-2 to 2-3");
+                  
+                  // Direct navigation implementation
+                  setCurrentStep('2-3');
+                  console.log("✅ Set current step to 2-3");
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700"
                 type="button"
-                disabled={false}
               >
                 {nextButtonText} <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
