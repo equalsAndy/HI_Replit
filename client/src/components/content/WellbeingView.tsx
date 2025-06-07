@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import { Slider } from '@/components/ui/slider';
@@ -7,6 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 import VideoPlayer from './VideoPlayer';
+import { useQuery } from '@tanstack/react-query';
 
 const WellBeingView: React.FC<ContentViewProps> = ({
   navigate,
@@ -16,6 +17,69 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
   const [saving, setSaving] = useState(false);
+
+  // Load existing visualization data
+  const { data: visualizationData } = useQuery({
+    queryKey: ['/api/visualization']
+  });
+
+  // Load saved values on component mount
+  useEffect(() => {
+    if (visualizationData && typeof visualizationData === 'object') {
+      const data = visualizationData as any;
+      if (data.wellBeingLevel !== undefined) {
+        setWellBeingLevel(data.wellBeingLevel);
+        console.log('WellbeingView: Loaded current wellbeing level:', data.wellBeingLevel);
+      }
+      if (data.futureWellBeingLevel !== undefined) {
+        setFutureWellBeingLevel(data.futureWellBeingLevel);
+        console.log('WellbeingView: Loaded future wellbeing level:', data.futureWellBeingLevel);
+      }
+    }
+  }, [visualizationData]);
+
+  // Auto-save function with timeout
+  const autoSave = useCallback(async (currentLevel: number, futureLevel: number) => {
+    try {
+      console.log('WellbeingView: Auto-saving ladder values:', { currentLevel, futureLevel });
+      
+      // Save to visualization API
+      await apiRequest('/api/visualization', {
+        method: 'POST',
+        body: {
+          wellBeingLevel: currentLevel,
+          futureWellBeingLevel: futureLevel,
+        }
+      });
+
+      // Also save to assessments for data export
+      await fetch('/api/workshop-data/cantril-ladder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          wellBeingLevel: currentLevel,
+          futureWellBeingLevel: futureLevel
+        })
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/visualization'] });
+      console.log('WellbeingView: Auto-save successful');
+    } catch (error) {
+      console.error('WellbeingView: Auto-save failed:', error);
+    }
+  }, []);
+
+  // Auto-save when values change with debounce
+  useEffect(() => {
+    if (wellBeingLevel !== 5 || futureWellBeingLevel !== 5) {
+      const timeoutId = setTimeout(() => {
+        autoSave(wellBeingLevel, futureWellBeingLevel);
+      }, 1000);
+      
+      return () => clearTimeout(timeoutId);
+    }
+  }, [wellBeingLevel, futureWellBeingLevel, autoSave]);
 
   const handleSave = async () => {
     setSaving(true);
