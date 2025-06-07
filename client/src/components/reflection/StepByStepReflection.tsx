@@ -140,7 +140,11 @@ export default function StepByStepReflection({
 
   // Trigger save whenever reflections change
   useEffect(() => {
-    if (Object.values(reflections).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
+    const hasContent = Object.values(reflections).some(value => value && typeof value === 'string' && value.trim().length > 0);
+    console.log('Reflection save check:', { reflections, hasContent });
+    
+    if (hasContent) {
+      console.log('Triggering auto-save for reflections:', reflections);
       debouncedSave(reflections);
     }
   }, [reflections, debouncedSave]);
