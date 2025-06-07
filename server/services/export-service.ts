@@ -91,42 +91,86 @@ export class ExportService {
       };
 
       // Process assessments by type with actual field structures
+      // First pass: collect all assessments by type
+      const assessmentsByType: Record<string, any[]> = {};
       assessments.forEach(assessment => {
+        if (!assessmentsByType[assessment.assessmentType]) {
+          assessmentsByType[assessment.assessmentType] = [];
+        }
+        assessmentsByType[assessment.assessmentType].push(assessment);
+      });
+
+      // Process each assessment type
+      Object.entries(assessmentsByType).forEach(([assessmentType, typeAssessments]) => {
         try {
-          const results = JSON.parse(assessment.results);
-          
-          // Special handling for flow attributes to ensure proper structure
-          if (assessment.assessmentType === 'flowAttributes') {
-            exportData.assessments[assessment.assessmentType] = {
+          if (assessmentType === 'flowAttributes') {
+            // Special handling for flow attributes
+            const latest = typeAssessments[typeAssessments.length - 1];
+            const results = JSON.parse(latest.results);
+            exportData.assessments[assessmentType] = {
               flowScore: results.flowScore || 0,
               attributes: results.attributes || [],
-              createdAt: assessment.createdAt.toISOString()
+              createdAt: latest.createdAt.toISOString()
             };
-          } else if (assessment.assessmentType === 'cantrilLadder') {
-            // Special handling for Cantril Ladder data
-            exportData.assessments[assessment.assessmentType] = {
-              wellBeingLevel: results.wellBeingLevel || results.currentLevel || 5,
-              futureWellBeingLevel: results.futureWellBeingLevel || results.futureLevel || 5,
-              currentFactors: results.currentFactors || '',
-              futureImprovements: results.futureImprovements || '',
-              specificChanges: results.specificChanges || '',
-              quarterlyProgress: results.quarterlyProgress || '',
-              quarterlyActions: results.quarterlyActions || '',
-              createdAt: assessment.createdAt.toISOString()
-            };
+          } else if (assessmentType === 'cantrilLadder' || assessmentType === 'cantrilLadderReflection') {
+            // Special handling for Cantril Ladder data - combine both types
+            if (!exportData.assessments['cantrilLadder']) {
+              exportData.assessments['cantrilLadder'] = {
+                wellBeingLevel: 5,
+                futureWellBeingLevel: 5,
+                currentFactors: '',
+                futureImprovements: '',
+                specificChanges: '',
+                quarterlyProgress: '',
+                quarterlyActions: '',
+                createdAt: ''
+              };
+            }
+
+            // Process each assessment and merge data
+            typeAssessments.forEach(assessment => {
+              const results = JSON.parse(assessment.results);
+              
+              if (assessmentType === 'cantrilLadder') {
+                // Handle ladder values
+                exportData.assessments['cantrilLadder'].wellBeingLevel = results.wellBeingLevel || results.currentLevel || 5;
+                exportData.assessments['cantrilLadder'].futureWellBeingLevel = results.futureWellBeingLevel || results.futureLevel || 5;
+                exportData.assessments['cantrilLadder'].createdAt = assessment.createdAt.toISOString();
+              } else if (assessmentType === 'cantrilLadderReflection') {
+                // Handle reflection fields
+                exportData.assessments['cantrilLadder'].currentFactors = results.currentFactors || '';
+                exportData.assessments['cantrilLadder'].futureImprovements = results.futureImprovements || '';
+                exportData.assessments['cantrilLadder'].specificChanges = results.specificChanges || '';
+                exportData.assessments['cantrilLadder'].quarterlyProgress = results.quarterlyProgress || '';
+                exportData.assessments['cantrilLadder'].quarterlyActions = results.quarterlyActions || '';
+                // Update timestamp if reflection is newer
+                const reflectionTime = new Date(assessment.createdAt).getTime();
+                const currentTime = exportData.assessments['cantrilLadder'].createdAt ? 
+                  new Date(exportData.assessments['cantrilLadder'].createdAt).getTime() : 0;
+                if (reflectionTime > currentTime) {
+                  exportData.assessments['cantrilLadder'].createdAt = assessment.createdAt.toISOString();
+                }
+              }
+            });
+            
+            // Skip separate export of cantrilLadderReflection since it's merged into cantrilLadder
+            return;
           } else {
             // Standard assessment handling
-            exportData.assessments[assessment.assessmentType] = {
+            const latest = typeAssessments[typeAssessments.length - 1];
+            const results = JSON.parse(latest.results);
+            exportData.assessments[assessmentType] = {
               ...results,
-              createdAt: assessment.createdAt.toISOString()
+              createdAt: latest.createdAt.toISOString()
             };
           }
         } catch (error) {
-          console.error(`Error parsing assessment ${assessment.assessmentType} for user ${userId}:`, error);
+          console.error(`Error parsing assessment ${assessmentType} for user ${userId}:`, error);
           // Include raw data if JSON parsing fails
-          exportData.assessments[assessment.assessmentType] = {
-            rawData: assessment.results,
-            createdAt: assessment.createdAt.toISOString(),
+          const latest = typeAssessments[typeAssessments.length - 1];
+          exportData.assessments[assessmentType] = {
+            rawData: latest.results,
+            createdAt: latest.createdAt.toISOString(),
             parseError: 'Failed to parse JSON'
           };
         }
