@@ -314,7 +314,7 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
                 onClick={continueToNextStep}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
-                Continue to Review Your Star Card <ArrowRight className="h-4 w-4 ml-2" />
+                Next: Reflection <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
           </div>
