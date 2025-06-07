@@ -112,8 +112,45 @@ const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
   return unlocked;
 };
 
+// JSON parsing with error recovery
+const handleJSONParseError = (error: Error, rawData: string): NavigationProgress => {
+  console.error('Failed to parse navigation progress:', error);
+  
+  const showRecoveryOptions = () => {
+    const message = `
+      Navigation data appears corrupted. Recovery options:
+      
+      1. Refresh the page (Ctrl+F5 or Cmd+R)
+      2. Clear browser data (Settings > Clear browsing data)
+      3. Contact your facilitator for assistance
+      
+      Your progress will be restored from the last successful save.
+    `;
+    
+    console.warn(message);
+  };
+  
+  showRecoveryOptions();
+  
+  // Return safe default state
+  return {
+    completedSteps: [],
+    currentStepId: '1-1',
+    appType: 'ast',
+    lastVisitedAt: new Date().toISOString(),
+    unlockedSteps: ['1-1'],
+    videoProgress: {}
+  };
+};
+
+// Network error handling
+const handleNetworkError = (error: Error, operation: string): boolean => {
+  console.warn(`Network error during ${operation}:`, error);
+  return false; // Indicate failure but don't break app
+};
+
 // Get next step prioritizing main sequence over resources
-const getNextStepId = (completedSteps: string[]): string => {
+const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   
   // Priority 1: Continue main sequence
@@ -151,7 +188,7 @@ export function useNavigationProgress() {
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
-  // Load progress from database on mount
+  // Load progress from database on mount with error recovery
   useEffect(() => {
     const loadProgress = async () => {
       try {
@@ -163,21 +200,30 @@ export function useNavigationProgress() {
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.user?.navigationProgress) {
-            const dbProgress = JSON.parse(result.user.navigationProgress);
-            
-            setProgress(prev => ({
-              ...prev,
-              ...dbProgress,
-              appType: 'ast',
-              lastVisitedAt: new Date().toISOString(),
-              unlockedSteps: calculateUnlockedSteps(dbProgress.completedSteps || [])
-            }));
-            
-            console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
+            try {
+              const dbProgress = JSON.parse(result.user.navigationProgress);
+              
+              setProgress(prev => ({
+                ...prev,
+                ...dbProgress,
+                appType: 'ast',
+                lastVisitedAt: new Date().toISOString(),
+                unlockedSteps: calculateUnlockedSteps(dbProgress.completedSteps || [])
+              }));
+              
+              console.log('✅ SIMPLIFIED MODE: Progress loaded from database');
+            } catch (parseError) {
+              console.error('JSON parse error in navigation progress:', parseError);
+              const fallbackProgress = handleJSONParseError(parseError as Error, result.user.navigationProgress);
+              setProgress(prev => ({ ...prev, ...fallbackProgress }));
+            }
           }
+        } else {
+          handleNetworkError(new Error(`HTTP ${response.status}`), 'loading user progress');
         }
       } catch (error) {
         console.error('❌ Error loading navigation progress:', error);
+        handleNetworkError(error as Error, 'loading user progress');
       }
     };
     
@@ -305,7 +351,7 @@ export function useNavigationProgress() {
     setProgress(prev => {
       const newCompletedSteps = [...prev.completedSteps, stepId];
       const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps);
-      const nextStepId = getNextStepId(newCompletedSteps);
+      const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
       
       const newProgress = {
         ...prev,
@@ -364,6 +410,136 @@ export function useNavigationProgress() {
   // Get video progress for display (if needed)
   const getVideoProgress = (stepId: string): number => {
     return progress.videoProgress[stepId]?.current || 0;
+  };
+
+  // Next button functionality with validation and error messages
+  const getNextStepId = (currentStepId: string): string | null => {
+    const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
+    const currentIndex = allSteps.indexOf(currentStepId);
+    
+    // Main sequence progression
+    const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
+    if (mainSequence.includes(currentStepId)) {
+      const mainIndex = mainSequence.indexOf(currentStepId);
+      if (mainIndex < mainSequence.length - 1) {
+        return mainSequence[mainIndex + 1];
+      }
+    }
+    
+    // Resource sequence progression
+    const resourceSteps = ['5-1', '5-2', '5-3', '5-4', '6-1'];
+    if (resourceSteps.includes(currentStepId)) {
+      const resourceIndex = resourceSteps.indexOf(currentStepId);
+      if (resourceIndex < resourceSteps.length - 1) {
+        return resourceSteps[resourceIndex + 1];
+      }
+    }
+    
+    return null; // No next step
+  };
+
+  const getNextButtonState = (stepId: string) => {
+    const nextStepId = getNextStepId(stepId);
+    const canProceed = validateStepCompletion(stepId);
+    
+    let errorMessage = null;
+    if (!canProceed) {
+      if (stepId === '2-2') {
+        errorMessage = 'Complete the Star Card assessment to continue';
+      } else if (stepId === '3-2') {
+        errorMessage = 'Complete the Flow assessment to continue';
+      } else if (stepId === '4-1') {
+        errorMessage = 'Complete the Cantril Ladder activity to continue';
+      } else {
+        errorMessage = 'Complete this step to continue';
+      }
+    }
+    
+    return {
+      enabled: canProceed && nextStepId !== null,
+      nextStepId,
+      errorMessage,
+      isLastStep: nextStepId === null
+    };
+  };
+
+  const handleNextButtonClick = async (currentStepId: string): Promise<{ success: boolean; error?: string; nextStepId?: string }> => {
+    const buttonState = getNextButtonState(currentStepId);
+    
+    if (!buttonState.enabled) {
+      return {
+        success: false,
+        error: buttonState.errorMessage || 'Cannot proceed to next step'
+      };
+    }
+    
+    if (buttonState.isLastStep) {
+      return {
+        success: false,
+        error: 'You have reached the final step'
+      };
+    }
+    
+    try {
+      // Mark current step as completed
+      markStepCompleted(currentStepId);
+      
+      // Navigate to next step
+      if (buttonState.nextStepId) {
+        setCurrentStep(buttonState.nextStepId);
+      }
+      
+      return {
+        success: true,
+        nextStepId: buttonState.nextStepId || undefined
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Failed to navigate to next step'
+      };
+    }
+  };
+
+  // User restoration functionality
+  const restoreUserToCurrentStep = async () => {
+    const currentStep = progress.currentStepId;
+    console.log(`🔄 Restoring user to current step: ${currentStep}`);
+    // The actual navigation will be handled by the calling component
+    return currentStep;
+  };
+
+  // Enhanced step state checking
+  const isCurrentStep = (stepId: string): boolean => {
+    return progress.currentStepId === stepId;
+  };
+
+  const canNavigateToStep = (stepId: string): boolean => {
+    return progress.unlockedSteps.includes(stepId) || progress.completedSteps.includes(stepId);
+  };
+
+  const getStepDisplayState = (stepId: string) => {
+    const isCompleted = progress.completedSteps.includes(stepId);
+    const isCurrent = progress.currentStepId === stepId;
+    const isUnlocked = progress.unlockedSteps.includes(stepId);
+    const canNavigate = canNavigateToStep(stepId);
+    
+    return {
+      isCompleted,
+      isCurrent,
+      isUnlocked,
+      canNavigate,
+      showGreenCheckmark: isCompleted,
+      displayState: isCompleted ? 'completed' : isCurrent ? 'current' : isUnlocked ? 'unlocked' : 'locked'
+    };
+  };
+
+  const handleStepNavigation = (stepId: string): boolean => {
+    if (canNavigateToStep(stepId)) {
+      setCurrentStep(stepId);
+      return true;
+    }
+    return false;
   };
 
   // Legacy compatibility functions for archived hooks
@@ -445,6 +621,19 @@ export function useNavigationProgress() {
     validateStepCompletion,
     isVideoStep: (stepId: string) => ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId),
     CURRENT_PROGRESSION_MODE,
+    
+    // Enhanced Next Button Functionality
+    getNextStepId,
+    getNextButtonState,
+    handleNextButtonClick,
+    
+    // User Restoration and Navigation
+    restoreUserToCurrentStep,
+    isCurrentStep,
+    canNavigateToStep,
+    getStepDisplayState,
+    handleStepNavigation,
+    
     // Legacy compatibility for existing code
     isStepUnlocked,
     isStepCompleted,
@@ -453,14 +642,17 @@ export function useNavigationProgress() {
     calculateOverallProgress,
     currentStepId,
     completedSteps,
+    
     // Additional compatibility exports
     getSectionProgressData,
     SECTION_STEPS,
     getLastPosition,
+    
     // Additional aliases for compatibility
     updateCurrentStep: setCurrentStep,
     isStepAccessibleByProgression: isStepAccessible,
     getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0,
+    
     // New completion modal detection
     shouldShowCongratulationsModal
   };
