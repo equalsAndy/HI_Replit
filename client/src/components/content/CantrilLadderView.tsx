@@ -17,6 +17,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
+  // READ-ONLY values loaded from visualization data (set in step 4-1)
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
   const [formData, setFormData] = useState({
@@ -108,7 +109,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
-  // Debounced save function for all data (text inputs + ladder values)
+  // Debounced save function for text inputs only (ladder values are READ-ONLY from step 4-1)
   const debouncedSave = useCallback(
     debounce(async (dataToSave) => {
       try {
@@ -117,30 +118,29 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
           body: JSON.stringify({
-            ...dataToSave,
-            wellBeingLevel,
-            futureWellBeingLevel
+            ...dataToSave
+            // DO NOT include ladder values - they are read-only from step 4-1
           })
         });
         
         const result = await response.json();
         if (result.success) {
-          console.log('Cantril Ladder auto-saved successfully:', { wellBeingLevel, futureWellBeingLevel });
+          console.log('Cantril Ladder reflections auto-saved successfully');
         }
       } catch (error) {
         console.error('Cantril Ladder auto-save failed:', error);
       }
     }, 1000),
-    [wellBeingLevel, futureWellBeingLevel]
+    [] // No dependencies on ladder values since they're read-only
   );
 
-  // Trigger save whenever form data OR ladder values change
+  // Trigger save only when form data changes (NOT ladder values)
   useEffect(() => {
-    if (Object.values(formData).some(value => value.trim().length > 0) || wellBeingLevel !== 5 || futureWellBeingLevel !== 5) {
-      console.log('Cantril Ladder data changed, triggering save:', { wellBeingLevel, futureWellBeingLevel, formData });
+    if (Object.values(formData).some(value => value.trim().length > 0)) {
+      console.log('Cantril Ladder reflections changed, triggering save:', formData);
       debouncedSave(formData);
     }
-  }, [formData, wellBeingLevel, futureWellBeingLevel, debouncedSave]);
+  }, [formData, debouncedSave]);
 
   // Handle text input changes
   const handleInputChange = (field: string, value: string) => {
@@ -167,46 +167,28 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
         {/* Reflections section - positioned like sliders section in WellBeingView */}
         <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
-          {/* Interactive sliders for wellbeing levels */}
-          <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 className="text-md font-medium text-gray-800 mb-4">Set Your Well-being Levels</h3>
+          {/* READ-ONLY display of wellbeing levels set in step 4-1 */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-md font-medium text-blue-800 mb-4">Your Well-being Levels (Set in Step 4-1)</h3>
             
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Current Well-being Level: {wellBeingLevel}
+              <div className="bg-white p-3 rounded border">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Well-being Level:
                 </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={wellBeingLevel}
-                  onChange={(e) => setWellBeingLevel(Number(e.target.value))}
-                  className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0 (Worst)</span>
-                  <span>10 (Best)</span>
-                </div>
+                <div className="text-2xl font-bold text-blue-600">Level {wellBeingLevel}</div>
               </div>
               
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Future Well-being Level (1 year): {futureWellBeingLevel}
+              <div className="bg-white p-3 rounded border">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Future Well-being Level (1 year):
                 </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="10"
-                  value={futureWellBeingLevel}
-                  onChange={(e) => setFutureWellBeingLevel(Number(e.target.value))}
-                  className="w-full h-2 bg-indigo-200 rounded-lg appearance-none cursor-pointer slider"
-                />
-                <div className="flex justify-between text-xs text-gray-500 mt-1">
-                  <span>0 (Worst)</span>
-                  <span>10 (Best)</span>
-                </div>
+                <div className="text-2xl font-bold text-green-600">Level {futureWellBeingLevel}</div>
               </div>
+              
+              <p className="text-sm text-blue-600 italic">
+                These values were set in step 4-1 and cannot be changed here.
+              </p>
             </div>
           </div>
 
