@@ -147,8 +147,8 @@ export function useNavigationProgress() {
               console.log('✅ Setting loaded progress:', loadedProgress);
               setProgress(loadedProgress);
               
-              // Auto-navigate to current step
-              if (loadedProgress.currentStepId && loadedProgress.currentStepId !== '1-1') {
+              // Auto-navigate to current step (including 1-1 to handle resets)
+              if (loadedProgress.currentStepId) {
                 console.log(`🧭 Auto-navigating to step: ${loadedProgress.currentStepId}`);
                 
                 const stepContentMap = {
