@@ -325,13 +325,30 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <Button 
+            <div className="flex justify-end space-x-4">
+              {/* Test button to verify click handler works */}
+              <button 
                 onClick={() => {
+                  console.log("🔥 TEST BUTTON CLICKED!");
+                  alert("Test button works!");
+                }}
+                className="bg-red-500 hover:bg-red-700 text-white px-4 py-2 rounded"
+              >
+                Test Click
+              </button>
+              
+              <Button 
+                onClick={(e) => {
                   console.log("🔥 BUTTON CLICKED! Starting navigation...");
+                  console.log("🔥 Current step ID:", currentStepId);
+                  console.log("🔥 Button event:", e);
+                  e.preventDefault();
+                  e.stopPropagation();
                   continueToNextStep();
                 }}
                 className="bg-indigo-600 hover:bg-indigo-700"
+                type="button"
+                disabled={false}
               >
                 {nextButtonText} <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
