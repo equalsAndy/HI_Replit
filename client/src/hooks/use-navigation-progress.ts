@@ -413,7 +413,7 @@ export function useNavigationProgress() {
   };
 
   // Next button functionality with validation and error messages
-  const getNextStepId = (currentStepId: string): string | null => {
+  const getNextStepForButton = (currentStepId: string): string | null => {
     const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
     const currentIndex = allSteps.indexOf(currentStepId);
     
@@ -439,7 +439,7 @@ export function useNavigationProgress() {
   };
 
   const getNextButtonState = (stepId: string) => {
-    const nextStepId = getNextStepId(stepId);
+    const nextStepId = getNextStepForButton(stepId);
     const canProceed = validateStepCompletion(stepId);
     
     let errorMessage = null;
@@ -623,7 +623,7 @@ export function useNavigationProgress() {
     CURRENT_PROGRESSION_MODE,
     
     // Enhanced Next Button Functionality
-    getNextStepId,
+    getNextStepId: getNextStepForButton,
     getNextButtonState,
     handleNextButtonClick,
     
