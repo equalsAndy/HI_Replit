@@ -379,6 +379,20 @@ export function useNavigationProgress() {
     if (Array.from(unlockedSteps).some(step => step.startsWith('4-'))) {
       unlockedSections.add('4');
     }
+    // Unlock section 5 (NEXT STEPS) when Final Reflection (4-5) is completed
+    if (newCompletedSteps.includes('4-5')) {
+      unlockedSections.add('5');
+      unlockedSteps.add('5-1'); // Unlock Download Star Card
+      unlockedSteps.add('5-2'); // Unlock Holistic Report
+      unlockedSteps.add('5-3'); // Unlock Growth Plan
+      unlockedSteps.add('5-4'); // Unlock Team Workshop Prep
+    }
+    // Always unlock section 6 (MORE INFORMATION)
+    unlockedSections.add('6');
+    unlockedSteps.add('6-1');
+    unlockedSteps.add('6-2');
+    unlockedSteps.add('6-3');
+    unlockedSteps.add('6-4');
 
     // Calculate the current step ID based on progress
     const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];

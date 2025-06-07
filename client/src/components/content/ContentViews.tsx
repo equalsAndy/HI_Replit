@@ -16,6 +16,7 @@ import FutureSelfView from './FutureSelfView';
 import FinalReflectionView from './FinalReflectionView';
 import YourStarCardView from './YourStarCardView';
 import StarCardResourceView from './StarCardResourceView';
+import DownloadStarCardView from './allstarteams/DownloadStarCardView';
 import PlaceholderView from './PlaceholderView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
@@ -786,6 +787,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             </Button>
           </div>
         </div>
+      );
+
+    case 'download-star-card':
+      return (
+        <DownloadStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
       );
 
     // Handle placeholder content
