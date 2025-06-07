@@ -80,29 +80,28 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   useEffect(() => {
     const checkForExistingAssessment = async () => {
       try {
-        const response = await fetch('/api/user/assessments', {
+        const response = await fetch('/api/workshop-data/flow-assessment', {
           credentials: 'include'
         });
         if (response.ok) {
           const data = await response.json();
           console.log('🔍 Flow Assessment: Checking assessment data structure:', data);
           
-          if (data.success && data.currentUser?.assessments?.flowAssessment) {
-            const flowData = data.currentUser.assessments.flowAssessment;
+          if (data.success && data.data) {
+            const flowData = data.data;
             console.log('🔍 Flow Assessment: FlowData found:', flowData);
             
-            if (flowData && flowData.formattedResults?.answers && flowData.formattedResults?.flowScore !== undefined) {
+            if (flowData && flowData.answers && flowData.flowScore !== undefined) {
               // Load existing answers and show results
-              setAnswers(flowData.formattedResults.answers);
-              setShowResult(true);
-              console.log('✅ Flow Assessment: Loaded existing assessment with score:', flowData.formattedResults.flowScore);
+              setAnswers(flowData.answers);
+              if (flowData.completed) {
+                setShowResult(true);
+              }
+              console.log('✅ Flow Assessment: Loaded existing assessment with score:', flowData.flowScore);
               return;
             }
           } else {
-            console.log('🔍 Flow Assessment: Data structure check failed');
-            console.log('🔍 Flow Assessment: data.success:', data.success);
-            console.log('🔍 Flow Assessment: data.currentUser:', data.currentUser);
-            console.log('🔍 Flow Assessment: flowAssessment exists:', !!data.currentUser?.assessments?.flowAssessment);
+            console.log('🔍 Flow Assessment: No existing assessment found');
           }
         }
         console.log('❌ Flow Assessment: No existing data found, starting fresh');
@@ -292,35 +291,39 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   };
   
   // Handle submit
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     // Clear any pending timeouts first
     if (autoAdvanceTimeoutRef.current) {
       clearTimeout(autoAdvanceTimeoutRef.current);
       autoAdvanceTimeoutRef.current = null;
     }
     
-    // Auto-persist the flow assessment data
+    // Calculate the total flow score based on all answers
+    const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
+    
+    // Save the flow assessment data to the database
     try {
-      // Calculate the total flow score based on all answers
-      const flowScore = Object.values(answers).reduce((sum, val) => sum + val, 0);
-      
-      // Save the flow assessment data to the server
-      fetch('/api/flow-attributes', {
+      const response = await fetch('/api/workshop-data/flow-assessment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({
+          answers,
           flowScore,
-          attributes: [] // Empty array for now, will be populated later
+          completed: true
         })
-      }).catch(err => {
-        // Silently handle errors to not disrupt user experience
-        console.error('Error saving flow assessment on completion:', err);
       });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('✅ Flow assessment saved successfully:', result);
+      } else {
+        console.error('❌ Failed to save flow assessment:', response.status);
+      }
     } catch (err) {
-      // Log any errors but don't disrupt the user experience
-      console.error('Error auto-saving flow assessment:', err);
+      console.error('❌ Error saving flow assessment:', err);
     }
     
     // Show the results dialog

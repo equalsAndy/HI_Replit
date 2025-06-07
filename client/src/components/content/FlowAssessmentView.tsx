@@ -24,12 +24,12 @@ const FlowAssessmentView: React.FC<ContentViewProps> = ({
           const data = await response.json();
           console.log('🔍 FlowAssessmentView: Assessment API response:', data);
           
-          if (data.success && data.currentUser?.assessments?.flowAssessment?.formattedResults) {
+          if (data.success && data.data && data.data.completed) {
             console.log('✅ FlowAssessmentView: Found existing flow assessment - marking step 3-2 as completed');
             markStepCompleted?.('3-2');
             setHasMarkedCompleted(true);
           } else {
-            console.log('❌ FlowAssessmentView: No flow assessment found in API response');
+            console.log('❌ FlowAssessmentView: No completed flow assessment found in API response');
           }
         } else {
           console.log('❌ FlowAssessmentView: Assessment API response not ok:', response.status);

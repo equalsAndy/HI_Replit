@@ -1889,4 +1889,140 @@ workshopDataRouter.get('/visualization', async (req: Request, res: Response) => 
   }
 });
 
+/**
+ * Flow Assessment API endpoints
+ */
+
+// GET /api/workshop-data/flow-assessment
+workshopDataRouter.get('/flow-assessment', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'flowAssessment')
+        )
+      );
+    
+    if (!assessment || assessment.length === 0) {
+      return res.json({ success: true, data: null });
+    }
+    
+    const results = JSON.parse(assessment[0].results);
+    res.json({
+      success: true,
+      data: results,
+      meta: { 
+        created_at: assessment[0].createdAt,
+        assessmentType: 'flowAssessment'
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching flow assessment:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Fetch failed'
+    });
+  }
+});
+
+// POST /api/workshop-data/flow-assessment
+workshopDataRouter.post('/flow-assessment', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { answers, flowScore, completed = true } = req.body;
+    
+    if (!answers || typeof answers !== 'object') {
+      return res.status(400).json({
+        success: false,
+        error: 'Answers object is required'
+      });
+    }
+    
+    if (flowScore === undefined || typeof flowScore !== 'number') {
+      return res.status(400).json({
+        success: false,
+        error: 'Flow score is required and must be a number'
+      });
+    }
+    
+    const assessmentData = {
+      answers,
+      flowScore,
+      completed,
+      completedAt: completed ? new Date().toISOString() : null
+    };
+    
+    // Check if assessment already exists
+    const existingAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'flowAssessment')
+        )
+      );
+    
+    if (existingAssessment.length > 0) {
+      // Update existing
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(assessmentData)
+        })
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id));
+    } else {
+      // Create new
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'flowAssessment',
+        results: JSON.stringify(assessmentData)
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: assessmentData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'flowAssessment' 
+      }
+    });
+  } catch (error) {
+    console.error('Error saving flow assessment:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed'
+    });
+  }
+});
+
 export default workshopDataRouter;
