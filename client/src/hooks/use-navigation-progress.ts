@@ -467,8 +467,8 @@ export function useNavigationProgress() {
     return progress.videoProgress[stepId]?.current || 0;
   };
 
-  // Next button functionality - simple linear progression
-  const getNextStepForButton = (currentStepId: string): string | null => {
+  // Simple next step navigation
+  const getNextStepId = (currentStepId: string): string | null => {
     const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
     const currentIndex = allSteps.indexOf(currentStepId);
     
@@ -478,7 +478,7 @@ export function useNavigationProgress() {
   };
 
   const getNextButtonState = (stepId: string) => {
-    const nextStepId = getNextStepForButton(stepId);
+    const nextStepId = getNextStepId(stepId);
     const canProceed = validateStepCompletion(stepId);
     
     let errorMessage = null;
@@ -540,41 +540,7 @@ export function useNavigationProgress() {
     }
   };
 
-  // Get next button text in "Next: [Step Name]" format
-  const getNextButtonText = (currentStepId: string): string => {
-    // Get the next step ID first
-    const nextStepId = getNextStepForButton(currentStepId);
-    
-    if (!nextStepId) {
-      return 'Complete Workshop';
-    }
 
-    // Map step IDs to their display names
-    const STEP_DISPLAY_NAMES = {
-      '1-1': 'Introduction',
-      '2-1': 'Intro to Star Strengths', 
-      '2-2': 'Star Assessment',
-      '2-3': 'Review Your Star Card',
-      '2-4': 'Strength Reflection',
-      '3-1': 'Intro to Flow',
-      '3-2': 'Flow Assessment', 
-      '3-3': 'Rounding Out',
-      '3-4': 'Add Flow to Star Card',
-      '4-1': 'Ladder of Well-being',
-      '4-2': 'Well-being Reflections',
-      '4-3': 'Visualizing You',
-      '4-4': 'Your Future Self',
-      '4-5': 'Final Reflection',
-      '5-1': 'Workshop Guide',
-      '5-2': 'Your Star Report', 
-      '5-3': 'Your Star Card',
-      '5-4': 'Additional Resources',
-      '6-1': 'More Information'
-    };
-
-    const nextStepName = STEP_DISPLAY_NAMES[nextStepId];
-    return nextStepName ? `Next: ${nextStepName}` : 'Next';
-  };
 
   // User restoration functionality
   const restoreUserToCurrentStep = async () => {
@@ -698,9 +664,8 @@ export function useNavigationProgress() {
     CURRENT_PROGRESSION_MODE,
     
     // Enhanced Next Button Functionality
-    getNextStepId: getNextStepForButton,
+    getNextStepId,
     getNextButtonState,
-    getNextButtonText,
     handleNextButtonClick,
     
     // User Restoration and Navigation

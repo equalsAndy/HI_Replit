@@ -170,8 +170,8 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     }
   };
   
-  // Get the proper next button text based on current step
-  const nextButtonText = getNextButtonText(currentStepId);
+  // Simple hardcoded button text for star card assessment
+  const nextButtonText = "Next: Review Your Star Card";
 
   return (
     <>
