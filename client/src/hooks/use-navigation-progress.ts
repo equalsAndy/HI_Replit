@@ -452,10 +452,19 @@ export function useNavigationProgress() {
     if (newCompletedSteps.includes('4-3')) {
       unlockedSteps.add('4-4');
     }
+
+    // Calculate next step to navigate to
+    const allStepsInOrder = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4'];
+    const currentIndex = allStepsInOrder.indexOf(stepId);
+    let nextStepId = stepId; // Default to current step
+    if (currentIndex >= 0 && currentIndex < allStepsInOrder.length - 1) {
+      nextStepId = allStepsInOrder[currentIndex + 1];
+    }
     
     const updatedProgress = {
       ...progress,
       completedSteps: newCompletedSteps,
+      currentStepId: nextStepId,
       unlockedSections: Array.from(unlockedSections),
       unlockedSteps: Array.from(unlockedSteps),
       lastVisitedAt: new Date().toISOString()
