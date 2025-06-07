@@ -61,17 +61,7 @@ export default function FlowAssessment({ onTabChange }: FlowAssessmentProps) {
           if (data.success && data.currentUser?.assessments?.flowAssessment?.formattedResults) {
             const results = data.currentUser.assessments.flowAssessment.formattedResults;
             console.log('✅ Found existing flow assessment:', results);
-            
-            // Check if this is a proper flow assessment with actual scores
-            // The current data format {"flow1":"high","flow2":"medium","flow3":"low","flow4":"high"} 
-            // is not a valid completed assessment - we need actual numeric scores
-            if (results.flowScore && results.answers && results.totalQuestions) {
-              console.log('✅ Valid flow assessment found with scores');
-              setExistingResults(results);
-            } else {
-              console.log('❌ Found assessment data but missing required score structure - showing assessment form');
-              setExistingResults(null);
-            }
+            setExistingResults(results);
           }
         }
       } catch (error) {
