@@ -1,0 +1,54 @@
+PROMPT 1: Rebuild Navigation Hook - Current Simplified System
+Context: Create a navigation hook for an interactive learning platform with linear step progression.
+
+File: client/src/hooks/use-navigation-progress.ts
+
+Database Schema:
+
+Table: users (shared/schema.ts)
+Column: navigationProgress (TEXT, stores JSON string)
+API Endpoints: /api/user/navigation-progress (POST), /api/user/profile (GET)
+Assessment API: /api/workshop-data/userAssessments (GET)
+HARDWIRED Rules:
+
+Step Sequence: ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5']
+Video Steps: ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4']
+Assessment Steps:
+'2-2' requires userAssessments.starCard
+'3-2' requires userAssessments.flowAssessment
+'4-1' requires userAssessments.cantrilLadder
+'4-2' requires userAssessments.cantrilLadderReflection
+First Step: Always unlock '1-1'
+Linear Progression: Each completed step unlocks exactly the next one
+Progression Mode: Always 'simplified'
+Data Structure:
+
+interface NavigationProgress {
+  completedSteps: string[];
+  currentStepId: string;
+  appType: 'ast' | 'ia';
+  lastVisitedAt: string;
+  unlockedSteps: string[];
+  videoProgress: { [stepId: string]: { farthest: number; current: number } };
+}
+Core Functions Required:
+
+useNavigationProgress() - main hook
+validateStepCompletion(stepId) - check if step can be completed
+markStepCompleted(stepId) - mark step as done, unlock next
+updateVideoProgress(stepId, percentage) - track video watching
+setCurrentStep(stepId) - navigate to step
+isStepAccessible(stepId) - check if step is unlocked
+syncToDatabase(progressData) - save to database with 1-second debounce
+Data-Driven Elements:
+
+Assessment completion status from /api/workshop-data/userAssessments
+Progress persistence in users.navigationProgress column
+Current step navigation from user interaction
+Behavioral Rules:
+
+Video progress tracked but NOT used for unlocking in simplified mode
+Assessment steps block progression until completed
+All other steps allow immediate progression via Next button
+Database sync debounced to 1 second
+Linear unlocking: step N completed → step N+1 unlocked
