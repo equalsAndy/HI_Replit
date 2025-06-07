@@ -327,7 +327,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
 
             <div className="flex justify-end">
               <Button 
-                onClick={continueToNextStep}
+                onClick={() => {
+                  console.log("🔥 BUTTON CLICKED! Starting navigation...");
+                  continueToNextStep();
+                }}
                 className="bg-indigo-600 hover:bg-indigo-700"
               >
                 {nextButtonText} <ArrowRight className="h-4 w-4 ml-2" />
