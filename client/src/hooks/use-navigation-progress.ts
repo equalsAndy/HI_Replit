@@ -210,50 +210,77 @@ export function useNavigationProgress() {
       // Assessment steps require actual completion from database
       if (stepId === '2-2') {
         const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
-        console.log(`🔍 Step 2-2 completion check - hasStarCard: ${hasStarCard}`);
+        console.log(`🔍 Step 2-2 (Star Card Assessment) - hasStarCard: ${hasStarCard}`);
         return hasStarCard;
+      }
+      if (stepId === '2-3') {
+        const hasStepByStep = !!(userAssessments?.stepByStepReflection || userAssessments?.assessments?.stepByStepReflection);
+        console.log(`🔍 Step 2-3 (Step by Step Reflection) - hasStepByStep: ${hasStepByStep}`);
+        return hasStepByStep;
       }
       if (stepId === '3-2') {
         const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
-        console.log(`🔍 Step 3-2 completion check - hasFlowAssessment: ${hasFlowAssessment}`);
+        console.log(`🔍 Step 3-2 (Flow Assessment) - hasFlowAssessment: ${hasFlowAssessment}`);
         return hasFlowAssessment;
       }
       if (stepId === '3-4') {
         const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
-        console.log(`🔍 Step 3-4 completion check - hasFlowAttributes: ${hasFlowAttributes}`);
+        console.log(`🔍 Step 3-4 (Flow Attributes) - hasFlowAttributes: ${hasFlowAttributes}`);
         return hasFlowAttributes;
       }
       if (stepId === '4-1') {
         const hasCantrilLadder = !!(userAssessments?.cantrilLadder || userAssessments?.assessments?.cantrilLadder);
-        console.log(`🔍 Step 4-1 completion check - hasCantrilLadder: ${hasCantrilLadder}`);
+        console.log(`🔍 Step 4-1 (Cantril Ladder) - hasCantrilLadder: ${hasCantrilLadder}`);
         return hasCantrilLadder;
       }
       
-      // For content/video steps, check if they should be auto-completed based on next assessment completion
-      if (stepId === '2-1' && (userAssessments?.starCard || userAssessments?.assessments?.starCard)) {
-        console.log(`🔍 Step 2-1 auto-completion - starCard exists`);
-        return true;
+      // Content/video steps auto-complete when user has progressed past them
+      if (stepId === '1-1') {
+        // Complete 1-1 if any assessment exists (user has progressed)
+        const hasAnyAssessment = !!(
+          userAssessments?.starCard || userAssessments?.assessments?.starCard
+        );
+        if (hasAnyAssessment) {
+          console.log(`🔍 Step 1-1 auto-completion - user has progressed past intro`);
+          return true;
+        }
       }
-      if (stepId === '2-3' && (userAssessments?.stepByStepReflection || userAssessments?.assessments?.stepByStepReflection)) {
-        console.log(`🔍 Step 2-3 auto-completion - stepByStepReflection exists`);
-        return true;
+      if (stepId === '2-1') {
+        // Complete 2-1 if star card assessment exists
+        const hasStarCard = !!(userAssessments?.starCard || userAssessments?.assessments?.starCard);
+        if (hasStarCard) {
+          console.log(`🔍 Step 2-1 auto-completion - starCard exists`);
+          return true;
+        }
       }
-      if (stepId === '2-4' && (userAssessments?.roundingOutReflection || userAssessments?.assessments?.roundingOutReflection)) {
-        console.log(`🔍 Step 2-4 auto-completion - roundingOutReflection exists`);
-        return true;
+      if (stepId === '2-4') {
+        // Complete 2-4 if flow assessment exists (user progressed to section 3)
+        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
+        if (hasFlowAssessment) {
+          console.log(`🔍 Step 2-4 auto-completion - user progressed to flow section`);
+          return true;
+        }
       }
-      if (stepId === '3-1' && (userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment)) {
-        console.log(`🔍 Step 3-1 auto-completion - flowAssessment exists`);
-        return true;
+      if (stepId === '3-1') {
+        // Complete 3-1 if flow assessment exists
+        const hasFlowAssessment = !!(userAssessments?.flowAssessment || userAssessments?.assessments?.flowAssessment);
+        if (hasFlowAssessment) {
+          console.log(`🔍 Step 3-1 auto-completion - flowAssessment exists`);
+          return true;
+        }
       }
-      if (stepId === '3-3' && (userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes)) {
-        console.log(`🔍 Step 3-3 auto-completion - flowAttributes exists`);
-        return true;
+      if (stepId === '3-3') {
+        // Complete 3-3 if flow attributes exists
+        const hasFlowAttributes = !!(userAssessments?.flowAttributes || userAssessments?.assessments?.flowAttributes);
+        if (hasFlowAttributes) {
+          console.log(`🔍 Step 3-3 auto-completion - flowAttributes exists`);
+          return true;
+        }
       }
       
       // All other steps rely on explicit completion tracking
       const isMarkedComplete = currentProgress.completedSteps.includes(stepId);
-      console.log(`🔍 Step ${stepId} completion check - isMarkedComplete: ${isMarkedComplete}`);
+      console.log(`🔍 Step ${stepId} explicit completion check - isMarkedComplete: ${isMarkedComplete}`);
       return isMarkedComplete;
     };
 
@@ -521,16 +548,24 @@ export function useNavigationProgress() {
 
   // Force update progress when assessments change (including reset)
   useEffect(() => {
+    console.log('🔄 Assessment data changed, recalculating progress...');
+    console.log('📊 Current assessments:', userAssessments);
+    
     const calculated = recalculateProgress();
     
-    // Update if completed steps have changed (increase or decrease)
-    if (JSON.stringify(calculated.completedSteps) !== JSON.stringify(progress.completedSteps) ||
-        calculated.currentStepId !== progress.currentStepId) {
-      console.log('🔄 Assessment state changed - updating progress:', {
+    // Always update if there are meaningful changes
+    const progressChanged = JSON.stringify(calculated.completedSteps) !== JSON.stringify(progress.completedSteps) ||
+                           calculated.currentStepId !== progress.currentStepId ||
+                           JSON.stringify(calculated.unlockedSteps) !== JSON.stringify(progress.unlockedSteps);
+    
+    if (progressChanged) {
+      console.log('🔄 Assessment-driven progress update:', {
         oldCompleted: progress.completedSteps,
         newCompleted: calculated.completedSteps,
         oldCurrent: progress.currentStepId,
-        newCurrent: calculated.currentStepId
+        newCurrent: calculated.currentStepId,
+        oldUnlocked: progress.unlockedSteps,
+        newUnlocked: calculated.unlockedSteps
       });
       setProgress(calculated);
       syncProgressToDatabase(calculated);
