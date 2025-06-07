@@ -250,6 +250,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       setAssessmentResults(results);
       onClose();
 
+      // Dispatch completion event for other components to react
+      window.dispatchEvent(new CustomEvent('assessmentCompleted', { 
+        detail: { results } 
+      }));
+
       // Call onComplete callback if provided
       if (onComplete) {
         console.log('Calling onComplete callback...');

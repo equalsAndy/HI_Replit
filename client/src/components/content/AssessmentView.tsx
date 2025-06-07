@@ -30,40 +30,52 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
 
-  // Load assessment data once when component mounts
-  React.useEffect(() => {
-    const fetchAssessmentData = async () => {
-      if (isLoadingAssessment) return;
-      
-      setIsLoadingAssessment(true);
-      try {
-        const response = await fetch('/api/workshop-data/starcard', {
-          credentials: 'include'
-        });
+  // Add function to refresh assessment data
+  const refreshAssessmentData = React.useCallback(async () => {
+    if (isLoadingAssessment) return;
+    
+    setIsLoadingAssessment(true);
+    try {
+      const response = await fetch('/api/workshop-data/starcard', {
+        credentials: 'include'
+      });
 
-        if (response.ok) {
-          const data = await response.json();
-          console.log("StarCard API response:", data);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("StarCard API response:", data);
 
-          // Check if we have valid assessment data
-          if (data && (data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0)) {
-            setAssessmentData({
-              formattedResults: data
-            });
-            console.log("✅ Assessment data detected, switching to results view");
-          }
-        } else {
-          console.log("No assessment data available yet");
+        // Check if we have valid assessment data
+        if (data && data.success && (data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0)) {
+          setAssessmentData({
+            formattedResults: data
+          });
+          console.log("✅ Assessment data detected, switching to results view");
         }
-      } catch (error) {
-        console.error("Error fetching assessment data:", error);
-      } finally {
-        setIsLoadingAssessment(false);
+      } else {
+        console.log("No assessment data available yet");
       }
+    } catch (error) {
+      console.error("Error fetching assessment data:", error);
+    } finally {
+      setIsLoadingAssessment(false);
+    }
+  }, [isLoadingAssessment]);
+
+  // Load assessment data when component mounts
+  React.useEffect(() => {
+    refreshAssessmentData();
+  }, [refreshAssessmentData]);
+
+  // Listen for assessment completion events
+  React.useEffect(() => {
+    const handleAssessmentComplete = () => {
+      console.log("Assessment completion event detected, refreshing data...");
+      setTimeout(() => refreshAssessmentData(), 500); // Small delay to ensure data is saved
     };
 
-    fetchAssessmentData();
-  }, []);
+    window.addEventListener('assessmentCompleted', handleAssessmentComplete);
+    return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
+  }, [refreshAssessmentData]);
 
   // Use the fetched data or fall back to the prop
   const assessmentResults = assessmentData?.formattedResults || starCard;
