@@ -147,38 +147,8 @@ export function useNavigationProgress() {
               console.log('✅ Setting loaded progress:', loadedProgress);
               setProgress(loadedProgress);
               
-              // Auto-navigate to current step (including 1-1 to handle resets)
-              if (loadedProgress.currentStepId) {
-                console.log(`🧭 Auto-navigating to step: ${loadedProgress.currentStepId}`);
-                
-                const stepContentMap = {
-                  '1-1': 'welcome',
-                  '2-1': 'intro-strengths', 
-                  '2-2': 'strengths-assessment',
-                  '2-3': 'star-card-preview',
-                  '2-4': 'reflection',
-                  '3-1': 'intro-to-flow',
-                  '3-2': 'flow-assessment',
-                  '3-3': 'flow-rounding-out',
-                  '3-4': 'flow-star-card',
-                  '4-1': 'wellbeing',
-                  '4-2': 'cantril-ladder',
-                  '4-3': 'visualizing-you',
-                  '4-4': 'future-self',
-                  '4-5': 'your-statement'
-                };
-                
-                const targetContent = stepContentMap[loadedProgress.currentStepId];
-                if (targetContent) {
-                  console.log(`🧭 Dispatching auto-navigation to: ${targetContent}`);
-                  window.dispatchEvent(new CustomEvent('autoNavigateToContent', {
-                    detail: { 
-                      content: targetContent, 
-                      stepId: loadedProgress.currentStepId 
-                    }
-                  }));
-                }
-              }
+              // Auto-navigation disabled to allow manual navigation
+              console.log(`🧭 Auto-navigation disabled - current step: ${loadedProgress.currentStepId}`);
             } else {
               console.log('⚠️ No valid progress data found, using defaults');
             }
