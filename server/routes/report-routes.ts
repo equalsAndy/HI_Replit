@@ -123,12 +123,11 @@ router.get('/api/report/generate/:userId', async (req, res) => {
 function generateReportHTML(data: any) {
   const starCard = data.assessments.starCard || {};
   const cantril = data.assessments.cantrilLadder || {};
+  const cantrilReflection = data.assessments.cantrilLadderReflection || {};
   const flow = data.assessments.flowAssessment || {};
   const flowAttributes = data.assessments.flowAttributes || {};
-  const final = data.assessments.finalReflection || {};
   const stepByStep = data.assessments.stepByStepReflection || {};
-  const futureSelf = data.assessments.futureSelfReflection || {};
-  const visualizing = data.assessments.visualizingPotential || {};
+  const roundingOut = data.assessments.roundingOutReflection || {};
   
   return `
 <!DOCTYPE html>
@@ -186,11 +185,11 @@ function generateReportHTML(data: any) {
     <!-- Future Vision -->
     <section class="section">
       <h2 class="section-title">Future Vision & Growth Plan</h2>
-      ${generateFutureSection(futureSelf, visualizing)}
+      ${generateFutureSection(cantrilReflection, roundingOut)}
     </section>
 
     <!-- Personal Commitment -->
-    ${generatePersonalCommitment(final)}
+    ${generatePersonalCommitment(stepByStep)}
 
     <!-- Footer -->
     <footer class="report-footer">
@@ -644,29 +643,29 @@ function generateWellbeingSection(cantril: any) {
   return content;
 }
 
-function generateFutureSection(futureSelf: any, visualizing: any) {
+function generateFutureSection(cantrilReflection: any, roundingOut: any) {
   let content = '';
   
-  if (futureSelf?.futureSelfDescription) {
-    const isValid = futureSelf.futureSelfDescription.length > 20 && 
-                   !/^[a-z\s]{1,20}$/i.test(futureSelf.futureSelfDescription.trim());
+  if (cantrilReflection?.reflection) {
+    const isValid = cantrilReflection.reflection.length > 20 && 
+                   !/^[a-z\s]{1,20}$/i.test(cantrilReflection.reflection.trim());
     
     content += `
       <div class="reflection-text">
-        <strong>Future Self Vision:</strong> "${futureSelf.futureSelfDescription}"
-        ${!isValid ? '<div class="data-quality-warning">Note: This vision appears to contain placeholder text.</div>' : ''}
+        <strong>Well-being Reflection:</strong> "${cantrilReflection.reflection}"
+        ${!isValid ? '<div class="data-quality-warning">Note: This reflection appears to contain placeholder text.</div>' : ''}
       </div>
     `;
   }
   
-  if (visualizing?.imageMeaning) {
-    const isValid = visualizing.imageMeaning.length > 20 && 
-                   !/^[a-z\s]{1,20}$/i.test(visualizing.imageMeaning.trim());
+  if (roundingOut?.reflection) {
+    const isValid = roundingOut.reflection.length > 20 && 
+                   !/^[a-z\s]{1,20}$/i.test(roundingOut.reflection.trim());
     
     content += `
       <div class="reflection-text">
-        <strong>Visualization Meaning:</strong> "${visualizing.imageMeaning}"
-        ${!isValid ? '<div class="data-quality-warning">Note: This visualization appears to contain placeholder text.</div>' : ''}
+        <strong>Rounding Out Reflection:</strong> "${roundingOut.reflection}"
+        ${!isValid ? '<div class="data-quality-warning">Note: This reflection appears to contain placeholder text.</div>' : ''}
       </div>
     `;
   }
@@ -674,21 +673,21 @@ function generateFutureSection(futureSelf: any, visualizing: any) {
   return content || '<p><em>Future vision data not available.</em></p>';
 }
 
-function generatePersonalCommitment(final: any) {
-  if (!final?.futureLetterText) {
+function generatePersonalCommitment(stepByStep: any) {
+  if (!stepByStep?.reflection) {
     return '';
   }
   
-  const isValid = final.futureLetterText.length > 20 && 
-                 !/^[a-z\s]{1,20}$/i.test(final.futureLetterText.trim());
+  const isValid = stepByStep.reflection.length > 20 && 
+                 !/^[a-z\s]{1,20}$/i.test(stepByStep.reflection.trim());
   
   return `
     <section class="section">
       <h2 class="section-title">Personal Commitment</h2>
       <div class="commitment-section">
         <div class="reflection-text">
-          <strong>Letter to Future Self:</strong><br>
-          "${final.futureLetterText}"
+          <strong>Personal Reflection:</strong><br>
+          "${stepByStep.reflection}"
           ${!isValid ? '<div class="data-quality-warning">Note: This commitment appears to contain placeholder text.</div>' : ''}
         </div>
       </div>
