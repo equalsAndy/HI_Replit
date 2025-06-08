@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import { db } from '../db';
 import { users, userAssessments } from '../../shared/schema';
 import { requireAuth, requireAdmin } from '../middleware/auth';
+import { sql } from 'drizzle-orm';
 
 const router = Router();
 
@@ -35,19 +36,14 @@ router.post('/users/upload', async (req, res) => {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create user
-    const [newUser] = await db.insert(users).values({
-      username: userInfo.username,
-      name: userInfo.name,
-      email: userInfo.email,
-      password: hashedPassword,
-      role: userInfo.role || 'participant',
-      organization: userInfo.organization || '',
-      jobTitle: userInfo.jobTitle || '',
-      isTestUser: userInfo.isTestUser || true,
-      profilePicture: userInfo.profilePicture || null,
-      navigationProgress: navProgress ? JSON.stringify(navProgress) : null
-    }).returning();
+    // Create user using direct SQL to ensure proper field mapping
+    const userResult = await db.execute(sql`
+      INSERT INTO users (username, password, name, email, role, organization, job_title, is_test_user, profile_picture, navigation_progress, created_at, updated_at)
+      VALUES (${userInfo.username}, ${hashedPassword}, ${userInfo.name}, ${userInfo.email}, ${userInfo.role || 'participant'}, ${userInfo.organization || ''}, ${userInfo.jobTitle || ''}, ${userInfo.isTestUser || true}, ${userInfo.profilePicture || null}, ${navProgress ? JSON.stringify(navProgress) : null}, ${new Date()}, ${new Date()})
+      RETURNING id, username, name, email
+    `);
+    
+    const newUser = userResult[0] as { id: number; username: string; name: string; email: string };
 
     let createdAssessments = [];
 
