@@ -68,10 +68,21 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     // Generate HTML
     const html = generateReportHTML(reportData);
     
-    // Generate PDF
+    // Generate PDF with server-friendly configuration
     const browser = await puppeteer.launch({ 
-      headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: 'new',
+      executablePath: '/nix/store/*/bin/chromium',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-accelerated-2d-canvas',
+        '--no-first-run',
+        '--no-zygote',
+        '--single-process',
+        '--disable-gpu',
+        '--disable-web-security'
+      ]
     });
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: 'networkidle0' });
