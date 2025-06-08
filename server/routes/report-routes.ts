@@ -62,6 +62,12 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
     const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
     
+    console.log('Report data assessment check:', {
+      available: Object.keys(reportData.assessments),
+      required: requiredAssessments,
+      missing: missingAssessments
+    });
+    
     if (missingAssessments.length > 0) {
       return res.status(400).json({ 
         error: 'Cannot generate report - missing required assessments',
@@ -70,7 +76,9 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     }
 
     // Generate HTML
+    console.log('Generating HTML for report...');
     const html = generateReportHTML(reportData);
+    console.log('HTML generated, length:', html.length);
     
     // Find Chromium executable dynamically
     let chromiumPath: string;
@@ -118,8 +126,7 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     console.error('Report generation failed:', error);
     console.error('Error details:', {
       message: error.message,
-      stack: error.stack,
-      reportData: JSON.stringify(reportData, null, 2)
+      stack: error.stack
     });
     res.status(500).json({ 
       error: 'Report generation failed',
