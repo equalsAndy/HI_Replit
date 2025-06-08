@@ -261,7 +261,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         {/* AllStarTeams Logo */}
         <div className="p-4 border-b border-gray-200">
           <img 
-            src="https://app.heliotropeimaginal.com/assets/all-star-teams-logo-250px-DjVl3R6N.png"
+            src="/assets/all-star-teams-logo-250px-DjVl3R6N.png"
             alt="AllStarTeams" 
             className="h-12 w-auto mx-auto"
           />
