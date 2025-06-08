@@ -2,6 +2,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useLocation } from 'wouter';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
+import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 
 type ApplicationType = 'allstarteams' | 'imaginal-agility';
 
@@ -17,7 +18,7 @@ type ApplicationContextType = {
 const appConfig = {
   'allstarteams': {
     name: 'AllStarTeams',
-    logo: '/src/assets/all-star-teams-logo-250px.png',
+    logo: AllStarTeamsLogo,
     primaryColor: 'indigo',
   },
   'imaginal-agility': {
