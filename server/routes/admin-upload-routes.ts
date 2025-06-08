@@ -12,7 +12,7 @@ router.use(requireAdmin);
 
 router.post('/users/upload', async (req, res) => {
   try {
-    const { userInfo, password, navigationProgress: navProgress, assessments: userAssessments } = req.body;
+    const { userInfo, password, navigationProgress: navProgress, assessments: assessmentData } = req.body;
 
     // Validate required fields
     if (!userInfo || !userInfo.name || !userInfo.email || !password) {
@@ -52,13 +52,12 @@ router.post('/users/upload', async (req, res) => {
     let createdAssessments = [];
 
     // Create assessments if provided
-    if (userAssessments) {
-      for (const [assessmentType, assessmentData] of Object.entries(userAssessments)) {
-        if (assessmentData && typeof assessmentData === 'object') {
+    if (assessmentData) {
+      for (const [assessmentType, assessmentDetails] of Object.entries(assessmentData)) {
+        if (assessmentDetails && typeof assessmentDetails === 'object') {
           try {
-            const [assessment] = await db.insert(userAssessments).values({
-              userId: newUser.id,
-              assessmentType: assessmentType === 'starCard' ? 'star_card' : 
+            // Use raw SQL to avoid Drizzle schema field mapping issues
+            const assessmentTypeFormatted = assessmentType === 'starCard' ? 'star_card' : 
                            assessmentType === 'stepByStepReflection' ? 'step_by_step_reflection' :
                            assessmentType === 'flowAssessment' ? 'flow_assessment' :
                            assessmentType === 'flowAttributes' ? 'flow_attributes' :
@@ -66,12 +65,16 @@ router.post('/users/upload', async (req, res) => {
                            assessmentType === 'cantrilLadder' ? 'cantril_ladder' :
                            assessmentType === 'futureSelfReflection' ? 'future_self_reflection' :
                            assessmentType === 'finalReflection' ? 'final_reflection' :
-                           assessmentType,
-              results: JSON.stringify(assessmentData),
-              createdAt: (assessmentData as any).createdAt ? new Date((assessmentData as any).createdAt) : new Date()
-            }).returning();
+                           assessmentType;
+
+            const result = await db.execute(`
+              INSERT INTO user_assessments (user_id, assessment_type, results, created_at)
+              VALUES ($1, $2, $3, $4)
+              RETURNING *
+            `, [newUser.id, assessmentTypeFormatted, JSON.stringify(assessmentDetails), new Date()]);
             
-            createdAssessments.push(assessment);
+            createdAssessments.push(result.rows[0]);
+            console.log(`Created assessment ${assessmentType} for user ${newUser.id}`);
           } catch (error) {
             console.error(`Error creating assessment ${assessmentType}:`, error);
           }
