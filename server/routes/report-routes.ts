@@ -59,7 +59,7 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     });
 
     // Check if user has completed all required assessments
-    const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'finalReflection'];
+    const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
     const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
     
     if (missingAssessments.length > 0) {
