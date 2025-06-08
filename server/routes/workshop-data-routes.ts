@@ -2025,4 +2025,57 @@ workshopDataRouter.post('/flow-assessment', async (req: Request, res: Response) 
   }
 });
 
+// GET /api/workshop-data/userAssessments
+workshopDataRouter.get('/userAssessments', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    // Get all assessments for the current user
+    const assessments = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(eq(schema.userAssessments.userId, userId));
+    
+    // Format assessments by type for easy access
+    const assessmentsByType: Record<string, any> = {};
+    
+    assessments.forEach(assessment => {
+      try {
+        const results = JSON.parse(assessment.results);
+        assessmentsByType[assessment.assessmentType] = {
+          ...results,
+          createdAt: assessment.createdAt,
+          assessmentType: assessment.assessmentType
+        };
+      } catch (error) {
+        console.error(`Error parsing assessment ${assessment.assessmentType}:`, error);
+      }
+    });
+    
+    res.json({
+      success: true,
+      currentUser: {
+        assessments: assessmentsByType
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user assessments:', error);
+    res.status(500).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Fetch failed'
+    });
+  }
+});
+
 export default workshopDataRouter;

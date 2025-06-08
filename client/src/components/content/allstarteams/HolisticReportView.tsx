@@ -34,7 +34,7 @@ export default function HolisticReportView({
     retry: false
   });
 
-  const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'finalReflection'];
+  const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
   const completedAssessments = requiredAssessments.filter(type => userAssessments?.[type]);
   const allAssessmentsComplete = completedAssessments.length === requiredAssessments.length;
   const missingAssessments = requiredAssessments.filter(type => !userAssessments?.[type]);
@@ -142,7 +142,7 @@ export default function HolisticReportView({
                       {assessment === 'starCard' && 'Star Card Assessment'}
                       {assessment === 'flowAssessment' && 'Flow Assessment'}
                       {assessment === 'cantrilLadder' && 'Well-being Ladder'}
-                      {assessment === 'finalReflection' && 'Final Reflection'}
+                      {assessment === 'stepByStepReflection' && 'Final Reflection'}
                     </span>
                   </div>
                 ))}
