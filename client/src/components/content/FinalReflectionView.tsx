@@ -162,12 +162,12 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         <Button 
           onClick={() => {
             handleSave();
-            setCurrentContent('your-star-card');
+            setCurrentContent('holistic-report');
           }}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Download Your Star Card'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Finish Workshop'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
