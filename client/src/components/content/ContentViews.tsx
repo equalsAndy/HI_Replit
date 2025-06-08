@@ -238,15 +238,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
-    case 'download-star-card':
-      return (
-        <DownloadStarCardView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-        />
-      );
-
     // Imaginal Agility content views
     case 'imaginal-intro':
       return (
@@ -797,6 +788,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             </Button>
           </div>
         </div>
+      );
+
+    case 'download-star-card':
+      return (
+        <DownloadStarCardView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
       );
 
     case 'holistic-report':

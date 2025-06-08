@@ -162,7 +162,7 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         <Button 
           onClick={() => {
             handleSave();
-            setCurrentContent('holistic-report');
+            navigate('/allstarteams/5-1');
           }}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
