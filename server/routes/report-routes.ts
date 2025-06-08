@@ -2,6 +2,8 @@ import express from 'express';
 import puppeteer from 'puppeteer';
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { writeFile } from 'fs/promises';
+import path from 'path';
 import { db } from '../db';
 import { users, userAssessments } from '@shared/schema';
 import { eq } from 'drizzle-orm';
@@ -116,11 +118,20 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     
     await browser.close();
 
-    // Send PDF
+    // Save PDF to file and serve it directly
     const fileName = `HI-Report-${user[0].name?.replace(/[^a-zA-Z0-9]/g, '-') || 'User'}-${Date.now()}.pdf`;
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
-    res.send(pdf);
+    const filePath = path.join(process.cwd(), 'uploads', fileName);
+    
+    // Write PDF to file
+    await writeFile(filePath, pdf);
+    
+    // Send the file directly
+    res.download(filePath, fileName, (err) => {
+      if (err) {
+        console.error('Error sending PDF file:', err);
+        res.status(500).json({ error: 'Failed to send PDF file' });
+      }
+    });
 
   } catch (error) {
     console.error('Report generation failed:', error);
