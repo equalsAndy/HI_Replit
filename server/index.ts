@@ -3,6 +3,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import { router } from './routes';
+import reportRoutes from './routes/report-routes';
 import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
@@ -91,6 +92,9 @@ app.use('/api', (req, res, next) => {
   console.log(`[Express] API route: ${req.path}`);
   next();
 }, router);
+
+// Report routes
+app.use(reportRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

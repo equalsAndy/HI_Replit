@@ -1,0 +1,939 @@
+# HI Holistic Development Report Generator - Complete Implementation Plan
+
+## **Project Overview**
+Build a comprehensive HI (Heliotrope Imaginal) Holistic Development Report system for AllStarTeams workshop participants with background PDF generation, professional styling, and seamless user experience.
+
+## **Color Scheme & Branding**
+```css
+/* HI Report Color Palette */
+:root {
+  --feeling-blue: #007bff;
+  --thinking-green: #28a745;
+  --acting-red: #dc3545;
+  --planning-yellow: #ffc107;
+  --hi-primary: #2c5aa0;    /* HI brand primary */
+  --hi-secondary: #1e3d6f;  /* HI brand secondary */
+}
+```
+
+## **PHASE 1: Database Schema & File Storage Setup**
+
+### **1.1 Add Report Tracking Table**
+```sql
+-- Add to schema
+CREATE TABLE holistic_reports (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  file_path VARCHAR(500),
+  file_name VARCHAR(255),
+  status VARCHAR(50) DEFAULT 'generating', -- 'generating', 'completed', 'failed'
+  generation_started_at TIMESTAMP DEFAULT NOW(),
+  generation_completed_at TIMESTAMP,
+  file_size BIGINT,
+  error_message TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_holistic_reports_user_id ON holistic_reports(user_id);
+CREATE INDEX idx_holistic_reports_status ON holistic_reports(status);
+```
+
+### **1.2 File Storage Structure**
+```
+/uploads/reports/
+  ├── HI-Report-Sarah-Chen-2025-06-08-143022.pdf
+  ├── HI-Report-John-Doe-2025-06-08-144156.pdf
+  └── ...
+```
+
+## **PHASE 2: Backend Implementation**
+
+### **2.1 Install Dependencies**
+```bash
+npm install puppeteer@21.0.0
+npm install @types/puppeteer --save-dev
+```
+
+### **2.2 Report Service**
+```typescript
+// server/services/report-service.ts
+import puppeteer from 'puppeteer';
+import fs from 'fs/promises';
+import path from 'path';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { users, userAssessments, holisticReports } from '../db/schema';
+
+interface ReportData {
+  userInfo: {
+    id: number;
+    name: string;
+    email: string;
+    organization: string;
+    jobTitle: string;
+  };
+  assessments: {
+    starCard?: any;
+    stepByStepReflection?: any;
+    flowAssessment?: any;
+    flowAttributes?: any;
+    roundingOutReflection?: any;
+    cantrilLadder?: any;
+    visualizingPotential?: any;
+    futureSelfReflection?: any;
+    finalReflection?: any;
+  };
+  completeness: {
+    totalAssessments: number;
+    completedAssessments: number;
+    missingAssessments: string[];
+    completionPercentage: number;
+  };
+}
+
+async function extractReportData(userId: number): Promise<ReportData> {
+  // Get user info
+  const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  if (!user.length) throw new Error('User not found');
+
+  // Get all assessments
+  const assessments = await db.select()
+    .from(userAssessments)
+    .where(eq(userAssessments.userId, userId));
+
+  // Assessment mapping
+  const assessmentTypes = [
+    'starCard',
+    'stepByStepReflection', 
+    'flowAssessment',
+    'flowAttributes',
+    'roundingOutReflection',
+    'cantrilLadder',
+    'visualizingPotential',
+    'futureSelfReflection',
+    'finalReflection'
+  ];
+
+  const assessmentMap: any = {};
+  const completedAssessments: string[] = [];
+
+  assessments.forEach(assessment => {
+    try {
+      const parsed = JSON.parse(assessment.results);
+      assessmentMap[assessment.assessmentType] = parsed;
+      completedAssessments.push(assessment.assessmentType);
+    } catch (error) {
+      console.warn(`Failed to parse assessment ${assessment.assessmentType}:`, error);
+    }
+  });
+
+  const missingAssessments = assessmentTypes.filter(type => !assessmentMap[type]);
+
+  return {
+    userInfo: {
+      id: user[0].id,
+      name: user[0].name || 'Unknown',
+      email: user[0].email || '',
+      organization: user[0].organization || '',
+      jobTitle: user[0].jobTitle || ''
+    },
+    assessments: assessmentMap,
+    completeness: {
+      totalAssessments: assessmentTypes.length,
+      completedAssessments: completedAssessments.length,
+      missingAssessments,
+      completionPercentage: Math.round((completedAssessments.length / assessmentTypes.length) * 100)
+    }
+  };
+}
+
+async function generateHIReport(userId: number): Promise<string> {
+  // Start generation tracking
+  const reportRecord = await db.insert(holisticReports).values({
+    userId,
+    status: 'generating',
+    generationStartedAt: new Date()
+  }).returning();
+
+  const reportId = reportRecord[0].id;
+
+  try {
+    // Extract data
+    const reportData = await extractReportData(userId);
+    
+    // Generate HTML
+    const htmlContent = generateReportHTML(reportData);
+    
+    // Generate PDF with Puppeteer
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
+    
+    const page = await browser.newPage();
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' });
+    
+    // Generate filename
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+    const fileName = `HI-Report-${reportData.userInfo.name.replace(/[^a-zA-Z0-9]/g, '-')}-${timestamp}.pdf`;
+    const filePath = path.join(process.cwd(), 'uploads', 'reports', fileName);
+    
+    // Ensure directory exists
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    
+    // Generate PDF
+    const pdfBuffer = await page.pdf({
+      format: 'letter',
+      margin: { top: '0.75in', bottom: '0.75in', left: '0.75in', right: '0.75in' },
+      printBackground: true
+    });
+    
+    await browser.close();
+    
+    // Save PDF file
+    await fs.writeFile(filePath, pdfBuffer);
+    const fileStats = await fs.stat(filePath);
+    
+    // Update database
+    await db.update(holisticReports)
+      .set({
+        status: 'completed',
+        filePath: `/uploads/reports/${fileName}`,
+        fileName,
+        fileSize: fileStats.size,
+        generationCompletedAt: new Date(),
+        updatedAt: new Date()
+      })
+      .where(eq(holisticReports.id, reportId));
+    
+    return `/uploads/reports/${fileName}`;
+    
+  } catch (error) {
+    // Update database with error
+    await db.update(holisticReports)
+      .set({
+        status: 'failed',
+        errorMessage: error.message,
+        updatedAt: new Date()
+      })
+      .where(eq(holisticReports.id, reportId));
+    
+    throw error;
+  }
+}
+
+export { extractReportData, generateHIReport, ReportData };
+```
+
+### **2.3 HTML Report Generator**
+```typescript
+// server/services/html-generator.ts
+import { ReportData } from './report-service';
+
+function generateReportHTML(data: ReportData): string {
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HI Holistic Development Report - ${data.userInfo.name}</title>
+  <style>${getHIReportCSS()}</style>
+</head>
+<body>
+  <div class="report-container">
+    ${generateHeader(data)}
+    ${generateExecutiveSummary(data)}
+    ${generateCoreStrengthsProfile(data)}
+    ${generateFlowOptimization(data)}
+    ${generateWellbeingSection(data)}
+    ${generateFutureVisionSection(data)}
+    ${generateStrengthsConstraintsSection(data)}
+    ${generateTeamSynergySection(data)}
+    ${generateReflectionNextSteps(data)}
+    ${generateAIRecommendations(data)}
+    ${generateAppendices(data)}
+    ${generateFooter()}
+  </div>
+</body>
+</html>
+  `;
+}
+
+function generateHeader(data: ReportData): string {
+  return `
+    <header class="report-header">
+      <div class="header-logo">
+        <!-- HI Logo placeholder - replace with actual logo -->
+        <div class="hi-logo">HI</div>
+        <div class="allstarteams-subtitle">AllStarTeams Workshop</div>
+      </div>
+      <h1>Holistic Development Report</h1>
+      <h2>${data.userInfo.name}</h2>
+      <p class="participant-info">
+        ${data.userInfo.jobTitle} • ${data.userInfo.organization}
+      </p>
+      <p class="report-date">Generated on ${new Date().toLocaleDateString()}</p>
+      <div class="completion-badge">
+        ${data.completeness.completionPercentage}% Complete
+      </div>
+    </header>
+  `;
+}
+
+function generateExecutiveSummary(data: ReportData): string {
+  const starCard = data.assessments.starCard || {};
+  const strengthPattern = analyzeStrengthPattern(starCard);
+  
+  return `
+    <section class="section">
+      <h2 class="section-title">Executive Summary</h2>
+      <div class="executive-summary">
+        <p><strong>${data.userInfo.name}'s Natural Approach Pattern:</strong></p>
+        <p>Your workshop journey reveals a ${strengthPattern.primary}-${strengthPattern.secondary} leadership pattern, 
+           with ${strengthPattern.primary} (${strengthPattern.primaryPercent}%) as your natural starting point 
+           and ${strengthPattern.secondary} (${strengthPattern.secondaryPercent}%) as your strong supporting approach. 
+           This combination represents ${strengthPattern.primaryPercent + strengthPattern.secondaryPercent}% of your natural 
+           energy distribution, creating a distinctive pattern for team contribution and personal effectiveness.</p>
+        
+        ${data.completeness.completionPercentage < 100 ? `
+          <div class="missing-data-notice">
+            <strong>Note:</strong> This report reflects ${data.completeness.completionPercentage}% of your assessment data. 
+            Complete the remaining ${data.completeness.missingAssessments.length} assessment(s) for fuller insights: 
+            ${data.completeness.missingAssessments.join(', ')}.
+          </div>
+        ` : ''}
+      </div>
+    </section>
+  `;
+}
+
+function generateCoreStrengthsProfile(data: ReportData): string {
+  const starCard = data.assessments.starCard;
+  
+  if (!starCard) {
+    return generateMissingSection('Core Strengths Profile', 'Complete your Star Card assessment to see your strength distribution and natural approach patterns.');
+  }
+  
+  const sortedStrengths = sortStrengthsByPercentage(starCard);
+  
+  return `
+    <section class="section">
+      <h2 class="section-title">Core Strengths Profile</h2>
+      
+      <!-- Star Card Visual Placeholder -->
+      <div class="star-card-container">
+        <div class="star-card-placeholder">
+          <p>Your Star Card visualization would appear here</p>
+          <p><em>Note: Star Card images will be integrated in the final implementation</em></p>
+        </div>
+      </div>
+      
+      <!-- Strengths Breakdown with Colors -->
+      <div class="strengths-breakdown">
+        ${sortedStrengths.map((strength, index) => `
+          <div class="strength-item ${strength.name.toLowerCase()}">
+            <div class="strength-header">
+              <div class="strength-name">${strength.name.toUpperCase()}</div>
+              <div class="strength-percentage">${strength.percentage}%</div>
+            </div>
+            <div class="strength-bar">
+              <div class="strength-fill" style="width: ${strength.percentage}%;"></div>
+            </div>
+            <div class="strength-rank">${getStrengthLabel(strength.percentage, index)}</div>
+          </div>
+        `).join('')}
+      </div>
+      
+      ${generateStrengthReflections(data.assessments.stepByStepReflection, sortedStrengths)}
+    </section>
+  `;
+}
+
+function generateMissingSection(title: string, message: string): string {
+  return `
+    <section class="section">
+      <h2 class="section-title">${title}</h2>
+      <div class="missing-section">
+        <div class="missing-icon">⚠️</div>
+        <p>${message}</p>
+      </div>
+    </section>
+  `;
+}
+
+// Continue with other section generators...
+// [Additional section generators follow the same pattern]
+
+function getHIReportCSS(): string {
+  return `
+    :root {
+      --feeling-blue: #007bff;
+      --thinking-green: #28a745;
+      --acting-red: #dc3545;
+      --planning-yellow: #ffc107;
+      --hi-primary: #2c5aa0;
+      --hi-secondary: #1e3d6f;
+    }
+    
+    @page {
+      margin: 0.75in;
+      size: letter;
+    }
+    
+    body {
+      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+      line-height: 1.6;
+      color: #2c3e50;
+      margin: 0;
+      padding: 0;
+      font-size: 11pt;
+    }
+    
+    .report-container {
+      max-width: 8.5in;
+      margin: 0 auto;
+    }
+    
+    .report-header {
+      background: linear-gradient(135deg, var(--hi-primary) 0%, var(--hi-secondary) 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+      margin-bottom: 0;
+    }
+    
+    .hi-logo {
+      font-size: 36pt;
+      font-weight: 900;
+      margin-bottom: 5px;
+    }
+    
+    .allstarteams-subtitle {
+      font-size: 12pt;
+      opacity: 0.9;
+      margin-bottom: 20px;
+    }
+    
+    .strength-item.feeling { border-left: 5px solid var(--feeling-blue); }
+    .strength-item.thinking { border-left: 5px solid var(--thinking-green); }
+    .strength-item.acting { border-left: 5px solid var(--acting-red); }
+    .strength-item.planning { border-left: 5px solid var(--planning-yellow); }
+    
+    .strength-item.feeling .strength-fill { background: var(--feeling-blue); }
+    .strength-item.thinking .strength-fill { background: var(--thinking-green); }
+    .strength-item.acting .strength-fill { background: var(--acting-red); }
+    .strength-item.planning .strength-fill { background: var(--planning-yellow); }
+    
+    .missing-section {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    
+    .missing-icon {
+      font-size: 24pt;
+      margin-bottom: 10px;
+    }
+    
+    /* Additional CSS styles continue... */
+  `;
+}
+
+// Helper functions for analysis
+function analyzeStrengthPattern(starCard: any) {
+  const strengths = [
+    { name: 'Thinking', value: starCard.thinking || 0 },
+    { name: 'Feeling', value: starCard.feeling || 0 },
+    { name: 'Acting', value: starCard.acting || 0 },
+    { name: 'Planning', value: starCard.planning || 0 }
+  ].sort((a, b) => b.value - a.value);
+  
+  return {
+    primary: strengths[0].name,
+    primaryPercent: strengths[0].value,
+    secondary: strengths[1].name,
+    secondaryPercent: strengths[1].value
+  };
+}
+
+function sortStrengthsByPercentage(starCard: any) {
+  return [
+    { name: 'Thinking', percentage: starCard.thinking || 0 },
+    { name: 'Feeling', percentage: starCard.feeling || 0 },
+    { name: 'Acting', percentage: starCard.acting || 0 },
+    { name: 'Planning', percentage: starCard.planning || 0 }
+  ].sort((a, b) => b.percentage - a.percentage);
+}
+
+function getStrengthLabel(percentage: number, rank: number): string {
+  const labels = ['Primary Strength', 'Secondary Strength', 'Supporting Approach', 'Balancing Approach'];
+  return labels[rank] || 'Supporting Approach';
+}
+
+export { generateReportHTML };
+```
+
+### **2.4 API Routes**
+```typescript
+// server/routes/report-routes.ts
+import express from 'express';
+import { requireAuth } from '../middleware/auth';
+import { generateHIReport, extractReportData } from '../services/report-service';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { holisticReports } from '../db/schema';
+import path from 'path';
+
+const router = express.Router();
+
+// Check report status
+router.get('/api/report/status/:userId', requireAuth, async (req, res) => {
+  try {
+    const userId = parseInt(req.params.userId);
+    
+    if (req.user.id !== userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    }
+
+    const reportData = await extractReportData(userId);
+    const latestReport = await db.select()
+      .from(holisticReports)
+      .where(eq(holisticReports.userId, userId))
+      .orderBy(holisticReports.createdAt)
+      .limit(1);
+
+    res.json({
+      success: true,
+      completionPercentage: reportData.completeness.completionPercentage,
+      missingAssessments: reportData.completeness.missingAssessments,
+      report: latestReport.length ? {
+        status: latestReport[0].status,
+        filePath: latestReport[0].filePath,
+        fileName: latestReport[0].fileName,
+        generatedAt: latestReport[0].generationCompletedAt
+      } : null
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to check status' });
+  }
+});
+
+// Generate new report
+router.post('/api/report/generate', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Start background generation
+    generateHIReport(userId).catch(error => {
+      console.error('Background report generation failed:', error);
+    });
+    
+    res.json({
+      success: true,
+      message: 'Report generation started',
+      status: 'generating'
+    });
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed to start generation' });
+  }
+});
+
+// Download report
+router.get('/api/report/download/:fileName', requireAuth, async (req, res) => {
+  try {
+    const { fileName } = req.params;
+    
+    // Verify user owns this report or is admin
+    const report = await db.select()
+      .from(holisticReports)
+      .where(eq(holisticReports.fileName, fileName))
+      .limit(1);
+    
+    if (!report.length) {
+      return res.status(404).json({ success: false, error: 'Report not found' });
+    }
+    
+    if (req.user.id !== report[0].userId && req.user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Unauthorized' });
+    }
+    
+    const filePath = path.join(process.cwd(), 'uploads', 'reports', fileName);
+    res.download(filePath, fileName);
+
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Download failed' });
+  }
+});
+
+export default router;
+```
+
+## **PHASE 3: Frontend Integration**
+
+### **3.1 Modify Final Workshop Step**
+```typescript
+// Update the component for step 4-5 (FinalReflectionView.tsx)
+// Change "Next" button to "Finish"
+// Add completion modal
+
+const FinalReflectionView = () => {
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  
+  const handleFinish = async () => {
+    // Trigger report generation
+    try {
+      await fetch('/api/report/generate', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      setShowCompletionModal(true);
+      
+    } catch (error) {
+      console.error('Failed to start report generation:', error);
+    }
+  };
+  
+  return (
+    <div>
+      {/* Existing final reflection content */}
+      
+      <button 
+        onClick={handleFinish}
+        className="finish-button"
+      >
+        Finish Workshop
+      </button>
+      
+      {showCompletionModal && (
+        <CompletionModal onClose={() => setShowCompletionModal(false)} />
+      )}
+    </div>
+  );
+};
+
+const CompletionModal = ({ onClose }: { onClose: () => void }) => {
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Thank You for Completing Your AllStarTeams Assessments!</h2>
+        <p>
+          Your Holistic Development Report is now generating. When it's ready, 
+          you'll be able to preview and download it from your dashboard.
+        </p>
+        <p>
+          This comprehensive report will include insights from all your assessments 
+          and reflections, providing a complete picture of your strengths, flow patterns, 
+          and development opportunities.
+        </p>
+        <button onClick={onClose} className="close-button">
+          Close
+        </button>
+      </div>
+    </div>
+  );
+};
+```
+
+### **3.2 Replace HolisticReportView.tsx**
+```typescript
+// client/src/components/content/HolisticReportView.tsx
+import React, { useState, useEffect } from 'react';
+
+interface ReportStatus {
+  status: 'generating' | 'completed' | 'failed' | null;
+  filePath?: string;
+  fileName?: string;
+  completionPercentage: number;
+  missingAssessments: string[];
+}
+
+const HolisticReportView: React.FC = () => {
+  const [reportStatus, setReportStatus] = useState<ReportStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    checkReportStatus();
+    
+    // Poll for status updates if generating
+    const interval = setInterval(() => {
+      if (reportStatus?.status === 'generating') {
+        checkReportStatus();
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [reportStatus?.status]);
+
+  const checkReportStatus = async () => {
+    try {
+      const response = await fetch('/api/report/status/me', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      
+      if (data.success) {
+        setReportStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to check report status:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const generateReport = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/report/generate', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        // Start polling for updates
+        checkReportStatus();
+      }
+    } catch (error) {
+      console.error('Failed to generate report:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div className="loading">Loading report status...</div>;
+  }
+
+  return (
+    <div className="holistic-report-view">
+      <div className="report-header">
+        <h1>Your Holistic Development Report</h1>
+        <p>A comprehensive analysis of your AllStarTeams workshop journey</p>
+      </div>
+
+      <div className="completion-status">
+        <div className="progress-bar">
+          <div 
+            className="progress-fill" 
+            style={{ width: `${reportStatus?.completionPercentage || 0}%` }}
+          />
+        </div>
+        <p>{reportStatus?.completionPercentage || 0}% of assessments completed</p>
+      </div>
+
+      {reportStatus?.missingAssessments.length > 0 && (
+        <div className="missing-assessments">
+          <h3>Complete Your Journey</h3>
+          <p>The following assessments are still needed for your full report:</p>
+          <ul>
+            {reportStatus.missingAssessments.map(assessment => (
+              <li key={assessment}>{formatAssessmentName(assessment)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {reportStatus?.status === 'generating' && (
+        <div className="generating-status">
+          <div className="spinner"></div>
+          <h3>Generating Your Report</h3>
+          <p>Please wait while we create your personalized holistic development report...</p>
+        </div>
+      )}
+
+      {reportStatus?.status === 'completed' && (
+        <div className="report-ready">
+          <h3>Your Report is Ready!</h3>
+          <div className="report-actions">
+            <button 
+              className="preview-button"
+              onClick={() => window.open(reportStatus.filePath, '_blank')}
+            >
+              Preview Report
+            </button>
+            <a 
+              href={`/api/report/download/${reportStatus.fileName}`}
+              download
+              className="download-button"
+            >
+              Download PDF
+            </a>
+          </div>
+        </div>
+      )}
+
+      {reportStatus?.status === 'failed' && (
+        <div className="report-error">
+          <h3>Report Generation Failed</h3>
+          <p>Something went wrong. Please try generating your report again.</p>
+          <button onClick={generateReport}>Try Again</button>
+        </div>
+      )}
+
+      {(!reportStatus?.status) && (
+        <div className="no-report">
+          <h3>Generate Your Report</h3>
+          <p>Create your comprehensive holistic development report based on your workshop assessments.</p>
+          <button 
+            onClick={generateReport}
+            disabled={reportStatus?.completionPercentage < 100}
+            className="generate-button"
+          >
+            {reportStatus?.completionPercentage < 100 
+              ? 'Complete All Assessments First' 
+              : 'Generate My Report'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+function formatAssessmentName(assessment: string): string {
+  const names = {
+    'starCard': 'Star Card Assessment',
+    'stepByStepReflection': 'Strength Reflections',
+    'flowAssessment': 'Flow Assessment',
+    'flowAttributes': 'Flow Attributes',
+    'roundingOutReflection': 'Rounding Out Reflection',
+    'cantrilLadder': 'Well-being Ladder',
+    'visualizingPotential': 'Vision Collage',
+    'futureSelfReflection': 'Future Self Reflection',
+    'finalReflection': 'Final Reflection'
+  };
+  return names[assessment] || assessment;
+}
+
+export default HolisticReportView;
+```
+
+## **PHASE 4: File Cleanup & Security**
+
+### **4.1 Automatic File Cleanup**
+```typescript
+// server/services/cleanup-service.ts
+import cron from 'node-cron';
+import fs from 'fs/promises';
+import path from 'path';
+import { eq } from 'drizzle-orm';
+import { db } from '../db';
+import { holisticReports, users } from '../db/schema';
+
+// Clean up files when users are deleted
+export async function cleanupUserReports(userId: number) {
+  try {
+    const userReports = await db.select()
+      .from(holisticReports)
+      .where(eq(holisticReports.userId, userId));
+
+    for (const report of userReports) {
+      if (report.filePath) {
+        const fullPath = path.join(process.cwd(), report.filePath);
+        try {
+          await fs.unlink(fullPath);
+          console.log(`Deleted report file: ${report.fileName}`);
+        } catch (error) {
+          console.warn(`Failed to delete file ${report.fileName}:`, error);
+        }
+      }
+    }
+
+    // Delete database records
+    await db.delete(holisticReports).where(eq(holisticReports.userId, userId));
+    
+  } catch (error) {
+    console.error('Failed to cleanup user reports:', error);
+  }
+}
+
+// Optional: Clean up old failed reports (run daily)
+cron.schedule('0 2 * * *', async () => {
+  try {
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    
+    // Find old failed reports
+    const oldFailedReports = await db.select()
+      .from(holisticReports)
+      .where(eq(holisticReports.status, 'failed'))
+      .where(lt(holisticReports.createdAt, threeDaysAgo));
+
+    for (const report of oldFailedReports) {
+      if (report.filePath) {
+        try {
+          await fs.unlink(path.join(process.cwd(), report.filePath));
+        } catch (error) {
+          // File might already be deleted
+        }
+      }
+    }
+
+    // Delete from database
+    await db.delete(holisticReports)
+      .where(eq(holisticReports.status, 'failed'))
+      .where(lt(holisticReports.createdAt, threeDaysAgo));
+      
+    console.log(`Cleaned up ${oldFailedReports.length} old failed reports`);
+    
+  } catch (error) {
+    console.error('Failed to cleanup old reports:', error);
+  }
+});
+```
+
+## **PHASE 5: Testing & Deployment**
+
+### **5.1 Test Cases**
+1. **Complete Assessment Flow**: User completes all 9 assessments → generates report
+2. **Partial Assessment**: User with missing assessments → partial report with notes
+3. **Background Generation**: Report generates while user continues using app
+4. **File Download**: PDF downloads correctly with proper filename
+5. **User Deletion**: Files cleaned up when user account deleted
+6. **Admin Access**: Admin can generate reports for any user
+7. **Error Handling**: Failed generation shows error and retry option
+
+### **5.2 Performance Considerations**
+- **Background Processing**: Report generation doesn't block UI
+- **File Size Optimization**: PDFs compressed for web download
+- **Concurrent Generation**: Handle multiple users generating simultaneously
+- **Memory Management**: Puppeteer instances properly closed
+
+## **Implementation Checklist**
+
+### **Backend**
+- [ ] Add holistic_reports table to schema
+- [ ] Install puppeteer dependency
+- [ ] Create report-service.ts with data extraction
+- [ ] Create html-generator.ts with 10-section structure
+- [ ] Add report-routes.ts with status/generate/download endpoints
+- [ ] Implement file cleanup service
+- [ ] Add HI-branded CSS with strength colors
+
+### **Frontend**
+- [ ] Modify step 4-5 to show "Finish" button
+- [ ] Add completion modal with thank you message
+- [ ] Replace HolisticReportView.tsx with status/generation UI
+- [ ] Add polling for report generation status
+- [ ] Style components to match HI branding
+
+### **Integration**
+- [ ] Add report routes to main router
+- [ ] Ensure file upload directory exists
+- [ ] Test background PDF generation
+- [ ] Test file download functionality
+- [ ] Verify cleanup on user deletion
+
+### **Security**
+- [ ] Verify user can only access own reports
+- [ ] Add admin override for facilitator access (future)
+- [ ] Validate file paths to prevent directory traversal
+- [ ] Add rate limiting for report generation
+
+**This implementation provides a complete, professional HI Holistic Development Report system with background PDF generation, proper file management, and seamless user experience integration.**
