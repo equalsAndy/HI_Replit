@@ -92,7 +92,7 @@ router.post('/users/upload', async (req, res) => {
         isTestUser: newUser.isTestUser
       },
       assessmentsCreated: createdAssessments.length,
-      navigationProgressCreated: !!createdNavProgress
+      navigationProgressCreated: !!navProgress
     });
 
   } catch (error) {

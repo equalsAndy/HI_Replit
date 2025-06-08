@@ -97,6 +97,9 @@ app.use('/api', (req, res, next) => {
 // Report routes
 app.use(reportRoutes);
 
+// Admin upload routes
+app.use('/api/admin', adminUploadRoutes);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });

@@ -207,8 +207,8 @@ export default function UserUploader() {
 
     if (formData.includeWorkshopData) {
       const testData = generateTestUserData(userCounter);
-      userData.navigationProgress = testData.navigationProgress;
-      userData.assessments = testData.assessments;
+      (userData as any).navigationProgress = testData.navigationProgress;
+      (userData as any).assessments = testData.assessments;
     }
 
     createUserMutation.mutate(userData);

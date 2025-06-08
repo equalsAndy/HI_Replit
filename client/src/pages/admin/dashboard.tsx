@@ -15,6 +15,7 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { CohortManagement } from '@/components/admin/CohortManagement';
 import { InviteManagement } from '@/components/admin/InviteManagement';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
+import UserUploader from '@/components/admin/UserUploader';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
@@ -87,8 +88,9 @@ export default function AdminDashboard() {
       </Card>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="upload">User Upload</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
           <TabsTrigger value="invites">Invite Management</TabsTrigger>
           <TabsTrigger value="videos">Video Management</TabsTrigger>
@@ -96,6 +98,18 @@ export default function AdminDashboard() {
 
         <TabsContent value="users" className="mt-6">
           <UserManagementTab />
+        </TabsContent>
+
+        <TabsContent value="upload" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Bulk User Upload</CardTitle>
+              <CardDescription>Create users with complete workshop data</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserUploader />
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="cohorts" className="mt-6">
