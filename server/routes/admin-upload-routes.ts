@@ -56,24 +56,24 @@ router.post('/users/upload', async (req, res) => {
       for (const [assessmentType, assessmentDetails] of Object.entries(assessmentData)) {
         if (assessmentDetails && typeof assessmentDetails === 'object') {
           try {
-            // Use raw SQL to avoid Drizzle schema field mapping issues
-            const assessmentTypeFormatted = assessmentType === 'starCard' ? 'star_card' : 
-                           assessmentType === 'stepByStepReflection' ? 'step_by_step_reflection' :
-                           assessmentType === 'flowAssessment' ? 'flow_assessment' :
-                           assessmentType === 'flowAttributes' ? 'flow_attributes' :
-                           assessmentType === 'roundingOutReflection' ? 'rounding_out_reflection' :
-                           assessmentType === 'cantrilLadder' ? 'cantril_ladder' :
-                           assessmentType === 'futureSelfReflection' ? 'future_self_reflection' :
-                           assessmentType === 'finalReflection' ? 'final_reflection' :
+            // Use the exact assessment type names expected by the StarCard service
+            const assessmentTypeFormatted = assessmentType === 'starCard' ? 'starCard' : 
+                           assessmentType === 'stepByStepReflection' ? 'stepByStepReflection' :
+                           assessmentType === 'flowAssessment' ? 'flowAssessment' :
+                           assessmentType === 'flowAttributes' ? 'flowAttributes' :
+                           assessmentType === 'roundingOutReflection' ? 'roundingOutReflection' :
+                           assessmentType === 'cantrilLadder' ? 'cantrilLadder' :
+                           assessmentType === 'futureSelfReflection' ? 'futureSelfReflection' :
+                           assessmentType === 'finalReflection' ? 'finalReflection' :
                            assessmentType;
 
-            const result = await db.execute(`
+            const result = await db.execute(sql`
               INSERT INTO user_assessments (user_id, assessment_type, results, created_at)
-              VALUES ($1, $2, $3, $4)
+              VALUES (${newUser.id}, ${assessmentTypeFormatted}, ${JSON.stringify(assessmentDetails)}, ${new Date()})
               RETURNING *
-            `, [newUser.id, assessmentTypeFormatted, JSON.stringify(assessmentDetails), new Date()]);
+            `);
             
-            createdAssessments.push(result.rows[0]);
+            createdAssessments.push({ assessmentType: assessmentTypeFormatted });
             console.log(`Created assessment ${assessmentType} for user ${newUser.id}`);
           } catch (error) {
             console.error(`Error creating assessment ${assessmentType}:`, error);
