@@ -193,12 +193,30 @@ export default function StepByStepReflection({
   // Helper function to determine current progress percentage
   const progressPercentage = Math.round((currentStep / totalSteps) * 100);
 
+  // Helper function to normalize scores (same logic as StarCard component)
+  const normalizeValue = (score: number): number => {
+    if (!starCard) return 0;
+    
+    const totalScore = (starCard.thinking || 0) + (starCard.acting || 0) + (starCard.feeling || 0) + (starCard.planning || 0);
+    const numScore = Number(score) || 0;
+
+    // If the score is already a percentage (0-100), just return it directly
+    if (numScore >= 0 && numScore <= 100 && totalScore >= 99 && totalScore <= 101) {
+      return numScore;  
+    }
+
+    // Otherwise normalize it
+    if (totalScore === 0) return 0;
+
+    return Math.round((numScore / totalScore) * 100);
+  };
+
   // Sort quadrants by score to determine strength order (highest first)
   const sortedQuadrants = [
-    { key: 'planning', label: 'PLANNING', color: QUADRANT_COLORS.planning, score: starCard?.planning || 0 },
-    { key: 'acting', label: 'ACTING', color: QUADRANT_COLORS.acting, score: starCard?.acting || 0 },
-    { key: 'feeling', label: 'FEELING', color: QUADRANT_COLORS.feeling, score: starCard?.feeling || 0 },
-    { key: 'thinking', label: 'THINKING', color: QUADRANT_COLORS.thinking, score: starCard?.thinking || 0 }
+    { key: 'planning', label: 'PLANNING', color: QUADRANT_COLORS.planning, score: starCard?.planning || 0, normalizedScore: normalizeValue(starCard?.planning || 0) },
+    { key: 'acting', label: 'ACTING', color: QUADRANT_COLORS.acting, score: starCard?.acting || 0, normalizedScore: normalizeValue(starCard?.acting || 0) },
+    { key: 'feeling', label: 'FEELING', color: QUADRANT_COLORS.feeling, score: starCard?.feeling || 0, normalizedScore: normalizeValue(starCard?.feeling || 0) },
+    { key: 'thinking', label: 'THINKING', color: QUADRANT_COLORS.thinking, score: starCard?.thinking || 0, normalizedScore: normalizeValue(starCard?.thinking || 0) }
   ].sort((a, b) => b.score - a.score);
 
   // Get current top strength
@@ -472,7 +490,7 @@ export default function StepByStepReflection({
             </div>
           </div>
           <h3 className="text-xl font-bold text-gray-800">
-            Your {ordinal} Strength: {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.score}%)
+            Your {ordinal} Strength: {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.normalizedScore}%)
           </h3>
         </div>
 
