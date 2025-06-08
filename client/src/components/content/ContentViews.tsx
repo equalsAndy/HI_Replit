@@ -798,15 +798,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         </div>
       );
 
-    case 'download-star-card':
-      return (
-        <DownloadStarCardView 
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-        />
-      );
-
     // Handle placeholder content
     default:
       return (
