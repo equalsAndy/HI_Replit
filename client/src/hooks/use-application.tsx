@@ -17,7 +17,7 @@ type ApplicationContextType = {
 const appConfig = {
   'allstarteams': {
     name: 'AllStarTeams',
-    logo: 'https://www.heliotropeimaginal.com/images/all-star-teams-logo-250px.png',
+    logo: '/src/assets/all-star-teams-logo-250px.png',
     primaryColor: 'indigo',
   },
   'imaginal-agility': {
