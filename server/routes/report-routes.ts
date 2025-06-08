@@ -116,7 +116,15 @@ router.get('/api/report/generate/:userId', async (req, res) => {
 
   } catch (error) {
     console.error('Report generation failed:', error);
-    res.status(500).json({ error: 'Report generation failed' });
+    console.error('Error details:', {
+      message: error.message,
+      stack: error.stack,
+      reportData: JSON.stringify(reportData, null, 2)
+    });
+    res.status(500).json({ 
+      error: 'Report generation failed',
+      details: error.message 
+    });
   }
 });
 
@@ -646,25 +654,25 @@ function generateWellbeingSection(cantril: any) {
 function generateFutureSection(cantrilReflection: any, roundingOut: any) {
   let content = '';
   
-  if (cantrilReflection?.reflection) {
-    const isValid = cantrilReflection.reflection.length > 20 && 
-                   !/^[a-z\s]{1,20}$/i.test(cantrilReflection.reflection.trim());
+  if (cantrilReflection?.futureImprovements) {
+    const isValid = cantrilReflection.futureImprovements.length > 20 && 
+                   !/^[a-z\s]{1,20}$/i.test(cantrilReflection.futureImprovements.trim());
     
     content += `
       <div class="reflection-text">
-        <strong>Well-being Reflection:</strong> "${cantrilReflection.reflection}"
+        <strong>Future Improvements:</strong> "${cantrilReflection.futureImprovements}"
         ${!isValid ? '<div class="data-quality-warning">Note: This reflection appears to contain placeholder text.</div>' : ''}
       </div>
     `;
   }
   
-  if (roundingOut?.reflection) {
-    const isValid = roundingOut.reflection.length > 20 && 
-                   !/^[a-z\s]{1,20}$/i.test(roundingOut.reflection.trim());
+  if (roundingOut?.growthAreas) {
+    const isValid = roundingOut.growthAreas.length > 20 && 
+                   !/^[a-z\s]{1,20}$/i.test(roundingOut.growthAreas.trim());
     
     content += `
       <div class="reflection-text">
-        <strong>Rounding Out Reflection:</strong> "${roundingOut.reflection}"
+        <strong>Growth Areas:</strong> "${roundingOut.growthAreas}"
         ${!isValid ? '<div class="data-quality-warning">Note: This reflection appears to contain placeholder text.</div>' : ''}
       </div>
     `;
@@ -674,20 +682,20 @@ function generateFutureSection(cantrilReflection: any, roundingOut: any) {
 }
 
 function generatePersonalCommitment(stepByStep: any) {
-  if (!stepByStep?.reflection) {
+  if (!stepByStep?.uniqueContribution) {
     return '';
   }
   
-  const isValid = stepByStep.reflection.length > 20 && 
-                 !/^[a-z\s]{1,20}$/i.test(stepByStep.reflection.trim());
+  const isValid = stepByStep.uniqueContribution.length > 20 && 
+                 !/^[a-z\s]{1,20}$/i.test(stepByStep.uniqueContribution.trim());
   
   return `
     <section class="section">
       <h2 class="section-title">Personal Commitment</h2>
       <div class="commitment-section">
         <div class="reflection-text">
-          <strong>Personal Reflection:</strong><br>
-          "${stepByStep.reflection}"
+          <strong>My Unique Contribution:</strong><br>
+          "${stepByStep.uniqueContribution}"
           ${!isValid ? '<div class="data-quality-warning">Note: This commitment appears to contain placeholder text.</div>' : ''}
         </div>
       </div>
