@@ -1,8 +1,12 @@
 import express from 'express';
 import puppeteer from 'puppeteer';
+import { exec } from 'child_process';
+import { promisify } from 'util';
 import { db } from '../db';
 import { users, userAssessments } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+
+const execAsync = promisify(exec);
 
 const router = express.Router();
 
@@ -68,10 +72,19 @@ router.get('/api/report/generate/:userId', async (req, res) => {
     // Generate HTML
     const html = generateReportHTML(reportData);
     
+    // Find Chromium executable dynamically
+    let chromiumPath: string;
+    try {
+      const { stdout } = await execAsync('which chromium');
+      chromiumPath = stdout.trim();
+    } catch (error) {
+      throw new Error('Chromium browser not found. Please ensure Chromium is installed.');
+    }
+
     // Generate PDF with server-friendly configuration
     const browser = await puppeteer.launch({ 
-      headless: 'new',
-      executablePath: '/nix/store/*/bin/chromium',
+      headless: true,
+      executablePath: chromiumPath,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
