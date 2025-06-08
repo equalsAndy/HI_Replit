@@ -209,7 +209,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
-    case 'your-statement':
+    case 'final-reflection':
       return (
         <FinalReflectionView 
           navigate={navigate}
