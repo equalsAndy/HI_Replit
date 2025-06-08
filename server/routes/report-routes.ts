@@ -139,13 +139,19 @@ router.get('/api/report/generate/:userId', async (req, res) => {
 });
 
 function generateReportHTML(data: any) {
-  const starCard = data.assessments.starCard || {};
-  const cantril = data.assessments.cantrilLadder || {};
-  const cantrilReflection = data.assessments.cantrilLadderReflection || {};
-  const flow = data.assessments.flowAssessment || {};
-  const flowAttributes = data.assessments.flowAttributes || {};
-  const stepByStep = data.assessments.stepByStepReflection || {};
-  const roundingOut = data.assessments.roundingOutReflection || {};
+  // Enhanced data validation with fallbacks
+  const starCard = data.assessments?.starCard || {};
+  const cantril = data.assessments?.cantrilLadder || {};
+  const cantrilReflection = data.assessments?.cantrilLadderReflection || {};
+  const flow = data.assessments?.flowAssessment || {};
+  const flowAttributes = data.assessments?.flowAttributes || {};
+  const stepByStep = data.assessments?.stepByStepReflection || {};
+  const roundingOut = data.assessments?.roundingOutReflection || {};
+  
+  // Ensure user data integrity
+  const userName = data.user?.name || 'Participant';
+  const userTitle = data.user?.jobTitle || '';
+  const userOrg = data.user?.organization || '';
   
   return `
 <!DOCTYPE html>
@@ -167,8 +173,8 @@ function generateReportHTML(data: any) {
         </div>
         <div class="header-text">
           <h1>Holistic Development Report</h1>
-          <h2>${data.user.name}</h2>
-          <p class="user-details">${data.user.jobTitle || ''} ${data.user.jobTitle && data.user.organization ? '•' : ''} ${data.user.organization || ''}</p>
+          <h2>${userName}</h2>
+          <p class="user-details">${userTitle} ${userTitle && userOrg ? '•' : ''} ${userOrg}</p>
           <p class="generated-date">Generated ${new Date().toLocaleDateString()}</p>
         </div>
       </div>
@@ -178,7 +184,7 @@ function generateReportHTML(data: any) {
     <section class="section">
       <h2 class="section-title">Executive Summary</h2>
       <div class="summary-card">
-        ${generateExecutiveSummary(starCard, data.user.name)}
+        ${generateExecutiveSummary(starCard, userName)}
       </div>
     </section>
 
