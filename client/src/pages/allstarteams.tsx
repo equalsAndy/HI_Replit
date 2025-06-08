@@ -385,8 +385,11 @@ export default function AllStarTeams() {
     '4-2': { prev: '4-1', next: '4-3', contentKey: 'cantril-ladder' },
     '4-3': { prev: '4-2', next: '4-4', contentKey: 'visualizing-you' },
     '4-4': { prev: '4-3', next: '4-5', contentKey: 'future-self' },
-    '4-5': { prev: '4-4', next: null, contentKey: 'your-statement' },
-    '4-6': { prev: '4-5', next: null, contentKey: 'recap' },
+    '4-5': { prev: '4-4', next: '5-1', contentKey: 'final-reflection' },
+
+    // Section 5
+    '5-1': { prev: '4-5', next: '5-2', contentKey: 'download-star-card' },
+    '5-2': { prev: '5-1', next: null, contentKey: 'holistic-report' },
   };
 
   // Helper function to find step ID from content key
