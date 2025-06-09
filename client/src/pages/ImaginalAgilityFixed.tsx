@@ -99,7 +99,7 @@ export default function ImaginalAgilityFixed() {
                   Admin
                 </Button>
               )}
-              <span className="text-sm">Welcome, {user.name}</span>
+              <span className="text-sm">Welcome, {(user as any)?.name}</span>
             </div>
           )}
         </div>
