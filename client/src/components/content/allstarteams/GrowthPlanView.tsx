@@ -427,89 +427,122 @@ export default function GrowthPlanView({
     );
   };
 
-  const renderFlowOptimization = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <Clock className="w-12 h-12 mx-auto text-purple-500 mb-3" />
-        <h3 className="text-xl font-semibold">Flow Optimization</h3>
-        <p className="text-gray-600">Identify and maximize your peak performance periods and energy patterns</p>
-      </div>
+  const renderFlowOptimization = () => {
+    const [use24HourFormat, setUse24HourFormat] = useState(true);
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-            <h4 className="font-semibold mb-3">Purpose</h4>
-            <p className="text-sm text-gray-700 mb-4">
-              Identify and maximize your peak performance periods and energy patterns.
-            </p>
-            
-            <h4 className="font-semibold mb-3">Explanation</h4>
-            <p className="text-sm text-gray-700 mb-4">
-              Understanding when and how you work best helps align tasks with your natural rhythms.
-            </p>
+    const formatHour = (hour: number) => {
+      if (use24HourFormat) {
+        return `${hour.toString().padStart(2, '0')}:00`;
+      } else {
+        if (hour === 0) return '12:00 AM';
+        if (hour === 12) return '12:00 PM';
+        if (hour < 12) return `${hour}:00 AM`;
+        return `${hour - 12}:00 PM`;
+      }
+    };
 
-            <h4 className="font-semibold mb-3">Guidelines</h4>
-            <p className="text-sm text-gray-700 mb-4">
-              Plan Strategically: Align your most demanding or creative tasks with your green-highlighted periods
-            </p>
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <Clock className="w-12 h-12 mx-auto text-purple-500 mb-3" />
+          <h3 className="text-xl font-semibold">Flow Optimization</h3>
+          <p className="text-gray-600">Identify and maximize your peak performance periods and energy patterns</p>
+        </div>
 
-            <div className="mb-4">
-              <h5 className="font-medium text-sm mb-2">Mark Flow Times</h5>
-              <p className="text-xs text-gray-600">
-                Use green sticky notes on the 24-hour timeline to highlight your peak focus and energy hours.
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+              <h4 className="font-semibold mb-3">Purpose</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                Identify and maximize your peak performance periods and energy patterns.
               </p>
+              
+              <h4 className="font-semibold mb-3">Explanation</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                Understanding when and how you work best helps align tasks with your natural rhythms.
+              </p>
+
+              <h4 className="font-semibold mb-3">Guidelines</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                Plan Strategically: Align your most demanding or creative tasks with your green-highlighted periods
+              </p>
+
+              <div className="mb-4">
+                <h5 className="font-medium text-sm mb-2">Mark Flow Times</h5>
+                <p className="text-xs text-gray-600">
+                  Use green sticky notes on the 24-hour timeline to highlight your peak focus and energy hours.
+                </p>
+              </div>
+
+              <div>
+                <h5 className="font-medium text-sm mb-2">Catalysts: What helps you find flow? 📝</h5>
+                <p className="text-xs text-gray-600">
+                  Type your response.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div>
+              <div className="flex justify-between items-center mb-3">
+                <Label>Peak Flow Hours</Label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-600">12hr</span>
+                  <button
+                    onClick={() => setUse24HourFormat(!use24HourFormat)}
+                    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+                      use24HourFormat ? 'bg-blue-600' : 'bg-gray-300'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${
+                        use24HourFormat ? 'translate-x-5' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className="text-xs text-gray-600">24hr</span>
+                </div>
+              </div>
+              <div className="text-sm text-gray-600 mb-3">Select your most productive hours (green highlights)</div>
+              <div className="grid grid-cols-6 gap-2">
+                {Array.from({ length: 24 }, (_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => {
+                      const currentHours = formData.flowPeakHours || [];
+                      const newHours = currentHours.includes(i) 
+                        ? currentHours.filter(h => h !== i)
+                        : [...currentHours, i];
+                      updateFormData('flowPeakHours', newHours);
+                    }}
+                    className={`p-1 text-xs rounded border ${
+                      (formData.flowPeakHours || []).includes(i)
+                        ? 'bg-green-100 border-green-300 text-green-700'
+                        : 'bg-gray-50 border-gray-200'
+                    }`}
+                  >
+                    {formatHour(i)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
-              <h5 className="font-medium text-sm mb-2">Catalysts: What helps you find flow? 📝</h5>
-              <p className="text-xs text-gray-600">
-                Type your response.
-              </p>
+              <Label htmlFor="flowCatalysts">Catalysts: What helps you find flow?</Label>
+              <Textarea
+                id="flowCatalysts"
+                placeholder="Type your response..."
+                value={formData.flowCatalysts || ''}
+                onChange={(e) => updateFormData('flowCatalysts', e.target.value)}
+                className="h-32"
+              />
             </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            <Label>Peak Flow Hours</Label>
-            <div className="text-sm text-gray-600 mb-3">Select your most productive hours (green highlights)</div>
-            <div className="grid grid-cols-6 gap-2">
-              {Array.from({ length: 24 }, (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    const currentHours = formData.flowPeakHours || [];
-                    const newHours = currentHours.includes(i) 
-                      ? currentHours.filter(h => h !== i)
-                      : [...currentHours, i];
-                    updateFormData('flowPeakHours', newHours);
-                  }}
-                  className={`p-2 text-xs rounded border ${
-                    (formData.flowPeakHours || []).includes(i)
-                      ? 'bg-green-100 border-green-300 text-green-700'
-                      : 'bg-gray-50 border-gray-200'
-                  }`}
-                >
-                  {i.toString().padStart(2, '0')}:00
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="flowCatalysts">Catalysts: What helps you find flow?</Label>
-            <Textarea
-              id="flowCatalysts"
-              placeholder="Type your response..."
-              value={formData.flowCatalysts || ''}
-              onChange={(e) => updateFormData('flowCatalysts', e.target.value)}
-              className="h-32"
-            />
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderVisionVitality = () => (
     <div className="space-y-6">
