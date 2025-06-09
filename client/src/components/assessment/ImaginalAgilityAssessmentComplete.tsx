@@ -2,7 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, BarChart3, Eye, Heart, Lightbulb, Shield } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
 
-const ImaginalAgilityAssessment = () => {
+interface ImaginalAgilityAssessmentProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onComplete: (results: any) => void;
+}
+
+const ImaginalAgilityAssessment = ({ isOpen, onClose, onComplete }: ImaginalAgilityAssessmentProps) => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [responses, setResponses] = useState({});
   const [showResults, setShowResults] = useState(false);

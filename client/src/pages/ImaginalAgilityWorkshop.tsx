@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 export default function ImaginalAgilityWorkshop() {
   const [, setLocation] = useLocation();
   const [match, params] = useRoute('/imaginal-agility/:stepId');
+  const stepId = params?.stepId || 'ia-1-1';
   const queryClient = useQueryClient();
   
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
@@ -56,9 +57,9 @@ export default function ImaginalAgilityWorkshop() {
   useEffect(() => {
     if (navigationProgress) {
       setCompletedSteps(navigationProgress.completedSteps || []);
-      setCurrentStepId((params && params.stepId) || navigationProgress.currentStepId || 'ia-1-1');
+      setCurrentStepId(stepId || navigationProgress.currentStepId || 'ia-1-1');
     }
-  }, [navigationProgress, params]);
+  }, [navigationProgress, stepId]);
 
   // Update assessment results when loaded
   useEffect(() => {

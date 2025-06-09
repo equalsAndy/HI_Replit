@@ -236,16 +236,16 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   return '4-5';
 };
 
-export function useNavigationProgress() {
+export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const queryClient = useQueryClient();
   const debouncedSync = useRef<NodeJS.Timeout>();
   
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
-    currentStepId: '1-1',
-    appType: 'ast',
+    currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
+    appType,
     lastVisitedAt: new Date().toISOString(),
-    unlockedSteps: ['1-1'],
+    unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
     videoProgress: {}
   });
 
