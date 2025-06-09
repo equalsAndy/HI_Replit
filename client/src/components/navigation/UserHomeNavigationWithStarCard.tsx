@@ -268,13 +268,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
             alt="AllStarTeams" 
             className="h-12 w-auto mx-auto"
           />
-          {/* Quick Access to Workshop Resources */}
-          <button
-            onClick={() => handleStepClick('6-1')}
-            className="mt-3 w-full px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
-          >
-            📚 Workshop Resources (6-1)
-          </button>
         </div>
         {/* Toggle Button - position depends on mobile/desktop */}
         <button
