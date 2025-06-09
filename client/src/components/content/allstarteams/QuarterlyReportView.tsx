@@ -173,13 +173,13 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Peak Performance Hours</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {formatFlowHours(reportData.growthPlan.flowPeakHours)}
+                {formatFlowHours((reportData.growthPlan as any)?.flowPeakHours)}
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Flow Catalysts</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.flowCatalysts || 'Not specified'}
+                {(reportData.growthPlan as any)?.flowCatalysts || 'Not specified'}
               </p>
             </div>
           </div>
@@ -195,19 +195,19 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
             <div>
               <h4 className="font-medium text-gray-700 mb-2">START - Where I'm Coming From</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.visionStart || 'Not specified'}
+                {(reportData.growthPlan as any)?.visionStart || 'Not specified'}
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">NOW - Current State</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.visionNow || 'Not specified'}
+                {(reportData.growthPlan as any)?.visionNow || 'Not specified'}
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">NEXT - Future Direction</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.visionNext || 'Not specified'}
+                {(reportData.growthPlan as any)?.visionNext || 'Not specified'}
               </p>
             </div>
           </div>
@@ -223,13 +223,13 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
             <div>
               <h4 className="font-medium text-gray-700 mb-2">What's Working Well</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.progressWorking || 'Not specified'}
+                {(reportData.growthPlan as any)?.progressWorking || 'Not specified'}
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Where I Need Help</h4>
               <p className="text-gray-600 bg-gray-50 p-3 rounded">
-                {reportData.growthPlan.progressNeedHelp || 'Not specified'}
+                {(reportData.growthPlan as any)?.progressNeedHelp || 'Not specified'}
               </p>
             </div>
           </div>
@@ -245,9 +245,9 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Top 3 Priorities</h4>
               <div className="bg-white p-3 rounded">
-                {reportData.growthPlan.keyPriorities && reportData.growthPlan.keyPriorities.length > 0 ? (
+                {(reportData.growthPlan as any)?.keyPriorities && (reportData.growthPlan as any)?.keyPriorities.length > 0 ? (
                   <ul className="list-disc list-inside space-y-1">
-                    {reportData.growthPlan.keyPriorities.map((priority, index) => (
+                    {(reportData.growthPlan as any)?.keyPriorities.map((priority: string, index: number) => (
                       <li key={index} className="text-gray-700">{priority}</li>
                     ))}
                   </ul>
@@ -259,13 +259,13 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Success Looks Like</h4>
               <p className="text-gray-600 bg-white p-3 rounded">
-                {reportData.growthPlan.successLooksLike || 'Not specified'}
+                {(reportData.growthPlan as any)?.successLooksLike || 'Not specified'}
               </p>
             </div>
             <div>
               <h4 className="font-medium text-gray-700 mb-2">Key Dates & Milestones</h4>
               <p className="text-gray-600 bg-white p-3 rounded">
-                {reportData.growthPlan.keyDates || 'Not specified'}
+                {(reportData.growthPlan as any)?.keyDates || 'Not specified'}
               </p>
             </div>
           </div>
