@@ -27,6 +27,7 @@ router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/workshop-data', workshopDataRoutes);
 router.use('/growth-plan', growthPlanRoutes);
+router.use('/navigation-progress', navigationProgressRoutes);
 
 // Add visualization endpoints directly at the API root level
 router.use('/', workshopDataRoutes);

@@ -25,58 +25,30 @@ export const useIANavigationProgress = () => {
     videoProgress: {}
   });
 
-  // Fetch navigation progress from backend
-  const { data: navigationData } = useQuery({
-    queryKey: ['/api/navigation-progress/ia'],
-    queryFn: async () => {
-      const response = await fetch('/api/navigation-progress/ia', {
-        credentials: 'include'
-      });
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Unauthorized');
-        }
-        throw new Error('Failed to fetch navigation progress');
-      }
-      return response.json();
-    },
-    staleTime: 30000,
-    retry: false
-  });
-
+  // Use localStorage for now instead of backend API
   useEffect(() => {
-    if (navigationData?.progress) {
-      setProgress(navigationData.progress);
+    const savedProgress = localStorage.getItem('ia-navigation-progress');
+    if (savedProgress) {
+      try {
+        const parsed = JSON.parse(savedProgress);
+        setProgress(parsed);
+      } catch (error) {
+        console.error('Failed to parse IA progress from localStorage:', error);
+      }
     }
-  }, [navigationData]);
+  }, []);
 
-  const markStepCompleted = async (stepId: string) => {
+  const markStepCompleted = (stepId: string) => {
     console.log('IA Navigation - Marking step completed:', stepId);
     
-    try {
-      const response = await fetch('/api/navigation-progress/ia', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          stepId,
-          action: 'complete'
-        })
-      });
-
-      if (response.ok) {
-        const updatedProgress = {
-          ...progress,
-          completedSteps: [...new Set([...progress.completedSteps, stepId])],
-          lastVisitedAt: new Date().toISOString()
-        };
-        setProgress(updatedProgress);
-      }
-    } catch (error) {
-      console.error('Failed to mark IA step completed:', error);
-    }
+    const updatedProgress = {
+      ...progress,
+      completedSteps: [...new Set([...progress.completedSteps, stepId])],
+      lastVisitedAt: new Date().toISOString()
+    };
+    
+    setProgress(updatedProgress);
+    localStorage.setItem('ia-navigation-progress', JSON.stringify(updatedProgress));
   };
 
   const isStepCompleted = (stepId: string): boolean => {
@@ -98,35 +70,20 @@ export const useIANavigationProgress = () => {
     return true;
   };
 
-  const updateVideoProgress = async (stepId: string, progressData: VideoProgressData): Promise<void> => {
+  const updateVideoProgress = (stepId: string, progressData: VideoProgressData): void => {
     console.log('IA Navigation - Updating video progress:', stepId, progressData);
     
-    try {
-      const response = await fetch('/api/navigation-progress/ia/video', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          stepId,
-          progress: progressData
-        })
-      });
-
-      if (response.ok) {
-        const updatedProgress = {
-          ...progress,
-          videoProgress: {
-            ...progress.videoProgress,
-            [stepId]: progressData
-          }
-        };
-        setProgress(updatedProgress);
-      }
-    } catch (error) {
-      console.error('Failed to update IA video progress:', error);
-    }
+    const updatedProgress = {
+      ...progress,
+      videoProgress: {
+        ...progress.videoProgress,
+        [stepId]: progressData
+      },
+      lastVisitedAt: new Date().toISOString()
+    };
+    
+    setProgress(updatedProgress);
+    localStorage.setItem('ia-navigation-progress', JSON.stringify(updatedProgress));
   };
 
   return {
