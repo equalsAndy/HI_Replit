@@ -204,43 +204,84 @@ export default function GrowthPlanView({
 
   const renderStarPower = () => {
     const starData = (starCardData as any)?.data as Record<string, number> | undefined;
-    const strengths = starData ? 
-      Object.entries(starData)
-        .sort(([,a], [,b]) => (b as number) - (a as number))
-        .map(([key]) => key) : 
-      [];
 
     return (
       <div className="space-y-6">
         <div className="text-center mb-6">
           <Star className="w-12 h-12 mx-auto text-yellow-500 mb-3" />
           <h3 className="text-xl font-semibold">Remember Your Star Power</h3>
-          <p className="text-gray-600">Ground your growth journey in your unique strengths profile</p>
         </div>
 
-        {starData && (
-          <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
-            <h4 className="font-semibold mb-4">Your Star Card Results</h4>
-            <div className="grid grid-cols-2 gap-4">
-              {Object.entries(starData).map(([strength, score]) => (
-                <div key={strength} className="flex justify-between items-center p-3 bg-white rounded border">
-                  <span className="font-medium capitalize">{strength}</span>
-                  <span className="text-lg font-bold text-blue-600">{score}</span>
-                </div>
-              ))}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+              <h4 className="font-semibold mb-4 text-lg">Purpose</h4>
+              <p className="text-blue-800 mb-4">
+                Ground your growth journey in your unique strengths profile from the workshop.
+              </p>
+              
+              <h4 className="font-semibold mb-3 text-lg">Explanation</h4>
+              <p className="text-blue-800 mb-4">
+                Your Star Card captures your distinctive pattern of strengths and flow states. It's your personal compass for development.
+              </p>
+              
+              <h4 className="font-semibold mb-3 text-lg">Guidelines</h4>
+              <ol className="list-decimal list-inside space-y-2 text-blue-800">
+                <li>Drag Star Card .png to box</li>
+                <li>Note your top 2-3 strengths percentages</li>
+                <li>Review flow characteristics</li>
+                <li>Reference throughout exercises</li>
+              </ol>
             </div>
           </div>
-        )}
 
-        <div>
-          <Label htmlFor="starReflection">Your Star Power Reflection</Label>
-          <Textarea
-            id="starReflection"
-            placeholder="Reflect on your unique strengths pattern and how it guides your development..."
-            value={formData.starPowerReflection || ''}
-            onChange={(e) => updateFormData('starPowerReflection', e.target.value)}
-            className="h-32"
-          />
+          <div className="space-y-4">
+            {starData ? (
+              <div className="bg-white border-2 border-gray-300 p-6 rounded-lg">
+                <h4 className="font-semibold mb-4 text-center text-lg">STAR CARD</h4>
+                <div className="text-center mb-4">
+                  <div className="text-sm text-gray-600 mb-2">Name: Test User</div>
+                  <div className="text-sm text-gray-600 mb-2">Title: Participant</div>
+                  <div className="text-sm text-gray-600 mb-4">Organization: Test Organization</div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-center mb-4">
+                  <div className="bg-red-100 p-3 rounded-lg border-2 border-red-300">
+                    <div className="text-xl font-bold text-red-700">{starData.thinking}</div>
+                    <div className="text-xs text-red-600 uppercase tracking-wider">Thinking</div>
+                  </div>
+                  <div className="bg-blue-100 p-3 rounded-lg border-2 border-blue-300">
+                    <div className="text-xl font-bold text-blue-700">{starData.acting}</div>
+                    <div className="text-xs text-blue-600 uppercase tracking-wider">Acting</div>
+                  </div>
+                  <div className="bg-green-100 p-3 rounded-lg border-2 border-green-300">
+                    <div className="text-xl font-bold text-green-700">{starData.feeling}</div>
+                    <div className="text-xs text-green-600 uppercase tracking-wider">Feeling</div>
+                  </div>
+                  <div className="bg-yellow-100 p-3 rounded-lg border-2 border-yellow-300">
+                    <div className="text-xl font-bold text-yellow-700">{starData.planning}</div>
+                    <div className="text-xs text-yellow-600 uppercase tracking-wider">Planning</div>
+                  </div>
+                </div>
+                
+                <div className="text-center">
+                  <div className="text-xs text-gray-500">allstarteams</div>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-100 border-2 border-dashed border-gray-300 p-8 rounded-lg text-center min-h-[300px] flex flex-col justify-center">
+                <div className="text-gray-500 mb-4">
+                  <svg className="w-16 h-16 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                </div>
+                <p className="text-gray-600 font-medium">Drag Star Card .png to box</p>
+                <p className="text-sm text-gray-500 mt-2">
+                  Reference your Star Card from the workshop
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );

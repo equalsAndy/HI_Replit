@@ -56,29 +56,36 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
 
+    console.log('Growth plan POST - Request body:', req.body);
+
+    // Validate required fields
+    if (!req.body.quarter || !req.body.year) {
+      return res.status(400).json({ success: false, error: 'Quarter and year are required' });
+    }
+
     // Prepare plan data with JSON stringification
     const planData = {
       userId,
-      quarter: req.body.quarter,
-      year: req.body.year,
-      starPowerReflection: req.body.starPowerReflection,
-      ladderCurrentLevel: req.body.ladderCurrentLevel,
-      ladderTargetLevel: req.body.ladderTargetLevel,
-      ladderReflections: req.body.ladderReflections,
+      quarter: req.body.quarter || 'Q2',
+      year: req.body.year || 2025,
+      starPowerReflection: req.body.starPowerReflection || null,
+      ladderCurrentLevel: req.body.ladderCurrentLevel || null,
+      ladderTargetLevel: req.body.ladderTargetLevel || null,
+      ladderReflections: req.body.ladderReflections || null,
       strengthsExamples: JSON.stringify(req.body.strengthsExamples || {}),
       flowPeakHours: JSON.stringify(req.body.flowPeakHours || []),
-      flowCatalysts: req.body.flowCatalysts,
-      visionStart: req.body.visionStart,
-      visionNow: req.body.visionNow,
-      visionNext: req.body.visionNext,
-      progressWorking: req.body.progressWorking,
-      progressNeedHelp: req.body.progressNeedHelp,
-      teamFlowStatus: req.body.teamFlowStatus,
-      teamEnergySource: req.body.teamEnergySource,
-      teamNextCheckin: req.body.teamNextCheckin,
+      flowCatalysts: req.body.flowCatalysts || null,
+      visionStart: req.body.visionStart || null,
+      visionNow: req.body.visionNow || null,
+      visionNext: req.body.visionNext || null,
+      progressWorking: req.body.progressWorking || null,
+      progressNeedHelp: req.body.progressNeedHelp || null,
+      teamFlowStatus: req.body.teamFlowStatus || null,
+      teamEnergySource: req.body.teamEnergySource || null,
+      teamNextCheckin: req.body.teamNextCheckin || null,
       keyPriorities: JSON.stringify(req.body.keyPriorities || []),
-      successLooksLike: req.body.successLooksLike,
-      keyDates: req.body.keyDates
+      successLooksLike: req.body.successLooksLike || null,
+      keyDates: req.body.keyDates || null
     };
 
     // Check if plan already exists for this quarter/year
