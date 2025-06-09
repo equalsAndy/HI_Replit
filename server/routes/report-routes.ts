@@ -109,6 +109,63 @@ router.get('/generate/:userId', async (req, res) => {
   }
 });
 
+// Generate HTML version of the report for viewing in browser
+router.get('/html/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId === 'me' ? req.session.userId : parseInt(req.params.userId);
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Fetch user data
+    const user = await db.select().from(users).where(eq(users.id, userId));
+    if (!user.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Fetch all assessments
+    const assessments = await db.select().from(userAssessments).where(eq(userAssessments.userId, userId));
+    
+    // Organize assessment data
+    const reportData = {
+      user: user[0],
+      assessments: {}
+    };
+
+    assessments.forEach(assessment => {
+      try {
+        reportData.assessments[assessment.assessmentType] = JSON.parse(assessment.results);
+      } catch (error) {
+        console.error(`Error parsing assessment data for ${assessment.assessmentType}:`, error);
+        reportData.assessments[assessment.assessmentType] = {};
+      }
+    });
+
+    // Check required assessments
+    const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
+    const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
+    
+    if (missingAssessments.length > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot generate report - missing required assessments',
+        missing: missingAssessments 
+      });
+    }
+
+    // Generate comprehensive HTML report
+    const html = generateComprehensiveReportHTML(reportData);
+    
+    // Set content type to HTML and send
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+
+  } catch (error) {
+    console.error('HTML report generation failed:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 function generateComprehensiveReportHTML(data: any): string {
   const starCard = data.assessments?.starCard || {};
   const cantril = data.assessments?.cantrilLadder || {};

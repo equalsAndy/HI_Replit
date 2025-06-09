@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
 interface HolisticReportViewProps {
@@ -85,6 +85,16 @@ export default function HolisticReportView({
     setCurrentContent('growth-plan');
   };
 
+  const handleViewHtmlReport = () => {
+    if (!allAssessmentsComplete) {
+      alert('Please complete all workshop assessments before viewing your report.');
+      return;
+    }
+    
+    // Open HTML report in new tab
+    window.open('/api/report/html/me', '_blank');
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -157,7 +167,7 @@ export default function HolisticReportView({
               )}
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Button 
                 onClick={handleDownload} 
                 disabled={generating || !allAssessmentsComplete}
@@ -170,7 +180,17 @@ export default function HolisticReportView({
                 ) : (
                   <Download className="h-4 w-4" />
                 )}
-                {generating ? 'Generating Report...' : reportGenerated ? 'Report Generated' : 'Download Report'}
+                {generating ? 'Generating Report...' : reportGenerated ? 'Report Generated' : 'Download PDF Report'}
+              </Button>
+
+              <Button 
+                onClick={handleViewHtmlReport} 
+                disabled={!allAssessmentsComplete}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <ExternalLink className="h-4 w-4" />
+                View HTML Report
               </Button>
               
               <Button variant="outline" onClick={handleNext} className="flex items-center gap-2">
