@@ -3,8 +3,8 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import NavBar from '@/components/navigation/NavBar';
-import UserHomeNavigation from '@/components/navigation/UserHomeNavigation';
+import { Button } from '@/components/ui/button';
+import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 
@@ -101,12 +101,17 @@ export default function ImaginalAgilityWorkshopNew() {
     return isStepUnlocked(stepId);
   };
 
-  // Handle step clicks
-  const handleStepClick = (stepId: string) => {
+  // Handle step clicks - match the UserHomeNavigationWithStarCard interface
+  const handleStepClick = (sectionId: string, stepId: string) => {
     if (isStepAccessible(stepId)) {
       setCurrentContent(stepId);
       setCurrentStep(stepId);
     }
+  };
+
+  // Step accessibility function to match interface
+  const isStepAccessibleFunc = (sectionId: string, stepId: string) => {
+    return isStepUnlocked(stepId);
   };
 
   // Handle assessment completion
@@ -122,8 +127,34 @@ export default function ImaginalAgilityWorkshopNew() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Use the same NavBar as AllStarTeams - this provides the yellow Heliotrope header */}
-      <NavBar />
+      {/* Yellow Heliotrope Imaginal Header Bar - Same as AST but with IA branding */}
+      <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
+        <div className="flex items-center">
+          <img 
+            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+            alt="Heliotrope Imaginal"
+            className="h-8 w-auto" 
+          />
+          <span className="ml-2 font-semibold">Heliotrope Imaginal</span>
+        </div>
+        <div className="flex items-center space-x-2">
+          {user && (
+            <div className="flex items-center gap-2">
+              {user.role === 'admin' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-md text-white hover:bg-yellow-400"
+                  onClick={() => navigate('/admin')}
+                >
+                  Admin
+                </Button>
+              )}
+              <span className="text-sm">Welcome, {user.name}</span>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -140,10 +171,10 @@ export default function ImaginalAgilityWorkshopNew() {
           toggleDrawer={toggleDrawer}
           navigationSections={iaNavigationSections}
           completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
+          isStepAccessible={isStepAccessibleFunc}
           handleStepClick={handleStepClick}
-          starCard={null} // IA doesn't use star cards
-          flowAttributesData={null} // IA doesn't use flow attributes
+          starCard={null}
+          flowAttributesData={null}
           currentContent={currentContent}
           isImaginalAgility={true}
         />

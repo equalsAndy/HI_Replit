@@ -79,7 +79,7 @@ export default function ImaginalAgilityHome() {
 
   // Clear progress when user has database progress: 0
   React.useEffect(() => {
-    const actualUser = user?.user || user;
+    const actualUser = (user as any)?.user || user;
 
     if (actualUser?.id) {
       const currentUserId = actualUser.id.toString();
@@ -87,7 +87,7 @@ export default function ImaginalAgilityHome() {
       const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
 
       // Clear progress if current user has progress: 0 (database reset)
-      if (actualUser.progress === 0 && !hasAlreadyCleared) {
+      if ((actualUser as any).progress === 0 && !hasAlreadyCleared) {
         console.log(`User ${currentUserId} has database progress: 0, clearing Imaginal Agility cached data`);
 
         // Clear Imaginal Agility specific progress cache
@@ -143,8 +143,8 @@ export default function ImaginalAgilityHome() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      if (!user?.id) return null;
-      const res = await apiRequest('POST', `/api/test-users/reset/${user.id}`);
+      if (!(user as any)?.id) return null;
+      const res = await apiRequest('POST', `/api/test-users/reset/${(user as any).id}`);
       return res.json();
     },
     onSuccess: () => {
