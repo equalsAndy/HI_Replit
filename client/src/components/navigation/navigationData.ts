@@ -3,78 +3,108 @@ import {
   LightbulbIcon, Braces, Users, Puzzle, Book, Zap, PenTool,
   Download, Calendar, Brain
 } from 'lucide-react';
-import { NavigationSection } from '@/shared/types';
+import { NavigationSection } from '../../../shared/types';
 
-// Imaginal Agility navigation sections
+// Imaginal Agility navigation sections - Updated to match new 9-step structure
 export const imaginalAgilityNavigationSections: NavigationSection[] = [
   {
     id: '1',
-    title: 'Imaginal Agility Program',
-    path: '/imaginal-agility/intro',
-    totalSteps: 6,
+    title: 'Imaginal Agility Workshop',
+    path: '/imaginal-agility/ia-1-1',
+    icon: Brain,
+    totalSteps: 9,
     completedSteps: 0,
     steps: [
       { 
-        id: '1-1', 
-        label: 'Introduction to Imaginal Agility', 
-        path: '/imaginal-agility/intro', 
+        id: 'ia-1-1', 
+        label: '🎥 Introduction to Imaginal Agility', 
+        path: '/imaginal-agility/ia-1-1', 
         type: 'Learning', 
-        contentKey: 'imaginal-intro',
+        contentKey: 'ia-1-1',
         icon: Book,
         autoPlay: true,
         minWatchPercent: 1,
         locked: false // Only this step starts unlocked
       },
       { 
-        id: '1-2', 
-        label: 'The Triple Challenge', 
-        path: '/imaginal-agility/triple-challenge', 
+        id: 'ia-2-1', 
+        label: '🎥 The Triple Challenge', 
+        path: '/imaginal-agility/ia-2-1', 
         type: 'Learning', 
-        contentKey: 'triple-challenge',
+        contentKey: 'ia-2-1',
         icon: Book,
         autoPlay: true,
         minWatchPercent: 1,
         locked: true
       },
       { 
-        id: '1-3', 
-        label: 'The Imaginal Agility Solution', 
-        path: '/imaginal-agility/solution', 
+        id: 'ia-3-1', 
+        label: '🎥 Imaginal Agility Solution', 
+        path: '/imaginal-agility/ia-3-1', 
         type: 'Learning', 
-        contentKey: 'imaginal-solution',
+        contentKey: 'ia-3-1',
         icon: Book,
         autoPlay: true,
         minWatchPercent: 1,
         locked: true
       },
       { 
-        id: '1-4', 
-        label: 'Your 5 Capabilities (5Cs)', 
-        path: '/imaginal-agility/capabilities', 
-        type: 'Learning', 
-        contentKey: 'five-capabilities',
-        icon: Book,
-        autoPlay: true,
-        minWatchPercent: 1,
-        locked: true
-      },
-      { 
-        id: '1-5', 
-        label: 'Take the Imagination Assessment', 
-        path: '/imaginal-agility/imagination-assessment', 
+        id: 'ia-4-1', 
+        label: '⚡ Self-Assessment', 
+        path: '/imaginal-agility/ia-4-1', 
         type: 'Assessment', 
-        contentKey: 'imagination-assessment',
+        contentKey: 'ia-4-1',
         icon: Zap,
         isModal: true,
         locked: true
       },
       { 
-        id: '1-6', 
-        label: 'Review your Results', 
-        path: '/imaginal-agility/results', 
+        id: 'ia-4-2', 
+        label: '📊 Review Results', 
+        path: '/imaginal-agility/ia-4-2', 
         type: 'Learning', 
-        contentKey: 'assessment-results',
+        contentKey: 'ia-4-2',
+        icon: BarChartIcon,
+        locked: true
+      },
+      { 
+        id: 'ia-5-1', 
+        label: '🎥 Teamwork Preparation', 
+        path: '/imaginal-agility/ia-5-1', 
+        type: 'Learning', 
+        contentKey: 'ia-5-1',
         icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: true
+      },
+      { 
+        id: 'ia-6-1', 
+        label: '🔍 Discernment Guide', 
+        path: '/imaginal-agility/ia-6-1', 
+        type: 'Learning', 
+        contentKey: 'ia-6-1',
+        icon: Brain,
+        locked: true
+      },
+      { 
+        id: 'ia-7-1', 
+        label: '🎥 The Neuroscience', 
+        path: '/imaginal-agility/ia-7-1', 
+        type: 'Learning', 
+        contentKey: 'ia-7-1',
+        icon: Book,
+        autoPlay: true,
+        minWatchPercent: 1,
+        locked: true
+      },
+      { 
+        id: 'ia-8-1', 
+        label: '📖 More About Workshop', 
+        path: '/imaginal-agility/ia-8-1', 
+        type: 'Learning', 
+        contentKey: 'ia-8-1',
+        icon: BookOpen,
         locked: true
       }
     ]
