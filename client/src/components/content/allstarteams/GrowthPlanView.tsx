@@ -33,6 +33,10 @@ interface GrowthPlanData {
   visionStart?: string;
   visionNow?: string;
   visionNext?: string;
+  startState?: string;
+  keyChallenges?: string;
+  currentState?: string;
+  supportNeeded?: string;
   progressWorking?: string;
   progressNeedHelp?: string;
   teamFlowStatus?: string;
@@ -700,50 +704,72 @@ export default function GrowthPlanView({
     </div>
   );
 
-  const renderKeyActions = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <Target className="w-12 h-12 mx-auto text-red-500 mb-3" />
-        <h3 className="text-xl font-semibold">Key Actions Summary</h3>
-        <p className="text-gray-600">Define your top priorities and success metrics for the quarter</p>
-      </div>
+  const renderKeyActions = () => {
+    const handleCompleteUpdate = () => {
+      // For now, just show completion message
+      alert(`Thank you for completing your ${quarter} ${year} Quarterly Growth Plan! Your responses have been saved and will help guide your development this quarter.`);
+    };
 
+    return (
       <div className="space-y-6">
-        <div>
-          <Label htmlFor="keyPriorities">Top 3 Priorities</Label>
-          <Textarea
-            id="keyPriorities"
-            placeholder="List your three most important priorities for this quarter..."
-            value={formData.keyPriorities ? formData.keyPriorities.join('\n') : ''}
-            onChange={(e) => updateFormData('keyPriorities', e.target.value.split('\n').filter(p => p.trim()))}
-            className="h-24"
-          />
+        <div className="text-center mb-6">
+          <Target className="w-12 h-12 mx-auto text-red-500 mb-3" />
+          <h3 className="text-xl font-semibold">Key Actions Summary</h3>
+          <p className="text-gray-600">Define your top priorities and success metrics for the quarter</p>
         </div>
 
-        <div>
-          <Label htmlFor="successLooksLike">Success Looks Like</Label>
-          <Textarea
-            id="successLooksLike"
-            placeholder="Describe what success will look like at the end of this quarter..."
-            value={formData.successLooksLike || ''}
-            onChange={(e) => updateFormData('successLooksLike', e.target.value)}
-            className="h-32"
-          />
-        </div>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="keyPriorities">Top 3 Priorities</Label>
+            <Textarea
+              id="keyPriorities"
+              placeholder="List your three most important priorities for this quarter..."
+              value={formData.keyPriorities ? formData.keyPriorities.join('\n') : ''}
+              onChange={(e) => updateFormData('keyPriorities', e.target.value.split('\n').filter(p => p.trim()))}
+              className="h-24"
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="keyDates">Key Dates & Milestones</Label>
-          <Textarea
-            id="keyDates"
-            placeholder="Important dates, deadlines, and milestones for this quarter..."
-            value={formData.keyDates || ''}
-            onChange={(e) => updateFormData('keyDates', e.target.value)}
-            className="h-24"
-          />
+          <div>
+            <Label htmlFor="successLooksLike">Success Looks Like</Label>
+            <Textarea
+              id="successLooksLike"
+              placeholder="Describe what success will look like at the end of this quarter..."
+              value={formData.successLooksLike || ''}
+              onChange={(e) => updateFormData('successLooksLike', e.target.value)}
+              className="h-32"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="keyDates">Key Dates & Milestones</Label>
+            <Textarea
+              id="keyDates"
+              placeholder="Important dates, deadlines, and milestones for this quarter..."
+              value={formData.keyDates || ''}
+              onChange={(e) => updateFormData('keyDates', e.target.value)}
+              className="h-24"
+            />
+          </div>
+
+          <div className="pt-6 border-t">
+            <div className="text-center space-y-4">
+              <Button 
+                onClick={handleCompleteUpdate}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+                size="lg"
+              >
+                Complete {quarter} {year} Quarterly Update
+              </Button>
+              <p className="text-sm text-gray-600">
+                Thank you for taking the time to plan your growth this quarter!
+              </p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderCurrentStep = () => {
     switch (currentStep) {
