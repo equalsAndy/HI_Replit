@@ -87,15 +87,18 @@ const upload = multer({
 // Make the upload middleware available to routes
 app.locals.upload = upload;
 
+// Report routes - must be handled before Vite middleware
+app.use('/api/report', (req, res, next) => {
+  console.log(`[Express] Report route: ${req.path}`);
+  next();
+}, reportRoutes);
+
 // API routes - these need to be handled before Vite middleware
 app.use('/api', (req, res, next) => {
   // Ensure API routes are handled by Express, not Vite
   console.log(`[Express] API route: ${req.path}`);
   next();
 }, router);
-
-// Report routes
-app.use(reportRoutes);
 
 // Admin upload routes
 app.use('/api/admin', adminUploadRoutes);
