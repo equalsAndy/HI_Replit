@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
 
 interface IANavigationProgress {
   completedSteps: string[];
