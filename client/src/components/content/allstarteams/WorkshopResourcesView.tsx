@@ -64,7 +64,7 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
           {/* PDF Download Button */}
           <div className="pt-2">
             <a 
-              href="/attached_assets/AST WORKSHOP COIMPENDIUM 2025.pdf"
+              href="/attached_assets/AST_WORKSHOP_COMPENDIUM_2025.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
