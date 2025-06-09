@@ -18,6 +18,7 @@ import YourStarCardView from './YourStarCardView';
 import StarCardResourceView from './StarCardResourceView';
 import DownloadStarCardView from './allstarteams/DownloadStarCardView';
 import HolisticReportView from './allstarteams/HolisticReportView';
+import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import PlaceholderView from './PlaceholderView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
@@ -802,6 +803,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'holistic-report':
       return (
         <HolisticReportView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'workshop-resources':
+      return (
+        <WorkshopResourcesView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
