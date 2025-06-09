@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
 import { ContentViewProps } from '../../../shared/types';
-// Import types but use type-only imports to avoid conflicts
-import type { StarCard, User } from '../../../shared/types';
 import PlaceholderView from '../PlaceholderView';
 import ImaginationAssessmentContent from '../ImaginationAssessmentContent';
 import FiveCSAssessmentContent from '../FiveCSAssessmentContent';
@@ -31,6 +29,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   const [isImaginalAssessmentOpen, setIsImaginalAssessmentOpen] = useState(false);
   switch (currentContent) {
     // Imaginal Agility content views
+    case 'ia-1-1':
     case 'imaginal-intro':
       return (
         <div className="prose max-w-none">
@@ -392,6 +391,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            currentContent={currentContent}
           />
         </div>
       );
@@ -597,6 +597,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
+          currentContent={currentContent}
         />
       );
   }
@@ -694,6 +695,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <PlaceholderView 
             title={`${currentContent}`}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+            currentContent={currentContent}
           />
         );
     }
