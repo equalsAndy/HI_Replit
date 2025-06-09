@@ -115,7 +115,7 @@ export const navigationSections: NavigationSection[] = [
     steps: [
       { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', contentKey: 'intro-to-flow', icon: Book, autoPlay: true, minWatchPercent: 1 },
       { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow/assessment', type: 'Assessment', contentKey: 'flow-assessment', icon: Zap, isModal: true },
-      { id: '3-3', label: 'Rounding Out', path: '/find-your-flow/rounding-out', type: 'Learning', contentKey: 'flow-rounding-out', icon: Book, autoPlay: true, minWatchPercent: 1 },
+      { id: '3-3', label: 'Rounding Out', path: '/find-your-flow/rounding-out', type: 'Learning', contentKey: 'flow-rounding-out', icon: PenTool, autoPlay: true, minWatchPercent: 1 },
       { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Activity', contentKey: 'flow-star-card', icon: Zap }
     ]
   },
