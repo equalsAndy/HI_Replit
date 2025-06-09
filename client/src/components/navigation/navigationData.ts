@@ -127,8 +127,8 @@ export const navigationSections: NavigationSection[] = [
     completedSteps: 0,
     steps: [
       { id: '4-1', label: 'Ladder of Well-being', path: '/visualize-potential/wellbeing', type: 'Learning', contentKey: 'ladder-wellbeing', icon: Book, autoPlay: true, minWatchPercent: 1, hasSliders: true },
-      { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning', contentKey: 'wellbeing-reflections', icon: Book, requireAllAnswers: true },
-      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Activity', contentKey: 'visualizing-you', icon: PenTool },
+      { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning', contentKey: 'wellbeing-reflections', icon: PenTool, requireAllAnswers: true },
+      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Activity', contentKey: 'visualizing-you', icon: Zap },
       { id: '4-4', label: 'Your Future Self', path: '/visualize-potential/future-self', type: 'Reflection', contentKey: 'future-self', icon: PenTool, autoPlay: true, minWatchPercent: 1, requireAllAnswers: true },
       { id: '4-5', label: 'Final Reflection', path: '/visualize-potential/your-statement', type: 'Reflection', contentKey: 'final-reflection', icon: PenTool, requireAllAnswers: true }
     ]
@@ -141,10 +141,10 @@ export const navigationSections: NavigationSection[] = [
     completedSteps: 0,
     locked: false,
     steps: [
-      { id: '5-1', label: 'Download your Star Card', path: '/next-steps/star-card', type: 'Learning', contentKey: 'download-star-card', icon: Download, downloadOnly: true },
-      { id: '5-2', label: 'Your Holistic Report', path: '/next-steps/holistic-report', type: 'Learning', contentKey: 'holistic-report', icon: Download },
-      { id: '5-3', label: 'Growth Plan (coming soon)', path: '/next-steps/growth-plan', type: 'Learning', contentKey: 'growth-plan', icon: Calendar },
-      { id: '5-4', label: 'Team Workshop Prep', path: '/next-steps/team-prep', type: 'Learning', contentKey: 'team-workshop-prep', icon: Activity }
+      { id: '5-1', label: 'Download your Star Card', path: '/next-steps/star-card', type: 'Learning', contentKey: 'download-star-card', downloadOnly: true },
+      { id: '5-2', label: 'Your Holistic Report', path: '/next-steps/holistic-report', type: 'Learning', contentKey: 'holistic-report' },
+      { id: '5-3', label: 'Growth Plan (coming soon)', path: '/next-steps/growth-plan', type: 'Learning', contentKey: 'growth-plan' },
+      { id: '5-4', label: 'Team Workshop Prep', path: '/next-steps/team-prep', type: 'Learning', contentKey: 'team-workshop-prep' }
     ]
   },
   { 
