@@ -7,6 +7,7 @@ import inviteRoutes from './routes/invite-routes';
 import fixedInviteRoutes from './routes/fixed-invite-routes';
 import userRoutes from './routes/user-routes';
 import workshopDataRoutes from './routes/workshop-data-routes';
+import growthPlanRoutes from './routes/growth-plan-routes';
 import { resetRouter } from './reset-routes';
 import { adminRouter } from './routes/admin-routes';
 
@@ -24,6 +25,7 @@ router.use('/admin', adminRouter);
 router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/workshop-data', workshopDataRoutes);
+router.use('/growth-plan', growthPlanRoutes);
 
 // Add visualization endpoints directly at the API root level
 router.use('/', workshopDataRoutes);

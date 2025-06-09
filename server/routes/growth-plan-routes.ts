@@ -56,15 +56,30 @@ router.post('/', async (req, res) => {
       return res.status(401).json({ success: false, error: 'Not authenticated' });
     }
 
-    // Validate and parse the request body
-    const validationSchema = insertGrowthPlanSchema.omit({ id: true, createdAt: true, updatedAt: true });
-    const planData = validationSchema.parse({
-      ...req.body,
+    // Prepare plan data with JSON stringification
+    const planData = {
       userId,
+      quarter: req.body.quarter,
+      year: req.body.year,
+      starPowerReflection: req.body.starPowerReflection,
+      ladderCurrentLevel: req.body.ladderCurrentLevel,
+      ladderTargetLevel: req.body.ladderTargetLevel,
+      ladderReflections: req.body.ladderReflections,
       strengthsExamples: JSON.stringify(req.body.strengthsExamples || {}),
       flowPeakHours: JSON.stringify(req.body.flowPeakHours || []),
-      keyPriorities: JSON.stringify(req.body.keyPriorities || [])
-    });
+      flowCatalysts: req.body.flowCatalysts,
+      visionStart: req.body.visionStart,
+      visionNow: req.body.visionNow,
+      visionNext: req.body.visionNext,
+      progressWorking: req.body.progressWorking,
+      progressNeedHelp: req.body.progressNeedHelp,
+      teamFlowStatus: req.body.teamFlowStatus,
+      teamEnergySource: req.body.teamEnergySource,
+      teamNextCheckin: req.body.teamNextCheckin,
+      keyPriorities: JSON.stringify(req.body.keyPriorities || []),
+      successLooksLike: req.body.successLooksLike,
+      keyDates: req.body.keyDates
+    };
 
     // Check if plan already exists for this quarter/year
     const [existingPlan] = await db
@@ -81,10 +96,7 @@ router.post('/', async (req, res) => {
       // Update existing plan
       [result] = await db
         .update(growthPlans)
-        .set({
-          ...planData,
-          updatedAt: new Date()
-        })
+        .set(planData)
         .where(eq(growthPlans.id, existingPlan.id))
         .returning();
     } else {
@@ -106,9 +118,6 @@ router.post('/', async (req, res) => {
     res.json({ success: true, data: parsedResult });
   } catch (error) {
     console.error('Error saving growth plan:', error);
-    if (error instanceof z.ZodError) {
-      return res.status(400).json({ success: false, error: 'Invalid data format', details: error.errors });
-    }
     res.status(500).json({ success: false, error: 'Failed to save growth plan' });
   }
 });

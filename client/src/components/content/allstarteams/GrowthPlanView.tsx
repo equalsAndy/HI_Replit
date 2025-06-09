@@ -703,6 +703,11 @@ export default function GrowthPlanView({
             {currentStep === 0 && renderQuarterSelection()}
             {currentStep === 1 && renderStarPower()}
             {currentStep === 2 && renderLadder()}
+            {currentStep === 3 && renderPlayingToStrengths()}
+            {currentStep === 4 && renderFlowOptimization()}
+            {currentStep === 5 && renderVisionVitality()}
+            {currentStep === 6 && renderProgressCheck()}
+            {currentStep === 7 && renderKeyActions()}
             
             {/* Navigation */}
             <div className="flex justify-between pt-6 border-t">
