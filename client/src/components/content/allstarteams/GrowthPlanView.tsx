@@ -134,8 +134,8 @@ export default function GrowthPlanView({
     'Your Ladder',
     'Playing to Strengths',
     'Flow Optimization',
-    'Vision Vitality',
     'Progress Check',
+    'Vision Vitality',
     'Key Actions Summary'
   ];
 
@@ -674,8 +674,8 @@ export default function GrowthPlanView({
       case 3: return renderLadder();
       case 4: return renderPlayingToStrengths();
       case 5: return renderFlowOptimization();
-      case 6: return renderVisionVitality();
-      case 7: return renderProgressCheck();
+      case 6: return renderProgressCheck();
+      case 7: return renderVisionVitality();
       case 8: return renderKeyActions();
       default: return renderQuarterSelection();
     }
