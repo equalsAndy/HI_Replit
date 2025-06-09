@@ -21,6 +21,7 @@ import PlaceholderView from '../PlaceholderView';
 import DownloadStarCardView from './DownloadStarCardView';
 import HolisticReportView from './HolisticReportView';
 import GrowthPlanView from './GrowthPlanView';
+import QuarterlyReportView from './QuarterlyReportView';
 import TeamWorkshopPrepView from './TeamWorkshopPrepView';
 import MethodologyView from './MethodologyView';
 import NeuroscienceView from './NeuroscienceView';
@@ -249,6 +250,14 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         <GrowthPlanView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'quarterly-report':
+      return (
+        <QuarterlyReportView 
+          navigate={navigate}
           setCurrentContent={setCurrentContent}
         />
       );

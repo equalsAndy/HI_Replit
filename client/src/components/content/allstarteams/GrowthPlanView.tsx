@@ -122,7 +122,7 @@ export default function GrowthPlanView({
       setCurrentStep(currentStep + 1);
     } else {
       markStepCompleted('6-1');
-      setCurrentContent('final-report');
+      setCurrentContent('quarterly-report');
     }
   };
 
@@ -754,13 +754,6 @@ export default function GrowthPlanView({
 
           <div className="pt-6 border-t">
             <div className="text-center space-y-4">
-              <Button 
-                onClick={handleCompleteUpdate}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
-                size="lg"
-              >
-                Complete {quarter} {year} Quarterly Update
-              </Button>
               <p className="text-sm text-gray-600">
                 Thank you for taking the time to plan your growth this quarter!
               </p>
