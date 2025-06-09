@@ -50,7 +50,13 @@ export default function GrowthPlanView({
   setCurrentContent
 }: GrowthPlanViewProps) {
   const [currentStep, setCurrentStep] = useState(0);
-  const [quarter, setQuarter] = useState('');
+  const [quarter, setQuarter] = useState(() => {
+    const month = new Date().getMonth() + 1;
+    if (month <= 3) return 'Q1';
+    if (month <= 6) return 'Q2';
+    if (month <= 9) return 'Q3';
+    return 'Q4';
+  });
   const [year, setYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState<Partial<GrowthPlanData>>({});
   const queryClient = useQueryClient();
@@ -97,16 +103,31 @@ export default function GrowthPlanView({
   };
 
   const saveProgress = async () => {
-    await savePlanMutation.mutateAsync(formData);
+    try {
+      await savePlanMutation.mutateAsync(formData);
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    }
   };
 
   const handleNext = async () => {
-    await saveProgress();
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    } else {
-      markStepCompleted('5-3');
-      setCurrentContent('team-workshop-prep');
+    try {
+      await saveProgress();
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        markStepCompleted('5-3');
+        setCurrentContent('team-workshop-prep');
+      }
+    } catch (error) {
+      console.error('Error in handleNext:', error);
+      // Continue navigation even if save fails
+      if (currentStep < steps.length - 1) {
+        setCurrentStep(currentStep + 1);
+      } else {
+        markStepCompleted('5-3');
+        setCurrentContent('team-workshop-prep');
+      }
     }
   };
 
