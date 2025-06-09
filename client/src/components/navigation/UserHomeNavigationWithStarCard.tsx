@@ -268,6 +268,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
             alt="AllStarTeams" 
             className="h-12 w-auto mx-auto"
           />
+          {/* Quick Access to Workshop Resources */}
+          <button
+            onClick={() => handleStepClick('6-1')}
+            className="mt-3 w-full px-3 py-2 text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg border border-blue-200 transition-colors"
+          >
+            📚 Workshop Resources (6-1)
+          </button>
         </div>
         {/* Toggle Button - position depends on mobile/desktop */}
         <button
@@ -284,7 +291,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         </button>
         
         {/* Navigation Content */}
-        <div className="p-4 h-full overflow-y-auto">
+        <div className="p-4 flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
           {/* Navigation Sections */}
           <nav className="space-y-6">
             {navigationSections.map((section) => (
