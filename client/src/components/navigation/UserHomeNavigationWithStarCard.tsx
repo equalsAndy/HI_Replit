@@ -355,14 +355,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   }
                                 }}
                               >
-                                <div className="mr-2 flex-shrink-0">
-                                  {isCompleted ? (
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
-                                  ) : !isAccessible ? (
-                                    <Lock className="h-4 w-4 text-gray-400" />
-                                  ) : null}
-                                </div>
-                                
                                 <span className="flex-1">{step.label}</span>
                               </li>
                             </TooltipTrigger>
