@@ -13,10 +13,8 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
   markStepCompleted,
   setCurrentContent
 }) => {
+  // Workshop Resources is a reference page - no completion needed
   const handleComplete = () => {
-    if (markStepCompleted) {
-      markStepCompleted('6-1');
-    }
     if (navigate) {
       navigate('/user-home');
     }
