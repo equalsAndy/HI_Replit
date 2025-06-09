@@ -32,7 +32,7 @@ localPort = 5002
 externalPort = 3003
 
 [workflows]
-runButton = "Kill app and ports 5000, 5001"
+runButton = "Run"
 
 [[workflows.workflow]]
 name = "Project"
