@@ -112,3 +112,38 @@ export const insertUserAssessmentSchema = createInsertSchema(userAssessments);
 // Type definitions for user assessments
 export type UserAssessment = typeof userAssessments.$inferSelect;
 export type InsertUserAssessment = z.infer<typeof insertUserAssessmentSchema>;
+
+// Growth plans table for quarterly planning
+export const growthPlans = pgTable('growth_plans', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  quarter: varchar('quarter', { length: 2 }).notNull(), // Q1, Q2, Q3, Q4
+  year: integer('year').notNull(),
+  starPowerReflection: text('star_power_reflection'),
+  ladderCurrentLevel: integer('ladder_current_level'),
+  ladderTargetLevel: integer('ladder_target_level'),
+  ladderReflections: text('ladder_reflections'),
+  strengthsExamples: text('strengths_examples'), // JSON string
+  flowPeakHours: text('flow_peak_hours'), // JSON array of hours
+  flowCatalysts: text('flow_catalysts'),
+  visionStart: text('vision_start'),
+  visionNow: text('vision_now'),
+  visionNext: text('vision_next'),
+  progressWorking: text('progress_working'),
+  progressNeedHelp: text('progress_need_help'),
+  teamFlowStatus: text('team_flow_status'),
+  teamEnergySource: text('team_energy_source'),
+  teamNextCheckin: text('team_next_checkin'),
+  keyPriorities: text('key_priorities'), // JSON array
+  successLooksLike: text('success_looks_like'),
+  keyDates: text('key_dates'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schema for growth plans
+export const insertGrowthPlanSchema = createInsertSchema(growthPlans);
+
+// Type definitions for growth plans
+export type GrowthPlan = typeof growthPlans.$inferSelect;
+export type InsertGrowthPlan = z.infer<typeof insertGrowthPlanSchema>;
