@@ -227,24 +227,24 @@ export default function GrowthPlanView({
               
               <h4 className="font-semibold mb-3 text-lg">Guidelines</h4>
               <ol className="list-decimal list-inside space-y-2 text-blue-800">
-                <li>Drag Star Card .png to box</li>
                 <li>Note your top 2-3 strengths percentages</li>
                 <li>Review flow characteristics</li>
                 <li>Reference throughout exercises</li>
+                <li>Use insights for quarterly planning</li>
               </ol>
             </div>
           </div>
 
           <div className="space-y-4">
-            {starData ? (
-              <div className="bg-white border-2 border-gray-300 p-6 rounded-lg">
-                <h4 className="font-semibold mb-4 text-center text-lg">STAR CARD</h4>
-                <div className="text-center mb-4">
-                  <div className="text-sm text-gray-600 mb-2">Name: Test User</div>
-                  <div className="text-sm text-gray-600 mb-2">Title: Participant</div>
-                  <div className="text-sm text-gray-600 mb-4">Organization: Test Organization</div>
-                </div>
-                
+            <div className="bg-white border-2 border-gray-300 p-6 rounded-lg">
+              <h4 className="font-semibold mb-4 text-center text-lg">STAR CARD</h4>
+              <div className="text-center mb-4">
+                <div className="text-sm text-gray-600 mb-2">Name: Test User 1</div>
+                <div className="text-sm text-gray-600 mb-2">Title: Test Participant</div>
+                <div className="text-sm text-gray-600 mb-4">Organization: Test Organization</div>
+              </div>
+              
+              {starData ? (
                 <div className="grid grid-cols-2 gap-3 text-center mb-4">
                   <div className="bg-red-100 p-3 rounded-lg border-2 border-red-300">
                     <div className="text-xl font-bold text-red-700">{starData.thinking}</div>
@@ -263,24 +263,31 @@ export default function GrowthPlanView({
                     <div className="text-xs text-yellow-600 uppercase tracking-wider">Planning</div>
                   </div>
                 </div>
-                
-                <div className="text-center">
-                  <div className="text-xs text-gray-500">allstarteams</div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3 text-center mb-4">
+                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
+                    <div className="text-xl font-bold text-gray-500">--</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Thinking</div>
+                  </div>
+                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
+                    <div className="text-xl font-bold text-gray-500">--</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Acting</div>
+                  </div>
+                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
+                    <div className="text-xl font-bold text-gray-500">--</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Feeling</div>
+                  </div>
+                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
+                    <div className="text-xl font-bold text-gray-500">--</div>
+                    <div className="text-xs text-gray-500 uppercase tracking-wider">Planning</div>
+                  </div>
                 </div>
+              )}
+              
+              <div className="text-center">
+                <div className="text-xs text-gray-500">allstarteams</div>
               </div>
-            ) : (
-              <div className="bg-gray-100 border-2 border-dashed border-gray-300 p-8 rounded-lg text-center min-h-[300px] flex flex-col justify-center">
-                <div className="text-gray-500 mb-4">
-                  <svg className="w-16 h-16 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                </div>
-                <p className="text-gray-600 font-medium">Drag Star Card .png to box</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Reference your Star Card from the workshop
-                </p>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
