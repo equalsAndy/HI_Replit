@@ -116,7 +116,7 @@ export const navigationSections: NavigationSection[] = [
       { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', contentKey: 'intro-to-flow', icon: Book, autoPlay: true, minWatchPercent: 1 },
       { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow/assessment', type: 'Assessment', contentKey: 'flow-assessment', icon: Zap, isModal: true },
       { id: '3-3', label: 'Rounding Out', path: '/find-your-flow/rounding-out', type: 'Learning', contentKey: 'flow-rounding-out', icon: Book, autoPlay: true, minWatchPercent: 1 },
-      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Activity', contentKey: 'flow-star-card', icon: Zap }
+      { id: '3-4', label: 'Add Flow to Star Card', path: '/find-your-flow/star-card', type: 'Activity', contentKey: 'flow-star-card', icon: Activity }
     ]
   },
   { 
@@ -128,7 +128,7 @@ export const navigationSections: NavigationSection[] = [
     steps: [
       { id: '4-1', label: 'Ladder of Well-being', path: '/visualize-potential/wellbeing', type: 'Learning', contentKey: 'ladder-wellbeing', icon: Book, autoPlay: true, minWatchPercent: 1, hasSliders: true },
       { id: '4-2', label: 'Well-being Reflections', path: '/visualize-potential/cantril-ladder', type: 'Learning', contentKey: 'wellbeing-reflections', icon: Book, requireAllAnswers: true },
-      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Learning', contentKey: 'visualizing-you', icon: Book },
+      { id: '4-3', label: 'Visualizing You', path: '/visualize-potential/visualizing-you', type: 'Activity', contentKey: 'visualizing-you', icon: PenTool },
       { id: '4-4', label: 'Your Future Self', path: '/visualize-potential/future-self', type: 'Reflection', contentKey: 'future-self', icon: PenTool, autoPlay: true, minWatchPercent: 1, requireAllAnswers: true },
       { id: '4-5', label: 'Final Reflection', path: '/visualize-potential/your-statement', type: 'Reflection', contentKey: 'final-reflection', icon: PenTool, requireAllAnswers: true }
     ]
