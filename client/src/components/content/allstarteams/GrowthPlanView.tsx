@@ -546,43 +546,121 @@ export default function GrowthPlanView({
   const renderVisionVitality = () => (
     <div className="space-y-6">
       <div className="text-center mb-6">
-        <CheckCircle className="w-12 h-12 mx-auto text-teal-500 mb-3" />
+        <div className="w-12 h-12 mx-auto bg-blue-600 text-white rounded-full flex items-center justify-center text-xl font-bold mb-3">
+          5
+        </div>
         <h3 className="text-xl font-semibold">Vision Vitality</h3>
-        <p className="text-gray-600">Connect your current work to your larger vision and purpose</p>
       </div>
 
-      <div className="space-y-6">
-        <div>
-          <Label htmlFor="visionStart">Where I Started</Label>
-          <Textarea
-            id="visionStart"
-            placeholder="Reflect on where you began this journey..."
-            value={formData.visionStart || ''}
-            onChange={(e) => updateFormData('visionStart', e.target.value)}
-            className="h-24"
-          />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+            <h4 className="font-semibold mb-3">Purpose</h4>
+            <p className="text-sm text-gray-700 mb-4">
+              Keep your Module 1 vision active and evolving.
+            </p>
+            
+            <h4 className="font-semibold mb-3">Explanation</h4>
+            <p className="text-sm text-gray-700 mb-4">
+              Track progress from initial vision through current achievements to next goals.
+            </p>
+
+            <h4 className="font-semibold mb-3">Guidelines</h4>
+            <div className="text-sm text-gray-700 space-y-1">
+              <p>2. Review Module 1 vision statement</p>
+              <p>3. Note START (initial state, challenges)</p>
+              <p>4. Document NOW (achievements, current state)</p>
+              <p>5. Plan NEXT (priorities, support needed)</p>
+            </div>
+          </div>
         </div>
 
-        <div>
-          <Label htmlFor="visionNow">Where I Am Now</Label>
-          <Textarea
-            id="visionNow"
-            placeholder="Describe your current state and progress..."
-            value={formData.visionNow || ''}
-            onChange={(e) => updateFormData('visionNow', e.target.value)}
-            className="h-24"
-          />
-        </div>
+        <div className="space-y-6">
+          <div>
+            <Label htmlFor="moduleVision">Module 1 Vision Statement</Label>
+            <Textarea
+              id="moduleVision"
+              placeholder="Type your paragraph..."
+              value={formData.visionStart || ''}
+              onChange={(e) => updateFormData('visionStart', e.target.value)}
+              className="h-20 bg-blue-50"
+            />
+          </div>
 
-        <div>
-          <Label htmlFor="visionNext">Where I'm Going Next</Label>
-          <Textarea
-            id="visionNext"
-            placeholder="Outline your next steps and future direction..."
-            value={formData.visionNext || ''}
-            onChange={(e) => updateFormData('visionNext', e.target.value)}
-            className="h-24"
-          />
+          <div className="relative">
+            <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-300"></div>
+            
+            <div className="space-y-6">
+              <div className="relative pl-12">
+                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                  <h5 className="font-medium mb-1">START</h5>
+                  <p className="text-xs text-gray-600 mb-2">Initial State:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.startState || ''}
+                    onChange={(e) => updateFormData('startState', e.target.value)}
+                    className="h-16 mb-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-600 mb-2">Key Challenges:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.keyChallenges || ''}
+                    onChange={(e) => updateFormData('keyChallenges', e.target.value)}
+                    className="h-16 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="relative pl-12">
+                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                  <h5 className="font-medium mb-1">NOW</h5>
+                  <p className="text-xs text-gray-600 mb-2">Achievements:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.visionNow || ''}
+                    onChange={(e) => updateFormData('visionNow', e.target.value)}
+                    className="h-16 mb-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-600 mb-2">Current State:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.currentState || ''}
+                    onChange={(e) => updateFormData('currentState', e.target.value)}
+                    className="h-16 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="relative pl-12">
+                <div className="absolute left-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                  <div className="w-3 h-3 bg-white rounded-full"></div>
+                </div>
+                <div className="bg-orange-50 border border-orange-200 p-4 rounded-lg">
+                  <h5 className="font-medium mb-1">NEXT</h5>
+                  <p className="text-xs text-gray-600 mb-2">Priority Focus:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.visionNext || ''}
+                    onChange={(e) => updateFormData('visionNext', e.target.value)}
+                    className="h-16 mb-2 text-sm"
+                  />
+                  <p className="text-xs text-gray-600 mb-2">Support Needed:</p>
+                  <Textarea
+                    placeholder="Type your paragraph..."
+                    value={formData.supportNeeded || ''}
+                    onChange={(e) => updateFormData('supportNeeded', e.target.value)}
+                    className="h-16 text-sm"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
