@@ -310,7 +310,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className="pl-7 space-y-1">
+                  <ul className="pl-2 space-y-1">
                     {section.steps.map((step) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
@@ -364,22 +364,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 </div>
                                 
                                 <span className="flex-1">{step.label}</span>
-                                
-                                {/* Content type icons on the right side - 25% lighter */}
-                                <div className="ml-2 flex-shrink-0 opacity-75">
-                                  {step.type === 'Learning' && (
-                                    <BookOpen className="h-4 w-4 text-indigo-400" />
-                                  )}
-                                  {step.type === 'Assessment' && (
-                                    <Activity className="h-4 w-4 text-orange-400" />
-                                  )}
-                                  {step.type === 'Reflection' && (
-                                    <PenLine className="h-4 w-4 text-purple-400" />
-                                  )}
-                                  {(!step.type) && (
-                                    <FileText className="h-4 w-4 text-gray-400" />
-                                  )}
-                                </div>
                               </li>
                             </TooltipTrigger>
                             {!isAccessible && (
