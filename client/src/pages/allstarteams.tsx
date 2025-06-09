@@ -389,7 +389,12 @@ export default function AllStarTeams() {
 
     // Section 5
     '5-1': { prev: '4-5', next: '5-2', contentKey: 'download-star-card' },
-    '5-2': { prev: '5-1', next: null, contentKey: 'holistic-report' },
+    '5-2': { prev: '5-1', next: '5-3', contentKey: 'holistic-report' },
+    '5-3': { prev: '5-2', next: '5-4', contentKey: 'growth-plan' },
+    '5-4': { prev: '5-3', next: '6-1', contentKey: 'team-workshop-prep' },
+    
+    // Section 6
+    '6-1': { prev: '5-4', next: null, contentKey: 'workshop-resources' },
   };
 
   // Helper function to find step ID from content key
