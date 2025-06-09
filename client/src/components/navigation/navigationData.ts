@@ -155,7 +155,7 @@ export const navigationSections: NavigationSection[] = [
     completedSteps: 0,
     locked: false,
     steps: [
-      { id: '6-1', label: 'Workshop Details', path: '/more-information/workshop-details', type: 'Learning', contentKey: 'methodology', icon: Brain }
+      { id: '6-1', label: 'Workshop Resources', path: '/more-information/workshop-resources', type: 'Learning', contentKey: 'workshop-resources', icon: Brain }
     ]
   }
 ];
