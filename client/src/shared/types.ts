@@ -55,9 +55,6 @@ export interface ContentViewProps {
   navigate?: any;
   markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
-}
-  markStepCompleted?: (stepId: string) => void;
-  setCurrentContent?: (content: string) => void;
   starCard?: any;
   user?: any;
   flowAttributesData?: any;

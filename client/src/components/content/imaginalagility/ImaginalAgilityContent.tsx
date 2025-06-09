@@ -1,6 +1,6 @@
 import React from 'react';
-import { ContentViewProps } from '../../../shared/types';
-import IAIntroductionView from './IAIntroductionView';
+import { ContentViewProps } from '@/shared/types';
+import IAIntroductionView from '../imaginal-agility/IAIntroductionView';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;

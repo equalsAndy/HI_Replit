@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useIANavigationProgress } from '@/hooks/use-navigation-progress-ia';
-import ImaginalAgilityContent from '@/components/content/imaginalagility/ImaginalAgilityContent';
+import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 
 export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
