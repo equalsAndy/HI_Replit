@@ -27,6 +27,7 @@ import MethodologyView from './MethodologyView';
 import NeuroscienceView from './NeuroscienceView';
 import CompendiumView from './CompendiumView';
 import BackgroundView from './BackgroundView';
+import WorkshopResourcesView from './WorkshopResourcesView';
 
 interface AllStarTeamsContentProps extends ContentViewProps {
   currentContent: string;
@@ -302,6 +303,15 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
     case 'background':
       return (
         <BackgroundView 
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+        />
+      );
+
+    case 'workshop-resources':
+      return (
+        <WorkshopResourcesView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
