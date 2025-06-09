@@ -327,27 +327,105 @@ export default function GrowthPlanView({
     );
   };
 
-  const renderPlayingToStrengths = () => (
-    <div className="space-y-6">
-      <div className="text-center mb-6">
-        <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
-        <h3 className="text-xl font-semibold">Playing to Strengths</h3>
-        <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
-      </div>
+  const renderPlayingToStrengths = () => {
+    const starData = (starCardData as any) || null;
+    
+    // Create sorted quadrants based on star card data
+    const quadrantData = [
+      { key: 'planning', label: 'PLANNING', score: starData?.planning || 0 },
+      { key: 'thinking', label: 'THINKING', score: starData?.thinking || 0 },
+      { key: 'acting', label: 'ACTING', score: starData?.acting || 0 },
+      { key: 'feeling', label: 'FEELING', score: starData?.feeling || 0 }
+    ].sort((a, b) => b.score - a.score);
 
-      <div className="space-y-4">
-        <div>
-          <Label>Strengths Examples & Applications</Label>
-          <Textarea
-            placeholder="How will you apply your top strengths this quarter? Provide specific examples..."
-            value={formData.strengthsExamples ? JSON.stringify(formData.strengthsExamples) : ''}
-            onChange={(e) => updateFormData('strengthsExamples', { general: e.target.value })}
-            className="h-32"
-          />
+    const strengthColors = {
+      'PLANNING': { bg: 'bg-yellow-100', circle: 'bg-yellow-500' },
+      'THINKING': { bg: 'bg-green-100', circle: 'bg-green-500' },
+      'ACTING': { bg: 'bg-red-100', circle: 'bg-red-500' },
+      'FEELING': { bg: 'bg-blue-100', circle: 'bg-blue-500' }
+    };
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <TrendingUp className="w-12 h-12 mx-auto text-orange-500 mb-3" />
+          <h3 className="text-xl font-semibold">Playing to Strengths</h3>
+          <p className="text-gray-600">Apply your Star Card insights to current projects and challenges</p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="space-y-4">
+            <div className="bg-blue-50 border border-blue-200 p-6 rounded-lg">
+              <h4 className="font-semibold mb-3">Purpose</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                Apply your Star Card insights to current projects and challenges.
+              </p>
+              
+              <h4 className="font-semibold mb-3">Explanation</h4>
+              <p className="text-sm text-gray-700 mb-4">
+                How are you harnessing your five strengths for maximum impact and engagement.
+              </p>
+
+              <h4 className="font-semibold mb-3">Guidelines</h4>
+              <p className="text-sm text-gray-700">
+                List one stellar example from each following the order of your Star Badge.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="font-semibold">Star Card Strength</h4>
+                <h4 className="font-semibold">Your Best Example</h4>
+              </div>
+              
+              {quadrantData.map((strength, index) => {
+                const colors = strengthColors[strength.label];
+                const strengthKey = `strength_${strength.key}`;
+                const currentValue = formData.strengthsExamples?.[strengthKey] || '';
+                
+                return (
+                  <div key={strength.key} className="grid grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-center">
+                      <div className={`${colors.bg} p-2 rounded-full mr-3`}>
+                        <div className={`w-6 h-6 ${colors.circle} rounded-full flex items-center justify-center text-white font-bold text-sm`}>
+                          {index + 1}
+                        </div>
+                      </div>
+                      <span className="font-medium text-sm">
+                        {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <Textarea
+                        placeholder="Type your paragraph..."
+                        value={currentValue}
+                        onChange={(e) => {
+                          const updatedExamples = {
+                            ...(formData.strengthsExamples || {}),
+                            [strengthKey]: e.target.value
+                          };
+                          updateFormData('strengthsExamples', updatedExamples);
+                        }}
+                        className="h-20 text-sm"
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+              
+              <div className="mt-4 pt-4 border-t">
+                <p className="text-xs text-gray-600">
+                  List strengths in order... Add your best example
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const renderFlowOptimization = () => (
     <div className="space-y-6">
