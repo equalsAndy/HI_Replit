@@ -64,7 +64,7 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
           {/* PDF Download Button */}
           <div className="pt-2">
             <a 
-              href="/attached_assets/AST_WORKSHOP_COMPENDIUM_2025.pdf"
+              href="attached_assets/AST_WORKSHOP_COMPENDIUM_2025.pdf"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors duration-200"
@@ -86,8 +86,8 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
             transformation — and why imagination is a key capability for thriving in the age of AI.
           </p>
           
-          {/* Video Embed */}
-          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100">
+          {/* Video Embed - Larger and More Responsive */}
+          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 max-w-4xl mx-auto">
             <iframe
               width="100%"
               height="100%"
@@ -96,7 +96,7 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
               frameBorder="0"
               allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               allowFullScreen
-              className="w-full h-full"
+              className="w-full h-full min-h-[300px] md:min-h-[400px] lg:min-h-[500px]"
             />
           </div>
         </div>
