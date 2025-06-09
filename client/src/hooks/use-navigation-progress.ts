@@ -44,7 +44,14 @@ const useUserAssessments = () => {
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
   
-  // Assessment steps - still require completion
+  // IA Assessment step - require completion
+  if (stepId === 'ia-4-1') {
+    const isValid = !!userAssessments?.iaCoreCapabilities;
+    console.log(`📋 IA Core Capabilities assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+  
+  // AST Assessment steps - still require completion
   if (stepId === '2-2') {
     const isValid = !!userAssessments?.starCard;
     console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
@@ -76,7 +83,27 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
 };
 
 // SIMPLIFIED: Linear progression with resource branches
-const calculateUnlockedSteps = (completedSteps: string[]): string[] => {
+const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): string[] => {
+  // IA progression sequence
+  if (appType === 'ia') {
+    const iaSequence = ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-4-2', 'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'];
+    const unlocked = ['ia-1-1']; // First step always unlocked
+    
+    // Linear progression through IA sequence
+    for (let i = 0; i < iaSequence.length - 1; i++) {
+      const currentStep = iaSequence[i];
+      const nextStep = iaSequence[i + 1];
+      
+      if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
+        unlocked.push(nextStep);
+        console.log(`📝 IA MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+      }
+    }
+    
+    return unlocked;
+  }
+  
+  // AST progression sequence
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   const unlocked = ['1-1']; // First step always unlocked
   
