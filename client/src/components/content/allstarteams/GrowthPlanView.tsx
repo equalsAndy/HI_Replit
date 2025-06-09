@@ -240,7 +240,7 @@ export default function GrowthPlanView({
   };
 
   const renderLadder = () => {
-    const cantrilResults = (cantrilData as any)?.data as { currentLevel: number; futureLevel: number } | undefined;
+    const cantrilResults = (cantrilData as any)?.data as { wellBeingLevel: number; futureWellBeingLevel: number; currentLevel?: number; futureLevel?: number } | undefined;
     
     return (
       <div className="space-y-6">
@@ -253,8 +253,8 @@ export default function GrowthPlanView({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <div className="flex justify-center">
             <WellBeingLadderSvg 
-              currentValue={cantrilResults?.currentLevel || formData.ladderCurrentLevel || 5}
-              futureValue={cantrilResults?.futureLevel || formData.ladderTargetLevel || 7}
+              currentValue={cantrilResults?.wellBeingLevel || cantrilResults?.currentLevel || formData.ladderCurrentLevel || 5}
+              futureValue={cantrilResults?.futureWellBeingLevel || cantrilResults?.futureLevel || formData.ladderTargetLevel || 7}
             />
           </div>
 
@@ -265,11 +265,11 @@ export default function GrowthPlanView({
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Current Life Satisfaction:</span>
-                    <span className="font-bold">{cantrilResults.currentLevel}/10</span>
+                    <span className="font-bold">{cantrilResults.wellBeingLevel || cantrilResults.currentLevel}/10</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Future Expectation (1 year):</span>
-                    <span className="font-bold">{cantrilResults.futureLevel}/10</span>
+                    <span className="font-bold">{cantrilResults.futureWellBeingLevel || cantrilResults.futureLevel}/10</span>
                   </div>
                 </div>
               </div>
