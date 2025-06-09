@@ -49,7 +49,6 @@ export interface Workshop {
   status: 'upcoming' | 'in-progress' | 'completed';
 }
 
-// Content View Props for workshop components
 export interface ContentViewProps {
   currentContent: string;
   navigate?: any;

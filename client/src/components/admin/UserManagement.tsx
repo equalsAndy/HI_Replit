@@ -731,10 +731,11 @@ export function UserManagement() {
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="h-8 w-8 p-0 hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-800"
+                                          className="h-8 px-3 text-xs hover:bg-blue-50 border-blue-200 text-blue-600 hover:text-blue-800"
                                           onClick={() => handleEditUser(user)}
                                         >
-                                          <PencilIcon className="h-3 w-3" />
+                                          <PencilIcon className="h-3 w-3 mr-1" />
+                                          Edit
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
@@ -747,15 +748,16 @@ export function UserManagement() {
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="h-8 w-8 p-0 text-green-600 hover:text-green-800 hover:bg-green-50 border-green-200"
+                                          className="h-8 px-3 text-xs text-green-600 hover:text-green-800 hover:bg-green-50 border-green-200"
                                           onClick={() => exportUserDataMutation.mutate(user.id)}
                                           disabled={loadingUsers.has(user.id)}
                                         >
                                           {loadingUsers.has(user.id) ? (
-                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                            <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                                           ) : (
-                                            <Download className="h-3 w-3" />
+                                            <Download className="h-3 w-3 mr-1" />
                                           )}
+                                          Download
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
@@ -768,17 +770,18 @@ export function UserManagement() {
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="h-8 w-8 p-0 text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
+                                          className="h-8 px-3 text-xs text-orange-600 hover:text-orange-800 hover:bg-orange-50 border-orange-200"
                                           onClick={() => {
                                             setSelectedUser(user);
                                             setConfirmDeleteDataOpen(true);
                                           }}
                                         >
-                                          <Database className="h-3 w-3" />
+                                          <Database className="h-3 w-3 mr-1" />
+                                          Clear Data
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
-                                        <p>Clear Data - Delete all user assessment and progress data</p>
+                                        <p>Delete all user assessment and progress data</p>
                                       </TooltipContent>
                                     </Tooltip>
 
@@ -787,17 +790,18 @@ export function UserManagement() {
                                         <Button
                                           variant="outline"
                                           size="sm"
-                                          className="h-8 w-8 p-0 text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
+                                          className="h-8 px-3 text-xs text-red-600 hover:text-red-800 hover:bg-red-50 border-red-200"
                                           onClick={() => {
                                             setSelectedUser(user);
                                             setConfirmDeleteOpen(true);
                                           }}
                                         >
-                                          <UserX className="h-3 w-3" />
+                                          <UserX className="h-3 w-3 mr-1" />
+                                          Delete User
                                         </Button>
                                       </TooltipTrigger>
                                       <TooltipContent>
-                                        <p>Delete User - Delete user account completely</p>
+                                        <p>Delete user account completely</p>
                                       </TooltipContent>
                                     </Tooltip>
                                   </>
@@ -808,15 +812,15 @@ export function UserManagement() {
                                     <TooltipTrigger asChild>
                                       <Button
                                         variant="outline"
-                                        size="sm"
-                                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
+                                        size="sm"className="h-8 px-3 text-xs text-blue-600 hover:text-blue-800 hover:bg-blue-50 border-blue-200"
                                         onClick={() => restoreUserMutation.mutate(user.id)}
                                       >
-                                        <UndoIcon className="h-3 w-3" />
+                                        <UndoIcon className="h-3 w-3 mr-1" />
+                                        Restore
                                       </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                      <p>Restore - Restore deleted user account</p>
+                                      <p>Restore deleted user account</p>
                                     </TooltipContent>
                                   </Tooltip>
                                 )}
