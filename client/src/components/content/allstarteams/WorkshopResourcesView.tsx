@@ -102,19 +102,7 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
         </div>
       </div>
 
-      {/* Complete Button */}
-      <div className="flex justify-center sm:justify-end pt-6 sm:pt-8">
-        <Button 
-          onClick={handleComplete}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white w-full sm:w-auto"
-          size="lg"
-        >
-          <span className="text-sm sm:text-base">
-            Complete Workshop Resources
-          </span>
-          <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
+
     </div>
   );
 };
