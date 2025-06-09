@@ -54,6 +54,7 @@ export default function GrowthPlanView({
   const [quarter, setQuarter] = useState('Q2');
   const [year, setYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState<Partial<GrowthPlanData>>({});
+  const [use24HourFormat, setUse24HourFormat] = useState(true);
 
   const queryClient = useQueryClient();
 
@@ -428,8 +429,6 @@ export default function GrowthPlanView({
   };
 
   const renderFlowOptimization = () => {
-    const [use24HourFormat, setUse24HourFormat] = useState(true);
-
     const formatHour = (hour: number) => {
       if (use24HourFormat) {
         return `${hour.toString().padStart(2, '0')}:00`;
