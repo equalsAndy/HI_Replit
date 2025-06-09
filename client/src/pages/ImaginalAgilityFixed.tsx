@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
+import { NavBar } from '@/components/layout/NavBar';
+import { TestUserBanner } from '@/components/test-users/TestUserBanner';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 
 export default function ImaginalAgilityFixed() {
   const [location, navigate] = useLocation();
@@ -15,6 +19,7 @@ export default function ImaginalAgilityFixed() {
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const { toast } = useToast();
+  const { currentApp, setCurrentApp } = useApplication();
   
   const {
     progress: navProgress,
@@ -30,6 +35,35 @@ export default function ImaginalAgilityFixed() {
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];
 
+  // Set app type for navigation
+  useEffect(() => {
+    setCurrentApp('imaginal-agility');
+  }, [setCurrentApp]);
+
+  // Navigation sequence for IA workshop
+  const iaNavigationSequence = {
+    'ia-1-1': { prev: null, next: 'ia-2-1', contentKey: 'ia-1-1' },
+    'ia-2-1': { prev: 'ia-1-1', next: 'ia-3-1', contentKey: 'ia-2-1' },
+    'ia-3-1': { prev: 'ia-2-1', next: 'ia-4-1', contentKey: 'ia-3-1' },
+    'ia-4-1': { prev: 'ia-3-1', next: 'ia-4-2', contentKey: 'ia-4-1' },
+    'ia-4-2': { prev: 'ia-4-1', next: 'ia-5-1', contentKey: 'ia-4-2' },
+    'ia-5-1': { prev: 'ia-4-2', next: 'ia-6-1', contentKey: 'ia-5-1' },
+    'ia-6-1': { prev: 'ia-5-1', next: 'ia-7-1', contentKey: 'ia-6-1' },
+    'ia-7-1': { prev: 'ia-6-1', next: 'ia-8-1', contentKey: 'ia-7-1' },
+    'ia-8-1': { prev: 'ia-7-1', next: null, contentKey: 'ia-8-1' },
+  };
+
+  // Auto-navigate to current step on page load
+  React.useEffect(() => {
+    if (navProgress?.currentStepId) {
+      const currentStepId = navProgress.currentStepId;
+      const navInfo = iaNavigationSequence[currentStepId];
+      if (navInfo) {
+        setCurrentContent(navInfo.contentKey);
+      }
+    }
+  }, [navProgress?.currentStepId]);
+
   // Fetch user data
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
@@ -41,16 +75,22 @@ export default function ImaginalAgilityFixed() {
   };
 
   // Step accessibility function to match interface
-  const isStepAccessibleFunc = (sectionId: string, stepId: string) => {
-    return isStepUnlocked(stepId);
+  const isStepAccessible = (sectionId: string, stepId: string) => {
+    const unlockedSteps = navProgress?.unlockedSteps || [];
+    return unlockedSteps.includes(stepId);
   };
 
-  // Handle step clicks - match the UserHomeNavigationWithStarCard interface
+  // Handle step clicks - match the AllStarTeams implementation
   const handleStepClick = (sectionId: string, stepId: string) => {
-    if (isStepUnlocked(stepId)) {
-      setCurrentContent(stepId);
-      setCurrentStep(stepId);
+    const navInfo = iaNavigationSequence[stepId];
+    
+    if (!navInfo) {
+      setCurrentContent(`placeholder-${stepId}`);
+      return;
     }
+
+    setCurrentContent(navInfo.contentKey);
+    setCurrentStep(stepId);
   };
 
   // Handle assessment completion
@@ -76,34 +116,11 @@ export default function ImaginalAgilityFixed() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Yellow Heliotrope Imaginal Header Bar - Same as AST but with IA branding */}
-      <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
-        <div className="flex items-center">
-          <img 
-            src="/attached_assets/HI_Logo_horizontal.png" 
-            alt="Heliotrope Imaginal"
-            className="h-8 w-auto" 
-          />
-          <span className="ml-2 font-semibold">Heliotrope Imaginal</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          {user && (
-            <div className="flex items-center gap-2">
-              {(user as any)?.role === 'admin' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="rounded-md text-white hover:bg-yellow-400"
-                  onClick={() => navigate('/admin')}
-                >
-                  Admin
-                </Button>
-              )}
-              <span className="text-sm">Welcome, {(user as any)?.name}</span>
-            </div>
-          )}
-        </div>
-      </div>
+      {/* Test User Banner */}
+      <TestUserBanner />
+      
+      {/* Navigation Bar - Same as AllStarTeams */}
+      <NavBar />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -114,13 +131,13 @@ export default function ImaginalAgilityFixed() {
           onComplete={handleAssessmentComplete}
         />
 
-        {/* Left Navigation Drawer - Same as AST but with IA sections */}
+        {/* Left Navigation Drawer - Same as AST structure */}
         <UserHomeNavigation
           drawerOpen={drawerOpen}
           toggleDrawer={toggleDrawer}
           navigationSections={imaginalAgilityNavigationSections}
           completedSteps={completedSteps}
-          isStepAccessible={isStepAccessibleFunc}
+          isStepAccessible={isStepAccessible}
           handleStepClick={handleStepClick}
           starCard={null}
           flowAttributesData={null}
