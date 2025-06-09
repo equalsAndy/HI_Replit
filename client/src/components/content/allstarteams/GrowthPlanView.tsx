@@ -10,6 +10,7 @@ import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCi
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import tuningForkImage from '@assets/turningfork_1749438223210.png';
+import StarCard from '@/components/starcard/StarCard';
 
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
@@ -71,6 +72,12 @@ export default function GrowthPlanView({
   const { data: cantrilData } = useQuery({
     queryKey: ['/api/workshop-data/cantril-ladder'],
     enabled: currentStep === 2
+  });
+
+  // Fetch flow attributes data
+  const { data: flowAttributesData } = useQuery({
+    queryKey: ['/api/workshop-data/flow-attributes'],
+    enabled: currentStep === 1
   });
 
   // Fetch existing growth plan data
@@ -236,57 +243,29 @@ export default function GrowthPlanView({
           </div>
 
           <div className="space-y-4">
-            <div className="bg-white border-2 border-gray-300 p-6 rounded-lg">
-              <h4 className="font-semibold mb-4 text-center text-lg">STAR CARD</h4>
-              <div className="text-center mb-4">
-                <div className="text-sm text-gray-600 mb-2">Name: Test User 1</div>
-                <div className="text-sm text-gray-600 mb-2">Title: Test Participant</div>
-                <div className="text-sm text-gray-600 mb-4">Organization: Test Organization</div>
-              </div>
-              
-              {starData ? (
-                <div className="grid grid-cols-2 gap-3 text-center mb-4">
-                  <div className="bg-red-100 p-3 rounded-lg border-2 border-red-300">
-                    <div className="text-xl font-bold text-red-700">{starData.thinking}</div>
-                    <div className="text-xs text-red-600 uppercase tracking-wider">Thinking</div>
-                  </div>
-                  <div className="bg-blue-100 p-3 rounded-lg border-2 border-blue-300">
-                    <div className="text-xl font-bold text-blue-700">{starData.acting}</div>
-                    <div className="text-xs text-blue-600 uppercase tracking-wider">Acting</div>
-                  </div>
-                  <div className="bg-green-100 p-3 rounded-lg border-2 border-green-300">
-                    <div className="text-xl font-bold text-green-700">{starData.feeling}</div>
-                    <div className="text-xs text-green-600 uppercase tracking-wider">Feeling</div>
-                  </div>
-                  <div className="bg-yellow-100 p-3 rounded-lg border-2 border-yellow-300">
-                    <div className="text-xl font-bold text-yellow-700">{starData.planning}</div>
-                    <div className="text-xs text-yellow-600 uppercase tracking-wider">Planning</div>
-                  </div>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3 text-center mb-4">
-                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
-                    <div className="text-xl font-bold text-gray-500">--</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wider">Thinking</div>
-                  </div>
-                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
-                    <div className="text-xl font-bold text-gray-500">--</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wider">Acting</div>
-                  </div>
-                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
-                    <div className="text-xl font-bold text-gray-500">--</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wider">Feeling</div>
-                  </div>
-                  <div className="bg-gray-100 p-3 rounded-lg border-2 border-gray-300">
-                    <div className="text-xl font-bold text-gray-500">--</div>
-                    <div className="text-xs text-gray-500 uppercase tracking-wider">Planning</div>
-                  </div>
-                </div>
-              )}
-              
-              <div className="text-center">
-                <div className="text-xs text-gray-500">allstarteams</div>
-              </div>
+            <div className="flex justify-center">
+              <StarCard 
+                thinking={starData?.thinking || 0}
+                acting={starData?.acting || 0}
+                feeling={starData?.feeling || 0}
+                planning={starData?.planning || 0}
+                flowAttributes={
+                  flowAttributesData && 
+                  (flowAttributesData as any).attributes && 
+                  Array.isArray((flowAttributesData as any).attributes) ? 
+                  (flowAttributesData as any).attributes.map((attr: any) => {
+                    if (!attr || !attr.name) {
+                      return { text: "", color: "rgb(156, 163, 175)" };
+                    }
+                    return {
+                      text: attr.name,
+                      color: "rgb(59, 130, 246)" // Blue color for flow attributes
+                    };
+                  }) : []
+                }
+                downloadable={false}
+                preview={false}
+              />
             </div>
           </div>
         </div>
