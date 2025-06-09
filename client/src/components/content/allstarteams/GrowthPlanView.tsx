@@ -394,7 +394,7 @@ export default function GrowthPlanView({
                         </div>
                       </div>
                       <span className="font-medium text-sm">
-                        {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()}
+                        {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.score}%)
                       </span>
                     </div>
                     <div>
