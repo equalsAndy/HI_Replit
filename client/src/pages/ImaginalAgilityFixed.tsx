@@ -116,9 +116,6 @@ export default function ImaginalAgilityFixed() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Test User Banner */}
-      <TestUserBanner />
-      
       {/* Navigation Bar - Same as AllStarTeams */}
       <NavBar />
 
