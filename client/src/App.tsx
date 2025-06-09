@@ -10,6 +10,7 @@ import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import ImaginalAgilityWorkshop from '@/pages/ImaginalAgilityWorkshop';
+import ImaginalAgilityDemo from '@/pages/ImaginalAgilityDemo';
 import AdminDashboard from '@/pages/admin/dashboard';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -59,8 +60,9 @@ const App: React.FC = () => {
                     {/* Workshop routes */}
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/ast" component={AllStarTeamsPage} />
-                    <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
+                    <Route path="/imaginal-agility" component={ImaginalAgilityDemo} />
                     <Route path="/imaginal-agility/:stepId" component={ImaginalAgilityWorkshop} />
+                    <Route path="/ia-legacy" component={ImaginalAgilityPage} />
 
                     {/* Admin routes */}
                     <Route path="/admin" component={AdminDashboard} />
