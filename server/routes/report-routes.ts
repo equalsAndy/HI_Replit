@@ -254,7 +254,7 @@ function generateExecutiveSummaryContent(starCard: any, stepByStep: any, userNam
     <div class="summary-content">
       <p>${userName} demonstrates a unique combination of strengths with ${strengthName} as their primary strength (${topStrength[1]}%). 
       Their assessment reveals a well-rounded profile with strong capabilities in ${Object.entries(percentages)
-        .filter(([, value]) => parseFloat(value) > 20)
+        .filter(([, value]) => parseFloat(String(value)) > 20)
         .map(([key]) => key)
         .join(', ')}.</p>
       
@@ -380,13 +380,13 @@ function generateFutureVisionContent(futureSelf: any, cantril: any): string {
 }
 
 function generateConstraintsContent(roundingOut: any, stepByStep: any, percentages: any): string {
-  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) < parseFloat(b[1]) ? a : b);
+  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) < parseFloat(String(b[1])) ? a : b);
   
   return `
     <div class="constraints-content">
       <h4>Strengths in Action</h4>
       <ul>
-        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) > parseFloat(b[1]) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
+        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
         <li><strong>Supporting Strengths:</strong> Balanced approach across multiple areas</li>
       </ul>
       
