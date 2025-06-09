@@ -280,21 +280,6 @@ export default function QuarterlyReportView({ navigate, setCurrentContent }: Qua
         <p className="text-sm text-gray-500">
           Keep this report handy throughout the quarter to track your progress and stay aligned with your goals.
         </p>
-        <div className="mt-6">
-          <Button
-            onClick={() => setCurrentContent('growth-plan')}
-            variant="outline"
-            className="mr-4"
-          >
-            Back to Growth Plan
-          </Button>
-          <Button
-            onClick={() => navigate('workshop')}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            Return to Workshop
-          </Button>
-        </div>
       </div>
     </div>
   );
