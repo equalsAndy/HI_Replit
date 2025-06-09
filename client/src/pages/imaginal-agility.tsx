@@ -144,13 +144,12 @@ export default function ImaginalAgilityHome() {
   const resetUserProgress = useMutation({
     mutationFn: async () => {
       if (!(user as any)?.id) return null;
-      const res = await apiRequest('POST', `/api/test-users/reset/${(user as any).id}`);
+      const res = await fetch(`/api/test-users/reset/${(user as any).id}`, { method: 'POST' });
       return res.json();
     },
     onSuccess: () => {
       // Clear local storage progress
       localStorage.removeItem(PROGRESS_STORAGE_KEY);
-      setCompletedSteps([]);
 
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
@@ -175,7 +174,8 @@ export default function ImaginalAgilityHome() {
     if (savedProgress) {
       try {
         const { completed } = JSON.parse(savedProgress);
-        setCompletedSteps(completed || []);
+        // Progress is managed by navigation hook, not local state
+        console.log('Loaded progress:', completed);
       } catch (error) {
         console.error('Error loading progress:', error);
       }
@@ -258,10 +258,10 @@ export default function ImaginalAgilityHome() {
         </div>
         <div className="flex items-center space-x-2">
           {/* User Controls Menu for authenticated users */}
-          {user?.id ? (
+          {(user as any)?.id ? (
             <div className="flex items-center gap-2">
               {/* Admin button - only shown for admin users */}
-              {user?.role === 'admin' && (
+              {(user as any)?.role === 'admin' && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
