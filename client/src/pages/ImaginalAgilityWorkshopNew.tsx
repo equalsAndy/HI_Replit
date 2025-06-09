@@ -2,30 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { useApplication } from '@/components/providers/ApplicationProvider';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import NavBar from '@/components/navigation/NavBar';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigation';
 import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 
-export default function ImaginalAgilityDemo() {
+export default function ImaginalAgilityWorkshopNew() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const { toast } = useToast();
-  const { currentApp, setCurrentApp } = useApplication();
+  
   const {
     progress: navProgress,
-    updateVideoProgress,
     markStepCompleted: markNavStepCompleted,
     updateCurrentStep: setCurrentStep,
     isStepAccessibleByProgression: isStepUnlocked,
-    canProceedToNext,
     shouldShowGreenCheckmark: isStepCompleted,
-    getCurrentVideoProgress: getVideoProgress
-  } = useNavigationProgress();
+  } = useNavigationProgress('ia'); // Pass 'ia' for Imaginal Agility
 
   // Use navigation progress state
   const completedSteps = navProgress?.completedSteps || [];
@@ -36,12 +32,7 @@ export default function ImaginalAgilityDemo() {
     retry: false
   });
 
-  // Set current app to imaginal-agility on component mount
-  useEffect(() => {
-    setCurrentApp('imaginal-agility');
-  }, [setCurrentApp]);
-
-  // Imaginal Agility specific navigation structure
+  // Imaginal Agility navigation structure matching the image provided
   const iaNavigationSections = [
     {
       id: "1",
@@ -131,7 +122,7 @@ export default function ImaginalAgilityDemo() {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      {/* Use the same header as AllStarTeams */}
+      {/* Use the same NavBar as AllStarTeams - this provides the yellow Heliotrope header */}
       <NavBar />
 
       {/* Main Content */}
