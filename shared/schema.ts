@@ -147,3 +147,24 @@ export const insertGrowthPlanSchema = createInsertSchema(growthPlans);
 // Type definitions for growth plans
 export type GrowthPlan = typeof growthPlans.$inferSelect;
 export type InsertGrowthPlan = z.infer<typeof insertGrowthPlanSchema>;
+
+// Navigation progress table for tracking user progression
+export const navigationProgress = pgTable('navigation_progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  appType: varchar('app_type', { length: 10 }).notNull(), // 'ast' or 'ia'
+  completedSteps: text('completed_steps').notNull(), // JSON array of step IDs
+  currentStepId: varchar('current_step_id', { length: 20 }).notNull(),
+  unlockedSteps: text('unlocked_steps').notNull(), // JSON array of step IDs
+  videoProgress: text('video_progress'), // JSON object of video progress
+  lastVisitedAt: timestamp('last_visited_at').defaultNow().notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schema for navigation progress
+export const insertNavigationProgressSchema = createInsertSchema(navigationProgress);
+
+// Type definitions for navigation progress
+export type NavigationProgress = typeof navigationProgress.$inferSelect;
+export type InsertNavigationProgress = z.infer<typeof insertNavigationProgressSchema>;

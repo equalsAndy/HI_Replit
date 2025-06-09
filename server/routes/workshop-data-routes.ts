@@ -2078,4 +2078,252 @@ workshopDataRouter.get('/userAssessments', async (req: Request, res: Response) =
   }
 });
 
+/**
+ * IA Navigation Progress API endpoints
+ */
+
+// Get navigation progress for IA workshop
+workshopDataRouter.get('/navigation-progress/:appType', async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    const { appType } = req.params;
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    // Get navigation progress for the user and app type
+    const progress = await db
+      .select()
+      .from(schema.navigationProgress)
+      .where(
+        and(
+          eq(schema.navigationProgress.userId, userId),
+          eq(schema.navigationProgress.appType, appType)
+        )
+      );
+    
+    if (progress.length === 0) {
+      // Return default navigation progress for IA
+      const defaultProgress = {
+        completedSteps: [],
+        currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
+        appType,
+        lastVisitedAt: new Date().toISOString(),
+        unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
+        videoProgress: {}
+      };
+      
+      return res.status(200).json({
+        success: true,
+        data: defaultProgress
+      });
+    }
+    
+    const navigationData = progress[0];
+    const parsedProgress = {
+      completedSteps: JSON.parse(navigationData.completedSteps),
+      currentStepId: navigationData.currentStepId,
+      appType: navigationData.appType,
+      lastVisitedAt: navigationData.lastVisitedAt,
+      unlockedSteps: JSON.parse(navigationData.unlockedSteps),
+      videoProgress: navigationData.videoProgress ? JSON.parse(navigationData.videoProgress) : {}
+    };
+    
+    return res.status(200).json({
+      success: true,
+      data: parsedProgress
+    });
+  } catch (error) {
+    console.error('Error fetching navigation progress:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch navigation progress'
+    });
+  }
+});
+
+// Save navigation progress for IA workshop
+workshopDataRouter.post('/navigation-progress', async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { completedSteps, currentStepId, appType, unlockedSteps, videoProgress } = req.body;
+    
+    // Check if progress record exists
+    const existingProgress = await db
+      .select()
+      .from(schema.navigationProgress)
+      .where(
+        and(
+          eq(schema.navigationProgress.userId, userId),
+          eq(schema.navigationProgress.appType, appType)
+        )
+      );
+    
+    const progressData = {
+      userId,
+      appType,
+      completedSteps: JSON.stringify(completedSteps),
+      currentStepId,
+      unlockedSteps: JSON.stringify(unlockedSteps),
+      videoProgress: JSON.stringify(videoProgress || {}),
+      lastVisitedAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    if (existingProgress.length > 0) {
+      // Update existing progress
+      await db
+        .update(schema.navigationProgress)
+        .set(progressData)
+        .where(eq(schema.navigationProgress.id, existingProgress[0].id));
+    } else {
+      // Create new progress record
+      await db.insert(schema.navigationProgress).values(progressData);
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Navigation progress saved'
+    });
+  } catch (error) {
+    console.error('Error saving navigation progress:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save navigation progress'
+    });
+  }
+});
+
+/**
+ * IA Assessment API endpoints
+ */
+
+// Get IA assessment results
+workshopDataRouter.get('/ia-assessment/:userId?', async (req: Request, res: Response) => {
+  try {
+    const targetUserId = req.params.userId ? parseInt(req.params.userId) : 
+                        (req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null));
+    
+    if (!targetUserId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    // Get IA assessment for the user
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, targetUserId),
+          eq(schema.userAssessments.assessmentType, 'iaCoreCapabilities')
+        )
+      );
+    
+    if (assessment.length === 0) {
+      return res.status(200).json({
+        success: true,
+        data: null
+      });
+    }
+    
+    const assessmentData = assessment[0];
+    const results = JSON.parse(assessmentData.results);
+    
+    return res.status(200).json({
+      success: true,
+      data: {
+        id: assessmentData.id,
+        userId: assessmentData.userId,
+        assessmentType: assessmentData.assessmentType,
+        results,
+        createdAt: assessmentData.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching IA assessment:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to fetch IA assessment'
+    });
+  }
+});
+
+// Save IA assessment results
+workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) => {
+  try {
+    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { results } = req.body;
+    
+    if (!results) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assessment results are required'
+      });
+    }
+    
+    // Check if assessment already exists
+    const existingAssessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'iaCoreCapabilities')
+        )
+      );
+    
+    if (existingAssessment.length > 0) {
+      // Update existing assessment
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(results),
+        })
+        .where(eq(schema.userAssessments.id, existingAssessment[0].id));
+    } else {
+      // Create new assessment
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'iaCoreCapabilities',
+        results: JSON.stringify(results)
+      });
+    }
+    
+    return res.status(200).json({
+      success: true,
+      message: 'IA assessment saved successfully',
+      data: results
+    });
+  } catch (error) {
+    console.error('Error saving IA assessment:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to save IA assessment'
+    });
+  }
+});
+
 export default workshopDataRouter;

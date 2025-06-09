@@ -60,7 +60,7 @@ const App: React.FC = () => {
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/ast" component={AllStarTeamsPage} />
                     <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
-                    <Route path="/imaginal-agility/:stepId" component={() => import('@/pages/ImaginalAgilityWorkshop')} />
+                    <Route path="/imaginal-agility/:stepId" component={ImaginalAgilityWorkshop} />
 
                     {/* Admin routes */}
                     <Route path="/admin" component={AdminDashboard} />

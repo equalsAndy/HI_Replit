@@ -56,9 +56,9 @@ export default function ImaginalAgilityWorkshop() {
   useEffect(() => {
     if (navigationProgress) {
       setCompletedSteps(navigationProgress.completedSteps || []);
-      setCurrentStepId(params?.stepId || navigationProgress.currentStepId || 'ia-1-1');
+      setCurrentStepId((params && params.stepId) || navigationProgress.currentStepId || 'ia-1-1');
     }
-  }, [navigationProgress, params?.stepId]);
+  }, [navigationProgress, params]);
 
   // Update assessment results when loaded
   useEffect(() => {
@@ -195,13 +195,11 @@ export default function ImaginalAgilityWorkshop() {
       <div className="flex">
         {/* Left Navigation */}
         <div className="w-80 bg-white border-r border-gray-200 min-h-screen">
-          <Navigation
-            sections={imaginalAgilityNavigationSections}
+          <ImaginalAgilityNavigation
             currentStepId={currentStepId}
             completedSteps={completedSteps}
             onStepClick={navigateToStep}
             isStepUnlocked={isStepUnlocked}
-            appType="ia"
           />
         </div>
 
