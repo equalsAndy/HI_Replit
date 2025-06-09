@@ -216,7 +216,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
         />
       );
 
