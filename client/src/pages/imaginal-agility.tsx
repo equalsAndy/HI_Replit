@@ -1,51 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
-import ContentViews from '@/components/content/ContentViews';
-import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
-import { User } from '@/shared/types';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
-import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import LogoutButton from '@/components/auth/LogoutButton';
-import { useProgressionLogic } from '@/hooks/use-progression-logic';
-import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
-import ProfileEditor from '@/components/profile/ProfileEditor';
-
-// Constants
-const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
+import { useIANavigationProgress } from '@/hooks/use-navigation-progress-ia';
+import ImaginalAgilityContent from '@/components/content/imaginalagility/ImaginalAgilityContent';
 
 export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(true);
-  const [currentContent, setCurrentContent] = useState("imaginal-intro");
+  const [currentContent, setCurrentContent] = useState("ia-introduction");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const { toast } = useToast();
 
-  // Use progression logic for sequential unlocking
+  // Use IA navigation hook
   const {
-    completedSteps,
-    isStepUnlocked,
+    progress,
+    markStepCompleted,
     isStepCompleted,
-    markStepCompleted: progressionMarkCompleted,
-    markVideoWatched,
-    saveAssessmentResult,
-    getProgressCount
-  } = useProgressionLogic();
+    isStepAccessible,
+    isNextButtonEnabled
+  } = useIANavigationProgress();
 
   // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/user/profile');
+        const response = await fetch('/api/user/me');
         if (response.status === 401) {
           toast({
             title: "Authentication Required",
             description: "Please log in to access this workshop.",
           });
-          // Save the workshop selection before redirecting
           localStorage.setItem('selectedApp', 'imaginal-agility');
           navigate('/auth?app=imaginal-agility');
         }
@@ -66,263 +50,78 @@ export default function ImaginalAgilityHome() {
       name: string;
       username: string;
       email: string | null;
-      title: string | null;
-      organization: string | null;
       role?: string;
-      progress?: number;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/user/me'],
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000,
   });
 
-  // Clear progress when user has database progress: 0
-  React.useEffect(() => {
-    const actualUser = user?.user || user;
-
-    if (actualUser?.id) {
-      const currentUserId = actualUser.id.toString();
-      const sessionKey = `progress-cleared-imaginal-${currentUserId}`;
-      const hasAlreadyCleared = sessionStorage.getItem(sessionKey);
-
-      // Clear progress if current user has progress: 0 (database reset)
-      if (actualUser.progress === 0 && !hasAlreadyCleared) {
-        console.log(`User ${currentUserId} has database progress: 0, clearing Imaginal Agility cached data`);
-
-        // Clear Imaginal Agility specific progress cache
-        localStorage.removeItem(PROGRESS_STORAGE_KEY);
-
-        // Mark as cleared for this session
-        sessionStorage.setItem(sessionKey, 'true');
-      }
-    }
-  }, [user]);
-
-  // Logout function for ProfileEditor
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        // Clear React Query cache
-        queryClient.clear();
-
-        // Show success toast
-        toast({
-          title: 'Logged out successfully',
-          description: 'You have been logged out of your account.',
-          variant: 'default',
-        });
-
-        // Navigate to home page
-        navigate('/');
-
-        // Force page reload to clear all state
-        window.location.reload();
-      } else {
-        throw new Error(data.error || 'Logout failed');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: 'Logout failed',
-        description: 'There was a problem logging out. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
-
-  // Reset user progress mutation
-  const resetUserProgress = useMutation({
-    mutationFn: async () => {
-      if (!user?.id) return null;
-      const res = await apiRequest('POST', `/api/test-users/reset/${user.id}`);
-      return res.json();
-    },
-    onSuccess: () => {
-      // Clear local storage progress
-      localStorage.removeItem(PROGRESS_STORAGE_KEY);
-      setCompletedSteps([]);
-
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
-
-      toast({
-        title: "Progress Reset",
-        description: "Your progress has been reset successfully.",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to reset progress: " + String(error),
-        variant: "destructive"
-      });
-    }
-  });
-
-  // Load completed steps from localStorage on component mount
-  useEffect(() => {
-    const savedProgress = localStorage.getItem(PROGRESS_STORAGE_KEY);
-    if (savedProgress) {
-      try {
-        const { completed } = JSON.parse(savedProgress);
-        setCompletedSteps(completed || []);
-      } catch (error) {
-        console.error('Error loading progress:', error);
-      }
-    }
-  }, []);
-
-  // Update navigation sections with completed steps count
-  const updatedNavigationSections = imaginalAgilityNavigationSections.map(section => {
-    const completedStepsInSection = section.steps.filter(step => 
-      completedSteps.includes(step.id)
-    ).length;
-
-    return {
-      ...section,
-      completedSteps: completedStepsInSection
-    };
-  });
-
-  // Toggle drawer open/closed
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  // Mark a step as completed (using progression logic)
-  const markStepCompleted = (stepId: string) => {
-    progressionMarkCompleted(stepId);
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: [...completedSteps, stepId] }));
-  };
-
-  // Function to determine if a step is accessible
-  const isStepAccessible = (sectionId: string, stepId: string) => {
-    const sectionIndex = parseInt(sectionId) - 1;
-    const stepIndex = parseInt(stepId.split('-')[1]) - 1;
-
-    // If it's the first step, it's always accessible
-    if (sectionIndex === 0 && stepIndex === 0) return true;
-
-    // For other steps, check if the previous step is completed
-    const prevStepId = `${sectionId}-${stepIndex}`;
-    return completedSteps.includes(prevStepId);
-  };
-
-  // Get content key from step ID
-  const getContentKeyFromStepId = (sectionId: string, stepId: string): string => {
-    // Find the step in the navigation sections
-    const section = imaginalAgilityNavigationSections.find(s => s.id === sectionId);
-    if (!section) return '';
-
-    const step = section.steps.find(s => s.id === stepId);
-    return step?.contentKey || '';
-  };
-
-  // Handle step click
-  const handleStepClick = (sectionId: string, stepId: string) => {
-    // Find the content key for this step
-    const contentKey = getContentKeyFromStepId(sectionId, stepId);
-
-    if (contentKey) {
-      setCurrentContent(contentKey);
-
-      // Don't automatically mark assessments as completed
-      const isAssessment = contentKey.includes('assessment');
-      if (!isAssessment) {
-        markStepCompleted(stepId);
-      }
-    }
-  };
+  if (isUserLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading Imaginal Agility Workshop...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Yellow NavBar - Just like in AllStarTeams */}
-      <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
-        <div className="flex items-center">
-          <img 
-            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
-            alt="Imaginal Agility"
-            className="h-8 w-auto" 
-          />
-          <span className="ml-2 font-semibold">Imaginal Agility</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* User Controls Menu for authenticated users */}
-          {user?.id ? (
-            <div className="flex items-center gap-2">
-              {/* Admin button - only shown for admin users */}
-              {user?.role === 'admin' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="rounded-md text-white hover:bg-yellow-400"
-                  onClick={() => navigate('/admin')}
-                >
-                  Admin
-                </Button>
-              )}
-
-              {/* Profile Editor with logout functionality */}
-              <ProfileEditor
-                user={user}
-                onLogout={handleLogout}
-              />
-            </div>
-          ) : (
-            /* Show ProfileEditor for all users regardless of login status */
-            <ProfileEditor
-              user={user}
-              onLogout={handleLogout}
-            />
-          )}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-blue-600 text-white p-4">
+        <div className="max-w-6xl mx-auto flex justify-between items-center">
+          <div className="flex items-center">
+            <h1 className="text-xl font-semibold">Imaginal Agility Workshop</h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            {user?.user?.name && (
+              <span className="text-blue-100">Welcome, {user.user.name}</span>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left Navigation Drawer */}
-        <UserHomeNavigation
-          drawerOpen={drawerOpen}
-          toggleDrawer={toggleDrawer}
-          navigationSections={updatedNavigationSections}
-          completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
-          handleStepClick={handleStepClick}
-          currentContent={currentContent}
-        />
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto p-6">
-          <ContentViews
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            setIsAssessmentModalOpen={() => setIsAssessmentModalOpen(true)}
-          />
-
-          {/* Add the new 5-Capacity Assessment Modal */}
-          <ImaginalAgilityAssessmentComplete
-            isOpen={isAssessmentModalOpen}
-            onClose={() => setIsAssessmentModalOpen(false)}
-            onComplete={(results) => {
-              setIsAssessmentModalOpen(false);
-              markStepCompleted('1-5');
-              setCurrentContent("assessment-results");
-            }}
-          />
+      {/* Progress Indicator */}
+      {progress && (
+        <div className="bg-white border-b border-gray-200 p-4">
+          <div className="max-w-6xl mx-auto">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">Progress:</span>
+              <div className="flex space-x-2">
+                {['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-4-2'].map((stepId) => (
+                  <div
+                    key={stepId}
+                    className={`w-3 h-3 rounded-full ${
+                      isStepCompleted(stepId)
+                        ? 'bg-green-500'
+                        : isStepAccessible(stepId)
+                        ? 'bg-blue-300'
+                        : 'bg-gray-300'
+                    }`}
+                  />
+                ))}
+              </div>
+              <span className="text-sm text-gray-600">
+                {progress.completedSteps.length} of 5 steps completed
+              </span>
+            </div>
+          </div>
         </div>
+      )}
+
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto p-6">
+        <ImaginalAgilityContent
+          currentContent={currentContent}
+          navigate={navigate}
+          markStepCompleted={markStepCompleted}
+          setCurrentContent={setCurrentContent}
+          setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+        />
       </div>
     </div>
   );

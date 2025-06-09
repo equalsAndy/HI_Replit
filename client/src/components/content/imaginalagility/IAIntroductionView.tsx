@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
-import VideoPlayer from '../../VideoPlayer';
+import VideoPlayer from '../VideoPlayer';
 import { useIANavigationProgress } from '../../../hooks/use-navigation-progress-ia';
 
 interface IAIntroductionViewProps {
