@@ -8,6 +8,7 @@ import fixedInviteRoutes from './routes/fixed-invite-routes';
 import userRoutes from './routes/user-routes';
 import workshopDataRoutes from './routes/workshop-data-routes';
 import growthPlanRoutes from './routes/growth-plan-routes';
+import navigationProgressRoutes from './routes/navigation-progress-routes';
 import { resetRouter } from './reset-routes';
 import { adminRouter } from './routes/admin-routes';
 
