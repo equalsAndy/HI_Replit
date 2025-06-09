@@ -818,6 +818,9 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
+    case 'workshop-resources':
+      return <WorkshopResourcesView navigate={navigate} markStepCompleted={markStepCompleted} setCurrentContent={setCurrentContent} />;
+
     // Handle placeholder content
     default:
       return (
