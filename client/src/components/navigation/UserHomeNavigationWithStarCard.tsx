@@ -282,15 +282,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         
         {/* Navigation Content */}
         <div className="p-4 h-full overflow-y-auto">
-          {/* Logo */}
-          <div className="mb-4 flex justify-center">
-            <img 
-              src="/src/assets/all-star-teams-logo-250px.png" 
-              alt="AllStarTeams" 
-              className="h-12 w-auto"
-            />
-          </div>
-          
           {/* Navigation Sections */}
           <nav className="space-y-6">
             {navigationSections.map((section) => (
