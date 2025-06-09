@@ -36,7 +36,12 @@ router.get('/generate/:userId', async (req, res) => {
     };
 
     assessments.forEach(assessment => {
-      reportData.assessments[assessment.assessmentType] = assessment.data;
+      try {
+        reportData.assessments[assessment.assessmentType] = JSON.parse(assessment.results);
+      } catch (error) {
+        console.error(`Error parsing assessment data for ${assessment.assessmentType}:`, error);
+        reportData.assessments[assessment.assessmentType] = {};
+      }
     });
 
     // Check required assessments
@@ -242,8 +247,8 @@ function generateComprehensiveReportHTML(data: any): string {
 }
 
 function generateExecutiveSummaryContent(starCard: any, stepByStep: any, userName: string, percentages: any): string {
-  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) > parseFloat(b[1]) ? a : b);
-  const strengthName = topStrength[0].charAt(0).toUpperCase() + topStrength[0].slice(1);
+  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b);
+  const strengthName = String(topStrength[0]).charAt(0).toUpperCase() + String(topStrength[0]).slice(1);
   
   return `
     <div class="summary-content">

@@ -6,6 +6,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool, TrendingUp } from 'lucide-react';
 import { debounce } from 'lodash';
+import { useLocation } from 'wouter';
 
 // import ladderGraphic from '@assets/image_1747800627533.png'; // Commented out missing asset
 
@@ -160,9 +161,13 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
       
       <div className="flex justify-end">
         <Button 
-          onClick={() => {
-            handleSave();
-            navigate('/allstarteams/5-1');
+          onClick={async () => {
+            await handleSave();
+            if (navigate && typeof navigate === 'function') {
+              navigate('/allstarteams/5-1');
+            } else {
+              window.location.href = '/allstarteams/5-1';
+            }
           }}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
