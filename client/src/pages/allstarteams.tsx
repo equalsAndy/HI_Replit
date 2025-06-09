@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
-import ContentViews from '@/components/content/ContentViews';
+import AllStarTeamsContent from '@/components/content/allstarteams/AllStarTeamsContent';
 import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 // import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { Button } from '@/components/ui/button';
@@ -523,7 +523,7 @@ export default function AllStarTeams() {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
-          <ContentViews
+          <AllStarTeamsContent
             currentContent={currentContent}
             markStepCompleted={markNavStepCompleted}
             setCurrentContent={setCurrentContent}
