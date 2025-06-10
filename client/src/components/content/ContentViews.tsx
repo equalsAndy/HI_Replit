@@ -243,17 +243,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'imaginal-intro':
       return (
         <div className="prose max-w-none">
-          <div className="flex items-center mb-6">
-            <img 
-              src="/heliotrope-logo.png" 
-              alt="Heliotrope Imaginal" 
-              className="h-12 w-auto mr-4"
-            />
-            <h1 className="text-3xl font-bold text-purple-700 mb-0">
-              Imaginal Agility Workshop Course &gt; Introduction to Imaginal Agility
-            </h1>
-          </div>
-          
           <div className="mb-8">
             <iframe 
               width="400" 
@@ -334,17 +323,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'triple-challenge':
       return (
         <div className="prose max-w-none">
-          <div className="flex items-center mb-6">
-            <img 
-              src="/heliotrope-logo.png" 
-              alt="Heliotrope Imaginal" 
-              className="h-12 w-auto mr-4"
-            />
-            <h1 className="text-3xl font-bold text-purple-700 mb-0">
-              Imaginal Agility Workshop Course &gt; The Triple Challenge
-            </h1>
-          </div>
-          
           <div className="mb-8">
             <iframe 
               width="400" 
@@ -453,15 +431,17 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'imaginal-solution':
       return (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
-
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              section="imaginal-solution"
-              title="Imaginal Agility Solution"
-              fallbackUrl="https://www.youtube.com/embed/BLh502BlZLE"
-            />
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/l3XVwPGE6UY" 
+              title="Imaginal Agility Solution" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
           </div>
 
           <div className="flex justify-end mb-8">

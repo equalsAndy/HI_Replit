@@ -219,28 +219,25 @@ export default function ImaginalAgilityHome() {
   };
 
   // Get content key from step ID
-  const getContentKeyFromStepId = (sectionId: string, stepId: string): string => {
+  const getContentKeyFromStepId = (stepId: string): string => {
     // Find the step in the navigation sections
-    const section = imaginalAgilityNavigationSections.find(s => s.id === sectionId);
-    if (!section) return '';
-
-    const step = section.steps.find(s => s.id === stepId);
-    return step?.contentKey || '';
+    for (const section of imaginalAgilityNavigationSections) {
+      const step = section.steps.find(s => s.id === stepId);
+      if (step && (step as any).contentKey) {
+        return (step as any).contentKey;
+      }
+    }
+    return '';
   };
 
   // Handle step click
   const handleStepClick = (sectionId: string, stepId: string) => {
     // Find the content key for this step
-    const contentKey = getContentKeyFromStepId(sectionId, stepId);
+    const contentKey = getContentKeyFromStepId(stepId);
 
     if (contentKey) {
       setCurrentContent(contentKey);
-
-      // Don't automatically mark assessments as completed
-      const isAssessment = contentKey.includes('assessment');
-      if (!isAssessment) {
-        markStepCompleted(stepId);
-      }
+      // Note: Don't auto-complete steps on navigation - only when user explicitly progresses
     }
   };
 
@@ -250,8 +247,8 @@ export default function ImaginalAgilityHome() {
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
         <div className="flex items-center">
           <img 
-            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
-            alt="Imaginal Agility"
+            src="/heliotrope-logo.png" 
+            alt="Heliotrope Imaginal"
             className="h-8 w-auto" 
           />
           <span className="ml-2 font-semibold">Imaginal Agility</span>
