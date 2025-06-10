@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 
-import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
+import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContentFixed';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { apiRequest, queryClient } from '@/lib/queryClient';

@@ -98,34 +98,22 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
-                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
-                title="Introduction to Imaginal Agility" 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/F92JtFJYOiA" 
+                title="Introduction to Imaginal Agility"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
             <div className="space-y-4 text-lg text-gray-700">
-              <p>Welcome.</p>
+              <p>Welcome to the Imaginal Agility Workshop — a transformative journey into the heart of human creativity and collaboration in the age of AI.</p>
               
-              <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
+              <p>In this workshop, you'll discover how to harness your imagination as a strategic advantage, develop core human capabilities, and learn to work synergistically with artificial intelligence while maintaining your unique human edge.</p>
               
-              <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
-              
-              <p>This Micro Course is your starting point.</p>
-              
-              <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
-              
-              <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
-              
-              <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
-              
-              <p className="font-semibold">You're not just learning about imagination. You're harnessing it — together.</p>
+              <p>Get ready to unlock your potential and revolutionize how you approach challenges, innovation, and teamwork.</p>
             </div>
             
             <div className="flex justify-end mt-8">
@@ -150,21 +138,23 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
-                src="https://www.youtube.com/embed/EsExXeKFiKg" 
-                title="The Triple Challenge" 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/7Jl0wnHlnzM" 
+                title="The Triple Challenge"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
-            <p className="text-lg text-gray-700 mb-8">
-              As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.
-            </p>
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Modern teams face an unprecedented triple challenge that requires a new approach to human capability development.</p>
+              
+              <p>Understanding these three interconnected challenges is essential for developing the agility needed to thrive in today's complex, rapidly evolving landscape.</p>
+              
+              <p>In this session, we'll explore how these challenges create both obstacles and opportunities for revolutionary thinking and collaboration.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -175,7 +165,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Imaginal Agility Solution
+                Next: HaiQ Framework
               </Button>
             </div>
           </div>
@@ -184,19 +174,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-3-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Imaginal Agility Solution</h1>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">HaiQ Framework</h1>
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
-                src="https://www.youtube.com/embed/l3XVwPGE6UY" 
-                title="Imaginal Agility Solution" 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/9DswWxC8hkw" 
+                title="HaiQ Framework"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
@@ -330,7 +318,22 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             </div>
 
             {assessmentResults ? (
-              <ImaginalAgilityResults results={assessmentResults} />
+              <div className="space-y-6">
+                <ImaginalAgilityResults results={assessmentResults} />
+                
+                <div className="flex justify-end mt-8">
+                  <Button 
+                    onClick={() => {
+                      markStepCompleted('ia-4-2');
+                      setCurrentContent("ia-5-1");
+                    }}
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
+                    size="lg"
+                  >
+                    Next: Teamwork Preparation
+                  </Button>
+                </div>
+              </div>
             ) : (
               <Card className="border-2 border-yellow-200 bg-yellow-50">
                 <CardContent className="p-6">
@@ -350,74 +353,33 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 </CardContent>
               </Card>
             )}
-
-            {assessmentResults && (
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => {
-                    markStepCompleted('ia-4-2');
-                    setCurrentContent("ia-5-1");
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                  size="lg"
-                >
-                  Next: Teamwork Preparation
-                </Button>
-              </div>
-            )}
-          </div>
-        );
-
-      case 'ia-4-1':
-        return (
-          <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination Assessment</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Discover your unique profile across five foundational human capacities.
-            </p>
-            
-            <div className="flex justify-center mt-8">
-              <Button 
-                onClick={() => setIsImaginalAssessmentOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Start Assessment
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 'ia-4-2':
-        return (
-          <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">5Cs Assessment</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              A deeper dive into the five core capabilities that comprise Imaginal Agility.
-            </p>
-            
-            <div className="flex justify-end mt-8">
-              <Button 
-                onClick={() => {
-                  markStepCompleted('ia-4-2');
-                  setCurrentContent("ia-5-1");
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Next: Insights Review
-              </Button>
-            </div>
           </div>
         );
 
       case 'ia-5-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Insights Review</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Review your assessment results and understand your unique profile.
-            </p>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Teamwork Preparation</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/hOV2zaWVxeU" 
+                title="Teamwork Preparation"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Welcome to the next stage of the Imaginal Agility Workshop.</p>
+              
+              <p>Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.</p>
+              
+              <p>Together, you'll enter a shared digital whiteboard space designed for real-time collaboration. This is where individual insights become team breakthroughs.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -428,7 +390,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Development Strategies
+                Next: Team Practice
               </Button>
             </div>
           </div>
@@ -437,9 +399,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-6-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Development Strategies</h1>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Team Practice</h1>
             <p className="text-lg text-gray-700 mb-8">
-              Personalized strategies for developing your Imaginal Agility capabilities.
+              Engage in collaborative exercises that put your capabilities into action.
             </p>
             
             <div className="flex justify-end mt-8">
