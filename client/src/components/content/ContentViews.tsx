@@ -447,13 +447,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <div className="flex justify-end mb-8">
             <Button 
               onClick={() => {
-                markStepCompleted('1-3');
-                setCurrentContent("five-capabilities");
+                markStepCompleted('ia-3-1');
+                setCurrentContent("five-c-assessment");
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
             >
-              Next: Your 5 Capabilities (5Cs)
+              Next: Self-Assessment
             </Button>
           </div>
 
@@ -488,13 +488,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <div className="flex justify-end mt-8">
             <Button 
               onClick={() => {
-                markStepCompleted('1-3');
-                setCurrentContent("five-capabilities");
+                markStepCompleted('ia-3-1');
+                setCurrentContent("five-c-assessment");
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
               size="lg"
             >
-              Next: Your 5 Capabilities (5Cs)
+              Next: Self-Assessment
             </Button>
           </div>
         </div>
@@ -615,14 +615,38 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'five-c-assessment':
       return (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">5Cs Assessment</h1>
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
+          
+          <div className="text-lg text-gray-700 space-y-4 mb-8">
+            <p>This assessment will help you understand your current imaginal capabilities across five key areas:</p>
+            
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Cs of Imaginal Agility</h3>
+              <ul className="space-y-2 text-purple-700">
+                <li>• <strong>Curiosity</strong> - Your drive to explore and question</li>
+                <li>• <strong>Creativity</strong> - Your ability to generate novel ideas</li>
+                <li>• <strong>Compassion</strong> - Your capacity for empathy and understanding</li>
+                <li>• <strong>Courage</strong> - Your willingness to take risks and face challenges</li>
+                <li>• <strong>Clarity</strong> - Your ability to see situations clearly and think systematically</li>
+              </ul>
+            </div>
+            
+            <p>The assessment takes approximately 10-15 minutes to complete and will provide you with personalized insights.</p>
+          </div>
 
-          {/* 5Cs Assessment component with questions and results functionality */}
-          <FiveCSAssessmentContent 
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-          />
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => {
+                if (setIsAssessmentModalOpen) {
+                  setIsAssessmentModalOpen(true);
+                }
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Start Assessment
+            </Button>
+          </div>
         </div>
       );
 
