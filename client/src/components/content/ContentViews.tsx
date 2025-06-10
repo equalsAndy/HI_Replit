@@ -8,6 +8,8 @@ import FlowIntroView from './FlowIntroView';
 import IntroToFlowView from './IntroToFlowView';
 import FlowAssessmentView from './FlowAssessmentView';
 import FlowRoundingOutView from './FlowRoundingOutView';
+import VideoPlayer from './VideoPlayer';
+import { Button } from '@/components/ui/button';
 import FlowStarCardView from './FlowStarCardView';
 import WellBeingView from './WellBeingView';
 import CantrilLadderView from './CantrilLadderView';
@@ -22,9 +24,8 @@ import PlaceholderView from './PlaceholderView';
 import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
-import VideoPlayer from './VideoPlayer';
+
 import { useApplication } from '@/hooks/use-application';
-import { Button } from '@/components/ui/button';
 
 interface ContentViewProps {
   currentContent: string;
@@ -69,17 +70,96 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         );
       case 'ia-2-1':
         return (
-          <PlaceholderView 
-            title="The Triple Challenge"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={isImaginalAgility}
-          />
+          <div className="prose max-w-none">
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-2-1"
+                fallbackUrl="https://youtu.be/EsExXeKFiKg"
+                title="The Triple Challenge"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 mb-6">
+              <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">AI Triple Cognitive Challenge</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
+            </p>
+
+            <div className="grid gap-4 mb-8">
+              <div className="flex">
+                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                  <h3 className="text-xl font-semibold">Metacognitive Laziness</h3>
+                </div>
+                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                  <p className="text-gray-700">• Outsourcing thinking and sense-making</p>
+                </div>
+              </div>
+
+              <div className="flex">
+                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                  <h3 className="text-xl font-semibold">Imagination Deficit</h3>
+                </div>
+                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                  <p className="text-gray-700">• Diminishing the generative core of human potential</p>
+                </div>
+              </div>
+
+              <div className="flex">
+                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
+                  <h3 className="text-xl font-semibold">Psychological Debt</h3>
+                </div>
+                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
+                  <p className="text-gray-700">• Fatigue, disconnection, and loss of purpose</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-8 bg-purple-100 p-6 rounded-lg">
+              <p className="text-center text-lg font-medium text-purple-800">
+                Recognizing and addressing these challenges is essential for thriving in the AI era
+              </p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Understanding the Challenge</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
+            </p>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Efficiency</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing the capabilities that AI cannot replicate—beginning with imagination.
+            </p>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Hidden Costs</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement. These are symptoms of Psychological Debt—a deficit that grows when efficiency is prioritized over imagination.
+            </p>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Challenge as Opportunity</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Understanding these challenges positions you to lead positive change in your organization. The next step is learning how Imaginal Agility provides a systematic approach to thriving alongside AI.
+            </p>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('ia-2-1');
+                  setCurrentContent('ia-3-1');
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Next: The Imaginal Agility Solution
+              </Button>
+            </div>
+          </div>
         );
       case 'ia-3-1':
         return (
