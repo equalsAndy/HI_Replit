@@ -111,3 +111,6 @@ export const allStarTeamsNavigationSections = [
     ]
   }
 ];
+
+// Default export for backward compatibility
+export const navigationSections = allStarTeamsNavigationSections;
