@@ -42,13 +42,13 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-6-1', 
-        title: 'Team Practice', 
-        type: 'content'
+        title: 'Reality Discernment', 
+        type: 'video'
       },
       { 
         id: 'ia-7-1', 
-        title: 'Future Applications', 
-        type: 'content'
+        title: 'The Neuroscience', 
+        type: 'video'
       },
       { 
         id: 'ia-8-1', 
