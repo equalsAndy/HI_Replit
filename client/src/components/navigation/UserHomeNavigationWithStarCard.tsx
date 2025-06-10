@@ -363,17 +363,17 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   ) : null}
                                 </div>
                                 
-                                <span className="flex-1">{step.label}</span>
+                                <span className="flex-1">{step.title}</span>
                                 
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
-                                  {step.type === 'Learning' && (
+                                  {step.type === 'video' && (
                                     <BookOpen className="h-4 w-4 text-indigo-400" />
                                   )}
-                                  {step.type === 'Assessment' && (
+                                  {step.type === 'assessment' && (
                                     <Activity className="h-4 w-4 text-orange-400" />
                                   )}
-                                  {step.type === 'Reflection' && (
+                                  {step.type === 'content' && (
                                     <PenLine className="h-4 w-4 text-purple-400" />
                                   )}
                                   {(!step.type) && (
