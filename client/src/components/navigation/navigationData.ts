@@ -32,7 +32,7 @@ export const imaginalAgilityNavigationSections = [
         id: 'ia-4-1', 
         title: 'Self-Assessment', 
         type: 'assessment',
-        contentKey: 'five-c-assessment'
+        contentKey: 'ia-self-assessment'
       },
       { 
         id: 'ia-4-2', 
