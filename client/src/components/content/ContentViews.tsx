@@ -153,6 +153,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-2-1');
                   setCurrentContent('ia-3-1');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -236,6 +237,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-3-1');
                   setCurrentContent('ia-4-1');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -342,6 +344,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-5-1');
                   setCurrentContent('ia-6-1');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -418,6 +421,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-6-1');
                   setCurrentContent('ia-7-1');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -499,6 +503,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-7-1');
                   setCurrentContent('ia-8-1');
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
