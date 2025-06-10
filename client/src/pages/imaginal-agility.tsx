@@ -3,7 +3,6 @@ import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
-import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { User } from '@/shared/types';
 import { Button } from '@/components/ui/button';
@@ -301,14 +300,14 @@ export default function ImaginalAgilityHome() {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
-          <ImaginalAgilityContent
-            stepId={currentContent}
-            onNext={() => {
-              // Handle next step logic here
-            }}
-            onOpenAssessment={() => setIsAssessmentModalOpen(true)}
-            assessmentResults={null} // Will add assessment results later
+          <ContentViews
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={progressionMarkCompleted}
+            setCurrentContent={setCurrentContent}
             user={user}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={true}
           />
 
           {/* Imaginal Agility Assessment */}

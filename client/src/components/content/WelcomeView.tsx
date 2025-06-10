@@ -19,7 +19,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   isImaginalAgility = false
 }) => {
   // Different content based on which app is active
-  const stepId = "1-1"; // Both workshops use 1-1 for the introduction step
+  const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
   
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
   

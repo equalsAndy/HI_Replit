@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 interface ContentViewProps {
   currentContent: string;
   navigate?: any;
-  markStepCompleted?: (stepId: string) => void;a
+  markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
   user?: any;
   flowAttributesData?: any;
@@ -60,6 +60,101 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   setIsAssessmentModalOpen,
   isImaginalAgility = false
 }) => {
+  // Handle Imaginal Agility specific content mapping
+  if (isImaginalAgility) {
+    switch (currentContent) {
+      case 'ia-1-1':
+        return (
+          <WelcomeView 
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+            isImaginalAgility={true}
+          />
+        );
+      case 'ia-2-1':
+        return (
+          <PlaceholderView 
+            title="The Triple Challenge"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      case 'ia-3-1':
+        return (
+          <PlaceholderView 
+            title="The Imaginal Agility Solution"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      case 'ia-4-1':
+        return (
+          <AssessmentView 
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+          />
+        );
+      case 'ia-5-1':
+        return (
+          <FiveCSAssessmentContent 
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      case 'ia-6-1':
+        return (
+          <PlaceholderView 
+            title="Discernment Guide"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      case 'ia-7-1':
+        return (
+          <PlaceholderView 
+            title="The Neuroscience"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      case 'ia-8-1':
+        return (
+          <PlaceholderView 
+            title="Next Steps"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      default:
+        return (
+          <PlaceholderView 
+            title="Step Not Found"
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+    }
+  }
+
   // Return the appropriate content based on currentContent and current application
   switch (currentContent) {
     // Introduction View
