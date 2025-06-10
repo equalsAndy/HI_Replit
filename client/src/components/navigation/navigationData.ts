@@ -22,7 +22,7 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-3-1', 
-        title: 'Imaginal Agility Solution', 
+        title: 'Imagination and AI', 
         type: 'video'
       },
       { 
@@ -42,17 +42,17 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-6-1', 
-        title: 'Discernment Guide', 
+        title: 'Team Practice', 
         type: 'content'
       },
       { 
         id: 'ia-7-1', 
-        title: 'The Neuroscience', 
-        type: 'video'
+        title: 'Future Applications', 
+        type: 'content'
       },
       { 
         id: 'ia-8-1', 
-        title: 'More About Workshop', 
+        title: 'Next Steps', 
         type: 'content'
       }
     ]

@@ -78,14 +78,19 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
     setIsLoading(true);
     try {
       // Save assessment results to database
-      await apiRequest('/api/workshop-data/assessments', {
+      const response = await fetch('/api/workshop-data/assessments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           assessmentType: 'iaCoreCabilities',
           results: results
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       setAssessmentResults(results);
       markStepCompleted('ia-4-1');
@@ -173,7 +178,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: HaiQ Framework
+                Next: {getStepName('ia-3-1')}
               </Button>
             </div>
           </div>
@@ -211,7 +216,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Self-Assessment
+                Next: {getStepName('ia-4-1')}
               </Button>
             </div>
           </div>
@@ -299,7 +304,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                     size="lg"
                   >
-                    Next: Review Results
+                    Next: {getStepName('ia-4-2')}
                   </Button>
                 </div>
               </div>
@@ -337,7 +342,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     className="bg-purple-600 hover:bg-purple-700 text-white"
                     size="lg"
                   >
-                    Next: Teamwork Preparation
+                    Next: {getStepName('ia-5-1')}
                   </Button>
                 </div>
               </div>
@@ -397,7 +402,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Team Practice
+                Next: {getStepName('ia-6-1')}
               </Button>
             </div>
           </div>
@@ -420,7 +425,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Future Applications
+                Next: {getStepName('ia-7-1')}
               </Button>
             </div>
           </div>
@@ -443,7 +448,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Next Steps
+                Next: {getStepName('ia-8-1')}
               </Button>
             </div>
           </div>
