@@ -62,8 +62,7 @@ const App: React.FC = () => {
                     {/* Workshop routes */}
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/ast" component={AllStarTeamsPage} />
-                    <Route path="/imaginal-agility" component={ImaginalAgilityWorkshop} />
-                    <Route path="/imaginal-agility/:stepId" component={ImaginalAgilityWorkshop} />
+                    <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
                     <Route path="/ia-legacy" component={ImaginalAgilityPage} />
 
                     {/* Admin routes */}

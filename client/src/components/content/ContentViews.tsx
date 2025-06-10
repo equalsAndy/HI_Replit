@@ -243,15 +243,46 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'imaginal-intro':
       return (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
-
-          <div className="mb-8">
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              section="introduction"
-              title="IAWS ORIENTATION VIDEO"
-              fallbackUrl="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
+          <div className="flex items-center mb-6">
+            <img 
+              src="/heliotrope-logo.png" 
+              alt="Heliotrope Imaginal" 
+              className="h-12 w-auto mr-4"
             />
+            <h1 className="text-3xl font-bold text-purple-700 mb-0">
+              Imaginal Agility Workshop Course &gt; Introduction to Imaginal Agility
+            </h1>
+          </div>
+          
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
+              title="Introduction to Imaginal Agility" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700 space-y-4">
+            <p>Welcome.</p>
+            
+            <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
+            
+            <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
+            
+            <p>This Micro Course is your starting point.</p>
+            
+            <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
+            
+            <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
+            
+            <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
+            
+            <p>You're not just learning about imagination. You're harnessing it — together.</p>
           </div>
 
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
@@ -303,15 +334,32 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'triple-challenge':
       return (
         <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
-
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              section="triple-challenge"
-              title="AI Triple Cognitive Challenge"
-              fallbackUrl="https://www.youtube.com/embed/zIFGKPMN9t8"
+          <div className="flex items-center mb-6">
+            <img 
+              src="/heliotrope-logo.png" 
+              alt="Heliotrope Imaginal" 
+              className="h-12 w-auto mr-4"
             />
+            <h1 className="text-3xl font-bold text-purple-700 mb-0">
+              Imaginal Agility Workshop Course &gt; The Triple Challenge
+            </h1>
+          </div>
+          
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/EsExXeKFiKg" 
+              title="The Triple Challenge" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700">
+            <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
           </div>
 
           <h2 className="text-2xl font-semibold text-gray-800 mb-4">AI Triple Cognitive Challenge</h2>
