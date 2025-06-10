@@ -602,6 +602,19 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'five-c-assessment':
       return (
         <div className="prose max-w-none">
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/bJQj1uKtnus" 
+              title="Self-Assessment Introduction" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
           
           <div className="text-lg text-gray-700 space-y-4 mb-8">
