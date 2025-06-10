@@ -15,6 +15,11 @@ const ImaginalAgilityAssessment = ({ isOpen, onClose, onComplete }: ImaginalAgil
   const [scores, setScores] = useState(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
 
+  // Don't render anything if modal is not open
+  if (!isOpen) {
+    return null;
+  }
+
   // Demo answers for testing
   const demoAnswers = {
     imagination_gf_1: 4,
