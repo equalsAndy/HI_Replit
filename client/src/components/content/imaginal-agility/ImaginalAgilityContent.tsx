@@ -98,15 +98,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
-                title="Introduction to Imaginal Agility" 
+                title="Introduction to Imaginal Agility"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
@@ -150,15 +148,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/EsExXeKFiKg" 
-                title="The Triple Challenge" 
+                title="The Triple Challenge"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
@@ -188,15 +184,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/l3XVwPGE6UY" 
-                title="Imaginal Agility Solution" 
+                title="Imaginal Agility Solution"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full rounded-lg"
               ></iframe>
             </div>
             
@@ -228,8 +222,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
                 title="Self-Assessment Video"
                 frameBorder="0" 
@@ -378,7 +372,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="flex justify-center mt-8">
               <Button 
-                onClick={() => setIsImaginalAssessmentOpen(true)}
+                onClick={() => setIsAssessmentOpen(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
