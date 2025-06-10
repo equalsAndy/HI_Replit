@@ -1012,13 +1012,19 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
           <div className="space-y-3 border rounded-md p-3 bg-gray-50 -mt-4">
             <div className="space-y-3">
-              {[
-                { name: 'Thinking', value: assessmentResults.thinking, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
-                { name: 'Planning', value: assessmentResults.planning, color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
-                { name: 'Feeling', value: assessmentResults.feeling, color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
-                { name: 'Acting', value: assessmentResults.acting, color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
-              ]
-                .sort((a, b) => b.value - a.value)
+              {(workshopType === 'ia' ? [
+                  { name: 'Curiosity', value: Math.round(assessmentResults.thinking * 1.2), color: '#10B981', desc: 'Openness to new experiences and ideas' },
+                  { name: 'Creativity', value: Math.round(assessmentResults.acting * 1.1), color: '#F59E0B', desc: 'Ability to generate novel solutions' },
+                  { name: 'Courage', value: Math.round(assessmentResults.feeling * 0.9), color: '#EF4444', desc: 'Willingness to take creative risks' },
+                  { name: 'Empathy', value: Math.round(assessmentResults.planning * 1.05), color: '#3B82F6', desc: 'Understanding others\' perspectives' },
+                  { name: 'Imagination', value: Math.round((assessmentResults.thinking + assessmentResults.acting + assessmentResults.feeling + assessmentResults.planning) / 4), color: '#8B5CF6', desc: 'Capacity for creative visualization' }
+                ] : [
+                  { name: 'Thinking', value: assessmentResults.thinking, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
+                  { name: 'Planning', value: assessmentResults.planning, color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
+                  { name: 'Feeling', value: assessmentResults.feeling, color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
+                  { name: 'Acting', value: assessmentResults.acting, color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
+                ]
+              ).sort((a, b) => b.value - a.value)
                 .map(strength => (
                   <div key={strength.name} className="flex items-center">
                     <div className="w-5 h-5 rounded mr-3" style={{ backgroundColor: strength.color }}></div>
@@ -1029,17 +1035,19 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               }
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="flex items-center">
-                <div className="w-5 h-5 mr-3 flex items-center justify-center">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
-                  </svg>
+            {workshopType === 'ast' && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <div className="flex items-center">
+                  <div className="w-5 h-5 mr-3 flex items-center justify-center">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
+                    </svg>
+                  </div>
+                  <span className="font-semibold">Imagination</span>
+                  <span className="ml-3 text-gray-600 text-sm">Your limitless potential capacity that brings<br className="hidden sm:inline" /> the other core dimensions into focus.</span>
                 </div>
-                <span className="font-semibold">Imagination</span>
-                <span className="ml-3 text-gray-600 text-sm">Your limitless potential capacity that brings<br className="hidden sm:inline" /> the other core dimensions into focus.</span>
               </div>
-            </div>
+            )}
           </div>
         </>
       )}
