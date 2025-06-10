@@ -30,8 +30,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="832" 
                 height="468" 
-                src="https://www.youtube.com/embed/1Belekdly70" 
-                title="Imaginal Agility Workshop Introduction" 
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
+                title="Introduction to Imaginal Agility" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                 referrerPolicy="strict-origin-when-cross-origin" 
@@ -40,13 +40,23 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               ></iframe>
             </div>
             
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Imaginal Agility is founded on the principle that human imagination becomes
-              more critical—not less—in the age of artificial intelligence. This workshop will
-              help you develop the capacity to envision possibilities beyond what
-              technology alone can generate.
-            </p>
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Welcome.</p>
+              
+              <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
+              
+              <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
+              
+              <p>This Micro Course is your starting point.</p>
+              
+              <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
+              
+              <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
+              
+              <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
+              
+              <p className="font-semibold">You're not just learning about imagination. You're harnessing it — together.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
