@@ -304,7 +304,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             </div>
           </div>
         );
-      case 'ia-4-2':
+      case 'ia-5-1':
         // Mock assessment results for demonstration - in real app this would come from API
         const mockResults = {
           imagination: 4.2,
@@ -326,7 +326,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         return (
           <div className="prose max-w-none">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-purple-700 mb-4">Your Assessment Results</h1>
+              <h1 className="text-3xl font-bold text-purple-700 mb-4">Review Results</h1>
               <p className="text-lg text-gray-700 mb-6">
                 Congratulations on completing your Imaginal Agility self-assessment! Your results provide insights into your current capabilities across the five core areas that define imaginative thinking in the AI era.
               </p>
@@ -337,80 +337,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <div className="flex justify-end mt-8">
               <Button 
                 onClick={() => {
-                  markStepCompleted('ia-4-2');
-                  setCurrentContent('ia-5-1');
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Next: Teamwork Preparation
-              </Button>
-            </div>
-          </div>
-        );
-      case 'ia-5-1':
-        return (
-          <div className="prose max-w-none">
-            {/* YouTube Video Player */}
-            <VideoPlayer stepId="ia-5-1" workshopType="imaginal-agility" />
-            
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold text-purple-700 mb-4">Teamwork Preparation</h1>
-              <p className="text-lg text-gray-700 mb-6">
-                Now that you understand your individual Imaginal Agility capabilities, it's time to prepare for collaborative work. This section will help you understand how to leverage your strengths in team settings and work effectively with AI.
-              </p>
-            </div>
-
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h2 className="text-xl font-semibold text-purple-800 mb-4">From Individual to Collective Intelligence</h2>
-              <p className="text-gray-700 mb-4">
-                Your assessment results become the foundation for team collaboration. Learn how to:
-              </p>
-              <ul className="space-y-2 text-gray-700">
-                <li>• Share your capability profile with team members</li>
-                <li>• Understand how different profiles complement each other</li>
-                <li>• Create balanced teams that leverage diverse strengths</li>
-                <li>• Work effectively with AI as a collaborative partner</li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-3">Team Dynamics in the AI Era</h3>
-              <p className="text-purple-700 mb-4">
-                As artificial intelligence becomes more sophisticated, human teams must evolve to focus on uniquely human capabilities while leveraging AI's computational strengths.
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <h4 className="font-medium text-purple-800 mb-2">Human Strengths</h4>
-                  <ul className="text-sm text-purple-700 space-y-1">
-                    <li>• Emotional intelligence and empathy</li>
-                    <li>• Creative problem-solving</li>
-                    <li>• Ethical reasoning and judgment</li>
-                    <li>• Interpersonal collaboration</li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="font-medium text-purple-800 mb-2">AI Contributions</h4>
-                  <ul className="text-sm text-purple-700 space-y-1">
-                    <li>• Rapid data processing and analysis</li>
-                    <li>• Pattern recognition at scale</li>
-                    <li>• Consistent task execution</li>
-                    <li>• 24/7 availability and support</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button 
-                onClick={() => {
                   markStepCompleted('ia-5-1');
                   setCurrentContent('ia-6-1');
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Reality Discernment
+                Next: Teamwork Preparation
               </Button>
             </div>
           </div>

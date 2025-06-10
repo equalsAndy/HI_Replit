@@ -106,7 +106,7 @@ export default function ImaginalAgilityWorkshop() {
 
   // Calculate unlocked steps for IA
   const calculateUnlockedSteps = (completed: string[]): string[] => {
-    const iaSequence = ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-4-2', 'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'];
+    const iaSequence = ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1', 'ia-9-1'];
     const unlocked = ['ia-1-1'];
     
     for (let i = 0; i < iaSequence.length - 1; i++) {

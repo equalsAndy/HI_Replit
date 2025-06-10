@@ -35,31 +35,31 @@ export const imaginalAgilityNavigationSections = [
         contentKey: 'ia-self-assessment'
       },
       { 
-        id: 'ia-4-2', 
+        id: 'ia-5-1', 
         title: 'Review Results', 
         type: 'content',
         contentKey: 'imagination-results'
       },
       { 
-        id: 'ia-5-1', 
+        id: 'ia-6-1', 
         title: 'Teamwork Preparation', 
         type: 'video',
         contentKey: 'teamwork-prep'
       },
       { 
-        id: 'ia-6-1', 
+        id: 'ia-7-1', 
         title: 'Reality Discernment', 
         type: 'video',
         contentKey: 'reality-discernment'
       },
       { 
-        id: 'ia-7-1', 
+        id: 'ia-8-1', 
         title: 'The Neuroscience', 
         type: 'video',
         contentKey: 'neuroscience'
       },
       { 
-        id: 'ia-8-1', 
+        id: 'ia-9-1', 
         title: 'Next Steps', 
         type: 'content',
         contentKey: 'next-steps'
