@@ -24,6 +24,7 @@ import PlaceholderView from './PlaceholderView';
 import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
+import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 
 import { useApplication } from '@/hooks/use-application';
 
@@ -304,6 +305,24 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         );
       case 'ia-5-1':
+        // Mock assessment results for demonstration - in real app this would come from API
+        const mockResults = {
+          imagination: 4.2,
+          curiosity: 3.8,
+          empathy: 4.5,
+          creativity: 3.9,
+          courage: 3.6,
+          responses: {},
+          radarChart: {
+            imagination: 4.2,
+            curiosity: 3.8,
+            empathy: 4.5,
+            creativity: 3.9,
+            courage: 3.6
+          },
+          completedAt: new Date().toISOString()
+        };
+
         return (
           <div className="prose max-w-none">
             <div className="mb-8">
@@ -313,64 +332,9 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </p>
             </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h2 className="text-xl font-semibold text-purple-800 mb-4">Your Capability Profile</h2>
-              <p className="text-gray-700 mb-6">
-                These results reflect your self-perceived strengths and areas for growth. Use them as a starting point for your development journey, not as fixed assessments of your potential.
-              </p>
-              
-              <div className="grid gap-4">
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                    <span className="font-medium text-purple-700">Imagination</span>
-                  </div>
-                  <span className="text-gray-600">Your ability to envision possibilities</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                    <span className="font-medium text-purple-700">Curiosity</span>
-                  </div>
-                  <span className="text-gray-600">Your drive to explore and question</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                    <span className="font-medium text-purple-700">Creativity</span>
-                  </div>
-                  <span className="text-gray-600">Your capacity for original thinking</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                    <span className="font-medium text-purple-700">Courage</span>
-                  </div>
-                  <span className="text-gray-600">Your willingness to take creative risks</span>
-                </div>
-                <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-purple-200">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                    <span className="font-medium text-purple-700">Empathy</span>
-                  </div>
-                  <span className="text-gray-600">Your ability to understand others deeply</span>
-                </div>
-              </div>
-            </div>
+            <ImaginalAgilityResults results={mockResults} />
 
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-3">Next Steps in Your Journey</h3>
-              <p className="text-purple-700 mb-4">
-                Your assessment results are just the beginning. The following workshop sections will help you develop and strengthen these capabilities in practical, meaningful ways.
-              </p>
-              <ul className="space-y-2 text-purple-700">
-                <li>• Learn practical techniques for each capability</li>
-                <li>• Understand how to apply them in your work</li>
-                <li>• Develop strategies for continued growth</li>
-              </ul>
-            </div>
-
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-8">
               <Button 
                 onClick={() => {
                   markStepCompleted('ia-5-1');
