@@ -113,20 +113,31 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/UOlOCJeP04w" 
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
                 title="Introduction to Imaginal Agility"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               ></iframe>
             </div>
             
             <div className="space-y-4 text-lg text-gray-700">
-              <p>Welcome to the Imaginal Agility Workshop — a transformative journey into the heart of human creativity and collaboration in the age of AI.</p>
+              <p>Welcome.</p>
               
-              <p>In this workshop, you'll discover how to harness your imagination as a strategic advantage, develop core human capabilities, and learn to work synergistically with artificial intelligence while maintaining your unique human edge.</p>
+              <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
               
-              <p>Get ready to unlock your potential and revolutionize how you approach challenges, innovation, and teamwork.</p>
+              <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
+              
+              <p>This Micro Course is your starting point.</p>
+              
+              <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
+              
+              <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
+              
+              <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
+              
+              <p>You're not just learning about imagination. You're harnessing it — together.</p>
             </div>
             
             <div className="flex justify-end mt-8">
@@ -153,20 +164,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/7Jl0wnHlnzM" 
+                src="https://www.youtube.com/embed/EsExXeKFiKg" 
                 title="The Triple Challenge"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               ></iframe>
             </div>
             
             <div className="space-y-4 text-lg text-gray-700">
-              <p>Modern teams face an unprecedented triple challenge that requires a new approach to human capability development.</p>
-              
-              <p>Understanding these three interconnected challenges is essential for developing the agility needed to thrive in today's complex, rapidly evolving landscape.</p>
-              
-              <p>In this session, we'll explore how these challenges create both obstacles and opportunities for revolutionary thinking and collaboration.</p>
+              <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
             </div>
             
             <div className="flex justify-end mt-8">
@@ -187,16 +195,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-3-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination and AI</h1>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Imaginal Agility Solution</h1>
             
             <div className="mb-8">
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/9DswWxC8hkw" 
-                title="Imagination and AI"
+                src="https://www.youtube.com/embed/l3XVwPGE6UY" 
+                title="Imaginal Agility Solution"
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin"
                 allowFullScreen
               ></iframe>
             </div>
