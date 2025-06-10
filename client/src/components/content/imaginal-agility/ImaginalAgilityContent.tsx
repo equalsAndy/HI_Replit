@@ -37,11 +37,15 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
           
           <div className="mb-8">
             <iframe 
-              src="https://www.youtube.com/embed/1Belekdly70?enablejsapi=1"
-              title="IAWS ORIENTATION VIDEO"
-              className="w-full h-[400px] rounded-lg border-0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              width="832" 
+              height="468" 
+              src="https://www.youtube.com/embed/1Belekdly70" 
+              title="Imaginal Agility Workshop Introduction" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+              referrerPolicy="strict-origin-when-cross-origin" 
               allowFullScreen
+              className="w-full rounded-lg"
             ></iframe>
           </div>
           

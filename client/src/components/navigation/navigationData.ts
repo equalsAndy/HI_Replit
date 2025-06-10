@@ -4,23 +4,17 @@ import {
   Download, Calendar, Brain, Play
 } from 'lucide-react';
 
-// Imaginal Agility navigation sections - Structured like AST with proper collapsible sections
+// Imaginal Agility navigation - Single collapsible menu with all steps
 export const imaginalAgilityNavigationSections = [
   {
     id: '1',
-    title: 'GETTING STARTED',
+    title: 'IMAGINAL AGILITY WORKSHOP',
     steps: [
       { 
         id: 'ia-1-1', 
         title: 'Introduction', 
         type: 'video'
-      }
-    ]
-  },
-  {
-    id: '2', 
-    title: 'DISCOVER YOUR IMAGINAL PROFILE',
-    steps: [
+      },
       { 
         id: 'ia-2-1', 
         title: 'The Triple Challenge', 
@@ -40,13 +34,7 @@ export const imaginalAgilityNavigationSections = [
         id: 'ia-4-2', 
         title: '5Cs Assessment', 
         type: 'assessment'
-      }
-    ]
-  },
-  {
-    id: '3',
-    title: 'INSIGHTS AND GROWTH',
-    steps: [
+      },
       { 
         id: 'ia-5-1', 
         title: 'Insights Review', 
