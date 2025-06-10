@@ -29,6 +29,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   onProgress,
   startTime = 0
 }) => {
+  console.log(`🎬 VideoPlayer RENDERED with props:`, { workshopType, section, stepId, title, fallbackUrl });
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [player, setPlayer] = useState<any>(null);
@@ -53,6 +54,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   console.log(`🎬 VideoByStepId:`, videoByStepId ? { id: videoByStepId.id, title: videoByStepId.title, editableId: videoByStepId.editableId } : 'null');
   console.log(`🎬 VideoBySection:`, videoBySection ? { id: videoBySection.id, title: videoBySection.title, editableId: videoBySection.editableId } : 'null');
   console.log(`🎬 Selected video:`, video ? { id: video.id, title: video.title, editableId: video.editableId, url: video.url } : 'null');
+  console.log(`🎬 IsLoading:`, isLoading);
+  console.log(`🎬 FallbackUrl:`, fallbackUrl);
 
   // Process the video URL when it changes
   useEffect(() => {
