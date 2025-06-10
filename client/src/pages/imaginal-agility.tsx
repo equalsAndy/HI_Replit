@@ -306,7 +306,7 @@ export default function ImaginalAgilityHome() {
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
             user={user}
-            setIsAssessmentModalOpen={() => setIsAssessmentModalOpen(true)}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
           />
 
           {/* Add the new 5-Capacity Assessment Modal */}

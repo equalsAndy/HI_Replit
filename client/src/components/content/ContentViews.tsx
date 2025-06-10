@@ -606,7 +606,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <iframe 
               width="400" 
               height="300" 
-              src="https://www.youtube.com/embed/bJQj1uKtnus" 
+              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
               title="Self-Assessment Introduction" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
