@@ -22,7 +22,7 @@ export function useVideos() {
 
 export function useVideosByWorkshop(workshopType: string) {
   return useQuery<Video[]>({
-    queryKey: [`/api/workshop-data/videos/workshop/${workshopType}`],
+    queryKey: [`/api/videos/workshop/${workshopType}`],
     staleTime: 0, // Always fetch fresh data for video debugging
   });
 }
