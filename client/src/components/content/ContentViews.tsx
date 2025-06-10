@@ -243,13 +243,65 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         );
       case 'ia-4-1':
         return (
-          <AssessmentView 
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-          />
+          <div className="prose max-w-none">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-purple-700 mb-4">Self Assessment</h1>
+              <p className="text-lg text-gray-700 mb-6">
+                Take a moment to assess your current capabilities in the five key areas of Imaginal Agility. This self-reflection will help you understand your strengths and identify areas for growth.
+              </p>
+            </div>
+
+            <div className="bg-purple-50 p-6 rounded-lg mb-8">
+              <h2 className="text-xl font-semibold text-purple-800 mb-4">The Five Capabilities Assessment</h2>
+              <p className="text-gray-700 mb-4">
+                You'll evaluate yourself across five key capabilities that define Imaginal Agility:
+              </p>
+              <div className="grid gap-3">
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-purple-700 font-medium">Imagination</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-purple-700 font-medium">Curiosity</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-purple-700 font-medium">Creativity</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-purple-700 font-medium">Courage</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-purple-700 font-medium">Empathy</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-center mb-8">
+              <Button 
+                onClick={() => {
+                  setIsAssessmentModalOpen(true);
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Start Assessment
+              </Button>
+            </div>
+
+            <div className="bg-gray-50 p-6 rounded-lg">
+              <h3 className="text-lg font-semibold text-gray-800 mb-3">What to Expect</h3>
+              <ul className="space-y-2 text-gray-700">
+                <li>• The assessment takes approximately 10-15 minutes to complete</li>
+                <li>• You'll respond to scenarios and rank your preferences</li>
+                <li>• Your results will show your capability profile</li>
+                <li>• Use these insights to guide your development journey</li>
+              </ul>
+            </div>
+          </div>
         );
       case 'ia-5-1':
         return (
