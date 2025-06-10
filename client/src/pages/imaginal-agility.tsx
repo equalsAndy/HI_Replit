@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { useProgressionLogic } from '@/hooks/use-progression-logic';
-import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
+import AssessmentModal from '@/components/assessment/AssessmentModal';
 import ProfileEditor from '@/components/profile/ProfileEditor';
 
 // Constants
