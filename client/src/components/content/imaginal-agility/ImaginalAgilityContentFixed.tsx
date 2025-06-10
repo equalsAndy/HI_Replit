@@ -7,6 +7,7 @@ import { Zap, BarChart3, Play } from 'lucide-react';
 import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
 import { ImaginalAgilityResults } from '@/components/assessment/ImaginalAgilityResults';
 import { apiRequest } from '@/lib/queryClient';
+import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
@@ -42,6 +43,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   const [assessmentResults, setAssessmentResults] = useState<AssessmentResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Helper function to get step name from navigation data
+  const getStepName = (stepId: string): string => {
+    const allSteps = imaginalAgilityNavigationSections[0].steps;
+    const step = allSteps.find(s => s.id === stepId);
+    return step ? step.title : stepId;
+  };
+
   // Load existing assessment results on component mount
   useEffect(() => {
     const loadAssessmentResults = async () => {
@@ -70,7 +78,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
     setIsLoading(true);
     try {
       // Save assessment results to database
-      await apiRequest('/api/workshop-data/userAssessments', {
+      await apiRequest('/api/workshop-data/assessments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -125,7 +133,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: The Triple Challenge
+                Next: {getStepName('ia-2-1')}
               </Button>
             </div>
           </div>
@@ -174,14 +182,14 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-3-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">HaiQ Framework</h1>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Imagination and AI</h1>
             
             <div className="mb-8">
               <iframe 
                 width="100%" 
                 height="400" 
                 src="https://www.youtube.com/embed/9DswWxC8hkw" 
-                title="HaiQ Framework"
+                title="Imagination and AI"
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
@@ -277,22 +285,21 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       <h3 className="text-lg font-semibold">Assessment Complete!</h3>
                     </div>
                     <p className="text-green-700 mt-2">
-                      You've completed your self-assessment. Click below to review your results.
+                      You've completed your self-assessment. Your results are available in the next step.
                     </p>
                   </CardContent>
                 </Card>
 
-                <div className="flex justify-center">
+                <div className="flex justify-end">
                   <Button 
                     onClick={() => {
                       markStepCompleted('ia-4-1');
                       setCurrentContent('ia-4-2');
                     }}
-                    className="bg-purple-600 hover:bg-purple-700 text-white flex items-center gap-2"
+                    className="bg-purple-600 hover:bg-purple-700 text-white"
                     size="lg"
                   >
-                    <BarChart3 className="h-5 w-5" />
-                    Review Results
+                    Next: Review Results
                   </Button>
                 </div>
               </div>
