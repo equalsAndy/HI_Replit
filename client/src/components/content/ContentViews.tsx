@@ -47,8 +47,8 @@ export default function ContentViews({
   isImaginalAgility = false,
   starCard 
 }: ContentViewsProps) {
-  console.log('🔍 ContentViews: Received currentContent =', currentContent);
-  console.log('🔍 ContentViews: Type of currentContent =', typeof currentContent);
+  console.log('🎯 IA CONTENTVIEWS: Component rendering with currentContent =', currentContent);
+  console.log('🎯 IA CONTENTVIEWS: Type of currentContent =', typeof currentContent);
 
   // Handle content routing
   switch (currentContent) {
