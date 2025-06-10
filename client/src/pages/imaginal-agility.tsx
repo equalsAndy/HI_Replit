@@ -11,7 +11,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import LogoutButton from '@/components/auth/LogoutButton';
 import { useProgressionLogic } from '@/hooks/use-progression-logic';
-import AssessmentModal from '@/components/assessment/AssessmentModal';
+import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import ProfileEditor from '@/components/profile/ProfileEditor';
 
 // Constants
@@ -309,14 +309,14 @@ export default function ImaginalAgilityHome() {
             setIsAssessmentModalOpen={setIsAssessmentModalOpen}
           />
 
-          {/* Add the new 5-Capacity Assessment Modal */}
-          <ImaginalAgilityAssessmentComplete
+          {/* Assessment Modal - Horizontal Drag & Drop */}
+          <AssessmentModal
             isOpen={isAssessmentModalOpen}
             onClose={() => setIsAssessmentModalOpen(false)}
             onComplete={(results) => {
               setIsAssessmentModalOpen(false);
-              markStepCompleted('1-5');
-              setCurrentContent("assessment-results");
+              markStepCompleted('ia-4-1'); // Mark self-assessment as completed
+              setCurrentContent("ia-4-2"); // Navigate to review results
             }}
           />
         </div>
