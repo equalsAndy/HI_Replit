@@ -18,8 +18,8 @@ import YourStarCardView from './YourStarCardView';
 import StarCardResourceView from './StarCardResourceView';
 import DownloadStarCardView from './allstarteams/DownloadStarCardView';
 import HolisticReportView from './allstarteams/HolisticReportView';
-import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import PlaceholderView from './PlaceholderView';
+import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import VideoPlayer from './VideoPlayer';
@@ -37,13 +37,7 @@ interface ContentViewProps {
   isImaginalAgility?: boolean;
 }
 
-interface PlaceholderViewProps {
-  title: string;
-  currentContent: string;
-  navigate?: any;
-  markStepCompleted?: (stepId: string) => void;
-  setCurrentContent?: (content: string) => void;
-}
+
 
 interface ContentViewsProps extends ContentViewProps {
   starCard?: any;
