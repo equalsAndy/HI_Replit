@@ -56,7 +56,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     : "Next: Intro to Star Strengths";
 
   const nextContentId = isImaginalAgility
-    ? "triple-challenge"
+    ? "ia-2-1"
     : "intro-strengths";
 
   // Track last logged progress to prevent spam

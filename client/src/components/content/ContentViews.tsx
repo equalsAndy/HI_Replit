@@ -75,6 +75,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={isImaginalAgility}
           />
         );
       case 'ia-3-1':
@@ -85,6 +89,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={isImaginalAgility}
           />
         );
       case 'ia-4-1':
@@ -114,6 +122,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={isImaginalAgility}
           />
         );
       case 'ia-7-1':
@@ -124,6 +136,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={isImaginalAgility}
           />
         );
       case 'ia-8-1':
@@ -134,6 +150,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             navigate={navigate}
             markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
+            user={user}
+            flowAttributesData={flowAttributesData}
+            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            isImaginalAgility={isImaginalAgility}
           />
         );
       default:
