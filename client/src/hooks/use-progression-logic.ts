@@ -20,19 +20,21 @@ interface ProgressionLogic {
 }
 
 // Sequential progression order for Imaginal Agility
-const STEP_PROGRESSION_ORDER = [
-  '1-1', // Introduction to Imaginal Agility
-  '1-2', // The Triple Challenge
-  '1-3', // The Imaginal Agility Solution
-  '1-4', // Your 5 Capabilities (5Cs)
-  '1-5', // Take the Imagination Assessment
-  '1-6'  // Review your Results
+const IA_STEP_PROGRESSION_ORDER = [
+  'ia-1-1', // Introduction to Imaginal Agility
+  'ia-2-1', // The Triple Challenge
+  'ia-3-1', // The Imaginal Agility Solution
+  'ia-4-1', // Your 5 Capabilities (5Cs) / Self-Assessment
+  'ia-5-1', // Assessment Results
+  'ia-6-1', // Discernment Guide
+  'ia-7-1', // The Neuroscience
+  'ia-8-1'  // Next Steps
 ];
 
 export const useProgressionLogic = (): ProgressionLogic => {
   const [progressionState, setProgressionState] = useState<ProgressionState>({
     completedSteps: [],
-    currentUnlockedStep: '1-1', // Always start with first step unlocked
+    currentUnlockedStep: 'ia-1-1', // Always start with first IA step unlocked
     videoWatchProgress: {},
     assessmentResults: {}
   });
@@ -46,7 +48,7 @@ export const useProgressionLogic = (): ProgressionLogic => {
           const dbProgress = response.navigationProgress;
           setProgressionState({
             completedSteps: dbProgress.completedSteps || [],
-            currentUnlockedStep: dbProgress.currentStepId || '1-1',
+            currentUnlockedStep: dbProgress.currentStepId || 'ia-1-1',
             videoWatchProgress: dbProgress.videoWatchProgress || {},
             assessmentResults: dbProgress.assessmentResults || {}
           });
