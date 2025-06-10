@@ -1,6 +1,4 @@
-` tags, ensuring that all original code is included and the formatting is preserved. The key is to modify the `onClick` handler of the "Finish Workshop" button to prevent the incorrect navigation.
 
-```python
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
@@ -164,14 +162,7 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <Button 
-          onClick={async () => {
-            await handleSave();
-            if (navigate && typeof navigate === 'function') {
-              navigate('/allstarteams/5-1');
-            } else {
-              window.location.href = '/allstarteams/5-1';
-            }
-          }}
+          onClick={handleSave}
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
@@ -183,8 +174,3 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
 };
 
 export default FinalReflectionView;
-```
-
-```
-The changes provided in the <changes> block are incorrect, they appear to be referencing a different version of the code, or a different component entirely. The prompt specified to fix the incorrect redirect. The original code has the redirect logic. The corrected code should remove the navigation.
-```
