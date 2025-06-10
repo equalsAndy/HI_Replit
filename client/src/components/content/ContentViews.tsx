@@ -846,6 +846,104 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
+    case 'teamwork-prep':
+      return (
+        <div className="prose max-w-none">
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/hOV2zaWVxeU" 
+              title="Teamwork Preparation" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700 space-y-4">
+            <p>Now that you've assessed your imaginal capabilities, it's time to prepare for collaborative work with your team.</p>
+            
+            <p>This session will help you understand how to leverage your individual strengths within a group setting and maximize collective imaginal agility.</p>
+          </div>
+        </div>
+      );
+
+    case 'reality-discernment':
+      return (
+        <div className="prose max-w-none">
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/U7pQjMYKk_s" 
+              title="Reality Discernment" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700 space-y-4">
+            <p>A crucial skill in imaginal agility is the ability to distinguish between different types of thinking and imagination.</p>
+            
+            <p>This guide will help you develop discernment in recognizing when imagination is helpful versus when analytical thinking is more appropriate.</p>
+          </div>
+        </div>
+      );
+
+    case 'neuroscience':
+      return (
+        <div className="prose max-w-none">
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/43Qs7OvToeI" 
+              title="The Neuroscience" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700 space-y-4">
+            <p>Understanding the science behind imagination and creativity provides a foundation for developing imaginal agility.</p>
+            
+            <p>This session explores the neurological basis of imaginative thinking and how we can optimize our brain's creative capabilities.</p>
+          </div>
+        </div>
+      );
+
+    case 'next-steps':
+      return (
+        <div className="prose max-w-none">
+          <div className="mb-8">
+            <iframe 
+              width="400" 
+              height="300" 
+              src="https://www.youtube.com/embed/8Q5G3CF3yxI" 
+              title="Next Steps" 
+              frameBorder="0" 
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            ></iframe>
+          </div>
+          
+          <div className="text-lg text-gray-700 space-y-4">
+            <p>Congratulations on completing the Imaginal Agility Workshop!</p>
+            
+            <p>This final session outlines the next steps in your journey and how to continue developing your imaginal agility skills.</p>
+            
+            <p>You're now ready to apply these concepts in your work and collaborate effectively with your team.</p>
+          </div>
+        </div>
+      );
+
     // Handle placeholder content
     default:
       return (
