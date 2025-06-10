@@ -34,14 +34,14 @@ export default function ImaginalAgilityNavigation({
               return (
                 <button
                   key={step.id}
-                  onClick={() => isUnlocked ? onStepClick(step.id) : null}
-                  disabled={!isUnlocked}
+                  onClick={() => (isUnlocked || isCompleted) ? onStepClick(step.id) : null}
+                  disabled={!isUnlocked && !isCompleted}
                   className={`
                     w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center justify-between
                     ${isCurrent 
                       ? 'bg-white text-purple-800 shadow-lg' 
-                      : isUnlocked
-                        ? 'bg-purple-700 hover:bg-purple-600 text-white'
+                      : (isUnlocked || isCompleted)
+                        ? 'bg-purple-700 hover:bg-purple-600 text-white cursor-pointer'
                         : 'bg-purple-800 text-purple-400 cursor-not-allowed'
                     }
                   `}
@@ -68,7 +68,7 @@ export default function ImaginalAgilityNavigation({
                     </div>
                     
                     <span className={`text-sm font-medium ${!isUnlocked ? 'opacity-50' : ''}`}>
-                      {step.label}
+                      {step.title}
                     </span>
                   </div>
                   
@@ -84,13 +84,13 @@ export default function ImaginalAgilityNavigation({
       
       <div className="mt-8 pt-6 border-t border-purple-500">
         <div className="text-xs text-purple-200">
-          Progress: {completedSteps.length} of {imaginalAgilityNavigationSections[0]?.totalSteps || 9} steps
+          Progress: {completedSteps.length} of {imaginalAgilityNavigationSections[0]?.steps?.length || 9} steps
         </div>
         <div className="w-full bg-purple-700 rounded-full h-2 mt-2">
           <div 
             className="bg-gradient-to-r from-green-400 to-green-500 h-2 rounded-full transition-all duration-300"
             style={{ 
-              width: `${(completedSteps.length / (imaginalAgilityNavigationSections[0]?.totalSteps || 9)) * 100}%` 
+              width: `${(completedSteps.length / (imaginalAgilityNavigationSections[0]?.steps?.length || 9)) * 100}%` 
             }}
           />
         </div>
