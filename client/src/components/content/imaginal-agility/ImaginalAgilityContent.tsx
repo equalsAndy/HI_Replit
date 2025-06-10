@@ -7,6 +7,7 @@ import { Zap, BarChart3, Play } from 'lucide-react';
 import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
 import { ImaginalAgilityResults } from '@/components/assessment/ImaginalAgilityResults';
 import { apiRequest } from '@/lib/queryClient';
+import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
@@ -42,6 +43,13 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   const [assessmentResults, setAssessmentResults] = useState<AssessmentResults | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Helper function to get step name from navigation data
+  const getStepName = (stepId: string): string => {
+    const allSteps = imaginalAgilityNavigationSections[0].steps;
+    const step = allSteps.find(s => s.id === stepId);
+    return step ? step.title : stepId;
+  };
+
   // Load existing assessment results on component mount
   useEffect(() => {
     const loadAssessmentResults = async () => {
@@ -70,14 +78,19 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
     setIsLoading(true);
     try {
       // Save assessment results to database
-      await apiRequest('/api/workshop-data/userAssessments', {
+      const response = await fetch('/api/workshop-data/assessments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           assessmentType: 'iaCoreCabilities',
           results: results
         })
       });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
       setAssessmentResults(results);
       markStepCompleted('ia-4-1');
@@ -135,7 +148,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: The Triple Challenge
+                Next: {getStepName('ia-2-1')}
               </Button>
             </div>
           </div>
@@ -171,7 +184,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Imaginal Agility Solution
+                Next: {getStepName('ia-3-1')}
               </Button>
             </div>
           </div>
@@ -209,7 +222,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Self-Assessment
+                Next: {getStepName('ia-4-1')}
               </Button>
             </div>
           </div>
@@ -313,8 +326,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/If2FH40IgTM" 
                 title="Review Results Video"
                 frameBorder="0" 
@@ -355,7 +368,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   className="bg-purple-600 hover:bg-purple-700 text-white"
                   size="lg"
                 >
-                  Next: Teamwork Preparation
+                  Next: {getStepName('ia-5-1')}
                 </Button>
               </div>
             )}
