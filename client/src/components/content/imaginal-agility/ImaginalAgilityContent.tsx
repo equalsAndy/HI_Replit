@@ -119,7 +119,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="flex justify-center mt-8">
               <Button 
-                onClick={() => setIsAssessmentModalOpen(true)}
+                onClick={() => setIsImaginalAssessmentOpen(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
