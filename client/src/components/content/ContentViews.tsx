@@ -29,7 +29,7 @@ import { Button } from '@/components/ui/button';
 interface ContentViewProps {
   currentContent: string;
   navigate?: any;
-  markStepCompleted?: (stepId: string) => void;
+  markStepCompleted?: (stepId: string) => void;a
   setCurrentContent?: (content: string) => void;
   user?: any;
   flowAttributesData?: any;

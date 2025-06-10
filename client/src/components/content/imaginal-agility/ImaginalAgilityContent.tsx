@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
 
@@ -19,7 +18,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   assessmentResults,
   user
 }) => {
-  const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
 
   const renderStepContent = () => {
     switch (stepId) {
@@ -495,16 +493,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   return (
     <div className="max-w-4xl mx-auto p-6">
       {renderStepContent()}
-      
-      {/* Assessment Modal */}
-      <ImaginalAgilityAssessmentComplete
-        isOpen={isAssessmentOpen}
-        onClose={() => setIsAssessmentOpen(false)}
-        onComplete={(results) => {
-          setIsAssessmentOpen(false);
-          if (onNext) onNext();
-        }}
-      />
     </div>
   );
 };
