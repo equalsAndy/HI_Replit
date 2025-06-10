@@ -964,18 +964,49 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           <div className="flex flex-col items-center my-2 w-full px-2">
             <div className="flex items-center mb-1">
               <div className="w-8 h-8 flex items-center justify-center">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
-                </svg>
+                {workshopType === 'ia' ? (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="#8B5CF6" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" stroke="#7C3AED" strokeWidth="1"/>
+                  </svg>
+                ) : (
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="#FFD700" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L15.09 8.26L22 9L17 14L18.18 21L12 17.77L5.82 21L7 14L2 9L8.91 8.26L12 2Z" stroke="#FFB000" strokeWidth="1"/>
+                  </svg>
+                )}
               </div>
             </div>
             <div className="w-full max-w-[1000px] h-[500px] lg:h-[550px] mx-auto">
-              <AssessmentPieChart
-                thinking={assessmentResults.thinking}
-                acting={assessmentResults.acting}
-                feeling={assessmentResults.feeling}
-                planning={assessmentResults.planning}
-              />
+              {workshopType === 'ia' ? (
+                <div className="h-full flex flex-col items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg border">
+                  <div className="text-center mb-8">
+                    <h3 className="text-xl font-semibold text-purple-700 mb-2">5Cs Assessment Complete</h3>
+                    <p className="text-gray-600">Your creativity and imagination profile has been generated</p>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-md">
+                    {[
+                      { name: 'Curiosity', value: Math.round(assessmentResults.thinking * 1.2), color: '#10B981', icon: '🔍' },
+                      { name: 'Creativity', value: Math.round(assessmentResults.acting * 1.1), color: '#F59E0B', icon: '🎨' },
+                      { name: 'Courage', value: Math.round(assessmentResults.feeling * 0.9), color: '#EF4444', icon: '💪' },
+                      { name: 'Empathy', value: Math.round(assessmentResults.planning * 1.05), color: '#3B82F6', icon: '❤️' },
+                      { name: 'Imagination', value: Math.round((assessmentResults.thinking + assessmentResults.acting + assessmentResults.feeling + assessmentResults.planning) / 4), color: '#8B5CF6', icon: '✨' }
+                    ].map(capacity => (
+                      <div key={capacity.name} className="text-center">
+                        <div className="w-16 h-16 mx-auto mb-2 rounded-full flex items-center justify-center text-white text-lg font-bold" style={{ backgroundColor: capacity.color }}>
+                          {capacity.value}%
+                        </div>
+                        <p className="text-sm font-medium text-gray-700">{capacity.name}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <AssessmentPieChart
+                  thinking={assessmentResults.thinking}
+                  acting={assessmentResults.acting}
+                  feeling={assessmentResults.feeling}
+                  planning={assessmentResults.planning}
+                />
+              )}
             </div>
           </div>
 
