@@ -766,6 +766,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       );
 
     case 'final-reflection':
+    case 'final-reflection-4-5':
       return (
         <FinalReflectionView 
           navigate={navigate}
