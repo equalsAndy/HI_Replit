@@ -239,54 +239,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
-    // Imaginal Agility content views
-    case 'ia-1-1':
-      console.log('🔍 ContentViews: Rendering ia-1-1 case');
-      return (
-        <div className="prose max-w-none">
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
-          
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              stepId="ia-1-1"
-              title="Introduction to Imaginal Agility"
-              fallbackUrl="https://www.youtube.com/embed/k3mDEAbUwZ4"
-            />
-          </div>
-          
-          <div className="space-y-4 text-lg text-gray-700">
-            <p>Welcome.</p>
-            <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
-            <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
-            <p>This Micro Course is your starting point.</p>
-            <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
-            <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
-            <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
-            <p className="font-semibold">You're not just learning about imagination. You're harnessing it — together.</p>
-          </div>
-
-          <h2 className="text-2xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>
-          <p className="text-lg text-gray-700 mb-6">
-            The most innovative organizations today don't just implement AI—they
-            reimagine what's possible when human creativity works in concert with
-            technology.
-          </p>
-
-          <div className="flex justify-end mt-8">
-            <Button 
-              onClick={() => {
-                markStepCompleted('1-1');
-                setCurrentContent("triple-challenge");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Next: The Triple Challenge
-            </Button>
-          </div>
-        </div>
-      );
+    // Imaginal Agility content views - cases handled below at line 810+
 
     case 'triple-challenge':
       return (
@@ -808,6 +761,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
     // Imaginal Agility Workshop Steps
     case 'ia-1-1':
+      console.log('🔍 ContentViews: Rendering ia-1-1 case (second occurrence)');
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
@@ -815,7 +769,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <div className="mb-8 rounded-lg overflow-hidden">
             <VideoPlayer
               workshopType="imaginal-agility"
-              section="ia-1-1"
+              stepId="ia-1-1"
               title="Introduction to Imaginal Agility"
               fallbackUrl="https://www.youtube.com/embed/k3mDEAbUwZ4"
             />
