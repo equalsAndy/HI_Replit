@@ -12,7 +12,7 @@ export const imaginalAgilityNavigationSections = [
     steps: [
       { 
         id: 'ia-1-1', 
-        title: 'Introduction', 
+        title: 'Introduction to Imaginal Agility', 
         type: 'video'
       },
       { 
@@ -27,32 +27,32 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-4-1', 
-        title: 'Imagination Assessment', 
+        title: 'Self-Assessment', 
         type: 'assessment'
       },
       { 
         id: 'ia-4-2', 
-        title: '5Cs Assessment', 
-        type: 'assessment'
-      },
-      { 
-        id: 'ia-5-1', 
-        title: 'Insights Review', 
+        title: 'Review Results', 
         type: 'content'
       },
       { 
+        id: 'ia-5-1', 
+        title: 'Teamwork Preparation', 
+        type: 'video'
+      },
+      { 
         id: 'ia-6-1', 
-        title: 'Development Strategies', 
+        title: 'Discernment Guide', 
         type: 'content'
       },
       { 
         id: 'ia-7-1', 
-        title: 'Future Applications', 
-        type: 'content'
+        title: 'The Neuroscience', 
+        type: 'video'
       },
       { 
         id: 'ia-8-1', 
-        title: 'Next Steps', 
+        title: 'More About Workshop', 
         type: 'content'
       }
     ]
