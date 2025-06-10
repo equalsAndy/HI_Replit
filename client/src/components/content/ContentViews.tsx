@@ -606,7 +606,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <iframe 
               width="400" 
               height="300" 
-              src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+              src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
               title="Self-Assessment Introduction" 
               frameBorder="0" 
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -618,20 +618,22 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
           
           <div className="text-lg text-gray-700 space-y-4 mb-8">
-            <p>This assessment will help you understand your current imaginal capabilities across five key areas:</p>
+            <p>As organizations face what Deloitte identifies as an "imagination deficit" in the AI era, robust imagination self-assessment becomes essential for maintaining human creative agency and fostering transformative innovation capacity.</p>
+            
+            <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
             
             <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Cs of Imaginal Agility</h3>
+              <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Core Capabilities</h3>
               <ul className="space-y-2 text-purple-700">
-                <li>• <strong>Curiosity</strong> - Your drive to explore and question</li>
-                <li>• <strong>Creativity</strong> - Your ability to generate novel ideas</li>
-                <li>• <strong>Compassion</strong> - Your capacity for empathy and understanding</li>
-                <li>• <strong>Courage</strong> - Your willingness to take risks and face challenges</li>
-                <li>• <strong>Clarity</strong> - Your ability to see situations clearly and think systematically</li>
+                <li>• <strong>Imagination</strong></li>
+                <li>• <strong>Curiosity</strong></li>
+                <li>• <strong>Empathy</strong></li>
+                <li>• <strong>Creativity</strong></li>
+                <li>• <strong>Courage</strong></li>
               </ul>
             </div>
             
-            <p>The assessment takes approximately 10-15 minutes to complete and will provide you with personalized insights.</p>
+            <p>Click the button below to begin your self-assessment. The assessment will open in a new window and takes approximately 10-15 minutes to complete.</p>
           </div>
 
           <div className="flex justify-center">
