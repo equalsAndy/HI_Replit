@@ -6,7 +6,6 @@ import ImaginalAgilityAssessmentModal from '@/components/assessment/ImaginalAgil
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
-  setIsAssessmentModalOpen: (isOpen: boolean) => void;
   starCard?: any;
   user?: any;
   flowAttributesData?: any;
@@ -16,8 +15,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   currentContent,
   navigate,
   markStepCompleted,
-  setCurrentContent,
-  setIsAssessmentModalOpen
+  setCurrentContent
 }) => {
   const [isImaginalAssessmentOpen, setIsImaginalAssessmentOpen] = useState(false);
   

@@ -7,7 +7,7 @@ import { useApplication } from '@/hooks/use-application';
 import { Button } from '@/components/ui/button';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
-import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
+
 import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
@@ -16,7 +16,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 export default function ImaginalAgilityFixed() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
@@ -93,15 +93,7 @@ export default function ImaginalAgilityFixed() {
     setCurrentStep(stepId);
   };
 
-  // Handle assessment completion
-  const handleAssessmentComplete = (assessmentData: any) => {
-    console.log('IA Assessment completed:', assessmentData);
-    setIsAssessmentModalOpen(false);
-    toast({
-      title: "Assessment Complete",
-      description: "Your Imaginal Agility profile has been generated.",
-    });
-  };
+
 
   if (userLoading) {
     return (
@@ -118,13 +110,6 @@ export default function ImaginalAgilityFixed() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Navigation Bar - Same as AllStarTeams */}
       <NavBar />
-
-      {/* Assessment Modal - Proper modal overlay */}
-      <ImaginalAgilityAssessmentComplete 
-        isOpen={isAssessmentModalOpen} 
-        onClose={() => setIsAssessmentModalOpen(false)}
-        onComplete={handleAssessmentComplete}
-      />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
@@ -149,7 +134,6 @@ export default function ImaginalAgilityFixed() {
             markStepCompleted={markNavStepCompleted}
             setCurrentContent={setCurrentContent}
             user={user}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
             isImaginalAgility={true}
           />
         </div>
