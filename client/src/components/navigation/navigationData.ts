@@ -36,7 +36,7 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-5-1', 
-        title: 'Review Results', 
+        title: 'Assessment Results', 
         type: 'content',
         contentKey: 'ia-5-1'
       },
