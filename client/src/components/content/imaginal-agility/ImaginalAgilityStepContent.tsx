@@ -208,15 +208,14 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/If2FH40IgTM" 
                 title="Review Results" 
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full h-auto aspect-video max-w-4xl mx-auto rounded-lg shadow-lg"
+                className="rounded-lg shadow-lg"
               ></iframe>
             </div>
             
@@ -262,15 +261,14 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/hOV2zaWVxeU" 
                 title="Teamwork Preparation" 
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full h-auto aspect-video max-w-4xl mx-auto rounded-lg shadow-lg"
+                className="rounded-lg shadow-lg"
               ></iframe>
             </div>
             
