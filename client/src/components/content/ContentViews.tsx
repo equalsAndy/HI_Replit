@@ -55,6 +55,7 @@ export default function ContentViews({
     case 'welcome':
       return (
         <WelcomeView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -64,7 +65,7 @@ export default function ContentViews({
     case 'intro-strengths':
       return (
         <IntroStrengthsView 
-          currentContent="intro-strengths"
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -74,7 +75,7 @@ export default function ContentViews({
     case 'strengths-assessment':
       return (
         <AssessmentView 
-          currentContent="strengths-assessment"
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -86,7 +87,7 @@ export default function ContentViews({
     case 'star-card-preview':
       return (
         <StarCardPreviewView 
-          currentContent="star-card-preview"
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
