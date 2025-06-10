@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ContentViewProps } from '../../../shared/types';
 import PlaceholderView from '../PlaceholderView';
 import { Button } from '@/components/ui/button';
-import ImaginalAgilityAssessmentModal from '@/components/assessment/ImaginalAgilityAssessmentModal';
+import { Card, CardContent } from '@/components/ui/card';
+import { Zap, BarChart3, Play } from 'lucide-react';
+import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
+import { ImaginalAgilityResults } from '@/components/assessment/ImaginalAgilityResults';
+import { apiRequest } from '@/lib/queryClient';
 
 interface ImaginalAgilityContentProps extends ContentViewProps {
   currentContent: string;
@@ -11,13 +15,79 @@ interface ImaginalAgilityContentProps extends ContentViewProps {
   flowAttributesData?: any;
 }
 
+interface AssessmentResults {
+  imagination: number;
+  curiosity: number;
+  empathy: number;
+  creativity: number;
+  courage: number;
+  responses: { [key: string]: number };
+  radarChart: {
+    imagination: number;
+    curiosity: number;
+    empathy: number;
+    creativity: number;
+    courage: number;
+  };
+  completedAt: string;
+}
+
 const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   currentContent,
   navigate,
   markStepCompleted,
   setCurrentContent
 }) => {
-  const [isImaginalAssessmentOpen, setIsImaginalAssessmentOpen] = useState(false);
+  const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
+  const [assessmentResults, setAssessmentResults] = useState<AssessmentResults | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load existing assessment results on component mount
+  useEffect(() => {
+    const loadAssessmentResults = async () => {
+      if (currentContent === 'ia-4-1' || currentContent === 'ia-4-2') {
+        try {
+          const response = await apiRequest('/api/workshop-data/userAssessments');
+          const assessments = response.assessments || [];
+          const iaAssessment = assessments.find((a: any) => a.assessmentType === 'iaCoreCabilities');
+          
+          if (iaAssessment && iaAssessment.results) {
+            const parsedResults = typeof iaAssessment.results === 'string' 
+              ? JSON.parse(iaAssessment.results) 
+              : iaAssessment.results;
+            setAssessmentResults(parsedResults);
+          }
+        } catch (error) {
+          console.error('Error loading assessment results:', error);
+        }
+      }
+    };
+    
+    loadAssessmentResults();
+  }, [currentContent]);
+
+  const handleAssessmentComplete = async (results: AssessmentResults) => {
+    setIsLoading(true);
+    try {
+      // Save assessment results to database
+      await apiRequest('/api/workshop-data/userAssessments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          assessmentType: 'iaCoreCabilities',
+          results: results
+        })
+      });
+
+      setAssessmentResults(results);
+      markStepCompleted('ia-4-1');
+      setCurrentContent('ia-4-2');
+    } catch (error) {
+      console.error('Error saving assessment results:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   const renderContent = () => {
     switch (currentContent) {
@@ -298,14 +368,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
     <div>
       {renderContent()}
       
-      <ImaginalAgilityAssessmentModal
-        isOpen={isImaginalAssessmentOpen}
-        onClose={() => setIsImaginalAssessmentOpen(false)}
-        onComplete={(results) => {
-          setIsImaginalAssessmentOpen(false);
-          markStepCompleted('ia-4-1');
-          setCurrentContent('ia-4-2');
-        }}
+      <ImaginalAgilityAssessment
+        isOpen={isAssessmentOpen}
+        onClose={() => setIsAssessmentOpen(false)}
+        onComplete={handleAssessmentComplete}
       />
     </div>
   );
