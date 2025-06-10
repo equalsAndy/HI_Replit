@@ -313,6 +313,7 @@ export default function ImaginalAgilityHome() {
           <AssessmentModal
             isOpen={isAssessmentModalOpen}
             onClose={() => setIsAssessmentModalOpen(false)}
+            workshopType="ia"
             onComplete={(results) => {
               setIsAssessmentModalOpen(false);
               markStepCompleted('ia-4-1'); // Mark self-assessment as completed

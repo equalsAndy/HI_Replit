@@ -30,9 +30,10 @@ interface AssessmentModalProps {
   isOpen: boolean;
   onClose: () => void;
   onComplete?: (data: any) => void;
+  workshopType?: 'ast' | 'ia'; // Add workshop type to determine result display
 }
 
-export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModalProps) {
+export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'ast' }: AssessmentModalProps) {
   const { toast } = useToast();
 
   // State management
@@ -242,7 +243,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
       console.log('Showing success toast...');
       toast({
         title: "Assessment Complete!",
-        description: "Your Star Card has been created!",
+        description: workshopType === 'ia' ? "Your 5Cs Assessment has been created!" : "Your Star Card has been created!",
       });
 
       // Set results and close modal immediately to show results in content view
@@ -937,20 +938,26 @@ export function AssessmentModal({ isOpen, onClose, onComplete }: AssessmentModal
   // Render the results screen to match the design in the image
   const renderResults = () => (
     <div className="p-4 space-y-5">
-      <h2 className="text-2xl font-bold text-gray-900">Your Star Strengths Results</h2>
+      <h2 className="text-2xl font-bold text-gray-900">
+        {workshopType === 'ia' ? 'Your 5Cs Assessment Results' : 'Your Star Strengths Results'}
+      </h2>
 
       {assessmentResults && (
         <>
           <div>
             <p className="text-gray-700 mb-2">
               <span className="font-semibold">Congratulations!</span> You've completed the assessment and 
-              created your unique Star Card showing your strengths across four key dimensions.
+              {workshopType === 'ia' 
+                ? ' created your unique 5Cs profile showing your strengths across five key capacities.'
+                : ' created your unique Star Card showing your strengths across four key dimensions.'
+              }
             </p>
 
             <p className="text-gray-700 mb-5">
-              Your Star Card will guide your personal development journey and help
-              you identify areas where you shine and where you can grow. The
-              workshop activities will help you explore these dimensions in depth.
+              {workshopType === 'ia'
+                ? 'Your 5Cs profile will guide your imaginal agility development and help you understand your creative capacities. The workshop activities will help you explore these capacities in depth.'
+                : 'Your Star Card will guide your personal development journey and help you identify areas where you shine and where you can grow. The workshop activities will help you explore these dimensions in depth.'
+              }
             </p>
           </div>
 
