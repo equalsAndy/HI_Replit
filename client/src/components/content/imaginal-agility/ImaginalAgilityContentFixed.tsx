@@ -111,8 +111,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
                 title="Introduction to Imaginal Agility"
                 frameBorder="0" 
@@ -151,8 +151,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/EsExXeKFiKg" 
                 title="The Triple Challenge"
                 frameBorder="0" 
@@ -191,8 +191,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/l3XVwPGE6UY" 
                 title="Imagination and AI"
                 frameBorder="0" 
@@ -229,8 +229,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
                 title="Self-Assessment Video"
                 frameBorder="0" 
@@ -319,8 +319,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/If2FH40IgTM" 
                 title="Review Results Video"
                 frameBorder="0" 
@@ -375,8 +375,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/hOV2zaWVxeU" 
                 title="Teamwork Preparation"
                 frameBorder="0" 
@@ -415,8 +415,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/U7pQjMYKk_s" 
                 title="Reality Discernment"
                 frameBorder="0" 
@@ -453,8 +453,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="100%" 
-                height="400" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/43Qs7OvToeI" 
                 title="The Neuroscience of Imagination"
                 frameBorder="0" 
