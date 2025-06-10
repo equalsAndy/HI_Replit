@@ -13,56 +13,47 @@ export const imaginalAgilityNavigationSections = [
       { 
         id: 'ia-1-1', 
         title: 'Introduction to Imaginal Agility', 
-        type: 'video',
-        contentKey: 'ia-1-1'
+        type: 'video'
       },
       { 
         id: 'ia-2-1', 
         title: 'The Triple Challenge', 
-        type: 'video',
-        contentKey: 'ia-2-1'
+        type: 'video'
       },
       { 
         id: 'ia-3-1', 
-        title: 'Imaginal Agility Solution', 
-        type: 'video',
-        contentKey: 'ia-3-1'
+        title: 'Imagination and AI', 
+        type: 'video'
       },
       { 
         id: 'ia-4-1', 
         title: 'Self-Assessment', 
-        type: 'assessment',
-        contentKey: 'ia-4-1'
+        type: 'assessment'
       },
       { 
         id: 'ia-4-2', 
         title: 'Review Results', 
-        type: 'content',
-        contentKey: 'ia-4-2'
+        type: 'content'
       },
       { 
         id: 'ia-5-1', 
         title: 'Teamwork Preparation', 
-        type: 'video',
-        contentKey: 'ia-5-1'
+        type: 'video'
       },
       { 
         id: 'ia-6-1', 
-        title: 'Discernment Guide', 
-        type: 'video',
-        contentKey: 'ia-6-1'
+        title: 'Team Practice', 
+        type: 'content'
       },
       { 
         id: 'ia-7-1', 
-        title: 'The Neuroscience', 
-        type: 'video',
-        contentKey: 'ia-7-1'
+        title: 'Future Applications', 
+        type: 'content'
       },
       { 
         id: 'ia-8-1', 
-        title: 'More About Workshop', 
-        type: 'content',
-        contentKey: 'ia-8-1'
+        title: 'Next Steps', 
+        type: 'content'
       }
     ]
   }

@@ -20,7 +20,7 @@ const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
 export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
-  const [currentContent, setCurrentContent] = useState("ia-1-1");
+  const [currentContent, setCurrentContent] = useState("imaginal-intro");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const { toast } = useToast();
 

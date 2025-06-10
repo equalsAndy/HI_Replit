@@ -97,17 +97,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
             
             <div className="mb-8">
-              <div className="relative w-full aspect-video">
-                <iframe 
-                  className="absolute inset-0 w-full h-full rounded-lg"
-                  src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
-                  title="Introduction to Imaginal Agility" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  referrerPolicy="strict-origin-when-cross-origin" 
-                  allowFullScreen
-                ></iframe>
-              </div>
+              <iframe 
+                width="832" 
+                height="468" 
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
+                title="Introduction to Imaginal Agility" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin" 
+                allowFullScreen
+                className="w-full rounded-lg"
+              ></iframe>
             </div>
             
             <div className="space-y-4 text-lg text-gray-700">
@@ -149,17 +149,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
             
             <div className="mb-8">
-              <div className="relative w-full aspect-video">
-                <iframe 
-                  className="absolute inset-0 w-full h-full rounded-lg"
-                  src="https://www.youtube.com/embed/EsExXeKFiKg" 
-                  title="The Triple Challenge" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                  referrerPolicy="strict-origin-when-cross-origin" 
-                  allowFullScreen
-                ></iframe>
-              </div>
+              <iframe 
+                width="832" 
+                height="468" 
+                src="https://www.youtube.com/embed/EsExXeKFiKg" 
+                title="The Triple Challenge" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin" 
+                allowFullScreen
+                className="w-full rounded-lg"
+              ></iframe>
             </div>
             
             <p className="text-lg text-gray-700 mb-8">
