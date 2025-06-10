@@ -163,17 +163,83 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         );
       case 'ia-3-1':
         return (
-          <PlaceholderView 
-            title="The Imaginal Agility Solution"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={isImaginalAgility}
-          />
+          <div className="prose max-w-none">
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-3-1"
+                fallbackUrl="https://youtu.be/l3XVwPGE6UY"
+                title="Imaginal Agility Solution"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 mb-6">
+              <p>Imaginal Agility offers a systematic approach to developing the human capabilities that complement and enhance AI collaboration. Rather than competing with artificial intelligence, this framework helps individuals and teams thrive alongside it.</p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Philosophy</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Imaginal Agility recognizes that our greatest competitive advantage lies not in what we can automate, but in what we can imagine. It's a framework designed to cultivate the uniquely human capacity for creative thinking, emotional intelligence, and innovative problem-solving.
+            </p>
+
+            <div className="bg-purple-50 p-6 rounded-lg mb-8">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Five Core Capabilities</h3>
+              <div className="grid gap-4">
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-lg font-medium text-purple-700">Imagination</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-lg font-medium text-purple-700">Curiosity</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-lg font-medium text-purple-700">Creativity</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-lg font-medium text-purple-700">Courage</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
+                  <span className="text-lg font-medium text-purple-700">Empathy</span>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Traditional Training</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Unlike conventional skill development programs, Imaginal Agility focuses on developing meta-capabilities—the thinking patterns and mindsets that enable continuous adaptation and innovation in an AI-enhanced world.
+            </p>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Practical Application</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              This framework provides concrete tools and practices for individuals, teams, and organizations to develop their imaginative capacity while maintaining psychological well-being and professional effectiveness.
+            </p>
+
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg mb-8">
+              <p className="text-center text-lg font-medium text-purple-800">
+                "The future belongs to those who can imagine what AI cannot—and then bring those visions to life."
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('ia-3-1');
+                  setCurrentContent('ia-4-1');
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Next: Start Assessment
+              </Button>
+            </div>
+          </div>
         );
       case 'ia-4-1':
         return (
@@ -196,45 +262,246 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         );
       case 'ia-6-1':
         return (
-          <PlaceholderView 
-            title="Discernment Guide"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={isImaginalAgility}
-          />
+          <div className="prose max-w-none">
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-6-1"
+                fallbackUrl="https://youtu.be/U7pQjMYKk_s"
+                title="Discernment Guide"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 mb-6">
+              <p>Discernment is the ability to judge well between different options, ideas, and approaches. In an AI-enhanced workplace, discernment becomes crucial for determining when to rely on AI assistance and when to trust human intuition and creativity.</p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Art of Wise Decision-Making</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              As AI becomes more sophisticated, the ability to discern between AI-generated solutions and human-driven insights becomes increasingly valuable. This isn't about choosing one over the other, but knowing when each approach serves you best.
+            </p>
+
+            <div className="bg-purple-50 p-6 rounded-lg mb-8">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Key Discernment Areas</h3>
+              <div className="space-y-4">
+                <div className="flex">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Quality vs. Speed</h4>
+                    <p className="text-gray-700">When to prioritize AI efficiency versus human depth</p>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Logic vs. Intuition</h4>
+                    <p className="text-gray-700">Balancing data-driven insights with human gut feelings</p>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Automation vs. Human Touch</h4>
+                    <p className="text-gray-700">Knowing when personal connection matters most</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Developing Your Discernment</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Strong discernment emerges from experience, reflection, and the willingness to question both AI outputs and your own assumptions. It requires cultivating both analytical thinking and emotional intelligence.
+            </p>
+
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mb-8">
+              <p className="text-center text-lg font-medium text-purple-800">
+                "Wisdom is not about having all the answers, but knowing which questions to ask."
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('ia-6-1');
+                  setCurrentContent('ia-7-1');
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Next: The Neuroscience
+              </Button>
+            </div>
+          </div>
         );
       case 'ia-7-1':
         return (
-          <PlaceholderView 
-            title="The Neuroscience"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={isImaginalAgility}
-          />
+          <div className="prose max-w-none">
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-7-1"
+                fallbackUrl="https://youtu.be/43Qs7OvToeI"
+                title="The Neuroscience"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 mb-6">
+              <p>Understanding the neuroscience behind imagination and creativity provides crucial insights into how we can strengthen these capabilities in an AI-enhanced world. Recent research reveals specific brain mechanisms that support imaginative thinking.</p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Default Mode Network</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              The brain's Default Mode Network (DMN) is most active during rest and introspection. This network is crucial for imagination, self-referential thinking, and connecting disparate ideas—exactly the capabilities that complement AI systems.
+            </p>
+
+            <div className="bg-purple-50 p-6 rounded-lg mb-8">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Key Brain Networks for Imagination</h3>
+              <div className="space-y-4">
+                <div className="flex">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Default Mode Network</h4>
+                    <p className="text-gray-700">Enables mental simulation and creative connections</p>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Executive Control Network</h4>
+                    <p className="text-gray-700">Manages attention and working memory during creative tasks</p>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Salience Network</h4>
+                    <p className="text-gray-700">Switches between internal imagination and external focus</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Neuroplasticity and Imagination</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              The brain's ability to reorganize and form new neural connections means that imaginative capabilities can be strengthened throughout life. Regular practice of imaginative thinking literally rewires the brain for enhanced creativity.
+            </p>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The AI Impact on Cognition</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              When we outsource thinking to AI systems, we risk weakening the neural pathways associated with deep reflection and creative problem-solving. Understanding this helps us make conscious choices about when to engage our own cognitive resources.
+            </p>
+
+            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg mb-8">
+              <p className="text-center text-lg font-medium text-purple-800">
+                "The brain that imagines together, stays creative together."
+              </p>
+            </div>
+
+            <div className="flex justify-end">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('ia-7-1');
+                  setCurrentContent('ia-8-1');
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Next: More About Workshop
+              </Button>
+            </div>
+          </div>
         );
       case 'ia-8-1':
         return (
-          <PlaceholderView 
-            title="Next Steps"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-            user={user}
-            flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={isImaginalAgility}
-          />
+          <div className="prose max-w-none">
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-8-1"
+                fallbackUrl="https://youtu.be/8Q5G3CF3yxI"
+                title="More About Workshop"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+            
+            <div className="text-lg text-gray-700 mb-6">
+              <p>Congratulations on completing the Imaginal Agility workshop! You've explored the challenges of the AI era and discovered practical approaches for developing your imaginative capabilities. This is just the beginning of your journey.</p>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">What You've Accomplished</h2>
+            <div className="bg-purple-50 p-6 rounded-lg mb-8">
+              <div className="space-y-3">
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <span>Identified the AI Triple Challenge in your workplace</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <span>Learned the Imaginal Agility framework and five core capabilities</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <span>Completed your personal capability assessment</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <span>Explored discernment skills for AI collaboration</span>
+                </div>
+                <div className="flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  <span>Understood the neuroscience behind imagination</span>
+                </div>
+              </div>
+            </div>
+
+            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Next Steps in Your Journey</h2>
+            <p className="text-lg text-gray-700 mb-6">
+              Developing Imaginal Agility is an ongoing practice. Here are recommended ways to continue strengthening these capabilities in your daily work and personal life.
+            </p>
+
+            <div className="grid gap-6 mb-8">
+              <div className="border border-purple-200 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Daily Practices</h3>
+                <p className="text-gray-700">Integrate imagination exercises into your routine, practice curiosity in conversations, and create space for unstructured thinking time.</p>
+              </div>
+              <div className="border border-purple-200 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Team Applications</h3>
+                <p className="text-gray-700">Share these concepts with colleagues, facilitate imagination sessions, and advocate for human-centered approaches to AI implementation.</p>
+              </div>
+              <div className="border border-purple-200 p-6 rounded-lg">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Continued Learning</h3>
+                <p className="text-gray-700">Explore advanced workshops, join communities of practice, and stay connected with ongoing research in human-AI collaboration.</p>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-8 rounded-lg mb-8 text-center">
+              <h3 className="text-2xl font-bold text-purple-800 mb-4">Thank You for Your Participation</h3>
+              <p className="text-lg text-purple-700">
+                Your commitment to developing Imaginal Agility contributes to a future where humans and AI collaborate to create unprecedented value and meaning.
+              </p>
+            </div>
+
+            <div className="flex justify-center">
+              <Button 
+                onClick={() => {
+                  markStepCompleted('ia-8-1');
+                  // Workshop complete - could navigate to results or stay here
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="lg"
+              >
+                Workshop Complete
+              </Button>
+            </div>
+          </div>
         );
       default:
         return (
