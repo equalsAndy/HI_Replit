@@ -599,58 +599,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
 
 
-    case 'five-c-assessment':
-      return (
-        <div className="prose max-w-none">
-          <div className="mb-8">
-            <iframe 
-              width="400" 
-              height="300" 
-              src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-              title="Self-Assessment Introduction" 
-              frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen
-              className="rounded-lg shadow-lg"
-            ></iframe>
-          </div>
 
-          <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
-          
-          <div className="text-lg text-gray-700 space-y-4 mb-8">
-            <p>As organizations face what Deloitte identifies as an "imagination deficit" in the AI era, robust imagination self-assessment becomes essential for maintaining human creative agency and fostering transformative innovation capacity.</p>
-            
-            <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
-            
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Core Capabilities</h3>
-              <ul className="space-y-2 text-purple-700">
-                <li>• <strong>Imagination</strong></li>
-                <li>• <strong>Curiosity</strong></li>
-                <li>• <strong>Empathy</strong></li>
-                <li>• <strong>Creativity</strong></li>
-                <li>• <strong>Courage</strong></li>
-              </ul>
-            </div>
-            
-            <p>Click the button below to begin your self-assessment. The assessment will open in a new window and takes approximately 10-15 minutes to complete.</p>
-          </div>
-
-          <div className="flex justify-center">
-            <Button 
-              onClick={() => {
-                if (setIsAssessmentModalOpen) {
-                  setIsAssessmentModalOpen(true);
-                }
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Start Assessment
-            </Button>
-          </div>
-        </div>
-      );
 
     case 'insights-review':
       return (
