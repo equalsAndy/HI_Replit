@@ -113,7 +113,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/F92JtFJYOiA" 
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
                 title="Introduction to Imaginal Agility"
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -153,7 +153,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/7Jl0wnHlnzM" 
+                src="https://www.youtube.com/embed/EsExXeKFiKg" 
                 title="The Triple Challenge"
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -193,7 +193,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="100%" 
                 height="400" 
-                src="https://www.youtube.com/embed/9DswWxC8hkw" 
+                src="https://www.youtube.com/embed/l3XVwPGE6UY" 
                 title="Imagination and AI"
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -412,9 +412,24 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold text-purple-700 mb-6">Team Practice</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Engage in collaborative exercises that put your capabilities into action.
-            </p>
+            
+            <div className="mb-8">
+              <iframe 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/U7pQjMYKk_s" 
+                title="Reality Discernment"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Develop your ability to discern reality from imagination while maintaining the creative power of both.</p>
+              
+              <p>This crucial skill allows teams to ground visionary thinking in practical action while preserving the transformative potential of imaginal processes.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -434,10 +449,25 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-7-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Future Applications</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Explore how to apply your capabilities in real-world scenarios.
-            </p>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">The Neuroscience</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="100%" 
+                height="400" 
+                src="https://www.youtube.com/embed/43Qs7OvToeI" 
+                title="The Neuroscience of Imagination"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Discover the fascinating science behind imagination and how your brain creates new possibilities.</p>
+              
+              <p>Understanding the neurological foundations of imaginal thinking empowers you to develop these capabilities more effectively and apply them strategically in your work and relationships.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
