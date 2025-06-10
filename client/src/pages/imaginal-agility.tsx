@@ -317,7 +317,7 @@ export default function ImaginalAgilityHome() {
             onComplete={(results) => {
               setIsAssessmentModalOpen(false);
               markStepCompleted('ia-4-1'); // Mark self-assessment as completed
-              setCurrentContent("ia-5-1"); // Skip ia-4-2 and go directly to ia-5-1 for results
+              setCurrentContent("ia-4-2"); // Navigate to Review Results
             }}
           />
         </div>
