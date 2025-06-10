@@ -18,7 +18,7 @@ import YourStatementView from './YourStatementView';
 import RecapView from './RecapView';
 import AllStarTeamsContent from './allstarteams/AllStarTeamsContent';
 import ImaginalAgilityContent from './imaginal-agility/ImaginalAgilityContent';
-import { ContentViewProps, StarCard } from '@/shared/types';
+import { ContentViewProps } from '@/shared/types';
 
 interface AssessmentViewProps extends ContentViewProps {
   setIsAssessmentModalOpen: (open: boolean) => void;
@@ -47,7 +47,8 @@ export default function ContentViews({
   isImaginalAgility = false,
   starCard 
 }: ContentViewsProps) {
-  console.log('🔍 ContentViews: currentContent =', currentContent);
+  console.log('🔍 ContentViews: Received currentContent =', currentContent);
+  console.log('🔍 ContentViews: Type of currentContent =', typeof currentContent);
 
   // Handle content routing
   switch (currentContent) {
