@@ -20,9 +20,7 @@ import AllStarTeamsContent from './allstarteams/AllStarTeamsContent';
 import ImaginalAgilityContent from './imaginal-agility/ImaginalAgilityContent';
 import { ContentViewProps } from '@/shared/types';
 
-interface AssessmentViewProps extends ContentViewProps {
-  setIsAssessmentModalOpen: (open: boolean) => void;
-}
+// AssessmentViewProps removed - using ContentViewProps directly
 
 interface PlaceholderViewProps {
   title: string;
@@ -91,6 +89,7 @@ export default function ContentViews({
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
+          starCard={starCard}
         />
       );
 

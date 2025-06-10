@@ -2,14 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-
-interface ContentViewProps {
-  navigate: (path: string) => void;
-  markStepCompleted: (stepId: string) => void;
-  setCurrentContent: (content: string) => void;
-}
+import { ContentViewProps } from '@/shared/types';
 
 const IntroStrengthsView: React.FC<ContentViewProps> = ({
+  currentContent,
   navigate,
   markStepCompleted,
   setCurrentContent

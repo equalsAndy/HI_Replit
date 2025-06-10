@@ -1,16 +1,9 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-// import { StarCard } from '@/shared/types';
 import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-react';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-
-interface AssessmentViewProps {
-  navigate: (to: string) => void;
-  markStepCompleted: (stepId: string) => void;
-  setCurrentContent: (content: string) => void;
-  setIsAssessmentModalOpen: (isOpen: boolean) => void;
-}
+import { ContentViewProps } from '@/shared/types';
 
 interface StarCard {
   state?: string;
@@ -20,7 +13,8 @@ interface StarCard {
   planning?: number;
 }
 
-const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = ({
+const AssessmentView: React.FC<ContentViewProps & { starCard?: StarCard }> = ({
+  currentContent,
   navigate,
   markStepCompleted,
   setCurrentContent,

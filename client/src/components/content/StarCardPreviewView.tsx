@@ -4,15 +4,10 @@ import { VideoPlayer } from './VideoPlayer';
 import StarCardWithFetch from '@/components/starcard/StarCardWithFetch';
 import { CheckCircle } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-
-interface ContentViewProps {
-  navigate: (path: string) => void;
-  markStepCompleted: (stepId: string) => void;
-  setCurrentContent: (content: string) => void;
-  starCard?: any;
-}
+import { ContentViewProps } from '@/shared/types';
 
 const StarCardPreviewView: React.FC<ContentViewProps> = ({
+  currentContent,
   navigate,
   markStepCompleted,
   setCurrentContent,
