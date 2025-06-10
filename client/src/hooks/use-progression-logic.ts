@@ -82,14 +82,14 @@ export const useProgressionLogic = (): ProgressionLogic => {
 
   // Check if a step is unlocked based on progression rules
   const isStepUnlocked = (stepId: string): boolean => {
-    const stepIndex = STEP_PROGRESSION_ORDER.indexOf(stepId);
+    const stepIndex = IA_STEP_PROGRESSION_ORDER.indexOf(stepId);
     if (stepIndex === -1) return false;
     
     // First step is always unlocked
     if (stepIndex === 0) return true;
     
     // Step is unlocked if the previous step is completed
-    const previousStepId = STEP_PROGRESSION_ORDER[stepIndex - 1];
+    const previousStepId = IA_STEP_PROGRESSION_ORDER[stepIndex - 1];
     return progressionState.completedSteps.includes(previousStepId);
   };
 
@@ -103,9 +103,9 @@ export const useProgressionLogic = (): ProgressionLogic => {
     if (progressionState.completedSteps.includes(stepId)) return;
 
     const newCompletedSteps = [...progressionState.completedSteps, stepId];
-    const stepIndex = STEP_PROGRESSION_ORDER.indexOf(stepId);
-    const nextStepId = stepIndex < STEP_PROGRESSION_ORDER.length - 1 
-      ? STEP_PROGRESSION_ORDER[stepIndex + 1] 
+    const stepIndex = IA_STEP_PROGRESSION_ORDER.indexOf(stepId);
+    const nextStepId = stepIndex < IA_STEP_PROGRESSION_ORDER.length - 1 
+      ? IA_STEP_PROGRESSION_ORDER[stepIndex + 1] 
       : stepId;
 
     const newState = {
@@ -155,7 +155,7 @@ export const useProgressionLogic = (): ProgressionLogic => {
 
   // Get next unlocked step
   const getNextUnlockedStep = (): string | null => {
-    for (const stepId of STEP_PROGRESSION_ORDER) {
+    for (const stepId of IA_STEP_PROGRESSION_ORDER) {
       if (!progressionState.completedSteps.includes(stepId) && isStepUnlocked(stepId)) {
         return stepId;
       }
@@ -167,7 +167,7 @@ export const useProgressionLogic = (): ProgressionLogic => {
   const getProgressCount = () => {
     return {
       completed: progressionState.completedSteps.length,
-      total: STEP_PROGRESSION_ORDER.length
+      total: IA_STEP_PROGRESSION_ORDER.length
     };
   };
 
