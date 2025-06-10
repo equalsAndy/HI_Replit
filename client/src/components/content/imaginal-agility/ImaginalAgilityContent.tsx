@@ -36,16 +36,18 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             </div>
             
             <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
-                title="Introduction to Imaginal Agility" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
+              <div className="w-full max-w-md mx-auto">
+                <div className="relative w-full" style={{ aspectRatio: '4/3' }}>
+                  <iframe 
+                    src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
+                    title="Introduction to Imaginal Agility" 
+                    frameBorder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowFullScreen
+                    className="absolute inset-0 w-full h-full rounded-lg shadow-lg"
+                  ></iframe>
+                </div>
+              </div>
             </div>
             
             <div className="text-lg text-gray-700 space-y-4">
