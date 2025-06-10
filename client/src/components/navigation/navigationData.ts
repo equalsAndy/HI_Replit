@@ -42,7 +42,7 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-6-1', 
-        title: 'Teamwork Preparation', 
+        title: 'The Neuroscience', 
         type: 'video',
         contentKey: 'ia-6-1'
       },
@@ -54,15 +54,9 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-8-1', 
-        title: 'The Neuroscience', 
+        title: 'More About Workshop', 
         type: 'video',
         contentKey: 'ia-8-1'
-      },
-      { 
-        id: 'ia-9-1', 
-        title: 'Next Steps', 
-        type: 'content',
-        contentKey: 'ia-9-1'
       }
     ]
   }
