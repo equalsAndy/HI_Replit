@@ -241,6 +241,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
     // Imaginal Agility content views
     case 'imaginal-intro':
+      console.log('🔍 ContentViews: Rendering imaginal-intro case');
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
