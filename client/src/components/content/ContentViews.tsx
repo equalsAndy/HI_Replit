@@ -177,8 +177,11 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               />
             </div>
             
-            <div className="text-lg text-gray-700 mb-6">
-              <p>Imaginal Agility offers a systematic approach to developing the human capabilities that complement and enhance AI collaboration. Rather than competing with artificial intelligence, this framework helps individuals and teams thrive alongside it.</p>
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-purple-700 mb-4">The Imaginal Agility Solution</h1>
+              <p className="text-lg text-gray-700 mb-6">
+                Imaginal Agility offers a systematic approach to developing the human capabilities that complement and enhance AI collaboration. Rather than competing with artificial intelligence, this framework helps individuals and teams thrive alongside it.
+              </p>
             </div>
 
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Philosophy</h2>
@@ -237,7 +240,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Start Assessment
+                Next: Self-Assessment
               </Button>
             </div>
           </div>

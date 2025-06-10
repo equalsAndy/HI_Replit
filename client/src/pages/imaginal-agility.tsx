@@ -205,17 +205,25 @@ export default function ImaginalAgilityHome() {
     localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: [...completedSteps, stepId] }));
   };
 
-  // Function to determine if a step is accessible
+  // Function to determine if a step is accessible for IA workshop
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    const sectionIndex = parseInt(sectionId) - 1;
-    const stepIndex = parseInt(stepId.split('-')[1]) - 1;
+    // Always allow access to the first step
+    if (stepId === 'ia-1-1') return true;
 
-    // If it's the first step, it's always accessible
-    if (sectionIndex === 0 && stepIndex === 0) return true;
+    // Define the progression order for IA
+    const iaStepOrder = [
+      'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
+      'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1', 'ia-9-1'
+    ];
 
-    // For other steps, check if the previous step is completed
-    const prevStepId = `${sectionId}-${stepIndex}`;
-    return completedSteps.includes(prevStepId);
+    const currentStepIndex = iaStepOrder.indexOf(stepId);
+    if (currentStepIndex === -1) return false; // Unknown step
+
+    // Check if previous step is completed
+    if (currentStepIndex === 0) return true; // First step is always accessible
+    
+    const previousStepId = iaStepOrder[currentStepIndex - 1];
+    return completedSteps.includes(previousStepId);
   };
 
   // Get content key from step ID
@@ -232,11 +240,9 @@ export default function ImaginalAgilityHome() {
 
   // Handle step click
   const handleStepClick = (sectionId: string, stepId: string) => {
-    // Find the content key for this step
-    const contentKey = getContentKeyFromStepId(stepId);
-
-    if (contentKey) {
-      setCurrentContent(contentKey);
+    // For IA workshop, navigate directly to step IDs
+    if (isStepAccessible(sectionId, stepId)) {
+      setCurrentContent(stepId);
       // Note: Don't auto-complete steps on navigation - only when user explicitly progresses
     }
   };

@@ -26,9 +26,10 @@ const IA_STEP_PROGRESSION_ORDER = [
   'ia-3-1', // The Imaginal Agility Solution
   'ia-4-1', // Your 5 Capabilities (5Cs) / Self-Assessment
   'ia-5-1', // Assessment Results
-  'ia-6-1', // Discernment Guide
-  'ia-7-1', // The Neuroscience
-  'ia-8-1'  // Next Steps
+  'ia-6-1', // Teamwork Preparation
+  'ia-7-1', // Reality Discernment
+  'ia-8-1', // The Neuroscience
+  'ia-9-1'  // Next Steps
 ];
 
 export const useProgressionLogic = (): ProgressionLogic => {

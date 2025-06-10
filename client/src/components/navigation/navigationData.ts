@@ -24,7 +24,7 @@ export const imaginalAgilityNavigationSections = [
       },
       { 
         id: 'ia-3-1', 
-        title: 'Imagination and AI', 
+        title: 'The Imaginal Agility Solution', 
         type: 'video',
         contentKey: 'imaginal-solution'
       },
