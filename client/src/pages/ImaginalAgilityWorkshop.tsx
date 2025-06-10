@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRoute, useLocation } from 'wouter';
 import ImaginalAgilityNavigation from '@/components/navigation/ImaginalAgilityNavigation';
-import ImaginalAgilityStepContent from '@/components/content/imaginal-agility/ImaginalAgilityStepContent';
+import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 import { Button } from '@/components/ui/button';
 
@@ -207,7 +207,7 @@ export default function ImaginalAgilityWorkshop() {
         {/* Main Content */}
         <div className="flex-1">
           <div className="max-w-4xl mx-auto p-8">
-            <ImaginalAgilityStepContent
+            <ImaginalAgilityContent
               stepId={currentStepId}
               onNext={handleNext}
               onOpenAssessment={handleOpenAssessment}

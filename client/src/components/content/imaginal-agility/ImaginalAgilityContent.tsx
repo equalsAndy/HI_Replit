@@ -4,7 +4,7 @@ import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalA
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
 
-interface ImaginalAgilityStepContentProps {
+interface ImaginalAgilityContentProps {
   stepId: string;
   onNext?: () => void;
   onOpenAssessment?: () => void;
@@ -12,7 +12,7 @@ interface ImaginalAgilityStepContentProps {
   user?: any;
 }
 
-const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
+const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   stepId,
   onNext,
   onOpenAssessment,
@@ -317,15 +317,14 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
+                width="400" 
+                height="300" 
                 src="https://www.youtube.com/embed/U7pQjMYKk_s" 
                 title="Discernment Guide" 
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full h-auto aspect-video max-w-4xl mx-auto rounded-lg shadow-lg"
+                className="rounded-lg shadow-lg"
               ></iframe>
             </div>
             
@@ -397,40 +396,32 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
-                src="https://www.youtube.com/embed/43Qs7OvToeI" 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/JbU8YyUJhH0" 
                 title="The Neuroscience" 
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full h-auto aspect-video max-w-4xl mx-auto rounded-lg shadow-lg"
+                className="rounded-lg shadow-lg"
               ></iframe>
             </div>
             
             <div className="text-lg text-gray-700 space-y-4">
-              <h2 className="text-2xl font-semibold text-purple-700">The Neuroscience Behind Imaginal Agility</h2>
+              <h2 className="text-2xl font-semibold text-purple-700">The Neuroscience of Imagination</h2>
               
-              <h3 className="text-xl font-semibold text-purple-700">Built for Every Mind</h3>
-              <p>Imagination isn't one-size-fits-all. The method supports diverse cognitive styles — including visual, verbal, emotional, and neurodivergent profiles.</p>
+              <p>Modern neuroscience reveals that imagination isn't just creativity — it's a sophisticated cognitive process that involves multiple brain networks working together.</p>
               
-              <h3 className="text-xl font-semibold text-purple-700">Why It Works</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Our method activates real brain systems — not just ideas.</li>
-                <li>Each practice is designed to strengthen imagination as a core cognitive capability.</li>
+              <p>Understanding how your brain generates, evaluates, and implements imaginative thinking gives you practical tools for enhancing this essential human capability.</p>
+              
+              <h3 className="text-xl font-semibold text-purple-700">Key Brain Networks</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li><strong>Default Mode Network</strong> — Generates spontaneous ideas and possibilities</li>
+                <li><strong>Executive Control Network</strong> — Evaluates and refines imaginative content</li>
+                <li><strong>Salience Network</strong> — Switches between different modes of thinking</li>
               </ul>
               
-              <h3 className="text-xl font-semibold text-purple-700">What the Science Shows</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Mental synthesis fuses stored images into new ideas</li>
-                <li>Five brain systems power imagination: memory, planning, empathy, fluency, vision</li>
-                <li>Repetition builds clarity, agility, and insight</li>
-                <li>Trained imagination improves reality discernment</li>
-              </ul>
-              
-              <h3 className="text-xl font-semibold text-purple-700">From Neurons to Organizational Brilliance</h3>
-              <p>The same neural process that sparks individual insight scales to team alignment and cultural change.</p>
+              <p>By understanding these networks, you can learn to work with your brain's natural imagination processes more effectively.</p>
             </div>
           </div>
         );
@@ -445,41 +436,48 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
                 className="h-12 w-auto mr-4"
               />
               <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; More About Workshop
+                Imaginal Agility Workshop Course &gt; Next Steps
               </h1>
             </div>
             
             <div className="mb-8">
               <iframe 
-                width="832" 
-                height="468" 
-                src="https://www.youtube.com/embed/8Q5G3CF3yxI" 
-                title="More About Workshop" 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/3qAu5tC5DwU" 
+                title="Next Steps" 
                 frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
-                referrerPolicy="strict-origin-when-cross-origin" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                 allowFullScreen
-                className="w-full h-auto aspect-video max-w-4xl mx-auto rounded-lg shadow-lg"
+                className="rounded-lg shadow-lg"
               ></iframe>
             </div>
             
             <div className="text-lg text-gray-700 space-y-4">
-              <h2 className="text-2xl font-semibold text-purple-700">Workshop Resources and Additional Information</h2>
+              <h2 className="text-2xl font-semibold text-purple-700">Your Imaginal Agility Journey Continues</h2>
               
-              <p>Congratulations on completing the Imaginal Agility Workshop!</p>
+              <p>Congratulations on completing the Imaginal Agility Workshop core modules. You've developed foundational skills in:</p>
               
-              <p>You've developed foundational skills in the five core capabilities:</p>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>Imagination</li>
-                <li>Curiosity</li>
-                <li>Empathy</li>
-                <li>Creativity</li>
-                <li>Courage</li>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Self-assessment of core imagination capabilities</li>
+                <li>Understanding the neuroscience of imaginative thinking</li>
+                <li>Practical tools for reality discernment</li>
+                <li>Framework for conscious AI collaboration</li>
+                <li>Team preparation for collaborative imagination</li>
               </ul>
               
-              <p>These capabilities will serve as your foundation for conscious collaboration with AI and enhanced team dynamics.</p>
+              <h3 className="text-xl font-semibold text-purple-700">What's Next?</h3>
               
-              <p>For additional resources and continued learning opportunities, please refer to the materials provided by your workshop facilitator.</p>
+              <p>Your journey in developing Imaginal Agility doesn't end here. Consider these next steps:</p>
+              
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Practice the AI Mirror Test regularly in your daily AI interactions</li>
+                <li>Share your radar results with your team and explore collaborative applications</li>
+                <li>Apply the discernment tools in your professional and personal decision-making</li>
+                <li>Continue developing your core capabilities through reflection and practice</li>
+              </ul>
+              
+              <p>Remember: Imaginal Agility is not a destination but a practice — a way of engaging with uncertainty, complexity, and possibility that grows stronger with intentional use.</p>
             </div>
           </div>
         );
@@ -511,4 +509,4 @@ const ImaginalAgilityStepContent: React.FC<ImaginalAgilityStepContentProps> = ({
   );
 };
 
-export default ImaginalAgilityStepContent;
+export default ImaginalAgilityContent;
