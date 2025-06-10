@@ -43,40 +43,40 @@ const useUserAssessments = () => {
 // SIMPLIFIED MODE: Only validate non-video requirements
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
-  
+
   // IA Assessment step - require completion
   if (stepId === 'ia-4-1') {
     const isValid = !!userAssessments?.iaCoreCapabilities;
     console.log(`📋 IA Core Capabilities assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
   }
-  
+
   // AST Assessment steps - still require completion
   if (stepId === '2-2') {
     const isValid = !!userAssessments?.starCard;
     console.log(`📋 Star Card assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
   }
-  
+
   if (stepId === '3-2') {
     const isValid = !!userAssessments?.flowAssessment;
     console.log(`📋 Flow assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
   }
-  
+
   // Mixed requirement steps - only validate activity parts (not video)
   if (stepId === '4-1') {
     const isValid = !!userAssessments?.cantrilLadder;
     console.log(`🎚️ Cantril Ladder activity: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
     return isValid;
   }
-  
+
   // 4-2 is reflections, non-blocking in simplified mode
   if (stepId === '4-2') {
     console.log(`📝 Well-being reflection: NON-BLOCKING (reflections in simplified mode)`);
     return true;
   }
-  
+
   // All other steps: Next button always active
   console.log(`✅ SIMPLIFIED MODE: Next button always active for ${stepId}`);
   return true;
@@ -88,42 +88,42 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
   if (appType === 'ia') {
     const iaSequence = ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-4-2', 'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'];
     const unlocked = ['ia-1-1']; // First step always unlocked
-    
+
     // Linear progression through IA sequence
     for (let i = 0; i < iaSequence.length - 1; i++) {
       const currentStep = iaSequence[i];
       const nextStep = iaSequence[i + 1];
-      
+
       if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
         unlocked.push(nextStep);
         console.log(`📝 IA MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
       }
     }
-    
+
     return unlocked;
   }
-  
+
   // AST progression sequence
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   const unlocked = ['1-1']; // First step always unlocked
-  
+
   // Linear progression through main sequence
   for (let i = 0; i < mainSequence.length - 1; i++) {
     const currentStep = mainSequence[i];
     const nextStep = mainSequence[i + 1];
-    
+
     if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
       unlocked.push(nextStep);
       console.log(`📝 SIMPLIFIED MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
     }
   }
-  
+
   // BRANCH 1: 3-4 completion unlocks 5-1 (parallel branch, 4-1 remains next step)
   if (completedSteps.includes('3-4') && !unlocked.includes('5-1')) {
     unlocked.push('5-1');
     console.log(`🌟 BRANCH: Step 3-4 completed → unlocked 5-1 (resource branch)`);
   }
-  
+
   // BRANCH 2: 4-5 completion unlocks all remaining resources
   if (completedSteps.includes('4-5')) {
     const resources = ['5-2', '5-3', '5-4', '6-1'];
@@ -134,7 +134,7 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
       }
     });
   }
-  
+
   console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
   return unlocked;
 };
@@ -142,23 +142,23 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
 // JSON parsing with error recovery
 const handleJSONParseError = (error: Error, rawData: string): NavigationProgress => {
   console.error('Failed to parse navigation progress:', error);
-  
+
   const showRecoveryOptions = () => {
     const message = `
       Navigation data appears corrupted. Recovery options:
-      
+
       1. Refresh the page (Ctrl+F5 or Cmd+R)
       2. Clear browser data (Settings > Clear browsing data)
       3. Contact your facilitator for assistance
-      
+
       Your progress will be restored from the last successful save.
     `;
-    
+
     console.warn(message);
   };
-  
+
   showRecoveryOptions();
-  
+
   // Return safe default state
   return {
     completedSteps: [],
@@ -181,17 +181,17 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
   const currentIndex = mainSequence.indexOf(currentStepId);
   const completedSteps: string[] = [];
-  
+
   if (currentIndex <= 0) {
     return []; // At or before first step
   }
-  
+
   console.log(`🎯 AUTO-MARKING: User at step ${currentStepId} (index ${currentIndex})`);
-  
+
   // Mark all steps up to current as completed, but validate assessments
   for (let i = 0; i < currentIndex; i++) {
     const stepId = mainSequence[i];
-    
+
     // Always mark regular steps as completed if user has progressed past them
     if (!['2-2', '3-2', '4-1'].includes(stepId)) {
       completedSteps.push(stepId);
@@ -200,7 +200,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
       // Assessment steps - validate but still mark as completed if user progressed
       const isValid = validateStepCompletionSimplified(stepId, userAssessments);
       completedSteps.push(stepId);
-      
+
       if (isValid) {
         console.log(`  ✅ Auto-completed: ${stepId} (assessment validated)`);
       } else {
@@ -208,7 +208,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
       }
     }
   }
-  
+
   console.log(`🎯 AUTO-MARKED COMPLETED:`, completedSteps);
   return completedSteps;
 };
@@ -216,30 +216,23 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
 // Get next step prioritizing main sequence over resources
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
-  
+
   // Priority 1: Continue main sequence
   for (const step of mainSequence) {
     if (!completedSteps.includes(step)) {
       return step;
     }
   }
-  
-  // Priority 2: If main sequence complete, point to resources (but user navigates via menu)
-  const resources = ['5-1', '5-2', '5-3', '5-4', '6-1'];
-  for (const step of resources) {
-    if (!completedSteps.includes(step)) {
-      return step;
-    }
-  }
-  
-  // All completed, stay at final main sequence step
+
+  // If main sequence is complete (including 4-5), stay at final step
+  // Do NOT auto-navigate to resources after completing 4-5
   return '4-5';
 };
 
 export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const queryClient = useQueryClient();
   const debouncedSync = useRef<NodeJS.Timeout>();
-  
+
   const [progress, setProgress] = useState<NavigationProgress>({
     completedSteps: [],
     currentStepId: appType === 'ia' ? 'ia-1-1' : '1-1',
@@ -260,13 +253,13 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         const response = await fetch('/api/user/profile', {
           credentials: 'include'
         });
-        
+
         if (response.ok) {
           const result = await response.json();
           if (result.success && result.user?.navigationProgress) {
             try {
               const dbProgress = JSON.parse(result.user.navigationProgress);
-              
+
               // Auto-mark steps as completed up to current position
               let completedSteps = dbProgress.completedSteps || [];
               if (dbProgress.currentStepId && dbProgress.currentStepId !== '1-1') {
@@ -276,7 +269,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
                 completedSteps = mergedSteps;
                 console.log(`🔄 AUTO-MARKED: Fixed completed steps for user at ${dbProgress.currentStepId}`);
               }
-              
+
               const updatedProgress = {
                 ...dbProgress,
                 completedSteps,
@@ -286,13 +279,13 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
               };
 
               setProgress(prev => ({ ...prev, ...updatedProgress }));
-              
+
               // Auto-save corrected progress back to database if we made changes
               if (completedSteps.length !== (dbProgress.completedSteps || []).length) {
                 console.log('💾 AUTO-SAVING: Corrected completed steps to database');
                 setTimeout(() => syncToDatabase(updatedProgress), 1000);
               }
-              
+
               console.log('✅ SIMPLIFIED MODE: Progress loaded and corrected');
             } catch (parseError) {
               console.error('JSON parse error in navigation progress:', parseError);
@@ -308,7 +301,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         handleNetworkError(error as Error, 'loading user progress');
       }
     };
-    
+
     loadProgress();
   }, []);
 
@@ -326,7 +319,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
           navigationProgress: JSON.stringify(progressData)
         })
       });
-      
+
       if (response.ok) {
         console.log('✅ SIMPLIFIED MODE: Progress synced to database');
       } else {
@@ -360,15 +353,15 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   // Enhanced video progress tracking with mode-aware logging
   const updateVideoProgress = (stepId: string, percentage: number, isResumption: boolean = false) => {
     const normalizedProgress = Math.min(100, Math.max(0, percentage));
-    
+
     // Enhanced logging for simplified mode
     console.log(`🎬 VIDEO PROGRESS TRACKED (SIMPLIFIED MODE - not used for unlocking): ${stepId} = ${normalizedProgress}%`);
-    
+
     // Continue all existing dual tracking logic for future restoration
     if (!(window as any).currentVideoProgress) {
       (window as any).currentVideoProgress = {};
     }
-    
+
     if (!(window as any).currentVideoProgress[stepId] || typeof (window as any).currentVideoProgress[stepId] === 'number') {
       const existingProgress = (window as any).currentVideoProgress[stepId] || 0;
       (window as any).currentVideoProgress[stepId] = {
@@ -376,9 +369,9 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         current: normalizedProgress
       };
     }
-    
+
     const globalData = (window as any).currentVideoProgress[stepId] as VideoProgressData;
-    
+
     if (isResumption) {
       globalData.current = normalizedProgress;
       console.log(`  📍 SIMPLIFIED MODE: Updated current position (for resumption): ${normalizedProgress}%`);
@@ -387,7 +380,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
       globalData.farthest = Math.max(globalData.farthest, normalizedProgress);
       console.log(`  📊 SIMPLIFIED MODE: Tracked progress - current: ${normalizedProgress}%, farthest: ${globalData.farthest}%`);
     }
-    
+
     // Continue database persistence but don't use for unlocking in simplified mode
     setProgress(prev => {
       const newProgress = {
@@ -401,13 +394,13 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         },
         lastVisitedAt: new Date().toISOString()
       };
-      
+
       // NOTE: In simplified mode, don't auto-complete based on video progress
       console.log(`📊 SIMPLIFIED MODE: Video progress saved but not used for step completion`);
-      
+
       // Sync to database for future restoration
       scheduleSync(newProgress);
-      
+
       return newProgress;
     });
   };
@@ -415,26 +408,26 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   // ENHANCED: Manual progression with immediate counter updates
   const markStepCompleted = async (stepId: string) => {
     console.log(`🎯 SIMPLIFIED MODE: Manual progression - marking step ${stepId} completed`);
-    
+
     // Check if already completed
     if (progress.completedSteps.includes(stepId)) {
       console.log(`Step ${stepId} already completed`);
       return;
     }
-    
+
     // For step 2-2 (assessment results), check if StarCard exists
     if (stepId === '2-2') {
       try {
         const response = await fetch('/api/workshop-data/starcard', {
           credentials: 'include'
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           const hasValidStarCard = data && data.success && (
             data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0
           );
-          
+
           if (!hasValidStarCard) {
             console.log(`❌ Step ${stepId} validation failed - StarCard assessment incomplete`);
             return;
@@ -449,14 +442,14 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         return;
       }
     }
-    
+
     console.log(`✅ SIMPLIFIED MODE: Completing step ${stepId} via Next button click`);
-    
+
     setProgress(prev => {
       const newCompletedSteps = [...prev.completedSteps, stepId];
       const newUnlockedSteps = calculateUnlockedSteps(newCompletedSteps);
       const nextStepId = getNextStepFromCompletedSteps(newCompletedSteps);
-      
+
       const newProgress = {
         ...prev,
         completedSteps: newCompletedSteps,
@@ -464,15 +457,15 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         unlockedSteps: newUnlockedSteps,
         lastVisitedAt: new Date().toISOString()
       };
-      
+
       console.log(`📊 SIMPLIFIED MODE: Progress counters updated immediately`);
       console.log(`  ✅ Completed: ${newCompletedSteps.length} steps`);
       console.log(`  🔓 Unlocked: ${newUnlockedSteps.length} steps`);
       console.log(`  ➡️ Next step: ${nextStepId}`);
-      
+
       // Sync to database
       scheduleSync(newProgress);
-      
+
       return newProgress;
     });
   };
@@ -480,14 +473,14 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   // Set current step (for navigation)
   const setCurrentStep = (stepId: string) => {
     console.log(`🔄 SIMPLIFIED MODE: Navigating to step ${stepId}`);
-    
+
     setProgress(prev => {
       const newProgress = {
         ...prev,
         currentStepId: stepId,
         lastVisitedAt: new Date().toISOString()
       };
-      
+
       scheduleSync(newProgress);
       return newProgress;
     });
@@ -520,7 +513,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const getNextStepId = (currentStepId: string): string | null => {
     const allSteps = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'];
     const currentIndex = allSteps.indexOf(currentStepId);
-    
+
     return currentIndex === -1 || currentIndex === allSteps.length - 1 
       ? null 
       : allSteps[currentIndex + 1];
@@ -529,7 +522,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const getNextButtonState = (stepId: string) => {
     const nextStepId = getNextStepId(stepId);
     const canProceed = validateStepCompletion(stepId);
-    
+
     let errorMessage = null;
     if (!canProceed) {
       if (stepId === '2-2') {
@@ -542,7 +535,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
         errorMessage = 'Complete this step to continue';
       }
     }
-    
+
     return {
       enabled: canProceed && nextStepId !== null,
       nextStepId,
@@ -553,30 +546,30 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   const handleNextButtonClick = async (currentStepId: string): Promise<{ success: boolean; error?: string; nextStepId?: string }> => {
     const buttonState = getNextButtonState(currentStepId);
-    
+
     if (!buttonState.enabled) {
       return {
         success: false,
         error: buttonState.errorMessage || 'Cannot proceed to next step'
       };
     }
-    
+
     if (buttonState.isLastStep) {
       return {
         success: false,
         error: 'You have reached the final step'
       };
     }
-    
+
     try {
       // Mark current step as completed
       markStepCompleted(currentStepId);
-      
+
       // Navigate to next step
       if (buttonState.nextStepId) {
         setCurrentStep(buttonState.nextStepId);
       }
-      
+
       return {
         success: true,
         nextStepId: buttonState.nextStepId || undefined
@@ -613,7 +606,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     const isCurrent = progress.currentStepId === stepId;
     const isUnlocked = progress.unlockedSteps.includes(stepId);
     const canNavigate = canNavigateToStep(stepId);
-    
+
     return {
       isCompleted,
       isCurrent,
@@ -711,19 +704,19 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     validateStepCompletion,
     isVideoStep: (stepId: string) => ['1-1', '2-1', '2-3', '3-1', '3-3', '4-1', '4-4'].includes(stepId),
     CURRENT_PROGRESSION_MODE,
-    
+
     // Enhanced Next Button Functionality
     getNextStepId,
     getNextButtonState,
     handleNextButtonClick,
-    
+
     // User Restoration and Navigation
     restoreUserToCurrentStep,
     isCurrentStep,
     canNavigateToStep,
     getStepDisplayState,
     handleStepNavigation,
-    
+
     // Legacy compatibility for existing code
     isStepUnlocked,
     isStepCompleted,
@@ -732,17 +725,17 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     calculateOverallProgress,
     currentStepId,
     completedSteps,
-    
+
     // Additional compatibility exports
     getSectionProgressData,
     SECTION_STEPS,
     getLastPosition,
-    
+
     // Additional aliases for compatibility
     updateCurrentStep: setCurrentStep,
     isStepAccessibleByProgression: isStepAccessible,
     getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0,
-    
+
     // New completion modal detection
     shouldShowCongratulationsModal
   };
