@@ -255,48 +255,59 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="h-12 w-auto mr-4"
               />
               <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; Teamwork Preparation
+                Imaginal Agility Workshop Course &gt; Your Assessment Results
               </h1>
             </div>
             
-            <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/hOV2zaWVxeU" 
-                title="Teamwork Preparation" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-8">
+              <h2 className="text-2xl font-semibold text-purple-700 mb-4">Congratulations on Completing Your Assessment!</h2>
+              <p className="text-lg text-gray-700">Your Imaginal Agility profile reveals your unique strengths across the 5 core capabilities that drive imaginative thinking and innovative problem-solving.</p>
             </div>
             
-            <div className="text-lg text-gray-700 space-y-4">
-              <p>Welcome to the next stage of the Imaginal Agility Workshop.</p>
+            <div className="bg-white border border-gray-200 rounded-lg p-8 mb-6">
+              <h3 className="text-xl font-semibold text-purple-700 mb-4">Your 5Cs Profile</h3>
+              <p className="text-gray-600 mb-6">Here's how you scored across the five key capabilities:</p>
               
-              <p>Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="bg-gradient-to-br from-purple-100 to-purple-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-purple-700 text-lg">Imagination</h4>
+                  <p className="text-sm text-gray-600 mt-1">Your ability to generate novel ideas and possibilities</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-blue-100 to-blue-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-blue-700 text-lg">Curiosity</h4>
+                  <p className="text-sm text-gray-600 mt-1">Your drive to explore and understand deeply</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-100 to-green-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-green-700 text-lg">Creativity</h4>
+                  <p className="text-sm text-gray-600 mt-1">Your capacity to develop original solutions</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-orange-100 to-orange-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-orange-700 text-lg">Courage</h4>
+                  <p className="text-sm text-gray-600 mt-1">Your willingness to take risks and speak up</p>
+                </div>
+                
+                <div className="bg-gradient-to-br from-pink-100 to-pink-50 p-4 rounded-lg">
+                  <h4 className="font-semibold text-pink-700 text-lg">Empathy</h4>
+                  <p className="text-sm text-gray-600 mt-1">Your ability to understand and connect with others</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+              <h3 className="text-xl font-semibold text-purple-700 mb-3">What's Next?</h3>
+              <p className="text-gray-700 mb-4">Your assessment results provide the foundation for developing your imaginative capabilities further. In the upcoming workshop sessions, you'll learn how to:</p>
               
-              <p>Together, you'll enter a shared digital whiteboard space designed for real-time collaboration. This is where individual insights become team breakthroughs.</p>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What to Expect</h3>
-              
-              <h4 className="text-lg font-semibold text-purple-700">A Structured Whiteboard Practice</h4>
-              <p>• Guided exercises will help your team apply imaginal agility in a creative, visual, and action-oriented way.</p>
-              
-              <h4 className="text-lg font-semibold text-purple-700">Real-Time Co-Creation</h4>
-              <p>• You'll brainstorm, align, and design solutions together — rapidly and with purpose.</p>
-              
-              <h4 className="text-lg font-semibold text-purple-700">Human + AI Synergy</h4>
-              <p>• You'll raise your HaiQ — the ability to stay imaginative, collaborative, and human while working with AI.</p>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What You Leave With</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>A shared model for alignment and trust</li>
-                <li>Tools and language to apply imagination at scale</li>
-                <li>Personal and team AI insights and prompt packs</li>
-                <li>Clearer team identity and action direction</li>
+              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+                <li>Leverage your strongest capabilities to drive innovation</li>
+                <li>Develop areas with growth potential through targeted practice</li>
+                <li>Apply imaginal agility in team collaboration and problem-solving</li>
+                <li>Navigate complex challenges with creative confidence</li>
               </ul>
+              
+              <p className="text-purple-700 font-medium mt-4">Continue to the next section to explore how imagination and AI work together.</p>
             </div>
           </div>
         );
