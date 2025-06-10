@@ -421,10 +421,27 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-5-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Insights Review</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Review your assessment results and understand your unique profile.
-            </p>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Teamwork Preparation</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/YWKfJ5e4CIs" 
+                title="Teamwork Preparation"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Now that you've completed your self-assessment, it's time to prepare for collaborative exploration with your team.</p>
+              
+              <p>This session provides guidance on how to share your insights effectively and engage in meaningful dialogue about imagination and human capabilities in the workplace.</p>
+              
+              <p>You'll learn frameworks for productive team discussions and how to leverage diverse perspectives for breakthrough thinking.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -435,7 +452,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Development Strategies
+                Next: {getStepName('ia-6-1')}
               </Button>
             </div>
           </div>
@@ -444,10 +461,27 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-6-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Development Strategies</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Personalized strategies for developing your Imaginal Agility capabilities.
-            </p>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Reality Discernment</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/w7YjV0gSoTQ" 
+                title="Reality Discernment"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Reality discernment is the ability to distinguish between what is real and what is imagined, between facts and assumptions, between proven and unproven.</p>
+              
+              <p>In a world of increasing complexity and information overload, this capability becomes crucial for effective decision-making and creative problem-solving.</p>
+              
+              <p>Learn how to sharpen your ability to perceive reality accurately while maintaining the openness needed for breakthrough thinking.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -458,7 +492,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Future Applications
+                Next: {getStepName('ia-7-1')}
               </Button>
             </div>
           </div>
@@ -467,10 +501,27 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-7-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Future Applications</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Explore how to apply your capabilities in real-world scenarios.
-            </p>
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">The Neuroscience</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/8EG0wgOg5DY" 
+                title="The Neuroscience"
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Understanding the neuroscience behind imagination and creativity helps us harness these capabilities more effectively.</p>
+              
+              <p>Discover how your brain processes imaginative thinking and what neural mechanisms support breakthrough insights and innovative problem-solving.</p>
+              
+              <p>Learn evidence-based techniques for enhancing your cognitive flexibility and creative capacity.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -481,7 +532,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Next Steps
+                Next: {getStepName('ia-8-1')}
               </Button>
             </div>
           </div>
@@ -491,16 +542,29 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold text-purple-700 mb-6">Next Steps</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Your journey in developing Imaginal Agility continues beyond this workshop.
-            </p>
             
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Congratulations!</h3>
-              <p className="text-gray-700">
-                You've completed the Imaginal Agility Workshop. Continue practicing and applying 
-                these capabilities in your daily work and life.
-              </p>
+            <div className="space-y-6">
+              <div className="space-y-4 text-lg text-gray-700">
+                <p>Your journey in developing Imaginal Agility continues beyond this workshop.</p>
+                
+                <p>Now that you've explored the foundations of imagination, completed your self-assessment, and understood the neuroscience behind creativity, you're equipped to begin applying these capabilities in your daily work and life.</p>
+                
+                <p>Consider how you can use your newfound awareness to approach challenges differently, collaborate more effectively, and contribute to breakthrough thinking in your organization.</p>
+              </div>
+              
+              <div className="bg-purple-50 p-6 rounded-lg border border-purple-100">
+                <h3 className="text-xl font-semibold text-purple-800 mb-4">Congratulations!</h3>
+                <p className="text-gray-700">
+                  You've completed the Imaginal Agility Workshop. Continue practicing and applying 
+                  these capabilities in your daily work and life.
+                </p>
+                
+                <div className="mt-4 space-y-2 text-sm text-purple-700">
+                  <p><strong>Remember:</strong> Imagination is your competitive advantage in the age of AI.</p>
+                  <p><strong>Practice:</strong> Use your assessment insights to guide your development.</p>
+                  <p><strong>Share:</strong> Bring these capabilities to your team collaborations.</p>
+                </div>
+              </div>
             </div>
           </div>
         );
