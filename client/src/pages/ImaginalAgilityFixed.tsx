@@ -119,15 +119,15 @@ export default function ImaginalAgilityFixed() {
       {/* Navigation Bar - Same as AllStarTeams */}
       <NavBar />
 
+      {/* Assessment Modal - Proper modal overlay */}
+      <ImaginalAgilityAssessmentComplete 
+        isOpen={isAssessmentModalOpen} 
+        onClose={() => setIsAssessmentModalOpen(false)}
+        onComplete={handleAssessmentComplete}
+      />
+
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Assessment Modal */}
-        <ImaginalAgilityAssessmentComplete 
-          isOpen={isAssessmentModalOpen} 
-          onClose={() => setIsAssessmentModalOpen(false)}
-          onComplete={handleAssessmentComplete}
-        />
-
         {/* Left Navigation Drawer - Same as AST structure */}
         <UserHomeNavigation
           drawerOpen={drawerOpen}
