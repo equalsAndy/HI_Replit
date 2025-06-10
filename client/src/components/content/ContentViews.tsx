@@ -257,8 +257,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               <VideoPlayer
                 workshopType="imaginal-agility"
                 stepId="ia-4-1"
-                fallbackUrl="https://youtu.be/8wXSL3om6Ig"
-                title="5 Capabilities (5Cs)"
+                fallbackUrl="https://youtu.be/Xdn8lkSzTZU"
+                title="Self-Assessment"
                 aspectRatio="16:9"
                 autoplay={true}
               />
