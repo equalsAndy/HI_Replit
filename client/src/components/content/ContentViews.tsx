@@ -134,12 +134,12 @@ export default function ContentViews({
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
           
-          <div className="mb-8 rounded-lg overflow-hidden">
-            <div className="aspect-video bg-gray-100">
+          <div className="mb-8 rounded-lg overflow-hidden shadow-lg">
+            <div className="aspect-video bg-gray-900">
               <iframe
                 width="100%"
                 height="100%"
-                src="https://www.youtube.com/embed/k3mDEAbUwZ4"
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4?rel=0&modestbranding=1"
                 title="Introduction to Imaginal Agility"
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
