@@ -77,8 +77,23 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
+            
+            <div className="mb-8">
+              <iframe 
+                width="832" 
+                height="468" 
+                src="https://www.youtube.com/embed/EsExXeKFiKg" 
+                title="The Triple Challenge" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin" 
+                allowFullScreen
+                className="w-full rounded-lg"
+              ></iframe>
+            </div>
+            
             <p className="text-lg text-gray-700 mb-8">
-              Understanding the AI Triple Cognitive Challenge and its impact on human potential.
+              As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.
             </p>
             
             <div className="flex justify-end mt-8">
@@ -100,9 +115,26 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold text-purple-700 mb-6">Imaginal Agility Solution</h1>
-            <p className="text-lg text-gray-700 mb-8">
-              Discover how Imaginal Agility addresses the challenges of working with AI.
-            </p>
+            
+            <div className="mb-8">
+              <iframe 
+                width="832" 
+                height="468" 
+                src="https://www.youtube.com/embed/l3XVwPGE6UY" 
+                title="Imaginal Agility Solution" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerPolicy="strict-origin-when-cross-origin" 
+                allowFullScreen
+                className="w-full rounded-lg"
+              ></iframe>
+            </div>
+            
+            <div className="space-y-4 text-lg text-gray-700">
+              <p>Imagination is a primal human power — not content with what we know, but impelled to ask: 'What if?' Let's explore what this means, and how to harness it — individually and as a team.</p>
+              
+              <p className="font-semibold">Upon viewing the video, please click on the button below to complete your Core Capabilities Self-Assessment.</p>
+            </div>
             
             <div className="flex justify-end mt-8">
               <Button 
@@ -113,7 +145,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Imagination Assessment
+                Next: Self-Assessment
               </Button>
             </div>
           </div>
