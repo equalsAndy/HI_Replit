@@ -250,8 +250,21 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-4-1':
         return (
           <div className="prose max-w-none">
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
+            
+            {/* YouTube Video Player */}
+            <div className="mb-8 max-w-4xl mx-auto">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-4-1"
+                fallbackUrl="https://youtu.be/8wXSL3om6Ig"
+                title="5 Capabilities (5Cs)"
+                aspectRatio="16:9"
+                autoplay={true}
+              />
+            </div>
+
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-purple-700 mb-4">Self Assessment</h1>
               <p className="text-lg text-gray-700 mb-6">
                 Take a moment to assess your current capabilities in the five key areas of Imaginal Agility. This self-reflection will help you understand your strengths and identify areas for growth.
               </p>
@@ -331,7 +344,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         return (
           <div className="prose max-w-none">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-purple-700 mb-4">Review Results</h1>
+              <h1 className="text-3xl font-bold text-purple-700 mb-4">Assessment Results</h1>
               <p className="text-lg text-gray-700 mb-6">
                 Congratulations on completing your Imaginal Agility self-assessment! Your results provide insights into your current capabilities across the five core areas that define imaginative thinking in the AI era.
               </p>
