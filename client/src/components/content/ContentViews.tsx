@@ -135,12 +135,18 @@ export default function ContentViews({
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Introduction to Imaginal Agility</h1>
           
           <div className="mb-8 rounded-lg overflow-hidden">
-            <VideoPlayer
-              workshopType="imaginal-agility"
-              stepId="ia-1-1"
-              title="Introduction to Imaginal Agility"
-              fallbackUrl="https://www.youtube.com/embed/k3mDEAbUwZ4"
-            />
+            <div className="aspect-video bg-gray-100">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/k3mDEAbUwZ4"
+                title="Introduction to Imaginal Agility"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full rounded-lg"
+              ></iframe>
+            </div>
           </div>
           
           <div className="space-y-4 text-lg text-gray-700">
@@ -170,7 +176,71 @@ export default function ContentViews({
       );
 
     case 'ia-2-1':
+      return (
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <div className="aspect-video bg-gray-100">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/EsExXeKFiKg"
+                title="The Triple Challenge"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full rounded-lg"
+              ></iframe>
+            </div>
+          </div>
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('ia-2-1');
+                setCurrentContent("ia-3-1");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Imaginal Agility Solution
+            </Button>
+          </div>
+        </div>
+      );
+
     case 'ia-3-1':
+      return (
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Imaginal Agility Solution</h1>
+          <div className="mb-8 rounded-lg overflow-hidden">
+            <div className="aspect-video bg-gray-100">
+              <iframe
+                width="100%"
+                height="100%"
+                src="https://www.youtube.com/embed/l3XVwPGE6UY"
+                title="Imaginal Agility Solution"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                className="w-full h-full rounded-lg"
+              ></iframe>
+            </div>
+          </div>
+          <div className="flex justify-end mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('ia-3-1');
+                setCurrentContent("ia-4-1");
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Self-Assessment
+            </Button>
+          </div>
+        </div>
+      );
+
     case 'ia-4-1':
     case 'ia-4-2':
     case 'ia-5-1':
