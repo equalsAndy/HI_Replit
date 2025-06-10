@@ -444,19 +444,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             ></iframe>
           </div>
 
-          <div className="flex justify-end mb-8">
-            <Button 
-              onClick={() => {
-                markStepCompleted('ia-3-1');
-                setCurrentContent("five-c-assessment");
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Next: Self-Assessment
-            </Button>
-          </div>
-
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Core Approach</h2>
           <p className="text-lg text-gray-700 mb-6">
             Imaginal Agility is the ability to perceive complex situations clearly and respond effectively 
@@ -868,6 +855,42 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
         />
+      );
+
+    case 'imagination-results':
+      return (
+        <div className="prose max-w-none">
+          <h1 className="text-3xl font-bold text-purple-700 mb-6">Assessment Results</h1>
+          
+          <div className="text-lg text-gray-700 space-y-4 mb-8">
+            <p>Thank you for completing the 5Cs Assessment. Your results provide valuable insights into your current imaginal capabilities.</p>
+            
+            <div className="bg-purple-50 p-6 rounded-lg">
+              <h3 className="text-xl font-semibold text-purple-800 mb-3">Your Imaginal Profile</h3>
+              <p className="text-purple-700 mb-4">
+                Based on your responses, we've identified your strengths and areas for development across the five core capabilities.
+              </p>
+              <p className="text-purple-700">
+                These insights will guide your continued development in the remaining workshop modules.
+              </p>
+            </div>
+            
+            <p>Continue to the next module to learn about preparing for effective teamwork using your imaginal capabilities.</p>
+          </div>
+
+          <div className="flex justify-end">
+            <Button 
+              onClick={() => {
+                markStepCompleted('ia-4-2');
+                setCurrentContent('teamwork-prep');
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Teamwork Preparation
+            </Button>
+          </div>
+        </div>
       );
 
     case 'teamwork-prep':

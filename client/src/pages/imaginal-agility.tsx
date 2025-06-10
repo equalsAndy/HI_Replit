@@ -247,7 +247,7 @@ export default function ImaginalAgilityHome() {
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
         <div className="flex items-center">
           <img 
-            src="/heliotrope-logo.png" 
+            src="/src/assets/HI_Logo_horizontal.png" 
             alt="Heliotrope Imaginal"
             className="h-8 w-auto" 
           />
