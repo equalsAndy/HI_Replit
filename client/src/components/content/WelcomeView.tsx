@@ -126,8 +126,13 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       
       if (setCurrentContent) {
         setCurrentContent(nextContentId);
-        // Scroll to top when navigating to next content
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Scroll to content title anchor when navigating to next content
+        setTimeout(() => {
+          const anchor = document.getElementById('content-title');
+          if (anchor) {
+            anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       }
     } catch (error) {
       console.error(`❌ Error completing step ${stepId}:`, error);

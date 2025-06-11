@@ -96,69 +96,96 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               />
             </div>
 
-            <div className="text-lg text-gray-700 mb-6">
+            <div className="text-lg text-gray-700 mb-8">
               <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
             </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">AI Triple Cognitive Challenge</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
-            </p>
+            <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg mb-8">
+              <h2 className="text-2xl font-semibold text-purple-700 mb-3">AI Triple Cognitive Challenge</h2>
+              <p className="text-lg text-purple-800 font-medium">
+                AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
+              </p>
+            </div>
 
-            <div className="grid gap-4 mb-8">
-              <div className="flex">
-                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
-                  <h3 className="text-xl font-semibold">Metacognitive Laziness</h3>
-                </div>
-                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
-                  <p className="text-gray-700">• Outsourcing thinking and sense-making</p>
+            <div className="space-y-4 mb-8">
+              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+                <div className="flex items-center">
+                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🧠</span>
+                      <h3 className="text-lg font-semibold text-orange-800">Metacognitive Laziness</h3>
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 flex-1">
+                    <p className="text-gray-700">Outsourcing thinking and sense-making</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex">
-                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
-                  <h3 className="text-xl font-semibold">Imagination Deficit</h3>
-                </div>
-                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
-                  <p className="text-gray-700">• Diminishing the generative core of human potential</p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+                <div className="flex items-center">
+                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">💭</span>
+                      <h3 className="text-lg font-semibold text-orange-800">Imagination Deficit</h3>
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 flex-1">
+                    <p className="text-gray-700">Diminishing the generative core of human potential</p>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex">
-                <div className="bg-red-600 text-white p-4 rounded-l-lg w-60">
-                  <h3 className="text-xl font-semibold">Psychological Debt</h3>
-                </div>
-                <div className="bg-white p-4 border border-gray-200 rounded-r-lg flex-1">
-                  <p className="text-gray-700">• Fatigue, disconnection, and loss of purpose</p>
+              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+                <div className="flex items-center">
+                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">😔</span>
+                      <h3 className="text-lg font-semibold text-orange-800">Psychological Debt</h3>
+                    </div>
+                  </div>
+                  <div className="px-6 py-4 flex-1">
+                    <p className="text-gray-700">Fatigue, disconnection, and loss of purpose</p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className="mb-8 bg-purple-100 p-6 rounded-lg">
-              <p className="text-center text-lg font-medium text-purple-800">
+            <div className="mb-10 bg-purple-100 p-8 rounded-lg border-l-4 border-purple-500">
+              <p className="text-center text-xl font-medium text-purple-800">
                 Recognizing and addressing these challenges is essential for thriving in the AI era
               </p>
             </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Understanding the Challenge</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
-            </p>
+            <div className="grid md:grid-cols-2 gap-8 mb-10">
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Understanding the Challenge</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
+                </p>
+              </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Beyond Efficiency</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing the capabilities that AI cannot replicate—beginning with imagination.
-            </p>
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Beyond Efficiency</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing capabilities that AI cannot replicate.
+                </p>
+              </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Hidden Costs</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement. These are symptoms of Psychological Debt—a deficit that grows when efficiency is prioritized over imagination.
-            </p>
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">The Hidden Costs</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement.
+                </p>
+              </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Challenge as Opportunity</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Understanding these challenges positions you to lead positive change in your organization. The next step is learning how Imaginal Agility provides a systematic approach to thriving alongside AI.
-            </p>
+              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-xl font-semibold text-purple-700 mb-3">Challenge as Opportunity</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  Understanding these challenges positions you to lead positive change in your organization. The next step is learning how Imaginal Agility provides a systematic approach to thriving alongside AI.
+                </p>
+              </div>
+            </div>
 
             <div className="flex justify-end">
               <Button 
