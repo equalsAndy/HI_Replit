@@ -171,11 +171,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                     Where would you realistically like to be in one year?
                   </p>
                   {futureWellBeingLevel < wellBeingLevel && (
-                    <div className="bg-red-100 border border-red-300 p-3 rounded-lg">
-                      <p className="text-sm text-red-700 font-medium flex items-center">
-                        ⚠ Are you sure you want a lower future well-being level?
+                    <div className="bg-red-100 border-2 border-red-400 p-4 rounded-lg shadow-md">
+                      <p className="text-sm text-red-800 font-bold flex items-center">
+                        ⚠️ Are you sure you want a lower future well-being level?
                       </p>
-                      <p className="text-xs text-red-600 mt-1">
+                      <p className="text-sm text-red-700 mt-2 font-medium">
                         Consider setting a higher goal to work toward improvement.
                       </p>
                     </div>
