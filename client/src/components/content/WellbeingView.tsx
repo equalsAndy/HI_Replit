@@ -14,7 +14,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
-  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
   const [saving, setSaving] = useState(false);
 
   // Load existing visualization data
@@ -154,14 +154,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={(values) => {
-                        const newCurrentValue = values[0];
-                        setWellBeingLevel(newCurrentValue);
-                        // Ensure future value is not lower than current value
-                        if (futureWellBeingLevel < newCurrentValue) {
-                          setFutureWellBeingLevel(newCurrentValue);
-                        }
-                      }}
+                      onValueChange={(values) => setWellBeingLevel(values[0])}
                       className="py-2"
                     />
                     <div className="text-center mt-1">
@@ -177,9 +170,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   <p className="text-gray-700 text-sm">
                     Where would you realistically like to be in one year?
                   </p>
-                  <p className="text-xs text-gray-500 italic">
-                    Must be equal to or higher than your current level ({wellBeingLevel})
-                  </p>
+                  {futureWellBeingLevel < wellBeingLevel && (
+                    <p className="text-xs text-red-600 italic flex items-center">
+                      ⚠ Are you sure you want a lower future well-being level?
+                    </p>
+                  )}
                   <div className="py-2">
                     <div className="flex justify-between mb-2 text-xs text-gray-600">
                       <span>Worst (0)</span>
@@ -187,20 +182,16 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                     </div>
                     <Slider
                       value={[futureWellBeingLevel]} 
-                      min={wellBeingLevel}
+                      min={0}
                       max={10}
                       step={1}
-                      onValueChange={(values) => {
-                        const newFutureValue = values[0];
-                        // Ensure future value is not lower than current value
-                        if (newFutureValue >= wellBeingLevel) {
-                          setFutureWellBeingLevel(newFutureValue);
-                        }
-                      }}
+                      onValueChange={(values) => setFutureWellBeingLevel(values[0])}
                       className="py-2"
                     />
                     <div className="text-center mt-1">
-                      <span className="font-medium text-lg text-green-700">{futureWellBeingLevel}</span>
+                      <span className={`font-medium text-lg ${futureWellBeingLevel < wellBeingLevel ? 'text-red-600' : 'text-green-700'}`}>
+                        {futureWellBeingLevel}
+                      </span>
                     </div>
                   </div>
                 </div>
