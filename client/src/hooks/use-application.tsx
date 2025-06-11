@@ -1,5 +1,5 @@
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useLocation } from 'wouter';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
@@ -34,8 +34,9 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   const [location] = useLocation();
   const [currentApp, setCurrentApp] = useState<ApplicationType>('allstarteams');
   
-  // Function to extract app from URL and update state
-  const updateAppFromUrl = () => {
+  // Effect to set the app based on URL params or localStorage when the component mounts
+  // or when the location changes
+  useEffect(() => {
     // First check if we're on the auth page with an app parameter
     const params = new URLSearchParams(window.location.search);
     const appParam = params.get('app');
@@ -43,27 +44,21 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     // Debug log
     console.log('updateAppFromUrl - App param:', appParam, 'Location:', location);
     
+    let appUpdated = false;
+    
     // If app param is present in URL, use it and save to sessionStorage
     if (appParam === 'imaginal-agility') {
       console.log('Setting app to imaginal-agility');
       setCurrentApp('imaginal-agility');
       sessionStorage.setItem('selectedApp', 'imaginal-agility');
-      return true;
+      appUpdated = true;
     } else if (appParam === 'allstarteams' || appParam === 'ast') {
       // Handle both 'allstarteams' and the 'ast' shorthand
       console.log('Setting app to allstarteams');
       setCurrentApp('allstarteams');
       sessionStorage.setItem('selectedApp', 'ast');
-      return true;
+      appUpdated = true;
     }
-    return false;
-  };
-  
-  // Effect to set the app based on URL params or localStorage when the component mounts
-  // or when the location changes
-  useEffect(() => {
-    // Try to get app from URL
-    const appUpdated = updateAppFromUrl();
     
     // If no app in URL, check sessionStorage
     if (!appUpdated) {
@@ -77,11 +72,6 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
       // If nothing valid in sessionStorage, keep default 'allstarteams'
     }
   }, [location]);
-  
-  // Also run this on initial mount to ensure we capture any direct URL navigation
-  useEffect(() => {
-    updateAppFromUrl();
-  }, []);
   
   const value = {
     currentApp,

@@ -232,12 +232,7 @@ export function NavBar() {
               />
             </a>
 
-            {/* Show app name if available */}
-            {currentApp && (
-              <span className="ml-2 font-semibold hidden md:inline">
-                {currentApp === 'allstarteams' ? 'AllStar Teams' : 'Imaginal Agility'}
-              </span>
-            )}
+
           </div>
         </div>
 

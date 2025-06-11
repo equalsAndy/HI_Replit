@@ -61,7 +61,7 @@ export default function ImaginalAgilityHome() {
     };
 
     checkAuth();
-  }, [navigate, toast, setCurrentApp]);
+  }, [navigate, toast]);
 
   // Fetch user profile data
   const { data: user, isLoading: isUserLoading } = useQuery<{
