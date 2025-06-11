@@ -110,51 +110,59 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Final Reflection</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Final Reflection: Your Next Step</h2>
-          <p className="text-gray-700 mb-3">
-            You've just completed a personal discovery journey — from identifying your core strength
-            to envisioning your future self.
-          </p>
+        <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Personal Statement</h2>
           <p className="text-gray-700 mb-4">
-            You've seen how your strengths (especially imagination) operate at their best, and how
-            your well-being shapes your potential. Now, take a moment to name one insight or
-            intention you want to carry forward — as preparation for deeper team practice ahead.
+            You've completed your personal discovery journey. Now it's time to synthesize everything 
+            you've learned into a personal manifesto that captures your unique profile.
           </p>
+          
+          <div className="mb-4">
+            <h3 className="font-semibold text-gray-800 mb-2">Write a personal statement that captures:</h3>
+            <ul className="text-sm text-gray-600 space-y-1 ml-4">
+              <li>• Your core strengths and how they work together</li>
+              <li>• The values that guide your decisions and actions</li>
+              <li>• Your vision for your future self and potential</li>
+              <li>• Your commitment to your path forward</li>
+            </ul>
+          </div>
 
           <Textarea 
-            placeholder="One insight I'm taking forward is..."
+            placeholder="My personal statement: I am someone who brings..."
             value={statement}
             onChange={(e) => handleStatementChange(e.target.value)}
-            className="min-h-[100px]"
+            className="min-h-[150px]"
           />
         </div>
 
-        <div className="flex flex-col items-center justify-center">
-          <div className="w-3/4 max-w-[250px] mb-6 flex justify-center">
-            <TrendingUp 
-              className="w-32 h-32 text-indigo-400"
-            />
+        <div className="flex flex-col space-y-6">
+          <div className="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <PenTool className="w-5 h-5 mr-2 text-yellow-600" />
+              Synthesizing Your Journey
+            </h3>
+            <p className="text-sm text-gray-700 mb-3">
+              You've explored your Star Strengths, identified your Flow State, and visualized your 
+              potential through the Well-being Ladder.
+            </p>
+            <p className="text-sm text-gray-700">
+              This statement is your opportunity to weave these insights together into a coherent 
+              vision of who you are and who you're becoming.
+            </p>
           </div>
 
-          <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-3">What This Ladder Represents</h3>
-
-            <h4 className="font-medium text-gray-800">A Natural Progression</h4>
+          <div className="bg-green-50 p-5 rounded-lg border border-green-100">
+            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+              Your Path Forward
+            </h3>
             <p className="text-sm text-gray-700 mb-3">
-              Each step builds on the one before — not in leaps, but in deepening awareness.
+              This personal statement will serve as your north star—a reminder of your unique 
+              strengths and values when making decisions.
             </p>
-
-            <h4 className="font-medium text-gray-800">Reflective Mirror</h4>
-            <p className="text-sm text-gray-700 mb-3">
-              This journey wasn't about adding something new. It was about surfacing what's already
-              strong within you.
-            </p>
-
-            <h4 className="font-medium text-gray-800">Team Flow Starts Here</h4>
             <p className="text-sm text-gray-700">
-              Your self-awareness is your starting point. Now you're ready to contribute with clarity and
-              imagination.
+              Use it to guide your professional development, team contributions, and life choices 
+              moving forward.
             </p>
           </div>
         </div>
@@ -166,7 +174,7 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
           disabled={saving}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? 'Saving...' : 'Finish Workshop'} <ChevronRight className="ml-2 h-4 w-4" />
+          {saving ? 'Saving...' : 'Complete Workshop'} <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>
