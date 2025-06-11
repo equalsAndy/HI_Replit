@@ -85,7 +85,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
             
             {/* YouTube Video Player */}
-            <div className="mb-8 max-w-4xl mx-auto">
+            <div className="mb-6 w-full max-w-3xl mx-auto">
               <VideoPlayer
                 workshopType="imaginal-agility"
                 stepId="ia-2-1"
@@ -293,7 +293,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
 
             {/* YouTube Video Player */}
-            <div className="mb-8 max-w-4xl mx-auto">
+            <div className="mb-6 w-full max-w-3xl mx-auto">
               <VideoPlayer
                 workshopType="imaginal-agility"
                 stepId="ia-4-1"
@@ -339,25 +339,37 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
 
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <Button 
                 onClick={() => {
                   setIsAssessmentModalOpen(true);
                 }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
                 size="lg"
               >
                 Start Assessment
               </Button>
             </div>
 
-            <div className="bg-gray-50 p-6 rounded-lg">
+            <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">What to Expect</h3>
-              <ul className="space-y-2 text-gray-700">
-                <li>• The assessment takes approximately 10-15 minutes to complete</li>
-                <li>• You'll respond to scenarios and rank your preferences</li>
-                <li>• Your results will show your capability profile</li>
-                <li>• Use these insights to guide your development journey</li>
+              <ul className="space-y-1 text-gray-700 text-sm">
+                <li className="flex items-start">
+                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <span>The assessment takes approximately 10-15 minutes to complete</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <span>You'll respond to scenarios and rank your preferences</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <span>Your results will show your capability profile</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <span>Use these insights to guide your development journey</span>
+                </li>
               </ul>
             </div>
           </div>
@@ -413,7 +425,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Teamwork Preparation</h1>
             
             {/* YouTube Video Player */}
-            <div className="mb-8 max-w-4xl mx-auto">
+            <div className="mb-6 w-full max-w-3xl mx-auto">
               <VideoPlayer
                 workshopType="imaginal-agility"
                 stepId="ia-6-1"
@@ -1121,43 +1133,43 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             amplifying the others.
           </p>
 
-          <ul className="space-y-4 mb-8">
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
-              <div>
-                <span className="font-semibold text-purple-800">Imagination:</span>
-                <span className="text-gray-700"> The ability to envision new possibilities</span>
+          <div className="grid gap-2 mb-6">
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <div className="flex-1">
+                <span className="font-medium text-purple-800">Imagination:</span>
+                <span className="text-gray-700 text-sm"> The ability to envision new possibilities</span>
               </div>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
-              <div>
-                <span className="font-semibold text-purple-800">Curiosity:</span>
-                <span className="text-gray-700"> An openness to exploring and questioning</span>
+            </div>
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <div className="flex-1">
+                <span className="font-medium text-purple-800">Curiosity:</span>
+                <span className="text-gray-700 text-sm"> An openness to exploring and questioning</span>
               </div>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
-              <div>
-                <span className="font-semibold text-purple-800">Empathy:</span>
-                <span className="text-gray-700"> Understanding perspectives beyond your own</span>
+            </div>
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <div className="flex-1">
+                <span className="font-medium text-purple-800">Empathy:</span>
+                <span className="text-gray-700 text-sm"> Understanding perspectives beyond your own</span>
               </div>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
-              <div>
-                <span className="font-semibold text-purple-800">Creativity:</span>
-                <span className="text-gray-700"> Finding novel solutions to complex problems</span>
+            </div>
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <div className="flex-1">
+                <span className="font-medium text-purple-800">Creativity:</span>
+                <span className="text-gray-700 text-sm"> Finding novel solutions to complex problems</span>
               </div>
-            </li>
-            <li className="flex items-start">
-              <div className="h-6 w-6 rounded-full bg-purple-200 text-purple-800 flex items-center justify-center mr-3 mt-1 flex-shrink-0">•</div>
-              <div>
-                <span className="font-semibold text-purple-800">Courage:</span>
-                <span className="text-gray-700"> Taking bold action in the face of uncertainty</span>
+            </div>
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <div className="flex-1">
+                <span className="font-medium text-purple-800">Courage:</span>
+                <span className="text-gray-700 text-sm"> Taking bold action in the face of uncertainty</span>
               </div>
-            </li>
-          </ul>
+            </div>
+          </div>
 
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">Capabilities in Context</h2>
           <p className="text-lg text-gray-700 mb-6">
