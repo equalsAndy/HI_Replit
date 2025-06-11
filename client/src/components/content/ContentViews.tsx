@@ -48,12 +48,11 @@ interface ContentViewProps {
   setIsAssessmentModalOpen?: (open: boolean) => void;
   isImaginalAgility?: boolean;
   starCard?: any;
+  title?: string;
 }
 
-
-
 interface ContentViewsProps extends ContentViewProps {
-  starCard?: any;
+  currentContent: string;
 }
 
 const ContentViews: React.FC<ContentViewsProps> = ({
@@ -693,6 +692,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'intro-flow':
       return (
         <IntroToFlowView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
