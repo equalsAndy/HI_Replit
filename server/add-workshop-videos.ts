@@ -93,7 +93,86 @@ async function addWorkshopVideos() {
       sortOrder: 0
     },
 
-    // Imaginal Agility videos
+    // Imaginal Agility step-specific videos
+    {
+      title: "Introduction to Imaginal Agility",
+      description: "Welcome to the Imaginal Agility workshop",
+      url: "https://www.youtube.com/embed/k3mDEAbUwZ4?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "k3mDEAbUwZ4",
+      workshopType: "imaginal-agility",
+      section: "introduction",
+      stepId: "ia-1-1",
+      autoplay: true,
+      sortOrder: 1
+    },
+    {
+      title: "The Triple Challenge",
+      description: "Understanding the AI Triple Challenge",
+      url: "https://www.youtube.com/embed/EsExXeKFiKg?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "EsExXeKFiKg",
+      workshopType: "imaginal-agility",
+      section: "challenge",
+      stepId: "ia-2-1",
+      autoplay: true,
+      sortOrder: 2
+    },
+    {
+      title: "Imaginal Agility Solution",
+      description: "Core solution framework",
+      url: "https://www.youtube.com/embed/l3XVwPGE6UY?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "l3XVwPGE6UY",
+      workshopType: "imaginal-agility",
+      section: "solution",
+      stepId: "ia-3-1",
+      autoplay: true,
+      sortOrder: 3
+    },
+    {
+      title: "Teamwork Preparation",
+      description: "Preparing for effective teamwork using imagination",
+      url: "https://www.youtube.com/embed/hOV2zaWVxeU?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "hOV2zaWVxeU",
+      workshopType: "imaginal-agility",
+      section: "teamwork",
+      stepId: "ia-5-1",
+      autoplay: true,
+      sortOrder: 5
+    },
+    {
+      title: "Teamwork Preparation",
+      description: "Preparing for effective teamwork using imagination",
+      url: "https://www.youtube.com/embed/hOV2zaWVxeU?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "hOV2zaWVxeU",
+      workshopType: "imaginal-agility",
+      section: "teamwork",
+      stepId: "ia-6-1",
+      autoplay: true,
+      sortOrder: 6
+    },
+    {
+      title: "Discernment Guide",
+      description: "Developing discernment in AI collaboration",
+      url: "https://www.youtube.com/embed/U7pQjMYKk_s?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "U7pQjMYKk_s",
+      workshopType: "imaginal-agility",
+      section: "discernment",
+      stepId: "ia-7-1",
+      autoplay: true,
+      sortOrder: 7
+    },
+    {
+      title: "The Neuroscience",
+      description: "Understanding the neuroscience of imagination",
+      url: "https://www.youtube.com/embed/43Qs7OvToeI?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "43Qs7OvToeI",
+      workshopType: "imaginal-agility",
+      section: "neuroscience",
+      stepId: "ia-8-1",
+      autoplay: true,
+      sortOrder: 8
+    },
+
+    // General Imaginal Agility videos (without stepId)
     {
       title: "IAWS Orientation Video",
       description: "Introduction to the Imaginal Agility workshop",
@@ -101,7 +180,7 @@ async function addWorkshopVideos() {
       editableId: "1Belekdly70", 
       workshopType: "imaginal-agility",
       section: "introduction",
-      sortOrder: 1
+      sortOrder: 10
     },
     {
       title: "AI Triple Challenge",
@@ -110,7 +189,7 @@ async function addWorkshopVideos() {
       editableId: "zIFGKPMN9t8",
       workshopType: "imaginal-agility", 
       section: "workshop",
-      sortOrder: 2
+      sortOrder: 11
     },
     {
       title: "Imaginal Agility Solution",
@@ -119,7 +198,7 @@ async function addWorkshopVideos() {
       editableId: "BLh502BlZLE",
       workshopType: "imaginal-agility",
       section: "workshop",
-      sortOrder: 3
+      sortOrder: 12
     },
     {
       title: "5 Capabilities (5Cs)",
@@ -128,7 +207,7 @@ async function addWorkshopVideos() {
       editableId: "8wXSL3om6Ig",
       workshopType: "imaginal-agility",
       section: "assessment",
-      sortOrder: 4
+      sortOrder: 13
     }
   ];
 
