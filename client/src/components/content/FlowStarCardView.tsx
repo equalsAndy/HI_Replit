@@ -585,18 +585,6 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                       </div>
                     </div>
                   </div>
-
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="w-full border-indigo-200 text-indigo-600 hover:text-indigo-700"
-                    onClick={() => {
-                      setShowSelectionInterface(true);
-                      setIsUpdating(true);
-                    }}
-                  >
-                    I want to choose different attributes
-                  </Button>
                 </div>
               </div>
             </>
