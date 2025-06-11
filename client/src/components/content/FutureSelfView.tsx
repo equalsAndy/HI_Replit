@@ -7,7 +7,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight } from 'lucide-react';
 import { debounce } from '@/lib/utils';
 
-const hokusaiWave = "/hokusai-great-wave.jpg";
+import hokusaiWave from "@assets/The_Great_Wave_1749600297510.png";
 import hokusaiPortrait from "@assets/hokusai_old_man_optimized.png";
 import VideoPlayer from './VideoPlayer';
 
