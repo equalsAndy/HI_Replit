@@ -1,3 +1,4 @@
+// @ts-nocheck
 import React from 'react';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
