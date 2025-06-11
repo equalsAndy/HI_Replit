@@ -171,7 +171,7 @@ async function initializeServer() {
   }
 }
 
-// Function to find an available port
+// Function to find an available port with retry logic
 const findAvailablePort = (startPort: number): Promise<number> => {
   return new Promise((resolve, reject) => {
     const testServer = server.listen(startPort, '0.0.0.0', () => {
@@ -183,8 +183,13 @@ const findAvailablePort = (startPort: number): Promise<number> => {
     
     testServer.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${startPort} is busy, trying ${startPort + 1}...`);
-        resolve(findAvailablePort(startPort + 1));
+        // Only try port 5001 as fallback, don't keep incrementing
+        if (startPort === 5000) {
+          console.log(`Port ${startPort} is busy, trying ${startPort + 1}...`);
+          resolve(findAvailablePort(startPort + 1));
+        } else {
+          reject(new Error(`Both ports 5000 and 5001 are busy`));
+        }
       } else {
         reject(err);
       }
