@@ -39,7 +39,11 @@ const scrollToContentTop = () => {
 };
 
 interface ContentViewProps {
-  currentContent?: string;
+  [key: string]: any;
+}
+
+interface ContentViewsProps {
+  currentContent: string;
   navigate?: any;
   markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
@@ -48,11 +52,6 @@ interface ContentViewProps {
   setIsAssessmentModalOpen?: (open: boolean) => void;
   isImaginalAgility?: boolean;
   starCard?: any;
-  title?: string;
-}
-
-interface ContentViewsProps extends ContentViewProps {
-  currentContent: string;
 }
 
 const ContentViews: React.FC<ContentViewsProps> = ({
@@ -680,11 +679,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'reflection':
       return (
         <ReflectionView 
-          currentContent={currentContent}
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-          starCard={starCard}
+          {...{ currentContent, navigate, markStepCompleted, setCurrentContent, starCard } as any}
         />
       );
 
