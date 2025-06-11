@@ -417,17 +417,22 @@ export default function AllStarTeams() {
 
   // Handle step click with SIMPLIFIED LINEAR PROGRESSION - NO AUTO-COMPLETION
   const handleStepClick = (sectionId: string, stepId: string) => {
+    console.log(`🧭 Menu navigation clicked: stepId=${stepId}, sectionId=${sectionId}`);
+    
     // Get navigation info for this step
     const navInfo = navigationSequence[stepId];
+    console.log(`🧭 Navigation info for ${stepId}:`, navInfo);
 
     if (!navInfo) {
       // For steps not defined in the sequence (like resource items)
+      console.log(`🧭 No navigation info found for ${stepId}, showing placeholder`);
       setCurrentContent(`placeholder-${stepId}`);
       // DO NOT auto-mark as completed - only Next button progression should do this
       return;
     }
 
     // Set the content based on the navigation mapping
+    console.log(`🧭 Setting content to: ${navInfo.contentKey}`);
     setCurrentContent(navInfo.contentKey);
 
     // SIMPLIFIED MODE: Menu clicks should NEVER mark steps as completed
