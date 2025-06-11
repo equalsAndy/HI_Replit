@@ -71,6 +71,140 @@ Later in the course, you'll complete your Star Card by adding your Flow State Qu
 
 **Assessment Questions:** 22 ranking scenarios with 4 options each to rank from most like you (1) to least like you (4)
 
+**Complete Assessment Questions:**
+
+**Question 1:** When working on a team project, you are most likely to:
+- A) Create a detailed timeline and assign specific tasks to team members (Planning)
+- B) Brainstorm creative solutions and explore new possibilities (Thinking)
+- C) Focus on building team morale and ensuring everyone feels heard (Feeling)
+- D) Take charge of implementation and drive the project to completion (Acting)
+
+**Question 2:** During a challenging situation at work, you tend to:
+- A) Step back and analyze the problem systematically (Thinking)
+- B) Jump in and start taking action to resolve the issue (Acting)
+- C) Consider how the situation affects team relationships and morale (Feeling)
+- D) Create a structured plan to address the challenge methodically (Planning)
+
+**Question 3:** When learning something new, you prefer to:
+- A) Build connections with others who share similar interests (Feeling)
+- B) Organize information into clear categories and frameworks (Planning)
+- C) Experiment and try different approaches hands-on (Acting)
+- D) Research thoroughly and understand the underlying principles (Thinking)
+
+**Question 4:** In meetings, you are most likely to:
+- A) Ensure everyone has a chance to contribute their ideas (Feeling)
+- B) Push for concrete action items and next steps (Acting)
+- C) Ask probing questions to deepen understanding (Thinking)
+- D) Take notes and help keep the discussion organized (Planning)
+
+**Question 5:** When facing a deadline, you typically:
+- A) Break down tasks and create a detailed schedule (Planning)
+- B) Rally the team and maintain positive energy (Feeling)
+- C) Focus intensely and push through to get things done (Acting)
+- D) Step back and find the most efficient approach (Thinking)
+
+**Question 6:** Your ideal work environment would be one where you can:
+- A) Collaborate closely with supportive colleagues (Feeling)
+- B) Dive deep into complex problems and analysis (Thinking)
+- C) See immediate results from your efforts (Acting)
+- D) Work within clear structures and expectations (Planning)
+
+**Question 7:** When making decisions, you tend to:
+- A) Consider multiple perspectives and gather input from others (Feeling)
+- B) Analyze data and evaluate different options carefully (Thinking)
+- C) Trust your instincts and decide quickly (Acting)
+- D) Follow established procedures and best practices (Planning)
+
+**Question 8:** At the start of a new project, you focus on:
+- A) Understanding the technical requirements and constraints (Thinking)
+- B) Getting the team aligned and motivated (Feeling)
+- C) Setting up systems and processes for success (Planning)
+- D) Identifying quick wins and early milestones (Acting)
+
+**Question 9:** When things go wrong, you are most likely to:
+- A) Quickly pivot and try a different approach (Acting)
+- B) Analyze what went wrong and why (Thinking)
+- C) Check in with team members and address concerns (Feeling)
+- D) Review processes to prevent similar issues in the future (Planning)
+
+**Question 10:** Your colleagues would describe you as someone who:
+- A) Brings people together and builds consensus (Feeling)
+- B) Gets things done efficiently and effectively (Acting)
+- C) Thinks strategically and sees the big picture (Thinking)
+- D) Keeps everyone organized and on track (Planning)
+
+**Question 11:** When working independently, you excel at:
+- A) Deep thinking and problem-solving (Thinking)
+- B) Maintaining momentum and productivity (Acting)
+- C) Planning and organizing your work systematically (Planning)
+- D) Staying connected with others and seeking input (Feeling)
+
+**Question 12:** In a crisis situation, you would:
+- A) Take immediate action to address the most urgent issues (Acting)
+- B) Gather information to understand the full scope of the problem (Thinking)
+- C) Support team members and maintain group cohesion (Feeling)
+- D) Develop a structured response plan (Planning)
+
+**Question 13:** When presenting ideas, you focus on:
+- A) Logical arguments and supporting evidence (Thinking)
+- B) Practical implementation and next steps (Acting)
+- C) How the ideas will benefit people and relationships (Feeling)
+- D) Clear structure and organized delivery (Planning)
+
+**Question 14:** Your approach to feedback is to:
+- A) Give it in a supportive and constructive manner (Feeling)
+- B) Focus on specific, actionable improvements (Acting)
+- C) Provide detailed analysis and rationale (Thinking)
+- D) Frame it within clear expectations and standards (Planning)
+
+**Question 15:** When joining a new team, you prioritize:
+- A) Understanding each person's role and working style (Feeling)
+- B) Learning the systems and processes in place (Planning)
+- C) Identifying opportunities to contribute quickly (Acting)
+- D) Grasping the technical or strategic challenges (Thinking)
+
+**Question 16:** Your greatest strength in problem-solving is:
+- A) Finding innovative and creative solutions (Thinking)
+- B) Building consensus around the best approach (Feeling)
+- C) Moving quickly from problem identification to action (Acting)
+- D) Creating systematic approaches to complex issues (Planning)
+
+**Question 17:** When working under pressure, you:
+- A) Stay calm and support others through the stress (Feeling)
+- B) Focus on the most critical tasks and execute efficiently (Acting)
+- C) Take time to think through the best approach (Thinking)
+- D) Rely on established processes and priorities (Planning)
+
+**Question 18:** Your ideal role would involve:
+- A) Building and maintaining strong professional relationships (Feeling)
+- B) Designing systems and processes for optimal efficiency (Planning)
+- C) Leading initiatives and driving measurable results (Acting)
+- D) Analyzing complex information and providing insights (Thinking)
+
+**Question 19:** When conflicts arise, you tend to:
+- A) Focus on understanding all perspectives involved (Feeling)
+- B) Look for the root cause of the disagreement (Thinking)
+- C) Take action to resolve the issue quickly (Acting)
+- D) Establish clear guidelines to prevent future conflicts (Planning)
+
+**Question 20:** Your communication style is typically:
+- A) Warm and relationship-focused (Feeling)
+- B) Direct and action-oriented (Acting)
+- C) Analytical and detail-oriented (Thinking)
+- D) Structured and well-organized (Planning)
+
+**Question 21:** When evaluating success, you focus on:
+- A) Whether team relationships and morale remained strong (Feeling)
+- B) How efficiently the work was completed (Acting)
+- C) The quality and accuracy of the final result (Thinking)
+- D) Whether processes were followed and improved (Planning)
+
+**Question 22:** In your ideal work day, you would spend most of your time:
+- A) Collaborating with others and building connections (Feeling)
+- B) Executing tasks and seeing tangible progress (Acting)
+- C) Analyzing information and solving complex problems (Thinking)
+- D) Organizing work and optimizing systems (Planning)
+
 ---
 
 ### Step 2-3: Review Your Star Card
