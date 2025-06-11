@@ -170,29 +170,6 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   <p className="text-gray-700 text-sm">
                     Where would you realistically like to be in one year?
                   </p>
-                  {/* Debug logging for validation */}
-                  {console.log('WellbeingView DEBUG:', {
-                    currentLevel: wellBeingLevel,
-                    futureLevel: futureWellBeingLevel,
-                    shouldShowWarning: futureWellBeingLevel < wellBeingLevel,
-                    comparison: `${futureWellBeingLevel} < ${wellBeingLevel}`
-                  })}
-                  
-                  {futureWellBeingLevel < wellBeingLevel && (
-                    <div className="bg-red-100 border-2 border-red-400 p-4 rounded-lg shadow-md">
-                      <p className="text-sm text-red-800 font-bold flex items-center">
-                        ⚠️ Are you sure you want a lower future well-being level?
-                      </p>
-                      <p className="text-sm text-red-700 mt-2 font-medium">
-                        Consider setting a higher goal to work toward improvement.
-                      </p>
-                    </div>
-                  )}
-                  
-                  {/* Always visible debug info for testing */}
-                  <div className="bg-yellow-50 border border-yellow-200 p-2 rounded text-xs">
-                    Debug: Current={wellBeingLevel}, Future={futureWellBeingLevel}, Warning={futureWellBeingLevel < wellBeingLevel ? 'YES' : 'NO'}
-                  </div>
 
                   <div className="py-2">
                     <div className="flex justify-between mb-2 text-xs text-gray-600">
@@ -212,6 +189,18 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                         {futureWellBeingLevel}
                       </span>
                     </div>
+                    
+                    {/* Warning message directly under the slider */}
+                    {futureWellBeingLevel < wellBeingLevel && (
+                      <div className="mt-3 bg-red-100 border-2 border-red-400 p-3 rounded-lg">
+                        <p className="text-sm text-red-800 font-bold">
+                          ⚠️ Your future well-being level ({futureWellBeingLevel}) is lower than your current level ({wellBeingLevel}).
+                        </p>
+                        <p className="text-xs text-red-600 mt-1">
+                          Consider setting a higher goal to work toward improvement.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
