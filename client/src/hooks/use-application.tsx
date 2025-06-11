@@ -73,13 +73,13 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
     }
   }, [location]);
   
-  const value = {
+  const value = useMemo(() => ({
     currentApp,
     appName: appConfig[currentApp].name,
     appLogo: appConfig[currentApp].logo,
     appPrimaryColor: appConfig[currentApp].primaryColor,
     setCurrentApp,
-  };
+  }), [currentApp]);
   
   return (
     <ApplicationContext.Provider value={value}>
