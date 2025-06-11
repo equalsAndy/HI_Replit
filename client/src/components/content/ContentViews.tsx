@@ -843,14 +843,28 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'final-reflection-4-5':
     case '4-5':
     case 'your-statement':
-      return (
-        <FinalReflectionView 
-          currentContent={currentContent}
-          navigate={navigate}
-          markStepCompleted={markStepCompleted}
-          setCurrentContent={setCurrentContent}
-        />
-      );
+      console.log(`🔍 ContentViews: Rendering FinalReflectionView for content: ${currentContent}`);
+      try {
+        return (
+          <FinalReflectionView 
+            currentContent={currentContent}
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      } catch (error) {
+        console.error('Error rendering FinalReflectionView:', error);
+        return (
+          <PlaceholderView 
+            title="Final Reflection (Error)"
+            description="There was an error loading the Final Reflection view"
+            navigate={navigate}
+            markStepCompleted={markStepCompleted}
+            setCurrentContent={setCurrentContent}
+          />
+        );
+      }
 
     case 'your-star-card':
       return (
