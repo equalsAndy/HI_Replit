@@ -229,6 +229,26 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   return '4-5';
 };
 
+interface NavigationStep {
+  id: string;
+  label: string;
+  path: string;
+  type: string;
+  icon?: string;
+  iconColor?: string;
+}
+
+export interface NavigationSection {
+  id: string;
+  title: string;
+  path: string;
+  totalSteps: number;
+  completedSteps: number;
+  icon: string;
+  iconColor?: string;
+  steps: NavigationStep[];
+}
+
 export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const queryClient = useQueryClient();
   const debouncedSync = useRef<NodeJS.Timeout>();

@@ -78,6 +78,7 @@ interface Section {
   title: string;
   path: string;
   icon?: string;
+  iconColor?: string;
   totalSteps?: number;
   completedSteps?: number;
   steps?: Array<{
@@ -85,6 +86,8 @@ interface Section {
     label: string;
     path: string;
     type?: string;
+    icon?: string;
+    iconColor?: string;
   }>;
 }
 
@@ -102,7 +105,7 @@ export function MobileNavigation({
   const [, navigate] = useLocation();
   const { completedSteps, isStepAccessible } = useNavigationProgress();
   const [expandedSection, setExpandedSection] = useState<string | null>(currentSectionId?.split('-')[0] || null);
-  
+
   const sections = customSections || defaultSections;
 
   const toggleSection = (sectionId: string) => {
@@ -112,19 +115,19 @@ export function MobileNavigation({
       setExpandedSection(sectionId);
     }
   };
-  
+
   // Get the main section ID from the current step ID (e.g., "F2-1" -> "F2")
   const currentMainSection = currentSectionId?.split('-')[0] || null;
-  
+
   return (
     <div className={cn("w-full space-y-4 py-4 pb-8", className)}>
       <h3 className="text-sm font-medium text-gray-500 mb-2 px-2">YOUR MODULES</h3>
-      
+
       {sections.map((section) => {
         const isActive = section.id === currentMainSection;
         const isExpanded = expandedSection === section.id;
         const isCompleted = section.steps?.every(step => completedSteps.includes(step.id)) || false;
-        
+
         return (
           <div key={section.id} className="mb-2">
             <div 
@@ -145,7 +148,7 @@ export function MobileNavigation({
                   {section.icon === 'Clock' && <Clock className="h-6 w-6 text-violet-500" />}
                   {section.icon === 'Target' && <Target className="h-6 w-6 text-violet-500" />}
                   {section.icon === 'CheckCircle' && <CheckCircle className="h-6 w-6 text-violet-500" />}
-                  
+
                   <div className="flex flex-col">
                     <span className={cn(
                       "font-medium text-lg",
@@ -158,14 +161,14 @@ export function MobileNavigation({
                     </span>
                   </div>
                 </div>
-                
+
                 <ChevronRight className={cn(
                   "h-5 w-5",
                   isActive ? "text-violet-500" : "text-gray-400"
                 )} />
               </div>
             </div>
-            
+
             {/* Steps within the section */}
             {isExpanded && section.steps && (
               <div className="pl-8 pr-3 py-2 space-y-2 mt-1 border border-gray-100 rounded-md bg-gray-50">
@@ -173,7 +176,7 @@ export function MobileNavigation({
                   const isStepActive = currentSectionId === step.id;
                   const isStepCompleted = completedSteps.includes(step.id);
                   const isAccessible = isStepAccessible(step.id);
-                  
+
                   return (
                     <div 
                       key={step.id}
@@ -220,7 +223,7 @@ export function MobileNavigation({
                             {step.label}
                           </span>
                         </div>
-                        
+
                         {step.type && (
                           <span className={cn(
                             "text-xs px-2 py-1 rounded-full",
@@ -236,7 +239,7 @@ export function MobileNavigation({
                           </span>
                         )}
                       </div>
-                      
+
                       {!isAccessible && !isStepCompleted && (
                         <div className="text-xs text-gray-500 mt-1 pl-7">
                           Complete previous steps first
@@ -250,7 +253,7 @@ export function MobileNavigation({
           </div>
         );
       })}
-      
+
       <div className="mt-6 flex justify-center">
         <Button
           variant="outline"

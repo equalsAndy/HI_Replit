@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useLocation } from 'wouter';
-import { Book, Star, PieChart, Target } from 'lucide-react';
+import { Video, BookOpen, Zap, Glasses, PenLine, Download } from 'lucide-react';
 import { useApplication } from '@/hooks/use-application';
 import { useNavigationProgress, NavigationSection } from '@/hooks/use-navigation-progress';
 import { NavigationHeader } from './NavigationHeader';
@@ -28,9 +28,10 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       path: '/intro',
       totalSteps: 1,
       completedSteps: 0,
-      icon: 'BookOpen',
+      icon: 'Video',
+      iconColor: 'text-blue-600',
       steps: [
-        { id: '1-1', label: 'Introduction Video', path: '/intro/video', type: 'Learning' },
+        { id: '1-1', label: 'Introduction', path: '/intro/video', type: 'Learning', icon: 'Video', iconColor: 'text-blue-600' },
       ]
     },
     { 
@@ -39,12 +40,13 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       path: '/discover-strengths',
       totalSteps: 4,
       completedSteps: 0,
-      icon: 'Star',
+      icon: 'BookOpen',
+      iconColor: 'text-purple-600',
       steps: [
-        { id: '2-1', label: 'Intro to Strengths', path: '/discover-strengths/intro', type: 'Learning' },
-        { id: '2-2', label: 'Strengths Assessment', path: '/assessment', type: 'Activity' },
-        { id: '2-3', label: 'Star Card Preview', path: '/starcard-preview', type: 'Learning' },
-        { id: '2-4', label: 'Reflect', path: '/discover-strengths/reflect', type: 'Writing' },
+        { id: '2-1', label: 'Intro to Star Strengths', path: '/discover-strengths/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/assessment', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '2-3', label: 'Review Your Star Card', path: '/starcard-preview', type: 'Learning', icon: 'Glasses', iconColor: 'text-pink-600' },
+        { id: '2-4', label: 'Strength Reflection', path: '/discover-strengths/reflect', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
       ]
     },
     { 
@@ -53,12 +55,13 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       path: '/find-your-flow',
       totalSteps: 4,
       completedSteps: 0,
-      icon: 'Clock',
+      icon: 'BookOpen',
+      iconColor: 'text-green-600',
       steps: [
-        { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning' },
-        { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity' },
-        { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing' },
-        { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity' },
+        { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
       ]
     },
     { 
@@ -67,13 +70,41 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       path: '/visualize-potential',
       totalSteps: 5,
       completedSteps: 0,
-      icon: 'Target',
+      icon: 'Zap',
+      iconColor: 'text-indigo-600',
       steps: [
-        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning' },
-        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing' },
-        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity' },
-        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning' },
-        { id: '4-5', label: 'Your Statement', path: '/your-statement', type: 'Writing' },
+        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '4-5', label: 'Final Reflection', path: '/your-statement', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+      ]
+    },
+    {
+      id: '5',
+      title: 'Next Steps',
+      path: '/next-steps',
+      totalSteps: 4,
+      completedSteps: 0,
+      icon: 'Download',
+      iconColor: 'text-green-700',
+      steps: [
+        { id: '5-1', label: 'Download your Star Card', path: '/download-starcard', type: 'Download', icon: 'Download', iconColor: 'text-pink-600' },
+        { id: '5-2', label: 'Your Holistic Report', path: '/holistic-report', type: 'Download', icon: 'Download', iconColor: 'text-pink-600' },
+        { id: '5-3', label: 'Growth Plan', path: '/growth-plan', type: 'Download', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '5-4', label: 'Team Workshop Prep', path: '/team-workshop-prep', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+      ]
+    },
+    {
+      id: '6',
+      title: 'More Information',
+      path: '/more-info',
+      totalSteps: 1,
+      completedSteps: 0,
+      icon: 'BookOpen',
+      iconColor: 'text-slate-600',
+      steps: [
+        { id: '6-1', label: 'Workshop Resources', path: '/workshop-resources', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
       ]
     }
   ];
