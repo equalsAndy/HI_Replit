@@ -142,6 +142,9 @@ export default function AllStarTeams() {
         } else if (currentStepId === '2-4') {
           console.log(`🧭 AUTO-NAVIGATION: Force navigating to reflection for step 2-4`);
           setCurrentContent('reflection');
+        } else if (currentStepId === '4-5') {
+          console.log(`🧭 AUTO-NAVIGATION: Force navigating to final-reflection for step 4-5`);
+          setCurrentContent('final-reflection');
         }
       }
     }
