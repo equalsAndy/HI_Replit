@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import ladderImage from '@assets/image_1749681594782.png';
+import ladderImage from '@assets/journeyladder_1749683540778.png';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -92,45 +92,23 @@ export default function FinalReflectionView({
               value={insight}
               onChange={(e) => handleInsightChange(e.target.value)}
               placeholder="One insight I'm taking forward is..."
-              className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              maxLength={500}
+              className="w-full h-48 p-4 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
+              maxLength={1000}
             />
             <div className="text-right text-sm text-gray-500">
-              {insight.length}/500 characters
+              {insight.length}/1000 characters
             </div>
           </div>
         </div>
 
         {/* Right Column - Ladder Visualization */}
         <div className="space-y-6">
-          <div className="bg-blue-50 rounded-lg p-6 relative">
-            <div className="text-center mb-4">
-              <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4"></div>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
-                Future Self
-              </div>
-              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
-                Ladder of Well-Being
-              </div>
-              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
-                Visualizing Potential
-              </div>
-              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
-                Rounding Out
-              </div>
-              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
-                Flow State
-              </div>
-              <div className="bg-yellow-300 text-gray-800 px-4 py-3 rounded-lg text-center font-medium">
-                Core Strengths
-              </div>
-              <div className="bg-yellow-200 text-gray-800 px-4 py-3 rounded-lg text-center font-medium">
-                Star Self-Assessment
-              </div>
-            </div>
+          <div className="flex justify-center">
+            <img 
+              src={ladderImage} 
+              alt="Journey Ladder showing the progression from Star Self-Assessment through Core Strengths, Flow State, Rounding Out, Visualizing Potential, Ladder of Well-Being, to Future Self"
+              className="max-w-full h-auto rounded-lg shadow-md"
+            />
           </div>
 
           {/* What This Ladder Represents */}
