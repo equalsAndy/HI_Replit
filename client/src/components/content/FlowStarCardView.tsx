@@ -234,6 +234,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
+  const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   // Fetch user data
   const { data: userData } = useQuery({
@@ -320,9 +321,6 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     }
   }, [flowAttributesData, hasExistingAttributes, flowAttributesLoading]);
 
-  // Tracks if we're updating existing attributes rather than creating new ones
-  const [isUpdating, setIsUpdating] = useState<boolean>(false);
-
   // Flow attributes save mutation
   const flowAttributesMutation = useMutation({
     mutationFn: async (data: { flowScore: number; attributes: Array<{ name: string; score: number }> }) => {
@@ -379,6 +377,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
       return; // No action, selection is disabled
     }
 
+    // Enable updating mode when making any changes
+    setIsUpdating(true);
+
     // Check if attribute is already in the list (selected)
     const existingAttr = selectedAttributes.find(attr => attr.text === text);
 
@@ -419,6 +420,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     // Find the attribute to remove
     const attrToRemove = selectedAttributes.find(attr => attr.text === text);
     if (!attrToRemove) return;
+
+    // Enable updating mode when removing attributes
+    setIsUpdating(true);
 
     // Remove it and adjust ranks
     const removedRank = attrToRemove.rank;
