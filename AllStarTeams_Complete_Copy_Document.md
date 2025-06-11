@@ -47,23 +47,25 @@ Understanding your natural strengths. The four dimensions of strength. How stren
 **About this assessment:**
 The AllStarTeams Strengths Assessment helps you discover your unique strengths profile across five key dimensions: Thinking, Acting, Feeling, Planning, and Imagining.
 
-• 22 short questions about how you approach work and collaboration
-• Takes approximately 10–15 minutes to complete
-• You'll order your responses from most like you (1) to least like you (4)
-• Generates your personal Star Card—a visual snapshot of your strengths
+- 22 short questions about how you approach work and collaboration
+- Takes approximately 10–15 minutes to complete
+- You'll order your responses from most like you (1) to least like you (4)
+- Generates your personal Star Card—a visual snapshot of your strengths
 
 **Instructions:**
 For each scenario, drag and drop the four options to rank them from most like you (1) to least like you (4).
 
-• There are no right or wrong answers—just be honest about what feels true to you.
-• The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.
-• Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.
+There are no right or wrong answers—just be honest about what feels true to you.
+
+The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.
+
+Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.
 
 **What you'll get:**
 Your personal Star Card, showing how your four core strengths are distributed and ordered.
 
-• Think, Act, Feel, and Plan are placed on the card based on how you use them.
-• Imagination appears at the apex, as your limitless fifth strength.
+- Think, Act, Feel, and Plan are placed on the card based on how you use them.
+- Imagination appears at the apex, as your limitless fifth strength.
 
 Later in the course, you'll complete your Star Card by adding your Flow State Qualities, making it a powerful tool for personal and team development.
 
