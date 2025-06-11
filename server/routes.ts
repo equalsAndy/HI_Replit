@@ -188,17 +188,14 @@ router.post('/final-reflection', async (req, res) => {
       // Update existing reflection
       await db.update(schema.finalReflections)
         .set({
-          insight,
-          updatedAt: new Date()
+          insight
         })
         .where(eq(schema.finalReflections.userId, userId));
     } else {
       // Create new reflection
       await db.insert(schema.finalReflections).values({
         userId,
-        insight,
-        createdAt: new Date(),
-        updatedAt: new Date()
+        insight
       });
     }
 

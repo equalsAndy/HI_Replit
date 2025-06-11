@@ -30,8 +30,8 @@ export default function FinalReflectionView({
   });
 
   useEffect(() => {
-    if (existingData?.insight) {
-      setInsight(existingData.insight);
+    if (existingData && typeof existingData === 'object' && 'insight' in existingData && existingData.insight) {
+      setInsight(String(existingData.insight));
     }
   }, [existingData]);
 
