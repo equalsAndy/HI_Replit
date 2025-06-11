@@ -123,11 +123,7 @@ export class DatabaseStorage implements IStorage {
   async createVideo(videoData: InsertVideo): Promise<Video> {
     const [video] = await db
       .insert(schema.videos)
-      .values({
-        ...videoData,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      })
+      .values(videoData)
       .returning();
     
     return video;
@@ -136,10 +132,7 @@ export class DatabaseStorage implements IStorage {
   async updateVideo(id: number, videoData: Partial<Video>): Promise<Video | undefined> {
     const [video] = await db
       .update(schema.videos)
-      .set({
-        ...videoData,
-        updatedAt: new Date()
-      })
+      .set(videoData)
       .where(eq(schema.videos.id, id))
       .returning();
     
