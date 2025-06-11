@@ -353,14 +353,16 @@ export default function AllStarTeams() {
   const handleAssessmentComplete = (result: any) => {
     console.log("Assessment completed with result:", result);
 
-    // Special handling for assessment completion - mark step complete but stay on current step
-    markStepCompleted('2-2');
-
-    // DO NOT auto-navigate - user should manually click Next button to proceed to step 2-3
-    console.log("Assessment complete. User should now click Next button to proceed to step 2-3");
+    // DO NOT mark step 2-2 as completed yet - user should stay on assessment results page
+    // Step 2-2 will be marked as completed when user manually clicks Next button
+    console.log("Assessment complete. User should now view results and manually click Next button to proceed to step 2-3");
     
     // Refresh the star card data to ensure it's available for the next step
     queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
+    
+    // Force refresh the assessment view to show results instead of intro
+    queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
+    queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
   };
 
   // Define a structure to map stepIds to navigation sequence for automatic progress
