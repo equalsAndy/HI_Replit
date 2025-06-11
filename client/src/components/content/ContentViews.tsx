@@ -28,12 +28,14 @@ import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 
 import { useApplication } from '@/hooks/use-application';
 
-// Utility function to scroll to content title level
+// Utility function to scroll to content title using anchor
 const scrollToContentTop = () => {
-  // Account for header height - scroll to a position that shows the title
-  const headerHeight = 80; // Approximate header height
-  const targetPosition = headerHeight + 20; // Add some padding
-  window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+  setTimeout(() => {
+    const anchor = document.getElementById('content-title');
+    if (anchor) {
+      anchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
 };
 
 interface ContentViewProps {
@@ -80,7 +82,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-2-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
             
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
@@ -176,7 +178,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-3-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">The Imaginal Agility Solution</h1>
             
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
@@ -261,7 +263,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-4-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
 
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
@@ -355,7 +357,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         return (
           <div className="prose max-w-none">
             <div className="mb-8">
-              <h1 className="text-3xl font-bold text-purple-700 mb-4">Assessment Results</h1>
+              <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-4">Assessment Results</h1>
               <p className="text-lg text-gray-700 mb-6">
                 Congratulations on completing your Imaginal Agility self-assessment! Your results provide insights into your current capabilities across the five core areas that define imaginative thinking in the AI era.
               </p>
@@ -381,7 +383,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-6-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Teamwork Preparation</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Teamwork Preparation</h1>
             
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
@@ -460,7 +462,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-7-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Reality Discernment</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Reality Discernment</h1>
             
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
@@ -539,7 +541,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-8-1':
         return (
           <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Neuroscience</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Neuroscience</h1>
             
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
