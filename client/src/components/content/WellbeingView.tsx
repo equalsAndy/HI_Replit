@@ -180,6 +180,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       </p>
                     </div>
                   )}
+
                   <div className="py-2">
                     <div className="flex justify-between mb-2 text-xs text-gray-600">
                       <span>Worst (0)</span>

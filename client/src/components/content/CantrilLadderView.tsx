@@ -179,17 +179,22 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                 <div className="text-2xl font-bold text-blue-600">Level {wellBeingLevel}</div>
               </div>
               
-              <div className="bg-white p-3 rounded border">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+              <div className={`${futureWellBeingLevel < wellBeingLevel ? 'bg-red-50 border-red-200' : 'bg-white'} p-3 rounded border`}>
+                <label className={`block text-sm font-medium mb-1 ${futureWellBeingLevel < wellBeingLevel ? 'text-red-700' : 'text-gray-700'}`}>
                   Future Well-being Level (1 year):
                 </label>
                 <div className={`text-2xl font-bold ${futureWellBeingLevel < wellBeingLevel ? 'text-red-600' : 'text-green-600'}`}>
                   Level {futureWellBeingLevel}
                 </div>
                 {futureWellBeingLevel < wellBeingLevel && (
-                  <p className="text-xs text-red-600 italic mt-1 flex items-center">
-                    ⚠ Are you sure you want a lower future well-being level?
-                  </p>
+                  <div className="bg-red-100 border border-red-300 p-3 rounded-lg mt-2">
+                    <p className="text-sm text-red-700 font-medium flex items-center">
+                      ⚠ Are you sure you want a lower future well-being level?
+                    </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      Consider setting a higher goal to work toward improvement.
+                    </p>
+                  </div>
                 )}
               </div>
               
