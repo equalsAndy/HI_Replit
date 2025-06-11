@@ -8,8 +8,7 @@ import { queryClient } from '@/lib/queryClient';
 import { ChevronRight, PenTool, TrendingUp } from 'lucide-react';
 import { debounce } from 'lodash';
 import { useLocation } from 'wouter';
-
-// import ladderGraphic from '@assets/image_1747800627533.png'; // Commented out missing asset
+import journeyLadderImage from '@/assets/journey-ladder.png';
 
 const FinalReflectionView: React.FC<ContentViewProps> = ({
   navigate,
@@ -136,6 +135,16 @@ const FinalReflectionView: React.FC<ContentViewProps> = ({
         </div>
 
         <div className="flex flex-col space-y-6">
+          <div className="flex flex-col items-center justify-center">
+            <div className="w-3/4 max-w-[250px] mb-6">
+              <img 
+                src={journeyLadderImage} 
+                alt="Journey Ladder" 
+                className="w-full h-auto"
+              />
+            </div>
+          </div>
+
           <div className="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
             <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
               <PenTool className="w-5 h-5 mr-2 text-yellow-600" />
