@@ -228,13 +228,32 @@ function StarCard({
 
         if (!hasValidScores && (!thinking || !acting || !feeling || !planning) && !fetchedAssessmentData && isMounted) {
           console.log('StarCard: Fetching assessment data...');
-          const assessmentResponse = await fetch('/api/workshop-data/starcard', {
-            credentials: 'include'
+          // Add cache-busting timestamp to ensure fresh data after admin reset
+          const timestamp = Date.now();
+          const assessmentResponse = await fetch(`/api/workshop-data/starcard?t=${timestamp}`, {
+            credentials: 'include',
+            cache: 'no-cache',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache'
+            }
           });
 
           if (assessmentResponse.ok && isMounted) {
             const assessmentData = await assessmentResponse.json();
             console.log('StarCard: Fetched assessment data:', assessmentData);
+
+            // Clear cached data if we get an empty response
+            if (assessmentData.success === false || assessmentData.isEmpty) {
+              setFetchedAssessmentData({
+                thinking: 0,
+                acting: 0,
+                feeling: 0,
+                planning: 0
+              });
+              console.log('StarCard: Assessment data is empty, clearing cached scores');
+              return;
+            }
 
             if (assessmentData.success) {
               setFetchedAssessmentData({
@@ -242,6 +261,14 @@ function StarCard({
                 acting: assessmentData.acting || 0,
                 feeling: assessmentData.feeling || 0,
                 planning: assessmentData.planning || 0
+              });
+            } else {
+              // No assessment data found, set empty state
+              setFetchedAssessmentData({
+                thinking: 0,
+                acting: 0,
+                feeling: 0,
+                planning: 0
               });
             }
           }

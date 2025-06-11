@@ -30,20 +30,35 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
   // Fetch the latest assessment data from server using fetch instead of relying on passed props
   const [assessmentData, setAssessmentData] = React.useState<any>(null);
   const [isLoadingAssessment, setIsLoadingAssessment] = React.useState(false);
+  const [lastResetCheck, setLastResetCheck] = React.useState<number>(0);
 
   // Add function to refresh assessment data
-  const refreshAssessmentData = React.useCallback(async () => {
+  const refreshAssessmentData = React.useCallback(async (forceRefresh = false) => {
     if (isLoadingAssessment) return;
     
     setIsLoadingAssessment(true);
     try {
-      const response = await fetch('/api/workshop-data/starcard', {
-        credentials: 'include'
+      // Add cache-busting timestamp to ensure fresh data after reset
+      const timestamp = Date.now();
+      const response = await fetch(`/api/workshop-data/starcard?t=${timestamp}`, {
+        credentials: 'include',
+        cache: 'no-cache',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       });
 
       if (response.ok) {
         const data = await response.json();
         console.log("StarCard API response:", data);
+
+        // Clear any cached data if we get an empty response
+        if (data && data.success === false) {
+          setAssessmentData(null);
+          console.log("No assessment data available, clearing cache");
+          return;
+        }
 
         // Check if we have valid assessment data
         if (data && data.success && (data.thinking > 0 || data.acting > 0 || data.feeling > 0 || data.planning > 0)) {
@@ -51,12 +66,18 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             formattedResults: data
           });
           console.log("✅ Assessment data detected, switching to results view");
+        } else {
+          // Clear assessment data if no valid scores
+          setAssessmentData(null);
+          console.log("No valid assessment scores found, clearing state");
         }
       } else {
         console.log("No assessment data available yet");
+        setAssessmentData(null);
       }
     } catch (error) {
       console.error("Error fetching assessment data:", error);
+      setAssessmentData(null);
     } finally {
       setIsLoadingAssessment(false);
     }
@@ -78,16 +99,23 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
   }, [refreshAssessmentData]);
 
-  // Use the fetched data or fall back to the prop
-  const assessmentResults = assessmentData?.formattedResults || starCard;
+  // Monitor starCard prop changes - if it becomes empty/null, clear our cached data too
+  React.useEffect(() => {
+    const starCardIsEmpty = !starCard || (
+      (!starCard.thinking || starCard.thinking === 0) &&
+      (!starCard.acting || starCard.acting === 0) &&
+      (!starCard.feeling || starCard.feeling === 0) &&
+      (!starCard.planning || starCard.planning === 0)
+    );
 
-  // Check if the starCard data directly passed as prop has valid scores
-  const hasValidStarCardProp = starCard && (
-    Number(starCard.thinking) > 0 || 
-    Number(starCard.acting) > 0 || 
-    Number(starCard.feeling) > 0 || 
-    Number(starCard.planning) > 0
-  );
+    if (starCardIsEmpty) {
+      console.log("StarCard prop is empty, clearing assessment data cache");
+      setAssessmentData(null);
+    }
+  }, [starCard]);
+
+  // Use the fetched data only if it has valid scores, ignore the prop to avoid stale data
+  const assessmentResults = assessmentData?.formattedResults;
 
   // Check if the assessment data we fetched has valid scores
   const hasValidAssessmentData = assessmentData && assessmentData.formattedResults && (
@@ -97,59 +125,14 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
     Number(assessmentData.formattedResults.planning) > 0
   );
 
-  // Check if direct API call to starcard returns valid data
-  const [directStarCardData, setDirectStarCardData] = React.useState<any>(null);
-
-  React.useEffect(() => {
-    // Directly fetch star card data as a fallback
-    const fetchStarCardData = async () => {
-      try {
-        const response = await fetch('/api/workshop-data/starcard', {
-          credentials: 'include'
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Direct StarCard API response:", data);
-          setDirectStarCardData(data);
-        }
-      } catch (error) {
-        console.error("Error fetching direct star card data:", error);
-      }
-    };
-
-    if (!hasValidStarCardProp && !hasValidAssessmentData) {
-      fetchStarCardData();
-    }
-  }, [hasValidStarCardProp, hasValidAssessmentData]);
-
-  // Check if direct star card API call returned valid data
-  const hasValidDirectData = directStarCardData && (
-    Number(directStarCardData.thinking) > 0 || 
-    Number(directStarCardData.acting) > 0 || 
-    Number(directStarCardData.feeling) > 0 || 
-    Number(directStarCardData.planning) > 0
-  );
-
-  // Determine which data source to use
-  const effectiveData = hasValidDirectData ? directStarCardData : 
-                       hasValidAssessmentData ? assessmentData.formattedResults : 
-                       hasValidStarCardProp ? starCard : null;
-
-  // Final assessment completion check
-  const isAssessmentComplete = hasValidStarCardProp || hasValidAssessmentData || hasValidDirectData;
+  // Use only the fresh API data to determine completion status
+  const isAssessmentComplete = hasValidAssessmentData;
 
   // Debug log to check assessment completion status                              
   console.log("Assessment completion check:", {
     hasStarCard: !!starCard,
     hasAssessmentData: !!assessmentData,
-    hasValidStarCardProp,
     hasValidAssessmentData,
-    hasValidDirectData,
-    thinking: effectiveData?.thinking,
-    acting: effectiveData?.acting,
-    feeling: effectiveData?.feeling,
-    planning: effectiveData?.planning,
     isComplete: isAssessmentComplete
   });
 
