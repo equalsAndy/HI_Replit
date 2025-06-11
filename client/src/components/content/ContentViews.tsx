@@ -83,7 +83,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 autoplay={true}
               />
             </div>
-            
+
             <div className="text-lg text-gray-700 mb-6">
               <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
             </div>
@@ -177,7 +177,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 autoplay={true}
               />
             </div>
-            
+
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-purple-700 mb-4">The Imaginal Agility Solution</h1>
               <p className="text-lg text-gray-700 mb-6">
@@ -251,7 +251,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         return (
           <div className="prose max-w-none">
             <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
-            
+
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
               <VideoPlayer
@@ -381,7 +381,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 autoplay={true}
               />
             </div>
-            
+
             <div className="text-lg text-gray-700 mb-6">
               <p>Now that you've assessed your imaginal capabilities, it's time to prepare for collaborative work with your team. This session will help you understand how to leverage your individual strengths in a team setting.</p>
             </div>
@@ -458,7 +458,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 autoplay={true}
               />
             </div>
-            
+
             <div className="text-lg text-gray-700 mb-6">
               <p>Discernment is the ability to judge well between different options, ideas, and approaches. In an AI-enhanced workplace, discernment becomes crucial for determining when to rely on AI assistance and when to trust human intuition and creativity.</p>
             </div>
@@ -535,7 +535,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 autoplay={true}
               />
             </div>
-            
+
             <div className="text-lg text-gray-700 mb-6">
               <p>Understanding the neuroscience behind imagination and creativity provides crucial insights into how we can strengthen these capabilities in an AI-enhanced world. Recent research reveals specific brain mechanisms that support imaginative thinking.</p>
             </div>
@@ -811,22 +811,22 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="rounded-lg shadow-lg"
             ></iframe>
           </div>
-          
+
           <div className="text-lg text-gray-700 space-y-4">
             <p>Welcome.</p>
-            
+
             <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
-            
+
             <p>As AI reshapes the workplace, the ability to imagine clearly and purposefully is your edge. It's the one human capability AI can't replace or optimize.</p>
-            
+
             <p>This Micro Course is your starting point.</p>
-            
+
             <p>You'll move at your own pace: watch short videos, follow simple prompts, and complete structured exercises.</p>
-            
+
             <p>It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.</p>
-            
+
             <p>Next, you'll meet with your team to turn fresh insight into shared breakthroughs.</p>
-            
+
             <p>You're not just learning about imagination. You're harnessing it — together.</p>
           </div>
 
@@ -891,7 +891,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="rounded-lg shadow-lg"
             ></iframe>
           </div>
-          
+
           <div className="text-lg text-gray-700">
             <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
           </div>
@@ -1018,7 +1018,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           <p className="text-lg text-gray-700 mb-6">
             Research confirms that organizations that cultivate imagination and intentional thinking 
             experience greater innovation, resilience, and employee engagement. This isn't just good 
-            for humans—it's good for business.
+            for humans—it's good 
+            for business.
           </p>
 
           <h2 className="text-2xl font-semibold text-purple-700 mb-4">From Challenge to Capability</h2>
@@ -1174,12 +1175,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
 
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Self-Assessment</h1>
-          
+
           <div className="text-lg text-gray-700 space-y-4 mb-8">
             <p>As organizations face what Deloitte identifies as an "imagination deficit" in the AI era, robust imagination self-assessment becomes essential for maintaining human creative agency and fostering transformative innovation capacity.</p>
-            
+
             <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
-            
+
             <div className="bg-purple-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Core Capabilities</h3>
               <ul className="space-y-2 text-purple-700">
@@ -1190,7 +1191,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 <li>• <strong>Courage</strong></li>
               </ul>
             </div>
-            
+
             <p>Click the button below to begin your self-assessment. The assessment will open in a new window and takes approximately 10-15 minutes to complete.</p>
           </div>
 
@@ -1434,10 +1435,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       return (
         <div className="prose max-w-none">
           <h1 className="text-3xl font-bold text-purple-700 mb-6">Assessment Results</h1>
-          
+
           <div className="text-lg text-gray-700 space-y-4 mb-8">
             <p>Thank you for completing the 5Cs Assessment. Your results provide valuable insights into your current imaginal capabilities.</p>
-            
+
             <div className="bg-purple-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-purple-800 mb-3">Your Imaginal Profile</h3>
               <p className="text-purple-700 mb-4">
@@ -1447,7 +1448,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 These insights will guide your continued development in the remaining workshop modules.
               </p>
             </div>
-            
+
             <p>Continue to the next module to learn about preparing for effective teamwork using your imaginal capabilities.</p>
           </div>
 
@@ -1479,12 +1480,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
               allowFullScreen
               className="rounded-lg shadow-lg"
-            ></iframe>
+                          />
           </div>
-          
+
           <div className="text-lg text-gray-700 space-y-4">
             <p>Now that you've assessed your imaginal capabilities, it's time to prepare for collaborative work with your team.</p>
-            
+
             <p>This session will help you understand how to leverage your individual strengths within a group setting and maximize collective imaginal agility.</p>
           </div>
         </div>
@@ -1505,10 +1506,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="rounded-lg shadow-lg"
             ></iframe>
           </div>
-          
+
           <div className="text-lg text-gray-700 space-y-4">
             <p>A crucial skill in imaginal agility is the ability to distinguish between different types of thinking and imagination.</p>
-            
+
             <p>This guide will help you develop discernment in recognizing when imagination is helpful versus when analytical thinking is more appropriate.</p>
           </div>
         </div>
@@ -1529,10 +1530,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="rounded-lg shadow-lg"
             ></iframe>
           </div>
-          
+
           <div className="text-lg text-gray-700 space-y-4">
             <p>Understanding the science behind imagination and creativity provides a foundation for developing imaginal agility.</p>
-            
+
             <p>This session explores the neurological basis of imaginative thinking and how we can optimize our brain's creative capabilities.</p>
           </div>
         </div>
@@ -1553,12 +1554,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               className="rounded-lg shadow-lg"
             ></iframe>
           </div>
-          
+
           <div className="text-lg text-gray-700 space-y-4">
             <p>Congratulations on completing the Imaginal Agility Workshop!</p>
-            
+
             <p>This final session outlines the next steps in your journey and how to continue developing your imaginal agility skills.</p>
-            
+
             <p>You're now ready to apply these concepts in your work and collaborate effectively with your team.</p>
           </div>
         </div>
