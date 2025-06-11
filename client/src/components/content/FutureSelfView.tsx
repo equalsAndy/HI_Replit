@@ -9,6 +9,7 @@ import { debounce } from '@/lib/utils';
 
 const hokusaiWave = "/hokusai-great-wave.jpg";
 const hokusaiPortrait = "/image_1747800012190.png";
+import waveImage from "@assets/image_1749676463719.png";
 import VideoPlayer from './VideoPlayer';
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
@@ -143,8 +144,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="xl:col-span-1">
           <div className="grid grid-cols-2 xl:grid-cols-1 gap-4">
             <img 
-              src={hokusaiWave}
-              alt="The Great Wave off Kanagawa by Hokusai" 
+              src={waveImage}
+              alt="The Great Wave - Future Self Visualization" 
               className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
             />
             <img 
