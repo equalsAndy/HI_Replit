@@ -501,8 +501,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-7-1':
         return (
           <div className="prose max-w-none">
-            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-4">Reality Discernment</h1>
-            <h2 className="text-xl font-semibold text-purple-600 mb-6">Train Your Mind to Know What's Real</h2>
+            <div className="mb-6">
+              <h3 className="text-lg font-semibold text-purple-600 mb-2">Overview</h3>
+              <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-4">Reality Discernment</h1>
+            </div>
             
             {/* YouTube Video Player */}
             <div className="mb-6 w-full max-w-3xl mx-auto">
@@ -516,93 +518,72 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               />
             </div>
 
-            <div className="text-lg text-gray-700 mb-6 space-y-4">
-              <p>
-                In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential for survival and success. The ability to distinguish between authentic and artificial, between reliable and misleading information, has become a critical skill for navigating our rapidly evolving world.
-              </p>
-              
-              <p>
-                Reality discernment goes beyond simple fact-checking. It's about developing an intuitive sense for what feels genuine, understanding the subtle cues that reveal authenticity, and building the mental frameworks necessary to make sound judgments when the stakes are high.
-              </p>
-              
-              <p>
-                This training will sharpen your ability to recognize patterns, question assumptions, and trust your refined instincts while remaining open to new information. You'll learn to balance skepticism with curiosity, ensuring you neither become overly cynical nor dangerously naive.
-              </p>
-            </div>
+            <div className="space-y-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900 mb-3">Train Your Mind to Know What's Real.</h2>
+                <p className="text-gray-700">
+                  In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.
+                </p>
+              </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-6">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Core Discernment Skills</h3>
-              <div className="space-y-3">
-                <div className="flex">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Source Authentication</h4>
-                    <p className="text-gray-700 text-sm">Verifying the credibility and origin of information before accepting it as truth</p>
-                  </div>
-                </div>
-                <div className="flex">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Pattern Recognition</h4>
-                    <p className="text-gray-700 text-sm">Identifying inconsistencies and anomalies that signal artificial generation or manipulation</p>
-                  </div>
-                </div>
-                <div className="flex">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Contextual Awareness</h4>
-                    <p className="text-gray-700 text-sm">Understanding how timing, motivation, and circumstance influence the reliability of information</p>
-                  </div>
-                </div>
-                <div className="flex">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Intuitive Validation</h4>
-                    <p className="text-gray-700 text-sm">Developing and trusting your gut instincts while backing them up with logical analysis</p>
-                  </div>
-                </div>
+              <div>
+                <p className="text-gray-700">
+                  This short learning experience introduces you to the neuroscience behind <em>reality monitoring</em> — the brain's ability to tell what's real from what's imagined — and offers simple, practical tools to strengthen it.
+                </p>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">What You'll Learn:</h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Why imagination is your first line of cognitive defense
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    How AI content bypasses our natural filters
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    What neuroscience reveals about perception and deception
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    How to spot manipulation using fast, intuitive techniques
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 className="text-lg font-bold text-gray-900 mb-3">What You'll Practice:</h3>
+                <ul className="space-y-2 text-gray-700">
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    The <strong>3-Second Reality Check</strong>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    Visual "Real vs. Fake" discernment challenge
+                  </li>
+                  <li className="flex items-start">
+                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+                    The <strong>Discernment Toolkit</strong> — 5 simple tests anyone can use
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-bold text-gray-900 mb-3">Why It Matters:</h3>
+                <blockquote className="text-gray-700 italic mb-4">
+                  "You can't depend on your eyes when your imagination is out of focus." — Mark Twain
+                </blockquote>
+                <p className="text-gray-700">
+                  This is the starting point for building cognitive resilience — in school, at work, and in leadership. Before we scale imagination, we must sharpen it.
+                </p>
               </div>
             </div>
 
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mb-6">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Why Discernment Matters Now</h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium text-purple-700">AI Content Proliferation</h4>
-                    <p className="text-gray-700">Artificial content is becoming indistinguishable from human-created material</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-purple-700">Information Overload</h4>
-                    <p className="text-gray-700">The volume of information makes careful verification more challenging than ever</p>
-                  </div>
-                </div>
-                <div className="space-y-3">
-                  <div>
-                    <h4 className="font-medium text-purple-700">Decision Speed</h4>
-                    <p className="text-gray-700">Business and personal decisions require rapid assessment of information reliability</p>
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-purple-700">Trust Erosion</h4>
-                    <p className="text-gray-700">Traditional authority sources are being questioned, requiring individual judgment skills</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white border-2 border-purple-200 p-6 rounded-lg mb-6">
-              <h3 className="text-lg font-semibold text-purple-800 mb-3">Ready to Practice?</h3>
-              <p className="text-gray-700 mb-4">
-                The next section will guide you through practical scenarios where you'll apply these discernment principles. 
-                You'll encounter real-world situations that require careful judgment and decision-making in ambiguous circumstances.
-              </p>
-              <div className="flex items-center text-sm text-purple-600">
-                <div className="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
-                Interactive scenarios ahead
-              </div>
-            </div>
-
-            <div className="flex justify-end">
+            <div className="flex justify-end mt-8">
               <Button 
                 onClick={() => {
                   markStepCompleted('ia-7-1');
