@@ -501,10 +501,11 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-7-1':
         return (
           <div className="prose max-w-none">
-            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">Reality Discernment</h1>
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-4">Reality Discernment</h1>
+            <h2 className="text-xl font-semibold text-purple-600 mb-6">Train Your Mind to Know What's Real</h2>
             
             {/* YouTube Video Player */}
-            <div className="mb-8 max-w-4xl mx-auto">
+            <div className="mb-6 w-full max-w-3xl mx-auto">
               <VideoPlayer
                 workshopType="imaginal-agility"
                 stepId="ia-7-1"
@@ -515,51 +516,90 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               />
             </div>
 
-            <div className="text-lg text-gray-700 mb-6">
-              <p>Discernment is the ability to judge well between different options, ideas, and approaches. In an AI-enhanced workplace, discernment becomes crucial for determining when to rely on AI assistance and when to trust human intuition and creativity.</p>
+            <div className="text-lg text-gray-700 mb-6 space-y-4">
+              <p>
+                In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential for survival and success. The ability to distinguish between authentic and artificial, between reliable and misleading information, has become a critical skill for navigating our rapidly evolving world.
+              </p>
+              
+              <p>
+                Reality discernment goes beyond simple fact-checking. It's about developing an intuitive sense for what feels genuine, understanding the subtle cues that reveal authenticity, and building the mental frameworks necessary to make sound judgments when the stakes are high.
+              </p>
+              
+              <p>
+                This training will sharpen your ability to recognize patterns, question assumptions, and trust your refined instincts while remaining open to new information. You'll learn to balance skepticism with curiosity, ensuring you neither become overly cynical nor dangerously naive.
+              </p>
             </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">The Art of Wise Decision-Making</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              As AI becomes more sophisticated, the ability to discern between AI-generated solutions and human-driven insights becomes increasingly valuable. This isn't about choosing one over the other, but knowing when each approach serves you best.
-            </p>
-
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Key Discernment Areas</h3>
-              <div className="space-y-4">
+            <div className="bg-purple-50 p-6 rounded-lg mb-6">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Core Discernment Skills</h3>
+              <div className="space-y-3">
                 <div className="flex">
                   <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Quality vs. Speed</h4>
-                    <p className="text-gray-700">When to prioritize AI efficiency versus human depth</p>
+                    <h4 className="font-semibold text-purple-700">Source Authentication</h4>
+                    <p className="text-gray-700 text-sm">Verifying the credibility and origin of information before accepting it as truth</p>
                   </div>
                 </div>
                 <div className="flex">
                   <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Logic vs. Intuition</h4>
-                    <p className="text-gray-700">Balancing data-driven insights with human gut feelings</p>
+                    <h4 className="font-semibold text-purple-700">Pattern Recognition</h4>
+                    <p className="text-gray-700 text-sm">Identifying inconsistencies and anomalies that signal artificial generation or manipulation</p>
                   </div>
                 </div>
                 <div className="flex">
                   <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Automation vs. Human Touch</h4>
-                    <p className="text-gray-700">Knowing when personal connection matters most</p>
+                    <h4 className="font-semibold text-purple-700">Contextual Awareness</h4>
+                    <p className="text-gray-700 text-sm">Understanding how timing, motivation, and circumstance influence the reliability of information</p>
+                  </div>
+                </div>
+                <div className="flex">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-3 mr-3 flex-shrink-0"></div>
+                  <div>
+                    <h4 className="font-semibold text-purple-700">Intuitive Validation</h4>
+                    <p className="text-gray-700 text-sm">Developing and trusting your gut instincts while backing them up with logical analysis</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Developing Your Discernment</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Strong discernment emerges from experience, reflection, and the willingness to question both AI outputs and your own assumptions. It requires cultivating both analytical thinking and emotional intelligence.
-            </p>
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mb-6">
+              <h3 className="text-xl font-semibold text-purple-800 mb-4">Why Discernment Matters Now</h3>
+              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-purple-700">AI Content Proliferation</h4>
+                    <p className="text-gray-700">Artificial content is becoming indistinguishable from human-created material</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-purple-700">Information Overload</h4>
+                    <p className="text-gray-700">The volume of information makes careful verification more challenging than ever</p>
+                  </div>
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="font-medium text-purple-700">Decision Speed</h4>
+                    <p className="text-gray-700">Business and personal decisions require rapid assessment of information reliability</p>
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-purple-700">Trust Erosion</h4>
+                    <p className="text-gray-700">Traditional authority sources are being questioned, requiring individual judgment skills</p>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mb-8">
-              <p className="text-center text-lg font-medium text-purple-800">
-                "Wisdom is not about having all the answers, but knowing which questions to ask."
+            <div className="bg-white border-2 border-purple-200 p-6 rounded-lg mb-6">
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">Ready to Practice?</h3>
+              <p className="text-gray-700 mb-4">
+                The next section will guide you through practical scenarios where you'll apply these discernment principles. 
+                You'll encounter real-world situations that require careful judgment and decision-making in ambiguous circumstances.
               </p>
+              <div className="flex items-center text-sm text-purple-600">
+                <div className="w-4 h-4 bg-purple-600 rounded-full mr-2"></div>
+                Interactive scenarios ahead
+              </div>
             </div>
 
             <div className="flex justify-end">
@@ -569,10 +609,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                   setCurrentContent('ia-8-1');
                   scrollToContentTop();
                 }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
                 size="lg"
               >
-                Next: Neuroscience
+                Next: Practice Discernment Exercise
               </Button>
             </div>
           </div>
