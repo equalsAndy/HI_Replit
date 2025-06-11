@@ -198,13 +198,17 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
         />
       );
 
+    case 'final-reflection':
+    case 'final-reflection-4-5':
+    case '4-5':
     case 'your-statement':
+      console.log(`🔍 AllStarTeamsContent: Rendering FinalReflectionView for content: ${currentContent}`);
       return (
         <FinalReflectionView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
         />
       );
 
