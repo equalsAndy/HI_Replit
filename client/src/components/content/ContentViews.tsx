@@ -682,15 +682,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           </div>
         );
       default:
-        return (
-          <PlaceholderView 
-            title="Step Not Found"
-            currentContent={currentContent}
-            navigate={navigate}
-            markStepCompleted={markStepCompleted}
-            setCurrentContent={setCurrentContent}
-          />
-        );
+        // Continue to the AllStarTeams content switch statement below
+        break;
     }
   }
 
