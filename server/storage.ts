@@ -7,8 +7,6 @@ import connectPg from "connect-pg-simple";
 import session from "express-session";
 import {
   User, InsertUser, 
-  StarCard, 
-  FlowAttributesRecord,
   Video,
   InsertVideo
 } from "@shared/schema";

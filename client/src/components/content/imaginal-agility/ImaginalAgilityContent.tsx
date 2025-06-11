@@ -12,7 +12,7 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
     retry: false
   });
 
-  const isAssessmentCompleted = assessmentData?.data !== null;
+  const isAssessmentCompleted = assessmentData && (assessmentData as any).data !== null;
 
   return (
     <div className="prose max-w-none">
