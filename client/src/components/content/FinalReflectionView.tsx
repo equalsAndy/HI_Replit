@@ -11,7 +11,7 @@ interface FinalReflectionViewProps {
 }
 
 interface FinalReflectionData {
-  insight: string;
+  futureLetterText: string;
 }
 
 export default function FinalReflectionView({ 
@@ -25,24 +25,24 @@ export default function FinalReflectionView({
 
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
-    queryKey: ['/api/final-reflection'],
+    queryKey: ['/api/workshop-data/final-reflection'],
     staleTime: 30000,
   });
 
   useEffect(() => {
-    if (existingData && typeof existingData === 'object' && 'insight' in existingData && existingData.insight) {
-      setInsight(String(existingData.insight));
+    if (existingData && existingData.success && existingData.data && existingData.data.futureLetterText) {
+      setInsight(String(existingData.data.futureLetterText));
     }
   }, [existingData]);
 
   // Save final reflection data
   const saveMutation = useMutation({
-    mutationFn: (data: FinalReflectionData) => apiRequest('/api/final-reflection', {
+    mutationFn: (data: FinalReflectionData) => apiRequest('/api/workshop-data/final-reflection', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/final-reflection'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
     },
   });
 
@@ -50,7 +50,7 @@ export default function FinalReflectionView({
     setInsight(value);
     
     // Auto-save after user stops typing
-    const saveData = { insight: value };
+    const saveData = { futureLetterText: value };
     saveMutation.mutate(saveData);
   };
 
