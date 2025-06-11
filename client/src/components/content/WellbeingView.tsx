@@ -14,7 +14,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const [wellBeingLevel, setWellBeingLevel] = useState<number>(5);
-  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(5);
+  const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
 
   // Load existing visualization data
@@ -154,7 +154,14 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={(values) => setWellBeingLevel(values[0])}
+                      onValueChange={(values) => {
+                        const newCurrentValue = values[0];
+                        setWellBeingLevel(newCurrentValue);
+                        // Ensure future value is not lower than current value
+                        if (futureWellBeingLevel < newCurrentValue) {
+                          setFutureWellBeingLevel(newCurrentValue);
+                        }
+                      }}
                       className="py-2"
                     />
                     <div className="text-center mt-1">
@@ -170,6 +177,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                   <p className="text-gray-700 text-sm">
                     Where would you realistically like to be in one year?
                   </p>
+                  <p className="text-xs text-gray-500 italic">
+                    Must be equal to or higher than your current level ({wellBeingLevel})
+                  </p>
                   <div className="py-2">
                     <div className="flex justify-between mb-2 text-xs text-gray-600">
                       <span>Worst (0)</span>
@@ -177,10 +187,16 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                     </div>
                     <Slider
                       value={[futureWellBeingLevel]} 
-                      min={0}
+                      min={wellBeingLevel}
                       max={10}
                       step={1}
-                      onValueChange={(values) => setFutureWellBeingLevel(values[0])}
+                      onValueChange={(values) => {
+                        const newFutureValue = values[0];
+                        // Ensure future value is not lower than current value
+                        if (newFutureValue >= wellBeingLevel) {
+                          setFutureWellBeingLevel(newFutureValue);
+                        }
+                      }}
                       className="py-2"
                     />
                     <div className="text-center mt-1">
