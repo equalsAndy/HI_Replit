@@ -347,6 +347,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 )}
                                 onClick={() => {
                                   if (isAccessible) {
+                                    console.log(`🧭 UserHomeNav: Clicked step ${step.id} in section ${section.id}`);
+                                    const contentKey = getContentKeyFromStepId(section.id, step.id);
+                                    console.log(`🧭 UserHomeNav: Content key for ${step.id}: ${contentKey}`);
                                     handleStepClick(section.id, step.id);
                                     // Close drawer on mobile after selection
                                     if (isMobile) {
