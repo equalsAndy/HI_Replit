@@ -310,31 +310,31 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </p>
             </div>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h2 className="text-xl font-semibold text-purple-800 mb-4">The Five Capabilities Assessment</h2>
-              <p className="text-gray-700 mb-4">
+            <div className="bg-purple-50 p-4 rounded-lg mb-6">
+              <h2 className="text-lg font-semibold text-purple-800 mb-3">The Five Capabilities Assessment</h2>
+              <p className="text-gray-700 mb-3 text-sm">
                 You'll evaluate yourself across five key capabilities that define Imaginal Agility:
               </p>
-              <div className="grid gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-purple-700 font-medium">Imagination</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="text-purple-700 font-medium text-sm">Imagination</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-purple-700 font-medium">Curiosity</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="text-purple-700 font-medium text-sm">Curiosity</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-purple-700 font-medium">Creativity</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="text-purple-700 font-medium text-sm">Creativity</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-purple-700 font-medium">Courage</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="text-purple-700 font-medium text-sm">Courage</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-purple-700 font-medium">Empathy</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-2 flex-shrink-0"></div>
+                  <span className="text-purple-700 font-medium text-sm">Empathy</span>
                 </div>
               </div>
             </div>
@@ -433,28 +433,28 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Effective teamwork using Imaginal Agility requires understanding how individual imaginative capabilities combine to create collective intelligence that surpasses what AI alone can achieve.
             </p>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Key Preparation Areas</h3>
-              <div className="space-y-4">
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Individual Strengths Awareness</h4>
-                    <p className="text-gray-700">Understanding your unique imaginative profile and contribution</p>
+            <div className="bg-purple-50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">Key Preparation Areas</h3>
+              <div className="space-y-2">
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+                  <div className="flex-1">
+                    <span className="font-medium text-purple-700">Individual Strengths Awareness</span>
+                    <span className="text-gray-600 text-sm block">Understanding your unique imaginative profile and contribution</span>
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Complementary Capabilities</h4>
-                    <p className="text-gray-700">Recognizing how different imaginative styles work together</p>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+                  <div className="flex-1">
+                    <span className="font-medium text-purple-700">Complementary Capabilities</span>
+                    <span className="text-gray-600 text-sm block">Recognizing how different imaginative styles work together</span>
                   </div>
                 </div>
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                  <div>
-                    <h4 className="font-semibold text-purple-700">Collective Intelligence</h4>
-                    <p className="text-gray-700">Building team synergy that exceeds individual capabilities</p>
+                <div className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+                  <div className="flex-1">
+                    <span className="font-medium text-purple-700">Collective Intelligence</span>
+                    <span className="text-gray-600 text-sm block">Building team synergy that exceeds individual capabilities</span>
                   </div>
                 </div>
               </div>
@@ -1223,15 +1223,50 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
             <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
 
-            <div className="bg-purple-50 p-6 rounded-lg">
-              <h3 className="text-xl font-semibold text-purple-800 mb-3">The 5 Core Capabilities</h3>
-              <ul className="space-y-2 text-purple-700">
-                <li>• <strong>Imagination</strong></li>
-                <li>• <strong>Curiosity</strong></li>
-                <li>• <strong>Empathy</strong></li>
-                <li>• <strong>Creativity</strong></li>
-                <li>• <strong>Courage</strong></li>
-              </ul>
+            <div className="bg-purple-50 p-4 rounded-lg">
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">The 5 Core Capabilities</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src="/attached_assets/Imagination_1749499596783.png" 
+                    alt="Imagination" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2"
+                  />
+                  <span className="text-sm font-medium text-purple-700">Imagination</span>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src="/attached_assets/Curiosity_1749499596783.png" 
+                    alt="Curiosity" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2"
+                  />
+                  <span className="text-sm font-medium text-purple-700">Curiosity</span>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src="/attached_assets/empathy_1749499596783.png" 
+                    alt="Empathy" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2"
+                  />
+                  <span className="text-sm font-medium text-purple-700">Empathy</span>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src="/attached_assets/Creativity_1749499596783.png" 
+                    alt="Creativity" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2"
+                  />
+                  <span className="text-sm font-medium text-purple-700">Creativity</span>
+                </div>
+                <div className="flex flex-col items-center text-center">
+                  <img 
+                    src="/attached_assets/courage_1749499596782.png" 
+                    alt="Courage" 
+                    className="w-12 h-12 sm:w-16 sm:h-16 object-contain mb-2"
+                  />
+                  <span className="text-sm font-medium text-purple-700">Courage</span>
+                </div>
+              </div>
             </div>
 
             <p>Click the button below to begin your self-assessment. The assessment will open in a new window and takes approximately 10-15 minutes to complete.</p>
