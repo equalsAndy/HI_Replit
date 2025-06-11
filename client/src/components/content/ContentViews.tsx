@@ -107,45 +107,45 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </p>
             </div>
 
-            <div className="space-y-4 mb-8">
-              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+            <div className="space-y-2 mb-6">
+              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
                 <div className="flex items-center">
-                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">🧠</span>
-                      <h3 className="text-lg font-semibold text-orange-800">Metacognitive Laziness</h3>
+                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">🧠</span>
+                      <h3 className="text-base font-semibold text-orange-800">Metacognitive Laziness</h3>
                     </div>
                   </div>
-                  <div className="px-6 py-4 flex-1">
-                    <p className="text-gray-700">Outsourcing thinking and sense-making</p>
+                  <div className="px-4 py-3 flex-1">
+                    <p className="text-gray-700 text-sm">Outsourcing thinking and sense-making</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
                 <div className="flex items-center">
-                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">💭</span>
-                      <h3 className="text-lg font-semibold text-orange-800">Imagination Deficit</h3>
+                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">💭</span>
+                      <h3 className="text-base font-semibold text-orange-800">Imagination Deficit</h3>
                     </div>
                   </div>
-                  <div className="px-6 py-4 flex-1">
-                    <p className="text-gray-700">Diminishing the generative core of human potential</p>
+                  <div className="px-4 py-3 flex-1">
+                    <p className="text-gray-700 text-sm">Diminishing the generative core of human potential</p>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-orange-50 border border-orange-200 rounded-lg overflow-hidden">
+              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
                 <div className="flex items-center">
-                  <div className="bg-orange-100 px-6 py-4 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">😔</span>
-                      <h3 className="text-lg font-semibold text-orange-800">Psychological Debt</h3>
+                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">😔</span>
+                      <h3 className="text-base font-semibold text-orange-800">Psychological Debt</h3>
                     </div>
                   </div>
-                  <div className="px-6 py-4 flex-1">
-                    <p className="text-gray-700">Fatigue, disconnection, and loss of purpose</p>
+                  <div className="px-4 py-3 flex-1">
+                    <p className="text-gray-700 text-sm">Fatigue, disconnection, and loss of purpose</p>
                   </div>
                 </div>
               </div>
