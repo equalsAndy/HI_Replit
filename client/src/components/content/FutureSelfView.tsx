@@ -101,7 +101,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     
     try {
       markStepCompleted('4-4');
-      setCurrentContent('final-reflection');
+      setCurrentContent('your-statement');
     } catch (error) {
       console.error('Error completing future self reflection:', error);
     }

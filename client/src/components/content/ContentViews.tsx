@@ -842,6 +842,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'final-reflection':
     case 'final-reflection-4-5':
     case '4-5':
+    case 'your-statement':
       return (
         <FinalReflectionView 
           currentContent={currentContent}

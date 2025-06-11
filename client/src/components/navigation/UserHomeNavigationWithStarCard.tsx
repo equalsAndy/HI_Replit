@@ -189,7 +189,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '4-2': 'cantril-ladder',
       '4-3': 'visualizing-you',
       '4-4': 'future-self',
-      '4-5': 'final-reflection',
+      '4-5': 'your-statement',
       
       // Section 5: Resources
       '5-1': 'your-star-card',
