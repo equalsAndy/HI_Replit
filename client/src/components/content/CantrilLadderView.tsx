@@ -194,7 +194,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               </div>
               
               <p className="text-sm text-blue-600 italic">
-                These values were set in the previous step and cannot be changed here.
+                These values were set in the previous step. You may update your choices there.
               </p>
             </div>
           </div>
