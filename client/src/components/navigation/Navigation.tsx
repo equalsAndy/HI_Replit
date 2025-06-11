@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useLocation } from 'wouter';
-import { Video, BookOpen, Zap, Glasses, PenLine, Download } from 'lucide-react';
+import { Video, BookOpen, Zap, Glasses, PenLine, Download, Activity } from 'lucide-react';
 import { useApplication } from '@/hooks/use-application';
 import { useNavigationProgress, NavigationSection } from '@/hooks/use-navigation-progress';
 import { NavigationHeader } from './NavigationHeader';
@@ -44,7 +44,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       iconColor: 'text-purple-600',
       steps: [
         { id: '2-1', label: 'Intro to Star Strengths', path: '/discover-strengths/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
-        { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/assessment', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/assessment', type: 'Activity', icon: 'Activity', iconColor: 'text-yellow-600' },
         { id: '2-3', label: 'Review Your Star Card', path: '/starcard-preview', type: 'Learning', icon: 'Glasses', iconColor: 'text-pink-600' },
         { id: '2-4', label: 'Strength Reflection', path: '/discover-strengths/reflect', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
       ]
@@ -59,9 +59,9 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       iconColor: 'text-green-600',
       steps: [
         { id: '3-1', label: 'Intro to Flow', path: '/find-your-flow/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
-        { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '3-2', label: 'Flow Assessment', path: '/flow-assessment', type: 'Activity', icon: 'Activity', iconColor: 'text-yellow-600' },
         { id: '3-3', label: 'Rounding Out', path: '/rounding-out', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
-        { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '3-4', label: 'Add Flow to Star Card', path: '/add-flow-starcard', type: 'Activity', icon: 'Activity', iconColor: 'text-yellow-600' },
       ]
     },
     { 
