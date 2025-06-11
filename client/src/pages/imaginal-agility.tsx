@@ -10,7 +10,7 @@ import { RefreshCw } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import LogoutButton from '@/components/auth/LogoutButton';
-import { useProgressionLogic } from '@/hooks/use-progression-logic';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
 import ProfileEditor from '@/components/profile/ProfileEditor';
 import { NavBar } from '@/components/layout/NavBar';
@@ -27,16 +27,20 @@ export default function ImaginalAgilityHome() {
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
 
-  // Use progression logic for sequential unlocking
+  // Use navigation progress system like AST
   const {
-    completedSteps,
-    isStepUnlocked,
-    isStepCompleted,
-    markStepCompleted: progressionMarkCompleted,
-    markVideoWatched,
-    saveAssessmentResult,
-    getProgressCount
-  } = useProgressionLogic();
+    progress: navProgress,
+    updateVideoProgress,
+    markStepCompleted: markNavStepCompleted,
+    updateCurrentStep: setCurrentStep,
+    isStepAccessibleByProgression: isStepUnlocked,
+    canProceedToNext,
+    shouldShowGreenCheckmark: isStepCompleted,
+    getCurrentVideoProgress: getVideoProgress
+  } = useNavigationProgress();
+
+  // Use navigation progress state
+  const completedSteps = navProgress?.completedSteps || [];
 
   // Set app type and check authentication on component mount
   useEffect(() => {
@@ -165,10 +169,10 @@ export default function ImaginalAgilityHome() {
     setDrawerOpen(!drawerOpen);
   };
 
-  // Mark a step as completed (using progression logic)
+  // Mark a step as completed (using navigation progress)
   const markStepCompleted = (stepId: string) => {
-    progressionMarkCompleted(stepId);
-    localStorage.setItem(PROGRESS_STORAGE_KEY, JSON.stringify({ completed: [...completedSteps, stepId] }));
+    markNavStepCompleted(stepId);
+    setCurrentStep(stepId);
   };
 
   // Function to determine if a step is accessible for IA workshop
@@ -236,7 +240,7 @@ export default function ImaginalAgilityHome() {
           <ContentViews
             currentContent={currentContent}
             navigate={navigate}
-            markStepCompleted={progressionMarkCompleted}
+            markStepCompleted={markStepCompleted}
             setCurrentContent={setCurrentContent}
             user={user}
             setIsAssessmentModalOpen={setIsAssessmentModalOpen}
@@ -247,10 +251,38 @@ export default function ImaginalAgilityHome() {
           <ImaginalAgilityAssessment
             isOpen={isAssessmentModalOpen}
             onClose={() => setIsAssessmentModalOpen(false)}
-            onComplete={(results) => {
-              setIsAssessmentModalOpen(false);
-              markStepCompleted('ia-4-1'); // Mark self-assessment as completed
-              setCurrentContent("ia-5-1"); // Navigate to Review Results
+            onComplete={async (results) => {
+              try {
+                // Save assessment results to database
+                await apiRequest('/api/assessments', {
+                  method: 'POST',
+                  body: JSON.stringify({
+                    assessmentType: 'imaginal_agility',
+                    results: JSON.stringify(results)
+                  }),
+                  headers: {
+                    'Content-Type': 'application/json'
+                  }
+                });
+
+                setIsAssessmentModalOpen(false);
+                markStepCompleted('ia-4-1'); // Mark self-assessment as completed
+                setCurrentContent("ia-5-1"); // Navigate to Review Results
+                
+                toast({
+                  title: "Assessment Complete!",
+                  description: "Your Imaginal Agility profile has been saved.",
+                });
+              } catch (error) {
+                console.error('Error saving assessment:', error);
+                toast({
+                  title: "Assessment Saved Locally",
+                  description: "Your results are saved but couldn't sync to the server.",
+                });
+                setIsAssessmentModalOpen(false);
+                markStepCompleted('ia-4-1');
+                setCurrentContent("ia-5-1");
+              }
             }}
           />
         </div>
