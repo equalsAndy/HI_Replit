@@ -1,7 +1,81 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
+
+// Component for ia-4-1 Assessment step
+const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void }> = ({ onOpenAssessment }) => {
+  // Check if assessment is completed
+  const { data: assessmentData } = useQuery({
+    queryKey: ['/api/assessments/imaginal-agility'],
+    retry: false
+  });
+
+  const isAssessmentCompleted = assessmentData?.data !== null;
+
+  return (
+    <div className="prose max-w-none">
+      <div className="flex items-center mb-6">
+        <img 
+          src={imaginalAgilityLogo} 
+          alt="Imaginal Agility" 
+          className="h-12 w-auto mr-4"
+        />
+        <h1 className="text-3xl font-bold text-purple-700 mb-0">
+          Imaginal Agility Workshop Course &gt; Self-Assessment
+        </h1>
+      </div>
+      
+      <div className="mb-8">
+        <iframe 
+          width="400" 
+          height="300" 
+          src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
+          title="Self-Assessment" 
+          frameBorder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowFullScreen
+          className="rounded-lg shadow-lg"
+        ></iframe>
+      </div>
+      
+      <div className="text-lg text-gray-700 space-y-4">
+        <p>As organizations face what Deloitte identifies as an "imagination deficit" in the AI era, robust imagination self-assessment becomes essential for maintaining human creative agency and fostering transformative innovation capacity.</p>
+        
+        <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
+        
+        <ul className="list-disc pl-6 space-y-2">
+          <li>Imagination</li>
+          <li>Curiosity</li>
+          <li>Empathy</li>
+          <li>Creativity</li>
+          <li>Courage</li>
+        </ul>
+        
+        <p>Your responses will generate a visual radar map for reflection and use in the Teamwork Practice Session. The process should take about 10–15 minutes.</p>
+        
+        <div className="mt-8">
+          {isAssessmentCompleted ? (
+            <Button 
+              onClick={() => window.location.href = '/imaginal-agility/ia-5-1'}
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
+            >
+              Next: Assessment Results
+            </Button>
+          ) : (
+            <Button 
+              onClick={onOpenAssessment}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+            >
+              Start Assessment
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 interface ImaginalAgilityContentProps {
   stepId: string;
@@ -139,58 +213,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         );
 
       case 'ia-4-1':
-        return (
-          <div className="prose max-w-none">
-            <div className="flex items-center mb-6">
-              <img 
-                src={imaginalAgilityLogo} 
-                alt="Imaginal Agility" 
-                className="h-12 w-auto mr-4"
-              />
-              <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; Self-Assessment
-              </h1>
-            </div>
-            
-            <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-                title="Self-Assessment" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
-            </div>
-            
-            <div className="text-lg text-gray-700 space-y-4">
-              <p>As organizations face what Deloitte identifies as an "imagination deficit" in the AI era, robust imagination self-assessment becomes essential for maintaining human creative agency and fostering transformative innovation capacity.</p>
-              
-              <p>This Self-Assessment helps participants to reflect on their five core capabilities essential for personal growth, team synergy, and collaborative intelligence:</p>
-              
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Imagination</li>
-                <li>Curiosity</li>
-                <li>Empathy</li>
-                <li>Creativity</li>
-                <li>Courage</li>
-              </ul>
-              
-              <p>Your responses will generate a visual radar map for reflection and use in the Teamwork Practice Session. The process should take about 10–15 minutes.</p>
-              
-              <div className="mt-8">
-                <Button 
-                  onClick={onOpenAssessment}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Start Assessment
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
+        return <ImaginalAgilityAssessmentContent onOpenAssessment={onOpenAssessment} />;
 
       case 'ia-4-2':
         return (

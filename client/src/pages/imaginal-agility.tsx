@@ -37,7 +37,7 @@ export default function ImaginalAgilityHome() {
     canProceedToNext,
     shouldShowGreenCheckmark: isStepCompleted,
     getCurrentVideoProgress: getVideoProgress
-  } = useNavigationProgress();
+  } = useNavigationProgress('ia'); // Pass 'ia' for Imaginal Agility
 
   // Use navigation progress state
   const completedSteps = navProgress?.completedSteps || [];

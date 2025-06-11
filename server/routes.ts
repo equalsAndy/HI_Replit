@@ -1,5 +1,8 @@
 import express from 'express';
 import { attachUser } from './middleware/auth';
+import { db } from './db';
+import { eq, and, desc } from 'drizzle-orm';
+import * as schema from '../shared/schema';
 
 // Import route modules
 import authRoutes from './routes/auth-routes';
@@ -29,6 +32,101 @@ router.use('/growth-plan', growthPlanRoutes);
 
 // Add visualization endpoints directly at the API root level
 router.use('/', workshopDataRoutes);
+
+// Assessment API routes
+router.post('/assessments', async (req, res) => {
+  try {
+    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { assessmentType, results } = req.body;
+
+    if (!assessmentType || !results) {
+      return res.status(400).json({
+        success: false,
+        message: 'Assessment type and results are required'
+      });
+    }
+
+    // Save assessment to database
+    await db.insert(schema.userAssessments).values({
+      userId,
+      assessmentType,
+      results: typeof results === 'string' ? results : JSON.stringify(results)
+    });
+
+    res.json({
+      success: true,
+      message: 'Assessment saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving assessment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save assessment'
+    });
+  }
+});
+
+router.get('/assessments/:type', async (req, res) => {
+  try {
+    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { type } = req.params;
+    
+    // Get assessment from database
+    const assessment = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, type)
+        )
+      )
+      .orderBy(desc(schema.userAssessments.createdAt))
+      .limit(1);
+
+    if (assessment.length === 0) {
+      return res.json({
+        success: true,
+        data: null
+      });
+    }
+
+    const results = JSON.parse(assessment[0].results);
+    
+    res.json({
+      success: true,
+      data: {
+        id: assessment[0].id,
+        userId: assessment[0].userId,
+        assessmentType: assessment[0].assessmentType,
+        results,
+        createdAt: assessment[0].createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching assessment:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch assessment'
+    });
+  }
+});
 
 // Base API route to check if the API is running
 router.get('/', (req, res) => {
