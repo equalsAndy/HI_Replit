@@ -73,11 +73,11 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       icon: 'Zap',
       iconColor: 'text-indigo-600',
       steps: [
-        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning', icon: 'Zap', iconColor: 'text-yellow-600' },
-        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing', icon: 'Zap', iconColor: 'text-yellow-600' },
-        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
-        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning', icon: 'Zap', iconColor: 'text-yellow-600' },
-        { id: '4-5', label: 'Final Reflection', path: '/your-statement', type: 'Writing', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-5', label: 'Final Reflection', path: '/your-statement', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
       ]
     },
     {
@@ -89,10 +89,10 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       icon: 'Download',
       iconColor: 'text-green-700',
       steps: [
-        { id: '5-1', label: 'Download your Star Card', path: '/download-starcard', type: 'Download', icon: 'Download', iconColor: 'text-pink-600' },
-        { id: '5-2', label: 'Your Holistic Report', path: '/holistic-report', type: 'Download', icon: 'Download', iconColor: 'text-pink-600' },
-        { id: '5-3', label: 'Growth Plan', path: '/growth-plan', type: 'Download', icon: 'Download', iconColor: 'text-pink-600' },
-        { id: '5-4', label: 'Team Workshop Prep', path: '/team-workshop-prep', type: 'Activity', icon: 'Zap', iconColor: 'text-yellow-600' },
+        { id: '5-1', label: 'Download your Star Card', path: '/download-starcard', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-2', label: 'Your Holistic Report', path: '/holistic-report', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-3', label: 'Growth Plan', path: '/growth-plan', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-4', label: 'Team Workshop Prep', path: '/team-workshop-prep', type: 'Activity', icon: 'PenLine', iconColor: 'text-pink-600' },
       ]
     },
     {
@@ -104,7 +104,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       icon: 'BookOpen',
       iconColor: 'text-slate-600',
       steps: [
-        { id: '6-1', label: 'Workshop Resources', path: '/workshop-resources', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '6-1', label: 'Workshop Resources', path: '/workshop-resources', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
       ]
     }
   ];
