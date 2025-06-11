@@ -770,10 +770,10 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case '4-5':
       return (
         <FinalReflectionView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
-          starCard={starCard}
         />
       );
 
