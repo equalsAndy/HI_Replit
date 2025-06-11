@@ -169,7 +169,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
           {/* READ-ONLY display of wellbeing levels set in step 4-1 */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="text-md font-medium text-blue-800 mb-4">Your Well-being Levels (Set in Step 4-1)</h3>
+            <h3 className="text-md font-medium text-blue-800 mb-4">Your Well-being Levels</h3>
             
             <div className="space-y-4">
               <div className="bg-white p-3 rounded border">
@@ -183,11 +183,18 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Future Well-being Level (1 year):
                 </label>
-                <div className="text-2xl font-bold text-green-600">Level {futureWellBeingLevel}</div>
+                <div className={`text-2xl font-bold ${futureWellBeingLevel < wellBeingLevel ? 'text-red-600' : 'text-green-600'}`}>
+                  Level {futureWellBeingLevel}
+                </div>
+                {futureWellBeingLevel < wellBeingLevel && (
+                  <p className="text-xs text-red-600 italic mt-1 flex items-center">
+                    ⚠ Are you sure you want a lower future well-being level?
+                  </p>
+                )}
               </div>
               
               <p className="text-sm text-blue-600 italic">
-                These values were set in step 4-1 and cannot be changed here.
+                These values were set in the previous step and cannot be changed here.
               </p>
             </div>
           </div>
