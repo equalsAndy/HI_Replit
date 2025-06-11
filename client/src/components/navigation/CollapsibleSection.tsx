@@ -3,9 +3,26 @@ import { useLocation } from 'wouter';
 import { ChevronDown, ChevronRight, Check, Lock, LucideIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { NavigationSection } from '@/shared/types';
-import { cn } from '@/lib/utils'; // Import utility for conditional classes`
+import { cn } from '@/lib/utils';
 
+interface NavigationStep {
+  id: string;
+  title: string;
+  type: string;
+  path?: string;
+  label?: string;
+  estimatedTime?: number;
+  required?: boolean;
+}
+
+interface NavigationSection {
+  id: string;
+  title: string;
+  steps: NavigationStep[];
+  totalSteps?: number;
+  completedSteps?: number;
+  locked?: boolean;
+}
 
 interface CollapsibleSectionProps {
   section: NavigationSection & {
@@ -44,63 +61,68 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
   };
   
   return (
-    <div className="border border-gray-200 rounded-md mb-3 bg-white overflow-hidden">
-      {/* Section Header */}
-      <div 
-        className={cn(
-          "flex justify-between items-center p-4 transition-colors",
-          isCompleted ? "bg-green-50" : "",
-          isLocked ? "bg-gray-50 opacity-75" : "cursor-pointer hover:bg-gray-50"
-        )}
-      >
-        <div className="flex items-center">
-          {isLocked ? (
-            <Lock className="h-5 w-5 text-gray-400 mr-2" />
-          ) : (
-            Icon && <Icon className="h-5 w-5 text-indigo-600 mr-2" />
+    <div className={cn(
+      "mb-3 bg-white overflow-hidden",
+      section.title ? "border border-gray-200 rounded-md" : ""
+    )}>
+      {/* Section Header - Only show if there's a title */}
+      {section.title && (
+        <div 
+          className={cn(
+            "flex justify-between items-center p-4 transition-colors",
+            isCompleted ? "bg-green-50" : "",
+            isLocked ? "bg-gray-50 opacity-75" : "cursor-pointer hover:bg-gray-50"
           )}
-          <span className={cn(
-            "font-medium",
-            isLocked ? "text-gray-400" : "text-gray-900"
-          )}>
-            {section.title}
-            {isCompleted && !isLocked && (
-              <span className="ml-2 text-green-600 text-sm">
-                (Complete)
-              </span>
+        >
+          <div className="flex items-center">
+            {isLocked ? (
+              <Lock className="h-5 w-5 text-gray-400 mr-2" />
+            ) : (
+              Icon && <Icon className="h-5 w-5 text-indigo-600 mr-2" />
             )}
-          </span>
-        </div>
-        
-        <div className="flex items-center">
-          {/* Progress indicator - X/Y format */}
-          <div className={cn(
-            "mr-3 text-sm flex items-center",
-            isLocked ? "text-gray-400" : "text-gray-500"
-          )}>
-            <span className="hidden sm:inline">
-              {isCompleted ? 'Complete' : `${progressDisplay} complete`}
+            <span className={cn(
+              "font-medium",
+              isLocked ? "text-gray-400" : "text-gray-900"
+            )}>
+              {section.title}
+              {isCompleted && !isLocked && (
+                <span className="ml-2 text-green-600 text-sm">
+                  (Complete)
+                </span>
+              )}
             </span>
-            <span className="sm:hidden">{progressDisplay}</span>
           </div>
           
-          {/* Completion check or lock icon */}
-          {isCompleted && !isLocked ? (
-            <Check className="h-4 w-4 text-green-600 mr-2" />
-          ) : isLocked ? (
-            <Lock className="h-4 w-4 text-gray-400 mr-2" />
-          ) : null}
-          
-          {/* Expansion indicator (only for unlocked sections) */}
-          {!isLocked && (
-            isExpanded ? (
-              <ChevronDown className="h-5 w-5 text-indigo-600" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-indigo-600" />
-            )
-          )}
+          <div className="flex items-center">
+            {/* Progress indicator - X/Y format */}
+            <div className={cn(
+              "mr-3 text-sm flex items-center",
+              isLocked ? "text-gray-400" : "text-gray-500"
+            )}>
+              <span className="hidden sm:inline">
+                {isCompleted ? 'Complete' : `${progressDisplay} complete`}
+              </span>
+              <span className="sm:hidden">{progressDisplay}</span>
+            </div>
+            
+            {/* Completion check or lock icon */}
+            {isCompleted && !isLocked ? (
+              <Check className="h-4 w-4 text-green-600 mr-2" />
+            ) : isLocked ? (
+              <Lock className="h-4 w-4 text-gray-400 mr-2" />
+            ) : null}
+            
+            {/* Expansion indicator (only for unlocked sections) */}
+            {!isLocked && (
+              isExpanded ? (
+                <ChevronDown className="h-5 w-5 text-indigo-600" />
+              ) : (
+                <ChevronRight className="h-5 w-5 text-indigo-600" />
+              )
+            )}
+          </div>
         </div>
-      </div>
+      )}
       
       {/* Section Content */}
       {isExpanded && (
@@ -109,7 +131,9 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="border-t border-gray-200"
+          className={cn(
+            section.title ? "border-t border-gray-200" : ""
+          )}
         >
           {children ? (
             <div className="p-4">

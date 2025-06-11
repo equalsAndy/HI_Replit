@@ -62,13 +62,19 @@ export const imaginalAgilityNavigationSections = [
   }
 ];
 
-// AllStarTeams navigation sections (existing)
+// AllStarTeams navigation sections (corrected structure)
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
+    title: '', // No title for introduction section
+    steps: [
+      { id: '1-1', title: 'Introduction', type: 'video' }
+    ]
+  },
+  {
+    id: '2',
     title: 'DISCOVER YOUR STAR STRENGTHS',
     steps: [
-      { id: '1-1', title: 'Introduction', type: 'video' },
       { id: '2-1', title: 'Intro to Star Strengths', type: 'video' },
       { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
       { id: '2-3', title: 'Review Your Star Card', type: 'content' },
@@ -76,7 +82,7 @@ export const allStarTeamsNavigationSections = [
     ]
   },
   {
-    id: '2',
+    id: '3',
     title: 'IDENTIFY YOUR FLOW',
     steps: [
       { id: '3-1', title: 'Intro to Flow', type: 'video' },
@@ -86,7 +92,7 @@ export const allStarTeamsNavigationSections = [
     ]
   },
   {
-    id: '3',
+    id: '4',
     title: 'VISUALIZE YOUR POTENTIAL',
     steps: [
       { id: '4-1', title: 'Ladder of Well-being', type: 'content' },
@@ -97,7 +103,7 @@ export const allStarTeamsNavigationSections = [
     ]
   },
   {
-    id: '4',
+    id: '5',
     title: 'NEXT STEPS',
     steps: [
       { id: '5-1', title: 'Download your Star Card', type: 'content' },
@@ -107,7 +113,7 @@ export const allStarTeamsNavigationSections = [
     ]
   },
   {
-    id: '5',
+    id: '6',
     title: 'MORE INFORMATION',
     steps: [
       { id: '6-1', title: 'Workshop Resources', type: 'content' }
