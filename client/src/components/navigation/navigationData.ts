@@ -108,7 +108,7 @@ export const allStarTeamsNavigationSections = [
     steps: [
       { id: '5-1', title: 'Download your Star Card', type: 'content' },
       { id: '5-2', title: 'Your Holistic Report', type: 'content' },
-      { id: '5-3', title: 'Growth Plan (coming soon)', type: 'content' },
+      { id: '5-3', title: 'Growth Plan', type: 'content' },
       { id: '5-4', title: 'Team Workshop Prep', type: 'content' }
     ]
   },
