@@ -13,6 +13,8 @@ import LogoutButton from '@/components/auth/LogoutButton';
 import { useProgressionLogic } from '@/hooks/use-progression-logic';
 import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgilityAssessment';
 import ProfileEditor from '@/components/profile/ProfileEditor';
+import { NavBar } from '@/components/layout/NavBar';
+import { useApplication } from '@/hooks/use-application';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -23,6 +25,7 @@ export default function ImaginalAgilityHome() {
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const { toast } = useToast();
+  const { setCurrentApp } = useApplication();
 
   // Use progression logic for sequential unlocking
   const {
@@ -35,8 +38,10 @@ export default function ImaginalAgilityHome() {
     getProgressCount
   } = useProgressionLogic();
 
-  // Check authentication on component mount
+  // Set app type and check authentication on component mount
   useEffect(() => {
+    setCurrentApp('imaginal-agility');
+    
     const checkAuth = async () => {
       try {
         const response = await fetch('/api/user/profile');
@@ -56,7 +61,7 @@ export default function ImaginalAgilityHome() {
     };
 
     checkAuth();
-  }, [navigate, toast]);
+  }, [navigate, toast, setCurrentApp]);
 
   // Fetch user profile data
   const { data: user, isLoading: isUserLoading } = useQuery<{
@@ -99,46 +104,7 @@ export default function ImaginalAgilityHome() {
     }
   }, [user]);
 
-  // Logout function for ProfileEditor
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
 
-      const data = await response.json();
-
-      if (data.success) {
-        // Clear React Query cache
-        queryClient.clear();
-
-        // Show success toast
-        toast({
-          title: 'Logged out successfully',
-          description: 'You have been logged out of your account.',
-          variant: 'default',
-        });
-
-        // Navigate to home page
-        navigate('/');
-
-        // Force page reload to clear all state
-        window.location.reload();
-      } else {
-        throw new Error(data.error || 'Logout failed');
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-      toast({
-        title: 'Logout failed',
-        description: 'There was a problem logging out. Please try again.',
-        variant: 'destructive',
-      });
-    }
-  };
 
   // Reset user progress mutation
   const resetUserProgress = useMutation({
@@ -249,47 +215,8 @@ export default function ImaginalAgilityHome() {
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
-      {/* Yellow NavBar - Just like in AllStarTeams */}
-      <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
-        <div className="flex items-center">
-          <img 
-            src="/src/assets/HI_Logo_horizontal.png" 
-            alt="Heliotrope Imaginal"
-            className="h-8 w-auto" 
-          />
-          <span className="ml-2 font-semibold">Imaginal Agility</span>
-        </div>
-        <div className="flex items-center space-x-2">
-          {/* User Controls Menu for authenticated users */}
-          {(user as any)?.id ? (
-            <div className="flex items-center gap-2">
-              {/* Admin button - only shown for admin users */}
-              {(user as any)?.role === 'admin' && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="rounded-md text-white hover:bg-yellow-400"
-                  onClick={() => navigate('/admin')}
-                >
-                  Admin
-                </Button>
-              )}
-
-              {/* Profile Editor with logout functionality */}
-              <ProfileEditor
-                user={user}
-                onLogout={handleLogout}
-              />
-            </div>
-          ) : (
-            /* Show ProfileEditor for all users regardless of login status */
-            <ProfileEditor
-              user={user}
-              onLogout={handleLogout}
-            />
-          )}
-        </div>
-      </div>
+      {/* Navigation */}
+      <NavBar />
 
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
