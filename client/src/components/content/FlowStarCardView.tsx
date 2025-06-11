@@ -95,7 +95,7 @@ const SortableFlowBadge = ({
     >
       <Badge 
         variant="outline"
-        className="bg-indigo-100 text-indigo-800 cursor-move transition-colors flex items-center"
+        className="bg-gray-200 text-gray-900 cursor-move transition-colors flex items-center"
       >
         <span {...listeners} {...attributes} className="cursor-grab mr-1">
           <GripVertical className="h-3 w-3 text-gray-500" />
@@ -105,7 +105,7 @@ const SortableFlowBadge = ({
           {rank + 1}
         </span>
         <button 
-          className="ml-1 text-indigo-600 hover:text-indigo-800"
+          className="ml-1 text-gray-600 hover:text-gray-800"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
@@ -131,7 +131,7 @@ const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disa
   return (
     <Badge 
       variant="outline"
-      className={`${selected ? 'bg-indigo-100 text-indigo-800' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
+      className={`${selected ? 'bg-gray-200 text-gray-900' : disabled ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'hover:bg-gray-100 cursor-pointer'} transition-colors flex items-center`}
       onClick={disabled ? undefined : onSelect}
     >
       {text}
@@ -142,7 +142,7 @@ const FlowBadge = ({ text, rank = 0, selected = false, rankBadgeColor = "", disa
       )}
       {selected && onRemove && !disabled && (
         <button 
-          className="ml-1 text-indigo-600 hover:text-indigo-800"
+          className="ml-1 text-gray-600 hover:text-gray-800"
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
@@ -212,13 +212,13 @@ const getAttributeColor = (attribute: string): string => {
   }
 };
 
-// Get color for rank badge
+// Get color for rank badge - grey scale for picker interface
 const getRankBadgeColor = (rank: number): string => {
   switch(rank) {
-    case 0: return 'bg-blue-600';
-    case 1: return 'bg-purple-600';
-    case 2: return 'bg-orange-600';
-    case 3: return 'bg-green-600';
+    case 0: return 'bg-black';
+    case 1: return 'bg-gray-700';
+    case 2: return 'bg-gray-500';
+    case 3: return 'bg-gray-400';
     default: return 'bg-gray-600';
   }
 };
