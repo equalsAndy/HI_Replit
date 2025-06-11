@@ -23,6 +23,7 @@ export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
   const [drawerOpen, setDrawerOpen] = useState(true);
   const [currentContent, setCurrentContent] = useState("ia-1-1");
+  const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
@@ -151,6 +152,46 @@ export default function ImaginalAgilityHome() {
       }
     }
   }, []);
+
+  // Auto-navigate to current step based on progress
+  useEffect(() => {
+    if (!navProgress) return;
+
+    const completedSteps = navProgress.completedSteps || [];
+    const iaStepOrder = [
+      'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
+      'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'
+    ];
+
+    // Find the next step after the last completed step
+    let nextStepId = 'ia-1-1'; // Default to first step
+    
+    if (completedSteps.length > 0) {
+      // Find the last completed step in the order
+      let lastCompletedIndex = -1;
+      for (let i = iaStepOrder.length - 1; i >= 0; i--) {
+        if (completedSteps.includes(iaStepOrder[i])) {
+          lastCompletedIndex = i;
+          break;
+        }
+      }
+      
+      // Set next step (or stay on last step if all completed)
+      if (lastCompletedIndex >= 0 && lastCompletedIndex < iaStepOrder.length - 1) {
+        nextStepId = iaStepOrder[lastCompletedIndex + 1];
+      } else if (lastCompletedIndex >= 0) {
+        nextStepId = iaStepOrder[lastCompletedIndex]; // Stay on last completed step
+      }
+    }
+
+    // Only navigate if current step is different from calculated next step
+    if (currentStep !== nextStepId) {
+      console.log(`Auto-navigating from ${currentStep} to ${nextStepId} based on progress`);
+      setCurrentStep(nextStepId);
+      setCurrentStepState(nextStepId);
+      setCurrentContent(nextStepId);
+    }
+  }, [navProgress, currentStep]);
 
   // Update navigation sections with completed steps count
   const updatedNavigationSections = imaginalAgilityNavigationSections.map(section => {
