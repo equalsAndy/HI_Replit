@@ -143,13 +143,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="xl:col-span-1">
           <div className="grid grid-cols-2 xl:grid-cols-1 gap-4">
             <img 
-              src={hokusaiWave}
-              alt="The Great Wave off Kanagawa by Hokusai" 
+              src={hokusaiPortrait}
+              alt="Hokusai - The Old Man Mad About Drawing" 
               className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
             />
             <img 
-              src={hokusaiPortrait}
-              alt="Hokusai - The Old Man Mad About Drawing" 
+              src={hokusaiWave}
+              alt="The Great Wave off Kanagawa by Hokusai" 
               className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
             />
           </div>
