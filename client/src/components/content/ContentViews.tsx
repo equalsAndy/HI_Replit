@@ -28,6 +28,14 @@ import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 
 import { useApplication } from '@/hooks/use-application';
 
+// Utility function to scroll to content title level
+const scrollToContentTop = () => {
+  // Account for header height - scroll to a position that shows the title
+  const headerHeight = 80; // Approximate header height
+  const targetPosition = headerHeight + 20; // Add some padding
+  window.scrollTo({ top: targetPosition, behavior: 'smooth' });
+};
+
 interface ContentViewProps {
   currentContent: string;
   navigate?: any;
@@ -155,7 +163,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-2-1');
                   setCurrentContent('ia-3-1');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -240,7 +248,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-3-1');
                   setCurrentContent('ia-4-1');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -360,7 +368,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-5-1');
                   setCurrentContent('ia-6-1');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -439,7 +447,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-6-1');
                   setCurrentContent('ia-7-1');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
@@ -518,12 +526,12 @@ const ContentViews: React.FC<ContentViewsProps> = ({
                 onClick={() => {
                   markStepCompleted('ia-7-1');
                   setCurrentContent('ia-8-1');
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                  scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: More About Workshop
+                Next: Neuroscience
               </Button>
             </div>
           </div>
@@ -531,6 +539,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       case 'ia-8-1':
         return (
           <div className="prose max-w-none">
+            <h1 className="text-3xl font-bold text-purple-700 mb-6">Neuroscience</h1>
+            
             {/* YouTube Video Player */}
             <div className="mb-8 max-w-4xl mx-auto">
               <VideoPlayer
