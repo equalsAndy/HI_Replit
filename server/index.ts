@@ -11,6 +11,48 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { setupVite } from './vite';
 import { createServer } from 'http';
+import { exec } from 'child_process';
+import { promisify } from 'util';
+
+const execAsync = promisify(exec);
+
+// Function to kill processes on port 5000
+async function killProcessOnPort(port: number) {
+  try {
+    console.log(`🔄 Checking for processes on port ${port}...`);
+    
+    // Find processes using the port
+    const { stdout } = await execAsync(`lsof -ti:${port}`);
+    
+    if (stdout.trim()) {
+      const pids = stdout.trim().split('\n');
+      console.log(`🔪 Killing ${pids.length} process(es) on port ${port}: ${pids.join(', ')}`);
+      
+      // Kill each process
+      for (const pid of pids) {
+        try {
+          await execAsync(`kill -9 ${pid.trim()}`);
+          console.log(`✅ Killed process ${pid.trim()}`);
+        } catch (killError) {
+          console.log(`⚠️  Process ${pid.trim()} may have already terminated`);
+        }
+      }
+      
+      // Wait a moment for processes to fully terminate
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log(`✅ Port ${port} is now available`);
+    } else {
+      console.log(`✅ No processes found on port ${port}`);
+    }
+  } catch (error) {
+    // lsof returns exit code 1 when no processes are found, which is fine
+    if (error.code === 1) {
+      console.log(`✅ No processes found on port ${port}`);
+    } else {
+      console.error(`❌ Error checking/killing processes on port ${port}:`, error.message);
+    }
+  }
+}
 
 // Set up dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -176,25 +218,23 @@ console.log('Initializing database connection...');
 
 async function startServer() {
   try {
-    // Initialize Vite middleware first
+    // Kill any existing processes on port 5000 first
+    await killProcessOnPort(port);
+    
+    // Initialize Vite middleware
     await initializeServer();
     
-    // Start server directly on the specified port
+    // Start server on port 5000 (should be available now)
     server.listen(port, '0.0.0.0', () => {
       console.log(`✅ Server successfully started on port ${port}`);
       console.log(`🌐 Access your app at: http://0.0.0.0:${port}`);
-      console.log('Database connection successful');
-      console.log('Vite middleware setup complete');
     });
 
     server.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
-        console.log(`Port ${port} is busy, trying ${port + 1}...`);
-        server.listen(port + 1, '0.0.0.0', () => {
-          console.log(`✅ Server successfully started on port ${port + 1}`);
-          console.log(`🌐 Access your app at: http://0.0.0.0:${port + 1}`);
-          console.log(`⚠️  Note: Requested port ${port} was busy, using port ${port + 1} instead`);
-        });
+        console.error(`❌ Port ${port} is still busy after cleanup attempt`);
+        console.error('❌ Failed to start server - unable to free port');
+        process.exit(1);
       } else {
         console.error('❌ Failed to start server:', err);
         process.exit(1);
