@@ -39,7 +39,7 @@ const scrollToContentTop = () => {
 };
 
 interface ContentViewProps {
-  currentContent: string;
+  currentContent?: string;
   navigate?: any;
   markStepCompleted?: (stepId: string) => void;
   setCurrentContent?: (content: string) => void;
@@ -47,6 +47,7 @@ interface ContentViewProps {
   flowAttributesData?: any;
   setIsAssessmentModalOpen?: (open: boolean) => void;
   isImaginalAgility?: boolean;
+  starCard?: any;
 }
 
 
@@ -652,7 +653,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'intro-strengths':
       return (
         <IntroStrengthsView 
-          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -662,7 +662,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'strengths-assessment':
       return (
         <AssessmentView 
-          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -673,7 +672,6 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'star-card-preview':
       return (
         <StarCardPreviewView 
-          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
@@ -683,6 +681,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     case 'reflection':
       return (
         <ReflectionView 
+          currentContent={currentContent}
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}
