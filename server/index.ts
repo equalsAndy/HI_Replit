@@ -171,33 +171,7 @@ async function initializeServer() {
   }
 }
 
-// Function to find an available port with retry logic
-const findAvailablePort = (startPort: number): Promise<number> => {
-  return new Promise((resolve, reject) => {
-    const testServer = server.listen(startPort, '0.0.0.0', () => {
-      const actualPort = (testServer.address() as any)?.port || startPort;
-      testServer.close(() => {
-        resolve(actualPort);
-      });
-    });
-    
-    testServer.on('error', (err: any) => {
-      if (err.code === 'EADDRINUSE') {
-        // Only try port 5001 as fallback, don't keep incrementing
-        if (startPort === 5000) {
-          console.log(`Port ${startPort} is busy, trying ${startPort + 1}...`);
-          resolve(findAvailablePort(startPort + 1));
-        } else {
-          reject(new Error(`Both ports 5000 and 5001 are busy`));
-        }
-      } else {
-        reject(err);
-      }
-    });
-  });
-};
-
-// Start the server with port conflict resolution
+// Start the server
 console.log('Initializing database connection...');
 
 async function startServer() {
@@ -205,15 +179,25 @@ async function startServer() {
     // Initialize Vite middleware first
     await initializeServer();
     
-    // Find available port and start server
-    const availablePort = await findAvailablePort(port);
-    
-    server.listen(availablePort, '0.0.0.0', () => {
-      console.log(`✅ Server successfully started on port ${availablePort}`);
-      console.log(`🌐 Access your app at: http://0.0.0.0:${availablePort}`);
-      
-      if (availablePort !== port) {
-        console.log(`⚠️  Note: Requested port ${port} was busy, using port ${availablePort} instead`);
+    // Start server directly on the specified port
+    server.listen(port, '0.0.0.0', () => {
+      console.log(`✅ Server successfully started on port ${port}`);
+      console.log(`🌐 Access your app at: http://0.0.0.0:${port}`);
+      console.log('Database connection successful');
+      console.log('Vite middleware setup complete');
+    });
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        console.log(`Port ${port} is busy, trying ${port + 1}...`);
+        server.listen(port + 1, '0.0.0.0', () => {
+          console.log(`✅ Server successfully started on port ${port + 1}`);
+          console.log(`🌐 Access your app at: http://0.0.0.0:${port + 1}`);
+          console.log(`⚠️  Note: Requested port ${port} was busy, using port ${port + 1} instead`);
+        });
+      } else {
+        console.error('❌ Failed to start server:', err);
+        process.exit(1);
       }
     });
   } catch (error) {
