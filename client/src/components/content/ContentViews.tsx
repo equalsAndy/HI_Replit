@@ -1677,6 +1677,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
     // Handle placeholder content
     default:
+      console.log(`🔍 ContentViews default case - currentContent: "${currentContent}"`);
       return (
         <PlaceholderView 
           title={`${currentContent}`}
