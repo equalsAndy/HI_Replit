@@ -1,193 +1,184 @@
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { queryClient } from '@/lib/queryClient';
-import { ChevronRight, PenTool, TrendingUp } from 'lucide-react';
-import { debounce } from 'lodash';
-import { useLocation } from 'wouter';
-import journeyLadderImage from '@/assets/journey-ladder.png';
+import ladderImage from '@assets/image_1749681594782.png';
 
-const FinalReflectionView: React.FC<ContentViewProps> = ({
-  navigate,
-  markStepCompleted,
-  setCurrentContent
-}) => {
-  const [statement, setStatement] = useState<string>('');
-  const [saving, setSaving] = useState(false);
+interface FinalReflectionViewProps {
+  currentContent: string;
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+}
 
-  // Load existing data when component mounts
+interface FinalReflectionData {
+  insight: string;
+}
+
+export default function FinalReflectionView({ 
+  currentContent, 
+  navigate, 
+  markStepCompleted, 
+  setCurrentContent 
+}: FinalReflectionViewProps) {
+  const queryClient = useQueryClient();
+  const [insight, setInsight] = useState('');
+
+  // Fetch existing final reflection data
+  const { data: existingData } = useQuery({
+    queryKey: ['/api/final-reflection'],
+    staleTime: 30000,
+  });
+
   useEffect(() => {
-    const loadExistingData = async () => {
-      try {
-        console.log('FinalReflectionView: Loading existing data...');
-        const response = await fetch('/api/workshop-data/final-reflection', {
-          credentials: 'include'
-        });
-        const result = await response.json();
+    if (existingData?.insight) {
+      setInsight(existingData.insight);
+    }
+  }, [existingData]);
 
-        console.log('FinalReflectionView: API response:', result);
+  // Save final reflection data
+  const saveMutation = useMutation({
+    mutationFn: (data: FinalReflectionData) => apiRequest('/api/final-reflection', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/final-reflection'] });
+    },
+  });
 
-        if (result.success && result.data) {
-          setStatement(result.data.futureLetterText || '');
-          console.log('FinalReflectionView: Setting statement:', result.data.futureLetterText);
-        }
-      } catch (error) {
-        console.log('FinalReflectionView: No existing data found:', error);
-      }
-    };
-
-    loadExistingData();
-  }, []);
-
-  // Debounced auto-save function
-  const debouncedSave = useCallback(
-    debounce(async (dataToSave) => {
-      try {
-        console.log('FinalReflectionView: Auto-saving...', dataToSave);
-        const response = await fetch('/api/workshop-data/final-reflection', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify(dataToSave),
-        });
-
-        const result = await response.json();
-        if (result.success) {
-          console.log('FinalReflectionView: Auto-saved successfully');
-        }
-      } catch (error) {
-        console.error('FinalReflectionView: Auto-save failed:', error);
-      }
-    }, 1000),
-    []
-  );
-
-  // Handle text change with auto-save
-  const handleStatementChange = (value: string) => {
-    setStatement(value);
-    debouncedSave({ futureLetterText: value });
+  const handleInsightChange = (value: string) => {
+    setInsight(value);
+    
+    // Auto-save after user stops typing
+    const saveData = { insight: value };
+    saveMutation.mutate(saveData);
   };
 
-  const handleSave = async () => {
-    setSaving(true);
-
-    try {
-      const response = await fetch('/api/workshop-data/final-reflection', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({
-          futureLetterText: statement
-        })
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        console.log('Final reflection saved successfully');
-        queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
-        markStepCompleted('4-5');
-        console.log('Step 4-5 marked as completed');
-      } else {
-        throw new Error(result.error || 'Save failed');
-      }
-    } catch (error) {
-      console.error('Error saving statement:', error);
-    } finally {
-      setSaving(false);
+  const handleNext = () => {
+    if (insight.trim().length >= 10) {
+      markStepCompleted('4-5');
+      setCurrentContent('your-star-card');
     }
   };
 
+  const isNextEnabled = insight.trim().length >= 10;
+
   return (
-    <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Final Reflection</h1>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-        <div className="bg-blue-50 p-6 rounded-lg border border-blue-100">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Personal Statement</h2>
-          <p className="text-gray-700 mb-4">
-            You've completed your personal discovery journey. Now it's time to synthesize everything 
-            you've learned into a personal manifesto that captures your unique profile.
-          </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Final Reflection</h1>
+      
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* Left Column - Content */}
+        <div className="bg-yellow-50 rounded-lg p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">
+            Final Reflection: Your Next Step
+          </h2>
           
-          <div className="mb-4">
-            <h3 className="font-semibold text-gray-800 mb-2">Write a personal statement that captures:</h3>
-            <ul className="text-sm text-gray-600 space-y-1 ml-4">
-              <li>• Your core strengths and how they work together</li>
-              <li>• The values that guide your decisions and actions</li>
-              <li>• Your vision for your future self and potential</li>
-              <li>• Your commitment to your path forward</li>
-            </ul>
+          <div className="text-gray-700 space-y-4 mb-6">
+            <p>
+              You've just completed a personal discovery journey — from identifying your core strength to 
+              envisioning your future self.
+            </p>
+            
+            <p>
+              You've seen how your strengths (especially imagination) operate at their best, and how your well-being 
+              shapes your potential. Now, take a moment to name one insight or intention you want to carry forward 
+              — as preparation for deeper team practice ahead.
+            </p>
           </div>
-
-          <Textarea 
-            placeholder="My personal statement: I am someone who brings..."
-            value={statement}
-            onChange={(e) => handleStatementChange(e.target.value)}
-            className="min-h-[150px]"
-          />
+          
+          <div className="space-y-2">
+            <textarea
+              value={insight}
+              onChange={(e) => handleInsightChange(e.target.value)}
+              placeholder="One insight I'm taking forward is..."
+              className="w-full h-32 p-3 border border-gray-300 rounded-md resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              maxLength={500}
+            />
+            <div className="text-right text-sm text-gray-500">
+              {insight.length}/500 characters
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col space-y-6">
-          <div className="flex flex-col items-center justify-center">
-            <div className="w-3/4 max-w-[250px] mb-6">
-              <img 
-                src={journeyLadderImage} 
-                alt="Journey Ladder" 
-                className="w-full h-auto"
-              />
+        {/* Right Column - Ladder Visualization */}
+        <div className="space-y-6">
+          <div className="bg-blue-50 rounded-lg p-6 relative">
+            <div className="text-center mb-4">
+              <div className="w-16 h-16 bg-yellow-400 rounded-full mx-auto mb-4"></div>
+            </div>
+            
+            <div className="space-y-2">
+              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
+                Future Self
+              </div>
+              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
+                Ladder of Well-Being
+              </div>
+              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
+                Visualizing Potential
+              </div>
+              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
+                Rounding Out
+              </div>
+              <div className="bg-yellow-400 text-white px-4 py-3 rounded-lg text-center font-medium">
+                Flow State
+              </div>
+              <div className="bg-yellow-300 text-gray-800 px-4 py-3 rounded-lg text-center font-medium">
+                Core Strengths
+              </div>
+              <div className="bg-yellow-200 text-gray-800 px-4 py-3 rounded-lg text-center font-medium">
+                Star Self-Assessment
+              </div>
             </div>
           </div>
 
-          <div className="bg-yellow-50 p-5 rounded-lg border border-yellow-100">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-              <PenTool className="w-5 h-5 mr-2 text-yellow-600" />
-              Synthesizing Your Journey
-            </h3>
-            <p className="text-sm text-gray-700 mb-3">
-              You've explored your Star Strengths, identified your Flow State, and visualized your 
-              potential through the Well-being Ladder.
-            </p>
-            <p className="text-sm text-gray-700">
-              This statement is your opportunity to weave these insights together into a coherent 
-              vision of who you are and who you're becoming.
-            </p>
-          </div>
-
-          <div className="bg-green-50 p-5 rounded-lg border border-green-100">
-            <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center">
-              <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
-              Your Path Forward
-            </h3>
-            <p className="text-sm text-gray-700 mb-3">
-              This personal statement will serve as your north star—a reminder of your unique 
-              strengths and values when making decisions.
-            </p>
-            <p className="text-sm text-gray-700">
-              Use it to guide your professional development, team contributions, and life choices 
-              moving forward.
-            </p>
+          {/* What This Ladder Represents */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900">What This Ladder Represents</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">A Natural Progression</h4>
+                <p className="text-gray-700 text-sm">
+                  Each step builds on the one before — not in leaps, but in deepening awareness.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">Reflective Mirror</h4>
+                <p className="text-gray-700 text-sm">
+                  This journey wasn't about adding something new. It was about surfacing 
+                  what's already strong within you.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-1">Team Flow Starts Here</h4>
+                <p className="text-gray-700 text-sm">
+                  Your self-awareness is your starting point. Now you're ready to contribute with 
+                  clarity and imagination.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSave}
-          disabled={saving}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+      {/* Next Button */}
+      <div className="flex justify-end mt-8">
+        <button
+          onClick={handleNext}
+          disabled={!isNextEnabled}
+          className={`px-8 py-3 rounded-lg font-medium transition-colors ${
+            isNextEnabled
+              ? 'bg-blue-600 text-white hover:bg-blue-700'
+              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+          }`}
         >
-          {saving ? 'Saving...' : 'Complete Workshop'} <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+          Continue to Star Card
+        </button>
       </div>
-    </>
+    </div>
   );
-};
-
-export default FinalReflectionView;
+}

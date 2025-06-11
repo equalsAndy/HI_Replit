@@ -128,6 +128,93 @@ router.get('/assessments/:type', async (req, res) => {
   }
 });
 
+// Final Reflection API routes
+router.get('/final-reflection', async (req, res) => {
+  try {
+    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const reflection = await db.select()
+      .from(schema.finalReflections)
+      .where(eq(schema.finalReflections.userId, userId))
+      .limit(1);
+
+    res.json({
+      success: true,
+      insight: reflection[0]?.insight || ''
+    });
+  } catch (error) {
+    console.error('Error fetching final reflection:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch final reflection'
+    });
+  }
+});
+
+router.post('/final-reflection', async (req, res) => {
+  try {
+    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+
+    const { insight } = req.body;
+
+    if (!insight || typeof insight !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Insight text is required'
+      });
+    }
+
+    // Check if reflection already exists
+    const existing = await db.select()
+      .from(schema.finalReflections)
+      .where(eq(schema.finalReflections.userId, userId))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing reflection
+      await db.update(schema.finalReflections)
+        .set({
+          insight,
+          updatedAt: new Date()
+        })
+        .where(eq(schema.finalReflections.userId, userId));
+    } else {
+      // Create new reflection
+      await db.insert(schema.finalReflections).values({
+        userId,
+        insight,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Final reflection saved successfully'
+    });
+  } catch (error) {
+    console.error('Error saving final reflection:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to save final reflection'
+    });
+  }
+});
+
 // Base API route to check if the API is running
 router.get('/', (req, res) => {
   res.json({

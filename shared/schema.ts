@@ -168,3 +168,19 @@ export const insertNavigationProgressSchema = createInsertSchema(navigationProgr
 // Type definitions for navigation progress
 export type NavigationProgress = typeof navigationProgress.$inferSelect;
 export type InsertNavigationProgress = z.infer<typeof insertNavigationProgressSchema>;
+
+// Final reflections table for storing user insights
+export const finalReflections = pgTable('final_reflections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  insight: text('insight').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schema for final reflections
+export const insertFinalReflectionSchema = createInsertSchema(finalReflections);
+
+// Type definitions for final reflections
+export type FinalReflection = typeof finalReflections.$inferSelect;
+export type InsertFinalReflection = z.infer<typeof insertFinalReflectionSchema>;
