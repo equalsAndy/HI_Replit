@@ -164,16 +164,21 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                 </div>
               </div>
 
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 className="text-md font-medium text-green-800 mb-2">Where do you want to be?</h3>
+              <div className={`${futureWellBeingLevel < wellBeingLevel ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-100'} p-4 rounded-lg border`}>
+                <h3 className={`text-md font-medium mb-2 ${futureWellBeingLevel < wellBeingLevel ? 'text-red-800' : 'text-green-800'}`}>Where do you want to be?</h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
                     Where would you realistically like to be in one year?
                   </p>
                   {futureWellBeingLevel < wellBeingLevel && (
-                    <p className="text-xs text-red-600 italic flex items-center">
-                      ⚠ Are you sure you want a lower future well-being level?
-                    </p>
+                    <div className="bg-red-100 border border-red-300 p-3 rounded-lg">
+                      <p className="text-sm text-red-700 font-medium flex items-center">
+                        ⚠ Are you sure you want a lower future well-being level?
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Consider setting a higher goal to work toward improvement.
+                      </p>
+                    </div>
                   )}
                   <div className="py-2">
                     <div className="flex justify-between mb-2 text-xs text-gray-600">
