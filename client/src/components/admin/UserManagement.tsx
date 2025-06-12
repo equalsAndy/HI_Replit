@@ -664,21 +664,26 @@ export function UserManagement() {
                               if (user.navigationProgress) {
                                 try {
                                   const progress = JSON.parse(user.navigationProgress);
-                                  const appType = progress.appType;
+                                  const completedSteps = progress.completedSteps || [];
+                                  const currentStepId = progress.currentStepId;
                                   
-                                  if (appType === 'ia') {
-                                    const completedSteps = progress.completedSteps || [];
-                                    const currentStepId = progress.currentStepId;
+                                  // Find IA-specific steps (those with "ia-" prefix)
+                                  const iaCompletedSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
+                                  const isCurrentStepIA = currentStepId && currentStepId.startsWith('ia-');
 
-                                    if (completedSteps.includes('6-1')) {
+                                  if (iaCompletedSteps.length > 0 || isCurrentStepIA) {
+                                    // Check for completion (ia-8-1 would be the final step)
+                                    if (iaCompletedSteps.includes('ia-8-1')) {
                                       iaStep = 'Complete';
                                       iaType = 'complete';
-                                    } else if (currentStepId) {
-                                      iaStep = currentStepId;
+                                    } else if (isCurrentStepIA) {
+                                      // Remove "ia-" prefix for display
+                                      iaStep = currentStepId.replace('ia-', '');
                                       iaType = 'active';
-                                    } else if (completedSteps.length > 0) {
-                                      const lastStep = completedSteps[completedSteps.length - 1];
-                                      iaStep = lastStep;
+                                    } else if (iaCompletedSteps.length > 0) {
+                                      // Show the last completed IA step
+                                      const lastIAStep = iaCompletedSteps[iaCompletedSteps.length - 1];
+                                      iaStep = lastIAStep.replace('ia-', '');
                                       iaType = 'completed';
                                     }
                                   }

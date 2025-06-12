@@ -4,8 +4,9 @@ import { z } from 'zod';
 import { UserRole, User } from '@shared/types';
 import { nanoid } from 'nanoid';
 import { db } from './db';
-import { users, userAssessments } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { users, userAssessments, navigationProgress } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
+import * as schema from '@shared/schema';
 
 // Create a router for admin routes
 const adminRouter = Router();
@@ -88,26 +89,65 @@ adminRouter.use(requireAdmin);
 // Get all users
 adminRouter.get('/users', async (req: Request, res: Response) => {
   try {
-    const users = await storage.getAllUsers();
+    const allUsers = await storage.getAllUsers();
     
-    // Add virtual role properties based on user IDs for development
-    const usersWithRoles = users.map(user => {
-      let role = UserRole.Participant; // Default role
+    // Fetch navigation progress for all users for both AST and IA workshops
+    const usersWithProgress = await Promise.all(allUsers.map(async (user) => {
+      // Get AST navigation progress (stored in user.navigationProgress)
+      let astProgress = null;
+      if (user.navigationProgress) {
+        try {
+          astProgress = JSON.parse(user.navigationProgress);
+        } catch (e) {
+          console.error(`Failed to parse AST navigation progress for user ${user.id}:`, e);
+        }
+      }
+
+      // Get IA navigation progress from separate table
+      let iaProgress = null;
+      try {
+        const iaProgressRecords = await db
+          .select()
+          .from(navigationProgress)
+          .where(and(
+            eq(navigationProgress.userId, user.id),
+            eq(navigationProgress.appType, 'ia')
+          ));
+          
+        if (iaProgressRecords.length > 0) {
+          const iaRecord = iaProgressRecords[0];
+          iaProgress = {
+            completedSteps: JSON.parse(iaRecord.completedSteps),
+            currentStepId: iaRecord.currentStepId,
+            appType: iaRecord.appType,
+            lastVisitedAt: iaRecord.lastVisitedAt,
+            unlockedSteps: iaRecord.unlockedSteps ? JSON.parse(iaRecord.unlockedSteps) : [],
+            videoProgress: iaRecord.videoProgress ? JSON.parse(iaRecord.videoProgress) : {}
+          };
+        }
+      } catch (e) {
+        console.error(`Failed to fetch IA navigation progress for user ${user.id}:`, e);
+      }
+
+      // Add virtual role properties based on user IDs for development
+      let role: UserRole = 'participant'; // Default role
       
       // For development/demo purposes:
       if (user.id === 1) {
-        role = UserRole.Admin;
+        role = 'admin';
       } else if (user.id === 2 || user.id === 3) {
-        role = UserRole.Facilitator;
+        role = 'facilitator';
       }
       
       return {
         ...user,
-        role: role
+        role: role,
+        astProgress,
+        iaProgress
       };
-    });
+    }));
     
-    res.status(200).json(usersWithRoles);
+    res.status(200).json({ users: usersWithProgress });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
