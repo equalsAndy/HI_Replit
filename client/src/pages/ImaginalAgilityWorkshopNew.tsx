@@ -131,8 +131,8 @@ export default function ImaginalAgilityWorkshopNew() {
       <div className="bg-yellow-500 text-white p-2 flex justify-between items-center">
         <div className="flex items-center">
           <img 
-            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
-            alt="Heliotrope Imaginal"
+            src="https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png" 
+            alt="Imaginal Agility"
             className="h-8 w-auto" 
           />
           <span className="ml-2 font-semibold">Heliotrope Imaginal</span>

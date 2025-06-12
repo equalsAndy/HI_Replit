@@ -183,8 +183,8 @@ export default function ImaginalAgilityWorkshop() {
       <div className="bg-yellow-400 h-16 flex items-center px-6">
         <div className="flex items-center space-x-4">
           <img 
-            src="/heliotrope-logo.png" 
-            alt="Heliotrope" 
+            src="/src/assets/imaginal_agility_logo_nobkgrd.png" 
+            alt="Imaginal Agility" 
             className="h-8 w-auto"
           />
           <h1 className="text-xl font-semibold text-gray-800">

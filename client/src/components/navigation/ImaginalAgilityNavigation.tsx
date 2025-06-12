@@ -20,7 +20,7 @@ export default function ImaginalAgilityNavigation({
     <div className="bg-gradient-to-b from-purple-600 to-purple-800 text-white p-6">
       <div className="flex items-center mb-6">
         <img 
-          src={imaginalAgilityLogo} 
+          src="https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png" 
           alt="Imaginal Agility" 
           className="h-10 w-auto mr-3"
         />
