@@ -47,6 +47,8 @@ interface User {
   hasStarCard?: boolean;
   hasFlowAttributes?: boolean;
   navigationProgress?: string;
+  astProgress?: any;
+  iaProgress?: any;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -613,29 +615,26 @@ export function UserManagement() {
                               let allstarStep = 'Not Started';
                               let allstarType = 'not-started';
 
-                              if (user.navigationProgress) {
-                                try {
-                                  const progress = JSON.parse(user.navigationProgress);
-                                  const appType = progress.appType;
-                                  
-                                  if (appType === 'ast') {
-                                    const completedSteps = progress.completedSteps || [];
-                                    const currentStepId = progress.currentStepId;
+                              // Check AST progress from dedicated field
+                              if (user.astProgress) {
+                                const progress = user.astProgress;
+                                const completedSteps = progress.completedSteps || [];
+                                const currentStepId = progress.currentStepId;
 
-                                    if (completedSteps.includes('4-5')) {
-                                      allstarStep = 'Complete';
-                                      allstarType = 'complete';
-                                    } else if (currentStepId) {
-                                      allstarStep = currentStepId;
-                                      allstarType = 'active';
-                                    } else if (completedSteps.length > 0) {
-                                      const lastStep = completedSteps[completedSteps.length - 1];
-                                      allstarStep = lastStep;
-                                      allstarType = 'completed';
-                                    }
+                                if (completedSteps.includes('4-5')) {
+                                  allstarStep = 'Complete';
+                                  allstarType = 'complete';
+                                } else if (currentStepId && !currentStepId.startsWith('ia-')) {
+                                  allstarStep = currentStepId;
+                                  allstarType = 'active';
+                                } else if (completedSteps.length > 0) {
+                                  // Find the last non-IA step
+                                  const astSteps = completedSteps.filter((step: string) => !step.startsWith('ia-'));
+                                  if (astSteps.length > 0) {
+                                    const lastStep = astSteps[astSteps.length - 1];
+                                    allstarStep = lastStep;
+                                    allstarType = 'completed';
                                   }
-                                } catch (e) {
-                                  // Parse error, keep default
                                 }
                               }
 
@@ -661,34 +660,25 @@ export function UserManagement() {
                               let iaStep = 'Not Started';
                               let iaType = 'not-started';
 
-                              if (user.navigationProgress) {
-                                try {
-                                  const progress = JSON.parse(user.navigationProgress);
-                                  const completedSteps = progress.completedSteps || [];
-                                  const currentStepId = progress.currentStepId;
-                                  
-                                  // Find IA-specific steps (those with "ia-" prefix)
-                                  const iaCompletedSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
-                                  const isCurrentStepIA = currentStepId && currentStepId.startsWith('ia-');
+                              // Check IA progress from dedicated field
+                              if (user.iaProgress) {
+                                const progress = user.iaProgress;
+                                const completedSteps = progress.completedSteps || [];
+                                const currentStepId = progress.currentStepId;
 
-                                  if (iaCompletedSteps.length > 0 || isCurrentStepIA) {
-                                    // Check for completion (ia-8-1 would be the final step)
-                                    if (iaCompletedSteps.includes('ia-8-1')) {
-                                      iaStep = 'Complete';
-                                      iaType = 'complete';
-                                    } else if (isCurrentStepIA) {
-                                      // Remove "ia-" prefix for display
-                                      iaStep = currentStepId.replace('ia-', '');
-                                      iaType = 'active';
-                                    } else if (iaCompletedSteps.length > 0) {
-                                      // Show the last completed IA step
-                                      const lastIAStep = iaCompletedSteps[iaCompletedSteps.length - 1];
-                                      iaStep = lastIAStep.replace('ia-', '');
-                                      iaType = 'completed';
-                                    }
-                                  }
-                                } catch (e) {
-                                  // Parse error, keep default
+                                // Check for completion (ia-8-1 would be the final step)
+                                if (completedSteps.includes('ia-8-1')) {
+                                  iaStep = 'Complete';
+                                  iaType = 'complete';
+                                } else if (currentStepId && currentStepId.startsWith('ia-')) {
+                                  // Remove "ia-" prefix for display
+                                  iaStep = currentStepId.replace('ia-', '');
+                                  iaType = 'active';
+                                } else if (completedSteps.length > 0) {
+                                  // Show the last completed IA step
+                                  const lastIAStep = completedSteps[completedSteps.length - 1];
+                                  iaStep = lastIAStep.replace('ia-', '');
+                                  iaType = 'completed';
                                 }
                               }
 
