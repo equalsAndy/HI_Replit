@@ -1,6 +1,7 @@
 import React from 'react';
 import { Check, Lock } from 'lucide-react';
 import { imaginalAgilityNavigationSections } from './navigationData';
+import imaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
 
 interface ImaginalAgilityNavigationProps {
   currentStepId: string;
@@ -17,7 +18,14 @@ export default function ImaginalAgilityNavigation({
 }: ImaginalAgilityNavigationProps) {
   return (
     <div className="bg-gradient-to-b from-purple-600 to-purple-800 text-white p-6">
-      <h2 className="text-xl font-bold mb-6">Imaginal Agility Workshop</h2>
+      <div className="flex items-center mb-6">
+        <img 
+          src={imaginalAgilityLogo} 
+          alt="Imaginal Agility" 
+          className="h-10 w-auto mr-3"
+        />
+        <h2 className="text-xl font-bold">Imaginal Agility Workshop</h2>
+      </div>
       
       {imaginalAgilityNavigationSections.map((section) => (
         <div key={section.id} className="mb-6">
