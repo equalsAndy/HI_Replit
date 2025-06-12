@@ -70,8 +70,6 @@ export class ExportService {
           eq(navigationProgress.appType, 'ia')
         ));
 
-      console.log(`Export Service: Found ${astProgressRecords.length} AST records and ${iaProgressRecords.length} IA records for user ${userId}`);
-
       // Build navigation progress object
       let navProgress: any = null;
       if (astProgressRecords.length > 0 || iaProgressRecords.length > 0) {
@@ -79,7 +77,6 @@ export class ExportService {
         
         if (astProgressRecords.length > 0) {
           const astRecord = astProgressRecords[0];
-          console.log('Export Service: Processing AST record:', astRecord.currentStepId, astRecord.completedSteps);
           navProgress.ast = {
             currentStepId: astRecord.currentStepId,
             completedSteps: JSON.parse(astRecord.completedSteps),
@@ -91,7 +88,6 @@ export class ExportService {
         
         if (iaProgressRecords.length > 0) {
           const iaRecord = iaProgressRecords[0];
-          console.log('Export Service: Processing IA record:', iaRecord.currentStepId, iaRecord.completedSteps);
           navProgress.ia = {
             currentStepId: iaRecord.currentStepId,
             completedSteps: JSON.parse(iaRecord.completedSteps),
@@ -101,8 +97,6 @@ export class ExportService {
           };
         }
       }
-
-      console.log('Export Service: Final navProgress object:', navProgress);
 
       // Structure the export data according to the specification
       const exportData: ExportData = {
