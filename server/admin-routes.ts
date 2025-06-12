@@ -147,7 +147,10 @@ adminRouter.get('/users', async (req: Request, res: Response) => {
       };
     }));
     
-    res.status(200).json({ users: usersWithProgress });
+    res.status(200).json({ 
+      message: 'Users retrieved successfully',
+      users: usersWithProgress 
+    });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
