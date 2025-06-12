@@ -2160,6 +2160,13 @@ workshopDataRouter.post('/navigation-progress', async (req: Request, res: Respon
     
     const { completedSteps, currentStepId, appType, unlockedSteps, videoProgress } = req.body;
     
+    // Detect correct app type based on step patterns to prevent data inconsistency
+    const hasIASteps = (completedSteps && completedSteps.some((step: string) => step.startsWith('ia-'))) ||
+                       (currentStepId && currentStepId.startsWith('ia-'));
+    const detectedAppType = hasIASteps ? 'ia' : 'ast';
+    
+    console.log(`Navigation Progress: Received appType: ${appType}, Detected from steps: ${detectedAppType}`);
+    
     // Check if progress record exists
     const existingProgress = await db
       .select()

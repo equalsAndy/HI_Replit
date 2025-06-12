@@ -290,10 +290,15 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
                 console.log(`🔄 AUTO-MARKED: Fixed completed steps for user at ${dbProgress.currentStepId}`);
               }
 
+              // Detect correct app type based on step patterns
+              const hasIASteps = completedSteps.some(step => step.startsWith('ia-')) || 
+                                dbProgress.currentStepId?.startsWith('ia-');
+              const detectedAppType = hasIASteps ? 'ia' : 'ast';
+
               const updatedProgress = {
                 ...dbProgress,
                 completedSteps,
-                appType: 'ast',
+                appType: detectedAppType,
                 lastVisitedAt: new Date().toISOString(),
                 unlockedSteps: calculateUnlockedSteps(completedSteps)
               };
