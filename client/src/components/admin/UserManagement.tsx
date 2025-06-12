@@ -45,6 +45,7 @@ interface User {
   hasAssessment?: boolean;
   hasStarCard?: boolean;
   hasFlowAttributes?: boolean;
+  navigationProgress?: string;
   createdAt: string;
   updatedAt: string;
   deletedAt?: string;
@@ -61,7 +62,7 @@ const createUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator' | 'participant']),
+  role: z.enum(['admin', 'facilitator', 'participant']),
   generatePassword: z.boolean().default(true),
 });
 
@@ -73,7 +74,7 @@ const editUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator' | 'participant']),
+  role: z.enum(['admin', 'facilitator', 'participant']),
   resetPassword: z.boolean().default(false),
   newPassword: z.string().optional(),
   setCustomPassword: z.boolean().default(false),
@@ -506,21 +507,11 @@ export function UserManagement() {
         {/* Tab for managing existing users */}
         <TabsContent value="existing" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <div>
-                <CardTitle>User Management</CardTitle>
-                <CardDescription>
-                  Manage user accounts and their roles.
-                </CardDescription>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-muted-foreground">Include deleted users</span>
-                <Switch 
-                  checked={includeDeleted} 
-                  onCheckedChange={setIncludeDeleted} 
-                  aria-label="Toggle deleted users"
-                />
-              </div>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+              <CardDescription>
+                Manage user accounts and their roles.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {isLoadingUsers ? (
@@ -541,10 +532,8 @@ export function UserManagement() {
                           <TableHead className="min-w-[180px]">User</TableHead>
                           <TableHead className="w-[100px]">Username</TableHead>
                           <TableHead className="w-[80px]">Role</TableHead>
-                          <TableHead className="w-[120px]">Current Step</TableHead>
-                          <TableHead className="w-[100px]">Created</TableHead>
-                          <TableHead className="w-[70px]">Status</TableHead>
-                          <TableHead className="min-w-[320px] sticky right-0 bg-white border-l">Actions</TableHead>
+                          <TableHead className="w-[120px]">Current Step (IA)</TableHead>
+                          <TableHead className="min-w-[200px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
@@ -564,7 +553,7 @@ export function UserManagement() {
                               </Avatar>
                               <div className="space-y-0.5 min-w-0">
                                 <p className="font-medium text-sm truncate">{user.name}</p>
-                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                <p className="text-xs text-muted-foreground truncate">{user.organization || 'No organization'}</p>
                               </div>
                             </div>
                           </TableCell>
