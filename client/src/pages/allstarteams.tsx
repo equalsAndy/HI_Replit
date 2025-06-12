@@ -31,7 +31,7 @@ export default function AllStarTeams() {
     canProceedToNext,
     shouldShowGreenCheckmark: isStepCompleted,
     getCurrentVideoProgress: getVideoProgress
-  } = useNavigationProgress();
+  } = useNavigationProgress('ast');
   
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];

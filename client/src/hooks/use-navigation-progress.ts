@@ -334,14 +334,20 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   const syncToDatabase = async (progressData: NavigationProgress) => {
     try {
       console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
-      const response = await fetch('/api/user/navigation-progress', {
+      
+      // Use the workshop-data navigation progress endpoint with correct parameters
+      const response = await fetch('/api/workshop-data/navigation-progress', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
         body: JSON.stringify({
-          navigationProgress: JSON.stringify(progressData)
+          completedSteps: progressData.completedSteps,
+          currentStepId: progressData.currentStepId,
+          appType: progressData.appType,
+          unlockedSteps: progressData.unlockedSteps,
+          videoProgress: progressData.videoProgress
         })
       });
 

@@ -91,19 +91,35 @@ adminRouter.get('/users', async (req: Request, res: Response) => {
   try {
     const allUsers = await storage.getAllUsers();
     
-    // Fetch navigation progress for all users for both AST and IA workshops
+    // Fetch navigation progress for all users for both AST and IA workshops from navigationProgress table only
     const usersWithProgress = await Promise.all(allUsers.map(async (user) => {
-      // Get AST navigation progress (stored in user.navigationProgress)
+      // Get AST navigation progress from navigationProgress table
       let astProgress = null;
-      if (user.navigationProgress) {
-        try {
-          astProgress = JSON.parse(user.navigationProgress);
-        } catch (e) {
-          console.error(`Failed to parse AST navigation progress for user ${user.id}:`, e);
+      try {
+        const astProgressRecords = await db
+          .select()
+          .from(navigationProgress)
+          .where(and(
+            eq(navigationProgress.userId, user.id),
+            eq(navigationProgress.appType, 'ast')
+          ));
+          
+        if (astProgressRecords.length > 0) {
+          const astRecord = astProgressRecords[0];
+          astProgress = {
+            completedSteps: JSON.parse(astRecord.completedSteps),
+            currentStepId: astRecord.currentStepId,
+            appType: astRecord.appType,
+            lastVisitedAt: astRecord.lastVisitedAt,
+            unlockedSteps: astRecord.unlockedSteps ? JSON.parse(astRecord.unlockedSteps) : [],
+            videoProgress: astRecord.videoProgress ? JSON.parse(astRecord.videoProgress) : {}
+          };
         }
+      } catch (e) {
+        console.error(`Failed to fetch AST navigation progress for user ${user.id}:`, e);
       }
 
-      // Get IA navigation progress from separate table
+      // Get IA navigation progress from navigationProgress table
       let iaProgress = null;
       try {
         const iaProgressRecords = await db
