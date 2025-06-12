@@ -167,7 +167,7 @@ adminRouter.get('/facilitators', async (req: Request, res: Response) => {
     // Add a virtual "role" property to the response
     const facilitatorsWithRoles = facilitators.map(user => ({
       ...user,
-      role: UserRole.Facilitator  // Add a virtual role property for the frontend
+      role: 'facilitator'  // Add a virtual role property for the frontend
     }));
     
     res.status(200).json(facilitatorsWithRoles);
@@ -224,9 +224,9 @@ adminRouter.post('/users', async (req: Request, res: Response) => {
     res.status(201).json({
       ...newUser,
       // Add virtual role property in response for frontend
-      role: parsedData.userType === 'admin' ? UserRole.Admin : 
-            parsedData.userType === 'facilitator' ? UserRole.Facilitator : 
-            UserRole.Participant,
+      role: parsedData.userType === 'admin' ? 'admin' : 
+            parsedData.userType === 'facilitator' ? 'facilitator' : 
+            'participant',
       temporaryPassword: generatePassword ? password : undefined,
     });
   } catch (error) {
@@ -283,11 +283,11 @@ adminRouter.put('/users/:id', async (req: Request, res: Response) => {
     const updatedUser = await storage.updateUser(userId, updateData);
     
     // For the response, add the virtual role based on user ID
-    let role = UserRole.Participant;
+    let role = 'participant';
     if (userId === 1) {
-      role = UserRole.Admin;
+      role = 'admin';
     } else if (userId === 2 || userId === 3) {
-      role = UserRole.Facilitator;
+      role = 'facilitator';
     }
     
     res.status(200).json({
