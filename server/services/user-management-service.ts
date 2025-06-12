@@ -320,18 +320,78 @@ class UserManagementService {
    */
   async getAllUsers(includeDeleted: boolean = false) {
     try {
-      // Get all users without complex calculations to avoid SQL errors
+      // Get all users
       const result = await db.select().from(users);
       
-      // Return users without password field but include navigationProgress
+      // Import schema modules
+      const { userAssessments, navigationProgress } = await import('../../shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      // Get assessment data for all users in parallel
+      const userIds = result.map(user => user.id);
+      
+      // Fetch star card assessments
+      const starCardAssessments = await db
+        .select()
+        .from(userAssessments)
+        .where(
+          and(
+            eq(userAssessments.assessmentType, 'starCard')
+          )
+        );
+      
+      // Fetch flow attributes assessments
+      const flowAssessments = await db
+        .select()
+        .from(userAssessments)
+        .where(
+          and(
+            eq(userAssessments.assessmentType, 'flowAttributes')
+          )
+        );
+      
+      // Fetch all user assessments
+      const allAssessments = await db
+        .select()
+        .from(userAssessments);
+      
+      // Fetch navigation progress
+      const navProgress = await db
+        .select()
+        .from(navigationProgress);
+      
+      // Build user data with real assessment status
       const usersWithoutPasswords = result.map(user => {
         const { password, ...userWithoutPassword } = user;
+        
+        // Check for real assessment data
+        const hasStarCard = starCardAssessments.some(assessment => assessment.userId === user.id);
+        const hasFlowAttributes = flowAssessments.some(assessment => assessment.userId === user.id);
+        const hasAssessment = allAssessments.some(assessment => assessment.userId === user.id);
+        
+        // Get navigation progress data
+        const userNavProgress = navProgress.filter(nav => nav.userId === user.id);
+        const astProgress = userNavProgress.find(nav => nav.appType === 'ast');
+        const iaProgress = userNavProgress.find(nav => nav.appType === 'ia');
+        
         return {
           ...userWithoutPassword,
           progress: 0,
-          hasAssessment: false,
-          hasStarCard: false,
-          hasFlowAttributes: false,
+          hasAssessment,
+          hasStarCard,
+          hasFlowAttributes,
+          astProgress: astProgress ? {
+            completedSteps: astProgress.completedSteps || [],
+            currentStepId: astProgress.currentStepId,
+            unlockedSteps: astProgress.unlockedSteps || [],
+            videoProgress: astProgress.videoProgress || {}
+          } : null,
+          iaProgress: iaProgress ? {
+            completedSteps: iaProgress.completedSteps || [],
+            currentStepId: iaProgress.currentStepId,
+            unlockedSteps: iaProgress.unlockedSteps || [],
+            videoProgress: iaProgress.videoProgress || {}
+          } : null,
           navigationProgress: user.navigationProgress // Include navigation progress for admin
         };
       });
