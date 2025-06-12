@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatDistanceToNow } from 'date-fns';
 
 // Types
@@ -152,6 +153,8 @@ export function UserManagement() {
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [confirmDeleteDataOpen, setConfirmDeleteDataOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [dataViewOpen, setDataViewOpen] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
   // Query for fetching users
   const { data: users = [], isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users'],
@@ -532,23 +535,25 @@ export function UserManagement() {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[60px]">ID</TableHead>
-                          <TableHead className="min-w-[180px]">User</TableHead>
-                          <TableHead className="w-[100px]">Username</TableHead>
-                          <TableHead className="w-[80px]">Role</TableHead>
-                          <TableHead className="w-[120px]">Current Step (IA)</TableHead>
-                          <TableHead className="min-w-[200px] sticky right-0 bg-white border-l">Actions</TableHead>
+                          <TableHead className="w-[50px]">ID</TableHead>
+                          <TableHead className="min-w-[160px]">User</TableHead>
+                          <TableHead className="w-[90px]">Username</TableHead>
+                          <TableHead className="w-[70px]">Role</TableHead>
+                          <TableHead className="w-[50px]">Test</TableHead>
+                          <TableHead className="w-[120px]">AllStar Step</TableHead>
+                          <TableHead className="w-[120px]">IA Step</TableHead>
+                          <TableHead className="min-w-[160px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
                       {users.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
-                          <TableCell className="w-[60px]">
+                          <TableCell className="w-[50px]">
                             <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>
                           </TableCell>
-                          <TableCell className="min-w-[180px]">
-                            <div className="flex items-center space-x-3">
-                              <Avatar className="h-8 w-8 flex-shrink-0">
+                          <TableCell className="min-w-[160px]">
+                            <div className="flex items-center space-x-2">
+                              <Avatar className="h-7 w-7 flex-shrink-0">
                                 {user.profilePicture ? (
                                   <AvatarImage src={user.profilePicture} alt={user.name} />
                                 ) : (
@@ -561,142 +566,125 @@ export function UserManagement() {
                               </div>
                             </div>
                           </TableCell>
-                          <TableCell className="w-[100px]">
+                          <TableCell className="w-[90px]">
                             <span className="text-sm truncate block">{user.username}</span>
                           </TableCell>
-                          <TableCell className="w-[80px]">
-                            <Badge className={`${getRoleBadgeColor(user.role)} text-xs px-1.5 py-0.5`}>
+                          <TableCell className="w-[70px]">
+                            <Badge className={`${getRoleBadgeColor(user.role)} text-xs px-1 py-0.5`}>
                               {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
                             </Badge>
                           </TableCell>
+                          <TableCell className="w-[50px]">
+                            {user.isTestUser ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-3 h-3 bg-orange-500 rounded-full mx-auto"></div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Test User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <div className="w-3 h-3 bg-gray-200 rounded-full mx-auto"></div>
+                            )}
+                          </TableCell>
                           <TableCell className="w-[120px]">
-                            <div className="space-y-1">
-                              {(() => {
-                                let currentStep = 'Not Started';
-                                let stepType = 'not-started';
+                            {(() => {
+                              // AllStar Teams progress
+                              let allstarStep = 'Not Started';
+                              let allstarType = 'not-started';
 
-                                // First check if user has any assessment data regardless of navigation progress
-                                const hasAnyData = user.hasAssessment || user.hasStarCard || user.hasFlowAttributes;
-
-                                // Determine progress based on actual assessment data first
-                                const determineStepFromData = () => {
-                                  // If user has all three types of data, they've likely completed most of the workshop
-                                  if (user.hasAssessment && user.hasStarCard && user.hasFlowAttributes) {
-                                    return { step: 'Near Complete (3-4)', type: 'active' };
-                                  }
-                                  // If user has star card and flow attributes but no assessment, they're in flow section
-                                  else if (user.hasStarCard && user.hasFlowAttributes) {
-                                    return { step: 'Flow Section (3-2)', type: 'active' };
-                                  }
-                                  // If user only has star card, they're past the star card creation
-                                  else if (user.hasStarCard) {
-                                    return { step: 'Star Review (2-3)', type: 'active' };
-                                  }
-                                  // If user has any assessment data, they've started
-                                  else if (hasAnyData) {
-                                    return { step: 'In Progress', type: 'active' };
-                                  }
-                                  return null;
-                                };
-
-                                if (user.navigationProgress) {
-                                  try {
-                                    const progress = JSON.parse(user.navigationProgress);
+                              if (user.navigationProgress) {
+                                try {
+                                  const progress = JSON.parse(user.navigationProgress);
+                                  const appType = progress.appType;
+                                  
+                                  if (appType === 'ast') {
                                     const completedSteps = progress.completedSteps || [];
                                     const currentStepId = progress.currentStepId;
 
-                                    // Check if user completed final reflection (3-4 for AllStarTeams)
-                                    if (completedSteps.includes('3-4')) {
-                                      currentStep = 'Complete';
-                                      stepType = 'complete';
+                                    if (completedSteps.includes('4-5')) {
+                                      allstarStep = 'Complete';
+                                      allstarType = 'complete';
                                     } else if (currentStepId) {
-                                      currentStep = currentStepId;
-                                      stepType = 'active';
+                                      allstarStep = currentStepId;
+                                      allstarType = 'active';
                                     } else if (completedSteps.length > 0) {
-                                      // Get the last completed step
                                       const lastStep = completedSteps[completedSteps.length - 1];
-                                      currentStep = `${lastStep} ✓`;
-                                      stepType = 'completed';
-                                    } else {
-                                      // No progress in navigation but check actual data
-                                      const dataBasedStep = determineStepFromData();
-                                      if (dataBasedStep) {
-                                        currentStep = dataBasedStep.step;
-                                        stepType = dataBasedStep.type;
-                                      }
-                                    }
-                                  } catch (e) {
-                                    // If parsing fails, use data-based assessment
-                                    const dataBasedStep = determineStepFromData();
-                                    if (dataBasedStep) {
-                                      currentStep = dataBasedStep.step;
-                                      stepType = dataBasedStep.type;
+                                      allstarStep = lastStep;
+                                      allstarType = 'completed';
                                     }
                                   }
-                                } else {
-                                  // No navigation progress, use data-based assessment
-                                  const dataBasedStep = determineStepFromData();
-                                  if (dataBasedStep) {
-                                    currentStep = dataBasedStep.step;
-                                    stepType = dataBasedStep.type;
-                                  }
+                                } catch (e) {
+                                  // Parse error, keep default
                                 }
+                              }
 
-                                const getStepColor = () => {
-                                  switch (stepType) {
-                                    case 'complete': return 'text-green-700 bg-green-50 border-green-200';
-                                    case 'active': return 'text-blue-700 bg-blue-50 border-blue-200';
-                                    case 'completed': return 'text-purple-700 bg-purple-50 border-purple-200';
-                                    default: return 'text-gray-500 bg-gray-50 border-gray-200';
+                              const getStepColor = (type: string) => {
+                                switch (type) {
+                                  case 'complete': return 'text-green-700 bg-green-50 border-green-200';
+                                  case 'active': return 'text-blue-700 bg-blue-50 border-blue-200';
+                                  case 'completed': return 'text-purple-700 bg-purple-50 border-purple-200';
+                                  default: return 'text-gray-500 bg-gray-50 border-gray-200';
+                                }
+                              };
+
+                              return (
+                                <div className={`px-1.5 py-0.5 rounded border text-xs font-medium text-center ${getStepColor(allstarType)}`}>
+                                  {allstarStep}
+                                </div>
+                              );
+                            })()}
+                          </TableCell>
+                          <TableCell className="w-[120px]">
+                            {(() => {
+                              // Imaginal Agility progress
+                              let iaStep = 'Not Started';
+                              let iaType = 'not-started';
+
+                              if (user.navigationProgress) {
+                                try {
+                                  const progress = JSON.parse(user.navigationProgress);
+                                  const appType = progress.appType;
+                                  
+                                  if (appType === 'ia') {
+                                    const completedSteps = progress.completedSteps || [];
+                                    const currentStepId = progress.currentStepId;
+
+                                    if (completedSteps.includes('6-1')) {
+                                      iaStep = 'Complete';
+                                      iaType = 'complete';
+                                    } else if (currentStepId) {
+                                      iaStep = currentStepId;
+                                      iaType = 'active';
+                                    } else if (completedSteps.length > 0) {
+                                      const lastStep = completedSteps[completedSteps.length - 1];
+                                      iaStep = lastStep;
+                                      iaType = 'completed';
+                                    }
                                   }
-                                };
+                                } catch (e) {
+                                  // Parse error, keep default
+                                }
+                              }
 
-                                return (
-                                  <div className={`px-2 py-1 rounded border text-xs font-medium text-center ${getStepColor()}`}>
-                                    {currentStep}
-                                  </div>
-                                );
-                              })()}
+                              const getStepColor = (type: string) => {
+                                switch (type) {
+                                  case 'complete': return 'text-green-700 bg-green-50 border-green-200';
+                                  case 'active': return 'text-blue-700 bg-blue-50 border-blue-200';
+                                  case 'completed': return 'text-purple-700 bg-purple-50 border-purple-200';
+                                  default: return 'text-gray-500 bg-gray-50 border-gray-200';
+                                }
+                              };
 
-                              <div className="flex items-center justify-center gap-1 mt-1">
-                                {user.hasAssessment && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Has Assessment Data</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                                {user.hasStarCard && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Has Star Card Data</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                                {user.hasFlowAttributes && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger>
-                                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Has Flow Attributes Data</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </div>
-                            </div>
+                              return (
+                                <div className={`px-1.5 py-0.5 rounded border text-xs font-medium text-center ${getStepColor(iaType)}`}>
+                                  {iaStep}
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           <TableCell className="min-w-[200px] sticky right-0 bg-white border-l">
                             <TooltipProvider>
