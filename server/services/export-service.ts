@@ -1,6 +1,6 @@
 import { db } from '../db';
-import { users, userAssessments, workshopParticipation } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { users, userAssessments, workshopParticipation, navigationProgress } from '@shared/schema';
+import { eq, and } from 'drizzle-orm';
 
 export interface ExportData {
   userInfo: {
@@ -55,6 +55,55 @@ export class ExportService {
         .from(workshopParticipation)
         .where(eq(workshopParticipation.userId, userId));
 
+      // Get navigation progress from dedicated navigationProgress table
+      const astProgressRecords = await db.select()
+        .from(navigationProgress)
+        .where(and(
+          eq(navigationProgress.userId, userId),
+          eq(navigationProgress.appType, 'ast')
+        ));
+
+      const iaProgressRecords = await db.select()
+        .from(navigationProgress)
+        .where(and(
+          eq(navigationProgress.userId, userId),
+          eq(navigationProgress.appType, 'ia')
+        ));
+
+      console.log(`Export Service: Found ${astProgressRecords.length} AST records and ${iaProgressRecords.length} IA records for user ${userId}`);
+
+      // Build navigation progress object
+      let navProgress: any = null;
+      if (astProgressRecords.length > 0 || iaProgressRecords.length > 0) {
+        navProgress = {};
+        
+        if (astProgressRecords.length > 0) {
+          const astRecord = astProgressRecords[0];
+          console.log('Export Service: Processing AST record:', astRecord.currentStepId, astRecord.completedSteps);
+          navProgress.ast = {
+            currentStepId: astRecord.currentStepId,
+            completedSteps: JSON.parse(astRecord.completedSteps),
+            unlockedSteps: astRecord.unlockedSteps ? JSON.parse(astRecord.unlockedSteps) : [],
+            videoProgress: astRecord.videoProgress ? JSON.parse(astRecord.videoProgress) : {},
+            lastVisitedAt: astRecord.lastVisitedAt?.toISOString()
+          };
+        }
+        
+        if (iaProgressRecords.length > 0) {
+          const iaRecord = iaProgressRecords[0];
+          console.log('Export Service: Processing IA record:', iaRecord.currentStepId, iaRecord.completedSteps);
+          navProgress.ia = {
+            currentStepId: iaRecord.currentStepId,
+            completedSteps: JSON.parse(iaRecord.completedSteps),
+            unlockedSteps: iaRecord.unlockedSteps ? JSON.parse(iaRecord.unlockedSteps) : [],
+            videoProgress: iaRecord.videoProgress ? JSON.parse(iaRecord.videoProgress) : {},
+            lastVisitedAt: iaRecord.lastVisitedAt?.toISOString()
+          };
+        }
+      }
+
+      console.log('Export Service: Final navProgress object:', navProgress);
+
       // Structure the export data according to the specification
       const exportData: ExportData = {
         userInfo: {
@@ -70,8 +119,7 @@ export class ExportService {
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString()
         },
-        navigationProgress: user.navigationProgress ? 
-          JSON.parse(user.navigationProgress) : null,
+        navigationProgress: navProgress,
         assessments: {},
         workshopParticipation: participation.map(p => ({
           workshopId: p.workshopId,
@@ -206,8 +254,7 @@ export class ExportService {
     try {
       // Get user info
       const userResult = await db.select({ 
-        username: users.username,
-        navigationProgress: users.navigationProgress 
+        username: users.username
       }).from(users).where(eq(users.id, userId));
       
       if (!userResult.length) {
@@ -219,12 +266,18 @@ export class ExportService {
         .from(userAssessments)
         .where(eq(userAssessments.userId, userId));
 
+      // Check for navigation progress in dedicated table
+      const navProgressRecords = await db.select()
+        .from(navigationProgress)
+        .where(eq(navigationProgress.userId, userId));
+
       return {
         userId,
         username: userResult[0].username,
         assessmentCount: assessments.length,
         assessmentTypes: assessments.map(a => a.assessmentType),
-        hasNavigationProgress: !!userResult[0].navigationProgress,
+        hasNavigationProgress: navProgressRecords.length > 0,
+        navigationProgressTypes: navProgressRecords.map(r => r.appType),
         dataIntegrity: 'valid',
         lastUpdate: assessments.length > 0 ? 
           Math.max(...assessments.map(a => new Date(a.createdAt).getTime())) : null
