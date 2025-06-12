@@ -265,70 +265,61 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   // Get user assessments for completion detection
   const { data: userAssessments = {} } = useUserAssessments();
 
-  // Load progress from database on mount with error recovery
+  // Load progress from navigationProgress table only
   useEffect(() => {
     const loadProgress = async () => {
       try {
-        console.log('🔄 SIMPLIFIED MODE: Loading progress from database...');
-        const response = await fetch('/api/user/profile', {
+        console.log(`🔄 SIMPLIFIED MODE: Loading ${appType} progress from navigationProgress table...`);
+        const response = await fetch(`/api/workshop-data/navigation-progress/${appType}`, {
           credentials: 'include'
         });
 
         if (response.ok) {
           const result = await response.json();
-          if (result.success && result.user?.navigationProgress) {
-            try {
-              const dbProgress = JSON.parse(result.user.navigationProgress);
+          if (result.success && result.data) {
+            const dbProgress = result.data;
 
-              // Auto-mark steps as completed up to current position
-              let completedSteps = dbProgress.completedSteps || [];
-              if (dbProgress.currentStepId && dbProgress.currentStepId !== '1-1') {
-                const autoMarkedSteps = autoMarkStepsCompleted(dbProgress.currentStepId, userAssessments);
-                // Merge with existing completed steps (user might have completed additional resource steps)
-                const mergedSteps = [...new Set([...completedSteps, ...autoMarkedSteps])];
-                completedSteps = mergedSteps;
-                console.log(`🔄 AUTO-MARKED: Fixed completed steps for user at ${dbProgress.currentStepId}`);
-              }
-
-              // Detect correct app type based on step patterns
-              const hasIASteps = completedSteps.some(step => step.startsWith('ia-')) || 
-                                dbProgress.currentStepId?.startsWith('ia-');
-              const detectedAppType = hasIASteps ? 'ia' : 'ast';
-
-              const updatedProgress = {
-                ...dbProgress,
-                completedSteps,
-                appType: detectedAppType,
-                lastVisitedAt: new Date().toISOString(),
-                unlockedSteps: calculateUnlockedSteps(completedSteps)
-              };
-
-              setProgress(prev => ({ ...prev, ...updatedProgress }));
-
-              // Auto-save corrected progress back to database if we made changes
-              if (completedSteps.length !== (dbProgress.completedSteps || []).length) {
-                console.log('💾 AUTO-SAVING: Corrected completed steps to database');
-                setTimeout(() => syncToDatabase(updatedProgress), 1000);
-              }
-
-              console.log('✅ SIMPLIFIED MODE: Progress loaded and corrected');
-            } catch (parseError) {
-              console.error('JSON parse error in navigation progress:', parseError);
-              const fallbackProgress = handleJSONParseError(parseError as Error, result.user.navigationProgress);
-              setProgress(prev => ({ ...prev, ...fallbackProgress }));
+            // Auto-mark steps as completed up to current position
+            let completedSteps = dbProgress.completedSteps || [];
+            if (dbProgress.currentStepId && (appType === 'ast' ? dbProgress.currentStepId !== '1-1' : dbProgress.currentStepId !== 'ia-1-1')) {
+              const autoMarkedSteps = autoMarkStepsCompleted(dbProgress.currentStepId, userAssessments);
+              // Merge with existing completed steps (user might have completed additional resource steps)
+              const mergedSteps = [...new Set([...completedSteps, ...autoMarkedSteps])];
+              completedSteps = mergedSteps;
+              console.log(`🔄 AUTO-MARKED: Fixed completed steps for user at ${dbProgress.currentStepId}`);
             }
+
+            const updatedProgress = {
+              ...dbProgress,
+              completedSteps,
+              appType: appType, // Ensure correct app type
+              lastVisitedAt: new Date().toISOString(),
+              unlockedSteps: calculateUnlockedSteps(completedSteps)
+            };
+
+            setProgress(prev => ({ ...prev, ...updatedProgress }));
+
+            // Auto-save corrected progress back to database if we made changes
+            if (completedSteps.length !== (dbProgress.completedSteps || []).length) {
+              console.log('💾 AUTO-SAVING: Corrected completed steps to database');
+              setTimeout(() => syncToDatabase(updatedProgress), 1000);
+            }
+
+            console.log(`✅ SIMPLIFIED MODE: ${appType.toUpperCase()} progress loaded from navigationProgress table`);
+          } else {
+            console.log(`ℹ️ SIMPLIFIED MODE: No ${appType} progress found in database, using defaults`);
           }
         } else {
-          handleNetworkError(new Error(`HTTP ${response.status}`), 'loading user progress');
+          console.error(`❌ SIMPLIFIED MODE: Failed to load ${appType} progress from navigationProgress table`);
         }
       } catch (error) {
-        console.error('❌ Error loading navigation progress:', error);
-        handleNetworkError(error as Error, 'loading user progress');
+        console.error(`❌ SIMPLIFIED MODE: Error loading ${appType} progress:`, error);
+        handleNetworkError(error as Error, 'loading progress');
       }
     };
 
     loadProgress();
-  }, []);
+  }, [appType]);
 
   // Simplified database sync with debouncing
   const syncToDatabase = async (progressData: NavigationProgress) => {
