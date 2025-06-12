@@ -559,7 +559,7 @@ export function UserManagement() {
                           <TableHead className="w-[90px]">Username</TableHead>
                           <TableHead className="w-[70px]">Role</TableHead>
                           <TableHead className="w-[50px]">Test</TableHead>
-                          <TableHead className="w-[120px]">AllStar Step</TableHead>
+                          <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
                           <TableHead className="min-w-[160px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
@@ -644,6 +644,12 @@ export function UserManagement() {
                                   // Filter out IA steps for AST progress
                                   const astSteps = completedSteps.filter((step: string) => !step.startsWith('ia-'));
                                   
+                                  console.log(`Debug AST Progress for user ${user.id}:`, {
+                                    allCompletedSteps: completedSteps,
+                                    astSteps: astSteps,
+                                    currentStepId: currentStepId
+                                  });
+                                  
                                   if (astSteps.includes('4-5')) {
                                     allstarStep = 'Complete';
                                     allstarType = 'complete';
@@ -656,7 +662,7 @@ export function UserManagement() {
                                     allstarType = 'completed';
                                   }
                                 } catch (e) {
-                                  // Parse error, keep default
+                                  console.error('Parse error for AST progress:', e);
                                 }
                               }
 
@@ -708,6 +714,12 @@ export function UserManagement() {
                                   // Filter IA steps (those with "ia-" prefix)
                                   const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
                                   
+                                  console.log(`Debug IA Progress for user ${user.id}:`, {
+                                    allCompletedSteps: completedSteps,
+                                    iaSteps: iaSteps,
+                                    currentStepId: currentStepId
+                                  });
+                                  
                                   if (iaSteps.includes('ia-8-1')) {
                                     iaStep = 'Complete';
                                     iaType = 'complete';
@@ -720,7 +732,7 @@ export function UserManagement() {
                                     iaType = 'completed';
                                   }
                                 } catch (e) {
-                                  // Parse error, keep default
+                                  console.error('Parse error for IA progress:', e);
                                 }
                               }
 
