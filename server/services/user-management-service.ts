@@ -374,6 +374,18 @@ class UserManagementService {
         const astProgress = userNavProgress.find(nav => nav.appType === 'ast');
         const iaProgress = userNavProgress.find(nav => nav.appType === 'ia');
         
+        // Debug logging for AST progress
+        if (user.id === 1) {
+          console.log(`Debug Admin User (${user.id}) AST Progress:`, {
+            userNavProgress: userNavProgress.length,
+            astProgress: astProgress ? {
+              completedSteps: astProgress.completedSteps,
+              currentStepId: astProgress.currentStepId,
+              unlockedSteps: astProgress.unlockedSteps
+            } : null
+          });
+        }
+        
         return {
           ...userWithoutPassword,
           progress: 0,
@@ -381,16 +393,28 @@ class UserManagementService {
           hasStarCard,
           hasFlowAttributes,
           astProgress: astProgress ? {
-            completedSteps: astProgress.completedSteps || [],
+            completedSteps: Array.isArray(astProgress.completedSteps) 
+              ? astProgress.completedSteps 
+              : JSON.parse(astProgress.completedSteps || '[]'),
             currentStepId: astProgress.currentStepId,
-            unlockedSteps: astProgress.unlockedSteps || [],
-            videoProgress: astProgress.videoProgress || {}
+            unlockedSteps: Array.isArray(astProgress.unlockedSteps) 
+              ? astProgress.unlockedSteps 
+              : JSON.parse(astProgress.unlockedSteps || '[]'),
+            videoProgress: typeof astProgress.videoProgress === 'object' 
+              ? astProgress.videoProgress 
+              : JSON.parse(astProgress.videoProgress || '{}')
           } : null,
           iaProgress: iaProgress ? {
-            completedSteps: iaProgress.completedSteps || [],
+            completedSteps: Array.isArray(iaProgress.completedSteps) 
+              ? iaProgress.completedSteps 
+              : JSON.parse(iaProgress.completedSteps || '[]'),
             currentStepId: iaProgress.currentStepId,
-            unlockedSteps: iaProgress.unlockedSteps || [],
-            videoProgress: iaProgress.videoProgress || {}
+            unlockedSteps: Array.isArray(iaProgress.unlockedSteps) 
+              ? iaProgress.unlockedSteps 
+              : JSON.parse(iaProgress.unlockedSteps || '[]'),
+            videoProgress: typeof iaProgress.videoProgress === 'object' 
+              ? iaProgress.videoProgress 
+              : JSON.parse(iaProgress.videoProgress || '{}')
           } : null,
           navigationProgress: user.navigationProgress // Include navigation progress for admin
         };
