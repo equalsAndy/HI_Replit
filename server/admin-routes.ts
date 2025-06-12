@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { storage } from './storage';
 import { z } from 'zod';
-import { UserRole, User } from '@shared/types';
+import { User } from '@shared/types';
 import { nanoid } from 'nanoid';
 import { db } from './db';
 import { users, userAssessments, navigationProgress } from '@shared/schema';
@@ -130,7 +130,7 @@ adminRouter.get('/users', async (req: Request, res: Response) => {
       }
 
       // Add virtual role properties based on user IDs for development
-      let role: UserRole = 'participant'; // Default role
+      let role = 'participant'; // Default role
       
       // For development/demo purposes:
       if (user.id === 1) {
