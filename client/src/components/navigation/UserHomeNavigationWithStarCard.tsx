@@ -261,11 +261,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           drawerOpen ? "w-80" : "hidden" // Hide completely when closed on desktop
         )
       )}>
-        {/* AllStarTeams Logo */}
+        {/* Application Logo */}
         <div className="p-4 border-b border-gray-200">
           <img 
-            src="/assets/all-star-teams-logo-250px-DjVl3R6N.png"
-            alt="AllStarTeams" 
+            src={isImaginalAgility ? "https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png" : "/assets/all-star-teams-logo-250px-DjVl3R6N.png"}
+            alt={isImaginalAgility ? "Imaginal Agility" : "AllStarTeams"} 
             className="h-12 w-auto mx-auto"
           />
         </div>
