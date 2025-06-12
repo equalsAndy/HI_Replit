@@ -2167,20 +2167,20 @@ workshopDataRouter.post('/navigation-progress', async (req: Request, res: Respon
     
     console.log(`Navigation Progress: Received appType: ${appType}, Detected from steps: ${detectedAppType}`);
     
-    // Check if progress record exists
+    // Check if progress record exists using detected app type
     const existingProgress = await db
       .select()
       .from(schema.navigationProgress)
       .where(
         and(
           eq(schema.navigationProgress.userId, userId),
-          eq(schema.navigationProgress.appType, appType)
+          eq(schema.navigationProgress.appType, detectedAppType)
         )
       );
     
     const progressData = {
       userId,
-      appType,
+      appType: detectedAppType, // Use detected app type instead of received one
       completedSteps: JSON.stringify(completedSteps),
       currentStepId,
       unlockedSteps: JSON.stringify(unlockedSteps),
