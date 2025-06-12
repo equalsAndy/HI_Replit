@@ -615,19 +615,17 @@ export function UserManagement() {
                               let allstarStep = 'Not Started';
                               let allstarType = 'not-started';
 
-                              // Debug logging for AST progress
-                              console.log(`Admin Table - User ${user.id} AST Progress Check:`, {
-                                hasAstProgress: !!user.astProgress,
-                                astProgress: user.astProgress,
-                                hasNavigationProgress: !!user.navigationProgress,
-                                navigationProgress: user.navigationProgress
-                              });
-
                               // Check AST progress - fallback to parsing navigationProgress if astProgress not available
                               if (user.astProgress) {
                                 const progress = user.astProgress;
                                 const completedSteps = progress.completedSteps || [];
                                 const currentStepId = progress.currentStepId;
+
+                                console.log(`AST Progress for user ${user.id}:`, {
+                                  completedSteps,
+                                  currentStepId,
+                                  completedStepsLength: completedSteps.length
+                                });
 
                                 if (completedSteps.includes('4-5')) {
                                   allstarStep = 'Complete';
