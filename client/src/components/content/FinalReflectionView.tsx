@@ -108,6 +108,7 @@ export default function FinalReflectionView({
               src={ladderImage} 
               alt="Journey Ladder showing the progression from Star Self-Assessment through Core Strengths, Flow State, Rounding Out, Visualizing Potential, Ladder of Well-Being, to Future Self"
               className="max-w-full h-auto rounded-lg shadow-md"
+              style={{ width: '65%' }}
             />
           </div>
 
