@@ -621,25 +621,22 @@ export function UserManagement() {
                                 const completedSteps = progress.completedSteps || [];
                                 const currentStepId = progress.currentStepId;
 
-                                console.log(`AST Progress for user ${user.id}:`, {
-                                  completedSteps,
-                                  currentStepId,
-                                  completedStepsLength: completedSteps.length
-                                });
-
+                                // Check if workshop is complete (4-5 is the final AST step)
                                 if (completedSteps.includes('4-5')) {
                                   allstarStep = 'Complete';
                                   allstarType = 'complete';
-                                } else if (currentStepId && !currentStepId.startsWith('ia-')) {
-                                  allstarStep = currentStepId;
-                                  allstarType = 'active';
                                 } else if (completedSteps.length > 0) {
+                                  // Show the most recent completed step
                                   const astSteps = completedSteps.filter((step: string) => !step.startsWith('ia-'));
                                   if (astSteps.length > 0) {
                                     const lastStep = astSteps[astSteps.length - 1];
-                                    allstarStep = lastStep;
+                                    allstarStep = `${lastStep} ✓`;
                                     allstarType = 'completed';
                                   }
+                                } else if (currentStepId && !currentStepId.startsWith('ia-')) {
+                                  // Show current step if no steps completed yet
+                                  allstarStep = currentStepId;
+                                  allstarType = 'active';
                                 }
                               } else if (user.navigationProgress) {
                                 try {
