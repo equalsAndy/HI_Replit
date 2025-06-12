@@ -479,6 +479,23 @@ export function UserManagement() {
     toggleTestUserMutation.mutate(userId);
   };
 
+  // Handler for viewing user data
+  const handleViewData = async (user: User) => {
+    setSelectedUser(user);
+    setDataViewOpen(true);
+    setUserData(null); // Reset data while loading
+    
+    try {
+      const data = await apiRequest(`/api/admin/users/${user.id}/export`, {
+        method: 'GET',
+      });
+      setUserData(data);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setUserData({ error: 'Failed to load user data' });
+    }
+  };
+
   // Helper to determine role badge color
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -704,6 +721,22 @@ export function UserManagement() {
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Edit user profile</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 hover:bg-green-50 border-green-200 text-green-600 hover:text-green-800"
+                                          onClick={() => handleViewData(user)}
+                                        >
+                                          <EyeIcon className="h-3 w-3" />
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>View user data</p>
                                       </TooltipContent>
                                     </Tooltip>
 
@@ -1288,6 +1321,157 @@ export function UserManagement() {
             >
               {deleteUserDataMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Delete Data
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Data Viewing Modal */}
+      <Dialog open={dataViewOpen} onOpenChange={setDataViewOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>User Data - {selectedUser?.name}</DialogTitle>
+            <DialogDescription>
+              Quick review of all data associated with this user account
+            </DialogDescription>
+          </DialogHeader>
+
+          <ScrollArea className="h-[60vh] w-full border rounded-md p-4">
+            {userData === null ? (
+              <div className="flex items-center justify-center h-32">
+                <Loader2 className="h-6 w-6 animate-spin mr-2" />
+                <span>Loading user data...</span>
+              </div>
+            ) : userData?.error ? (
+              <div className="text-center text-red-600 p-8">
+                <p>{userData.error}</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* User Profile */}
+                {userData?.profile && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">User Profile</h3>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div><strong>Name:</strong> {userData.profile.name}</div>
+                      <div><strong>Email:</strong> {userData.profile.email}</div>
+                      <div><strong>Username:</strong> {userData.profile.username}</div>
+                      <div><strong>Role:</strong> {userData.profile.role}</div>
+                      <div><strong>Organization:</strong> {userData.profile.organization || 'N/A'}</div>
+                      <div><strong>Job Title:</strong> {userData.profile.jobTitle || 'N/A'}</div>
+                      <div><strong>Test User:</strong> {userData.profile.isTestUser ? 'Yes' : 'No'}</div>
+                      <div><strong>Created:</strong> {new Date(userData.profile.createdAt).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Navigation Progress */}
+                {userData?.navigationProgress && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Navigation Progress</h3>
+                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
+                      {JSON.stringify(userData.navigationProgress, null, 2)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* Assessment Data */}
+                {userData?.assessments && userData.assessments.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Assessment Data ({userData.assessments.length} records)</h3>
+                    {userData.assessments.map((assessment: any, index: number) => (
+                      <div key={index} className="bg-blue-50 p-3 rounded">
+                        <div className="text-sm mb-2">
+                          <strong>Created:</strong> {new Date(assessment.createdAt).toLocaleString()}
+                        </div>
+                        <pre className="text-xs overflow-x-auto">
+                          {JSON.stringify(assessment, null, 2)}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Star Cards */}
+                {userData?.starCards && userData.starCards.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Star Cards ({userData.starCards.length} records)</h3>
+                    {userData.starCards.map((starCard: any, index: number) => (
+                      <div key={index} className="bg-yellow-50 p-3 rounded">
+                        <div className="text-sm mb-2">
+                          <strong>Created:</strong> {new Date(starCard.createdAt).toLocaleString()}
+                        </div>
+                        <div className="grid grid-cols-4 gap-2 text-sm mb-2">
+                          <div><strong>Thinking:</strong> {starCard.thinking}</div>
+                          <div><strong>Acting:</strong> {starCard.acting}</div>
+                          <div><strong>Feeling:</strong> {starCard.feeling}</div>
+                          <div><strong>Planning:</strong> {starCard.planning}</div>
+                        </div>
+                        {starCard.imageUrl && (
+                          <div className="text-sm"><strong>Has Image:</strong> Yes</div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Flow Attributes */}
+                {userData?.flowAttributes && userData.flowAttributes.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Flow Attributes ({userData.flowAttributes.length} records)</h3>
+                    {userData.flowAttributes.map((flow: any, index: number) => (
+                      <div key={index} className="bg-purple-50 p-3 rounded">
+                        <div className="text-sm mb-2">
+                          <strong>Created:</strong> {new Date(flow.createdAt).toLocaleString()}
+                        </div>
+                        <pre className="text-xs overflow-x-auto">
+                          {JSON.stringify(flow, null, 2)}
+                        </pre>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Reflections */}
+                {userData?.reflections && userData.reflections.length > 0 && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Reflections ({userData.reflections.length} records)</h3>
+                    {userData.reflections.map((reflection: any, index: number) => (
+                      <div key={index} className="bg-green-50 p-3 rounded">
+                        <div className="text-sm mb-2">
+                          <strong>Step:</strong> {reflection.stepId} | <strong>Created:</strong> {new Date(reflection.createdAt).toLocaleString()}
+                        </div>
+                        <div className="text-sm">
+                          <strong>Content:</strong> {reflection.content}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Raw Data Fallback */}
+                {userData && !userData.profile && !userData.error && (
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg border-b pb-2">Raw Data</h3>
+                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
+                      {JSON.stringify(userData, null, 2)}
+                    </pre>
+                  </div>
+                )}
+
+                {/* No Data Message */}
+                {userData && Object.keys(userData).length === 0 && (
+                  <div className="text-center text-gray-500 p-8">
+                    <p>No data found for this user</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </ScrollArea>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDataViewOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
