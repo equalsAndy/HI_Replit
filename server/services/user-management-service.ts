@@ -511,9 +511,8 @@ class UserManagementService {
 
       // 4. Delete navigation progress from dedicated table
       try {
-        const { navigationProgress } = await import('@shared/schema');
-        const navResult = await db.delete(navigationProgress).where(eq(navigationProgress.userId, userId));
-        console.log(`Deleted navigation progress for user ${userId}`);
+        const navResult = await db.execute(sql`DELETE FROM navigation_progress WHERE user_id = ${userId}`);
+        console.log(`Deleted navigation progress for user ${userId}:`, navResult);
         deletedData.navigationProgress = true;
       } catch (error) {
         console.log(`No navigation progress found for user ${userId}`);
