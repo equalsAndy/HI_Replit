@@ -509,19 +509,15 @@ class UserManagementService {
         deletedData.userAssessments = true;
       }
 
-      // 4. Reset navigation progress (keep profile data)
+      // 4. Delete navigation progress from dedicated table
       try {
-        await db.update(users)
-          .set({
-            navigationProgress: null,
-            updatedAt: new Date()
-          })
-          .where(eq(users.id, userId));
-        
-        console.log(`Reset navigation progress for user ${userId}`);
+        const { navigationProgress } = await import('@shared/schema');
+        const navResult = await db.delete(navigationProgress).where(eq(navigationProgress.userId, userId));
+        console.log(`Deleted navigation progress for user ${userId}`);
         deletedData.navigationProgress = true;
       } catch (error) {
-        console.error(`Error resetting navigation progress for user ${userId}:`, error);
+        console.log(`No navigation progress found for user ${userId}`);
+        deletedData.navigationProgress = true;
       }
 
       // 5. Delete any workshop participation data
