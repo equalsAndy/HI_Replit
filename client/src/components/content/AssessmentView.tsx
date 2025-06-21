@@ -254,10 +254,10 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-center items-center w-full px-4">
               <div className="w-full max-w-[800px] h-[350px] lg:h-[400px] mx-auto">
                 <AssessmentPieChart
-                  thinking={assessmentData?.thinking || 0}
-                  acting={assessmentData?.acting || 0}
-                  feeling={assessmentData?.feeling || 0}
-                  planning={assessmentData?.planning || 0}
+                  thinking={assessmentResults?.thinking || 0}
+                  acting={assessmentResults?.acting || 0}
+                  feeling={assessmentResults?.feeling || 0}
+                  planning={assessmentResults?.planning || 0}
                 />
               </div>
             </div>
@@ -278,28 +278,24 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="bg-gray-50 rounded-lg p-4 mb-6">
               <div className="space-y-3">
                 {(() => {
-                  // Calculate total score for proper percentage calculation
-                  const thinking = Number(assessmentData?.thinking) || 0;
-                  const planning = Number(assessmentData?.planning) || 0;
-                  const feeling = Number(assessmentData?.feeling) || 0;
-                  const acting = Number(assessmentData?.acting) || 0;
-                  const total = thinking + planning + feeling + acting;
+                  // Use the assessment results directly (they are already percentages)
+                  const thinking = Number(assessmentResults?.thinking) || 0;
+                  const planning = Number(assessmentResults?.planning) || 0;
+                  const feeling = Number(assessmentResults?.feeling) || 0;
+                  const acting = Number(assessmentResults?.acting) || 0;
 
-                  // Calculate percentages
-                  const normalizeValue = (value: number) => total === 0 ? 25 : Math.round((value / total) * 100);
-
-                  // Create and sort data
+                  // Create and sort data using the percentage values directly
                   return [
-                    { name: 'Thinking', value: thinking, percentage: normalizeValue(thinking), color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
-                    { name: 'Planning', value: planning, percentage: normalizeValue(planning), color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
-                    { name: 'Feeling', value: feeling, percentage: normalizeValue(feeling), color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
-                    { name: 'Acting', value: acting, percentage: normalizeValue(acting), color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
+                    { name: 'Thinking', value: thinking, color: 'rgb(1,162,82)', desc: 'Analytical & logical approach' },
+                    { name: 'Planning', value: planning, color: 'rgb(255,203,47)', desc: 'Organized & methodical' },
+                    { name: 'Feeling', value: feeling, color: 'rgb(22,126,253)', desc: 'Empathetic & relationship-focused' },
+                    { name: 'Acting', value: acting, color: 'rgb(241,64,64)', desc: 'Decisive & action-oriented' }
                   ]
                     .sort((a, b) => b.value - a.value)
                     .map(strength => (
                       <div key={strength.name} className="flex items-center">
                         <div className="w-5 h-5 rounded mr-3" style={{ backgroundColor: strength.color }}></div>
-                        <span className="font-semibold">{strength.name}: {strength.percentage}%</span>
+                        <span className="font-semibold">{strength.name}: {strength.value}%</span>
                         <span className="ml-3 text-gray-600 text-sm"> - {strength.desc}</span>
                       </div>
                     ));
