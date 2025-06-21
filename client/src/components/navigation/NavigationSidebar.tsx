@@ -1,4 +1,4 @@
-import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock } from 'lucide-react';
+import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock, Activity } from 'lucide-react';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { CollapsibleSection } from './CollapsibleSection';
 import { navigationSections } from './navigationData';
@@ -29,22 +29,15 @@ export function NavigationSidebar() {
 
   const getIconComponent = (iconName: string) => {
     switch (iconName) {
-      case 'Video':
-        return Video;
-      case 'BookOpen':
-        return BookOpen;
-      case 'Zap':
-        return Zap;
-      case 'Glasses':
-        return Glasses;
-      case 'PenLine':
-        return PenLine;
-      case 'Download':
-        return Download;
-      case 'Clock':
-        return Clock;
-      default:
-        return BookOpen;
+      case 'Video': return Video;
+      case 'BookOpen': return BookOpen;
+      case 'Zap': return Zap;
+      case 'Glasses': return Glasses;
+      case 'PenLine': return PenLine;
+      case 'Download': return Download;
+      case 'Clock': return Clock;
+      case 'Activity': return Activity;
+      default: return BookOpen;
     }
   };
 
