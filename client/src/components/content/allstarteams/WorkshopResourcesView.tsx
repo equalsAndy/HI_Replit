@@ -25,7 +25,7 @@ const WorkshopResourcesView: React.FC<WorkshopResourcesViewProps> = ({
       {/* Header */}
       <div className="text-center space-y-3 sm:space-y-4">
         <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900">
-          More on This Workshop Page Content
+          Workshop Resources
         </h1>
         <p className="text-base sm:text-lg text-gray-600 max-w-3xl mx-auto leading-relaxed">
           The AllStarTeams Workshop is more than a one-time experience — it's a foundational system 
