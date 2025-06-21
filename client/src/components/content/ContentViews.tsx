@@ -26,6 +26,7 @@ import WorkshopResourcesView from './allstarteams/WorkshopResourcesView';
 import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
+import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
 
 import { useApplication } from '@/hooks/use-application';
 
@@ -587,7 +588,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               <Button 
                 onClick={() => {
                   markStepCompleted('ia-7-1');
-                  setCurrentContent('ia-8-1');
+                  setCurrentContent('discernment-exercise');
                   scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
@@ -876,6 +877,35 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           setCurrentContent={setCurrentContent}
           starCard={starCard}
         />
+      );
+
+    case 'discernment-exercise':
+      return (
+        <div className="prose max-w-none">
+          <div className="mb-6">
+            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-4">Reality Discernment Exercise</h1>
+            <p className="text-lg text-gray-700 mb-6">
+              Practice the essential skill of discerning authentic information from artificial or manipulated content. 
+              Complete the 5-step exercise to build your personal discernment toolkit.
+            </p>
+          </div>
+          
+          <DiscernmentExercise />
+          
+          <div className="flex justify-center mt-8">
+            <Button 
+              onClick={() => {
+                markStepCompleted('discernment-exercise');
+                setCurrentContent('ia-8-1');
+                scrollToContentTop();
+              }}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+              size="lg"
+            >
+              Next: Neuroscience
+            </Button>
+          </div>
+        </div>
       );
 
     // Imaginal Agility content views
