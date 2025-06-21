@@ -603,6 +603,14 @@ class UserManagementService {
         deletedData.navigationProgress = true;
       }
 
+      // 5. Clear navigation progress field in users table
+      try {
+        await db.execute(sql`UPDATE users SET navigation_progress = NULL WHERE id = ${userId}`);
+        console.log(`Cleared navigation_progress field in users table for user ${userId}`);
+      } catch (error) {
+        console.log(`Error clearing navigation_progress field for user ${userId}:`, error);
+      }
+
       // 5. Delete any workshop participation data
       try {
         await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);

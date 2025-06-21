@@ -34,6 +34,7 @@ export function ResetUserDataButton({ userId, onSuccess }: ResetUserDataButtonPr
         queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
         queryClient.invalidateQueries({ queryKey: ['/api/user'] });
         queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] }); // Add admin users query
         
         toast({
           title: 'Success',
