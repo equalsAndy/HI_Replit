@@ -192,11 +192,6 @@ export default function HolisticReportView({
                 <ExternalLink className="h-4 w-4" />
                 View HTML Report
               </Button>
-              
-              <Button variant="outline" onClick={handleNext} className="flex items-center gap-2">
-                Continue
-                <ChevronRight className="h-4 w-4" />
-              </Button>
             </div>
 
             {reportGenerated && (
