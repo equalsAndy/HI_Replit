@@ -282,14 +282,43 @@ const calculateQuadrantScores = (answers: any[], optionMapping: any): QuadrantDa
 
   // Convert to percentages
   const total = Object.values(scores).reduce((sum, score) => sum + score, 0);
-  if (total === 0) return { thinking: 25, acting: 25, feeling: 25, planning: 25 };
+  
+  // If no valid answers, return the mock results instead of 25% fallback
+  if (total === 0) {
+    return mockAssessmentResults;
+  }
 
-  return {
+  // Calculate percentages and ensure they sum to 100
+  const percentages = {
     thinking: Math.round((scores.thinking / total) * 100),
     acting: Math.round((scores.acting / total) * 100),
     feeling: Math.round((scores.feeling / total) * 100),
     planning: Math.round((scores.planning / total) * 100)
   };
+
+  // Normalize percentages to ensure they sum to 100
+  const rawSum = percentages.thinking + percentages.feeling + percentages.acting + percentages.planning;
+  if (rawSum !== 100) {
+    const adjustmentFactor = 100 / rawSum;
+    percentages.thinking = Math.round(percentages.thinking * adjustmentFactor);
+    percentages.feeling = Math.round(percentages.feeling * adjustmentFactor);
+    percentages.acting = Math.round(percentages.acting * adjustmentFactor);
+    percentages.planning = Math.round(percentages.planning * adjustmentFactor);
+    
+    // Final adjustment to ensure exact sum of 100
+    const adjustedSum = percentages.thinking + percentages.feeling + percentages.acting + percentages.planning;
+    const diff = 100 - adjustedSum;
+    if (diff !== 0) {
+      // Find the largest percentage and adjust it
+      const largestCategory = Object.entries(percentages).reduce(
+        (max, [category, value]) => value > max.value ? { category, value } : max,
+        { category: '', value: 0 }
+      );
+      percentages[largestCategory.category as keyof typeof percentages] += diff;
+    }
+  }
+
+  return percentages;
 };
 
 // Main Assessment Modal Props

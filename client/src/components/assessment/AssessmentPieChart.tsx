@@ -68,35 +68,43 @@ const renderInnerLabel = (props: any) => {
 };
 
 export function AssessmentPieChart({ thinking, acting, feeling, planning }: AssessmentPieChartProps) {
-  // Ensure we're using numbers
+  // Convert to numbers and handle the case where values are already percentages
   const thinkingValue = Number(thinking) || 0;
   const actingValue = Number(acting) || 0;
   const feelingValue = Number(feeling) || 0;
   const planningValue = Number(planning) || 0;
   
-  // Calculate total for percentages
+  // Check if values are already percentages (sum close to 100) or raw scores
   const total = thinkingValue + actingValue + feelingValue + planningValue;
+  const arePercentages = total >= 95 && total <= 105; // Allow some rounding tolerance
   
-  // Calculate percentages
-  const calculatePercentage = (value: number) => 
-    total === 0 ? 25 : Math.round((value / total) * 100);
+  // Use values directly if they're already percentages, otherwise calculate percentages
+  const getValue = (value: number) => {
+    if (arePercentages) {
+      return Math.round(value); // Use as-is, just round
+    }
+    return total === 0 ? 25 : Math.round((value / total) * 100);
+  };
   
   const data = [
-    { name: 'Acting', value: calculatePercentage(actingValue), rawValue: actingValue, color: COLORS.acting },
-    { name: 'Feeling', value: calculatePercentage(feelingValue), rawValue: feelingValue, color: COLORS.feeling },
-    { name: 'Planning', value: calculatePercentage(planningValue), rawValue: planningValue, color: COLORS.planning },
-    { name: 'Thinking', value: calculatePercentage(thinkingValue), rawValue: thinkingValue, color: COLORS.thinking }
+    { name: 'Acting', value: getValue(actingValue), rawValue: actingValue, color: COLORS.acting },
+    { name: 'Feeling', value: getValue(feelingValue), rawValue: feelingValue, color: COLORS.feeling },
+    { name: 'Planning', value: getValue(planningValue), rawValue: planningValue, color: COLORS.planning },
+    { name: 'Thinking', value: getValue(thinkingValue), rawValue: thinkingValue, color: COLORS.thinking }
   ];
   
   console.log("Assessment Pie Chart Data:", { 
-    raw: { thinking: thinkingValue, acting: actingValue, feeling: feelingValue, planning: planningValue, total },
+    input: { thinking: thinkingValue, acting: actingValue, feeling: feelingValue, planning: planningValue, total },
+    arePercentages,
     percentages: data.map(d => ({ name: d.name, percentage: d.value }))
   });
 
-  // Filter out any attributes with 0 value
-  const filteredData = data.filter(item => item.rawValue > 0);
+  // Filter out any attributes with 0 value (only if using raw scores)
+  const filteredData = arePercentages 
+    ? data.filter(item => item.value > 0) // For percentages, filter by calculated value
+    : data.filter(item => item.rawValue > 0); // For raw scores, filter by raw value
 
-  // If all values are 0, show equal distribution
+  // If no valid data, show equal distribution
   const chartData = filteredData.length === 0 
     ? data.map(item => ({ ...item, value: 25 })) 
     : filteredData;
