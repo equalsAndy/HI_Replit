@@ -12,6 +12,113 @@ import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
 
+// Color mapping function for flow attributes
+const getAttributeColor = (text: string): string => {
+  if (!text) return 'rgb(156, 163, 175)'; // Default gray
+  
+  // Default to primary colors by category
+  const attrColorMap: { [key: string]: string } = {
+    // Thinking quadrant attributes (green)
+    'Analytical': 'rgb(1, 162, 82)',
+    'Strategic': 'rgb(1, 162, 82)',
+    'Thoughtful': 'rgb(1, 162, 82)',
+    'Clever': 'rgb(1, 162, 82)',
+    'Innovative': 'rgb(1, 162, 82)',
+    'Investigative': 'rgb(1, 162, 82)',
+    'Abstract': 'rgb(1, 162, 82)',
+    'Analytic': 'rgb(1, 162, 82)',
+    'Astute': 'rgb(1, 162, 82)',
+    'Big Picture': 'rgb(1, 162, 82)',
+    'Curious': 'rgb(1, 162, 82)',
+    'Focussed': 'rgb(1, 162, 82)',
+    'Focused': 'rgb(1, 162, 82)',
+    'Insightful': 'rgb(1, 162, 82)',
+    'Logical': 'rgb(1, 162, 82)',
+    'Rational': 'rgb(1, 162, 82)',
+    'Reflective': 'rgb(1, 162, 82)',
+    'Sensible': 'rgb(1, 162, 82)',
+    
+    // Acting quadrant attributes (red)
+    'Energetic': 'rgb(241, 64, 64)',
+    'Bold': 'rgb(241, 64, 64)',
+    'Decisive': 'rgb(241, 64, 64)',
+    'Proactive': 'rgb(241, 64, 64)',
+    'Persistent': 'rgb(241, 64, 64)',
+    'Physical': 'rgb(241, 64, 64)',
+    'Confident': 'rgb(241, 64, 64)',
+    'Adaptable': 'rgb(241, 64, 64)',
+    'Adventurous': 'rgb(241, 64, 64)',
+    'Assertive': 'rgb(241, 64, 64)',
+    'Brave': 'rgb(241, 64, 64)',
+    'Capable': 'rgb(241, 64, 64)',
+    'Challenging': 'rgb(241, 64, 64)',
+    'Courageous': 'rgb(241, 64, 64)',
+    'Dynamic': 'rgb(241, 64, 64)',
+    'Fearless': 'rgb(241, 64, 64)',
+    'Resolute': 'rgb(241, 64, 64)',
+    'Resourceful': 'rgb(241, 64, 64)',
+    'Strong': 'rgb(241, 64, 64)',
+    'Competitive': 'rgb(241, 64, 64)',
+    'Effortless': 'rgb(241, 64, 64)',
+    
+    // Feeling quadrant attributes (blue)
+    'Empathetic': 'rgb(22, 126, 253)',
+    'Friendly': 'rgb(22, 126, 253)',
+    'Supportive': 'rgb(22, 126, 253)',
+    'Compassionate': 'rgb(22, 126, 253)',
+    'Intuitive': 'rgb(22, 126, 253)',
+    'Empathic': 'rgb(22, 126, 253)',
+    'Accepting': 'rgb(22, 126, 253)',
+    'Authentic': 'rgb(22, 126, 253)',
+    'Calm': 'rgb(22, 126, 253)',
+    'Caring': 'rgb(22, 126, 253)',
+    'Connected': 'rgb(22, 126, 253)',
+    'Considerate': 'rgb(22, 126, 253)',
+    'Diplomatic': 'rgb(22, 126, 253)',
+    'Emotional': 'rgb(22, 126, 253)',
+    'Generous': 'rgb(22, 126, 253)',
+    'Gentle': 'rgb(22, 126, 253)',
+    'Grateful': 'rgb(22, 126, 253)',
+    'Harmonious': 'rgb(22, 126, 253)',
+    'Helpful': 'rgb(22, 126, 253)',
+    'Kind': 'rgb(22, 126, 253)',
+    'Open': 'rgb(22, 126, 253)',
+    'Sociable': 'rgb(22, 126, 253)',
+    'Vulnerable': 'rgb(22, 126, 253)',
+    'Passionate': 'rgb(22, 126, 253)',
+    'Creative': 'rgb(22, 126, 253)',
+    'Receptive': 'rgb(22, 126, 253)',
+    
+    // Planning quadrant attributes (yellow)
+    'Organized': 'rgb(255, 203, 47)',
+    'Meticulous': 'rgb(255, 203, 47)',
+    'Reliable': 'rgb(255, 203, 47)',
+    'Consistent': 'rgb(255, 203, 47)',
+    'Practical': 'rgb(255, 203, 47)',
+    'Careful': 'rgb(255, 203, 47)',
+    'Controlled': 'rgb(255, 203, 47)',
+    'Dependable': 'rgb(255, 203, 47)',
+    'Detailed': 'rgb(255, 203, 47)',
+    'Diligent': 'rgb(255, 203, 47)',
+    'Methodical': 'rgb(255, 203, 47)',
+    'Orderly': 'rgb(255, 203, 47)',
+    'Precise': 'rgb(255, 203, 47)',
+    'Punctual': 'rgb(255, 203, 47)', 
+    'Responsible': 'rgb(255, 203, 47)',
+    'Thorough': 'rgb(255, 203, 47)',
+    'Trustworthy': 'rgb(255, 203, 47)',
+    'Immersed': 'rgb(255, 203, 47)',
+  };
+  
+  // Try exact match first
+  if (attrColorMap[text]) {
+    return attrColorMap[text];
+  }
+  
+  // Fallback to default gray for unrecognized attributes
+  return 'rgb(156, 163, 175)';
+};
+
 interface GrowthPlanViewProps {
   navigate: (path: string) => void;
   markStepCompleted: (stepId: string) => void;
@@ -49,7 +156,7 @@ interface GrowthPlanData {
   updatedAt?: string;
 }
 
-export default function GrowthPlanView({
+function GrowthPlanView({
   navigate,
   markStepCompleted,
   setCurrentContent
@@ -230,7 +337,7 @@ export default function GrowthPlanView({
                     }
                     return {
                       text: attr.name,
-                      color: "rgb(59, 130, 246)"
+                      color: getAttributeColor(attr.name)
                     };
                   }) : []
                 }
@@ -825,3 +932,5 @@ export default function GrowthPlanView({
     </div>
   );
 }
+
+export default GrowthPlanView;
