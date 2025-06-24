@@ -1,0 +1,853 @@
+Perfect! Here's the corrected **Phase 1B prompt**:
+
+---
+
+# Phase 1B: Discernment React Modal Integration
+
+## 🎯 **PROJECT CONTEXT**
+You are working on an existing **Imaginal Agility (IA) Workshop** application where **Phase 1A is complete**:
+- ✅ Discernment database tables created and seeded with 9 scenarios
+- ✅ API endpoints working: `/api/discernment/scenarios/:exerciseType` and `/api/discernment/progress`
+- ✅ User progress tracking functional
+- ✅ Existing IA workshop with 8 steps (`ia-1-1` through `ia-8-1`) unchanged
+
+## 🚨 **CRITICAL: DO NOT MODIFY**
+- **AST Workshop**: Leave AllStarTeams components completely untouched
+- **Existing IA Steps**: Do not alter current IA navigation, progress, or other steps
+- **Database**: Use existing Phase 1A tables and APIs - do not modify schemas
+- **Current Routes**: Only modify the `ia-7-1` step content - no routing changes
+
+## 🎯 **IMPLEMENTATION GOAL**
+Create a **React modal component** that integrates the 3 discernment exercises into the existing IA workshop at step `ia-7-1` (Reality Discernment). The modal will:
+1. Load scenarios dynamically from the Phase 1A database
+2. Provide 3 different exercise experiences
+3. Track user progress via existing APIs
+4. Not interfere with IA workshop flow
+
+## 📋 **WHAT YOU'RE BUILDING**
+
+### **Modal Integration at ia-7-1**
+Currently `ia-7-1` is "Reality Discernment" step. You need to:
+1. Add a "Reality Discernment Practice" button to existing content
+2. Keep existing "Next: The Neuroscience" button 
+3. Add modal that opens with 3 exercise types
+
+## 🔧 **IMPLEMENTATION FILES**
+
+### **1. Create Main Modal Component**
+**Location**: `client/src/components/imaginal-agility/DiscernmentModal.tsx`
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { X, Clock, Eye, Search, Target, RotateCcw } from 'lucide-react';
+import RealityCheckExercise from './exercises/RealityCheckExercise';
+import VisualDetectionExercise from './exercises/VisualDetectionExercise';
+import ToolkitPracticeExercise from './exercises/ToolkitPracticeExercise';
+
+interface DiscernmentModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const DiscernmentModal: React.FC<DiscernmentModalProps> = ({ isOpen, onClose }) => {
+  const [currentExercise, setCurrentExercise] = useState(1);
+  const [exerciseComplete, setExerciseComplete] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
+
+  const exercises = [
+    {
+      id: 1,
+      title: "The 3-Second Reality Check",
+      description: "Practice recognizing content designed to trigger immediate emotional reactions",
+      icon: <Clock className="w-6 h-6" />,
+      type: "reality_check"
+    },
+    {
+      id: 2,
+      title: "Visual Real vs. Fake Challenge",
+      description: "Learn to spot visual manipulation and AI-generated content",
+      icon: <Eye className="w-6 h-6" />,
+      type: "visual_detection"
+    },
+    {
+      id: 3,
+      title: "The 5-Test Toolkit Practice",
+      description: "Apply systematic discernment tests to complex scenarios",
+      icon: <Search className="w-6 h-6" />,
+      type: "toolkit_practice"
+    }
+  ];
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentExercise(1);
+      setExerciseComplete(false);
+      setShowSummary(false);
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleExerciseComplete = () => {
+    if (currentExercise < 3) {
+      setCurrentExercise(currentExercise + 1);
+      setExerciseComplete(false);
+    } else {
+      setShowSummary(true);
+    }
+  };
+
+  const handleClose = () => {
+    setCurrentExercise(1);
+    setExerciseComplete(false);
+    setShowSummary(false);
+    onClose();
+  };
+
+  const currentExerciseData = exercises[currentExercise - 1];
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            {currentExerciseData.icon}
+            <div>
+              <h2 className="text-2xl font-semibold">Reality Discernment Practice</h2>
+              <p className="text-purple-100 text-sm">{currentExerciseData.title}</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleClose}
+            className="hover:bg-white/20 p-2 rounded-full transition-colors"
+          >
+            <X size={24} />
+          </button>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="h-2 bg-gray-200">
+          <div 
+            className="h-full bg-gradient-to-r from-purple-500 to-purple-700 transition-all duration-500"
+            style={{ width: `${(currentExercise / 3) * 100}%` }}
+          />
+        </div>
+
+        {/* Content */}
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+          {showSummary ? (
+            <SummaryScreen onClose={handleClose} />
+          ) : (
+            <>
+              <div className="text-center mb-6">
+                <div className="text-purple-600 font-semibold mb-2">
+                  Exercise {currentExercise} of 3
+                </div>
+                <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                  {currentExerciseData.title}
+                </h3>
+                <p className="text-gray-600">
+                  {currentExerciseData.description}
+                </p>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-6">
+                {currentExercise === 1 && (
+                  <RealityCheckExercise 
+                    onComplete={handleExerciseComplete}
+                  />
+                )}
+                {currentExercise === 2 && (
+                  <VisualDetectionExercise 
+                    onComplete={handleExerciseComplete}
+                  />
+                )}
+                {currentExercise === 3 && (
+                  <ToolkitPracticeExercise 
+                    onComplete={handleExerciseComplete}
+                  />
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Navigation */}
+        {!showSummary && (
+          <div className="border-t p-6 flex justify-between items-center">
+            <button
+              className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+              onClick={() => currentExercise > 1 && setCurrentExercise(currentExercise - 1)}
+              disabled={currentExercise === 1}
+            >
+              ← Previous Exercise
+            </button>
+            
+            <div className="flex gap-2">
+              {exercises.map((_, index) => (
+                <div
+                  key={index}
+                  className={`w-3 h-3 rounded-full ${
+                    index + 1 === currentExercise
+                      ? 'bg-purple-600'
+                      : index + 1 < currentExercise
+                      ? 'bg-purple-300'
+                      : 'bg-gray-200'
+                  }`}
+                />
+              ))}
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              Exercise {currentExercise} of 3
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Summary Screen Component
+const SummaryScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+  <div className="text-center py-8">
+    <div className="text-6xl mb-6">🎯</div>
+    <h2 className="text-3xl font-bold text-gray-800 mb-4">
+      Discernment Skills Practiced!
+    </h2>
+    <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+      You've completed all three reality discernment exercises and learned systematic approaches to evaluating digital content in the AI era.
+    </p>
+    
+    <div className="grid md:grid-cols-3 gap-6 mb-8">
+      <div className="bg-purple-50 p-6 rounded-lg">
+        <div className="text-2xl mb-2">⏱️</div>
+        <h3 className="font-semibold mb-2">3-Second Pause</h3>
+        <p className="text-sm text-gray-600">
+          Always pause before reacting to emotionally charged content
+        </p>
+      </div>
+      <div className="bg-purple-50 p-6 rounded-lg">
+        <div className="text-2xl mb-2">👁️</div>
+        <h3 className="font-semibold mb-2">Visual Skepticism</h3>
+        <p className="text-sm text-gray-600">
+          Look for inconsistencies and "too perfect" details in images
+        </p>
+      </div>
+      <div className="bg-purple-50 p-6 rounded-lg">
+        <div className="text-2xl mb-2">🔍</div>
+        <h3 className="font-semibold mb-2">Systematic Analysis</h3>
+        <p className="text-sm text-gray-600">
+          Use the 5-test toolkit for comprehensive content evaluation
+        </p>
+      </div>
+    </div>
+
+    <button
+      onClick={onClose}
+      className="bg-gradient-to-r from-purple-600 to-purple-800 text-white px-8 py-3 rounded-lg hover:opacity-90 transition-opacity"
+    >
+      Return to Workshop
+    </button>
+  </div>
+);
+
+export default DiscernmentModal;
+```
+
+### **2. Create Exercise Components**
+**Location**: `client/src/components/imaginal-agility/exercises/`
+
+**File**: `RealityCheckExercise.tsx`
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Clock } from 'lucide-react';
+
+interface RealityCheckExerciseProps {
+  onComplete: () => void;
+}
+
+interface Scenario {
+  id: number;
+  title: string;
+  content: string;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correct: number;
+    explanation: string;
+  }>;
+  metadata: {
+    timer_seconds: number;
+  };
+}
+
+const RealityCheckExercise: React.FC<RealityCheckExerciseProps> = ({ onComplete }) => {
+  const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [timer, setTimer] = useState(3);
+  const [timerActive, setTimerActive] = useState(false);
+  const [showQuestions, setShowQuestions] = useState(false);
+  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [canProceed, setCanProceed] = useState(false);
+
+  useEffect(() => {
+    loadScenario();
+  }, []);
+
+  const loadScenario = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/discernment/scenarios/reality_check', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setScenario(data.scenario);
+        setTimer(data.scenario.metadata.timer_seconds || 3);
+      } else {
+        console.error('Failed to load scenario');
+      }
+    } catch (error) {
+      console.error('Error loading scenario:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const startTimer = () => {
+    setTimerActive(true);
+    setShowQuestions(true);
+    
+    const countdown = setInterval(() => {
+      setTimer(prev => {
+        if (prev <= 1) {
+          clearInterval(countdown);
+          setTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const handleAnswerSelect = (questionIndex: number, answerIndex: number) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionIndex]: answerIndex
+    }));
+  };
+
+  const handleSubmit = async () => {
+    setShowFeedback(true);
+    setCanProceed(true);
+    
+    // Track progress
+    if (scenario) {
+      try {
+        await fetch('/api/discernment/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ scenarioId: scenario.id })
+        });
+      } catch (error) {
+        console.error('Error tracking progress:', error);
+      }
+    }
+  };
+
+  const checkAllAnswered = () => {
+    if (!scenario) return false;
+    return scenario.questions.every((_, index) => answers[index] !== undefined);
+  };
+
+  useEffect(() => {
+    if (showQuestions && !timerActive) {
+      // Start timer immediately when questions show
+      startTimer();
+    }
+  }, [showQuestions]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!scenario) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Failed to load exercise scenario.</p>
+        <button 
+          onClick={loadScenario}
+          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Scenario Content */}
+      <div className="relative bg-white border-l-4 border-purple-500 p-6 rounded-lg">
+        {timerActive && (
+          <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full font-bold">
+            <Clock className="w-4 h-4 inline mr-1" />
+            {timer}s
+          </div>
+        )}
+        
+        <div 
+          dangerouslySetInnerHTML={{ __html: scenario.content }}
+          className="prose prose-sm max-w-none"
+        />
+        
+        {!showQuestions && (
+          <button
+            onClick={() => setShowQuestions(true)}
+            className="mt-4 bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Start 3-Second Challenge
+          </button>
+        )}
+      </div>
+
+      {/* Questions */}
+      {showQuestions && (
+        <div className="space-y-4">
+          {scenario.questions.map((question, qIndex) => (
+            <div key={qIndex} className="bg-white p-6 rounded-lg border">
+              <h4 className="font-semibold mb-4">{question.question}</h4>
+              <div className="space-y-2">
+                {question.options.map((option, oIndex) => (
+                  <label 
+                    key={oIndex}
+                    className="flex items-center p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
+                  >
+                    <input
+                      type="radio"
+                      name={`question-${qIndex}`}
+                      value={oIndex}
+                      onChange={() => handleAnswerSelect(qIndex, oIndex)}
+                      className="mr-3 text-purple-600"
+                    />
+                    <span>{option}</span>
+                  </label>
+                ))}
+              </div>
+
+              {/* Show feedback for this question */}
+              {showFeedback && answers[qIndex] !== undefined && (
+                <div className={`mt-4 p-4 rounded-lg ${
+                  answers[qIndex] === question.correct 
+                    ? 'bg-green-50 border border-green-200' 
+                    : 'bg-red-50 border border-red-200'
+                }`}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className={answers[qIndex] === question.correct ? '✅' : '❌'}>
+                    </span>
+                    <span className="font-semibold">
+                      {answers[qIndex] === question.correct ? 'Correct!' : 'Not quite right.'}
+                    </span>
+                  </div>
+                  <p className="text-sm">{question.explanation}</p>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {!showFeedback && checkAllAnswered() && (
+            <button
+              onClick={handleSubmit}
+              className="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition-colors"
+            >
+              Submit Answers
+            </button>
+          )}
+
+          {canProceed && (
+            <button
+              onClick={onComplete}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Continue to Visual Detection Exercise →
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default RealityCheckExercise;
+```
+
+**File**: `VisualDetectionExercise.tsx`
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Eye } from 'lucide-react';
+
+interface VisualDetectionExerciseProps {
+  onComplete: () => void;
+}
+
+interface Scenario {
+  id: number;
+  title: string;
+  content: string;
+  questions: Array<{
+    question: string;
+    options: string[];
+    correct: number;
+    explanation: string;
+  }>;
+  metadata: {
+    image_url: string;
+    clues: string[];
+    difficulty: number;
+  };
+}
+
+const VisualDetectionExercise: React.FC<VisualDetectionExerciseProps> = ({ onComplete }) => {
+  const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+
+  useEffect(() => {
+    loadScenario();
+  }, []);
+
+  const loadScenario = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/discernment/scenarios/visual_detection', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setScenario(data.scenario);
+      } else {
+        console.error('Failed to load scenario');
+      }
+    } catch (error) {
+      console.error('Error loading scenario:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAnswerSelect = async (answerIndex: number) => {
+    setSelectedAnswer(answerIndex);
+    setShowFeedback(true);
+    
+    // Track progress
+    if (scenario) {
+      try {
+        await fetch('/api/discernment/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ scenarioId: scenario.id })
+        });
+      } catch (error) {
+        console.error('Error tracking progress:', error);
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!scenario) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Failed to load exercise scenario.</p>
+        <button 
+          onClick={loadScenario}
+          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  const question = scenario.questions[0]; // Visual detection has one question
+
+  return (
+    <div className="space-y-6">
+      {/* Image Display */}
+      <div className="text-center">
+        <div className="relative inline-block">
+          {!imageLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 rounded-lg">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+            </div>
+          )}
+          <img
+            src={scenario.metadata.image_url}
+            alt="Content to analyze"
+            className={`max-w-full max-h-80 rounded-lg shadow-lg transition-opacity ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageLoaded(true)}
+          />
+        </div>
+        <h3 className="text-xl font-semibold mt-4 mb-2">{scenario.content}</h3>
+      </div>
+
+      {/* Clues */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <h4 className="flex items-center gap-2 font-semibold text-yellow-800 mb-3">
+          <Eye className="w-5 h-5" />
+          Look for these clues:
+        </h4>
+        <ul className="space-y-1">
+          {scenario.metadata.clues.map((clue, index) => (
+            <li key={index} className="text-yellow-700 text-sm">
+              👀 {clue}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Question and Answer Options */}
+      <div className="bg-white p-6 rounded-lg border">
+        <h4 className="font-semibold mb-4">{question.question}</h4>
+        
+        {!showFeedback ? (
+          <div className="flex gap-4 justify-center">
+            {question.options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswerSelect(index)}
+                className={`px-8 py-3 rounded-lg font-semibold transition-all ${
+                  index === 0 
+                    ? 'bg-green-600 hover:bg-green-700 text-white'
+                    : 'bg-red-600 hover:bg-red-700 text-white'
+                }`}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className={`p-4 rounded-lg ${
+            selectedAnswer === question.correct 
+              ? 'bg-green-50 border border-green-200' 
+              : 'bg-red-50 border border-red-200'
+          }`}>
+            <div className="flex items-center gap-2 mb-2">
+              <span className={selectedAnswer === question.correct ? '✅' : '❌'}>
+              </span>
+              <span className="font-semibold">
+                {selectedAnswer === question.correct ? 'Correct!' : 'Not quite right.'}
+              </span>
+            </div>
+            <p className="text-sm mb-4">{question.explanation}</p>
+            
+            <button
+              onClick={onComplete}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-3 rounded-lg hover:opacity-90 transition-opacity"
+            >
+              Continue to Toolkit Practice Exercise →
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default VisualDetectionExercise;
+```
+
+**File**: `ToolkitPracticeExercise.tsx`
+
+```typescript
+import React, { useState, useEffect } from 'react';
+import { Search, Target, RotateCcw, CheckCircle } from 'lucide-react';
+
+interface ToolkitPracticeExerciseProps {
+  onComplete: () => void;
+}
+
+interface Scenario {
+  id: number;
+  title: string;
+  content: string;
+  questions: Array<{
+    question: string;
+    type: 'textarea' | 'checkbox';
+    options?: string[];
+    hint?: string;
+  }>;
+  metadata: {
+    tests: string[];
+    difficulty: number;
+  };
+}
+
+const ToolkitPracticeExercise: React.FC<ToolkitPracticeExerciseProps> = ({ onComplete }) => {
+  const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [answers, setAnswers] = useState<{ [key: number]: any }>({});
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  useEffect(() => {
+    loadScenario();
+  }, []);
+
+  const loadScenario = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/discernment/scenarios/toolkit_practice', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setScenario(data.scenario);
+      } else {
+        console.error('Failed to load scenario');
+      }
+    } catch (error) {
+      console.error('Error loading scenario:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleTextareaChange = (questionIndex: number, value: string) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionIndex]: value
+    }));
+  };
+
+  const handleCheckboxChange = (questionIndex: number, optionIndex: number, checked: boolean) => {
+    setAnswers(prev => {
+      const currentAnswers = prev[questionIndex] || [];
+      if (checked) {
+        return {
+          ...prev,
+          [questionIndex]: [...currentAnswers, optionIndex]
+        };
+      } else {
+        return {
+          ...prev,
+          [questionIndex]: currentAnswers.filter((idx: number) => idx !== optionIndex)
+        };
+      }
+    });
+  };
+
+  const checkCompletion = () => {
+    if (!scenario) return false;
+    
+    return scenario.questions.every((question, index) => {
+      const answer = answers[index];
+      if (question.type === 'textarea') {
+        return answer && answer.trim().length >= 10;
+      } else if (question.type === 'checkbox') {
+        return answer && answer.length > 0;
+      }
+      return false;
+    });
+  };
+
+  const handleSubmit = async () => {
+    setShowFeedback(true);
+    
+    // Track progress
+    if (scenario) {
+      try {
+        await fetch('/api/discernment/progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ scenarioId: scenario.id })
+        });
+      } catch (error) {
+        console.error('Error tracking progress:', error);
+      }
+    }
+  };
+
+  const getTestIcon = (testName: string) => {
+    const icons: { [key: string]: JSX.Element } = {
+      source: <Search className="w-5 h-5" />,
+      emotion: <span className="text-lg">😮</span>,
+      intention: <Target className="w-5 h-5" />,
+      coherence: <span className="text-lg">📊</span>,
+      perspective: <RotateCcw className="w-5 h-5" />
+    };
+    return icons[testName] || <CheckCircle className="w-5 h-5" />;
+  };
+
+  const getTestTitle = (testName: string) => {
+    const titles: { [key: string]: string } = {
+      source: 'SOURCE TEST',
+      emotion: 'EMOTION TEST',
+      intention: 'INTENTION TEST',
+      coherence: 'COHERENCE TEST',
+      perspective: 'PERSPECTIVE TEST'
+    };
+    return titles[testName] || testName.toUpperCase();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!scenario) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600">Failed to load exercise scenario.</p>
+        <button 
+          onClick={loadScenario}
+          className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+        >
+          Try Again
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Scenario Content */}
+      <div className="bg-purple-50 border-2 border-purple-200 rounded-lg p-6">
+        <h3 className="flex items-center gap-2 font-semibold mb-4">
+          📱 Analyze This Social Media Post:
+        </h3>
+        <div className="bg-white border rounded-lg p-4 relative">
+          <div className="absolute top-3 right-3 text-xl">📱</div>
+          <p className="text-gray-800 pr-8">{scenario.content}</p>
+        </div>
+      </div>
+
+      {

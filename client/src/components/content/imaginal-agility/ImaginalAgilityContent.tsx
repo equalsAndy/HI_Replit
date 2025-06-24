@@ -92,6 +92,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   assessmentResults,
   user
 }) => {
+  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
 
   const renderStepContent = () => {
     switch (stepId) {
@@ -424,6 +425,83 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 className="h-12 w-auto mr-4"
               />
               <h1 className="text-3xl font-bold text-purple-700 mb-0">
+                Imaginal Agility Workshop Course &gt; Reality Discernment
+              </h1>
+            </div>
+            
+            <div className="mb-8">
+              <iframe 
+                width="400" 
+                height="300" 
+                src="https://www.youtube.com/embed/U7pQjMYKk_s" 
+                title="Reality Discernment" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+                className="rounded-lg shadow-lg"
+              ></iframe>
+            </div>
+            
+            <div className="text-lg text-gray-700 space-y-4">
+              <h2 className="text-2xl font-semibold text-purple-700">REALITY DISCERNMENT</h2>
+              <p className="text-xl font-semibold">Train Your Mind to Know What's Real.</p>
+              
+              <p>In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.</p>
+              
+              <p>This short learning experience introduces you to the neuroscience behind reality monitoring — the brain's ability to tell what's real from what's imagined — and offers practical tools.</p>
+              
+              <h3 className="text-xl font-semibold text-purple-700">What You'll Learn:</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Why imagination is your first line of cognitive defense</li>
+                <li>How AI content bypasses our natural filters</li>
+                <li>What neuroscience reveals about perception and deception</li>
+                <li>How to track your own AI interaction patterns in real time</li>
+              </ul>
+              
+              <h3 className="text-xl font-semibold text-purple-700">What You'll Practice:</h3>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>The 3-Second Reality Check — pause before reacting to emotional content</li>
+                <li>Visual detection challenge — spot AI-generated and manipulated images</li>
+                <li>5-Test Toolkit — systematic framework for content evaluation</li>
+              </ul>
+            </div>
+
+            {/* Practice and Navigation Buttons */}
+            <div className="space-y-4 mt-8">
+              <button
+                onClick={() => setShowDiscernmentModal(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
+              >
+                <span className="text-xl">🎯</span>
+                <span className="font-semibold">Reality Discernment Practice</span>
+              </button>
+              
+              <button
+                onClick={() => onNext && onNext('ia-8-1')}
+                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Next: The Neuroscience →
+              </button>
+            </div>
+
+            {/* Discernment Modal */}
+            <DiscernmentModal
+              isOpen={showDiscernmentModal}
+              onClose={() => setShowDiscernmentModal(false)}
+            />
+          </div>
+        );
+
+      case 'ia-8-1':
+        return (
+          <div className="prose max-w-none">
+            <div className="flex items-center mb-6">
+              <img 
+                src={imaginalAgilityLogo} 
+                alt="Imaginal Agility" 
+                className="h-12 w-auto mr-4"
+              />
+              <h1 className="text-3xl font-bold text-purple-700 mb-0">
                 Imaginal Agility Workshop Course &gt; The Neuroscience
               </h1>
             </div>
@@ -432,7 +510,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <iframe 
                 width="400" 
                 height="300" 
-                src="https://www.youtube.com/embed/JbU8YyUJhH0" 
+                src="https://www.youtube.com/embed/43Qs7OvToeI" 
                 title="The Neuroscience" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -456,39 +534,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               </ul>
               
               <p>By understanding these networks, you can learn to work with your brain's natural imagination processes more effectively.</p>
-            </div>
-          </div>
-        );
-
-      case 'ia-8-1':
-        return (
-          <div className="prose max-w-none">
-            <div className="flex items-center mb-6">
-              <img 
-                src={imaginalAgilityLogo} 
-                alt="Imaginal Agility" 
-                className="h-12 w-auto mr-4"
-              />
-              <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; Next Steps
-              </h1>
-            </div>
-            
-            <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/3qAu5tC5DwU" 
-                title="Next Steps" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
-            </div>
-            
-            <div className="text-lg text-gray-700 space-y-4">
-              <h2 className="text-2xl font-semibold text-purple-700">Your Imaginal Agility Journey Continues</h2>
+              
+              <h3 className="text-xl font-semibold text-purple-700">Your Imaginal Agility Journey Continues</h3>
               
               <p>Congratulations on completing the Imaginal Agility Workshop core modules. You've developed foundational skills in:</p>
               
