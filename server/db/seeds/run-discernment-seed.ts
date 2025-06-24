@@ -1,4 +1,4 @@
-import { db } from '../index.js';
+import { db } from '../../db.js';
 import { discernmentScenarios } from '../../../shared/schema.js';
 import { discernmentSeedData } from './discernment-scenarios.js';
 

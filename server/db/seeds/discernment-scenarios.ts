@@ -1,7 +1,7 @@
 export const discernmentSeedData = [
   // Reality Check Scenarios (3)
   {
-    exercise_type: 'reality_check',
+    exerciseType: 'reality_check',
     title: 'Mandatory AI Training Announcement',
     content: `<h3>Major Tech Company Announces Mandatory AI Training for All Employees</h3><p>"TechCorp will require all 45,000 employees to complete 40 hours of AI certification by December 31st or face termination. The leaked internal memo reveals concerns about human relevance in the workplace."</p>`,
     questions: [
@@ -15,7 +15,7 @@ export const discernmentSeedData = [
     metadata: { timer_seconds: 3, difficulty: 2 }
   },
   {
-    exercise_type: 'reality_check',
+    exerciseType: 'reality_check',
     title: 'Remote Work Productivity Study',
     content: `<h3>New Research: Remote Workers 40% Less Productive, Study Shows</h3><p>"The Institute for Workplace Excellence found remote workers complete 40% fewer tasks than office colleagues."</p>`,
     questions: [
@@ -29,7 +29,7 @@ export const discernmentSeedData = [
     metadata: { timer_seconds: 3, difficulty: 3 }
   },
   {
-    exercise_type: 'reality_check',
+    exerciseType: 'reality_check',
     title: 'AWS Global Outage Report',
     content: `<h3>Breaking: AWS Experiences Global Outage</h3><p>"Amazon Web Services reported widespread disruptions at 2:47 PM EST. Status page confirms incident with 4-6 hour restoration estimate."</p>`,
     questions: [
@@ -45,7 +45,7 @@ export const discernmentSeedData = [
 
   // Visual Detection Scenarios (3)
   {
-    exercise_type: 'visual_detection',
+    exerciseType: 'visual_detection',
     title: 'Tech CEO Conference',
     content: 'Tech CEO announces revolutionary AI breakthrough at industry conference',
     questions: [
@@ -63,7 +63,7 @@ export const discernmentSeedData = [
     }
   },
   {
-    exercise_type: 'visual_detection',
+    exerciseType: 'visual_detection',
     title: 'Executive Video Call',
     content: 'Executive team video call discussing Q4 strategy',
     questions: [
@@ -81,7 +81,7 @@ export const discernmentSeedData = [
     }
   },
   {
-    exercise_type: 'visual_detection',
+    exerciseType: 'visual_detection',
     title: 'Company Retreat',
     content: 'Annual company retreat team building session - Photo by Alex Johnson/CorpEvents',
     questions: [
@@ -101,7 +101,7 @@ export const discernmentSeedData = [
 
   // Toolkit Practice Scenarios (3)
   {
-    exercise_type: 'toolkit_practice',
+    exerciseType: 'toolkit_practice',
     title: '4-Day Work Week Study',
     content: `"Dr. Elena Rodriguez, Harvard Business School professor, confirms companies implementing 4-day work weeks see 35% productivity increases and 50% lower turnover rates. Her study of 25,000 employees across 75 Fortune 500 companies reveals hidden costs of traditional schedules."`,
     questions: [
@@ -122,7 +122,7 @@ export const discernmentSeedData = [
     }
   },
   {
-    exercise_type: 'toolkit_practice',
+    exerciseType: 'toolkit_practice',
     title: 'Microsoft AI Manager Replacement',
     content: `"Microsoft insider confirms secret project to replace all middle managers with AI by 2026. 'Project Hierarchy' will eliminate 40,000 positions globally with 60% efficiency improvement."`,
     questions: [
@@ -143,7 +143,7 @@ export const discernmentSeedData = [
     }
   },
   {
-    exercise_type: 'toolkit_practice',
+    exerciseType: 'toolkit_practice',
     title: 'AI Productivity Breakthrough',
     content: `"New Stanford research proves AI tools increase knowledge worker productivity by 87%. The landmark study tracked 10,000 professionals using GPT-4 vs traditional methods."`,
     questions: [
