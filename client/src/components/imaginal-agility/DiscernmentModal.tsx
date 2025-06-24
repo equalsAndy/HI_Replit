@@ -221,4 +221,5 @@ const SummaryScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => (
   </div>
 );
 
+export { DiscernmentModal };
 export default DiscernmentModal;

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
 import AssessmentView from './AssessmentView';
@@ -27,6 +27,7 @@ import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
+import { DiscernmentModal } from '../imaginal-agility/DiscernmentModal';
 
 import { useApplication } from '@/hooks/use-application';
 
@@ -67,6 +68,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   setIsAssessmentModalOpen,
   isImaginalAgility = false
 }) => {
+  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
   // Handle Imaginal Agility specific content mapping
   if (isImaginalAgility) {
     switch (currentContent) {
@@ -585,6 +587,14 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             </div>
 
             <div className="space-y-4 mt-8">
+              <button
+                onClick={() => setShowDiscernmentModal(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
+              >
+                <span className="text-xl">🎯</span>
+                <span className="font-semibold">Reality Discernment Practice</span>
+              </button>
+              
               <div className="flex justify-end">
                 <Button 
                   onClick={() => {
@@ -1700,6 +1710,21 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
   }
+
+  return (
+    <>
+      {/* Fallback - should not reach here */}
+      <div>Content not found: {currentContent}</div>
+      
+      {/* Discernment Modal for IA content */}
+      {isImaginalAgility && (
+        <DiscernmentModal
+          isOpen={showDiscernmentModal}
+          onClose={() => setShowDiscernmentModal(false)}
+        />
+      )}
+    </>
+  );
 };
 
 export default ContentViews;
