@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React from 'react';
+import React, { useState } from 'react';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
 import AssessmentView from './AssessmentView';
@@ -27,6 +27,7 @@ import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
+import { DiscernmentModal } from '../imaginal-agility/DiscernmentModal';
 
 import { useApplication } from '@/hooks/use-application';
 
@@ -67,6 +68,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   setIsAssessmentModalOpen,
   isImaginalAgility = false
 }) => {
+  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
   // Handle Imaginal Agility specific content mapping
   if (isImaginalAgility) {
     switch (currentContent) {
@@ -584,18 +586,28 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end mt-8">
-              <Button 
-                onClick={() => {
-                  markStepCompleted('ia-7-1');
-                  setCurrentContent('discernment-exercise');
-                  scrollToContentTop();
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white w-full sm:w-auto"
-                size="lg"
+            <div className="space-y-4 mt-8">
+              <button
+                onClick={() => setShowDiscernmentModal(true)}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
               >
-                Next: Practice Discernment Exercise
-              </Button>
+                <span className="text-xl">🎯</span>
+                <span className="font-semibold">Reality Discernment Practice</span>
+              </button>
+              
+              <div className="flex justify-end">
+                <Button 
+                  onClick={() => {
+                    markStepCompleted('ia-7-1');
+                    setCurrentContent('ia-8-1');
+                    scrollToContentTop();
+                  }}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  size="lg"
+                >
+                  Next: The Neuroscience →
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -879,34 +891,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
         />
       );
 
-    case 'discernment-exercise':
-      return (
-        <div className="prose max-w-none">
-          <div className="mb-6">
-            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-4">Reality Discernment Exercise</h1>
-            <p className="text-lg text-gray-700 mb-6">
-              Practice the essential skill of discerning authentic information from artificial or manipulated content. 
-              Complete the 5-step exercise to build your personal discernment toolkit.
-            </p>
-          </div>
-          
-          <DiscernmentExercise />
-          
-          <div className="flex justify-center mt-8">
-            <Button 
-              onClick={() => {
-                markStepCompleted('discernment-exercise');
-                setCurrentContent('ia-8-1');
-                scrollToContentTop();
-              }}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-              size="lg"
-            >
-              Next: Neuroscience
-            </Button>
-          </div>
-        </div>
-      );
+
 
     // Imaginal Agility content views
     case 'imaginal-intro':
