@@ -15,6 +15,7 @@ import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgili
 import ProfileEditor from '@/components/profile/ProfileEditor';
 import { NavBar } from '@/components/layout/NavBar';
 import { useApplication } from '@/hooks/use-application';
+import { DiscernmentModal } from '@/components/imaginal-agility/DiscernmentModal';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
@@ -25,6 +26,7 @@ export default function ImaginalAgilityHome() {
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
+  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
   const { toast } = useToast();
   const { setCurrentApp } = useApplication();
 
@@ -330,6 +332,12 @@ export default function ImaginalAgilityHome() {
           />
         </div>
       </div>
+
+      {/* Discernment Modal - Rendered at page level */}
+      <DiscernmentModal
+        isOpen={showDiscernmentModal}
+        onClose={() => setShowDiscernmentModal(false)}
+      />
     </div>
   );
 }
