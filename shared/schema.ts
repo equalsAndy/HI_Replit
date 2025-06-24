@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, text, boolean, integer } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, text, boolean, integer, jsonb, index, unique } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -147,6 +147,45 @@ export const insertGrowthPlanSchema = createInsertSchema(growthPlans);
 // Type definitions for growth plans
 export type GrowthPlan = typeof growthPlans.$inferSelect;
 export type InsertGrowthPlan = z.infer<typeof insertGrowthPlanSchema>;
+
+// Discernment scenarios table for discernment training exercises
+export const discernmentScenarios = pgTable('discernment_scenarios', {
+  id: serial('id').primaryKey(),
+  exerciseType: varchar('exercise_type', { length: 50 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  questions: jsonb('questions').notNull(),
+  metadata: jsonb('metadata').default('{}'),
+  difficultyLevel: integer('difficulty_level').default(1),
+  tags: text('tags').array(),
+  active: boolean('active').default(true),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+});
+
+// User discernment progress tracking table
+export const userDiscernmentProgress = pgTable('user_discernment_progress', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  scenariosSeen: jsonb('scenarios_seen').default('[]'),
+  lastSessionAt: timestamp('last_session_at').defaultNow(),
+  totalSessions: integer('total_sessions').default(0),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow()
+}, (table) => ({
+  userIdIdx: index('idx_user_discernment_progress_user_id').on(table.userId),
+  userIdUnique: unique().on(table.userId)
+}));
+
+// Create insert schemas for discernment tables
+export const insertDiscernmentScenarioSchema = createInsertSchema(discernmentScenarios);
+export const insertUserDiscernmentProgressSchema = createInsertSchema(userDiscernmentProgress);
+
+// Type definitions for discernment tables
+export type DiscernmentScenario = typeof discernmentScenarios.$inferSelect;
+export type InsertDiscernmentScenario = z.infer<typeof insertDiscernmentScenarioSchema>;
+export type UserDiscernmentProgress = typeof userDiscernmentProgress.$inferSelect;
+export type InsertUserDiscernmentProgress = z.infer<typeof insertUserDiscernmentProgressSchema>;
 
 // Navigation progress table for tracking user progression
 export const navigationProgress = pgTable('navigation_progress', {
