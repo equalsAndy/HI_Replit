@@ -286,6 +286,8 @@ export default function ImaginalAgilityHome() {
             user={user}
             setIsAssessmentModalOpen={setIsAssessmentModalOpen}
             isImaginalAgility={true}
+            showDiscernmentModal={showDiscernmentModal}
+            setShowDiscernmentModal={setShowDiscernmentModal}
           />
 
           {/* Imaginal Agility Assessment */}
