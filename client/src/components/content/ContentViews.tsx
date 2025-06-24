@@ -1723,45 +1723,101 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       {/* Fallback - should not reach here */}
       <div>Content not found: {currentContent}</div>
       
-      {/* Discernment Modal for IA content */}
-      {isImaginalAgility && (
-        <DiscernmentModal
-          isOpen={showDiscernmentModal}
-          onClose={() => {
-            console.log('Closing discernment modal');
-            setShowDiscernmentModal(false);
+      {/* Simple test modal */}
+      {showDiscernmentModal && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+            zIndex: 999999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
-        />
-      )}
-      
-      {/* Debug: Always show modal state */}
-      {showDiscernmentModal && (
-        <div style={{ position: 'fixed', top: 10, right: 10, background: 'red', color: 'white', padding: '5px', zIndex: 10000 }}>
-          Modal should be visible!
-        </div>
-      )}
-      
-      {/* Force render modal for debugging */}
-      {showDiscernmentModal && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(255, 0, 0, 0.8)',
-          zIndex: 8888,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'white',
-          fontSize: '24px',
-          fontWeight: 'bold'
-        }}>
-          DEBUG: Modal should appear here!
-          <button onClick={() => setShowDiscernmentModal(false)} style={{ marginLeft: '20px', padding: '10px', backgroundColor: 'white', color: 'black' }}>
-            Close Debug
-          </button>
+          onClick={() => setShowDiscernmentModal(false)}
+        >
+          <div 
+            style={{
+              backgroundColor: 'white',
+              padding: '40px',
+              borderRadius: '8px',
+              maxWidth: '800px',
+              width: '90%',
+              maxHeight: '90vh',
+              overflow: 'auto'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#7C3AED' }}>Reality Discernment Training</h2>
+              <button 
+                onClick={() => setShowDiscernmentModal(false)}
+                style={{ 
+                  background: '#f3f4f6', 
+                  border: 'none', 
+                  borderRadius: '50%', 
+                  width: '40px', 
+                  height: '40px',
+                  cursor: 'pointer',
+                  fontSize: '20px'
+                }}
+              >
+                ×
+              </button>
+            </div>
+            
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '16px', color: '#374151', marginBottom: '15px' }}>
+                Welcome to the Reality Discernment Training module. This interactive session will help you develop skills to identify and evaluate digital content in an AI-enhanced world.
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+                <div style={{ backgroundColor: '#EDE9FE', padding: '20px', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '10px' }}>⚡</div>
+                  <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>3-Second Reality Check</h3>
+                  <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                    Train your emotional response system to pause before reacting to provocative content
+                  </p>
+                </div>
+                
+                <div style={{ backgroundColor: '#EDE9FE', padding: '20px', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '10px' }}>👁️</div>
+                  <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>Visual Detection</h3>
+                  <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                    Learn to spot AI-generated and manipulated images through visual analysis
+                  </p>
+                </div>
+                
+                <div style={{ backgroundColor: '#EDE9FE', padding: '20px', borderRadius: '8px' }}>
+                  <div style={{ fontSize: '24px', marginBottom: '10px' }}>🔍</div>
+                  <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>5-Test Toolkit</h3>
+                  <p style={{ fontSize: '14px', color: '#6B7280' }}>
+                    Apply systematic evaluation methods for comprehensive content analysis
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <button
+              onClick={() => setShowDiscernmentModal(false)}
+              style={{
+                background: 'linear-gradient(to right, #7C3AED, #5B21B6)',
+                color: 'white',
+                padding: '12px 32px',
+                borderRadius: '8px',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '16px',
+                fontWeight: '600'
+              }}
+            >
+              Start Training
+            </button>
+          </div>
         </div>
       )}
     </>
