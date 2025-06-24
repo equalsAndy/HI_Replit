@@ -69,6 +69,9 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   isImaginalAgility = false
 }) => {
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
+  
+  // Debug modal state
+  console.log('ContentViews - showDiscernmentModal:', showDiscernmentModal, 'isImaginalAgility:', isImaginalAgility);
   // Handle Imaginal Agility specific content mapping
   if (isImaginalAgility) {
     switch (currentContent) {
@@ -588,7 +591,11 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
             <div className="space-y-4 mt-8">
               <button
-                onClick={() => setShowDiscernmentModal(true)}
+                onClick={() => {
+                  console.log('Discernment button clicked!');
+                  setShowDiscernmentModal(true);
+                  console.log('Modal state set to true');
+                }}
                 className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
               >
                 <span className="text-xl">🎯</span>
@@ -1720,8 +1727,18 @@ const ContentViews: React.FC<ContentViewsProps> = ({
       {isImaginalAgility && (
         <DiscernmentModal
           isOpen={showDiscernmentModal}
-          onClose={() => setShowDiscernmentModal(false)}
+          onClose={() => {
+            console.log('Closing discernment modal');
+            setShowDiscernmentModal(false);
+          }}
         />
+      )}
+      
+      {/* Debug: Always show modal state */}
+      {showDiscernmentModal && (
+        <div style={{ position: 'fixed', top: 10, right: 10, background: 'red', color: 'white', padding: '5px', zIndex: 10000 }}>
+          Modal should be visible!
+        </div>
       )}
     </>
   );
