@@ -27,7 +27,7 @@ The platform provides a guided, step-by-step learning experience with assessment
 ### Database Architecture
 - **Database**: PostgreSQL with Drizzle ORM
 - **Schema**: Comprehensive user management, assessment tracking, and progress persistence
-- **Key Tables**: users, user_assessments, invites, applications
+- **Key Tables**: users, user_assessments, invites, applications, discernment_scenarios, user_discernment_progress
 
 ## Key Components
 
@@ -134,8 +134,18 @@ The platform provides a guided, step-by-step learning experience with assessment
 2. Backend: ESBuild bundles TypeScript server to dist/index.js
 3. Production: Single Node.js process serves both frontend and API
 
+## Recent Changes
+
+### December 24, 2025 - Phase 1A: Discernment Database Foundation
+- Added new database tables: `discernment_scenarios` and `user_discernment_progress`
+- Created API endpoints: `/api/discernment/scenarios/:exerciseType` and `/api/discernment/progress`
+- Seeded database with 9 scenarios (3 each: reality_check, visual_detection, toolkit_practice)
+- Implemented user progress tracking with scenario randomization
+- Prepared foundation for Phase 1B modal integration into IA workshop step ia-6-1
+
 ## Changelog
 - June 17, 2025. Initial setup
+- December 24, 2025. Phase 1A Discernment Training Database Foundation completed
 
 ## User Preferences
 
