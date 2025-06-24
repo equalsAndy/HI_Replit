@@ -1740,6 +1740,30 @@ const ContentViews: React.FC<ContentViewsProps> = ({
           Modal should be visible!
         </div>
       )}
+      
+      {/* Force render modal for debugging */}
+      {showDiscernmentModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 0, 0, 0.8)',
+          zIndex: 8888,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white',
+          fontSize: '24px',
+          fontWeight: 'bold'
+        }}>
+          DEBUG: Modal should appear here!
+          <button onClick={() => setShowDiscernmentModal(false)} style={{ marginLeft: '20px', padding: '10px', backgroundColor: 'white', color: 'black' }}>
+            Close Debug
+          </button>
+        </div>
+      )}
     </>
   );
 };
