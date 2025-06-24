@@ -37,17 +37,50 @@ const RealityCheckExercise: React.FC<RealityCheckExerciseProps> = ({ onComplete 
   const loadScenario = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/discernment/scenarios/reality_check', {
-        credentials: 'include'
-      });
+      // Use mock data for testing until auth is fixed
+      const mockScenario = {
+        id: 1,
+        title: "Mandatory AI Training Announcement",
+        content: `<p><strong>URGENT: Company-Wide AI Training Initiative</strong></p>
+        <p>All employees must complete mandatory AI safety training by end of business Friday or face immediate suspension without pay. This new corporate policy, effective immediately, requires:</p>
+        <ul>
+          <li>4-hour weekend training sessions (unpaid)</li>
+          <li>Installation of monitoring software on personal devices</li>
+          <li>Signed agreement to AI decision-making in daily work</li>
+        </ul>
+        <p>Failure to comply will result in termination. No exceptions.</p>
+        <p><em>HR will be monitoring all communications regarding this policy.</em></p>`,
+        questions: [
+          {
+            question: "What was your immediate emotional reaction to this announcement?",
+            options: [
+              "Anger and frustration",
+              "Fear about job security", 
+              "Confusion about the requirements",
+              "Calm acceptance"
+            ],
+            correct: 0,
+            explanation: "Most people would feel anger or frustration - this is designed to trigger strong emotions quickly."
+          },
+          {
+            question: "What made you pause and question this content?",
+            options: [
+              "The threatening tone and urgency",
+              "Unrealistic demands (personal device monitoring)",
+              "Lack of official company letterhead/signature",
+              "All of the above"
+            ],
+            correct: 3,
+            explanation: "Multiple red flags should make you suspicious: threatening tone, unrealistic demands, and lack of proper authorization."
+          }
+        ],
+        metadata: {
+          timer_seconds: 3
+        }
+      };
       
-      if (response.ok) {
-        const data = await response.json();
-        setScenario(data.scenario);
-        setTimer(data.scenario.metadata.timer_seconds || 3);
-      } else {
-        console.error('Failed to load scenario');
-      }
+      setScenario(mockScenario);
+      setTimer(mockScenario.metadata.timer_seconds || 3);
     } catch (error) {
       console.error('Error loading scenario:', error);
     } finally {

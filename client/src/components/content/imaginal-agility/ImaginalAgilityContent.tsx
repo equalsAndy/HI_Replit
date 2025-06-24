@@ -94,6 +94,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   user
 }) => {
   const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
+  
+  // Debug logging
+  console.log('ImaginalAgilityContent - showDiscernmentModal:', showDiscernmentModal);
 
   const renderStepContent = () => {
     switch (stepId) {
@@ -470,7 +473,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             {/* Practice and Navigation Buttons */}
             <div className="space-y-4 mt-8">
               <button
-                onClick={() => setShowDiscernmentModal(true)}
+                onClick={() => {
+                  console.log('Button clicked - setting modal to true');
+                  setShowDiscernmentModal(true);
+                }}
                 className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
               >
                 <span className="text-xl">🎯</span>

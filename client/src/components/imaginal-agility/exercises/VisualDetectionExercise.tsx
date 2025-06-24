@@ -41,16 +41,26 @@ const VisualDetectionExercise: React.FC<VisualDetectionExerciseProps> = ({ onCom
   const loadScenario = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/discernment/scenarios/visual_detection', {
-        credentials: 'include'
-      });
+      // Use mock data for testing
+      const mockScenario = {
+        id: 2,
+        title: "Professional Headshot Detection",
+        content: `<p>One of these professional headshots is real, one is AI-generated. Can you tell which is which?</p>
+        <p>Look for subtle details: lighting consistency, skin texture, eye reflections, and background elements.</p>`,
+        questions: [],
+        metadata: {
+          image_pairs: [
+            {
+              real_url: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzM0OThmMyIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5SZWFsIFBob3RvPC90ZXh0Pjwvc3ZnPg==",
+              fake_url: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2VmNDQ0NCIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIxOCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5BSSBHZW5lcmF0ZWQ8L3RleHQ+PC9zdmc+",
+              real_description: "Natural lighting, subtle skin imperfections, authentic eye reflections",
+              fake_description: "Too-perfect skin, inconsistent lighting, artificial-looking eyes"
+            }
+          ]
+        }
+      };
       
-      if (response.ok) {
-        const data = await response.json();
-        setScenario(data.scenario);
-      } else {
-        console.error('Failed to load scenario');
-      }
+      setScenario(mockScenario);
     } catch (error) {
       console.error('Error loading scenario:', error);
     } finally {

@@ -48,6 +48,14 @@ const DiscernmentModal: React.FC<DiscernmentModalProps> = ({ isOpen, onClose }) 
 
   if (!isOpen) return null;
 
+  // Debug: Log modal state
+  console.log('DiscernmentModal render - isOpen:', isOpen, 'currentExercise:', currentExercise);
+  
+  // Test rendering without API calls initially
+  if (isOpen) {
+    console.log('Modal should be visible now');
+  }
+
   const handleExerciseComplete = () => {
     if (currentExercise < 3) {
       setCurrentExercise(currentExercise + 1);
@@ -67,8 +75,8 @@ const DiscernmentModal: React.FC<DiscernmentModalProps> = ({ isOpen, onClose }) 
   const currentExerciseData = exercises[currentExercise - 1];
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden">
+    <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[9999] p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden relative z-[10000]">
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-600 to-purple-800 text-white p-6 flex justify-between items-center">
           <div className="flex items-center gap-4">

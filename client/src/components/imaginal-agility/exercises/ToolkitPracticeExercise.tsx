@@ -33,16 +33,52 @@ const ToolkitPracticeExercise: React.FC<ToolkitPracticeExerciseProps> = ({ onCom
   const loadScenario = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/discernment/scenarios/toolkit_practice', {
-        credentials: 'include'
-      });
+      // Use mock data for testing
+      const mockScenario = {
+        id: 3,
+        title: "4-Day Work Week Study Analysis",
+        content: `<p><strong>Breaking: Major Study Shows 4-Day Work Week Increases Productivity by 47%</strong></p>
+        <p>A comprehensive study of 1,000 companies worldwide found that employees working 4-day weeks were significantly more productive, happier, and showed 65% less burnout. The study, conducted by the Institute for Future Work, tracked participants for 18 months across various industries.</p>
+        <p>"This fundamentally changes how we think about work-life balance," said Dr. Sarah Mitchell, lead researcher. "Companies adopting this model saw revenue increases of up to 23% while employee satisfaction scores reached all-time highs."</p>
+        <p>Major corporations including Microsoft, Google, and Amazon are reportedly considering company-wide implementation by Q2 2024.</p>`,
+        questions: [
+          {
+            question: "Who is the source of this information? What can you verify about them?",
+            type: "textarea",
+            hint: "Consider the credibility and verifiability of the Institute for Future Work and Dr. Sarah Mitchell"
+          },
+          {
+            question: "What is the broader context? What else is happening in workplace discussions?",
+            type: "textarea", 
+            hint: "Think about current workplace trends, return-to-office debates, and economic pressures"
+          },
+          {
+            question: "Why might this story be published now? What is the timing significance?",
+            type: "textarea",
+            hint: "Consider current economic conditions, labor market trends, and policy discussions"
+          },
+          {
+            question: "What might be the motivation behind sharing this? Who benefits?",
+            type: "checkbox",
+            options: [
+              "Employee advocacy groups pushing for workplace reform",
+              "Companies testing public reaction to policy changes", 
+              "Media outlets seeking engagement with trending topics",
+              "Researchers promoting their methodology or findings"
+            ]
+          },
+          {
+            question: "Does this fit a recognizable pattern? What similar claims have you seen?",
+            type: "textarea",
+            hint: "Think about other workplace productivity studies and their typical methodology"
+          }
+        ],
+        metadata: {
+          tests: ["source_test", "context_test", "timing_test", "motivation_test", "pattern_test"]
+        }
+      };
       
-      if (response.ok) {
-        const data = await response.json();
-        setScenario(data.scenario);
-      } else {
-        console.error('Failed to load scenario');
-      }
+      setScenario(mockScenario);
     } catch (error) {
       console.error('Error loading scenario:', error);
     } finally {
