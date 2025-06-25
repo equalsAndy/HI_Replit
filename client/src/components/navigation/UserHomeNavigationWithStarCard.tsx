@@ -12,7 +12,10 @@ import {
   BookOpen, 
   PenLine, 
   Activity,
-  FileText
+  FileText,
+  Download,
+  Calendar,
+  Users
 } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -378,6 +381,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   )}
                                   {step.type === 'content' && (
                                     <PenLine className="h-4 w-4 text-purple-400" />
+                                  )}
+                                  {step.type === 'download' && (
+                                    <Download className="h-4 w-4 text-purple-400" />
+                                  )}
+                                  {step.type === 'planning' && (
+                                    <Calendar className="h-4 w-4 text-purple-400" />
+                                  )}
+                                  {step.type === 'collaboration' && (
+                                    <Users className="h-4 w-4 text-purple-400" />
                                   )}
                                   {(!step.type) && (
                                     <FileText className="h-4 w-4 text-gray-400" />
