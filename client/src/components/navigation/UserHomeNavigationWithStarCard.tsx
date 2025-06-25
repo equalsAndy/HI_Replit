@@ -20,7 +20,8 @@ import {
   Plus,
   BarChart3,
   ImageIcon,
-  Zap
+  Zap,
+  Presentation
 } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -379,13 +380,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
                                   {step.type === 'video' && (
-                                    <BookOpen className="h-4 w-4 text-indigo-400" />
+                                    <Presentation className="h-4 w-4 text-indigo-400" />
                                   )}
                                   {step.type === 'assessment' && (
                                     <Activity className="h-4 w-4 text-orange-400" />
                                   )}
                                   {step.type === 'content' && (
-                                    <PenLine className="h-4 w-4 text-purple-400" />
+                                    <Presentation className="h-4 w-4 text-purple-400" />
                                   )}
                                   {step.type === 'download' && (
                                     <Download className="h-4 w-4 text-purple-400" />
