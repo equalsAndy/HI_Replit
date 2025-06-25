@@ -118,14 +118,6 @@ router.get('/code/:code', async (req, res) => {
       });
     }
     
-    // Check if the invite code has expired
-    if (result.invite?.expiresAt && new Date(result.invite.expiresAt) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: 'This invite code has expired'
-      });
-    }
-    
     // Return limited info for security
     res.json({
       success: true,

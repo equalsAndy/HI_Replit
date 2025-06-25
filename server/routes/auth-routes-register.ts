@@ -49,14 +49,6 @@ router.post('/validate-invite', async (req, res) => {
       });
     }
 
-    // Check if the invite code has expired
-    if (result.invite?.expiresAt && new Date(result.invite.expiresAt) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: 'This invite code has expired'
-      });
-    }
-
     // Return the invite details (excluding sensitive data)
     res.json({
       success: true,
@@ -106,13 +98,7 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Check if the invite code has expired
-    if (inviteResult.invite?.expiresAt && new Date(inviteResult.invite.expiresAt) < new Date()) {
-      return res.status(400).json({
-        success: false,
-        error: 'This invite code has expired'
-      });
-    }
+
     
     // Check if the email matches the invite
     if (data.email.toLowerCase() !== inviteResult.invite.email.toLowerCase()) {
