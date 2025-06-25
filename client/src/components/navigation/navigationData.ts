@@ -77,7 +77,7 @@ export const allStarTeamsNavigationSections = [
     steps: [
       { id: '2-1', title: 'Intro to Star Strengths', type: 'video' },
       { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
-      { id: '2-3', title: 'Review Your Star Card', type: 'content' },
+      { id: '2-3', title: 'Review Your Star Card', type: 'viewing' },
       { id: '2-4', title: 'Strength Reflection', type: 'content' }
     ]
   },
@@ -88,16 +88,16 @@ export const allStarTeamsNavigationSections = [
       { id: '3-1', title: 'Intro to Flow', type: 'video' },
       { id: '3-2', title: 'Flow Assessment', type: 'assessment' },
       { id: '3-3', title: 'Rounding Out', type: 'content' },
-      { id: '3-4', title: 'Add Flow to Star Card', type: 'content' }
+      { id: '3-4', title: 'Add Flow to Star Card', type: 'adding' }
     ]
   },
   {
     id: '4',
     title: 'VISUALIZE YOUR POTENTIAL',
     steps: [
-      { id: '4-1', title: 'Ladder of Well-being', type: 'content' },
-      { id: '4-2', title: 'Well-being Reflections', type: 'content' },
-      { id: '4-3', title: 'Visualizing You', type: 'content' },
+      { id: '4-1', title: 'Ladder of Well-being', type: 'interactive' },
+      { id: '4-2', title: 'Well-being Reflections', type: 'video' },
+      { id: '4-3', title: 'Visualizing You', type: 'visual' },
       { id: '4-4', title: 'Your Future Self', type: 'content' },
       { id: '4-5', title: 'Final Reflection', type: 'content' }
     ]

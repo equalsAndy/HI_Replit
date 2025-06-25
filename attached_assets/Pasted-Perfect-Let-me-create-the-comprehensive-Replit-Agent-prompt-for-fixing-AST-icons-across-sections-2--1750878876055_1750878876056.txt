@@ -1,0 +1,101 @@
+Perfect! Let me create the comprehensive Replit Agent prompt for fixing AST icons across sections 2-3, 3-4, and all of Section 4.Perfect! Here's the **comprehensive Replit Agent prompt** ready to execute:
+
+---
+
+## 🎯 **Comprehensive AST Icon Fix - Copy and Execute:**
+
+```
+# REPLIT AGENT: AST Icon Fix - Sections 2-3, 3-4, and Section 4
+
+## 🎯 OBJECTIVE: Fix remaining AST icon issues with new step types and functional colors
+
+## 📂 MODIFY EXACTLY 2 FILES:
+
+### FILE 1: client/src/components/navigation/navigationData.ts
+**CHANGE:** Update step types for 5 specific steps
+
+Find these steps and change their types:
+- Step 2-3 "Review Your Star Card" → change `type: 'content'` TO `type: 'viewing'`
+- Step 3-4 "Add Flow to Star Card" → change `type: 'content'` TO `type: 'adding'`
+- Step 4-1 "Ladder of Well-being" → change `type: 'content'` TO `type: 'interactive'`
+- Step 4-2 "Well-being Reflections" → change `type: 'content'` TO `type: 'video'`
+- Step 4-3 "Visualizing You" → change `type: 'content'` TO `type: 'visual'`
+
+**KEEP UNCHANGED:**
+- Step 4-4 "Your Future Self" → keep `type: 'content'` (deep reflection)
+- Step 4-5 "Final Reflection" → keep `type: 'content'` (deep reflection)
+
+### FILE 2: client/src/components/navigation/UserHomeNavigationWithStarCard.tsx
+**ADD:** 5 new type cases to existing icon rendering logic
+
+Find the existing icon assignment block and ADD these new cases:
+
+```typescript
+{step.type === 'viewing' && (
+  <Eye className="h-4 w-4 text-gray-400" />
+)}
+{step.type === 'adding' && (
+  <Plus className="h-4 w-4 text-emerald-400" />
+)}
+{step.type === 'interactive' && (
+  <BarChart3 className="h-4 w-4 text-violet-400" />
+)}
+{step.type === 'visual' && (
+  <ImageIcon className="h-4 w-4 text-pink-400" />
+)}
+```
+
+**NOTE:** Step 4-2 will use existing `video` type (BookOpen with indigo-400)
+
+## 🔍 IMPORT CHECK:
+Ensure these imports exist in UserHomeNavigationWithStarCard.tsx:
+- Eye
+- Plus  
+- BarChart3
+- ImageIcon
+
+## ⚠️ CRITICAL CONSTRAINTS:
+- ❌ DO NOT modify any other sections (1, 5, 6)
+- ❌ DO NOT modify IA workshop (ia-prefixed steps)
+- ❌ DO NOT change step IDs, titles, or routes
+- ❌ DO NOT modify steps 4-4 and 4-5 (keep as content/PenLine)
+- ✅ ONLY change the 5 specified step types
+- ✅ ONLY add the 4 new icon type cases
+- ✅ Use functional colors as specified
+
+## 🎨 COLOR RATIONALE:
+- Gray (viewing): Neutral, focused on seeing content
+- Emerald (adding): Positive action, growth
+- Violet (interactive): Data/engagement focus
+- Pink (visual): Creative, visual activity
+- Indigo (video): Matches existing learning content
+
+## 📋 VERIFICATION:
+After changes, confirm:
+1. Steps 2-3, 3-4, 4-1, 4-2, 4-3 have new types
+2. Steps 4-4, 4-5 remain as content type
+3. 4 new icon cases added to rendering logic
+4. Required imports present
+
+## 📊 EXPECTED VISUAL RESULT:
+- 👁️ 2-3 Review Your Star Card (gray Eye)
+- ➕ 3-4 Add Flow to Star Card (emerald Plus)
+- 📊 4-1 Ladder of Well-being (violet BarChart3)
+- 📖 4-2 Well-being Reflections (indigo BookOpen - existing)
+- 🖼️ 4-3 Visualizing You (pink ImageIcon)
+- ✏️ 4-4 Your Future Self (purple PenLine - unchanged)
+- ✏️ 4-5 Final Reflection (purple PenLine - unchanged)
+
+EXECUTE BOTH FILE MODIFICATIONS FOR COMPREHENSIVE AST ICON FIX.
+```
+
+---
+
+## 🎯 **Expected Beautiful Result:**
+
+After this executes, the AST navigation will have **10 different functional icon types** with meaningful colors:
+
+📖 **Learning** | ⚡ **Assessment** | ✏️ **Reflection** | 📥 **Download** | 📅 **Planning**  
+👥 **Collaboration** | 👁️ **Viewing** | ➕ **Adding** | 📊 **Interactive** | 🖼️ **Visual**
+
+This will create a **visually rich and functionally meaningful** navigation system! 🚀

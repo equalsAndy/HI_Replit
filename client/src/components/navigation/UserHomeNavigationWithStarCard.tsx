@@ -15,7 +15,11 @@ import {
   FileText,
   Download,
   Calendar,
-  Users
+  Users,
+  Eye,
+  Plus,
+  BarChart3,
+  ImageIcon
 } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -383,13 +387,25 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <PenLine className="h-4 w-4 text-purple-400" />
                                   )}
                                   {step.type === 'download' && (
-                                    <Download className="h-4 w-4 text-cyan-400" />
+                                    <Download className="h-4 w-4 text-purple-400" />
                                   )}
                                   {step.type === 'planning' && (
-                                    <Calendar className="h-4 w-4 text-blue-400" />
+                                    <Calendar className="h-4 w-4 text-purple-400" />
                                   )}
                                   {step.type === 'collaboration' && (
-                                    <Users className="h-4 w-4 text-amber-400" />
+                                    <Users className="h-4 w-4 text-purple-400" />
+                                  )}
+                                  {step.type === 'viewing' && (
+                                    <Eye className="h-4 w-4 text-gray-400" />
+                                  )}
+                                  {step.type === 'adding' && (
+                                    <Plus className="h-4 w-4 text-emerald-400" />
+                                  )}
+                                  {step.type === 'interactive' && (
+                                    <BarChart3 className="h-4 w-4 text-violet-400" />
+                                  )}
+                                  {step.type === 'visual' && (
+                                    <ImageIcon className="h-4 w-4 text-pink-400" />
                                   )}
                                   {(!step.type) && (
                                     <FileText className="h-4 w-4 text-gray-400" />
