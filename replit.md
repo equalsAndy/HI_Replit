@@ -136,6 +136,12 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 25, 2025 - Invite Code Expiration Removal
+- Removed expiration checks from invite code validation in auth routes
+- Updated invite management UI to remove expiration-related columns and status indicators
+- All existing invite codes will continue to work indefinitely
+- Simplified invite status to only show "Used" vs "Active" states
+
 ### December 24, 2025 - Phase 1A: Discernment Database Foundation
 - Added new database tables: `discernment_scenarios` and `user_discernment_progress`
 - Created API endpoints: `/api/discernment/scenarios/:exerciseType` and `/api/discernment/progress`

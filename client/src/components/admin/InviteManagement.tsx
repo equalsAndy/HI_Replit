@@ -23,7 +23,6 @@ interface Invite {
   expiresAt: string | null;
   usedAt: string | null;
   isUsed: boolean;
-  isExpired: boolean;
 }
 
 export const InviteManagement: React.FC = () => {
@@ -54,8 +53,7 @@ export const InviteManagement: React.FC = () => {
         // Process the invites to add computed properties
         const processedInvites = data.invites.map((invite: any) => ({
           ...invite,
-          isUsed: !!invite.usedAt,
-          isExpired: invite.expiresAt ? new Date(invite.expiresAt) < new Date() : false
+          isUsed: !!invite.usedAt
         }));
         setInvites(processedInvites);
       } else {
@@ -316,7 +314,6 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Invite Code</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Created</TableHead>
-                      <TableHead>Expires</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
                     </TableRow>
@@ -359,16 +356,9 @@ export const InviteManagement: React.FC = () => {
                           {formatDistanceToNow(new Date(invite.createdAt), { addSuffix: true })}
                         </TableCell>
                         <TableCell>
-                          {formatDistanceToNow(new Date(invite.expiresAt), { addSuffix: true })}
-                        </TableCell>
-                        <TableCell>
                           {invite.isUsed ? (
                             <Badge variant="outline" className="bg-blue-50 text-blue-800 border-blue-200">
                               <Check className="h-3 w-3 mr-1" /> Used
-                            </Badge>
-                          ) : invite.isExpired ? (
-                            <Badge variant="outline" className="bg-amber-50 text-amber-800 border-amber-200">
-                              Expired
                             </Badge>
                           ) : (
                             <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
