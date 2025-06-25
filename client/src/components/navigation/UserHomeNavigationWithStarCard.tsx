@@ -19,7 +19,8 @@ import {
   Eye,
   Plus,
   BarChart3,
-  ImageIcon
+  ImageIcon,
+  Zap
 } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -406,6 +407,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   )}
                                   {step.type === 'visual' && (
                                     <ImageIcon className="h-4 w-4 text-pink-400" />
+                                  )}
+                                  {step.type === 'activity' && (
+                                    <Activity className="h-4 w-4 text-orange-400" />
                                   )}
                                   {(!step.type) && (
                                     <FileText className="h-4 w-4 text-gray-400" />
