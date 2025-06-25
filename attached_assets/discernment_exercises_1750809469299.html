@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Discernment Exercise</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #8B5FBF 0%, #6A4C93 100%);
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .debug-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .debug-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .progress-bar {
+            background: #f0f0f0;
+            height: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #8B5FBF, #6A4C93);
+            height: 100%;
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+
+        .modal-content {
+            padding: 30px;
+            overflow-y: auto;
+            max-height: calc(90vh - 140px);
+        }
+
+        .exercise-info {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .exercise-number {
+            color: #8B5FBF;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .exercise-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 12px;
+        }
+
+        .exercise-description {
+            color: #666;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .scenario-content {
+            background: #f8f9fa;
+            border-left: 4px solid #8B5FBF;
+            padding: 20px 100px 20px 20px; /* Add right padding for timer */
+            margin: 20px 0;
+            border-radius: 8px;
+            position: relative;
+            min-height: 120px;
+        }
+
+        .breaking-badge {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+
+        .timer-display {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: #8B5FBF;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 10;
+            min-width: 60px;
+            text-align: center;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: all 0.3s ease;
+        }
+
+        .timer-visible {
+            opacity: 1;
+            transform: scale(1);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        .timer-finished {
+            background: #28a745 !important;
+            animation: none;
+            transform: scale(1);
+        }
+
+        .questions-container {
+            margin-top: 25px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .questions-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .question {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .question h4 {
+            color: #333;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+
+        .answer-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .answer-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .answer-option:hover {
+            background: #f0f0f0;
+            border-color: #8B5FBF;
+        }
+
+        .answer-option.selected {
+            background: #f0e7ff;
+            border-color: #8B5FBF;
+            color: #8B5FBF;
+        }
+
+        .answer-option input[type="radio"] {
+            accent-color: #8B5FBF;
+        }
+
+        .image-challenge {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .challenge-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .clues-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .clues-box h4 {
+            color: #856404;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .clues-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .clues-list li {
+            color: #856404;
+            margin-bottom: 5px;
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .clues-list li:before {
+            content: "👀";
+            position: absolute;
+            left: 0;
+        }
+
+        .choice-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .choice-btn {
+            background: linear-gradient(135deg, #8B5FBF, #6A4C93);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 100px;
+        }
+
+        .choice-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 95, 191, 0.3);
+        }
+
+        .choice-btn.fake-btn {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+        }
+
+        .choice-btn.fake-btn:hover {
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+        .feedback {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            animation: feedbackSlideIn 0.3s ease-out;
+        }
+
+        @keyframes feedbackSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .feedback.correct {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .feedback.incorrect {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+
+        .feedback h4 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .toolkit-scenario {
+            background: #f8f9fa;
+            border: 2px solid #8B5FBF;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .social-post {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .social-post::before {
+            content: "📱";
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 20px;
+        }
+
+        .test-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #8B5FBF;
+        }
+
+        .test-section h4 {
+            color: #8B5FBF;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .checkbox-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .checkbox-option:hover {
+            background: #f0f0f0;
+        }
+
+        .checkbox-option input[type="checkbox"] {
+            accent-color: #8B5FBF;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .nav-btn {
+            background: #8B5FBF;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-btn:hover {
+            background: #7A4FA8;
+            transform: translateY(-1px);
+        }
+
+        .nav-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-btn.secondary {
+            background: #6c757d;
+        }
+
+        .nav-btn.secondary:hover {
+            background: #5a6268;
+        }
+
+        .summary-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .summary-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .summary-title {
+            font-size: 28px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .key-takeaways {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .key-takeaways h4 {
+            color: #8B5FBF;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .takeaway-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: white;
+            border-radius: 6px;
+        }
+
+        .takeaway-icon {
+            color: #8B5FBF;
+            font-size: 18px;
+            margin-top: 2px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .modal {
+                max-width: 100%;
+                max-height: 95vh;
+            }
+            
+            .modal-content {
+                padding: 20px;
+            }
+            
+            .modal-title {
+                font-size: 20px;
+            }
+            
+            .exercise-title {
+                font-size: 24px;
+            }
+            
+            .choice-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .navigation {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">Practice Discernment Exercise</h2>
+            <div class="header-buttons">
+                <button class="debug-btn" onclick="showDebugInfo()">
+                    Debug
+                </button>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="modal-content" id="modalContent">
+            <!-- Exercise content will be loaded here -->
+        </div>
+    </div>
+
+    <script>
+        // Exercise data and state management
+        let currentExercise = 1;
+        let currentScenario = 0;
+        let userAnswers = {};
+        let exerciseComplete = false;
+
+        const exercises = {
+            1: {
+                title: "The 3-Second Reality Check",
+                description: "Practice recognizing content designed to trigger immediate emotional reactions in professional contexts",
+                scenarios: [
+                    {
+                        content: `<h3>Major Tech Company Announces Mandatory AI Training for All Employees</h3>
+                                 <p>"TechCorp will require all 45,000 employees to complete 40 hours of AI certification by December 31st or face termination. The leaked internal memo reveals concerns about human relevance in the workplace. 'We need to adapt or become obsolete,' said an anonymous HR director."</p>`,
+                        questions: [
+                            {
+                                question: "What was your immediate emotional response?",
+                                options: ["Anxiety about job security", "Skepticism about the source", "Curiosity about verification", "Urge to share with colleagues"],
+                                correct: 1,
+                                explanation: "Healthy skepticism is the best first response to workplace rumors that trigger job anxiety."
+                            },
+                            {
+                                question: "What makes this content manipulative?",
+                                options: ["Anonymous sources", "Fear-based framing", "Lack of verification", "All of the above"],
+                                correct: 3,
+                                explanation: "This combines fear tactics, anonymous sources, and unverifiable claims to spread workplace anxiety."
+                            }
+                        ]
+                    },
+                    {
+                        content: `<h3>New Research: Remote Workers 40% Less Productive, Study Shows</h3>
+                                 <p>"A comprehensive analysis by the Institute for Workplace Excellence found that remote workers complete 40% fewer tasks than office-based colleagues. The study of 15,000 employees across 50 companies suggests a hidden productivity crisis that could reshape corporate policies."</p>`,
+                        questions: [
+                            {
+                                question: "What would you verify first?",
+                                options: ["Whether the institute exists", "The study methodology", "Who funded the research", "All of these"],
+                                correct: 3,
+                                explanation: "Professional claims require systematic verification of source credibility, methodology, and potential bias."
+                            }
+                        ]
+                    },
+                    {
+                        content: `<h3>LinkedIn Influence: Why Top Executives Share This One Type of Post</h3>
+                                 <p>"Career strategist reveals the secret posting pattern that Fortune 500 CEOs use to build influence. This simple framework increased engagement 300% for successful leaders. Download the template before your competitors discover it."</p>`,
+                        questions: [
+                            {
+                                question: "What manipulation techniques are present?",
+                                options: ["Authority without verification", "Scarcity pressure", "Unrealistic metrics", "All of these"],
+                                correct: 3,
+                                explanation: "This uses false authority, artificial scarcity, and implausible statistics to drive action."
+                            }
+                        ]
+                    },
+                    {
+                        content: `<h3>Microsoft Announces New Azure Security Breach Affecting Enterprise Clients</h3>
+                                 <p>"Microsoft disclosed a security incident affecting Azure enterprise customers' data access logs. The company is working with affected organizations to assess potential impact. Chief Security Officer Sarah Chen stated, 'We are taking immediate action to secure all systems and will provide updates as our investigation continues.'"</p>`,
+                        questions: [
+                            {
+                                question: "How does this content differ from the others?",
+                                options: ["Named company spokesperson", "Specific, verifiable details", "No pressure to act immediately", "All of the above"],
+                                correct: 3,
+                                explanation: "Legitimate news includes named sources, specific details, company confirmation, and doesn't pressure immediate sharing."
+                            }
+                        ]
+                    },
+                    {
+                        content: `<h3>Industry Report: 73% of Knowledge Workers Will Be Replaced by AI Within 5 Years</h3>
+                                 <p>"According to the Future of Work Institute's annual survey, artificial intelligence will eliminate most knowledge worker positions by 2029. The report analyzed job automation potential across 200 roles in finance, marketing, and operations."</p>`,
+                        questions: [
+                            {
+                                question: "What would careful analysis reveal?",
+                                options: ["The institute may not exist", "The methodology isn't described", "The prediction seems extreme", "All of these concerns"],
+                                correct: 3,
+                                explanation: "Professional skepticism requires checking source credibility, methodology transparency, and claim reasonableness."
+                            }
+                        ]
+                    }
+                ]
+            },
+            2: {
+                title: "Visual Real vs. Fake Challenge",
+                description: "Learn to spot visual manipulation and AI-generated content in professional contexts",
+                scenarios: [
+                    {
+                        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzM0NDk1ZSIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QUkVTUyBDT05GRVJFTINFPC90ZXh0PgogIDx0ZXh0IHg9IjIwMCIgeT0iMTQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5NaXNtYXRjaGVkIGxpZ2h0aW5nPC90ZXh0PgogIDx0ZXh0IHg9IjIwMCIgeT0iMTYwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5JbmNvbnNpc3RlbnQgc2hhZG93czwvdGV4dD4KICA8dGV4dCB4PSIyMDAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VW5uYXR1cmFsIGZhY2lhbCBwcm9wb3J0aW9uczwvdGV4dD4KICA8dGV4dCB4PSIyMDAiIHk9IjIwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+RGVmb3JtZWQgYmFja2dyb3VuZCBvYmplY3RzPC90ZXh0Pgo8L3N2Zz4=",
+                        caption: "Tech CEO announces revolutionary AI breakthrough at industry conference",
+                        answer: "fake",
+                        clues: ["Mismatched lighting on face vs. background", "Inconsistent shadows on podium", "Unnatural facial proportions", "Deformed background objects"],
+                        explanation: "This manipulated image shows classic signs of poor photo composition: lighting doesn't match between subject and background, shadows are inconsistent, and background objects appear distorted."
+                    },
+                    {
+                        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzJjM2U1MCIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WSVJUVUFMIE1FRVRJTkc8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxNDAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlBlcmZlY3QgZXllIGNvbnRhY3Q8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPlVubmF0dXJhbCBzeW1tZXRyeTwvdGV4dD4KICA8dGV4dCB4PSIyMDAiIHk9IjE4MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+VG9vLXBlcmZlY3Qgc2tpbiB0ZXh0dXJlPC90ZXh0PgogIDx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BSSB1bmNhbm55IHZhbGxleTwvdGV4dD4KPC9zdmc+",
+                        caption: "Executive team video call discussing Q4 strategy",
+                        answer: "fake",
+                        clues: ["Perfect eye contact with camera", "Unnatural facial symmetry", "Too-perfect skin texture", "AI uncanny valley effect"],
+                        explanation: "AI-generated faces often have subtle 'uncanny valley' effects: perfect symmetry, unrealistic skin texture, and unnatural eye contact that feels 'off' to viewers."
+                    },
+                    {
+                        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2Q3M2MyNyIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5PRkZJQ0UgUFJPVEVTVDwvdGV4dD4KICA8dGV4dCB4PSIyMDAiIHk9IjE0MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+U2FtZSBpbWFnZSBmcm9tIDIwMjI8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkRpZmZlcmVudCBjb250ZXh0IGNsYWltZWQ8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNvbG9yIHNhdHVyYXRpb24gYWx0ZXJlZDwvdGV4dD4KICA8dGV4dCB4PSIyMDAiIHk9IjIwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjEyIiBmaWxsPSJ3aGl0ZSIgdGV4dC1hbmNob3I9Im1pZGRsZSI+TWlzbGVhZGluZyB0aW1lc3RhbXA8L3RleHQ+Cjwvc3ZnPg==",
+                        caption: "Employees protest new return-to-office mandate at corporate headquarters today",
+                        answer: "fake",
+                        clues: ["Same image used in 2022 context", "Different event being claimed", "Color saturation altered", "Misleading timestamp"],
+                        explanation: "This is a real photo but recycled from a different event and time. The image has been color-enhanced and the caption creates false context. Reverse image search would reveal the original source."
+                    },
+                    {
+                        image: "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iIzI4NjA5MCIvPgogIDx0ZXh0IHg9IjIwMCIgeT0iMTEwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5DT01QQU5ZIEVWRU5UPC90ZXh0PgogIDx0ZXh0IHg9IjIwMCIgeT0iMTQwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5QaG90byBieSBKLiBTbWl0aC9Db3JwUGhvdG88L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxNjAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkNvbnNpc3RlbnQgbGlnaHRpbmcgYW5kIHNoYWRvd3M8L3RleHQ+CiAgPHRleHQgeD0iMjAwIiB5PSIxODAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPk5hdHVyYWwgZmFjaWFsIGV4cHJlc3Npb25zPC90ZXh0PgogIDx0ZXh0IHg9IjIwMCIgeT0iMjAwIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTIiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WZXJpZmlhYmxlIGNvbnRleHQgYW5kIGRhdGU8L3RleHQ+Cjwvc3ZnPg==",
+                        caption: "Annual company retreat, team building session - Photo by J. Smith/CorpPhoto",
+                        answer: "real",
+                        clues: ["Clear photographer attribution", "Professional photo credit", "Consistent lighting and shadows", "Natural facial expressions"],
+                        explanation: "This image has proper attribution from a credible photographer, consistent visual elements, natural expressions, and verifiable context. The professional photo credit adds credibility."
+                    }
+                ]
+            },
+            3: {
+                title: "The 5-Test Toolkit Practice",
+                description: "Apply all five discernment tests to a complex workplace scenario",
+                scenario: {
+                    content: `"Dr. Elena Rodriguez, Harvard Business School professor, confirms that companies implementing 4-day work weeks see 35% productivity increases and 50% lower turnover rates. Her comprehensive study of 25,000 employees across 75 Fortune 500 companies reveals the hidden costs of traditional work schedules. The research, published in the Harvard Business Review, shows that progressive companies are already gaining competitive advantage. Forward-thinking leaders are quietly implementing these changes. Don't let your organization fall behind! #FutureOfWork #Productivity"`,
+                    tests: [
+                        {
+                            id: "source",
+                            icon: "🔍",
+                            title: "SOURCE TEST",
+                            question: "Can you verify Dr. Elena Rodriguez and her Harvard Business School affiliation?",
+                            type: "textarea",
+                            hint: "Search for the researcher, check Harvard faculty directories, look for recent publication history"
+                        },
+                        {
+                            id: "emotion",
+                            icon: "😮",
+                            title: "EMOTION TEST",
+                            question: "How does this content make you feel?",
+                            type: "checkbox",
+                            options: ["Excited about workplace change", "Skeptical of the claims", "Pressure to share with leadership", "FOMO about competitive advantage", "Validated if you support flexible work"]
+                        },
+                        {
+                            id: "intention",
+                            icon: "🎯",
+                            title: "INTENTION TEST", 
+                            question: "What is this trying to get you to do?",
+                            type: "checkbox",
+                            options: ["Advocate for policy changes", "Share with colleagues/leadership", "Feel urgency about falling behind", "Trust the 'expert' authority", "Take immediate action without verification"]
+                        },
+                        {
+                            id: "coherence",
+                            icon: "📊",
+                            title: "COHERENCE TEST",
+                            question: "What seems questionable about the details?",
+                            type: "checkbox",
+                            options: ["25,000 employees seems large for one study", "Harvard Business Review doesn't typically publish this type of research", "Percentages are suspiciously precise", "No mention of study methodology", "Claims about 'Fortune 500' participation unverified"]
+                        },
+                        {
+                            id: "perspective",
+                            icon: "🔄",
+                            title: "PERSPECTIVE TEST",
+                            question: "What would workplace researchers or HR professionals say about these claims?",
+                            type: "textarea",
+                            hint: "Consider: What other factors affect productivity? How would you measure 4-day week success? What are known challenges with implementation?"
+                        }
+                    ]
+                }
+            }
+        };
+
+        function initializeModal() {
+            console.log('Initializing modal...');
+            currentExercise = 1;
+            currentScenario = 0;
+            userAnswers = {};
+            exerciseComplete = false;
+            loadExercise(1);
+        }
+
+        function updateProgress() {
+            const totalSteps = Object.keys(exercises).length;
+            const currentStep = currentExercise - 1;
+            const progress = (currentStep / totalSteps) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            console.log(`Progress updated: ${progress}%`);
+        }
+
+        function loadExercise(exerciseNumber) {
+            console.log(`Loading exercise ${exerciseNumber}`);
+            currentExercise = exerciseNumber;
+            currentScenario = 0;
+            updateProgress();
+            
+            const exercise = exercises[exerciseNumber];
+            const content = document.getElementById('modalContent');
+            
+            if (exerciseNumber <= 2) {
+                loadScenarioExercise(exercise);
+            } else {
+                loadToolkitExercise(exercise);
+            }
+        }
+
+        function loadScenarioExercise(exercise) {
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <div class="exercise-info">
+                    <div class="exercise-number">Exercise ${currentExercise} of 3</div>
+                    <h2 class="exercise-title">${exercise.title}</h2>
+                    <p class="exercise-description">${exercise.description}</p>
+                </div>
+                <div id="scenarioContent"></div>
+                <div class="navigation">
+                    <button class="nav-btn secondary" onclick="previousExercise()" ${currentExercise === 1 ? 'disabled' : ''}>
+                        ← Previous Exercise
+                    </button>
+                    <div>Scenario ${currentScenario + 1} of ${exercise.scenarios.length}</div>
+                    <button class="nav-btn" onclick="nextScenario()" id="nextBtn" disabled>
+                        ${currentScenario < exercise.scenarios.length - 1 ? 'Next Scenario →' : 
+                          currentExercise < 3 ? 'Next Exercise →' : 'Complete →'}
+                    </button>
+                </div>
+            `;
+            
+            loadScenario();
+        }
+
+        function loadScenario() {
+            const exercise = exercises[currentExercise];
+            const scenario = exercise.scenarios[currentScenario];
+            const scenarioContent = document.getElementById('scenarioContent');
+            
+            // Update scenario counter if it exists
+            const scenarioCounter = document.querySelector('.navigation div');
+            if (scenarioCounter && currentExercise <= 2) {
+                scenarioCounter.textContent = `Scenario ${currentScenario + 1} of ${exercise.scenarios.length}`;
+            }
+            
+            if (currentExercise === 1) {
+                // Reality Check Exercise
+                scenarioContent.innerHTML = `
+                    <div class="scenario-content">
+                        <div class="timer-display" id="timer">3</div>
+                        ${scenario.content}
+                    </div>
+                    <div class="questions-container" id="questionsContainer">
+                        ${scenario.questions.map((q, index) => `
+                            <div class="question">
+                                <h4>${q.question}</h4>
+                                <div class="answer-options">
+                                    ${q.options.map((option, optIndex) => `
+                                        <label class="answer-option">
+                                            <input type="radio" name="q${index}" value="${optIndex}" onchange="checkAnswers()">
+                                            <span>${option}</span>
+                                        </label>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        `).join('')}
+                        <div id="feedback"></div>
+                    </div>
+                `;
+                
+                // Show questions immediately, then start timer
+                const questionsContainer = document.getElementById('questionsContainer');
+                const timer = document.getElementById('timer');
+                
+                questionsContainer.classList.add('questions-visible');
+                timer.classList.add('timer-visible');
+                
+                startTimer();
+            } else {
+                // Visual Challenge Exercise
+                scenarioContent.innerHTML = `
+                    <div class="image-challenge">
+                        <img src="${scenario.image}" alt="Challenge image" class="challenge-image">
+                        <h3>${scenario.caption}</h3>
+                        
+                        <div class="clues-box">
+                            <h4>👀 Look for these clues:</h4>
+                            <ul class="clues-list">
+                                ${scenario.clues.map(clue => `<li>${clue}</li>`).join('')}
+                            </ul>
+                        </div>
+                        
+                        <div class="choice-buttons">
+                            <button class="choice-btn" onclick="selectAnswer('real')">Real</button>
+                            <button class="choice-btn fake-btn" onclick="selectAnswer('fake')">Fake</button>
+                        </div>
+                        
+                        <div id="feedback"></div>
+                    </div>
+                `;
+            }
+            
+            console.log(`Loaded scenario ${currentScenario + 1} of exercise ${currentExercise}`);
+        }
+
+        function startTimer() {
+            let timeLeft = 3;
+            const timer = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                timeLeft--;
+                timer.textContent = timeLeft;
+                
+                if (timeLeft === 0) {
+                    clearInterval(countdown);
+                    timer.textContent = '⏰';
+                    timer.classList.add('timer-finished');
+                    timer.classList.remove('timer-visible');
+                    
+                    // Small delay then fade out timer
+                    setTimeout(() => {
+                        timer.style.opacity = '0';
+                        timer.style.transform = 'scale(0.8)';
+                    }, 1000);
+                }
+            }, 1000);
+        }
+
+        function checkAnswers() {
+            const exercise = exercises[currentExercise];
+            const scenario = exercise.scenarios[currentScenario];
+            const feedback = document.getElementById('feedback');
+            
+            let allAnswered = true;
+            let allCorrect = true;
+            
+            scenario.questions.forEach((q, index) => {
+                const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                if (!selected) {
+                    allAnswered = false;
+                } else if (parseInt(selected.value) !== q.correct) {
+                    allCorrect = false;
+                }
+            });
+            
+            if (allAnswered) {
+                const feedbackClass = allCorrect ? 'correct' : 'incorrect';
+                const feedbackIcon = allCorrect ? '✅' : '⚠️';
+                const feedbackTitle = allCorrect ? 'Excellent discernment!' : 'Good try! Let\'s learn:';
+                
+                feedback.innerHTML = `
+                    <div class="feedback ${feedbackClass}">
+                        <h4>${feedbackIcon} ${feedbackTitle}</h4>
+                        ${scenario.questions.map((q, index) => `
+                            <p><strong>Q${index + 1}:</strong> ${q.explanation}</p>
+                        `).join('')}
+                    </div>
+                `;
+                
+                // Enable the next button
+                const nextBtn = document.getElementById('nextBtn');
+                if (nextBtn) {
+                    nextBtn.disabled = false;
+                    console.log('Next button enabled after answering questions');
+                }
+            }
+        }
+
+        function selectAnswer(answer) {
+            const exercise = exercises[currentExercise];
+            const scenario = exercise.scenarios[currentScenario];
+            const feedback = document.getElementById('feedback');
+            const isCorrect = answer === scenario.answer;
+            
+            const feedbackClass = isCorrect ? 'correct' : 'incorrect';
+            const feedbackIcon = isCorrect ? '✅' : '❌';
+            const feedbackTitle = isCorrect ? 'Correct!' : 'Not quite right.';
+            
+            feedback.innerHTML = `
+                <div class="feedback ${feedbackClass}">
+                    <h4>${feedbackIcon} ${feedbackTitle}</h4>
+                    <p>${scenario.explanation}</p>
+                </div>
+            `;
+            
+            // Enable the next button
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = false;
+                console.log('Next button enabled after selecting answer');
+            }
+            
+            // Disable the choice buttons to prevent multiple selections
+            const choiceButtons = document.querySelectorAll('.choice-btn');
+            choiceButtons.forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.6';
+            });
+        }
+
+        function loadToolkitExercise(exercise) {
+            const content = document.getElementById('modalContent');
+            
+            content.innerHTML = `
+                <div class="exercise-info">
+                    <div class="exercise-number">Exercise 3 of 3</div>
+                    <h2 class="exercise-title">${exercise.title}</h2>
+                    <p class="exercise-description">${exercise.description}</p>
+                </div>
+                
+                <div class="toolkit-scenario">
+                    <h3>📱 Analyze This Social Media Post:</h3>
+                    <div class="social-post">
+                        ${exercise.scenario.content}
+                    </div>
+                    
+                    <div id="testsContainer">
+                        ${exercise.scenario.tests.map(test => `
+                            <div class="test-section">
+                                <h4>${test.icon} ${test.title}</h4>
+                                <p>${test.question}</p>
+                                ${test.type === 'textarea' ? `
+                                    <textarea class="input-field" placeholder="${test.hint || 'Enter your analysis...'}" onchange="checkToolkitCompletion()"></textarea>
+                                ` : `
+                                    <div class="checkbox-group">
+                                        ${test.options.map(option => `
+                                            <label class="checkbox-option">
+                                                <input type="checkbox" onchange="checkToolkitCompletion()">
+                                                <span>${option}</span>
+                                            </label>
+                                        `).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div id="toolkitFeedback"></div>
+                </div>
+                
+                <div class="navigation">
+                    <button class="nav-btn secondary" onclick="previousExercise()">
+                        ← Previous Exercise
+                    </button>
+                    <div></div>
+                    <button class="nav-btn" onclick="nextScenario()" id="nextBtn" disabled>
+                        Complete Exercise →
+                    </button>
+                </div>
+            `;
+        }
+
+        function checkToolkitCompletion() {
+            const textareas = document.querySelectorAll('.test-section textarea');
+            const checkboxGroups = document.querySelectorAll('.test-section .checkbox-group');
+            
+            let allCompleted = true;
+            
+            // Check textareas
+            textareas.forEach(textarea => {
+                if (textarea.value.trim().length < 10) {
+                    allCompleted = false;
+                }
+            });
+            
+            // Check checkbox groups
+            checkboxGroups.forEach(group => {
+                const checkedBoxes = group.querySelectorAll('input[type="checkbox"]:checked');
+                if (checkedBoxes.length === 0) {
+                    allCompleted = false;
+                }
+            });
+            
+            const nextBtn = document.getElementById('nextBtn');
+            if (nextBtn) {
+                nextBtn.disabled = !allCompleted;
+                console.log(`Toolkit completion check: ${allCompleted ? 'completed' : 'incomplete'}`);
+            }
+            
+            if (allCompleted) {
+                const feedback = document.getElementById('toolkitFeedback');
+                if (feedback) {
+                    feedback.innerHTML = `
+                        <div class="feedback correct">
+                            <h4>✅ Great systematic analysis!</h4>
+                            <p>You've applied all five discernment tests. This methodical approach helps you evaluate any suspicious content objectively rather than emotionally.</p>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function nextScenario() {
+            console.log(`Current exercise: ${currentExercise}, scenario: ${currentScenario}`);
+            
+            if (currentExercise <= 2) {
+                const exercise = exercises[currentExercise];
+                if (currentScenario < exercise.scenarios.length - 1) {
+                    // Move to next scenario in same exercise
+                    currentScenario++;
+                    console.log(`Moving to scenario ${currentScenario + 1}`);
+                    loadScenario();
+                    document.getElementById('nextBtn').disabled = true;
+                    
+                    // Update button text
+                    const nextBtn = document.getElementById('nextBtn');
+                    if (currentScenario < exercise.scenarios.length - 1) {
+                        nextBtn.textContent = 'Next Scenario →';
+                    } else {
+                        nextBtn.textContent = currentExercise < 3 ? 'Next Exercise →' : 'Complete →';
+                    }
+                    
+                } else if (currentExercise < 3) {
+                    // Move to next exercise
+                    console.log(`Moving to exercise ${currentExercise + 1}`);
+                    loadExercise(currentExercise + 1);
+                } else {
+                    // Show summary
+                    console.log('Showing summary');
+                    showSummary();
+                }
+            } else {
+                showSummary();
+            }
+        }
+
+        function nextExercise() {
+            // Legacy function - redirect to nextScenario
+            nextScenario();
+        }
+
+        function previousExercise() {
+            if (currentExercise > 1) {
+                console.log(`Going back to exercise ${currentExercise - 1}`);
+                loadExercise(currentExercise - 1);
+            }
+        }
+
+        function showSummary() {
+            const content = document.getElementById('modalContent');
+            document.getElementById('progressFill').style.width = '100%';
+            
+            content.innerHTML = `
+                <div class="summary-screen">
+                    <div class="summary-icon">🎯</div>
+                    <h2 class="summary-title">Discernment Skills Practiced!</h2>
+                    <p>You've completed all three reality discernment exercises and learned systematic approaches to evaluating digital content.</p>
+                    
+                    <div class="key-takeaways">
+                        <h4>Key Takeaways:</h4>
+                        
+                        <div class="takeaway-item">
+                            <div class="takeaway-icon">⏱️</div>
+                            <div>
+                                <strong>3-Second Pause:</strong> Always pause before reacting to emotionally charged content. This simple step prevents manipulation.
+                            </div>
+                        </div>
+                        
+                        <div class="takeaway-item">
+                            <div class="takeaway-icon">👁️</div>
+                            <div>
+                                <strong>Visual Skepticism:</strong> Look for lighting inconsistencies, unnatural proportions, and "too perfect" details in images.
+                            </div>
+                        </div>
+                        
+                        <div class="takeaway-item">
+                            <div class="takeaway-icon">🔍</div>
+                            <div>
+                                <strong>Systematic Analysis:</strong> Use the 7-test toolkit for complex content: Source, Emotion, Coherence, Intention, Perspective, Reverse Search, and Emotional Regulation.
+                            </div>
+                        </div>
+                        
+                        <div class="takeaway-item">
+                            <div class="takeaway-icon">🛡️</div>
+                            <div>
+                                <strong>Ongoing Practice:</strong> Discernment is a skill that improves with regular practice. Use these techniques before engaging with AI or sharing workplace content.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="navigation">
+                        <button class="nav-btn secondary" onclick="closeModal()">
+                            Return to Workshop
+                        </button>
+                        <div>
+                            <button class="nav-btn" onclick="initializeModal()">
+                                Practice Again
+                            </button>
+                            <p style="margin-top: 10px; font-size: 12px; color: #666; text-align: center;">
+                                Bookmark <strong>app.heliotropeimaginal.com/discernmentpractice</strong><br>
+                                for ongoing practice with new scenarios
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showDebugInfo() {
+            console.log('=== DEBUG INFO ===');
+            console.log(`Current Exercise: ${currentExercise}`);
+            console.log(`Current Scenario: ${currentScenario}`);
+            console.log(`Exercise Complete: ${exerciseComplete}`);
+            
+            const nextBtn = document.getElementById('nextBtn');
+            console.log(`Next Button Exists: ${!!nextBtn}`);
+            console.log(`Next Button Disabled: ${nextBtn ? nextBtn.disabled : 'N/A'}`);
+            console.log(`Next Button Text: ${nextBtn ? nextBtn.textContent : 'N/A'}`);
+            
+            if (currentExercise <= 2) {
+                const exercise = exercises[currentExercise];
+                console.log(`Total Scenarios in Exercise ${currentExercise}: ${exercise.scenarios.length}`);
+            }
+            
+            alert(`Debug: Exercise ${currentExercise}, Scenario ${currentScenario + 1}. Check console for details.`);
+        }
+
+        function closeModal() {
+            // In real implementation, this would close the modal and return to ia-6-1
+            alert('Returning to Imaginal Agility Workshop...');
+        }
+
+        // Initialize the exercise when page loads
+        initializeModal();
+    </script>
+</body>
+</html>
