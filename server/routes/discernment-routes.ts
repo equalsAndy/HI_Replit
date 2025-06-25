@@ -7,61 +7,36 @@ import { eq, and, notInArray } from 'drizzle-orm';
 const router = Router();
 
 // GET /api/discernment/scenarios/:exerciseType
-// Returns user-specific randomized scenario
+// Returns all scenarios for the exercise type
 router.get('/scenarios/:exerciseType', requireAuth, async (req, res) => {
   try {
     const { exerciseType } = req.params;
     const userId = req.user.id;
 
-    // Get user's seen scenarios
-    const userProgress = await db.select()
-      .from(userDiscernmentProgress)
-      .where(eq(userDiscernmentProgress.userId, userId))
-      .limit(1);
+    console.log(`[Discernment] Fetching scenarios for ${exerciseType}, user ${userId}`);
 
-    const seenScenarios = userProgress[0]?.scenariosSeen || [];
-
-    // Get unseen scenarios of requested type
-    let availableScenarios = await db.select()
+    // Get all active scenarios of requested type
+    const scenarios = await db.select()
       .from(discernmentScenarios)
       .where(
         and(
           eq(discernmentScenarios.exerciseType, exerciseType),
-          eq(discernmentScenarios.active, true),
-          seenScenarios.length > 0 ? notInArray(discernmentScenarios.id, seenScenarios) : undefined
+          eq(discernmentScenarios.active, true)
         )
-      );
+      )
+      .orderBy(discernmentScenarios.difficultyLevel);
 
-    if (availableScenarios.length === 0) {
-      // Reset seen scenarios if all have been viewed
-      await db.update(userDiscernmentProgress)
-        .set({ scenariosSeen: [] })
-        .where(eq(userDiscernmentProgress.userId, userId));
+    console.log(`[Discernment] Found ${scenarios.length} scenarios for ${exerciseType}`);
 
-      // Get fresh scenarios
-      const freshScenarios = await db.select()
-        .from(discernmentScenarios)
-        .where(
-          and(
-            eq(discernmentScenarios.exerciseType, exerciseType),
-            eq(discernmentScenarios.active, true)
-          )
-        );
-
-      if (freshScenarios.length === 0) {
-        return res.status(404).json({ error: 'No scenarios available' });
-      }
-
-      availableScenarios = freshScenarios;
+    if (scenarios.length === 0) {
+      return res.status(404).json({ error: 'No scenarios available' });
     }
 
-    // Return random scenario
-    const randomScenario = availableScenarios[Math.floor(Math.random() * availableScenarios.length)];
-    res.json({ scenario: randomScenario });
+    res.json(scenarios);
 
   } catch (error) {
-    console.error('Error fetching discernment scenario:', error);
-    res.status(500).json({ error: 'Failed to fetch scenario' });
+    console.error('Error fetching discernment scenarios:', error);
+    res.status(500).json({ error: 'Failed to fetch scenarios' });
   }
 });
 
