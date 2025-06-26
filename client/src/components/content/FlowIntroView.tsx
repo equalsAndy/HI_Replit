@@ -1,19 +1,12 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useVideoByStep } from '@/hooks/use-videos';
+import VideoPlayer from './VideoPlayer';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
   markStepCompleted: (stepId: string) => void;
   setCurrentContent: (content: string) => void;
-}
-
-declare global {
-  interface Window {
-    YT: any;
-    onYouTubeIframeAPIReady: () => void;
-  }
 }
 
 const FlowIntroView: React.FC<ContentViewProps> = ({
@@ -22,124 +15,15 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   setCurrentContent
 }) => {
   const { updateVideoProgress } = useNavigationProgress();
-  const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
-  const [videoProgress, setVideoProgress] = useState(0);
-  const [player, setPlayer] = useState<any>(null);
-  const playerRef = useRef<HTMLDivElement>(null);
+  const [hasReachedMinimum, setHasReachedMinimum] = useState(true); // SIMPLIFIED MODE: Always true
 
   const stepId = "3-1";
 
-  // Fetch video data from database based on step ID
-  const { data: videoData, isLoading } = useVideoByStep(stepId);
-  
-  // Debug logging
-  console.log('FlowIntroView - Component rendered for step:', stepId);
-  console.log('FlowIntroView - Video data:', videoData);
-  console.log('FlowIntroView - Is loading:', isLoading);
-  
-  // Extract YouTube video ID from URL
-  const extractVideoId = (url: string) => {
-    if (!url) return null;
-    const match = url.match(/(?:youtube\.com\/embed\/|youtu\.be\/)([^?\s]+)/);
-    return match ? match[1] : null;
-  };
-  
-  const videoId = videoData?.url ? extractVideoId(videoData.url) : null;
-  console.log('FlowIntroView - Extracted video ID:', videoId);
-
-  // Load YouTube API
-  useEffect(() => {
-    if (!videoId || isLoading) return;
-
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        initializePlayer();
-      };
-    } else {
-      initializePlayer();
-    }
-
-    return () => {
-      if (player) {
-        try {
-          player.destroy();
-        } catch (error) {
-          console.log('Error destroying player:', error);
-        }
-      }
-    };
-  }, [videoId, isLoading]);
-
-  // Track video progress
-  const startProgressTracking = (playerInstance: any) => {
-    let interval: NodeJS.Timeout;
-
-    const trackProgress = () => {
-      if (playerInstance && playerInstance.getCurrentTime && playerInstance.getDuration) {
-        try {
-          const currentTime = playerInstance.getCurrentTime();
-          const duration = playerInstance.getDuration();
-
-          if (duration > 0) {
-            const percentage = (currentTime / duration) * 100;
-            handleVideoProgress(percentage);
-          }
-        } catch (error) {
-          console.log('Video progress tracking error:', error);
-        }
-      }
-    };
-
-    // Track progress every second
-    interval = setInterval(trackProgress, 1000);
-
-    // Clean up interval when component unmounts
-    return () => {
-      if (interval) {
-        clearInterval(interval);
-      }
-    };
-  };
-
-  // Handle video progress updates
+  // Handle video progress updates (for tracking only, not for unlocking)
   const handleVideoProgress = (percentage: number) => {
-    setVideoProgress(percentage);
+    console.log(`🎬 FlowIntroView calling updateVideoProgress(${stepId}, ${percentage})`);
     updateVideoProgress(stepId, percentage);
-
-    // Check if minimum watch requirement is met (1%)
-    if (percentage >= 1 && !hasReachedMinimum) {
-      setHasReachedMinimum(true);
-    }
-  };
-
-  // Initialize YouTube player
-  const initializePlayer = () => {
-    if (window.YT && window.YT.Player && playerRef.current) {
-      const newPlayer = new window.YT.Player(playerRef.current, {
-        videoId: videoId,
-        playerVars: {
-          autoplay: 1,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0
-        },
-        events: {
-          onReady: (event: any) => {
-            setPlayer(event.target);
-            startProgressTracking(event.target);
-          },
-          onStateChange: (event: any) => {
-            // Handle player state changes if needed
-          }
-        }
-      });
-    }
+    console.log(`🎬 SIMPLIFIED MODE: Video progress tracked but Next button already active`);
   };
 
   // Handle completion and progression
@@ -149,17 +33,20 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   };
 
   return (
-    <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
 
-      <div className="aspect-w-16 aspect-h-9 mb-4">
-        <div className="w-full h-80 rounded border border-gray-200 bg-black">
-          <div 
-            ref={playerRef}
-            className="w-full h-full rounded-lg"
-            style={{ pointerEvents: 'auto', position: 'relative' }}
-          />
-        </div>
+      {/* YouTube Video Player */}
+      <div className="mb-8 max-w-4xl mx-auto">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="3-1"
+          fallbackUrl="https://youtu.be/6szJ9q_g87E"
+          title="Introduction to Flow State"
+          aspectRatio="16:9"
+          autoplay={true}
+          onProgress={handleVideoProgress}
+        />
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 mb-4">
