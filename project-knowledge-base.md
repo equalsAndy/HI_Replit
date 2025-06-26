@@ -105,6 +105,66 @@ Focus on [key constraints/requirements]."
 4. **Test in browser** (Replit preview)
 5. **Iterate as needed**
 
+## 🚨 Common Git Issues & Solutions
+
+### **Divergent Branches:**
+- **Symptom**: `fatal: Need to specify how to reconcile divergent branches`
+- **Solution**: 
+  ```bash
+  git config pull.rebase false
+  git pull origin main
+  ```
+
+### **Push Rejected (Non-Fast-Forward):**
+- **Symptom**: `Updates were rejected because the tip of your current branch is behind`
+- **Solution**: Always pull before pushing
+  ```bash
+  git pull origin main
+  git push origin main
+  ```
+
+### **Local Changes Would Be Overwritten:**
+- **Symptom**: `Your local changes to the following files would be overwritten by merge`
+- **Solutions**:
+  - **Keep local**: `git add . && git commit -m "Save local changes"`
+  - **Discard local**: `git restore [filename]`
+  - **Remove old file**: `git rm [filename]`
+
+### **Merge Commit Editor:**
+- **Vim commands**: `i` (insert) → type message → `Esc` → `:wq` (save & quit)
+- **Quick exit**: `Esc` → `:q!` (quit without saving - uses default message)
+
+## 🔧 File Management Best Practices
+
+### **Filename Consistency Checks:**
+- **Always check**: `git status` shows actual tracked filenames
+- **React convention**: PascalCase for components (`WellBeingView.tsx`)
+- **Case sensitivity**: macOS/Windows ignore case, but Git tracks exact case
+- **Import verification**: Ensure imports match actual filenames
+
+### **Preventing Duplicate Files:**
+- **Before creating files**: Check if similar names exist
+- **Search patterns**: Look for variations (WellBeing vs Wellbeing vs wellbeing)
+- **Clean up immediately**: Remove unused duplicates as soon as identified
+- **Team communication**: Document naming conventions
+
+## 📋 Troubleshooting Workflow
+
+### **When Things Go Wrong:**
+1. **Stop and assess**: `git status` to see current state
+2. **Identify the issue**: Read error messages carefully
+3. **Choose resolution strategy**: Commit, restore, or remove conflicting files
+4. **Test the fix**: Verify solution works before continuing
+5. **Document the solution**: Add to knowledge base for future reference
+
+### **Emergency Reset (Use Sparingly):**
+```bash
+# Nuclear option - resets local to match remote exactly
+git fetch origin
+git reset --hard origin/main
+# ⚠️ This loses ALL local changes
+```
+
 ## 💡 Working with Claude - Optimizations
 
 ### **Effective Collaboration Patterns:**
@@ -126,12 +186,24 @@ Focus on [key constraints/requirements]."
 - **Multiple environments**: Keep VS Code, Replit, and Git synchronized
 - **Filename casing**: macOS case-insensitive, but Git tracks exact case
 
+## 📚 Environment Setup Checklist
+
+### **Development Session Startup:**
+1. **Check git status** in both VS Code and Replit
+2. **Pull latest changes** before starting work: `git pull origin main`
+3. **Verify tracked filenames**: Use `git status` not just file explorer
+4. **Test basic functionality** before making changes
+
+### **Required Configurations:**
+- **VS Code command line tools**: `code .` command working
+- **Git pull strategy**: `git config pull.rebase false` set
+- **Replit terminal access**: Shell/Console tab accessible
+- **File naming awareness**: Understand PascalCase conventions
+
 ---
 
 **Project Location**: /Users/bradtopliff/Desktop/HI_Replit
 **Last Updated**: June 26, 2025
-**Status**: Video standardization complete, workflow optimized
+**Status**: Video standardization complete, workflow optimized, Git troubleshooting documented
 **Project**: Heliotrope Imaginal Dual-Workshop Platform
 ```
-
-**Copy this entire content and replace everything in your `project-knowledge-base.md` file in VS Code, then save.**
