@@ -73,7 +73,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const { progress: navigationProgress } = useNavigationProgress();
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
-  
+
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
 
@@ -85,11 +85,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '3': ['3-1', '3-2', '3-3', '3-4'],        // Flow (4/4)
       '4': ['4-1', '4-2', '4-3', '4-4', '4-5']  // Potential (5/5)
     };
-    
+
     const steps = sectionSteps[sectionId] || [];
     const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
     const completedInSection = steps.filter(stepId => safeCompletedSteps.includes(stepId)).length;
-    
+
     return {
       completed: completedInSection,
       total: steps.length,
@@ -109,23 +109,23 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       '3-1', '3-2', '3-3', '3-4',
       '4-1', '4-2', '4-3', '4-4', '4-5'
     ];
-    
+
     const stepPosition = allSteps.indexOf(stepId);
     if (stepPosition === -1) {
       // Resource sections unlock after Final Reflection (4-5)
       return completedSteps.includes('4-5');
     }
-    
+
     // A step is accessible only if all previous steps are completed
     for (let i = 0; i < stepPosition; i++) {
       if (!completedSteps.includes(allSteps[i])) {
         return false;
       }
     }
-    
+
     return true;
   };
-  
+
   // Local state that resets when user progress is reset
   const [localStarCardData, setLocalStarCardData] = useState({
     thinking: 0,
@@ -133,9 +133,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
     feeling: 0,
     planning: 0
   });
-  
+
   const [localFlowData, setLocalFlowData] = useState<any>(null);
-  
+
   // Removed problematic reset detection that was interfering with progression
 
   // Reset local state when user progress is reset
@@ -178,46 +178,46 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                            Array.isArray(effectiveFlowData.attributes) && 
                            effectiveFlowData.attributes.length > 0;
   const isStarCardComplete = hasStarCard && hasFlowAttributes;
-  
+
   // Helper function to convert step IDs to content keys used in the app
   const getContentKeyFromStepId = (sectionId: string, stepId: string) => {
     // Map section-step to content keys
     const contentKeyMap: Record<string, string> = {
       // Section 1: AllStarTeams Introduction
       '1-1': 'welcome',
-      
+
       // Section 2: Discover your Strengths
       '2-1': 'intro-strengths',
       '2-2': 'strengths-assessment',
       '2-3': 'star-card-preview',
       '2-4': 'reflection',
-      
+
       // Section 3: Find your Flow
       '3-1': 'intro-to-flow',
       '3-2': 'flow-assessment',
       '3-3': 'flow-rounding-out',
       '3-4': 'flow-star-card',
-      
+
       // Section 4: Visualize your Potential
       '4-1': 'wellbeing',
       '4-2': 'cantril-ladder',
       '4-3': 'visualizing-you',
       '4-4': 'future-self',
       '4-5': 'final-reflection',
-      
+
       // Section 5: Resources
       '5-1': 'your-star-card',
       '5-2': 'pdf-summary',
-      
+
       // Section 6: Workshop Resources
       '6-1': 'workshop-resources',
     };
-    
+
     // Special case for intro-to-flow which has two possible content keys
     if (currentContent === 'intro-to-flow' && stepId === '3-1') {
       return 'intro-to-flow';
     }
-    
+
     return contentKeyMap[stepId] || `placeholder-${stepId}`;
   };
 
@@ -226,13 +226,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768); // 768px is typical md breakpoint
     };
-    
+
     // Set initial value
     handleResize();
-    
+
     // Add event listener
     window.addEventListener('resize', handleResize);
-    
+
     // Clean up
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -252,7 +252,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <Menu className="h-5 w-5 text-gray-700" />
         </button>
       )}
-      
+
       {/* Overlay for mobile when drawer is open */}
       {isMobile && drawerOpen && (
         <div 
@@ -261,7 +261,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           aria-hidden="true"
         />
       )}
-      
+
       {/* Navigation Drawer */}
       <div className={cn(
         "bg-white shadow-sm transition-all duration-300 ease-in-out border-r border-gray-200",
@@ -277,14 +277,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       )}>
         {/* Application Logo */}
         <div className="p-4 border-b border-gray-200">
-          {/* Debug: Test hardcoded IA logo */}
-          <Logo 
-            type="imaginal-agility"
-            className="h-12 w-auto mx-auto"
-          />
-          {/* Debug info */}
-          <div className="text-xs text-gray-500 mt-2 text-center">
-            Debug: isImaginalAgility = {isImaginalAgility ? 'true' : 'false'}
+          {/* Logo section */}
+          <div className="flex items-center mb-6">
+            <Logo type={isImaginalAgility ? "imaginal-agility" : "allstarteams"} />
+            {console.log('🔍 NAV DEBUG - Received isImaginalAgility:', isImaginalAgility)}
           </div>
         </div>
         {/* Toggle Button - position depends on mobile/desktop */}
@@ -300,7 +296,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         >
           {drawerOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
-        
+
         {/* Navigation Content */}
         <div className="p-4 flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
           {/* Navigation Sections */}
@@ -314,7 +310,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                     {drawerOpen && (
                       <>
                         <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
-                        
+
                         {/* Dynamic progress indicator based on completed steps */}
                         {section.id !== '5' && section.id !== '6' && (
                           <span className="ml-auto text-xs text-gray-500">
@@ -325,7 +321,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                     )}
                   </div>
                 )}
-                
+
                 {/* Steps List */}
                 {drawerOpen && (
                   <ul className="pl-7 space-y-1">
@@ -333,20 +329,20 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
-                      
+
                       // SIMPLIFIED MODE: Green checkmark logic - only show for completed steps in database
                       let isCompleted = false;
                       if (!isResourceSection) {
                         isCompleted = effectiveCompletedSteps.includes(step.id);
                         console.log(`🔍 SIMPLIFIED MODE: Step ${step.id} completion check - completed: ${isCompleted}`);
                       }
-                      
+
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
-                      
+
                       // Check step accessibility using the passed function from parent (which includes navigation progress state)
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
-                      
+
                       return (
                         <TooltipProvider key={step.id}>
                           <Tooltip>
@@ -383,9 +379,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
                                 </div>
-                                
+
                                 <span className="flex-1">{step.title}</span>
-                                
+
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
                                   {step.type === 'video' && (
