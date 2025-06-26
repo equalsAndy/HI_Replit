@@ -66,33 +66,67 @@ export default function FinalReflectionView({
 
   return (
     <div className="final-reflection-container">
-      <h1 className="page-title">Final Reflection</h1>
-      
       <div className="content-grid">
-        {/* Left Column - Content & Form */}
+        {/* Left Column - Ladder & Explanation */}
         <div className="left-column">
+          <div className="ladder-container">
+            <img 
+              src={ladderImage} 
+              alt="Your personal journey ladder showing each step of growth"
+              className="ladder-image"
+            />
+          </div>
+
+          {/* Explanatory Content - Next to ladder */}
+          <div className="explanation-section">
+            <h3 className="explanation-title">Your Journey Ladder</h3>
+            
+            <div className="explanation-grid">
+              <div className="explanation-item">
+                <h4 className="item-title">Each Step Built on the Last</h4>
+                <p className="item-text">
+                  Your journey wasn't random steps—it was deliberate progression, deepening your self-awareness at each stage.
+                </p>
+              </div>
+              
+              <div className="explanation-item">
+                <h4 className="item-title">You Already Had the Strength</h4>
+                <p className="item-text">
+                  This wasn't about adding new capabilities. It was about recognizing and developing what was already within you.
+                </p>
+              </div>
+              
+              <div className="explanation-item">
+                <h4 className="item-title">Ready for Team Impact</h4>
+                <p className="item-text">
+                  Your self-knowledge becomes your contribution. You're now prepared to bring clarity and imagination to team collaboration.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column - Reflection & Action */}
+        <div className="right-column">
           {/* Main Reflection Section */}
           <div className="reflection-section">
-            <h2 className="section-title">Final Reflection: Your Next Step</h2>
+            <h2 className="section-title">Capture Your Key Insight</h2>
             <div className="section-content">
               <p className="intro-text">
-                You've just completed a personal discovery journey — from identifying your 
-                core strength to envisioning your future self.
+                You've completed a powerful personal discovery—from identifying your core strengths to envisioning your future potential.
               </p>
               <p className="intro-text">
-                You've seen how your strengths (especially imagination) operate at their 
-                best, and how your well-being shapes your potential. Now, take a moment 
-                to name one insight or intention you want to carry forward — as 
-                preparation for deeper team practice ahead.
+                Before moving forward, take a moment to crystallize one key insight or intention that resonates most strongly. This will become your foundation for the team collaboration ahead.
               </p>
               
               <div className="input-container">
+                <label className="input-label">What's the one insight you want to carry forward?</label>
                 <textarea
                   className="insight-input"
-                  placeholder="One insight I'm taking forward is..."
+                  placeholder="The most important thing I discovered about myself is..."
                   value={insight}
                   onChange={(e) => handleInsightChange(e.target.value)}
-                  rows={6}
+                  rows={4}
                   maxLength={1000}
                 />
                 <div className="character-count">
@@ -101,47 +135,6 @@ export default function FinalReflectionView({
               </div>
             </div>
           </div>
-
-          {/* Explanatory Content - Moved from right side */}
-          <div className="explanation-section">
-            <h3 className="explanation-title">What This Ladder Represents</h3>
-            
-            <div className="explanation-grid">
-              <div className="explanation-item">
-                <h4 className="item-title">A Natural Progression</h4>
-                <p className="item-text">
-                  Each step builds on the one before — not in leaps, but in deepening awareness.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Reflective Mirror</h4>
-                <p className="item-text">
-                  This journey wasn't about adding something new. It was about surfacing 
-                  what's already strong within you.
-                </p>
-              </div>
-              
-              <div className="explanation-item">
-                <h4 className="item-title">Team Flow Starts Here</h4>
-                <p className="item-text">
-                  Your self-awareness is your starting point. Now you're ready to contribute 
-                  with clarity and imagination.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Column - Ladder Visual & Action */}
-        <div className="right-column">
-          <div className="ladder-container">
-            <img 
-              src={ladderImage} 
-              alt="Journey Ladder showing the progression from Star Self-Assessment through Core Strengths, Flow State, Rounding Out, Visualizing Potential, Ladder of Well-Being, to Future Self"
-              className="ladder-image"
-            />
-          </div>
           
           <div className="action-section">
             <button
@@ -149,12 +142,12 @@ export default function FinalReflectionView({
               onClick={handleNext}
               disabled={!isNextEnabled}
             >
-              Continue to Star Card
+              Complete Your Journey
             </button>
             
             {!isNextEnabled && (
               <p className="helper-text">
-                Please share at least 10 characters to continue
+                Share your insight to complete the workshop
               </p>
             )}
           </div>
@@ -166,15 +159,6 @@ export default function FinalReflectionView({
           max-width: 1200px;
           margin: 0 auto;
           padding: 40px 20px;
-        }
-
-        .page-title {
-          text-align: center;
-          color: #2c3e50;
-          font-size: 2.5rem;
-          font-weight: 700;
-          margin-bottom: 40px;
-          line-height: 1.2;
         }
 
         .content-grid {
@@ -191,75 +175,23 @@ export default function FinalReflectionView({
           gap: 40px;
         }
 
-        .reflection-section {
-          background: #fefcf7;
-          border-radius: 16px;
-          padding: 32px;
-          border-left: 4px solid #f1c40f;
-          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
-          transition: box-shadow 0.3s ease;
-        }
-
-        .reflection-section:hover {
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-title {
-          color: #2c3e50;
-          font-size: 1.75rem;
-          font-weight: 700;
-          margin-bottom: 24px;
-          line-height: 1.3;
-        }
-
-        .section-content {
-          display: flex;
-          flex-direction: column;
-          gap: 20px;
-        }
-
-        .intro-text {
-          color: #5d6d7e;
-          line-height: 1.7;
-          font-size: 1rem;
-          margin: 0;
-        }
-
-        .input-container {
-          margin-top: 8px;
-        }
-
-        .insight-input {
+        .ladder-container {
           width: 100%;
-          min-height: 150px;
-          padding: 20px;
-          border: 2px solid #e8f4fd;
+          max-width: 400px;
+          margin: 0 auto;
+          text-align: center;
+        }
+
+        .ladder-image {
+          width: 65%;
+          height: auto;
           border-radius: 12px;
-          font-size: 16px;
-          line-height: 1.6;
-          resize: vertical;
-          font-family: inherit;
-          background: #ffffff;
-          transition: all 0.2s ease;
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+          transition: transform 0.3s ease;
         }
 
-        .insight-input:focus {
-          outline: none;
-          border-color: #3498db;
-          box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
-          transform: translateY(-2px);
-        }
-
-        .insight-input::placeholder {
-          color: #95a5a6;
-          font-style: italic;
-        }
-
-        .character-count {
-          text-align: right;
-          color: #95a5a6;
-          font-size: 0.875rem;
-          margin-top: 8px;
+        .ladder-image:hover {
+          transform: translateY(-6px) scale(1.02);
         }
 
         /* Explanation Section */
@@ -320,33 +252,94 @@ export default function FinalReflectionView({
         .right-column {
           display: flex;
           flex-direction: column;
-          align-items: center;
           gap: 40px;
         }
 
-        .ladder-container {
+        .reflection-section {
+          background: #fefcf7;
+          border-radius: 16px;
+          padding: 32px;
+          border-left: 4px solid #f1c40f;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+          transition: box-shadow 0.3s ease;
+        }
+
+        .reflection-section:hover {
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+          color: #2c3e50;
+          font-size: 1.75rem;
+          font-weight: 700;
+          margin-bottom: 20px;
+          line-height: 1.3;
+        }
+
+        .section-content {
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .intro-text {
+          color: #5d6d7e;
+          line-height: 1.7;
+          font-size: 1rem;
+          margin: 0;
+        }
+
+        .input-container {
+          margin-top: 8px;
+        }
+
+        .input-label {
+          display: block;
+          color: #34495e;
+          font-weight: 600;
+          font-size: 1.1rem;
+          margin-bottom: 12px;
+        }
+
+        .insight-input {
           width: 100%;
-          max-width: 400px;
-          text-align: center;
-        }
-
-        .ladder-image {
-          width: 65%;
-          height: auto;
+          min-height: 120px;
+          padding: 20px;
+          border: 2px solid #e8f4fd;
           border-radius: 12px;
-          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-          transition: transform 0.3s ease;
+          font-size: 16px;
+          line-height: 1.6;
+          resize: vertical;
+          font-family: inherit;
+          background: #ffffff;
+          transition: all 0.2s ease;
         }
 
-        .ladder-image:hover {
-          transform: translateY(-6px) scale(1.02);
+        .insight-input:focus {
+          outline: none;
+          border-color: #3498db;
+          box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.1);
+          transform: translateY(-2px);
+        }
+
+        .insight-input::placeholder {
+          color: #95a5a6;
+          font-style: italic;
+        }
+
+        .character-count {
+          text-align: right;
+          color: #95a5a6;
+          font-size: 0.875rem;
+          margin-top: 8px;
         }
 
         /* Action Section */
         .action-section {
           text-align: center;
           width: 100%;
-          max-width: 300px;
+          max-width: 400px;
+          margin: 0 auto;
         }
 
         .continue-button {
@@ -409,11 +402,6 @@ export default function FinalReflectionView({
             padding: 20px 16px;
           }
 
-          .page-title {
-            font-size: 2rem;
-            margin-bottom: 30px;
-          }
-
           .reflection-section,
           .explanation-section {
             padding: 24px;
@@ -434,17 +422,13 @@ export default function FinalReflectionView({
             padding: 20px;
           }
 
-          .page-title {
-            font-size: 1.75rem;
-          }
-
           .section-title {
             font-size: 1.25rem;
           }
 
           .insight-input {
             padding: 16px;
-            min-height: 120px;
+            min-height: 100px;
           }
 
           .continue-button {
