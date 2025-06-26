@@ -11,9 +11,9 @@ interface LogoProps {
 
 export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
   const sizeClasses = {
-    sm: type === 'imaginal-agility' ? 'h-8' : 'h-8',
-    md: type === 'imaginal-agility' ? 'h-12' : 'h-12',
-    lg: type === 'imaginal-agility' ? 'h-16' : 'h-16'
+    sm: 'w-32 h-auto',     // 128px width, auto height
+    md: 'w-48 h-auto',     // 192px width, auto height
+    lg: 'w-60 h-auto'      // 240px width, auto height
   };
 
   const logoConfig = {
@@ -43,7 +43,7 @@ export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
     <img 
       src={config.src} 
       alt={config.alt} 
-      className={`${sizeClasses[size]} w-auto ${className}`}
+      className={`${sizeClasses[size]} ${className}`}
     />
   );
 }

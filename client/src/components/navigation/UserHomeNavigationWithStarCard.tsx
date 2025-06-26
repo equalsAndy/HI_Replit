@@ -279,7 +279,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
         <div className="p-4 border-b border-gray-200">
           {/* Logo section */}
           <div className="flex items-center mb-6">
-            <Logo type={isImaginalAgility ? "imaginal-agility" : "allstarteams"} />
+            <Logo 
+              type={isImaginalAgility ? "imaginal-agility" : "allstarteams"} 
+              size="md"
+              className="mx-auto"
+            />
             {console.log('🔍 NAV DEBUG - Received isImaginalAgility:', isImaginalAgility)}
           </div>
         </div>
