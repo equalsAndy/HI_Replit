@@ -112,10 +112,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
 
       <div className="mb-8">
-        <div className="mb-8">
+        <div className="mb-8 max-w-4xl mx-auto">
           <VideoPlayer
             workshopType="allstarteams"
             stepId="4-1"
+            aspectRatio="16:9"
             autoplay={true}
           />
         </div>
