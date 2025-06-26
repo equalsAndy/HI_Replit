@@ -200,6 +200,11 @@ git reset --hard origin/main
 - **Replit terminal access**: Shell/Console tab accessible
 - **File naming awareness**: Understand PascalCase conventions
 
+### **File System vs Git Tracking:**
+- **Git status**: Shows only tracked files
+- **File explorer**: May show untracked duplicates from previous operations
+- **Solution**: Manual deletion of untracked duplicates is safe
+- **Check both**: Always verify file explorer matches git status
 ---
 
 **Project Location**: /Users/bradtopliff/Desktop/HI_Replit
