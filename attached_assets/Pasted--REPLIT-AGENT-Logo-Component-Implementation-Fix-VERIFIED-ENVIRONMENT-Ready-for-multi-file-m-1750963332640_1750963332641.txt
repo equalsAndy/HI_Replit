@@ -1,0 +1,92 @@
+# REPLIT AGENT: Logo Component Implementation Fix
+
+## ✅ VERIFIED ENVIRONMENT: Ready for multi-file modifications
+
+## 🎯 OBJECTIVE: Replace all hardcoded logo URLs with proper Logo component usage
+
+**Problem**: Logos work in dev OR deployed, but not both. IA workshop shows wrong logo.
+**Root Cause**: Hardcoded URLs and inconsistent Logo component usage across navigation components.
+
+## 📂 MODIFY EXACTLY 4 FILES:
+
+### **File 1**: `client/src/components/navigation/ImaginalAgilityNavigation.tsx`
+- **REMOVE**: Hardcoded external URL (lines 22-26):
+```tsx
+<img
+src="https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png"
+alt="Imaginal Agility"
+className="h-10 w-auto mr-3"
+/>
+```
+- **ADD**: Logo component import and usage
+- **Expected**: +5 lines, -5 lines
+
+### **File 2**: `client/src/components/layout/Header.tsx`
+- **REMOVE**: Hardcoded logo img tags
+- **ADD**: Logo component with proper workshop detection
+- **Expected**: +4 lines, -4 lines
+
+### **File 3**: `client/src/components/navigation/UserHomeNavigationWithStarCard.tsx`
+- **REMOVE**: Any hardcoded logo references (up to 35 lines)
+- **ADD**: Logo component import and proper usage
+- **Expected**: +5 lines, -35 lines
+
+### **File 4**: `client/src/hooks/use-application.tsx`
+- **REMOVE**: Missing fallback logic (9 lines)
+- **ADD**: Proper logo detection fallback
+- **Expected**: +0 lines, -9 lines
+
+## 🎯 IMPLEMENTATION REQUIREMENTS:
+
+### **Logo Component Usage:**
+- **Import**: `import Logo from '@/components/branding/Logo'` (or correct path)
+- **IA Workshop**: `<Logo type="imaginal-agility" className="h-10 w-auto mr-3" />`
+- **AST Workshop**: `<Logo type="allstarteams" className="h-10 w-auto mr-3" />`
+- **Platform Header**: `<Logo type="heliotrope" className="h-10 w-auto mr-3" />`
+
+### **Workshop Detection Logic:**
+- **Use existing `isImaginalAgility` prop** where available
+- **Leverage `currentApp` state** from use-application hook
+- **Proper fallback** when workshop detection fails
+
+## ⚠️ CRITICAL CONSTRAINTS:
+
+- ❌ **DO NOT modify Logo.tsx** - component already works correctly
+- ❌ **DO NOT change logo files** - files in `@/assets` are correct
+- ❌ **DO NOT modify workshop themes** - only fix logo display
+- ✅ **ONLY replace hardcoded URLs** with Logo component usage
+- ✅ **MAINTAIN existing styling classes** (h-10 w-auto mr-3, etc.)
+- ✅ **PRESERVE workshop navigation functionality**
+
+## 🧪 VERIFICATION REQUIREMENTS:
+
+### **After Implementation:**
+1. **IA Workshop** shows IA logo (not AST logo)
+2. **AST Workshop** shows AST logo  
+3. **Platform Header** shows Heliotrope logo
+4. **Dev Environment** - all logos display correctly
+5. **Deployed App** - all logos display correctly
+6. **No broken images** in either environment
+
+### **Test Both Workshops:**
+- Navigate to `/imaginal-agility` → Should show IA logo
+- Navigate to `/allstarteams` → Should show AST logo
+- Check navigation headers in both workshops
+
+## 📋 SUCCESS CRITERIA:
+
+✅ **Logo display fixed** - correct logos in both workshops
+✅ **Environment consistency** - works in both dev and deployed
+✅ **No hardcoded URLs** - all components use Logo component
+✅ **Workshop separation maintained** - no cross-contamination
+✅ **Performance preserved** - no loading delays
+✅ **Styling consistent** - existing classes maintained
+
+## 🔧 TECHNICAL NOTES:
+
+- **Logo Component Path**: Verify import path to `@/components/branding/Logo`
+- **Asset References**: Logo.tsx already has correct `@/assets` imports
+- **Vite Bundling**: Logo component handles dev vs production paths correctly
+- **Workshop Props**: Use existing `isImaginalAgility` and `currentApp` detection
+
+EXECUTE COMPLETE LOGO STANDARDIZATION ACROSS ALL NAVIGATION COMPONENTS.
