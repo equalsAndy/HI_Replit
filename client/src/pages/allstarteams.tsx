@@ -40,6 +40,11 @@ export default function AllStarTeams() {
   useEffect(() => {
     // Detect current route and set app accordingly
     const currentAppType = location.includes('/imaginal-agility') ? 'imaginal-agility' : 'allstarteams';
+    console.log('🔍 Route Detection Debug:');
+    console.log('  - Current location:', location);
+    console.log('  - location.includes("/imaginal-agility"):', location.includes('/imaginal-agility'));
+    console.log('  - Setting currentAppType to:', currentAppType);
+    console.log('  - Previous currentApp was:', currentApp);
     setCurrentApp(currentAppType);
     
     // Listen for auto-navigation events from the navigation hook
@@ -529,6 +534,12 @@ export default function AllStarTeams() {
           currentContent={currentContent}
           isImaginalAgility={currentApp === 'imaginal-agility'}
         />
+        {/* Debug logging for props */}
+        {console.log('🎯 Navigation Props Debug:', {
+          currentApp,
+          isImaginalAgility: currentApp === 'imaginal-agility',
+          location
+        })}
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">

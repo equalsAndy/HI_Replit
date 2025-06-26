@@ -63,6 +63,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   currentContent,
   isImaginalAgility = false
 }) => {
+  // Debug logging for received props
+  console.log('🔍 NAV DEBUG - Received isImaginalAgility:', isImaginalAgility);
+  console.log('🔍 NAV DEBUG - Received currentContent:', currentContent);
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
 
@@ -274,10 +277,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       )}>
         {/* Application Logo */}
         <div className="p-4 border-b border-gray-200">
+          {/* Debug: Test hardcoded IA logo */}
           <Logo 
-            type={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
+            type="imaginal-agility"
             className="h-12 w-auto mx-auto"
           />
+          {/* Debug info */}
+          <div className="text-xs text-gray-500 mt-2 text-center">
+            Debug: isImaginalAgility = {isImaginalAgility ? 'true' : 'false'}
+          </div>
         </div>
         {/* Toggle Button - position depends on mobile/desktop */}
         <button
