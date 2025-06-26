@@ -11,9 +11,9 @@ interface LogoProps {
 
 export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
   const sizeClasses = {
-    sm: type === 'imaginal-agility' ? 'h-12' : 'h-8',
-    md: type === 'imaginal-agility' ? 'h-20' : 'h-12',
-    lg: type === 'imaginal-agility' ? 'h-24' : 'h-16'
+    sm: type === 'imaginal-agility' ? 'h-8' : 'h-8',
+    md: type === 'imaginal-agility' ? 'h-12' : 'h-12',
+    lg: type === 'imaginal-agility' ? 'h-16' : 'h-16'
   };
 
   const logoConfig = {
