@@ -109,16 +109,18 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">The Cantril Ladder of Well-Being</h1>
-
-      <div className="mb-8">
-        <div className="mb-8">
-          <VideoPlayer
-            workshopType="allstarteams"
-            stepId="4-1"
-            autoplay={true}
-          />
-        </div>
+<div className="mb-8 max-w-4xl mx-auto">
+  <VideoPlayer
+    workshopType="allstarteams"
+    stepId="4-1"
+    fallbackUrl="https://youtu.be/your-cantril-ladder-video-url"
+    title="The Cantril Ladder of Well-Being"
+    aspectRatio="16:9"
+    autoplay={true}
+    onProgress={(progress) => console.log('Video progress:', progress)}
+    startTime={0}
+  />
+</div>
 
         <div className="prose max-w-none mb-6">
           <p className="text-lg text-gray-700">
