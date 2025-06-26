@@ -38,7 +38,9 @@ export default function AllStarTeams() {
 
   // Set app type for navigation and listen for auto-navigation events
   useEffect(() => {
-    setCurrentApp('allstarteams');
+    // Detect current route and set app accordingly
+    const currentAppType = location.includes('/imaginal-agility') ? 'imaginal-agility' : 'allstarteams';
+    setCurrentApp(currentAppType);
     
     // Listen for auto-navigation events from the navigation hook
     const handleAutoNavigation = (event: CustomEvent) => {
