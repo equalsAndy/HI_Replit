@@ -276,7 +276,14 @@ export default function ImaginalAgilityHome() {
           isStepAccessible={isStepAccessible}
           handleStepClick={handleStepClick}
           currentContent={currentContent}
+          isImaginalAgility={true}
         />
+        {/* Debug logging for IA page props */}
+        {console.log('🎯 IA Navigation Props Debug:', {
+          isImaginalAgility: true,
+          currentContent,
+          location: window.location.pathname
+        })}
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
