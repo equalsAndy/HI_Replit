@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { NavigationSection, StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { navigationSections } from './navigationData';
 import { Button } from '@/components/ui/button';
+import Logo from '@/components/branding/Logo';
 import { 
   ChevronRight, 
   ChevronLeft, 
@@ -273,9 +274,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
       )}>
         {/* Application Logo */}
         <div className="p-4 border-b border-gray-200">
-          <img 
-            src={isImaginalAgility ? "https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png" : "/assets/all-star-teams-logo-250px-DjVl3R6N.png"}
-            alt={isImaginalAgility ? "Imaginal Agility" : "AllStarTeams"} 
+          <Logo 
+            type={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
             className="h-12 w-auto mx-auto"
           />
         </div>

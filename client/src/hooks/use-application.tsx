@@ -1,15 +1,12 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useLocation } from 'wouter';
-import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
-import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 
 type ApplicationType = 'allstarteams' | 'imaginal-agility';
 
 type ApplicationContextType = {
   currentApp: ApplicationType;
   appName: string;
-  appLogo: string;
   appPrimaryColor: string;
   setCurrentApp: (app: ApplicationType) => void;
 };
@@ -18,12 +15,10 @@ type ApplicationContextType = {
 const appConfig = {
   'allstarteams': {
     name: 'AllStarTeams',
-    logo: AllStarTeamsLogo,
     primaryColor: 'indigo',
   },
   'imaginal-agility': {
     name: 'Imaginal Agility',
-    logo: ImaginalAgilityLogo,
     primaryColor: 'purple',
   }
 };
@@ -76,7 +71,6 @@ export function ApplicationProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => ({
     currentApp,
     appName: appConfig[currentApp].name,
-    appLogo: appConfig[currentApp].logo,
     appPrimaryColor: appConfig[currentApp].primaryColor,
     setCurrentApp,
   }), [currentApp]);

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Check, Lock } from 'lucide-react';
 import { imaginalAgilityNavigationSections } from './navigationData';
-import imaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
+import Logo from '@/components/branding/Logo';
 
 interface ImaginalAgilityNavigationProps {
   currentStepId: string;
@@ -19,11 +19,7 @@ export default function ImaginalAgilityNavigation({
   return (
     <div className="bg-gradient-to-b from-purple-600 to-purple-800 text-white p-6">
       <div className="flex items-center mb-6">
-        <img 
-          src="https://app.heliotropeimaginal.com/assets/imaginal_agility_logo_nobkgrd-iiMRa1Pw.png" 
-          alt="Imaginal Agility" 
-          className="h-10 w-auto mr-3"
-        />
+        <Logo type="imaginal-agility" className="h-10 w-auto mr-3" />
         <h2 className="text-xl font-bold">Imaginal Agility Workshop</h2>
       </div>
       
