@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Switch, Router } from 'wouter';
+import { Route, Switch, useLocation, Router } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import InviteRegistrationPage from '@/pages/invite-registration';
 import AuthPage from '@/pages/auth-page';
@@ -37,7 +37,15 @@ const AutoSyncWrapper: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  // Use error boundary to catch any rendering or navigation errors
+  const [location] = useLocation();
+
+  // Debug current route
+  React.useEffect(() => {
+    console.log('🔍 APP ROUTE DEBUG - Current location:', location);
+    console.log('🔍 APP ROUTE DEBUG - Is IA route?', location.includes('/imaginal-agility'));
+    console.log('🔍 APP ROUTE DEBUG - Is AST route?', location.includes('/allstarteams'));
+  }, [location]);
+
   return (
     <ErrorBoundary>
       {/* Use standard router */}
