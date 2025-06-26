@@ -33,17 +33,20 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
   };
 
   return (
-    <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-4">Understanding Flow State</h1>
+    <div className="max-w-4xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Introduction to Flow</h1>
 
-      <div className="aspect-w-16 aspect-h-9 mb-4">
-        <div className="w-full h-80 rounded border border-gray-200 bg-black">
-          <div 
-            ref={playerRef}
-            className="w-full h-full rounded-lg"
-            style={{ pointerEvents: 'auto', position: 'relative' }}
-          />
-        </div>
+      {/* YouTube Video Player */}
+      <div className="mb-8 max-w-4xl mx-auto">
+        <VideoPlayer
+          workshopType="allstarteams"
+          stepId="3-1"
+          fallbackUrl="https://youtu.be/6szJ9q_g87E"
+          title="Introduction to Flow State"
+          aspectRatio="16:9"
+          autoplay={true}
+          onProgress={handleVideoProgress}
+        />
       </div>
 
       <div className="flex flex-col md:flex-row gap-6 mb-4">
