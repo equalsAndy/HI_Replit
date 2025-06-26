@@ -21,7 +21,8 @@ import {
   BarChart3,
   ImageIcon,
   Zap,
-  Presentation
+  Presentation,
+  Info
 } from 'lucide-react';
 import { useLocation, Link } from 'wouter';
 import { cn } from '@/lib/utils';
@@ -402,6 +403,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   )}
                                   {step.type === 'adding' && (
                                     <Plus className="h-4 w-4 text-emerald-400" />
+                                  )}
+                                  {step.type === 'reflection' && (
+                                    <PenLine className="h-4 w-4 text-purple-400" />
+                                  )}
+                                  {step.type === 'resources' && (
+                                    <Info className="h-4 w-4 text-slate-400" />
                                   )}
                                   {step.type === 'interactive' && (
                                     <BarChart3 className="h-4 w-4 text-violet-400" />
