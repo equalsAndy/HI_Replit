@@ -44,6 +44,11 @@ const App: React.FC = () => {
     console.log('🔍 APP ROUTE DEBUG - Current location:', location);
     console.log('🔍 APP ROUTE DEBUG - Is IA route?', location.includes('/imaginal-agility'));
     console.log('🔍 APP ROUTE DEBUG - Is AST route?', location.includes('/allstarteams'));
+    console.log('🔍 APP ROUTE DEBUG - Route should go to:', 
+      location.includes('/imaginal-agility') ? 'imaginal-agility.tsx' : 
+      location.includes('/allstarteams') ? 'allstarteams.tsx' : 
+      'default routing'
+    );
   }, [location]);
 
   return (

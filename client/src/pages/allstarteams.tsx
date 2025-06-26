@@ -38,14 +38,26 @@ export default function AllStarTeams() {
 
   // Set app type for navigation and listen for auto-navigation events
   useEffect(() => {
-    // Detect current route and set app accordingly
-    const currentAppType = location.includes('/imaginal-agility') ? 'imaginal-agility' : 'allstarteams';
+    // Detect current route and set app accordingly - be more specific about IA routes
+    const isIARoute = location.includes('/imaginal-agility') || 
+                      location.includes('/ia-') || 
+                      location.includes('imaginal') ||
+                      currentContent?.includes('imaginal');
+    
+    const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
     console.log('🔍 Route Detection Debug:');
     console.log('  - Current location:', location);
+    console.log('  - Current content:', currentContent);
     console.log('  - location.includes("/imaginal-agility"):', location.includes('/imaginal-agility'));
+    console.log('  - isIARoute check result:', isIARoute);
     console.log('  - Setting currentAppType to:', currentAppType);
     console.log('  - Previous currentApp was:', currentApp);
-    setCurrentApp(currentAppType);
+    
+    // Only update if the app type actually changed
+    if (currentApp !== currentAppType) {
+      console.log('🔄 App type changed from', currentApp, 'to', currentAppType);
+      setCurrentApp(currentAppType);
+    }
     
     // Listen for auto-navigation events from the navigation hook
     const handleAutoNavigation = (event: CustomEvent) => {
@@ -62,7 +74,7 @@ export default function AllStarTeams() {
     return () => {
       window.removeEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
     };
-  }, [setCurrentApp, setCurrentContent, setCurrentStep]);
+  }, [setCurrentApp, setCurrentContent, setCurrentStep, currentContent, location, currentApp]);
 
   // Determine which navigation sections to use based on the selected app
   const activeNavigationSections = currentApp === 'imaginal-agility' 
