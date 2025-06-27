@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 MOCKUP ONLY - Test User Page - Heliotrope Imaginal</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #374151;
+            line-height: 1.5;
+        }
+        
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+        
+        /* Header */
+        .header {
+            background-color: #fbbf24;
+            padding: 16px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .logo {
+            width: 32px;
+            height: 32px;
+            background-color: #374151;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .test-user-badge {
+            background-color: #7c3aed;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        /* Main Content */
+        .main { padding: 32px 0; }
+        
+        .page-header { margin-bottom: 32px; }
+        .page-title { font-size: 24px; font-weight: bold; margin-bottom: 8px; }
+        .page-subtitle { color: #6b7280; }
+        
+        /* Workshop Cards */
+        .workshop-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+        
+        .workshop-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .workshop-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15);
+        }
+        
+        .workshop-header {
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ast-header {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%);
+        }
+        
+        .ia-header {
+            background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 50%, #c4b5fd 100%);
+        }
+        
+        .workshop-logo {
+            width: 64px;
+            height: 64px;
+            margin-right: 20px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px;
+        }
+        
+        .workshop-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .workshop-info h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .workshop-info p {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        
+        .ast-title { color: #1e3a8a; }
+        .ast-subtitle { color: #1d4ed8; }
+        .ia-title { color: #581c87; }
+        .ia-subtitle { color: #7c3aed; }
+        
+        .workshop-content { padding: 24px; }
+        
+        /* Progress Section */
+        .progress-section { margin-bottom: 24px; }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .progress-label { 
+            font-weight: 600; 
+            color: #374151;
+            font-size: 14px;
+        }
+        
+        .step-badge {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.025em;
+        }
+        
+        .ast-badge { 
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1d4ed8; 
+            border: 1px solid #93c5fd;
+        }
+        .ia-badge { 
+            background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+            color: #7c3aed; 
+            border: 1px solid #c4b5fd;
+        }
+        
+        .step-progress-info {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 2px;
+        }
+        
+        /* Action Buttons */
+        .actions { display: flex; flex-direction: column; gap: 12px; }
+        
+        .btn {
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--color), var(--color-dark));
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        /* Test User Tools */
+        .tools-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+        
+        .tools-header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        }
+        
+        .tools-title { 
+            font-size: 20px; 
+            font-weight: 600; 
+            margin-bottom: 8px;
+            color: #1e293b;
+        }
+        .tools-subtitle { 
+            color: #64748b; 
+            font-size: 14px;
+        }
+        
+        .tools-content { padding: 24px; }
+        
+        .tools-grid {
+            display: grid;
+            gap: 16px;
+        }
+        
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 20px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-size: 14px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .tool-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .tool-export { 
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+        .tool-reset { 
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+        
+        .tool-icon {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+        
+        /* Notes */
+        .notes {
+            margin-top: 32px;
+            padding: 20px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .notes-title {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 12px;
+            font-size: 16px;
+        }
+        
+        .notes-list {
+            color: #1d4ed8;
+            font-size: 14px;
+            margin-left: 20px;
+            line-height: 1.6;
+        }
+        
+        .notes-list li {
+            margin-bottom: 6px;
+        }
+        
+        .notes-list code {
+            background: #dbeafe;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'SF Mono', Monaco, monospace;
+            font-size: 12px;
+        }
+        
+        @media (max-width: 768px) {
+            .workshop-grid { grid-template-columns: 1fr; }
+            .tools-grid { grid-template-columns: 1fr !important; }
+            .workshop-header { padding: 20px; }
+            .workshop-content { padding: 20px; }
+        }
+        
+        /* Custom Properties for Each Workshop */
+        .ast-colors {
+            --color: #3b82f6;
+            --color-dark: #1d4ed8;
+            --color-light: #bfdbfe;
+        }
+        
+        .ia-colors {
+            --color: #8b5cf6;
+            --color-dark: #7c3aed;
+            --color-light: #ddd6fe;
+        }
+    </style>
+</head>
+<body>
+    <!-- 🎨 MOCKUP HEADER - FOR VISUALIZATION ONLY -->
+    <!-- The yellow header shown here is MOCKUP ONLY for visual reference -->
+    <!-- The real test user page does NOT have this header (same as current dashboard) -->
+    <header class="header" style="background: #fbbf24; border: 3px dashed #f59e0b; position: relative;">
+        <div style="position: absolute; top: 2px; left: 50%; transform: translateX(-50%); background: #dc2626; color: white; padding: 2px 8px; font-size: 10px; font-weight: bold; border-radius: 4px;">
+            🎨 MOCKUP HEADER ONLY - NOT PART OF REAL PAGE
+        </div>
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo">Hi</div>
+                    <span style="font-weight: 600;">Heliotrope Imaginal Workshops</span>
+                </div>
+                <div class="user-section">
+                    <span>Logged in as: <strong>Frank Franklin</strong></span>
+                    <span class="test-user-badge">Test User</span>
+                    <button style="background:none;border:none;cursor:pointer;color:#374151;font-weight:500;">Log out</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main">
+        <div class="container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h1 class="page-title">Test User Page</h1>
+                <p class="page-subtitle">Access your workshops and manage your testing progress</p>
+            </div>
+
+            <!-- Workshop Cards -->
+            <div class="workshop-grid">
+                
+                <!-- AllStarTeams Workshop Card -->
+                <div class="workshop-card ast-colors">
+                    <div class="workshop-header ast-header">
+                        <div class="workshop-logo">
+                            <!-- Real AST Logo -->
+                            <img src="/attached_assets/all-star-teams-logo-square.png" alt="AllStarTeams Logo" />
+                        </div>
+                        <div class="workshop-info">
+                            <h2 class="ast-title">AllStarTeams Workshop</h2>
+                            <p class="ast-subtitle">Discover your unique strengths</p>
+                        </div>
+                    </div>
+                    
+                    <div class="workshop-content">
+                        <!-- Progress Steps -->
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Current Progress</span>
+                                <span class="step-badge ast-badge">Step 5 of 19 - Well-being Assessment</span>
+                            </div>
+                            
+                            <div class="step-progress-info">
+                                <div class="info-item">
+                                    <span class="info-label">Last Activity</span>
+                                    <span>2 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="actions">
+                            <button class="btn btn-primary">
+                                <span>▶</span>
+                                Continue AllStarTeams Workshop
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imaginal Agility Workshop Card -->
+                <div class="workshop-card ia-colors">
+                    <div class="workshop-header ia-header">
+                        <div class="workshop-logo">
+                            <!-- Real IA Logo -->
+                            <img src="/attached_assets/IA_sq.png" alt="Imaginal Agility Logo" />
+                        </div>
+                        <div class="workshop-info">
+                            <h2 class="ia-title">Imaginal Agility Workshop</h2>
+                            <p class="ia-subtitle">Enhance your creative thinking</p>
+                        </div>
+                    </div>
+                    
+                    <div class="workshop-content">
+                        <!-- Progress Steps -->
+                        <div class="progress-section">
+                            <div class="progress-header">
+                                <span class="progress-label">Current Progress</span>
+                                <span class="step-badge ia-badge">Step 2 of 8 - Reality Discernment</span>
+                            </div>
+                            
+                            <div class="step-progress-info">
+                                <div class="info-item">
+                                    <span class="info-label">Last Activity</span>
+                                    <span>1 week ago</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="actions">
+                            <button class="btn btn-primary" style="background: linear-gradient(135deg, #6b7280, #4b5563);">
+                                <span>🔄</span>
+                                Switch to Imaginal Agility
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test User Management Section -->
+            <div class="tools-section">
+                <div class="tools-header">
+                    <h2 class="tools-title">Test User Tools</h2>
+                    <p class="tools-subtitle">Manage your test data and view detailed progress information</p>
+                </div>
+                
+                <div class="tools-content">
+                    <div class="tools-grid" style="grid-template-columns: 1fr 1fr; max-width: 600px; margin: 0 auto;">
+                        <a href="#" class="tool-btn tool-export">
+                            <span class="tool-icon">📥</span>
+                            Export All Data
+                        </a>
+                        <a href="#" class="tool-btn tool-reset">
+                            <span class="tool-icon">🗑️</span>
+                            Reset All Data
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Implementation Reference -->
+            <div class="notes">
+                <h3 class="notes-title">🎯 Implementation Reference</h3>
+                <ul class="notes-list">
+                    <li><strong>🎨 THIS IS A VISUAL MOCKUP ONLY</strong> - Not functional code</li>
+                    <li><strong>No header on real page</strong> - Page starts with main content</li>
+                    <li>Route: <code>/testuser</code> for test user landing page</li>
+                    <li>Delete: <code>/client/src/pages/dashboard.tsx</code> (old file)</li>
+                    <li>Logos: <code>/attached_assets/all-star-teams-logo-square.png</code> and <code>/attached_assets/IA_sq.png</code></li>
+                    <li>Button logic: Each card refers to THAT workshop</li>
+                    <li>Continue button: Goes to last active workshop</li>
+                    <li>Switch button: Goes to non-active workshop</li>
+                    <li>Export: Downloads all user data from both workshops</li>
+                    <li>Reset: Clears all progress with confirmation dialog</li>
+                    <li>Admin dashboard: Keep completely unchanged</li>
+                    <li>Responsive: Two-column desktop, single-column mobile</li>
+                </ul>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
