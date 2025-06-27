@@ -432,58 +432,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
               </>
             )}
 
-            {/* Test User Data Reset Section */}
-            {user?.isTestUser && (
-              <div className="border-t border-destructive/20 pt-4 mt-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <AlertTriangle className="h-4 w-4 text-destructive" />
-                  <span className="text-sm font-medium text-destructive">Test User Data Reset</span>
-                </div>
-                <p className="text-xs text-muted-foreground mb-3">
-                  Delete all your workshop progress including assessments, reflections, and navigation data. This cannot be undone.
-                </p>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                      disabled={resetDataMutation.isPending}
-                    >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      {resetDataMutation.isPending ? 'Resetting...' : 'Reset My Data'}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Reset All Workshop Data</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will permanently delete all your workshop progress including:
-                        <ul className="list-disc list-inside mt-2 space-y-1">
-                          <li>Star Card assessments and results</li>
-                          <li>Flow attributes and assessments</li>
-                          <li>Well-being ladder responses</li>
-                          <li>Step-by-step reflections</li>
-                          <li>Navigation progress and completed steps</li>
-                          <li>Growth plans and final reflections</li>
-                        </ul>
-                        <br />
-                        Your account and profile information will be preserved. This action cannot be undone.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => resetDataMutation.mutate()}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        Reset All Data
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            )}
+
             
             <Button
               variant="destructive"

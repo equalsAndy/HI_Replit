@@ -4,7 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import InviteRegistrationPage from '@/pages/invite-registration';
 import AuthPage from '@/pages/auth-page';
 import LoginPage from '@/pages/auth/login';
-import DashboardPage from '@/pages/dashboard';
+
 import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
@@ -63,7 +63,7 @@ const App: React.FC = () => {
                   <Switch>
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
-                    <Route path="/dashboard" component={DashboardPage} />
+
                     <Route path="/testuser" component={TestUserPage} />
 
                     {/* Authentication routes */}
