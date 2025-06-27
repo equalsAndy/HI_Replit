@@ -25,6 +25,14 @@ export default function FinalReflectionView({
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
+  
+  // Return visit auto-modal countdown (5 seconds)
+  const [countdown, setCountdown] = useState(5);
+  const [isCountingDown, setIsCountingDown] = useState(false);
+  
+  // Modal auto-close countdown (20 seconds)
+  const [modalCountdown, setModalCountdown] = useState(20);
+  const [isModalCountingDown, setIsModalCountingDown] = useState(false);
 
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
@@ -32,11 +40,64 @@ export default function FinalReflectionView({
     staleTime: 30000,
   });
 
+  // Check if step is completed - using simple text length check for now
+  // TODO: Replace with actual progression system check
+  const isStepCompleted = existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
+  const savedInsight = existingData?.data?.futureLetterText || '';
+
   useEffect(() => {
     if (existingData && existingData.success && existingData.data && existingData.data.futureLetterText) {
       setInsight(String(existingData.data.futureLetterText));
     }
   }, [existingData]);
+
+  // Auto-show modal for completed steps with 5-second countdown
+  useEffect(() => {
+    if (isStepCompleted && savedInsight) {
+      setIsCountingDown(true);
+      setCountdown(5);
+      
+      const timer = setInterval(() => {
+        setCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsCountingDown(false);
+            setShowModal(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isStepCompleted, savedInsight]);
+
+  // Auto-close modal after 20 seconds for first-time completion
+  useEffect(() => {
+    if (showModal && !isStepCompleted) { // Only for first-time completion
+      setModalCountdown(20);
+      setIsModalCountingDown(true);
+      
+      const timer = setInterval(() => {
+        setModalCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setIsModalCountingDown(false);
+            setShowModal(false);
+            navigate('download-star-card'); // Navigate to star card
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => {
+        clearInterval(timer);
+        setIsModalCountingDown(false);
+      };
+    }
+  }, [showModal, isStepCompleted, navigate]);
 
   // Save final reflection data
   const saveMutation = useMutation({
@@ -52,9 +113,11 @@ export default function FinalReflectionView({
   const handleInsightChange = (value: string) => {
     setInsight(value);
     
-    // Auto-save after user stops typing
-    const saveData = { futureLetterText: value };
-    saveMutation.mutate(saveData);
+    // Auto-save after user stops typing (only if not completed)
+    if (!isStepCompleted) {
+      const saveData = { futureLetterText: value };
+      saveMutation.mutate(saveData);
+    }
   };
 
   const handleComplete = () => {
@@ -64,46 +127,50 @@ export default function FinalReflectionView({
     }
   };
 
-  const handleModalOption = (option: string) => {
-    setShowModal(false);
-    
-    // Navigate based on option
-    switch(option) {
-      case 'star-card':
-        setCurrentContent('your-star-card');
-        break;
-      case 'holistic-report':
-        setCurrentContent('holistic-report');
-        break;
-      case 'growth-plan':
-        setCurrentContent('growth-plan');
-        break;
-      case 'team-workshop':
-        setCurrentContent('team-workshop-prep');
-        break;
-    }
-  };
-
-  const closeModal = () => {
-    setShowModal(false);
-    setCurrentContent('your-star-card'); // Default navigation to star card
-  };
-
+  // Prevent body scroll when modal is open
   useEffect(() => {
-    // Prevent body scroll when modal is open
     if (showModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
     }
     
-    // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'auto';
     };
   }, [showModal]);
 
-  const isNextEnabled = insight.trim().length >= 10;
+  const handleModalOption = (option: string) => {
+    setIsModalCountingDown(false); // Stop countdown
+    setShowModal(false);
+    
+    // Navigate based on option
+    switch(option) {
+      case 'star-card':
+        navigate('download-star-card');
+        break;
+      case 'holistic-report':
+        navigate('holistic-report');
+        break;
+      case 'growth-plan':
+        navigate('growth-plan');
+        break;
+      case 'team-workshop':
+        navigate('team-workshop-prep');
+        break;
+    }
+  };
+
+  const closeModal = () => {
+    setIsModalCountingDown(false); // Stop countdown
+    setShowModal(false);
+    
+    // Only navigate for first-time completion
+    if (!isStepCompleted) {
+      navigate('download-star-card'); // Navigate to star card
+    }
+    // Returning users: just close modal, stay on page
+  };
 
   return (
     <>
@@ -161,30 +228,54 @@ export default function FinalReflectionView({
             
             <div className="input-section">
               <textarea
-                className="insight-input"
-                placeholder="What I want to carry forward is..."
-                value={insight}
-                onChange={(e) => handleInsightChange(e.target.value)}
+                className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
+                value={isStepCompleted ? savedInsight : insight}
+                onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
+                disabled={isStepCompleted}
+                readOnly={isStepCompleted}
+                placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
                 rows={4}
-                maxLength={1000}
               />
-              <div className="character-count">
-                {insight.length}/1000 characters
-              </div>
               
               <div className="action-section">
-                <button
-                  className={`continue-button ${isNextEnabled ? 'enabled' : 'disabled'}`}
-                  onClick={handleComplete}
-                  disabled={!isNextEnabled}
-                >
-                  Complete Your Journey
-                </button>
-                
-                {!isNextEnabled && (
-                  <p className="helper-text">
-                    Share your insight to complete the workshop
-                  </p>
+                {!isStepCompleted ? (
+                  // Original completion flow for first-time users
+                  <>
+                    <button
+                      className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
+                      onClick={handleComplete}
+                      disabled={insight.length < 10}
+                    >
+                      Complete Your Journey
+                    </button>
+                    
+                    {insight.length < 10 && (
+                      <p className="helper-text">
+                        Share your insight to complete the workshop
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  // Completed state with countdown
+                  <div className="completed-section">
+                    <div className="completion-indicator">
+                      <span className="checkmark">✅</span>
+                      <p className="completed-text">Workshop completed!</p>
+                    </div>
+                    
+                    {isCountingDown ? (
+                      <p className="countdown-text">
+                        Options menu opens in {countdown} second{countdown !== 1 ? 's' : ''}...
+                      </p>
+                    ) : (
+                      <button 
+                        className="continue-button enabled" 
+                        onClick={() => setShowModal(true)}
+                      >
+                        View Options
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -238,7 +329,15 @@ export default function FinalReflectionView({
               </div>
               
               <div className="modal-footer">
-                <button className="close-button" onClick={closeModal}>I'll decide later</button>
+                {!isStepCompleted && isModalCountingDown && (
+                  <p className="auto-proceed-text">
+                    Continuing to your Star Card in {modalCountdown} seconds...
+                  </p>
+                )}
+                
+                <button className="close-button" onClick={closeModal}>
+                  {isStepCompleted ? "Close" : "I'll decide later"}
+                </button>
               </div>
             </div>
           </div>
@@ -378,7 +477,7 @@ export default function FinalReflectionView({
           font-family: inherit;
           background: #ffffff;
           transition: border-color 0.2s ease, box-shadow 0.2s ease;
-          margin-bottom: 8px;
+          margin-bottom: 24px;
         }
 
         .insight-input:focus {
@@ -392,15 +491,42 @@ export default function FinalReflectionView({
           font-style: italic;
         }
 
-        .character-count {
-          text-align: right;
-          color: #95a5a6;
-          font-size: 0.875rem;
-          margin-bottom: 24px;
+        .insight-input.readonly {
+          background: #f8f9fa;
+          border-color: #dee2e6;
+          cursor: default;
+          color: #495057;
         }
 
         .action-section {
           text-align: center;
+        }
+
+        .completed-section {
+          text-align: center;
+        }
+
+        .completion-indicator {
+          margin-bottom: 16px;
+        }
+
+        .checkmark {
+          font-size: 1.5rem;
+          margin-right: 8px;
+        }
+
+        .completed-text {
+          color: #28a745;
+          font-weight: 600;
+          font-size: 1.1rem;
+          margin: 0;
+        }
+
+        .countdown-text {
+          color: #6c757d;
+          font-style: italic;
+          font-size: 1rem;
+          margin: 12px 0;
         }
 
         .continue-button {
@@ -571,6 +697,14 @@ export default function FinalReflectionView({
           text-align: center;
           padding-top: 20px;
           border-top: 1px solid #e9ecef;
+        }
+
+        .auto-proceed-text {
+          color: #6c757d;
+          font-size: 0.9rem;
+          font-style: italic;
+          margin-bottom: 12px;
+          text-align: center;
         }
 
         .close-button {
