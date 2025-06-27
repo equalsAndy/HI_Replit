@@ -6,6 +6,7 @@ import { requireAuth } from '../middleware/auth';
 import { isAdmin } from '../middleware/roles';
 import { db } from '../db';
 import * as schema from '../../shared/schema';
+import { eq } from 'drizzle-orm';
 
 const router = express.Router();
 
@@ -747,6 +748,240 @@ router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Internal server error'
+    });
+  }
+});
+
+// Delete user data endpoint for test users (self-service)
+router.delete('/data', requireAuth, async (req: any, res: any) => {
+  try {
+    const sessionUserId = req.session.userId;
+    
+    if (!sessionUserId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required' 
+      });
+    }
+
+    // Get user to verify they exist and are a test user
+    const result = await userManagementService.getUserById(sessionUserId);
+    if (!result.success || !result.user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // Only allow deletion for test users
+    if (!result.user.isTestUser) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Data deletion is only available for test users' 
+      });
+    }
+
+    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data deletion`);
+
+    // Delete user data using the service
+    const deleteResult = await userManagementService.deleteUserData(sessionUserId);
+    
+    if (!deleteResult.success) {
+      console.error(`Data deletion failed for user ${sessionUserId}:`, deleteResult.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: deleteResult.error || 'Failed to delete user data' 
+      });
+    }
+
+    console.log(`Data deletion successful for user ${sessionUserId}:`, deleteResult.summary);
+
+    res.json({
+      success: true,
+      message: 'User data deleted successfully',
+      summary: deleteResult.summary
+    });
+
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error while deleting user data' 
+    });
+  }
+});
+
+/**
+ * Export user data for test users (self-service)
+ */
+router.get('/export-data', requireAuth, async (req, res) => {
+  try {
+    const sessionUserId = req.session?.userId;
+    
+    if (!sessionUserId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required' 
+      });
+    }
+
+    // Get user to verify they exist and are a test user
+    const result = await userManagementService.getUserById(sessionUserId);
+    if (!result.success || !result.user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // Only allow export for test users
+    if (!result.user.isTestUser) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Data export is only available for test users' 
+      });
+    }
+
+    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data export`);
+
+    // Get all user data from database
+    const userData = {
+      user: {
+        id: result.user.id,
+        username: result.user.username,
+        name: result.user.name,
+        email: result.user.email,
+        role: result.user.role,
+        organization: result.user.organization,
+        jobTitle: result.user.jobTitle,
+        isTestUser: result.user.isTestUser,
+        navigationProgress: result.user.navigationProgress,
+        createdAt: result.user.createdAt,
+        updatedAt: result.user.updatedAt
+      },
+      assessments: [],
+      navigationProgress: [],
+      workshopParticipation: [],
+      growthPlans: [],
+      finalReflections: [],
+      discernmentProgress: []
+    };
+
+    try {
+      // Get user assessments
+      const assessments = await db.select()
+        .from(schema.userAssessments)
+        .where(eq(schema.userAssessments.userId, sessionUserId));
+      userData.assessments = assessments;
+
+      // Get navigation progress
+      const navProgress = await db.select()
+        .from(schema.navigationProgress)
+        .where(eq(schema.navigationProgress.userId, sessionUserId));
+      userData.navigationProgress = navProgress;
+
+      // Get workshop participation
+      const workshopParticipation = await db.select()
+        .from(schema.workshopParticipation)
+        .where(eq(schema.workshopParticipation.userId, sessionUserId));
+      userData.workshopParticipation = workshopParticipation;
+
+      // Get growth plans
+      const growthPlans = await db.select()
+        .from(schema.growthPlans)
+        .where(eq(schema.growthPlans.userId, sessionUserId));
+      userData.growthPlans = growthPlans;
+
+      // Get final reflections
+      const finalReflections = await db.select()
+        .from(schema.finalReflections)
+        .where(eq(schema.finalReflections.userId, sessionUserId));
+      userData.finalReflections = finalReflections;
+
+      // Get discernment progress
+      const discernmentProgress = await db.select()
+        .from(schema.userDiscernmentProgress)
+        .where(eq(schema.userDiscernmentProgress.userId, sessionUserId));
+      userData.discernmentProgress = discernmentProgress;
+
+    } catch (dbError) {
+      console.error('Error fetching user data for export:', dbError);
+      // Continue with basic user data even if some tables fail
+    }
+
+    res.json({
+      success: true,
+      userData: userData,
+      exportDate: new Date().toISOString(),
+      message: 'Data exported successfully'
+    });
+
+  } catch (error) {
+    console.error('Error exporting user data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error while exporting user data' 
+    });
+  }
+});
+
+/**
+ * Reset user data for test users (self-service)
+ */
+router.post('/reset-data', requireAuth, async (req, res) => {
+  try {
+    const sessionUserId = req.session?.userId;
+    
+    if (!sessionUserId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required' 
+      });
+    }
+
+    // Get user to verify they exist and are a test user
+    const result = await userManagementService.getUserById(sessionUserId);
+    if (!result.success || !result.user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // Only allow reset for test users
+    if (!result.user.isTestUser) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Data reset is only available for test users' 
+      });
+    }
+
+    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data reset`);
+
+    // Delete user data using the service
+    const deleteResult = await userManagementService.deleteUserData(sessionUserId);
+    
+    if (!deleteResult.success) {
+      console.error(`Data reset failed for user ${sessionUserId}:`, deleteResult.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: deleteResult.error || 'Failed to reset user data' 
+      });
+    }
+
+    console.log(`Data reset successful for user ${sessionUserId}:`, deleteResult.summary);
+
+    res.json({
+      success: true,
+      message: 'User data reset successfully',
+      summary: deleteResult.summary
+    });
+
+  } catch (error) {
+    console.error('Error resetting user data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error while resetting user data' 
     });
   }
 });

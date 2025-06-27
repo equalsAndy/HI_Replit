@@ -108,7 +108,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   // Data reset mutation for test users
   const resetDataMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest(`/api/admin/users/${user.id}/data`, {
+      return apiRequest('/api/user/data', {
         method: 'DELETE',
       });
     },

@@ -5,12 +5,11 @@ import InviteRegistrationPage from '@/pages/invite-registration';
 import AuthPage from '@/pages/auth-page';
 import LoginPage from '@/pages/auth/login';
 import DashboardPage from '@/pages/dashboard';
+import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
-import ImaginalAgilityWorkshop from '@/pages/ImaginalAgilityWorkshop';
-import ImaginalAgilityDemo from '@/pages/ImaginalAgilityDemo';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 
 import AdminDashboard from '@/pages/admin/dashboard';
@@ -65,6 +64,7 @@ const App: React.FC = () => {
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
                     <Route path="/dashboard" component={DashboardPage} />
+                    <Route path="/testuser" component={TestUserPage} />
 
                     {/* Authentication routes */}
                     <Route path="/auth" component={AuthPage} />

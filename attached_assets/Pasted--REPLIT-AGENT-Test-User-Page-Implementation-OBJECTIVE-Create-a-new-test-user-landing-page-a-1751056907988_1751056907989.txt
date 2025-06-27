@@ -1,0 +1,382 @@
+# REPLIT AGENT: Test User Page Implementation
+
+## 🎯 OBJECTIVE
+Create a new test user landing page at `/testuser` route that provides a clean, professional interface for test users to access workshops and manage their testing data. This page replaces the existing generic dashboard for test users.
+
+## ✅ VERIFIED ENVIRONMENT: Ready for Implementation
+- Git operations optimized and stable
+- File access confirmed working
+- Repository protected and ready for changes
+
+## 📂 FILES TO MODIFY AND CREATE
+
+### DELETE EXISTING FILE:
+- **DELETE**: `/client/src/pages/dashboard.tsx` (old generic dashboard)
+
+### CREATE NEW FILES:
+```
+CREATE THESE NEW FILES:
+├── client/src/pages/testuser.tsx (main test user page)
+├── client/src/components/testuser/
+│   ├── TestUserPage.tsx (main page component)
+│   ├── WorkshopCard.tsx (individual workshop cards)
+│   └── TestUserTools.tsx (data management tools)
+```
+
+### UPDATE EXISTING FILES:
+- **Routing configuration** - Add `/testuser` route
+- **Authentication flow** - Redirect test users to `/testuser` after login
+
+## 🎨 VISUAL DESIGN SPECIFICATION
+
+### Page Layout (NO HEADER):
+- **NO header bar** - page starts directly with main content (same as current dashboard)
+- **Page title**: "Test User Page"
+- **Page subtitle**: "Access your workshops and manage your testing progress"
+- **Two-column workshop cards** with professional styling
+- **Test user tools section** below workshop cards
+
+### Workshop Cards Design:
+```
+Workshop Card Structure:
+┌─────────────────────────────────────┐
+│ [Gradient Header with Logo + Title] │
+├─────────────────────────────────────┤
+│ Current Progress: Step X of Y - Name│
+│ Last Activity: X days/weeks ago     │
+│                                     │
+│ [Continue/Switch Button]            │
+└─────────────────────────────────────┘
+```
+
+### Color Schemes:
+- **AllStarTeams**: Blue gradients (#dbeafe → #bfdbfe → #93c5fd)
+- **Imaginal Agility**: Purple gradients (#ede9fe → #ddd6fe → #c4b5fd)
+- **Continue buttons**: Workshop-themed colors (blue/purple)
+- **Switch buttons**: Neutral gray (#6b7280 → #4b5563)
+
+## 📋 WORKSHOP DATA AND BUTTON LOGIC
+
+### Workshop Progress Display:
+```javascript
+// AllStarTeams Workshop
+{
+  title: "AllStarTeams Workshop",
+  subtitle: "Discover your unique strengths", 
+  totalSteps: 19,
+  currentStep: 5,
+  stepName: "Well-being Assessment",
+  lastActivity: "2 days ago",
+  logoPath: "/attached_assets/all-star-teams-logo-square.png"
+}
+
+// Imaginal Agility Workshop  
+{
+  title: "Imaginal Agility Workshop",
+  subtitle: "Enhance your creative thinking",
+  totalSteps: 8, 
+  currentStep: 2,
+  stepName: "Reality Discernment",
+  lastActivity: "1 week ago", 
+  logoPath: "/attached_assets/IA_sq.png"
+}
+```
+
+### Button Logic (CRITICAL):
+**Rule**: Each card's button refers to THAT SAME workshop.
+
+```javascript
+// Determine which workshop was last active
+const lastActiveWorkshop = user.getLastActiveWorkshop(); // "ast" or "ia"
+
+// Button logic for each card:
+if (workshop.type === lastActiveWorkshop) {
+  // This workshop was most recently active
+  button = {
+    text: `Continue ${workshop.title}`,
+    style: "primary", // Workshop-themed color
+    action: "continue",
+    route: `/${workshop.route}` // "/allstarteams" or "/imaginal-agility"
+  }
+} else {
+  // This workshop was not most recently active  
+  button = {
+    text: `Switch to ${workshop.name}`, // "Switch to AllStarTeams" or "Switch to Imaginal Agility"
+    style: "secondary", // Gray color
+    action: "switch", 
+    route: `/${workshop.route}`
+  }
+}
+```
+
+### Button Actions:
+- **Continue buttons**: Navigate directly to current step in that workshop
+- **Switch buttons**: Navigate to first step or current step in that workshop
+- **Both actions**: Use existing workshop routing (no new routes needed)
+
+## 🛠️ TEST USER TOOLS FUNCTIONALITY
+
+### Two-Button Layout:
+```javascript
+// Export All Data
+{
+  text: "Export All Data",
+  icon: "📥", 
+  color: "green" (#059669 → #047857),
+  action: () => {
+    // Export user's complete data from both workshops
+    // Include: progress, assessments, responses, timestamps
+    // Format: JSON or CSV download
+    exportUserData(user.id);
+  }
+}
+
+// Reset All Data  
+{
+  text: "Reset All Data",
+  icon: "🗑️",
+  color: "red" (#dc2626 → #b91c1c), 
+  action: () => {
+    // Show confirmation dialog
+    // Reset ALL user progress in both workshops
+    // Clear: navigation progress, assessment data, step completion
+    resetAllUserData(user.id);
+  }
+}
+```
+
+## 📊 DATA INTEGRATION REQUIREMENTS
+
+### User Progress Data:
+```javascript
+// Read from existing user progress structure
+const userProgress = {
+  navigationProgress: {
+    appType: "ast" | "ia", 
+    completedSteps: ["1-1", "2-1", ...], // or ["ia-1-1", "ia-2-1", ...]
+    currentStepId: "current step",
+    lastActivity: timestamp,
+    // ... existing structure
+  },
+  // Assessment data, etc.
+}
+
+// Calculate display data
+const astProgress = calculateWorkshopProgress(user, "ast");
+const iaProgress = calculateWorkshopProgress(user, "ia"); 
+const lastActive = determineLastActiveWorkshop(user);
+```
+
+### Step Name Mapping:
+```javascript
+// Map step IDs to human-readable names
+const stepNames = {
+  // AST steps
+  "5": "Well-being Assessment",
+  "2-2": "Star Strengths Assessment", 
+  // ... other AST steps
+  
+  // IA steps  
+  "ia-2-1": "Reality Discernment",
+  "ia-4-1": "Self-Assessment",
+  // ... other IA steps
+}
+```
+
+## ⚠️ CRITICAL CONSTRAINTS
+
+### DO NOT MODIFY:
+- ❌ **Admin dashboard** at `/admin` - keep completely unchanged
+- ❌ **AST workshop functionality** - no changes to AllStarTeams
+- ❌ **IA workshop functionality** - no changes to Imaginal Agility  
+- ❌ **Existing authentication system** - only change redirect behavior
+- ❌ **Database schemas** - use existing user progress structure
+
+### ONLY CREATE/MODIFY:
+- ✅ **New `/testuser` route and page components**
+- ✅ **Test user-specific styling and layouts**
+- ✅ **Authentication redirect logic** for test users
+- ✅ **Data export/reset functionality** for test users
+
+## 🎯 COMPONENT ARCHITECTURE
+
+### TestUserPage.tsx:
+```typescript
+import React from 'react';
+import WorkshopCard from './WorkshopCard';
+import TestUserTools from './TestUserTools';
+
+const TestUserPage = () => {
+  const user = useUser();
+  const astProgress = useWorkshopProgress(user, 'ast');
+  const iaProgress = useWorkshopProgress(user, 'ia');
+  const lastActive = useLastActiveWorkshop(user);
+  
+  return (
+    <div className="test-user-page">
+      <header>
+        <h1>Test User Page</h1>
+        <p>Access your workshops and manage your testing progress</p>
+      </header>
+      
+      <div className="workshop-grid">
+        <WorkshopCard 
+          workshop={astProgress}
+          isLastActive={lastActive === 'ast'}
+        />
+        <WorkshopCard 
+          workshop={iaProgress}
+          isLastActive={lastActive === 'ia'}
+        />
+      </div>
+      
+      <TestUserTools userId={user.id} />
+    </div>
+  );
+};
+```
+
+### WorkshopCard.tsx:
+```typescript
+interface WorkshopCardProps {
+  workshop: {
+    type: 'ast' | 'ia';
+    title: string;
+    subtitle: string;
+    currentStep: number;
+    totalSteps: number;
+    stepName: string;
+    lastActivity: string;
+    logoPath: string;
+    route: string;
+  };
+  isLastActive: boolean;
+}
+
+const WorkshopCard = ({ workshop, isLastActive }: WorkshopCardProps) => {
+  const buttonText = isLastActive 
+    ? `Continue ${workshop.title}`
+    : `Switch to ${workshop.type === 'ast' ? 'AllStarTeams' : 'Imaginal Agility'}`;
+    
+  const buttonStyle = isLastActive ? 'primary' : 'secondary';
+  
+  return (
+    <div className={`workshop-card ${workshop.type}-colors`}>
+      {/* Header with logo and title */}
+      {/* Progress display */}
+      {/* Action button */}
+    </div>
+  );
+};
+```
+
+## 🔄 ROUTING AND NAVIGATION
+
+### Add Route:
+```javascript
+// Add to routing configuration
+{
+  path: '/testuser',
+  component: TestUserPage,
+  // Require authentication
+  // Redirect non-test users appropriately
+}
+```
+
+### Authentication Flow Update:
+```javascript
+// After successful login, check user role
+if (user.role === 'test-user') {
+  redirect('/testuser');
+} else if (user.role === 'admin') {
+  redirect('/admin'); 
+} else {
+  redirect('/'); // Regular users to existing flow
+}
+```
+
+## 📱 RESPONSIVE DESIGN
+
+### Desktop (>768px):
+- **Two-column** workshop card layout
+- **Two-column** tools button layout
+- **Full logos** and content
+
+### Mobile (≤768px):
+- **Single-column** workshop card layout  
+- **Single-column** tools button layout
+- **Maintain readability** and touch targets
+
+## 🎨 STYLING IMPLEMENTATION
+
+### Use Existing Design System:
+- **Tailwind CSS** classes for consistent styling
+- **Existing color variables** for workshop themes
+- **Consistent typography** and spacing
+- **Hover effects** and transitions for interactivity
+
+### Logo Integration:
+```jsx
+// AST Logo
+<img 
+  src="/attached_assets/all-star-teams-logo-square.png" 
+  alt="AllStarTeams Logo"
+  className="workshop-logo"
+/>
+
+// IA Logo  
+<img 
+  src="/attached_assets/IA_sq.png" 
+  alt="Imaginal Agility Logo" 
+  className="workshop-logo"
+/>
+```
+
+## ✅ SUCCESS CRITERIA
+
+### Visual Requirements:
+- [ ] Clean two-column workshop card layout (desktop)
+- [ ] Workshop logos integrated and properly sized
+- [ ] Color-coded themes (blue AST, purple IA) throughout
+- [ ] Professional test user tools section
+- [ ] Responsive design works on mobile
+
+### Functional Requirements:
+- [ ] `/testuser` route accessible and working
+- [ ] Workshop cards show accurate progress data
+- [ ] Continue/Switch buttons navigate correctly
+- [ ] Export All Data functionality works
+- [ ] Reset All Data functionality works (with confirmation)
+- [ ] Last active workshop logic determines button states
+
+### Data Integration:
+- [ ] Reads existing user progress from database
+- [ ] Shows correct step numbers and names
+- [ ] Displays accurate last activity timestamps
+- [ ] Maintains separation between AST and IA data
+- [ ] Button logic correctly identifies last active workshop
+
+### Safety Requirements:
+- [ ] Admin dashboard remains completely unchanged
+- [ ] AST workshop functionality unaffected  
+- [ ] IA workshop functionality unaffected
+- [ ] Authentication flow only adds test user redirect
+- [ ] No changes to existing database schemas
+
+## 🚀 IMPLEMENTATION NOTES
+
+### Logo Paths:
+- **AST**: `/attached_assets/all-star-teams-logo-square.png` (square star icon)
+- **IA**: `/attached_assets/IA_sq.png` (square cloud with star and ring)
+
+### Workshop Routes:
+- **AST**: `/allstarteams` (existing route)
+- **IA**: `/imaginal-agility` (existing route)
+
+### Step ID Formats:
+- **AST**: Numbered format ("1-1", "2-1", "5", etc.)
+- **IA**: Prefixed format ("ia-1-1", "ia-2-1", etc.)
+
+---
+
+**EXECUTE: Create test user page at `/testuser` with workshop cards, progress tracking, and data management tools. Delete old dashboard file and update authentication flow for test users.**
