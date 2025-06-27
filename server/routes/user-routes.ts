@@ -751,4 +751,66 @@ router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
   }
 });
 
+// Delete user data endpoint for test users (self-service)
+router.delete('/data', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+  try {
+    const sessionUserId = req.session.userId;
+    
+    if (!sessionUserId) {
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required' 
+      });
+    }
+
+    // Import user management service
+    const { userManagementService } = await import('../services/user-management-service');
+
+    // Get user to verify they exist and are a test user
+    const result = await userManagementService.getUserById(sessionUserId);
+    if (!result.success || !result.user) {
+      return res.status(404).json({ 
+        success: false, 
+        error: 'User not found' 
+      });
+    }
+
+    // Only allow deletion for test users
+    if (!result.user.isTestUser) {
+      return res.status(403).json({ 
+        success: false, 
+        error: 'Data deletion is only available for test users' 
+      });
+    }
+
+    console.log(`Test user ${sessionUserId} (${result.user.name}) requesting data deletion`);
+
+    // Delete user data using the service
+    const deleteResult = await userManagementService.deleteUserData(sessionUserId);
+    
+    if (!deleteResult.success) {
+      console.error(`Data deletion failed for user ${sessionUserId}:`, deleteResult.error);
+      return res.status(500).json({ 
+        success: false, 
+        error: deleteResult.error || 'Failed to delete user data' 
+      });
+    }
+
+    console.log(`Data deletion successful for user ${sessionUserId}:`, deleteResult.summary);
+
+    res.json({
+      success: true,
+      message: 'User data deleted successfully',
+      summary: deleteResult.summary
+    });
+
+  } catch (error) {
+    console.error('Error deleting user data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Server error while deleting user data' 
+    });
+  }
+});
+
 export default router;
