@@ -463,15 +463,28 @@ router.delete('/users/:id/data', requireAuth, isAdmin, async (req: Request, res:
 });
 
 /**
- * Export user data (admin only)
+ * Export user data (admin only, or user accessing their own data)
  */
-router.get('/users/:userId/export', requireAuth, isAdmin, async (req: Request, res: Response) => {
+router.get('/users/:userId/export', requireAuth, async (req: Request, res: Response) => {
   try {
     const userId = parseInt(req.params.userId);
+    const sessionUserId = (req.session as any).userId;
+    
     if (isNaN(userId)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid user ID'
+      });
+    }
+    
+    // Check if user is admin or accessing their own data
+    const isUserAdmin = (req.session as any).role === 'admin';
+    const isAccessingOwnData = sessionUserId === userId;
+    
+    if (!isUserAdmin && !isAccessingOwnData) {
+      return res.status(403).json({
+        success: false,
+        error: 'Access denied. You can only access your own data.'
       });
     }
 
