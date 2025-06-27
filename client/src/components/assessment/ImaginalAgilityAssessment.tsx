@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { ChevronLeft, ChevronRight, Zap, BarChart3 } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
 
 interface AssessmentQuestion {
   id: number;
@@ -98,6 +99,7 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   const [responses, setResponses] = useState<AssessmentResponse>({});
   const [autoAdvance, setAutoAdvance] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const isTestUser = useTestUser();
 
   const currentQ = ASSESSMENT_QUESTIONS[currentQuestion];
   const progress = ((currentQuestion + 1) / ASSESSMENT_QUESTIONS.length) * 100;
@@ -129,6 +131,11 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
   };
 
   const handleDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     const demoResponses: AssessmentResponse = {};
     ASSESSMENT_QUESTIONS.forEach(q => {
       demoResponses[`q${q.id}`] = Math.floor(Math.random() * 5) + 1;
