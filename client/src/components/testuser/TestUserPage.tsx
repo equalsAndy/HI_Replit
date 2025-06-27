@@ -1,7 +1,11 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { LogOut, User } from 'lucide-react';
+import { apiRequest } from '@/lib/queryClient';
 import WorkshopCard from './WorkshopCard';
 import TestUserTools from './TestUserTools';
 
@@ -33,6 +37,7 @@ interface WorkshopProgress {
 const TestUserPage: React.FC = () => {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Fetch user profile
   const { data: userResponse, isLoading: userLoading } = useQuery<{
@@ -42,6 +47,26 @@ const TestUserPage: React.FC = () => {
     queryKey: ['/api/user/profile'],
     retry: false,
     refetchOnWindowFocus: false
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest('/api/auth/logout', { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.clear();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account.",
+      });
+      setLocation('/auth');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Logout failed",
+        description: error.message || "There was an error logging out.",
+        variant: "destructive"
+      });
+    }
   });
 
   // Redirect non-test users
@@ -175,7 +200,7 @@ const TestUserPage: React.FC = () => {
         totalSteps: 19,
         stepName: 'Workshop Introduction',
         lastActivity: 'Not started',
-        logoPath: '/attached_assets/all-star-teams-logo-square.png',
+        logoPath: '/all-star-teams-logo-square.png',
         route: 'allstarteams'
       },
       iaProgress: {
@@ -226,6 +251,45 @@ const TestUserPage: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2">Test User Page</h1>
           <p className="text-muted-foreground">Access your workshops and manage your testing progress</p>
         </div>
+
+        {/* Profile Information Section */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Profile Information
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Logged in as:</p>
+                <p className="font-medium">{userResponse.user.name}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Email:</p>
+                <p className="font-medium">{userResponse.user.email}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Role:</p>
+                <p className="font-medium">Test User</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Username:</p>
+                <p className="font-medium">{userResponse.user.username}</p>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              onClick={() => logoutMutation.mutate()}
+              disabled={logoutMutation.isPending}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Workshop Cards */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">

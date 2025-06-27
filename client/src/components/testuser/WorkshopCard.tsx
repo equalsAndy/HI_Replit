@@ -29,10 +29,10 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({ workshop, isLastActive }) =
     setLocation(`/${workshop.route}`);
   };
 
-  // Determine button text and styling
-  const buttonText = isLastActive 
-    ? `Continue ${workshop.title}`
-    : `Switch to ${workshop.type === 'ast' ? 'AllStarTeams' : 'Imaginal Agility'}`;
+  // Simple button text for all workshops
+  const buttonText = workshop.type === 'ast' 
+    ? 'Go to AllStarTeams Workshop'
+    : 'Go to Imaginal Agility Workshop';
 
   const isAst = workshop.type === 'ast';
 
