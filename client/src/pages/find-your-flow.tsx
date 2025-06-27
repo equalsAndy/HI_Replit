@@ -886,8 +886,8 @@ export default function FindYourFlow() {
                         Choose 4 words that best describe your flow state. Drag badges to reorder.
                       </p>
                       
-                      {/* Auto-complete button (visible only in demo mode) */}
-                      {isDemoMode && (
+                      {/* Auto-complete button (visible only to test users) */}
+                      {isTestUser && (
                         <Button 
                           onClick={autoCompleteFlowAttributes}
                           variant="outline"

@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/dialog";
 
 export function NavBar() {
-  const { isDemoMode, toggleDemoMode } = useDemoMode();
+  const { isDemoMode, toggleDemoMode, canUseDemoMode } = useDemoMode();
   const { currentApp, appName, appLogo } = useApplication();
   const [, navigate] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
