@@ -21,24 +21,21 @@ interface ProfileModalProps {
   onClose: () => void;
 }
 
-interface User {
-  id: number;
-  name: string;
-  username: string;
-  email: string | null;
-  title: string | null;
-  organization: string | null;
-  role?: string;
-  isTestUser?: boolean;
-}
-
 const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const { currentApp } = useApplication();
   
-  const { data: user, isLoading } = useQuery<User>({
+  const { data: user, isLoading } = useQuery<{
+    id: number;
+    name: string;
+    username: string;
+    email: string | null;
+    title: string | null;
+    organization: string | null;
+    role?: string;
+  }>({
     queryKey: ['/api/user/profile'],
     enabled: isOpen,
   });
@@ -183,32 +180,21 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
             </div>
           </div>
           
-          {/* Workshop Switcher for Test Users and Admins */}
-          {(user?.role === 'admin' || user?.isTestUser) && (
+          {/* Application Switcher for Admin Users */}
+          {user?.role === 'admin' && (
             <div className="border-t pt-4">
               <Label className="text-sm font-medium text-gray-700 mb-3 block">
-                {user?.role === 'admin' ? 'Admin Tools' : 'Workshop Selection'}
+                Admin Tools
               </Label>
-              <div className="space-y-2">
-                <div className="text-sm text-gray-600 mb-2">
-                  Current Workshop: <span className="font-medium">
-                    {currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility'}
-                  </span>
-                </div>
-                <Button 
-                  type="button"
-                  variant="outline" 
-                  className={`w-full flex items-center justify-center ${
-                    user?.role === 'admin' 
-                      ? 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
-                      : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'
-                  }`}
-                  onClick={toggleApplication}
-                >
-                  <ArrowLeftRight className="h-4 w-4 mr-2" />
-                  <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
-                </Button>
-              </div>
+              <Button 
+                type="button"
+                variant="outline" 
+                className="w-full bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 flex items-center justify-center"
+                onClick={toggleApplication}
+              >
+                <ArrowLeftRight className="h-4 w-4 mr-2" />
+                <span>Switch to {currentApp === 'allstarteams' ? 'Imaginal Agility' : 'AllStarTeams'}</span>
+              </Button>
             </div>
           )}
           
