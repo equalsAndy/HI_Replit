@@ -61,17 +61,29 @@ export default function Landing() {
               navigate('/auth?app=imaginal-agility');
             }
           } else {
-            // No app type specified, redirect to dashboard
-            navigate('/dashboard');
+            // No app type specified, redirect based on user type
+            if (user.isTestUser) {
+              navigate('/testuser');
+            } else {
+              navigate('/');
+            }
           }
         } catch (error) {
           console.error('Error parsing navigation progress:', error);
-          // Fallback to dashboard if parsing fails
-          navigate('/dashboard');
+          // Fallback based on user type
+          if (user.isTestUser) {
+            navigate('/testuser');
+          } else {
+            navigate('/');
+          }
         }
       } else {
-        // No navigation progress, redirect to dashboard to let user choose
-        navigate('/dashboard');
+        // No navigation progress, redirect based on user type
+        if (user.isTestUser) {
+          navigate('/testuser');
+        } else {
+          navigate('/');
+        }
       }
     }
   }, [isAuthenticated, user, navigate]);
