@@ -184,34 +184,7 @@ const TestUserPage: React.FC = () => {
     return stepNames[stepId] || 'Workshop Step';
   };
 
-  // Create default workshop data if no progress exists
-  const createDefaultWorkshops = (): { astProgress: WorkshopProgress; iaProgress: WorkshopProgress; lastActive: 'ast' | 'ia' } => {
-    return {
-      astProgress: {
-        type: 'ast',
-        title: 'AllStarTeams Workshop',
-        subtitle: 'Discover your unique strengths',
-        currentStep: 1,
-        totalSteps: 19,
-        stepName: 'Workshop Introduction',
-        lastActivity: 'Not started',
-        logoPath: '/all-star-teams-logo-square.png',
-        route: 'allstarteams'
-      },
-      iaProgress: {
-        type: 'ia',
-        title: 'Imaginal Agility Workshop',
-        subtitle: 'Enhance your creative thinking',
-        currentStep: 1,
-        totalSteps: 8,
-        stepName: 'Introduction to Imaginal Agility',
-        lastActivity: 'Not started',
-        logoPath: '/IA_sq.png',
-        route: 'imaginal-agility'
-      },
-      lastActive: 'ast'
-    };
-  };
+
 
   if (userLoading) {
     return (
@@ -234,9 +207,42 @@ const TestUserPage: React.FC = () => {
     );
   }
 
-  const { astProgress, iaProgress, lastActive } = getWorkshopProgress.astProgress 
-    ? getWorkshopProgress 
-    : createDefaultWorkshops();
+  // Get workshop progress data - either from parsed navigationProgress or create "Not started" defaults
+  const { astProgress, iaProgress, lastActive } = React.useMemo(() => {
+    const progress = getWorkshopProgress;
+    
+    // If no navigationProgress data exists, create "Not started" defaults
+    if (!progress.astProgress && !progress.iaProgress) {
+      return {
+        astProgress: {
+          type: 'ast' as const,
+          title: 'AllStarTeams Workshop',
+          subtitle: 'Discover your unique strengths',
+          currentStep: 1,
+          totalSteps: 19,
+          stepName: 'Workshop Introduction',
+          lastActivity: 'Not started',
+          logoPath: '/all-star-teams-logo-square.png',
+          route: 'allstarteams' as const
+        },
+        iaProgress: {
+          type: 'ia' as const,
+          title: 'Imaginal Agility Workshop',
+          subtitle: 'Enhance your creative thinking',
+          currentStep: 1,
+          totalSteps: 8,
+          stepName: 'Introduction to Imaginal Agility',
+          lastActivity: 'Not started',
+          logoPath: '/IA_sq.png',
+          route: 'imaginal-agility' as const
+        },
+        lastActive: 'ast' as const
+      };
+    }
+    
+    // Return actual progress data if it exists
+    return progress;
+  }, [getWorkshopProgress]);
 
   return (
     <div className="min-h-screen bg-background">
