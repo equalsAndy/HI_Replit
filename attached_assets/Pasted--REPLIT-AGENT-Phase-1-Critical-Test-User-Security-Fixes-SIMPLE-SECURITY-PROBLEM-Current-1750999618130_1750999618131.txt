@@ -1,0 +1,193 @@
+# REPLIT AGENT: Phase 1 - Critical Test User Security Fixes
+
+## 🚨 SIMPLE SECURITY PROBLEM
+**Current Issue**: Anyone can become a "test user" by choosing usernames like "admin", "test", "participant"  
+**Fix Needed**: Only trust the database `isTestUser` field, ignore username patterns  
+**Risk**: Regular users can access test features they shouldn't have
+
+## 🚨 CRITICAL SECURITY VULNERABILITIES TO FIX
+
+Based on verification report, **immediate security fixes required**:
+
+### **🔴 HIGH-RISK VULNERABILITY: Username Pattern Fallback**
+**Location**: `client/src/components/test-users/TestUserBanner.tsx`
+
+**REMOVE THIS INSECURE CODE**:
+```typescript
+// SECURITY VULNERABILITY - Remove this pattern:
+const isTestUser = user?.isTestUser || 
+  /^(admin|participant|participant\d+|facilitator|facilitator\d+|user\d+|bobby|jbaez|test)$/i.test(user?.username || '') ||
+  user?.username?.toLowerCase().includes('test');
+```
+
+**REPLACE WITH SECURE PATTERN**:
+```typescript
+// SECURE: Database-only detection
+const isTestUser = user?.isTestUser === true;
+```
+
+## 🔧 IMPLEMENTATION TASKS
+
+### **Task 1: Standardize Test User Detection**
+
+**File**: `client/src/components/test-users/TestUserBanner.tsx`
+- Remove username pattern matching completely
+- Use only `user?.isTestUser === true` for detection
+- Ensure no fallback patterns remain
+
+### **Task 2: Create Server-Side Test User Middleware**
+
+**CREATE FILE**: `server/middleware/test-user-auth.ts`
+```typescript
+import { Request, Response, NextFunction } from 'express';
+
+export const requireTestUser = async (req: Request, res: Response, next: NextFunction) => {
+  const user = req.user;
+  
+  if (!user?.isTestUser) {
+    return res.status(403).json({ 
+      error: 'Test features only available to test users',
+      code: 'TEST_USER_REQUIRED'
+    });
+  }
+  
+  next();
+};
+
+export const validateTestAction = (action: string) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
+    const user = req.user;
+    
+    if (!user?.isTestUser) {
+      console.warn(`Non-test user ${user?.id} attempted test action: ${action}`);
+      return res.status(403).json({ 
+        error: `Test action '${action}' not available`,
+        code: 'UNAUTHORIZED_TEST_ACTION'
+      });
+    }
+    
+    next();
+  };
+};
+```
+
+### **Task 3: Create Standardized Client-Side Test User Hook**
+
+**CREATE FILE**: `client/src/hooks/useTestUser.ts`
+```typescript
+import { useAuth } from './useAuth';
+import { toast } from 'sonner';
+
+export const useTestUser = () => {
+  const { user } = useAuth();
+  
+  // SECURE: Only database field, no username patterns
+  const isTestUser = user?.isTestUser === true;
+  
+  const executeTestAction = async (
+    action: () => Promise<void>, 
+    actionName: string,
+    showError: boolean = true
+  ): Promise<boolean> => {
+    if (!isTestUser) {
+      if (showError) {
+        toast.error('Test features only available to test users');
+      }
+      console.warn(`Test action '${actionName}' attempted by non-test user`);
+      return false;
+    }
+    
+    try {
+      await action();
+      return true;
+    } catch (error) {
+      console.error(`Test action '${actionName}' failed:`, error);
+      if (showError) {
+        toast.error(`Test action failed: ${actionName}`);
+      }
+      return false;
+    }
+  };
+  
+  return {
+    isTestUser,
+    executeTestAction
+  };
+};
+```
+
+### **Task 4: Update Existing Test Components**
+
+**Update these 4 components to use standardized patterns**:
+
+1. **TestUserBanner** - Remove username patterns, use secure detection
+2. **TestUserPicker** - Standardize security checks
+3. **UserManagement** - Ensure consistent role vs test-user permissions  
+4. **ResetDataButton** - Use new useTestUser hook
+
+### **Task 5: Add Server-Side Protection to Test Endpoints**
+
+**Update these server endpoints** to use `requireTestUser` middleware:
+- Any endpoint that generates test data
+- Any endpoint that resets user data (for test users)
+- Any endpoint that manipulates test user state
+
+**Example pattern**:
+```typescript
+// BEFORE (Insecure):
+router.post('/reset-test-data', requireAuth, async (req, res) => {
+  // Anyone can call this!
+});
+
+// AFTER (Secure):
+router.post('/reset-test-data', requireAuth, requireTestUser, async (req, res) => {
+  // Only authenticated test users can call this
+});
+```
+
+## ✅ VERIFICATION REQUIREMENTS
+
+### **Security Testing Checklist**:
+
+**Test with NON-test user account**:
+- [ ] No test UI elements visible in any component
+- [ ] Cannot execute any test functions
+- [ ] Server endpoints reject test requests with 403 error
+- [ ] No username pattern bypass possible
+
+**Test with test user account**:
+- [ ] All existing test features work correctly
+- [ ] Proper error handling for failed actions
+- [ ] Clear user feedback on success/failure
+- [ ] No regression in current functionality
+
+**Code Review Checklist**:
+- [ ] No username pattern matching anywhere in codebase
+- [ ] All test features use `isTestUser === true` detection
+- [ ] Server-side middleware protects all test endpoints
+- [ ] Consistent error handling and user feedback
+
+## 🚨 CRITICAL CONSTRAINTS
+
+- **❌ DO NOT break existing test user functionality**
+- **❌ DO NOT affect non-test user experience**
+- **❌ DO NOT add new test features yet** (security fixes only)
+- **✅ ONLY fix identified security vulnerabilities**
+- **✅ USE database `isTestUser` field exclusively**
+- **✅ ADD server-side protection to all test operations**
+- **✅ MAINTAIN all current test user capabilities**
+
+## 📋 SUCCESS CRITERIA
+
+**Phase 1 complete when**:
+- [ ] Username pattern matching completely removed
+- [ ] All test user detection uses database field only
+- [ ] Server-side test user middleware implemented and active
+- [ ] All 4 existing test components use standardized security
+- [ ] Non-test users cannot access any test features
+- [ ] Test users retain all current functionality
+- [ ] Security verification passes all tests
+
+---
+
+**EXECUTE SECURITY FIXES ONLY** - No new features in this phase. Focus on eliminating vulnerabilities while preserving current capabilities.

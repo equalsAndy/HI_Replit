@@ -4,6 +4,7 @@ import { Trash2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useTestUser } from '@/hooks/useTestUser';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,12 @@ export function ResetDataButton({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { isTestUser } = useTestUser();
+
+  // SECURE: Only show reset button for test users
+  if (!isTestUser) {
+    return null;
+  }
 
   // Define the reset mutation
   const resetMutation = useMutation({
