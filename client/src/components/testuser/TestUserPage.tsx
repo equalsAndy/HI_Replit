@@ -211,7 +211,7 @@ const TestUserPage: React.FC = () => {
         totalSteps: 8,
         stepName: 'Introduction to Imaginal Agility',
         lastActivity: 'Not started',
-        logoPath: '/attached_assets/IA_sq.png',
+        logoPath: '/IA_sq.png',
         route: 'imaginal-agility'
       },
       lastActive: 'ast'
