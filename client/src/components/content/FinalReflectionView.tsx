@@ -85,7 +85,9 @@ export default function FinalReflectionView({
             clearInterval(timer);
             setIsModalCountingDown(false);
             setShowModal(false);
-            navigate('download-star-card'); // Navigate to star card
+            if (setCurrentContent) {
+              setCurrentContent('download-star-card'); // Navigate to star card
+            }
             return 0;
           }
           return prev - 1;
@@ -97,7 +99,7 @@ export default function FinalReflectionView({
         setIsModalCountingDown(false);
       };
     }
-  }, [showModal, isStepCompleted, navigate]);
+  }, [showModal, isStepCompleted, setCurrentContent]);
 
   // Save final reflection data
   const saveMutation = useMutation({
@@ -144,19 +146,32 @@ export default function FinalReflectionView({
     setIsModalCountingDown(false); // Stop countdown
     setShowModal(false);
     
-    // Navigate based on option
+    // Navigate based on option using setCurrentContent
     switch(option) {
       case 'star-card':
-        navigate('download-star-card');
+        if (setCurrentContent) {
+          setCurrentContent('download-star-card');
+        }
         break;
       case 'holistic-report':
-        navigate('holistic-report');
+        if (setCurrentContent) {
+          setCurrentContent('holistic-report');
+        }
         break;
       case 'growth-plan':
-        navigate('growth-plan');
+        if (setCurrentContent) {
+          setCurrentContent('growth-plan');
+        }
         break;
       case 'team-workshop':
-        navigate('team-workshop-prep');
+        if (setCurrentContent) {
+          setCurrentContent('team-workshop-prep');
+        }
+        break;
+      default:
+        if (setCurrentContent) {
+          setCurrentContent('download-star-card'); // Default to star card
+        }
         break;
     }
   };
@@ -166,8 +181,8 @@ export default function FinalReflectionView({
     setShowModal(false);
     
     // Only navigate for first-time completion
-    if (!isStepCompleted) {
-      navigate('download-star-card'); // Navigate to star card
+    if (!isStepCompleted && setCurrentContent) {
+      setCurrentContent('download-star-card'); // Navigate to star card
     }
     // Returning users: just close modal, stay on page
   };
