@@ -49,6 +49,22 @@ const TestUserPage: React.FC = () => {
     refetchOnWindowFocus: false
   });
 
+  // Fetch navigation progress data using admin endpoint (same structure)
+  const { data: navigationData, isLoading: navLoading } = useQuery<any>({
+    queryKey: [`/api/admin/users/${userResponse?.user?.id}/export`],
+    queryFn: async () => {
+      if (!userResponse?.user?.id) return null;
+      const response = await fetch(`/api/admin/users/${userResponse.user.id}/export`, {
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to fetch navigation data');
+      return response.json();
+    },
+    enabled: !!userResponse?.user?.id,
+    retry: false,
+    refetchOnWindowFocus: false
+  });
+
   // Logout mutation
   const logoutMutation = useMutation({
     mutationFn: () => apiRequest('/api/auth/logout', { method: 'POST' }),
@@ -83,57 +99,82 @@ const TestUserPage: React.FC = () => {
 
   // Parse navigation progress to determine workshop data
   const getWorkshopProgress = React.useMemo(() => {
-    if (!userResponse?.user?.navigationProgress) {
+    if (!navigationData?.navigationProgress) {
       return { astProgress: null, iaProgress: null, lastActive: 'ast' };
     }
 
     try {
-      const navData = JSON.parse(userResponse.user.navigationProgress);
-      const completedSteps = navData.completedSteps || [];
-      const currentStepId = navData.currentStepId || '1-1';
-      const appType = navData.appType || 'ast';
-      const lastVisitedAt = navData.lastVisitedAt;
+      const navProgress = navigationData.navigationProgress;
+      console.log('Navigation data structure:', navProgress);
 
-      // Filter steps by workshop type
-      const astSteps = completedSteps.filter((step: string) => !step.startsWith('ia-'));
-      const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
+      // AST Workshop Progress
+      const astData = navProgress.ast;
+      let astProgress: WorkshopProgress | null = null;
+      
+      if (astData) {
+        const astCompletedSteps = astData.completedSteps || [];
+        const astCurrentStep = astData.currentStepId;
+        const astLastVisited = astData.lastVisitedAt;
+        
+        // Determine if AST workshop is started
+        const astStarted = astCompletedSteps.length > 0 || (astCurrentStep && astCurrentStep !== '1-1');
+        
+        astProgress = {
+          type: 'ast',
+          title: 'AllStarTeams Workshop',
+          subtitle: 'Discover your unique strengths',
+          currentStep: astStarted ? getStepNumber(astCurrentStep || '1-1') : 1,
+          totalSteps: 19,
+          stepName: astStarted ? getStepName(astCurrentStep || '1-1') : 'Workshop Introduction',
+          lastActivity: astStarted && astLastVisited ? getTimeAgo(new Date(astLastVisited)) : 'Not started',
+          logoPath: '/all-star-teams-logo-square.png',
+          route: 'allstarteams'
+        };
+      }
 
-      // Determine AST workshop progress
-      const astProgress: WorkshopProgress = {
-        type: 'ast',
-        title: 'AllStarTeams Workshop',
-        subtitle: 'Discover your unique strengths',
-        currentStep: astSteps.length === 0 ? 1 : getStepNumber(appType === 'ast' ? currentStepId : '1-1'),
-        totalSteps: 19,
-        stepName: astSteps.length === 0 ? 'Workshop Introduction' : getStepName(appType === 'ast' ? currentStepId : '1-1'),
-        lastActivity: astSteps.length === 0 ? 'Not started' : (appType === 'ast' && lastVisitedAt ? getTimeAgo(new Date(lastVisitedAt)) : 'Not recently active'),
-        logoPath: '/all-star-teams-logo-square.png',
-        route: 'allstarteams'
-      };
+      // IA Workshop Progress  
+      const iaData = navProgress.ia;
+      let iaProgress: WorkshopProgress | null = null;
+      
+      if (iaData) {
+        const iaCompletedSteps = iaData.completedSteps || [];
+        const iaCurrentStep = iaData.currentStepId;
+        const iaLastVisited = iaData.lastVisitedAt;
+        
+        // Determine if IA workshop is started
+        const iaStarted = iaCompletedSteps.length > 0 || (iaCurrentStep && iaCurrentStep !== 'ia-1-1');
+        
+        iaProgress = {
+          type: 'ia',
+          title: 'Imaginal Agility Workshop',
+          subtitle: 'Enhance your creative thinking',
+          currentStep: iaStarted ? getStepNumber(iaCurrentStep || 'ia-1-1') : 1,
+          totalSteps: 8,
+          stepName: iaStarted ? getStepName(iaCurrentStep || 'ia-1-1') : 'Introduction to Imaginal Agility',
+          lastActivity: iaStarted && iaLastVisited ? getTimeAgo(new Date(iaLastVisited)) : 'Not started',
+          logoPath: '/IA_sq.png',
+          route: 'imaginal-agility'
+        };
+      }
 
-      // Determine IA workshop progress
-      const iaProgress: WorkshopProgress = {
-        type: 'ia',
-        title: 'Imaginal Agility Workshop',
-        subtitle: 'Enhance your creative thinking',
-        currentStep: iaSteps.length === 0 ? 1 : getStepNumber(appType === 'ia' ? currentStepId : 'ia-1-1'),
-        totalSteps: 8,
-        stepName: iaSteps.length === 0 ? 'Introduction to Imaginal Agility' : getStepName(appType === 'ia' ? currentStepId : 'ia-1-1'),
-        lastActivity: iaSteps.length === 0 ? 'Not started' : (appType === 'ia' && lastVisitedAt ? getTimeAgo(new Date(lastVisitedAt)) : 'Not recently active'),
-        logoPath: '/IA_sq.png',
-        route: 'imaginal-agility'
-      };
+      // Determine which workshop was last active
+      let lastActive: 'ast' | 'ia' = 'ast';
+      if (astData?.lastVisitedAt && iaData?.lastVisitedAt) {
+        lastActive = new Date(astData.lastVisitedAt) > new Date(iaData.lastVisitedAt) ? 'ast' : 'ia';
+      } else if (iaData?.lastVisitedAt) {
+        lastActive = 'ia';
+      }
 
       return {
         astProgress,
         iaProgress,
-        lastActive: appType
+        lastActive
       };
     } catch (error) {
       console.error('Error parsing navigation progress:', error);
       return { astProgress: null, iaProgress: null, lastActive: 'ast' };
     }
-  }, [userResponse?.user?.navigationProgress]);
+  }, [navigationData]);
 
   // Helper function to get time ago string
   const getTimeAgo = (date: Date): string => {
@@ -186,7 +227,7 @@ const TestUserPage: React.FC = () => {
 
 
 
-  if (userLoading) {
+  if (userLoading || navLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
