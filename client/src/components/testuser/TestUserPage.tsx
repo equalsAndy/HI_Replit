@@ -208,41 +208,34 @@ const TestUserPage: React.FC = () => {
   }
 
   // Get workshop progress data - either from parsed navigationProgress or create "Not started" defaults
-  const { astProgress, iaProgress, lastActive } = React.useMemo(() => {
-    const progress = getWorkshopProgress;
-    
-    // If no navigationProgress data exists, create "Not started" defaults
-    if (!progress.astProgress && !progress.iaProgress) {
-      return {
-        astProgress: {
-          type: 'ast' as const,
-          title: 'AllStarTeams Workshop',
-          subtitle: 'Discover your unique strengths',
-          currentStep: 1,
-          totalSteps: 19,
-          stepName: 'Workshop Introduction',
-          lastActivity: 'Not started',
-          logoPath: '/all-star-teams-logo-square.png',
-          route: 'allstarteams' as const
-        },
-        iaProgress: {
-          type: 'ia' as const,
-          title: 'Imaginal Agility Workshop',
-          subtitle: 'Enhance your creative thinking',
-          currentStep: 1,
-          totalSteps: 8,
-          stepName: 'Introduction to Imaginal Agility',
-          lastActivity: 'Not started',
-          logoPath: '/IA_sq.png',
-          route: 'imaginal-agility' as const
-        },
-        lastActive: 'ast' as const
-      };
-    }
-    
-    // Return actual progress data if it exists
-    return progress;
-  }, [getWorkshopProgress]);
+  const progress = getWorkshopProgress;
+  
+  // Create default "Not started" workshops if no progress exists
+  const astProgress = progress.astProgress || {
+    type: 'ast' as const,
+    title: 'AllStarTeams Workshop',
+    subtitle: 'Discover your unique strengths',
+    currentStep: 1,
+    totalSteps: 19,
+    stepName: 'Workshop Introduction',
+    lastActivity: 'Not started',
+    logoPath: '/all-star-teams-logo-square.png',
+    route: 'allstarteams' as const
+  };
+  
+  const iaProgress = progress.iaProgress || {
+    type: 'ia' as const,
+    title: 'Imaginal Agility Workshop',
+    subtitle: 'Enhance your creative thinking',
+    currentStep: 1,
+    totalSteps: 8,
+    stepName: 'Introduction to Imaginal Agility',
+    lastActivity: 'Not started',
+    logoPath: '/IA_sq.png',
+    route: 'imaginal-agility' as const
+  };
+  
+  const lastActive = progress.lastActive || 'ast';
 
   return (
     <div className="min-h-screen bg-background">
