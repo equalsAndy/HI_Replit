@@ -1,0 +1,130 @@
+# REPLIT AGENT: Test User System Discovery & Current State Analysis
+
+## 🎯 OBJECTIVE
+Examine the current test user implementation in the Heliotrope Imaginal project to understand what exists and what needs enhancement, based on the comprehensive analysis files already created.
+
+## 📋 DISCOVERY TASKS
+
+### **1. Verify Analysis Files Exist**
+Check if these analysis files were created and review their contents:
+- `docs/test-user-analysis.md`
+- `docs/test-user-components-inventory.md` 
+- `docs/test-user-security-audit.md`
+- `docs/test-user-code-examples.md`
+
+### **2. Examine Current Test User Implementation**
+Review the key files identified in the analysis:
+
+**Core Test User Files:**
+- `client/src/components/test-users/TestUserBanner.tsx`
+- `client/src/components/test-users/TestUserPicker.tsx`
+- `client/src/components/admin/UserManagement.tsx`
+- `client/src/components/admin/UserUploader.tsx`
+- `server/services/user-management-service.ts`
+
+**Authentication & Security:**
+- `server/auth-routes.ts`
+- `shared/schema.ts` (users table with isTestUser field)
+- Any existing test user middleware or security patterns
+
+### **3. Assessment Component Analysis**
+Examine the assessment components that lack test features:
+
+**AST Assessment Components:**
+- `client/src/components/assessment/AssessmentModal.tsx`
+- `client/src/components/flow/FlowAssessment.tsx`
+- `client/src/components/flow/FlowAssessmentSimple.tsx`
+- `client/src/components/content/CantrilLadderView.tsx`
+
+**IA Assessment Components:**
+- `client/src/components/assessment/ImaginalAgilityAssessment.tsx`
+- `client/src/components/assessment/ImaginalAgilityAssessmentModal.tsx`
+
+### **4. Security Pattern Review**
+Check current security implementations and identify gaps:
+
+**Look for:**
+- How `isTestUser` is currently validated
+- Whether server-side protection exists for test endpoints
+- Client-side security patterns used
+- Any username pattern matching (security risk)
+
+### **5. Current Test Data Patterns**
+Examine existing test data generation:
+
+**Review:**
+- How test data is currently generated in `UserUploader.tsx`
+- What data structures are used for test assessments
+- Current test data reset functionality
+- API endpoints for test user operations
+
+## 📊 ANALYSIS REPORT FORMAT
+
+**CREATE FILE: `docs/current-state-verification.md`**
+
+Include this analysis:
+
+```markdown
+# Current State Verification Report
+
+## EXISTING ANALYSIS FILES STATUS
+- [ ] test-user-analysis.md - [Found/Missing] - [Brief summary]
+- [ ] test-user-components-inventory.md - [Found/Missing] - [Brief summary]  
+- [ ] test-user-security-audit.md - [Found/Missing] - [Brief summary]
+- [ ] test-user-code-examples.md - [Found/Missing] - [Brief summary]
+
+## CURRENT IMPLEMENTATION VERIFICATION
+
+### Test User Detection
+- Database field: [Exists/Missing] - `users.isTestUser`
+- Current validation pattern: [Describe what you find]
+- Security issues identified: [List any problems]
+
+### Existing Test Features
+- Components with test features: [List what you find]
+- Test data generation: [Describe current capabilities]
+- Data reset functionality: [What exists currently]
+
+### Assessment Components Status
+- AST assessments needing test features: [Count and list]
+- IA assessments needing test features: [Count and list]
+- Current test data injection capabilities: [Describe]
+
+### Security Analysis
+- Server-side protection: [Exists/Missing/Partial]
+- Client-side security patterns: [Describe current approach]
+- Identified vulnerabilities: [List any security gaps]
+
+## RECOMMENDATIONS FOR NEXT PHASE
+- Priority 1: [Most critical need]
+- Priority 2: [Second priority]
+- Priority 3: [Third priority]
+
+## TECHNICAL NOTES
+- Current test user workflow: [Describe how it works now]
+- Integration points: [How test features connect to main app]
+- Potential conflicts: [Any issues that need attention]
+```
+
+## 🚨 CONSTRAINTS
+
+**DO NOT MODIFY ANY FILES** - This is discovery only
+- ✅ ONLY examine and document current state
+- ✅ ONLY create the verification report file
+- ❌ DO NOT fix security issues yet
+- ❌ DO NOT add new test features yet
+- ❌ DO NOT modify existing components
+
+## 🎯 SUCCESS CRITERIA
+
+**Discovery complete when:**
+- [ ] All analysis files reviewed and status confirmed
+- [ ] Current test user implementation fully documented
+- [ ] Security gaps clearly identified
+- [ ] Assessment components status verified
+- [ ] Verification report created with clear next steps
+- [ ] Technical implementation notes documented
+
+---
+
+**EXECUTE DISCOVERY AND CREATE VERIFICATION REPORT** - No modifications to existing code.
