@@ -255,6 +255,18 @@ export function NavBar() {
                 </Button>
               )}
 
+              {/* Test User indicator - shown for test users who are not admin */}
+              {user?.isTestUser && user?.role !== 'admin' && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-md text-white hover:bg-yellow-400"
+                  disabled
+                >
+                  Test User
+                </Button>
+              )}
+
               {/* Profile Editor with logout functionality */}
               <ProfileEditor
                 user={user}

@@ -136,6 +136,22 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 27, 2025 - Test User UI Improvements Complete ✅
+- **TASK 1 COMPLETE**: Fixed test user toggle visual bug in admin dialog
+  - Added local state management for immediate visual feedback
+  - Toggle now moves smoothly when clicked and reflects database state
+  - Implemented error handling to revert visual state on API failure
+- **TASK 2 COMPLETE**: Added test user indicator to header navigation
+  - "Test User" badge appears for test users (non-admin) in yellow header
+  - Maintains priority system: Admin status takes precedence over test user status
+  - Consistent styling with existing admin indicator
+- **TASK 3 COMPLETE**: Added data reset functionality for test users
+  - Self-service data reset available in profile dialog for test users only
+  - Comprehensive confirmation dialog with detailed list of data to be deleted
+  - Security validation ensures users can only reset their own data
+  - Preserves user account and test status while clearing all workshop progress
+  - Proper error handling and user feedback with automatic redirect
+
 ### June 27, 2025 - Critical Admin User Data Delete Function Fix ✅
 - **CRITICAL BUG FIX**: Fixed admin user data delete function that was targeting non-existent database tables
 - **ROOT CAUSE**: Function was trying to delete from `star_cards` and `flow_attributes` tables that don't exist in schema
