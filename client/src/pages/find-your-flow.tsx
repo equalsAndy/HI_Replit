@@ -13,7 +13,7 @@ import RoundingOutReflection from '@/components/flow/RoundingOutReflection';
 import StarCard from '@/components/starcard/StarCard';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useDemoMode } from '@/hooks/use-demo-mode';
+import { useTestUser } from '@/hooks/useTestUser';
 import { VideoPlayer } from '@/components/content/VideoPlayer';
 import type { User, StarCard as StarCardType, FlowAttributes } from "@shared/schema";
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -132,7 +132,7 @@ export default function FindYourFlow() {
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
-  const { isDemoMode } = useDemoMode();
+  const isTestUser = useTestUser();
   
   // We'll get these values from the later declarations to avoid duplication
   

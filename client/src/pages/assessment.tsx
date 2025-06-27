@@ -14,7 +14,7 @@ interface QuadrantData {
 }
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import MainContainer from '@/components/layout/MainContainer';
-import { useDemoMode } from '@/hooks/use-demo-mode';
+import { useTestUser } from '@/hooks/useTestUser';
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 
 type Option = AssessmentOption;
@@ -41,7 +41,7 @@ export default function Assessment() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isDemoMode } = useDemoMode();
+  const isTestUser = useTestUser();
 
   // Get star card data to check if assessment is already completed
   const { data: starCard, isLoading: loadingStarCard } = useQuery<StarCardType>({
@@ -600,47 +600,49 @@ export default function Assessment() {
             </div>
           </div>
 
-          {/* Auto-complete button (visible only in demo mode) */}
-          <Button 
-            onClick={() => {
-              // Fill answers with random data
-              const newAnswers: {[key: number]: RankedOption[]} = {};
+          {/* Auto-complete button (visible only to test users) */}
+          {isTestUser && (
+            <Button 
+              onClick={() => {
+                // Fill answers with random data
+                const newAnswers: {[key: number]: RankedOption[]} = {};
 
-              assessmentQuestions.forEach((question) => {
-                // Create a shuffled copy of options
-                const shuffledOptions = [...question.options]
-                  .sort(() => Math.random() - 0.5)
-                  .map((option, index) => ({
-                    optionId: option.id,
-                    rank: index + 1
-                  }));
+                assessmentQuestions.forEach((question) => {
+                  // Create a shuffled copy of options
+                  const shuffledOptions = [...question.options]
+                    .sort(() => Math.random() - 0.5)
+                    .map((option, index) => ({
+                      optionId: option.id,
+                      rank: index + 1
+                    }));
 
-                newAnswers[question.id] = shuffledOptions;
-              });
+                  newAnswers[question.id] = shuffledOptions;
+                });
 
-              // Set all answers and move to last question
-              setAnswers(newAnswers);
-              setCurrentQuestionIndex(assessmentQuestions.length - 1);
+                // Set all answers and move to last question
+                setAnswers(newAnswers);
+                setCurrentQuestionIndex(assessmentQuestions.length - 1);
 
-              // Set rankings for last question display
-              const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
-              const lastAnswers = newAnswers[lastQuestion.id];
+                // Set rankings for last question display
+                const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
+                const lastAnswers = newAnswers[lastQuestion.id];
 
-              const newRankings = {
-                mostLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[0].optionId) || null,
-                second: lastQuestion.options.find(opt => opt.id === lastAnswers[1].optionId) || null,
-                third: lastQuestion.options.find(opt => opt.id === lastAnswers[2].optionId) || null,
-                leastLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[3].optionId) || null
-              };
+                const newRankings = {
+                  mostLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[0].optionId) || null,
+                  second: lastQuestion.options.find(opt => opt.id === lastAnswers[1].optionId) || null,
+                  third: lastQuestion.options.find(opt => opt.id === lastAnswers[2].optionId) || null,
+                  leastLikeMe: lastQuestion.options.find(opt => opt.id === lastAnswers[3].optionId) || null
+                };
 
-              setRankings(newRankings);
-            }}
-            variant="outline"
-            size="sm"
-            className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
-          >
-            Demo Answers
-          </Button>
+                setRankings(newRankings);
+              }}
+              variant="outline"
+              size="sm"
+              className="text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
+            >
+              Demo Answers
+            </Button>
+          )}
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 mb-3">

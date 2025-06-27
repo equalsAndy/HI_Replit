@@ -251,14 +251,16 @@ export function ImaginalAgilityAssessment({ isOpen, onClose, onComplete }: Imagi
                 Auto-advance after selection
               </Label>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDemoData}
-              className="text-purple-600 border-purple-200 hover:bg-purple-50"
-            >
-              Demo Data
-            </Button>
+            {isTestUser && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDemoData}
+                className="text-purple-600 border-purple-200 hover:bg-purple-50"
+              >
+                Demo Data
+              </Button>
+            )}
           </div>
 
           {/* Question Card */}
