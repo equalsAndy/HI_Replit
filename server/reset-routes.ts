@@ -169,13 +169,12 @@ resetRouter.post('/user/:userId', requireTestUser, async (req: Request, res: Res
         videoPositions: {}
       };
       
-      await db
-        .update(schema.users)
-        .set({ 
-          navigationProgress: JSON.stringify(initialProgress),
-          updatedAt: new Date() 
-        })
-        .where(eq(schema.users.id, userId));
+      await db.execute(sql`
+        UPDATE users 
+        SET navigation_progress = ${JSON.stringify(initialProgress)}, 
+            updated_at = NOW() 
+        WHERE id = ${userId}
+      `);
       
       deletedData.userProgress = true;
       console.log(`Reset navigation progress to initial state for user ${userId}`);
