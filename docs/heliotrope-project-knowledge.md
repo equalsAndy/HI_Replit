@@ -1,5 +1,14 @@
 # Heliotrope Imaginal - Project Specific Knowledge
 
+## 📚 **REFERENCE DOCUMENTS FIRST**
+
+**Read these for complete development context:**
+- **`docs/claude-development-workflow.md`** - Generic Claude workflow patterns, verified capabilities, Git resolution
+- **`docs/brad-development-guide.md`** - User preferences, communication style, prompt templates
+- **THIS FILE** - Heliotrope-specific architecture, workshop structure, technical details
+
+**✅ Environment Status:** Production ready - iCloud+Git conflicts resolved, 98.7% performance improvement
+
 ## 🎯 Project Overview
 
 **Heliotrope Imaginal** is a dual-workshop platform with shared infrastructure and distinct workshop experiences:
@@ -107,6 +116,26 @@ Located in: `client/src/components/navigation/navigationData.ts`
 - **AST**: Star Strengths + Flow assessments
 - **IA**: Imagination/5Cs assessment
 - **Shared**: Assessment modal components
+
+## 🔧 **Development Environment (VERIFIED PRODUCTION READY)**
+
+### **✅ Git + iCloud Resolution (Major Breakthrough)**
+- **Problem**: Git operations taking 7+ seconds, repository corruption from iCloud sync
+- **Solution**: `xattr -w com.apple.fileprovider.ignore#P 1 .git/` (exclude .git from iCloud)
+- **Result**: 98.7% performance improvement (7s → 0.093s)
+- **Status**: Production stable, fully tested June 2025
+
+### **🚀 Current Performance:**
+- **git status**: 0.093 seconds (vs 7+ seconds before)
+- **git diff**: <0.1 seconds  
+- **git commit**: <0.5 seconds
+- **Repository health**: Clean, no corruption
+- **Claude file access**: Direct read/write confirmed working
+
+### **🔍 Optimal Development Workflow:**
+- **Claude Direct Changes**: 1-2 file modifications (simple updates)
+- **Replit Agent**: Complex multi-file changes (new features)
+- **Hybrid Approach**: Claude analysis + precision prompts for agents
 
 ## 🚨 Common Issues & Solutions
 
