@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronLeft, ChevronRight, BarChart3, Eye, Heart, Lightbulb, Shield, X } from 'lucide-react';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { useTestUser } from '@/hooks/useTestUser';
 
 interface ImaginalAgilityAssessmentModalProps {
   isOpen: boolean;
@@ -15,6 +16,7 @@ const ImaginalAgilityAssessmentModal = ({ isOpen, onClose, onComplete }: Imagina
   const [showResults, setShowResults] = useState(false);
   const [scores, setScores] = useState(null);
   const [isDemoMode, setIsDemoMode] = useState(false);
+  const isTestUser = useTestUser();
 
   // Demo answers for testing
   const demoAnswers = {
@@ -226,6 +228,11 @@ const ImaginalAgilityAssessmentModal = ({ isOpen, onClose, onComplete }: Imagina
   };
 
   const fillDemoAnswers = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     setIsDemoMode(true);
     setResponses(demoAnswers);
     // Jump to last question but don't auto-submit
@@ -445,12 +452,14 @@ const ImaginalAgilityAssessmentModal = ({ isOpen, onClose, onComplete }: Imagina
                 <span>• Courage</span>
               </div>
             </div>
-            <button
-              onClick={fillDemoAnswers}
-              className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
-            >
-              Demo Mode
-            </button>
+            {isTestUser && (
+              <button
+                onClick={fillDemoAnswers}
+                className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
+              >
+                Demo Mode
+              </button>
+            )}
           </div>
           {isDemoMode && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center mt-3">

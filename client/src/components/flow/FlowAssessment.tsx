@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { HelpCircle, Sliders as SliderIcon } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
 
 interface FlowQuestion {
   id: number;
