@@ -38,6 +38,15 @@ export default function FinalReflectionView({
     }
   }, [existingData]);
 
+  // Check if step is completed and show modal automatically
+  useEffect(() => {
+    // Check if step 4-5 is already completed and insight exists
+    const isStepCompleted = insight.trim().length >= 10;
+    if (isStepCompleted && currentContent === 'final-reflection') {
+      setShowModal(true);
+    }
+  }, [insight, currentContent]);
+
   // Save final reflection data
   const saveMutation = useMutation({
     mutationFn: (data: FinalReflectionData) => apiRequest('/api/workshop-data/final-reflection', {
