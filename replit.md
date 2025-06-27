@@ -136,6 +136,18 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 27, 2025 - Critical Admin User Data Delete Function Fix ✅
+- **CRITICAL BUG FIX**: Fixed admin user data delete function that was targeting non-existent database tables
+- **ROOT CAUSE**: Function was trying to delete from `star_cards` and `flow_attributes` tables that don't exist in schema
+- **SOLUTION**: Updated to target correct tables where data is actually stored as JSON in `user_assessments`
+- **COMPREHENSIVE DELETION**: Now properly deletes from all existing tables:
+  - `user_assessments` (star cards, flow data, reflections stored as JSON)
+  - `navigation_progress` table and `users.navigation_progress` field
+  - `workshop_participation`, `growth_plans`, `final_reflections`, `user_discernment_progress`
+- **IMPROVED ERROR HANDLING**: Added detailed logging and comprehensive deletion tracking
+- **TESTING VERIFIED**: Successfully tested with real data - deleted 4 assessment records, 4 navigation records, 1 growth plan
+- **ADMIN PANEL**: Data deletion now works correctly for admins managing user workshop data
+
 ### June 27, 2025 - Phase 1 Complete: Comprehensive Demo Security Implementation ✅
 - **SECURITY MILESTONE**: Successfully secured all 11 demo features across the entire platform
 - **COMPREHENSIVE PROTECTION**: Implemented standardized security architecture for all demo functionality
