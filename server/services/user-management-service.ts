@@ -567,7 +567,7 @@ class UserManagementService {
       // 1. Delete ALL user assessments (includes star cards, flow data, reflections, etc.)
       try {
         const assessmentResult = await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
-        deletedData.userAssessments = assessmentResult.rowCount || 0;
+        deletedData.userAssessments = assessmentResult.length;
         console.log(`Deleted ${deletedData.userAssessments} assessment records for user ${userId}`);
       } catch (error) {
         console.log(`No user assessments found for user ${userId}:`, error.message);
@@ -576,7 +576,7 @@ class UserManagementService {
       // 2. Delete navigation progress from dedicated table
       try {
         const navResult = await db.execute(sql`DELETE FROM navigation_progress WHERE user_id = ${userId}`);
-        deletedData.navigationProgressTable = navResult.rowCount || 0;
+        deletedData.navigationProgressTable = navResult.length;
         console.log(`Deleted ${deletedData.navigationProgressTable} navigation progress records for user ${userId}`);
       } catch (error) {
         console.log(`No navigation progress found for user ${userId}:`, error.message);
