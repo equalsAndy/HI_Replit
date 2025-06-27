@@ -108,6 +108,10 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 const uploadsDir = path.join(__dirname, '..', 'uploads');
 app.use('/uploads', express.static(uploadsDir));
 
+// Configure static file serving for public assets (before Vite middleware)
+const publicDir = path.join(__dirname, '..', 'public');
+app.use(express.static(publicDir));
+
 // Configure multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

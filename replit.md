@@ -162,6 +162,11 @@ The platform provides a guided, step-by-step learning experience with assessment
   - Updated landing page to redirect test users to `/testuser` instead of non-existent `/dashboard`
   - Eliminated "Cannot GET /dashboard" errors for test users
   - Proper fallback routing based on user type and authentication status
+- **STATIC FILE SERVING FIX**: Resolved logo display issue
+  - Added Express static file serving for public directory before Vite middleware
+  - Workshop logos now display correctly as images instead of HTML fallbacks
+  - Fixed Content-Type headers for PNG files (image/png instead of text/html)
+  - AST and IA workshop cards now show actual logo images at 64x64px size
 
 ### June 27, 2025 - Critical Admin User Data Delete Function Fix ✅
 - **CRITICAL BUG FIX**: Fixed admin user data delete function that was targeting non-existent database tables
