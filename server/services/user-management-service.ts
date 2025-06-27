@@ -550,87 +550,100 @@ class UserManagementService {
    */
   async deleteUserData(userId: number) {
     try {
-      console.log(`Starting data deletion for user ${userId}`);
+      console.log(`Starting complete data deletion for user ${userId}`);
       
-      // Import required modules
-      const { eq, and } = await import('drizzle-orm');
       const { sql } = await import('drizzle-orm');
       
       let deletedData = {
-        starCard: false,
-        flowAttributes: false,
-        userAssessments: false,
-        navigationProgress: false
+        userAssessments: 0,
+        navigationProgressTable: 0,
+        navigationProgressField: false,
+        workshopParticipation: 0,
+        growthPlans: 0,
+        finalReflections: 0,
+        discernmentProgress: 0
       };
 
-      // 1. Delete star card data
-      try {
-        const starCardResult = await db.execute(sql`DELETE FROM star_cards WHERE user_id = ${userId}`);
-        console.log(`Deleted star card data for user ${userId}`);
-        deletedData.starCard = true;
-      } catch (error) {
-        console.log(`No star card data found for user ${userId}`);
-        deletedData.starCard = true; // Count as success if nothing to delete
-      }
-
-      // 2. Delete flow attributes
-      try {
-        const flowResult = await db.execute(sql`DELETE FROM flow_attributes WHERE user_id = ${userId}`);
-        console.log(`Deleted flow attributes for user ${userId}`);
-        deletedData.flowAttributes = true;
-      } catch (error) {
-        console.log(`No flow attributes found for user ${userId}`);
-        deletedData.flowAttributes = true;
-      }
-
-      // 3. Delete user assessments
+      // 1. Delete ALL user assessments (includes star cards, flow data, reflections, etc.)
       try {
         const assessmentResult = await db.execute(sql`DELETE FROM user_assessments WHERE user_id = ${userId}`);
-        console.log(`Deleted user assessments for user ${userId}`);
-        deletedData.userAssessments = true;
+        deletedData.userAssessments = assessmentResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.userAssessments} assessment records for user ${userId}`);
       } catch (error) {
-        console.log(`No user assessments found for user ${userId}`);
-        deletedData.userAssessments = true;
+        console.log(`No user assessments found for user ${userId}:`, error.message);
       }
 
-      // 4. Delete navigation progress from dedicated table
+      // 2. Delete navigation progress from dedicated table
       try {
         const navResult = await db.execute(sql`DELETE FROM navigation_progress WHERE user_id = ${userId}`);
-        console.log(`Deleted navigation progress for user ${userId}:`, navResult);
-        deletedData.navigationProgress = true;
+        deletedData.navigationProgressTable = navResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.navigationProgressTable} navigation progress records for user ${userId}`);
       } catch (error) {
-        console.log(`No navigation progress found for user ${userId}`);
-        deletedData.navigationProgress = true;
+        console.log(`No navigation progress found for user ${userId}:`, error.message);
       }
 
-      // 5. Clear navigation progress field in users table
+      // 3. Clear navigation progress field in users table
       try {
         await db.execute(sql`UPDATE users SET navigation_progress = NULL WHERE id = ${userId}`);
+        deletedData.navigationProgressField = true;
         console.log(`Cleared navigation_progress field in users table for user ${userId}`);
       } catch (error) {
-        console.log(`Error clearing navigation_progress field for user ${userId}:`, error);
+        console.log(`Error clearing navigation_progress field for user ${userId}:`, error.message);
       }
 
-      // 5. Delete any workshop participation data
+      // 4. Delete workshop participation data
       try {
-        await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
-        console.log(`Deleted workshop participation for user ${userId}`);
+        const workshopResult = await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
+        deletedData.workshopParticipation = workshopResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.workshopParticipation} workshop participation records for user ${userId}`);
       } catch (error) {
         console.log(`No workshop participation found for user ${userId}`);
       }
 
-      console.log(`Completed data deletion for user ${userId}`, deletedData);
+      // 5. Delete growth plans
+      try {
+        const growthResult = await db.execute(sql`DELETE FROM growth_plans WHERE user_id = ${userId}`);
+        deletedData.growthPlans = growthResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.growthPlans} growth plan records for user ${userId}`);
+      } catch (error) {
+        console.log(`No growth plans found for user ${userId}`);
+      }
+
+      // 6. Delete final reflections
+      try {
+        const reflectionResult = await db.execute(sql`DELETE FROM final_reflections WHERE user_id = ${userId}`);
+        deletedData.finalReflections = reflectionResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.finalReflections} final reflection records for user ${userId}`);
+      } catch (error) {
+        console.log(`No final reflections found for user ${userId}`);
+      }
+
+      // 7. Delete discernment progress
+      try {
+        const discernmentResult = await db.execute(sql`DELETE FROM user_discernment_progress WHERE user_id = ${userId}`);
+        deletedData.discernmentProgress = discernmentResult.rowCount || 0;
+        console.log(`Deleted ${deletedData.discernmentProgress} discernment progress records for user ${userId}`);
+      } catch (error) {
+        console.log(`No discernment progress found for user ${userId}`);
+      }
+
+      const totalRecordsDeleted = Object.values(deletedData).reduce((total, value) => {
+        return typeof value === 'number' ? total + value : total;
+      }, 0);
+
+      console.log(`Completed data deletion for user ${userId}:`, deletedData);
 
       return {
         success: true,
         message: 'User data deleted successfully',
-        deletedData
+        deletedData,
+        summary: `Deleted ${totalRecordsDeleted} total records across ${Object.keys(deletedData).length} data categories`
       };
     } catch (error) {
       console.error('Error deleting user data:', error);
       return {
         success: false,
-        error: 'Failed to delete user data'
+        error: 'Failed to delete user data: ' + (error instanceof Error ? error.message : 'Unknown error')
       };
     }
   }
