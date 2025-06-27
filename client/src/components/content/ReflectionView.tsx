@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
 import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
 
 const ReflectionView: React.FC<ContentViewProps> = ({
   navigate,

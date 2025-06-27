@@ -913,13 +913,15 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
 
-            <Button
-              variant="outline"
-              onClick={handleDemoAnswers}
-              className="h-9 text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
-            >
-              Demo Data
-            </Button>
+            {isTestUser && (
+              <Button
+                variant="outline"
+                onClick={handleDemoAnswers}
+                className="h-9 text-xs border-indigo-300 text-indigo-600 hover:text-indigo-700"
+              >
+                Demo Data
+              </Button>
+            )}
           </div>
 
           <Button 

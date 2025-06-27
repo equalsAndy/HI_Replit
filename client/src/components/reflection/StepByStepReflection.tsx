@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { debounce } from '@/lib/utils';
+import { useTestUser } from '@/hooks/useTestUser';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -39,6 +40,7 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
+  const isTestUser = useTestUser();
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
@@ -157,6 +159,11 @@ export default function StepByStepReflection({
 
   // Function to populate reflections with demo lorem ipsum text
   const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     const loremTexts = [
       "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
       "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
@@ -739,16 +746,18 @@ export default function StepByStepReflection({
                 </p>
               </div>
 
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={fillWithDemoData}
-                className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
-                id="fillDemoDataButton"
-              >
-                <FileText className="w-3 h-3 mr-1" />
-                Add Demo Data
-              </Button>
+              {isTestUser && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={fillWithDemoData}
+                  className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
+                  id="fillDemoDataButton"
+                >
+                  <FileText className="w-3 h-3 mr-1" />
+                  Add Demo Data
+                </Button>
+              )}
             </div>
 
             {/* Strengths Distribution */}
