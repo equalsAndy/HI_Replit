@@ -94,37 +94,32 @@ const TestUserPage: React.FC = () => {
       const appType = navData.appType || 'ast';
       const lastVisitedAt = navData.lastVisitedAt;
 
-      // Determine last activity
-      const lastActivity = lastVisitedAt 
-        ? getTimeAgo(new Date(lastVisitedAt))
-        : 'No recent activity';
-
-      // AST Workshop Progress
+      // Filter steps by workshop type
       const astSteps = completedSteps.filter((step: string) => !step.startsWith('ia-'));
-      const astCurrentStep = appType === 'ast' ? currentStepId : '1-1';
+      const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
+
+      // Determine AST workshop progress
       const astProgress: WorkshopProgress = {
         type: 'ast',
         title: 'AllStarTeams Workshop',
         subtitle: 'Discover your unique strengths',
-        currentStep: getStepNumber(astCurrentStep),
+        currentStep: astSteps.length === 0 ? 1 : getStepNumber(appType === 'ast' ? currentStepId : '1-1'),
         totalSteps: 19,
-        stepName: getStepName(astCurrentStep),
-        lastActivity: appType === 'ast' ? lastActivity : 'Not recently active',
+        stepName: astSteps.length === 0 ? 'Workshop Introduction' : getStepName(appType === 'ast' ? currentStepId : '1-1'),
+        lastActivity: astSteps.length === 0 ? 'Not started' : (appType === 'ast' && lastVisitedAt ? getTimeAgo(new Date(lastVisitedAt)) : 'Not recently active'),
         logoPath: '/all-star-teams-logo-square.png',
         route: 'allstarteams'
       };
 
-      // IA Workshop Progress
-      const iaSteps = completedSteps.filter((step: string) => step.startsWith('ia-'));
-      const iaCurrentStep = appType === 'ia' ? currentStepId : 'ia-1-1';
+      // Determine IA workshop progress
       const iaProgress: WorkshopProgress = {
         type: 'ia',
         title: 'Imaginal Agility Workshop',
         subtitle: 'Enhance your creative thinking',
-        currentStep: getStepNumber(iaCurrentStep),
+        currentStep: iaSteps.length === 0 ? 1 : getStepNumber(appType === 'ia' ? currentStepId : 'ia-1-1'),
         totalSteps: 8,
-        stepName: getStepName(iaCurrentStep),
-        lastActivity: appType === 'ia' ? lastActivity : 'Not recently active',
+        stepName: iaSteps.length === 0 ? 'Introduction to Imaginal Agility' : getStepName(appType === 'ia' ? currentStepId : 'ia-1-1'),
+        lastActivity: iaSteps.length === 0 ? 'Not started' : (appType === 'ia' && lastVisitedAt ? getTimeAgo(new Date(lastVisitedAt)) : 'Not recently active'),
         logoPath: '/IA_sq.png',
         route: 'imaginal-agility'
       };
