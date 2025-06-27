@@ -753,7 +753,7 @@ router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
 });
 
 // Delete user data endpoint for test users (self-service)
-router.delete('/data', requireAuth, async (req: AuthenticatedRequest, res: Response) => {
+router.delete('/data', requireAuth, async (req: any, res: any) => {
   try {
     const sessionUserId = req.session.userId;
     
@@ -763,9 +763,6 @@ router.delete('/data', requireAuth, async (req: AuthenticatedRequest, res: Respo
         error: 'Authentication required' 
       });
     }
-
-    // Import user management service
-    const { userManagementService } = await import('../services/user-management-service');
 
     // Get user to verify they exist and are a test user
     const result = await userManagementService.getUserById(sessionUserId);
