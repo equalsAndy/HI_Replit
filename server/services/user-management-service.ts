@@ -594,7 +594,7 @@ class UserManagementService {
       // 4. Delete workshop participation data
       try {
         const workshopResult = await db.execute(sql`DELETE FROM workshop_participation WHERE user_id = ${userId}`);
-        deletedData.workshopParticipation = workshopResult.rowCount || 0;
+        deletedData.workshopParticipation = workshopResult.length;
         console.log(`Deleted ${deletedData.workshopParticipation} workshop participation records for user ${userId}`);
       } catch (error) {
         console.log(`No workshop participation found for user ${userId}`);
@@ -603,7 +603,7 @@ class UserManagementService {
       // 5. Delete growth plans
       try {
         const growthResult = await db.execute(sql`DELETE FROM growth_plans WHERE user_id = ${userId}`);
-        deletedData.growthPlans = growthResult.rowCount || 0;
+        deletedData.growthPlans = growthResult.length;
         console.log(`Deleted ${deletedData.growthPlans} growth plan records for user ${userId}`);
       } catch (error) {
         console.log(`No growth plans found for user ${userId}`);
@@ -612,7 +612,7 @@ class UserManagementService {
       // 6. Delete final reflections
       try {
         const reflectionResult = await db.execute(sql`DELETE FROM final_reflections WHERE user_id = ${userId}`);
-        deletedData.finalReflections = reflectionResult.rowCount || 0;
+        deletedData.finalReflections = reflectionResult.length;
         console.log(`Deleted ${deletedData.finalReflections} final reflection records for user ${userId}`);
       } catch (error) {
         console.log(`No final reflections found for user ${userId}`);
@@ -621,15 +621,18 @@ class UserManagementService {
       // 7. Delete discernment progress
       try {
         const discernmentResult = await db.execute(sql`DELETE FROM user_discernment_progress WHERE user_id = ${userId}`);
-        deletedData.discernmentProgress = discernmentResult.rowCount || 0;
+        deletedData.discernmentProgress = discernmentResult.length;
         console.log(`Deleted ${deletedData.discernmentProgress} discernment progress records for user ${userId}`);
       } catch (error) {
         console.log(`No discernment progress found for user ${userId}`);
       }
 
-      const totalRecordsDeleted = Object.values(deletedData).reduce((total, value) => {
-        return typeof value === 'number' ? total + value : total;
-      }, 0);
+      const totalRecordsDeleted = deletedData.userAssessments + 
+        deletedData.navigationProgressTable + 
+        deletedData.workshopParticipation + 
+        deletedData.growthPlans + 
+        deletedData.finalReflections + 
+        deletedData.discernmentProgress;
 
       console.log(`Completed data deletion for user ${userId}:`, deletedData);
 
