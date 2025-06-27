@@ -4,6 +4,7 @@ import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Responsi
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTestUser } from '@/hooks/useTestUser';
 
 interface ImaginationAssessmentContentProps {
   navigate: (path: string) => void;
@@ -19,6 +20,7 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
   const [isDemoMode, setIsDemoMode] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isTestUser = useTestUser();
 
   // Demo answers for testing
   const demoAnswers = {
@@ -271,6 +273,11 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
   };
 
   const fillDemoAnswers = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     setIsDemoMode(true);
     setResponses(demoAnswers);
     setCurrentQuestion(questions.length - 1);
@@ -531,12 +538,14 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
               <span>• Courage</span>
             </div>
           </div>
-          <button
-            onClick={fillDemoAnswers}
-            className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
-          >
-            Demo Mode
-          </button>
+          {isTestUser && (
+            <button
+              onClick={fillDemoAnswers}
+              className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"
+            >
+              Demo Mode
+            </button>
+          )}
         </div>
         {isDemoMode && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
