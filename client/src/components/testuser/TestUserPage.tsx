@@ -97,6 +97,55 @@ const TestUserPage: React.FC = () => {
     }
   }, [userResponse, setLocation, toast]);
 
+  // Helper function to get time ago string
+  const getTimeAgo = (date: Date): string => {
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffWeeks = Math.floor(diffDays / 7);
+
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1 day ago';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffWeeks === 1) return '1 week ago';
+    return `${diffWeeks} weeks ago`;
+  };
+
+  // Helper function to extract step number
+  const getStepNumber = (stepId: string): number => {
+    if (stepId.startsWith('ia-')) {
+      const match = stepId.match(/ia-(\d+)-/);
+      return match ? parseInt(match[1]) : 1;
+    }
+    const match = stepId.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 1;
+  };
+
+  // Helper function to get step name
+  const getStepName = (stepId: string): string => {
+    const stepNames: Record<string, string> = {
+      // AST steps
+      '1-1': 'Workshop Introduction',
+      '2-1': 'Strengths Overview',
+      '2-2': 'Star Strengths Assessment',
+      '3-1': 'Flow Introduction',
+      '4-1': 'Flow Assessment',
+      '5': 'Well-being Assessment',
+      '5-1': 'Well-being Assessment',
+      '6-1': 'Final Reflection',
+      // IA steps
+      'ia-1-1': 'Introduction to Imaginal Agility',
+      'ia-2-1': 'Reality Discernment',
+      'ia-3-1': 'Creative Solutions',
+      'ia-4-1': 'Self-Assessment',
+      'ia-5-1': 'Teamwork Preparation',
+      'ia-6-1': 'Advanced Discernment',
+      'ia-7-1': 'Integration',
+      'ia-8-1': 'Final Application'
+    };
+    return stepNames[stepId] || 'Workshop Step';
+  };
+
   // Parse navigation progress to determine workshop data
   const getWorkshopProgress = React.useMemo(() => {
     if (!navigationData?.navigationProgress) {
@@ -175,56 +224,6 @@ const TestUserPage: React.FC = () => {
       return { astProgress: null, iaProgress: null, lastActive: 'ast' };
     }
   }, [navigationData]);
-
-  // Helper function to get time ago string
-  const getTimeAgo = (date: Date): string => {
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-    const diffWeeks = Math.floor(diffDays / 7);
-
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return '1 day ago';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffWeeks === 1) return '1 week ago';
-    return `${diffWeeks} weeks ago`;
-  };
-
-  // Helper function to extract step number
-  const getStepNumber = (stepId: string): number => {
-    if (stepId.startsWith('ia-')) {
-      const match = stepId.match(/ia-(\d+)-/);
-      return match ? parseInt(match[1]) : 1;
-    }
-    const match = stepId.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 1;
-  };
-
-  // Helper function to get step name
-  const getStepName = (stepId: string): string => {
-    const stepNames: Record<string, string> = {
-      // AST steps
-      '1-1': 'Workshop Introduction',
-      '2-1': 'Strengths Overview',
-      '2-2': 'Star Strengths Assessment',
-      '3-1': 'Flow Introduction',
-      '4-1': 'Flow Assessment',
-      '5': 'Well-being Assessment',
-      '5-1': 'Well-being Assessment',
-      '6-1': 'Final Reflection',
-      // IA steps
-      'ia-1-1': 'Introduction to Imaginal Agility',
-      'ia-2-1': 'Reality Discernment',
-      'ia-3-1': 'Creative Solutions',
-      'ia-4-1': 'Self-Assessment',
-      'ia-5-1': 'Teamwork Preparation',
-      'ia-6-1': 'Advanced Discernment',
-      'ia-7-1': 'Integration',
-      'ia-8-1': 'Final Application'
-    };
-    return stepNames[stepId] || 'Workshop Step';
-  };
-
 
 
   if (userLoading || navLoading) {
