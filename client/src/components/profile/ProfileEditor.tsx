@@ -211,6 +211,12 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     }
   };
 
+  // Handle navigation to test user dashboard
+  const handleTestUserDashboard = () => {
+    navigate('/testuser');
+    setIsOpen(false);
+  };
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -394,23 +400,36 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
               </div>
             ) : (
               // View Mode buttons
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleEdit}
-                  className="flex-1 flex items-center gap-2"
-                >
-                  <Edit3 className="h-4 w-4" />
-                  Edit Profile
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={handleModalClose}
-                  className="flex-1"
-                >
-                  Close
-                </Button>
-              </div>
+              <>
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleEdit}
+                    className="flex-1 flex items-center gap-2"
+                  >
+                    <Edit3 className="h-4 w-4" />
+                    Edit Profile
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    onClick={handleModalClose}
+                    className="flex-1"
+                  >
+                    Close
+                  </Button>
+                </div>
+
+                {/* Test User Dashboard Button */}
+                {user?.isTestUser && (
+                  <Button
+                    onClick={handleTestUserDashboard}
+                    className="w-full flex items-center gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+                  >
+                    <LayoutDashboard className="h-4 w-4" />
+                    Test User Dashboard
+                  </Button>
+                )}
+              </>
             )}
 
             {/* Test User Data Reset Section */}
