@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { db } from './db';
 import { eq, and, sql } from 'drizzle-orm';
 import * as schema from '../shared/schema';
+import { requireTestUser } from './middleware/test-user-auth';
 
 // Create a router for data reset operations
 const resetRouter = Router();
@@ -11,7 +12,7 @@ const resetRouter = Router();
  * This endpoint handles complete data reset for a user,
  * deleting star card data, flow attributes, and resetting progress
  */
-resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
+resetRouter.post('/user/:userId', requireTestUser, async (req: Request, res: Response) => {
   try {
     // Force content type to JSON
     res.setHeader('Content-Type', 'application/json');
@@ -217,7 +218,7 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
 /**
  * Reset just the star card for a user
  */
-resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) => {
+resetRouter.post('/user/:userId/starcard', requireTestUser, async (req: Request, res: Response) => {
   try {
     // Force content type to JSON
     res.setHeader('Content-Type', 'application/json');
@@ -311,7 +312,7 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
 /**
  * Reset just the flow attributes for a user
  */
-resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
+resetRouter.post('/user/:userId/flow', requireTestUser, async (req: Request, res: Response) => {
   try {
     // Force content type to JSON
     res.setHeader('Content-Type', 'application/json');
