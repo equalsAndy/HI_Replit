@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
@@ -33,6 +33,9 @@ export default function FinalReflectionView({
   // Modal auto-close countdown (20 seconds)
   const [modalCountdown, setModalCountdown] = useState(20);
   const [isModalCountingDown, setIsModalCountingDown] = useState(false);
+  
+  // Save status tracking
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
@@ -103,22 +106,48 @@ export default function FinalReflectionView({
 
   // Save final reflection data
   const saveMutation = useMutation({
-    mutationFn: (data: FinalReflectionData) => apiRequest('/api/workshop-data/final-reflection', {
-      method: 'POST',
-      body: JSON.stringify(data),
-    }),
+    mutationFn: (data: FinalReflectionData) => {
+      setSaveStatus('saving');
+      return apiRequest('/api/workshop-data/final-reflection', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/final-reflection'] });
+      setSaveStatus('saved');
+      setTimeout(() => setSaveStatus('idle'), 2000); // Clear saved status after 2 seconds
+    },
+    onError: (error) => {
+      console.error('Failed to save final reflection:', error);
+      setSaveStatus('error');
+      setTimeout(() => setSaveStatus('idle'), 3000); // Clear error status after 3 seconds
     },
   });
+
+  // Debounced auto-save function
+  const debouncedSave = useCallback(
+    (() => {
+      let timeoutId: NodeJS.Timeout;
+      return (value: string) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          if (!isStepCompleted && value.trim().length > 0) {
+            const saveData = { futureLetterText: value.trim() };
+            saveMutation.mutate(saveData);
+          }
+        }, 1000); // Wait 1 second after user stops typing
+      };
+    })(),
+    [isStepCompleted, saveMutation]
+  );
 
   const handleInsightChange = (value: string) => {
     setInsight(value);
     
     // Auto-save after user stops typing (only if not completed)
     if (!isStepCompleted) {
-      const saveData = { futureLetterText: value };
-      saveMutation.mutate(saveData);
+      debouncedSave(value);
     }
   };
 
@@ -242,15 +271,24 @@ export default function FinalReflectionView({
             </div>
             
             <div className="input-section">
-              <textarea
-                className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
-                value={isStepCompleted ? savedInsight : insight}
-                onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
-                disabled={isStepCompleted}
-                readOnly={isStepCompleted}
-                placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
-                rows={4}
-              />
+              <div className="textarea-wrapper">
+                <textarea
+                  className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
+                  value={isStepCompleted ? savedInsight : insight}
+                  onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
+                  disabled={isStepCompleted}
+                  readOnly={isStepCompleted}
+                  placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
+                  rows={4}
+                />
+                {!isStepCompleted && (
+                  <div className="save-status">
+                    {saveStatus === 'saving' && <span className="status saving">Saving...</span>}
+                    {saveStatus === 'saved' && <span className="status saved">Saved</span>}
+                    {saveStatus === 'error' && <span className="status error">Save failed</span>}
+                  </div>
+                )}
+              </div>
               
               <div className="action-section">
                 {!isStepCompleted ? (
@@ -478,6 +516,39 @@ export default function FinalReflectionView({
         .input-section {
           max-width: 600px;
           margin: 0 auto;
+        }
+
+        .textarea-wrapper {
+          position: relative;
+        }
+
+        .save-status {
+          position: absolute;
+          top: 8px;
+          right: 12px;
+          pointer-events: none;
+        }
+
+        .status {
+          font-size: 0.75rem;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-weight: 500;
+        }
+
+        .status.saving {
+          background: #e3f2fd;
+          color: #1976d2;
+        }
+
+        .status.saved {
+          background: #e8f5e8;
+          color: #2e7d32;
+        }
+
+        .status.error {
+          background: #ffebee;
+          color: #c62828;
         }
 
         .insight-input {
