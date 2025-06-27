@@ -1658,6 +1658,93 @@ workshopDataRouter.post('/final-reflection', async (req: Request, res: Response)
   }
 });
 
+// POST /api/workshop-data/final-reflection
+workshopDataRouter.post('/final-reflection', async (req: Request, res: Response) => {
+  try {
+    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+      userId = req.session.userId;
+    }
+    
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated'
+      });
+    }
+    
+    const { futureLetterText } = req.body;
+    
+    // Validation
+    if (!futureLetterText || typeof futureLetterText !== 'string' || futureLetterText.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'Future letter text is required',
+        code: 'VALIDATION_ERROR',
+        details: { futureLetterText: 'Required field' }
+      });
+    }
+    
+    if (futureLetterText.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        error: 'Future letter text must be 5000 characters or less',
+        code: 'VALIDATION_ERROR',
+        details: { futureLetterText: 'Must be 5000 characters or less' }
+      });
+    }
+    
+    const reflectionData = {
+      futureLetterText: futureLetterText.trim()
+    };
+    
+    // Check if reflection already exists
+    const existingReflection = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(
+        and(
+          eq(schema.userAssessments.userId, userId),
+          eq(schema.userAssessments.assessmentType, 'finalReflection')
+        )
+      );
+    
+    if (existingReflection.length > 0) {
+      // Update existing reflection
+      await db
+        .update(schema.userAssessments)
+        .set({
+          results: JSON.stringify(reflectionData)
+        })
+        .where(eq(schema.userAssessments.id, existingReflection[0].id));
+    } else {
+      // Create new reflection record
+      await db.insert(schema.userAssessments).values({
+        userId,
+        assessmentType: 'finalReflection',
+        results: JSON.stringify(reflectionData)
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: reflectionData,
+      meta: { 
+        saved_at: new Date().toISOString(),
+        assessmentType: 'finalReflection' 
+      }
+    });
+  } catch (error) {
+    console.error('Error saving final reflection:', error);
+    res.status(400).json({
+      success: false,
+      error: error instanceof Error ? error.message : 'Save failed',
+      code: 'SAVE_ERROR'
+    });
+  }
+});
+
 // GET /api/workshop-data/final-reflection
 workshopDataRouter.get('/final-reflection', async (req: Request, res: Response) => {
   try {

@@ -34,7 +34,7 @@ export function ResetDataButton({
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isTestUser } = useTestUser();
+  const isTestUser = useTestUser();
 
   // SECURE: Only show reset button for test users
   if (!isTestUser) {
