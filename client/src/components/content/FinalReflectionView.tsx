@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -6,9 +5,10 @@ import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
 
 interface FinalReflectionViewProps {
-  currentContent: string;
-  navigate: (path: string) => void;
+  onNext: (targetContent?: string) => void;
   markStepCompleted: (stepId: string) => void;
+  isStepCompleted?: boolean;
+  currentContent: string;
   setCurrentContent: (content: string) => void;
 }
 
@@ -18,18 +18,19 @@ interface FinalReflectionData {
 
 export default function FinalReflectionView({ 
   currentContent, 
-  navigate, 
+  onNext,
   markStepCompleted, 
+  isStepCompleted,
   setCurrentContent 
 }: FinalReflectionViewProps) {
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
-  
+
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
   const [isCountingDown, setIsCountingDown] = useState(false);
-  
+
   // Modal auto-close countdown (20 seconds)
   const [modalCountdown, setModalCountdown] = useState(20);
   const [isModalCountingDown, setIsModalCountingDown] = useState(false);
@@ -42,7 +43,7 @@ export default function FinalReflectionView({
 
   // Check if step is completed - using simple text length check for now
   // TODO: Replace with actual progression system check
-  const isStepCompleted = existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
+  const isStepCompletedCheck = existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
   const savedInsight = existingData?.data?.futureLetterText || '';
 
   useEffect(() => {
@@ -53,10 +54,10 @@ export default function FinalReflectionView({
 
   // Auto-show modal for completed steps with 5-second countdown
   useEffect(() => {
-    if (isStepCompleted && savedInsight) {
+    if (isStepCompletedCheck && savedInsight) {
       setIsCountingDown(true);
       setCountdown(5);
-      
+
       const timer = setInterval(() => {
         setCountdown((prev) => {
           if (prev <= 1) {
@@ -71,21 +72,21 @@ export default function FinalReflectionView({
 
       return () => clearInterval(timer);
     }
-  }, [isStepCompleted, savedInsight]);
+  }, [isStepCompletedCheck, savedInsight]);
 
   // Auto-close modal after 20 seconds for first-time completion
   useEffect(() => {
-    if (showModal && !isStepCompleted) { // Only for first-time completion
+    if (showModal && !isStepCompletedCheck) { // Only for first-time completion
       setModalCountdown(20);
       setIsModalCountingDown(true);
-      
+
       const timer = setInterval(() => {
         setModalCountdown((prev) => {
           if (prev <= 1) {
             clearInterval(timer);
             setIsModalCountingDown(false);
             setShowModal(false);
-            navigate('download-star-card'); // Navigate to star card
+            onNext('download-star-card'); // Navigate to star card
             return 0;
           }
           return prev - 1;
@@ -97,7 +98,7 @@ export default function FinalReflectionView({
         setIsModalCountingDown(false);
       };
     }
-  }, [showModal, isStepCompleted, navigate]);
+  }, [showModal, isStepCompletedCheck, onNext]);
 
   // Save final reflection data
   const saveMutation = useMutation({
@@ -112,9 +113,9 @@ export default function FinalReflectionView({
 
   const handleInsightChange = (value: string) => {
     setInsight(value);
-    
+
     // Auto-save after user stops typing (only if not completed)
-    if (!isStepCompleted) {
+    if (!isStepCompletedCheck) {
       const saveData = { futureLetterText: value };
       saveMutation.mutate(saveData);
     }
@@ -134,7 +135,7 @@ export default function FinalReflectionView({
     } else {
       document.body.style.overflow = 'auto';
     }
-    
+
     return () => {
       document.body.style.overflow = 'auto';
     };
@@ -143,20 +144,24 @@ export default function FinalReflectionView({
   const handleModalOption = (option: string) => {
     setIsModalCountingDown(false); // Stop countdown
     setShowModal(false);
-    
+
     // Navigate based on option
     switch(option) {
       case 'star-card':
-        navigate('download-star-card');
+        // Navigate to Download Star Card step (5-1)
+        onNext('download-star-card');
         break;
       case 'holistic-report':
-        navigate('holistic-report');
+        // Navigate to Holistic Report step (5-2)
+        onNext('holistic-report');
         break;
       case 'growth-plan':
-        navigate('growth-plan');
+        // Navigate to Growth Plan step (5-3)
+        onNext('growth-plan');
         break;
       case 'team-workshop':
-        navigate('team-workshop-prep');
+        // Navigate to Team Workshop step (5-4)
+        onNext('team-workshop');
         break;
     }
   };
@@ -164,10 +169,10 @@ export default function FinalReflectionView({
   const closeModal = () => {
     setIsModalCountingDown(false); // Stop countdown
     setShowModal(false);
-    
+
     // Only navigate for first-time completion
-    if (!isStepCompleted) {
-      navigate('download-star-card'); // Navigate to star card
+    if (!isStepCompletedCheck) {
+      onNext('download-star-card'); // Navigate to star card
     }
     // Returning users: just close modal, stay on page
   };
@@ -185,17 +190,17 @@ export default function FinalReflectionView({
                 className="ladder-image"
               />
             </div>
-            
+
             <div className="explanation-content">
               <h3 className="explanation-title">What This Ladder Represents</h3>
-              
+
               <div className="explanation-item">
                 <h4 className="item-title">A Natural Progression</h4>
                 <p className="item-text">
                   Each step builds on the one before — not in leaps, but in deepening awareness.
                 </p>
               </div>
-              
+
               <div className="explanation-item">
                 <h4 className="item-title">Reflective Mirror</h4>
                 <p className="item-text">
@@ -203,7 +208,7 @@ export default function FinalReflectionView({
                   what's already strong within you.
                 </p>
               </div>
-              
+
               <div className="explanation-item">
                 <h4 className="item-title">Team Flow Starts Here</h4>
                 <p className="item-text">
@@ -213,7 +218,7 @@ export default function FinalReflectionView({
               </div>
             </div>
           </div>
-          
+
           {/* Bottom Section: Reflection */}
           <div className="reflection-section">
             <div className="reflection-header">
@@ -225,20 +230,20 @@ export default function FinalReflectionView({
                 Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
               </p>
             </div>
-            
+
             <div className="input-section">
               <textarea
-                className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
-                value={isStepCompleted ? savedInsight : insight}
-                onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
-                disabled={isStepCompleted}
-                readOnly={isStepCompleted}
-                placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
+                className={`insight-input ${isStepCompletedCheck ? 'readonly' : ''}`}
+                value={isStepCompletedCheck ? savedInsight : insight}
+                onChange={isStepCompletedCheck ? undefined : (e) => handleInsightChange(e.target.value)}
+                disabled={isStepCompletedCheck}
+                readOnly={isStepCompletedCheck}
+                placeholder={isStepCompletedCheck ? '' : "What I want to carry forward is..."}
                 rows={4}
               />
-              
+
               <div className="action-section">
-                {!isStepCompleted ? (
+                {!isStepCompletedCheck ? (
                   // Original completion flow for first-time users
                   <>
                     <button
@@ -248,7 +253,7 @@ export default function FinalReflectionView({
                     >
                       Complete Your Journey
                     </button>
-                    
+
                     {insight.length < 10 && (
                       <p className="helper-text">
                         Share your insight to complete the workshop
@@ -262,7 +267,7 @@ export default function FinalReflectionView({
                       <span className="checkmark">✅</span>
                       <p className="completed-text">Workshop completed!</p>
                     </div>
-                    
+
                     {isCountingDown ? (
                       <p className="countdown-text">
                         Options menu opens in {countdown} second{countdown !== 1 ? 's' : ''}...
@@ -295,48 +300,48 @@ export default function FinalReflectionView({
               <h2 className="modal-title">Congratulations!</h2>
               <p className="modal-subtitle">You have completed the AllStarTeams Individual Workshop</p>
             </div>
-            
+
             <div className="modal-content">
               <p className="modal-description">
                 You've discovered your strengths, explored your potential, and captured your key insights. 
                 What would you like to do next?
               </p>
-              
+
               <div className="options-grid">
                 <button className="option-card" onClick={() => handleModalOption('star-card')}>
                   <div className="option-icon">⭐</div>
                   <h3 className="option-title">Download Your Star Card</h3>
                   <p className="option-description">Get your personalized strengths profile to keep and share</p>
                 </button>
-                
+
                 <button className="option-card" onClick={() => handleModalOption('holistic-report')}>
                   <div className="option-icon">📊</div>
                   <h3 className="option-title">See Your Holistic Report</h3>
                   <p className="option-description">View your complete workshop results and insights</p>
                 </button>
-                
+
                 <button className="option-card" onClick={() => handleModalOption('growth-plan')}>
                   <div className="option-icon">📈</div>
                   <h3 className="option-title">See Our Growth Plan</h3>
                   <p className="option-description">Explore our quarterly growth planning feature</p>
                 </button>
-                
+
                 <button className="option-card" onClick={() => handleModalOption('team-workshop')}>
                   <div className="option-icon">👥</div>
                   <h3 className="option-title">Prepare for Team Workshop</h3>
                   <p className="option-description">Get ready to collaborate with your team</p>
                 </button>
               </div>
-              
+
               <div className="modal-footer">
-                {!isStepCompleted && isModalCountingDown && (
+                {!isStepCompletedCheck && isModalCountingDown && (
                   <p className="auto-proceed-text">
                     Continuing to your Star Card in {modalCountdown} seconds...
                   </p>
                 )}
-                
+
                 <button className="close-button" onClick={closeModal}>
-                  {isStepCompleted ? "Close" : "I'll decide later"}
+                  {isStepCompletedCheck ? "Close" : "I'll decide later"}
                 </button>
               </div>
             </div>
