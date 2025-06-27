@@ -70,7 +70,13 @@ const TestUserTools: React.FC<TestUserToolsProps> = ({ userId }) => {
   const handleResetData = async () => {
     setIsResetting(true);
     try {
-      const response = await apiRequest('POST', '/api/user/reset-data', {});
+      const response = await fetch('/api/user/reset-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
       
       if (response.ok) {
         const data = await response.json();

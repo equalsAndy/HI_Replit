@@ -10,8 +10,6 @@ import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
-import ImaginalAgilityWorkshop from '@/pages/ImaginalAgilityWorkshop';
-import ImaginalAgilityDemo from '@/pages/ImaginalAgilityDemo';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 
 import AdminDashboard from '@/pages/admin/dashboard';
