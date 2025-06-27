@@ -117,6 +117,22 @@ Located in: `client/src/components/navigation/navigationData.ts`
 - **IA**: Imagination/5Cs assessment
 - **Shared**: Assessment modal components
 
+## 🧪 Test User Workflow
+
+### Authentication Flow:
+- Test users redirect to `/testuser` after login
+- Regular users continue to existing flow
+- Admin users continue to `/admin`
+
+### Data Management:
+- **Export All Data**: Downloads complete user data from both workshops
+- **Reset All Data**: Clears all progress with confirmation dialog
+- **No individual workshop resets**: All data management centralized
+
+### Workshop Navigation:
+- **Simplified buttons**: "Go to AllStarTeams Workshop" / "Go to Imaginal Agility Workshop"
+- **No complex logic**: Removed Continue/Switch dynamic behavior for simplicity
+
 ## 🔧 **Development Environment (VERIFIED PRODUCTION READY)**
 
 ### **✅ Git + iCloud Resolution (Major Breakthrough)**

@@ -133,6 +133,24 @@
 - **Result**: 98.7% performance improvement (7s → 0.093s)
 - **Status**: Production stable, fully tested
 
+## 🎯 Test User System Architecture
+
+### Test User Page Implementation:
+- **Route**: `/testuser` (replaces old `/dashboard`)
+- **Purpose**: Dedicated landing page for test users post-login
+- **Components**: Profile info, workshop cards, data management tools
+- **Button Logic**: Simple "Go to [Workshop]" instead of complex Continue/Switch
+
+### Workshop Progress Display:
+- **"Not started"**: When `completedSteps.length === 0`
+- **Current step**: When progress exists, show actual `currentStepId`
+- **Must match admin page logic**: Real-time data from `navigationProgress`
+
+### Logo Asset Management:
+- **Location**: `/public/` directory for web serving
+- **Naming**: Use exact filenames (e.g., `IA_sq.png`, `all-star-teams-logo-square.png`)
+- **Format**: Square app-style icons, not horizontal logos with text
+
 **📊 Current Git Performance:**
 - **git status**: 0.093 seconds (vs 7+ seconds before)
 - **git diff**: <0.1 seconds

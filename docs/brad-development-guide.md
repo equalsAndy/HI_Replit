@@ -249,6 +249,28 @@ git reset --hard origin/main
 
 ---
 
+## 💬 Communication Patterns
+
+### Prompt Consistency:
+- Use standardized format: `# REPLIT AGENT: [Task]`
+- Include: PROBLEM, ROOT CAUSE, REQUIRED FIXES, VERIFICATION
+- End with bold execution statement
+- Keep technical details in code blocks
+
+### Development Preferences:
+- **Ask before simplifying complex logic** - Get approval before changing user experience
+- **Centralize functionality** only when explicitly requested
+- **Match existing patterns** (e.g., admin page logic for consistency)
+- **Real-time data accuracy** over static displays
+- **No UX decisions without approval** - Implement exactly what's specified in prompts
+
+### Asset Management:
+- **Logo issues**: Always check actual files vs. expected files
+- **Web assets**: Must be in `/public/` directory
+- **Git sync**: Resolve binary file conflicts with `git checkout --ours`
+
+---
+
 **Your Development Philosophy**: Keep it simple, test frequently, understand what's happening, and ask for clarification when things get technical.
 
 **Last Updated**: June 27, 2025  
