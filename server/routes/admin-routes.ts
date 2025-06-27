@@ -484,7 +484,7 @@ router.get('/users/:userId/export', requireAuth, async (req: Request, res: Respo
     if (!isUserAdmin && !isAccessingOwnData) {
       return res.status(403).json({
         success: false,
-        error: 'Access denied. You can only access your own data.'
+        error: 'Access denied. Admins can access any user data, users can only access their own data.'
       });
     }
 

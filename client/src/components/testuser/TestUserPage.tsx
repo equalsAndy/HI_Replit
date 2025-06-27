@@ -111,14 +111,32 @@ const TestUserPage: React.FC = () => {
     return `${diffWeeks} weeks ago`;
   };
 
-  // Helper function to extract step number
+  // Helper function to extract step number (sequential position in workshop)
   const getStepNumber = (stepId: string): number => {
     if (stepId.startsWith('ia-')) {
       const match = stepId.match(/ia-(\d+)-/);
       return match ? parseInt(match[1]) : 1;
     }
-    const match = stepId.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 1;
+    
+    // AST step ID to sequential number mapping
+    const astStepOrder: Record<string, number> = {
+      '1-1': 1,   // Section 1
+      '2-1': 2,   // Section 2
+      '2-2': 3,
+      '2-3': 4,
+      '2-4': 5,
+      '3-1': 6,   // Section 3
+      '3-2': 7,
+      '3-3': 8,
+      '3-4': 9,
+      '4-1': 10,  // Section 4
+      '4-2': 11,
+      '4-3': 12,
+      '4-4': 13,
+      '4-5': 14   // Final step
+    };
+    
+    return astStepOrder[stepId] || 1;
   };
 
   // Helper function to get step name
@@ -128,20 +146,26 @@ const TestUserPage: React.FC = () => {
       '1-1': 'Workshop Introduction',
       '2-1': 'Strengths Overview',
       '2-2': 'Star Strengths Assessment',
-      '3-1': 'Flow Introduction',
-      '4-1': 'Flow Assessment',
-      '5': 'Well-being Assessment',
-      '5-1': 'Well-being Assessment',
-      '6-1': 'Final Reflection',
+      '2-3': 'Review Your Star Card',
+      '2-4': 'Strength Reflection',
+      '3-1': 'Intro to Flow',
+      '3-2': 'Flow Assessment',
+      '3-3': 'Rounding Out',
+      '3-4': 'Add Flow to Star Card',
+      '4-1': 'Ladder of Well-being',
+      '4-2': 'Well-being Reflections',
+      '4-3': 'Visualizing You',
+      '4-4': 'Your Future Self',
+      '4-5': 'Final Reflection',
       // IA steps
       'ia-1-1': 'Introduction to Imaginal Agility',
-      'ia-2-1': 'Reality Discernment',
-      'ia-3-1': 'Creative Solutions',
+      'ia-2-1': 'The Triple Challenge',
+      'ia-3-1': 'The Imaginal Agility Solution',
       'ia-4-1': 'Self-Assessment',
-      'ia-5-1': 'Teamwork Preparation',
-      'ia-6-1': 'Advanced Discernment',
-      'ia-7-1': 'Integration',
-      'ia-8-1': 'Final Application'
+      'ia-5-1': 'Assessment Results',
+      'ia-6-1': 'Teamwork Preparation',
+      'ia-7-1': 'Reality Discernment',
+      'ia-8-1': 'Neuroscience'
     };
     return stepNames[stepId] || 'Workshop Step';
   };
@@ -173,7 +197,7 @@ const TestUserPage: React.FC = () => {
           title: 'AllStarTeams Workshop',
           subtitle: 'Discover your unique strengths',
           currentStep: astStarted ? getStepNumber(astCurrentStep || '1-1') : 1,
-          totalSteps: 19,
+          totalSteps: 14, // Only 14 actual steps in AST workshop
           stepName: astStarted ? getStepName(astCurrentStep || '1-1') : 'Workshop Introduction',
           lastActivity: astStarted && astLastVisited ? getTimeAgo(new Date(astLastVisited)) : 'Not started',
           logoPath: '/all-star-teams-logo-square.png',
@@ -256,7 +280,7 @@ const TestUserPage: React.FC = () => {
     title: 'AllStarTeams Workshop',
     subtitle: 'Discover your unique strengths',
     currentStep: 1,
-    totalSteps: 19,
+    totalSteps: 14,
     stepName: 'Workshop Introduction',
     lastActivity: 'Not started',
     logoPath: '/all-star-teams-logo-square.png',
