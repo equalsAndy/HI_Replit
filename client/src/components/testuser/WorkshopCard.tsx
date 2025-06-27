@@ -53,7 +53,9 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({ workshop, isLastActive }) =
             src={workshop.logoPath} 
             alt={`${workshop.title} Logo`}
             className="w-full h-full object-contain"
+            onLoad={() => console.log(`✅ Logo loaded successfully: ${workshop.logoPath}`)}
             onError={(e) => {
+              console.error(`❌ Logo failed to load: ${workshop.logoPath}`, e);
               // Fallback if logo fails to load
               const target = e.target as HTMLImageElement;
               target.style.display = 'none';
