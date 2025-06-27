@@ -9,6 +9,7 @@ import { AssessmentPieChart } from './AssessmentPieChart';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
+import { useTestUser } from '@/hooks/useTestUser';
 
 type Option = AssessmentOption;
 
@@ -35,6 +36,7 @@ interface AssessmentModalProps {
 
 export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'ast' }: AssessmentModalProps) {
   const { toast } = useToast();
+  const isTestUser = useTestUser();
 
   // State management
   const [view, setView] = useState<'intro' | 'assessment' | 'results'>('intro');
@@ -451,6 +453,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   // Auto-complete with demo answers for questions and submit to server
   // For demo mode, only fill the first 22 questions, then stop
   const handleDemoAnswers = async () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     setIsLoading(true);
 
     // Create demo answers for questions up to 22

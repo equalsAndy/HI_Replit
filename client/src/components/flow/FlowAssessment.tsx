@@ -54,6 +54,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   // Reset detection hooks
   const { progress: navigationProgress } = useNavigationProgress();
   const { assessmentData: flowAssessmentData, isReset: isFlowReset } = useAssessmentWithReset('flow-assessment', '/api/workshop-data/flow-assessment');
+  const isTestUser = useTestUser();
   
   // State for tracking answers - initialize with saved answers if available in localStorage
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
@@ -165,6 +166,11 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   
   // Demo answers feature
   const fillDemoAnswers = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
     // Check if the assessment is already completed
     if (isCompleted) {
       return;
@@ -714,13 +720,15 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Flow State Self-Assessment</h3>
           
-          <Button 
-            variant="outline" 
-            onClick={fillDemoAnswers}
-            className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
-          >
-            Fill Demo Answers
-          </Button>
+          {isTestUser && (
+            <Button 
+              variant="outline" 
+              onClick={fillDemoAnswers}
+              className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
+            >
+              Fill Demo Answers
+            </Button>
+          )}
         </div>
         
         <p className="text-gray-600 mb-6">
