@@ -85,7 +85,7 @@ const TestUserPage: React.FC = () => {
         totalSteps: 19,
         stepName: getStepName(astCurrentStep),
         lastActivity: appType === 'ast' ? lastActivity : 'Not recently active',
-        logoPath: '/attached_assets/all-star-teams-logo-square.png',
+        logoPath: '/all-star-teams-logo-square.png',
         route: 'allstarteams'
       };
 
@@ -100,7 +100,7 @@ const TestUserPage: React.FC = () => {
         totalSteps: 8,
         stepName: getStepName(iaCurrentStep),
         lastActivity: appType === 'ia' ? lastActivity : 'Not recently active',
-        logoPath: '/attached_assets/IA_sq.png',
+        logoPath: '/IA_sq.png',
         route: 'imaginal-agility'
       };
 
