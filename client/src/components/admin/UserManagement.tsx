@@ -157,6 +157,7 @@ export function UserManagement() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+  const [localTestUserStatus, setLocalTestUserStatus] = useState<boolean>(false);
   // Query for fetching users
   const { data: users = [], isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users'],
@@ -429,6 +430,8 @@ export function UserManagement() {
     },
     onSuccess: (data) => {
       const isNowTestUser = data.user?.isTestUser;
+      // Update local state to match database state
+      setLocalTestUserStatus(isNowTestUser);
       toast({
         title: 'Test user status updated',
         description: `User is ${isNowTestUser ? 'now' : 'no longer'} a test user.`,
@@ -438,6 +441,8 @@ export function UserManagement() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
+      // Revert local state on error
+      setLocalTestUserStatus(!localTestUserStatus);
       toast({
         title: 'Error updating test user status',
         description: error.message || 'Failed to update test user status. Please try again.',
@@ -461,6 +466,7 @@ export function UserManagement() {
   // Open edit dialog and populate form with user data
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
+    setLocalTestUserStatus(user.isTestUser || false);
 
     editForm.reset({
       name: user.name,
@@ -478,6 +484,8 @@ export function UserManagement() {
 
   // Handler for toggling test user status
   const handleToggleTestUser = (userId: number) => {
+    // Immediately update visual state for responsive UI
+    setLocalTestUserStatus(!localTestUserStatus);
     toggleTestUserMutation.mutate(userId);
   };
 
@@ -1154,7 +1162,7 @@ export function UserManagement() {
                   <div className="flex flex-col justify-end">
                     <div className="flex items-center space-x-3 rounded-md border p-3">
                       <Switch 
-                        checked={selectedUser?.isTestUser || false}
+                        checked={localTestUserStatus}
                         onCheckedChange={() => selectedUser && handleToggleTestUser(selectedUser.id)}
                         aria-label="Toggle test user status"
                         className="data-[state=checked]:bg-amber-500"
