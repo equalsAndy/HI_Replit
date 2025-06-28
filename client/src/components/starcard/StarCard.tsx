@@ -422,7 +422,12 @@ function StarCard({
       <div 
         ref={cardRef}
         className="bg-white border border-gray-200 rounded-lg p-5 flex-shrink-0"
-        style={{ width: CARD_WIDTH, height: CARD_HEIGHT, minWidth: CARD_WIDTH }}
+        style={{ 
+          width: CARD_WIDTH, 
+          height: CARD_HEIGHT, 
+          minWidth: CARD_WIDTH,
+          maxWidth: CARD_WIDTH 
+        }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 

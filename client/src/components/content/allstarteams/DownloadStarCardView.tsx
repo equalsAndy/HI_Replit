@@ -90,12 +90,12 @@ export default function DownloadStarCardView({
             {hasStarCardData ? (
               <div className="flex flex-col lg:flex-row gap-8">
                 <div className="flex-shrink-0 flex justify-center lg:justify-start">
-                  <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6 flex-shrink-0" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
+                  <div className="border border-gray-200 rounded-md overflow-visible bg-white shadow-sm mb-6 flex-shrink-0" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH, maxWidth: CARD_WIDTH }}>
                     <div className="p-4 border-b border-gray-200 bg-gray-50">
                       <h3 className="text-xl font-bold text-center">Your Complete Star Card</h3>
                     </div>
                     <div className="p-6 flex justify-center overflow-visible">
-                      <div className="flex-shrink-0" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
+                      <div className="flex-shrink-0" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH, maxWidth: CARD_WIDTH }}>
                         <StarCard 
                           thinking={(starCard as any)?.thinking || 0}
                           acting={(starCard as any)?.acting || 0}
