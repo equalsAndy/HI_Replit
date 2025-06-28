@@ -15,7 +15,7 @@ import { ImaginalAgilityAssessment } from '@/components/assessment/ImaginalAgili
 import ProfileEditor from '@/components/profile/ProfileEditor';
 import { NavBar } from '@/components/layout/NavBar';
 import { useApplication } from '@/hooks/use-application';
-import { DiscernmentModal } from '@/components/imaginal-agility/DiscernmentModal';
+import DiscernmentModal from '@/components/imaginal-agility/DiscernmentModal';
 
 // Constants
 const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
