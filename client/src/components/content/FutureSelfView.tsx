@@ -1,15 +1,140 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { ContentViewProps } from '../../shared/types';
 import { Textarea } from '@/components/ui/textarea';
-import { apiRequest } from '@/lib/queryClient';
-import { queryClient } from '@/lib/queryClient';
-import { ChevronRight } from 'lucide-react';
-import { debounce } from '@/lib/utils';
-
-import hokusaiWave from "@assets/The_Great_Wave_1749600297510.png";
-import hokusaiPortrait from "@assets/hokusai_old_man_optimized.png";
+import { ChevronRight, ArrowDown, ArrowUp } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
+import { motion, AnimatePresence } from 'framer-motion';
+import { debounce } from 'lodash';
+
+// Define ContentViewProps interface
+interface ContentViewProps {
+  navigate: (path: string) => void;
+  markStepCompleted: (stepId: string) => void;
+  setCurrentContent: (content: string) => void;
+  starCard?: any;
+}
+
+// Define the new data structure for Future Self exercise
+interface FutureSelfData {
+  direction: 'backward' | 'forward';
+  twentyYearVision: string;
+  tenYearMilestone: string;
+  fiveYearFoundation: string;
+  flowOptimizedLife: string;
+  completedAt?: Date;
+}
+
+interface TimelineCircleProps {
+  year: number;
+  isActive: boolean;
+  isStarting: boolean;
+  direction: 'backward' | 'forward';
+  position: 'first' | 'middle' | 'last';
+}
+
+const TimelineCircle: React.FC<TimelineCircleProps> = ({ 
+  year, 
+  isActive, 
+  isStarting, 
+  direction,
+  position 
+}) => {
+  return (
+    <div className="flex flex-col items-center relative">
+      {/* Connecting line above (except for first) */}
+      {position !== 'first' && (
+        <div className="w-1 h-8 bg-amber-200 mb-2" />
+      )}
+      
+      {/* Circle */}
+      <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3 }}
+        className={`
+          w-16 h-16 rounded-full border-4 flex items-center justify-center font-bold text-sm
+          ${isStarting 
+            ? 'bg-amber-600 border-amber-700 text-white shadow-lg' 
+            : isActive 
+              ? 'bg-amber-100 border-amber-400 text-amber-800' 
+              : 'bg-amber-50 border-amber-200 text-amber-600'
+          }
+        `}
+      >
+        {year}Y
+      </motion.div>
+      
+      {/* Direction indicator for starting circle */}
+      {isStarting && (
+        <motion.div
+          initial={{ opacity: 0, y: direction === 'backward' ? -10 : 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute -bottom-8 flex items-center text-amber-700"
+        >
+          {direction === 'backward' ? (
+            <ArrowDown className="h-4 w-4" />
+          ) : (
+            <ArrowUp className="h-4 w-4" />
+          )}
+          <span className="text-xs ml-1">Start</span>
+        </motion.div>
+      )}
+      
+      {/* Connecting line below (except for last) */}
+      {position !== 'last' && (
+        <div className="w-1 h-8 bg-amber-200 mt-2" />
+      )}
+    </div>
+  );
+};
+
+interface ReflectionCardProps {
+  title: string;
+  question: string;
+  value: string;
+  onChange: (value: string) => void;
+  isActive: boolean;
+  index: number;
+}
+
+const ReflectionCard: React.FC<ReflectionCardProps> = ({
+  title,
+  question,
+  value,
+  onChange,
+  isActive,
+  index
+}) => {
+  const cardVariants = {
+    hidden: { opacity: 0, y: 50 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { delay: index * 0.2 }
+    }
+  };
+
+  return (
+    <motion.div
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      className={`
+        bg-white p-6 rounded-lg border-2 shadow-sm transition-all duration-200
+        ${isActive ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}
+      `}
+    >
+      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-700 mb-4 leading-relaxed">{question}</p>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="Your reflection..."
+        className="min-h-[120px] w-full resize-none border-gray-300 focus:border-amber-400 focus:ring-amber-400"
+      />
+    </motion.div>
+  );
+};
 
 const FutureSelfView: React.FC<ContentViewProps> = ({
   navigate,
@@ -17,36 +142,42 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const [formData, setFormData] = useState({
-    futureSelfDescription: '',
-    visualizationNotes: '',
-    additionalNotes: ''
+  const [formData, setFormData] = useState<FutureSelfData>({
+    direction: 'backward',
+    twentyYearVision: '',
+    tenYearMilestone: '',
+    fiveYearFoundation: '',
+    flowOptimizedLife: ''
   });
+  
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load existing data when component mounts
   useEffect(() => {
     const loadExistingData = async () => {
       try {
-        console.log('FutureSelfView: Loading existing data...');
+        setIsLoading(true);
         const response = await fetch('/api/workshop-data/future-self', {
           credentials: 'include'
         });
         const result = await response.json();
         
-        console.log('FutureSelfView: API response:', result);
-        
         if (result.success && result.data) {
-          // Ensure all fields exist, even if not in saved data
-          const loadedData = {
-            futureSelfDescription: result.data.futureSelfDescription || '',
-            visualizationNotes: result.data.visualizationNotes || '',
-            additionalNotes: result.data.additionalNotes || ''
+          // Map legacy data to new structure
+          const loadedData: FutureSelfData = {
+            direction: result.data.direction || 'backward',
+            twentyYearVision: result.data.twentyYearVision || result.data.futureSelfDescription || '',
+            tenYearMilestone: result.data.tenYearMilestone || '',
+            fiveYearFoundation: result.data.fiveYearFoundation || '',
+            flowOptimizedLife: result.data.flowOptimizedLife || result.data.visualizationNotes || ''
           };
-          console.log('FutureSelfView: Setting form data:', loadedData);
           setFormData(loadedData);
         }
       } catch (error) {
-        console.log('FutureSelfView: No existing data found:', error);
+        console.log('No existing data found:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
     
@@ -55,8 +186,9 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   // Debounced save function
   const debouncedSave = useCallback(
-    debounce(async (dataToSave) => {
+    debounce(async (dataToSave: FutureSelfData) => {
       try {
+        setSaveStatus('saving');
         const response = await fetch('/api/workshop-data/future-self', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -66,10 +198,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         
         const result = await response.json();
         if (result.success) {
-          console.log('Auto-saved successfully');
+          setSaveStatus('saved');
+        } else {
+          setSaveStatus('error');
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
+        setSaveStatus('error');
       }
     }, 1000),
     []
@@ -77,27 +212,52 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   // Trigger save whenever form data changes
   useEffect(() => {
-    if (formData.futureSelfDescription || formData.visualizationNotes) {
+    if (!isLoading && (formData.twentyYearVision || formData.tenYearMilestone || formData.fiveYearFoundation || formData.flowOptimizedLife)) {
       debouncedSave(formData);
     }
-  }, [formData, debouncedSave]);
+  }, [formData, debouncedSave, isLoading]);
 
-  // Handle input changes
-  const handleInputChange = (field: string, value: string) => {
+  // Handle direction change
+  const handleDirectionChange = (newDirection: 'backward' | 'forward') => {
+    setFormData(prev => ({ ...prev, direction: newDirection }));
+  };
+
+  // Handle reflection changes
+  const handleReflectionChange = (field: keyof FutureSelfData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
+  // Demo data function
+  const fillDemoData = () => {
+    const demoData: FutureSelfData = {
+      direction: formData.direction,
+      twentyYearVision: formData.direction === 'backward' 
+        ? "I've become a respected leader who transforms organizations through human-centered innovation. My work has created lasting positive impact on thousands of people's careers and wellbeing. I'm known for building cultures where people thrive authentically."
+        : "Having built on my current strengths and flow experiences, I've evolved into a visionary leader who seamlessly integrates human wisdom with technological advancement, creating environments where innovation and wellbeing flourish together.",
+      tenYearMilestone: formData.direction === 'backward'
+        ? "I hold a senior leadership position where I guide strategic transformation initiatives. I've developed a reputation for creating psychologically safe, high-performing teams. My expertise in human development and organizational design is widely recognized."
+        : "I've reached a senior strategic role where my deep understanding of flow states and human potential drives organizational innovation. I lead teams that consistently deliver breakthrough results while maintaining exceptional wellbeing and engagement.",
+      fiveYearFoundation: formData.direction === 'backward'
+        ? "I'm actively developing my leadership presence and expertise in organizational psychology. I'm building networks with other forward-thinking leaders and regularly speaking about human-centered leadership approaches."
+        : "I've strengthened my core capabilities in facilitation, systems thinking, and team dynamics. I'm recognized as a go-to person for complex challenges that require both analytical rigor and deep human insight.",
+      flowOptimizedLife: "My life is designed around sustained periods of deep work, meaningful collaboration, and continuous learning. I have clear boundaries that protect my energy for what matters most. My work feels like an extension of my natural strengths and passions, creating a sense of effortless excellence."
+    };
+    
+    setFormData(demoData);
+  };
+
   // Check if minimum requirements are met
-  const hasMinimumContent = formData.futureSelfDescription.trim().length >= 10 || 
-                           formData.visualizationNotes.trim().length >= 10;
+  const hasMinimumContent = 
+    formData.twentyYearVision.trim().length >= 10 ||
+    formData.tenYearMilestone.trim().length >= 10 ||
+    formData.fiveYearFoundation.trim().length >= 10 ||
+    formData.flowOptimizedLife.trim().length >= 10;
 
   const handleSubmit = async () => {
-    if (!hasMinimumContent) {
-      return; // Don't proceed if minimum requirements aren't met
-    }
+    if (!hasMinimumContent) return;
     
     try {
       markStepCompleted('4-4');
@@ -107,125 +267,234 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     }
   };
 
-  return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-4 sm:mb-6">Your Future Self</h1>
+  // Define the timeline order based on direction
+  const timelineOrder = formData.direction === 'backward' 
+    ? [{ year: 20, key: 'twentyYearVision' }, { year: 10, key: 'tenYearMilestone' }, { year: 5, key: 'fiveYearFoundation' }]
+    : [{ year: 5, key: 'fiveYearFoundation' }, { year: 10, key: 'tenYearMilestone' }, { year: 20, key: 'twentyYearVision' }];
 
-      <div className="mb-6 sm:mb-8">
-        <p className="text-base sm:text-lg text-gray-700 leading-relaxed">
-          Take a few minutes to reflect on the future you're working toward. These questions will help you imagine your life over time — and the kind of person, teammate, and leader you want to become. There are no right answers. Just be honest and thoughtful.
-        </p>
+  // Define questions based on direction
+  const questions = {
+    backward: {
+      twentyYearVision: "What is the masterpiece of your life?",
+      tenYearMilestone: "What level of mastery or influence must you have reached by now to be on track?",
+      fiveYearFoundation: "What capacities or conditions need to be actively developing now?"
+    },
+    forward: {
+      fiveYearFoundation: "What capacities or conditions need to be actively developing now?",
+      tenYearMilestone: "What level of mastery or influence must you have reached by now to be on track?",
+      twentyYearVision: "What is the masterpiece of your life?"
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg text-gray-600">Loading your future self journey...</p>
       </div>
+    );
+  }
 
-      <div className="flex flex-col xl:grid xl:grid-cols-3 gap-6 lg:gap-8 mb-8">
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Full-width container */}
+      <div className="w-full px-6 py-8">
+        
+        {/* Demo button */}
+        <div className="absolute top-4 right-4 z-10">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={fillDemoData}
+            className="text-gray-500 hover:text-gray-700 text-xs"
+          >
+            Demo
+          </Button>
+        </div>
+
+        {/* Header */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Future Self Journey</h1>
+          <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
+            <h2 className="text-xl font-semibold text-amber-900 mb-3">Purpose:</h2>
+            <p className="text-amber-800 leading-relaxed mb-4">
+              This exercise helps you imagine who you want to become—and how to shape a life that supports that becoming.
+            </p>
+            <p className="text-amber-800 leading-relaxed">
+              Use your Flow Assessment insights to guide your vision. You can start by looking 20 years ahead and work backward, 
+              or begin with who you are today and look forward.
+            </p>
+            <p className="text-amber-900 font-medium mt-4">
+              There's no right way—only your way.
+            </p>
+          </div>
+        </div>
+
         {/* Video Section */}
-        <div className="xl:col-span-2">
+        <div className="max-w-4xl mx-auto mb-12">
           <VideoPlayer
             workshopType="allstarteams"
             stepId="4-4"
             autoplay={true}
           />
+        </div>
 
-          <div>
-            <p className="text-sm text-gray-700 mb-3">
-              <span className="font-medium text-gray-900">Katsushika Hokusai</span> is a renowned Japanese ukiyo-e artist who lived during the 18th Century.
+        {/* Direction Choice */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Step 1: Choose Your Direction</h2>
+          <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
+            <p className="text-gray-700 mb-6 leading-relaxed">
+              Everyone imagines differently. Some start with a bold vision and trace it back. 
+              Others build step by step from the present.
             </p>
-            <blockquote className="text-xs sm:text-sm text-gray-800 italic border-l-4 border-indigo-200 pl-3 sm:pl-4 leading-relaxed">
-              "From the age of 6 I had a mania for drawing the shapes of things. When I was 50 I had published a universe of designs. But all I have done before the the age of 70 is not worth bothering with. At 75 I'll have learned something of the pattern of nature, of animals, of plants, of trees, birds, fish and insects. When I am 80 you will see real progress. At 90 I shall have cut my way deeply into the mystery of life itself. At 100, I shall be a marvelous artist. At 110, everything I create; a dot, a line, will jump to life as never before.
-              <br /><br />
-              To all of you who are going to live as long as I do, I promise to keep my word. I am writing this in my old age. I used to call myself Hokusai, but today I sign my self 'The Old Man Mad About Drawing.'"
-              <cite className="block mt-3 font-medium text-right not-italic text-xs sm:text-sm">— Hokusai Katsushika</cite>
-            </blockquote>
+            <p className="text-gray-900 font-medium mb-6">There's no right way—only your way.</p>
+            
+            <div className="flex gap-4">
+              <Button
+                variant={formData.direction === 'backward' ? 'default' : 'outline'}
+                onClick={() => handleDirectionChange('backward')}
+                className={`flex-1 p-4 h-auto ${
+                  formData.direction === 'backward' 
+                    ? 'bg-amber-600 hover:bg-amber-700' 
+                    : 'border-amber-300 text-amber-700 hover:bg-amber-50'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="font-semibold">Start with 20 Years</div>
+                  <div className="text-sm opacity-90">(Bold vision approach)</div>
+                </div>
+              </Button>
+              
+              <Button
+                variant={formData.direction === 'forward' ? 'default' : 'outline'}
+                onClick={() => handleDirectionChange('forward')}
+                className={`flex-1 p-4 h-auto ${
+                  formData.direction === 'forward' 
+                    ? 'bg-amber-600 hover:bg-amber-700' 
+                    : 'border-amber-300 text-amber-700 hover:bg-amber-50'
+                }`}
+              >
+                <div className="text-center">
+                  <div className="font-semibold">Start with 5 Years</div>
+                  <div className="text-sm opacity-90">(Present momentum)</div>
+                </div>
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Images Section */}
-        <div className="xl:col-span-1">
-          <div className="grid grid-cols-2 xl:grid-cols-1 gap-4">
-            <img 
-              src={hokusaiPortrait}
-              alt="Hokusai - The Old Man Mad About Drawing" 
-              className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
-            />
-            <img 
-              src={hokusaiWave}
-              alt="The Great Wave off Kanagawa by Hokusai" 
-              className="w-full h-auto rounded-lg border border-gray-200 shadow-sm"
-            />
+        {/* Timeline Section */}
+        <div className="max-w-6xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 2: Your Timeline</h2>
+          
+          <div className="flex justify-center mb-12">
+            {/* Timeline Graphic */}
+            <div className="flex flex-col items-center">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={formData.direction}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.5 }}
+                  className="flex flex-col items-center"
+                >
+                  {timelineOrder.map((item, index) => (
+                    <TimelineCircle
+                      key={item.year}
+                      year={item.year}
+                      isActive={true}
+                      isStarting={index === 0}
+                      direction={formData.direction}
+                      position={index === 0 ? 'first' : index === timelineOrder.length - 1 ? 'last' : 'middle'}
+                    />
+                  ))}
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
+
+          {/* Reflection Cards */}
+          <motion.div 
+            className="grid gap-8"
+            variants={{
+              hidden: { opacity: 0 },
+              visible: {
+                opacity: 1,
+                transition: { staggerChildren: 0.2 }
+              }
+            }}
+            initial="hidden"
+            animate="visible"
+          >
+            {timelineOrder.map((item, index) => (
+              <ReflectionCard
+                key={`${formData.direction}-${item.year}`}
+                title={`${item.year} Years`}
+                question={questions[formData.direction][item.key as keyof typeof questions.backward]}
+                value={formData[item.key as keyof FutureSelfData] as string}
+                onChange={(value) => handleReflectionChange(item.key as keyof FutureSelfData, value)}
+                isActive={true}
+                index={index}
+              />
+            ))}
+          </motion.div>
         </div>
-      </div>
 
-      {/* Purpose Section */}
-      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 mb-6">
-        <h3 className="text-lg font-medium text-indigo-900 mb-2">Purpose</h3>
-        <p className="text-sm text-indigo-800">
-          This exercise honors every participant's infinite capacity for growth. Whether someone is 22 or 82, the focus remains on continuing evolution, deepening wisdom, and creating one's masterpiece. The most meaningful futures are not constrained by time but expanded by purpose.
-        </p>
-        <p className="text-sm text-indigo-800 mt-2">
-          Remember Hokusai's wisdom - every decade brings new insight, sharper vision, and deeper connection to your life's work. The canvas of your future self has no boundaries.
-        </p>
-      </div>
-
-      {/* Reflection Questions */}
-      <div className="space-y-6 sm:space-y-8 mb-6 sm:mb-8">
-        <div className="bg-white p-4 sm:p-6 rounded-lg border shadow-sm">
-          <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-3 sm:mb-4 leading-tight">
-            Where do you see yourself in 5, 10, and 20 years?
-          </h3>
-          <Textarea
-            value={formData.futureSelfDescription}
-            onChange={(e) => handleInputChange('futureSelfDescription', e.target.value)}
-            placeholder="Describe your vision for your future self across these timeframes..."
-            className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
+        {/* Flow Bridge Section */}
+        <div className="max-w-4xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-6">Step 3: Bridge to Flow</h2>
+          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-6">
+            <p className="text-blue-800 leading-relaxed mb-4">
+              You've identified the conditions where you experience deep focus, energy, and ease.
+            </p>
+            <p className="text-blue-800 leading-relaxed mb-4">
+              What would your life look like if it were designed to support those states more often?
+            </p>
+            <p className="text-blue-900 font-medium">
+              Use this as a launch point for your Future Self. Let flow guide your imagination.
+            </p>
+          </div>
+          
+          <ReflectionCard
+            title="Flow-Optimized Life"
+            question="What would your life look like if it were designed to support flow states more often?"
+            value={formData.flowOptimizedLife}
+            onChange={(value) => handleReflectionChange('flowOptimizedLife', value)}
+            isActive={true}
+            index={0}
           />
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-lg border shadow-sm">
-          <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-3 sm:mb-4 leading-tight">
-            What does your life look like when optimized for flow?
-          </h3>
-          <Textarea
-            value={formData.visualizationNotes}
-            onChange={(e) => handleInputChange('visualizationNotes', e.target.value)}
-            placeholder="Imagine your ideal state of engagement and fulfillment..."
-            className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
-          />
+        {/* Save Status */}
+        <div className="max-w-4xl mx-auto mb-6 text-center">
+          <p className="text-sm text-gray-500">
+            {saveStatus === 'saving' && 'Saving...'}
+            {saveStatus === 'saved' && 'All changes saved'}
+            {saveStatus === 'error' && 'Error saving - please try again'}
+          </p>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-lg border shadow-sm">
-          <h3 className="text-lg sm:text-xl font-medium text-gray-900 mb-3 sm:mb-4 leading-tight">
-            Additional Notes and Reflections
-          </h3>
-          <Textarea
-            value={formData.additionalNotes}
-            onChange={(e) => handleInputChange('additionalNotes', e.target.value)}
-            placeholder="Add any additional thoughts about your future self visualization..."
-            className="min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
-          />
+        {/* Next Button */}
+        <div className="max-w-4xl mx-auto flex justify-center">
+          <Button 
+            onClick={handleSubmit}
+            disabled={!hasMinimumContent}
+            className={`px-8 py-3 ${
+              hasMinimumContent 
+                ? "bg-amber-600 hover:bg-amber-700 text-white" 
+                : "bg-gray-300 cursor-not-allowed text-gray-500"
+            }`}
+            size="lg"
+          >
+            <span>
+              {hasMinimumContent 
+                ? "Next: Final Reflection" 
+                : "Add reflection to continue"
+              }
+            </span>
+            <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
-      </div>
-
-      {/* Next Button */}
-      <div className="flex justify-center sm:justify-end pb-4 sm:pb-0">
-        <Button 
-          onClick={handleSubmit}
-          disabled={!hasMinimumContent}
-          className={`${
-            hasMinimumContent 
-              ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
-              : "bg-gray-300 cursor-not-allowed text-gray-500"
-          } w-full sm:w-auto`}
-          size="lg"
-        >
-          <span className="text-sm sm:text-base">
-            {hasMinimumContent 
-              ? "Next: Final Reflection" 
-              : "Add reflection to continue"
-            }
-          </span>
-          <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
       </div>
     </div>
   );
