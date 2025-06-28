@@ -481,6 +481,15 @@ router.get('/users/:userId/export', requireAuth, async (req: Request, res: Respo
     const isUserAdmin = (req.session as any).role === 'admin';
     const isAccessingOwnData = sessionUserId === userId;
     
+    // Debug logging
+    console.log('Export access debug:', {
+      sessionUserId,
+      requestedUserId: userId,
+      sessionRole: (req.session as any).role,
+      isUserAdmin,
+      isAccessingOwnData
+    });
+    
     if (!isUserAdmin && !isAccessingOwnData) {
       return res.status(403).json({
         success: false,
