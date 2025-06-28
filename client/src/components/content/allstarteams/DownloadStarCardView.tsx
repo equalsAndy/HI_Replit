@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import StarCard from '@/components/starcard/StarCard';
+import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 
 interface DownloadStarCardViewProps {
   navigate: (path: string) => void;
@@ -57,7 +58,7 @@ export default function DownloadStarCardView({
       }
       return {
         text: attr.name,
-        color: "rgb(59, 130, 246)" // Blue color for flow attributes
+        color: getAttributeColor(attr.name)
       };
     }) : [];
 
