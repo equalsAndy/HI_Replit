@@ -603,7 +603,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 </h1>
               </div>
               <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
-                Discernment Guide
+                Teamwork Preparation
               </h2>
             </div>
             
@@ -613,8 +613,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 <div className="w-full max-w-2xl">
                   <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                     <iframe 
-                      src="https://www.youtube.com/embed/U7pQjMYKk_s" 
-                      title="Discernment Guide" 
+                      src="https://www.youtube.com/embed/hOV2zaWVxeU" 
+                      title="Teamwork Preparation" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowFullScreen
@@ -625,16 +625,17 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               </div>
             </div>
             
-            {/* Content Cards */}
-            <div className="space-y-8">
-              {/* Reality Discernment Header */}
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-8 border border-red-200">
-                <h2 className="text-3xl font-bold text-red-800 text-center mb-4">REALITY DISCERNMENT</h2>
-                <p className="text-xl font-semibold text-center text-red-700 mb-6">Train Your Mind to Know What's Real.</p>
-                <p className="text-lg text-gray-700 text-center leading-relaxed">
-                  In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.
-                </p>
-              </div>
+            {/* Content Card */}
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-purple-800 mb-4">
+                    Welcome to the Next Stage of the Imaginal Agility Workshop
+                  </h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.
+                  </p>
+                </div>
               
               {/* Introduction */}
               <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
