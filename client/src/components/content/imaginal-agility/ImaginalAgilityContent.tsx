@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
-import { DiscernmentModal } from '../../imaginal-agility/DiscernmentModal';
+
 
 // Component for ia-4-1 Assessment step
 const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void }> = ({ onOpenAssessment }) => {
@@ -17,28 +17,25 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
 
   return (
     <div className="prose max-w-none">
-      <div className="flex items-center mb-6">
-        <img 
-          src={imaginalAgilityLogo} 
-          alt="Imaginal Agility" 
-          className="h-12 w-auto mr-4"
-        />
-        <h1 className="text-3xl font-bold text-purple-700 mb-0">
-          Imaginal Agility Workshop Course &gt; Self-Assessment
-        </h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-purple-700">Self-Assessment</h1>
       </div>
       
-      <div className="mb-8">
-        <iframe 
-          width="400" 
-          height="300" 
-          src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-          title="Self-Assessment" 
-          frameBorder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowFullScreen
-          className="rounded-lg shadow-lg"
-        ></iframe>
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+        <div className="flex justify-center mb-4">
+          <div className="w-full max-w-2xl">
+            <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+              <iframe 
+                src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
+                title="Self-Assessment" 
+                frameBorder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                allowFullScreen
+                className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+              ></iframe>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div className="text-lg text-gray-700 space-y-4">
@@ -103,21 +100,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-1-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 Introduction to Imaginal Agility
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -178,21 +165,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-2-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 The Triple Challenge
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -272,21 +249,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-3-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 Imaginal Agility Solution
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -403,29 +370,28 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
 
       case 'ia-4-2':
         return (
-          <div className="prose max-w-none">
-            <div className="flex items-center mb-6">
-              <img 
-                src={imaginalAgilityLogo} 
-                alt="Imaginal Agility" 
-                className="h-12 w-auto mr-4"
-              />
-              <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; Review Results
+          <div className="max-w-4xl mx-auto p-6">
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
+                Assessment Results
               </h1>
             </div>
             
-            <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/If2FH40IgTM" 
-                title="Review Results" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+              <div className="flex justify-center mb-4">
+                <div className="w-full max-w-2xl">
+                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                    <iframe 
+                      src="https://www.youtube.com/embed/If2FH40IgTM" 
+                      title="Review Results" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div className="text-lg text-gray-700 space-y-4">
@@ -457,21 +423,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-5-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 Teamwork Preparation
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -593,21 +549,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 Discernment Guide
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -832,21 +778,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-8-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Header Card */}
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-              <div className="flex items-center mb-4">
-                <img 
-                  src={imaginalAgilityLogo} 
-                  alt="Imaginal Agility" 
-                  className="h-14 w-auto mr-4"
-                />
-                <h1 className="text-2xl md:text-3xl font-bold text-purple-800 leading-tight">
-                  Imaginal Agility Workshop Course
-                </h1>
-              </div>
-              <h2 className="text-xl md:text-2xl font-semibold text-purple-600 ml-18">
+            {/* Step Title */}
+            <div className="mb-6">
+              <h1 className="text-3xl font-bold text-purple-800">
                 The Neuroscience
-              </h2>
+              </h1>
             </div>
             
             {/* Video Section */}
@@ -1014,6 +950,19 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   <p className="text-lg font-medium text-purple-800 text-center">
                     Remember: Imaginal Agility is not a destination but a practice — a way of engaging with uncertainty, complexity, and possibility that grows stronger with intentional use.
                   </p>
+                </div>
+                
+                {/* Workshop Completion Button */}
+                <div className="text-center mt-8">
+                  <button 
+                    onClick={() => {
+                      // Workshop completion modal would go here
+                      alert('Workshop Complete! Congratulations on completing the Imaginal Agility Workshop.');
+                    }}
+                    className="bg-gradient-to-r from-green-600 to-green-800 text-white py-4 px-8 rounded-lg hover:opacity-90 transition-opacity text-lg font-semibold"
+                  >
+                    🎉 Complete Workshop
+                  </button>
                 </div>
               </div>
             </div>
