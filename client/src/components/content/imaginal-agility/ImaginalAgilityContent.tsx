@@ -571,6 +571,24 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               Teamwork Preparation
             </h1>
             
+            {/* Video Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+              <div className="flex justify-center mb-4">
+                <div className="w-full max-w-2xl">
+                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                    <iframe 
+                      src="https://www.youtube.com/embed/hOV2zaWVxeU" 
+                      title="Teamwork Preparation" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
                 <p className="text-lg leading-relaxed mb-6">
@@ -643,6 +661,24 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
               Neuroscience
             </h1>
+            
+            {/* Video Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+              <div className="flex justify-center mb-4">
+                <div className="w-full max-w-2xl">
+                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                    <iframe 
+                      src="https://www.youtube.com/embed/43Qs7OvToeI" 
+                      title="The Neuroscience" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
             
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
