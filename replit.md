@@ -136,6 +136,24 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 28, 2025 - AST Star Card Responsive Width Standardization ✅
+- **COMPREHENSIVE WIDTH COMPRESSION FIX**: Resolved star card width compression issues across all AST workshop components
+  - Fixed DownloadStarCardView with flexbox layout and explicit 440px width constraints
+  - Updated YourStarCardView container to prevent max-width restrictions cutting off visuals
+  - Standardized FlowStarCardView star card container with proper width maintenance
+  - Fixed StarCardResourceView responsive layout to prevent profile image cutoff
+  - Applied consistent CARD_WIDTH (440px) and minWidth constraints across all components
+- **RESPONSIVE LAYOUT IMPROVEMENTS**: Enhanced mobile and desktop star card display
+  - Replaced restrictive grid layouts with flexible flexbox containers
+  - Maintained proper 440px × 610px star card dimensions on all screen sizes
+  - Ensured profile images and visual elements never get partially hidden
+  - Improved container max-width from 4xl to 6xl for better space utilization
+- **STANDARDIZED ARCHITECTURE**: Completed centralized star card styling system
+  - All 8 AST star card components now use unified starCardConstants.ts
+  - Consistent attribute color mapping: Analytical=green, Empathetic=blue, Organized=yellow, Energetic=red
+  - Removed all duplicate getAttributeColor functions across components
+  - Single source of truth for star card dimensions and styling
+
 ### June 28, 2025 - Future Self Exercise Complete Rebuild ✅
 - **INTERACTIVE TIMELINE DESIGN**: Completely rebuilt Future Self exercise (step 4-4) with new engaging interface
   - Full-width layout removing sidebar for maximum writing space
