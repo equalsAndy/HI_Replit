@@ -320,6 +320,7 @@ export default function ImaginalAgilityHome() {
                   }
                 });
 
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1'); // Mark assessment step as completed
                 setCurrentContent("ia-5-1"); // Navigate to Assessment Results
@@ -334,6 +335,7 @@ export default function ImaginalAgilityHome() {
                   title: "Assessment Saved Locally",
                   description: "Your results are saved but couldn't sync to the server.",
                 });
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1');
                 setCurrentContent("ia-5-1");
