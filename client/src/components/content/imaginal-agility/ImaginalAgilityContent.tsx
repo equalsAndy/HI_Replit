@@ -636,13 +636,35 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.
                   </p>
                 </div>
-              
-              {/* Introduction */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                  This short learning experience introduces you to the neuroscience behind reality monitoring — the brain's ability to tell what's real from what's imagined — and offers practical tools.
-                </p>
-              </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3">What's Next</h4>
+                  <p className="text-gray-700 leading-relaxed">
+                    This workshop is designed to help teams develop their collective Imaginal Agility. You've now gained insight into your personal strengths and can contribute meaningfully to your team's journey forward.
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                    <h4 className="text-lg font-semibold text-blue-800 mb-3">Individual Preparation</h4>
+                    <ul className="space-y-2 text-sm text-blue-700">
+                      <li>• Review your assessment results</li>
+                      <li>• Identify your top strengths</li>
+                      <li>• Consider growth areas</li>
+                      <li>• Prepare to share insights with your team</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+                    <h4 className="text-lg font-semibold text-green-800 mb-3">Team Workshop Focus</h4>
+                    <ul className="space-y-2 text-sm text-green-700">
+                      <li>• Collective strengths mapping</li>
+                      <li>• Complementary skill identification</li>
+                      <li>• Collaborative imagination exercises</li>
+                      <li>• Action planning for team agility</li>
+                    </ul>
+                  </div>
+                </div>
               
               {/* AI Mirror Test */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
@@ -742,6 +764,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     This is a learning tool you can practice with any AI interaction to develop stronger discernment skills and more conscious collaboration with AI systems.
                   </p>
                 </div>
+              </div>
               </div>
             </div>
           </div>
