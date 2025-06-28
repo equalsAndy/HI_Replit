@@ -296,45 +296,130 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     The Five Core Capabilities for Imaginal Agility
                   </h3>
                   
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 justify-items-center max-w-6xl mx-auto">
-                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <img 
-                        src="/assets/Imagination_1749499596783.png" 
-                        alt="Imagination" 
-                        className="w-full h-full object-contain"
-                      />
+                  {/* Responsive layout: Mobile (1 col), Medium (2-1-2), Large+ (5 cols) */}
+                  <div className="max-w-6xl mx-auto">
+                    {/* Medium screens: 2-1-2 layout */}
+                    <div className="hidden md:grid lg:hidden grid-cols-2 gap-6 justify-items-center">
+                      {/* First row: 2 items */}
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Imagination_1749499596783.png" 
+                          alt="Imagination" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Curiosity_1749499596783.png" 
+                          alt="Curiosity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      
+                      {/* Second row: 2 items */}
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Creativity_1749499596783.png" 
+                          alt="Creativity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/courage_1749499596782.png" 
+                          alt="Courage" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      
+                      {/* Third row: 1 centered item */}
+                      <div className="col-span-2 flex justify-center">
+                        <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                          <img 
+                            src="/assets/empathy_1749499596783.png" 
+                            alt="Empathy" 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      </div>
                     </div>
                     
-                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <img 
-                        src="/assets/Curiosity_1749499596783.png" 
-                        alt="Curiosity" 
-                        className="w-full h-full object-contain"
-                      />
+                    {/* Mobile: Single column */}
+                    <div className="grid md:hidden grid-cols-1 gap-6 justify-items-center">
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Imagination_1749499596783.png" 
+                          alt="Imagination" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Curiosity_1749499596783.png" 
+                          alt="Curiosity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Creativity_1749499596783.png" 
+                          alt="Creativity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/courage_1749499596782.png" 
+                          alt="Courage" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/empathy_1749499596783.png" 
+                          alt="Empathy" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <img 
-                        src="/assets/Creativity_1749499596783.png" 
-                        alt="Creativity" 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    
-                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <img 
-                        src="/assets/courage_1749499596782.png" 
-                        alt="Courage" 
-                        className="w-full h-full object-contain"
-                      />
-                    </div>
-                    
-                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                      <img 
-                        src="/assets/empathy_1749499596783.png" 
-                        alt="Empathy" 
-                        className="w-full h-full object-contain"
-                      />
+                    {/* Large screens and up: 5 columns - BIGGER graphics */}
+                    <div className="hidden lg:grid grid-cols-5 gap-8 justify-items-center">
+                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Imagination_1749499596783.png" 
+                          alt="Imagination" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Curiosity_1749499596783.png" 
+                          alt="Curiosity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/Creativity_1749499596783.png" 
+                          alt="Creativity" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/courage_1749499596782.png" 
+                          alt="Courage" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
+                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                        <img 
+                          src="/assets/empathy_1749499596783.png" 
+                          alt="Empathy" 
+                          className="w-full h-full object-contain"
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
