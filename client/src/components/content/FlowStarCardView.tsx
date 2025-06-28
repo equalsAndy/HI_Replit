@@ -651,7 +651,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
           <h3 className="text-lg font-semibold mb-4">Your Star Card</h3>
           <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-4">
             <div className="p-4 flex justify-center">
-              <div className="w-full">
+              <div style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
                 <StarCardWithFetch 
                   fallbackData={{
                     thinking: starCard?.thinking || 0,

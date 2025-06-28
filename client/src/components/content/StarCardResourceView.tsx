@@ -48,14 +48,14 @@ const StarCardResourceView: React.FC<ContentViewProps> = ({
       </div>
 
       {isCardComplete ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6">
+        <div className="flex flex-col lg:flex-row gap-8">
+          <div className="flex-shrink-0 flex justify-center lg:justify-start">
+            <div className="border border-gray-200 rounded-md overflow-hidden bg-white shadow-sm mb-6" style={{ width: CARD_WIDTH }}>
               <div className="p-4 border-b border-gray-200 bg-gray-50">
                 <h3 className="text-xl font-bold text-center">Your Complete Star Card</h3>
               </div>
               <div className="p-6 flex justify-center">
-                <div className="w-full">
+                <div style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
                   <StarCard 
                     thinking={starCard?.thinking || 0}
                     acting={starCard?.acting || 0}

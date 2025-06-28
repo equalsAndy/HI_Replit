@@ -124,7 +124,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
               <p>Loading your StarCard data...</p>
             </div>
           ) : user?.user && starCard?.success ? (
-            <div ref={starCardRef} className="w-full max-w-md">
+            <div ref={starCardRef} className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
               <StarCard 
                 profile={{
                   name: user.user.name || 'Your Name',
