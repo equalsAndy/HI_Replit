@@ -166,7 +166,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         {isImaginalAgility ? (
           <>
-            <div className="text-lg text-gray-700 space-y-4 mb-8">
+            <div className="text-sm text-gray-700 space-y-3 mb-6">
               <p>Welcome.</p>
               
               <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
@@ -201,11 +201,23 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             </p>
 
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Principles</h2>
-            <ul className="list-disc pl-6 mb-6 space-y-2">
-              <li className="text-lg text-gray-700">Everyone possesses natural imaginative capacities</li>
-              <li className="text-lg text-gray-700">These capabilities grow stronger with deliberate practice</li>
-              <li className="text-lg text-gray-700">The integration of all capabilities creates maximum impact</li>
-              <li className="text-lg text-gray-700">The goal is flourishing alongside technology, not competing with it</li>
+            <ul className="space-y-2 mb-6">
+              <li className="flex items-start">
+                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm text-gray-700">Everyone possesses natural imaginative capacities</span>
+              </li>
+              <li className="flex items-start">
+                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm text-gray-700">These capabilities grow stronger with deliberate practice</span>
+              </li>
+              <li className="flex items-start">
+                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm text-gray-700">The integration of all capabilities creates maximum impact</span>
+              </li>
+              <li className="flex items-start">
+                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm text-gray-700">The goal is flourishing alongside technology, not competing with it</span>
+              </li>
             </ul>
 
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>

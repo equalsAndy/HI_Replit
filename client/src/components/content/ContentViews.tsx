@@ -164,37 +164,37 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               </div>
             </div>
 
-            <div className="mb-10 bg-purple-100 p-8 rounded-lg border-l-4 border-purple-500">
-              <p className="text-center text-xl font-medium text-purple-800">
+            <div className="mb-6 bg-purple-100 p-4 rounded-lg border-l-4 border-purple-500">
+              <p className="text-center text-lg font-medium text-purple-800">
                 Recognizing and addressing these challenges is essential for thriving in the AI era
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 mb-10">
-              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-semibold text-purple-700 mb-3">Understanding the Challenge</h3>
-                <p className="text-gray-700 leading-relaxed">
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold text-purple-700 mb-3">Understanding the Challenge</h3>
+                <p className="text-gray-700 leading-relaxed text-sm">
                   The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-semibold text-purple-700 mb-3">Beyond Efficiency</h3>
-                <p className="text-gray-700 leading-relaxed">
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold text-purple-700 mb-3">Beyond Efficiency</h3>
+                <p className="text-gray-700 leading-relaxed text-sm">
                   While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing capabilities that AI cannot replicate.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-semibold text-purple-700 mb-3">The Hidden Costs</h3>
-                <p className="text-gray-700 leading-relaxed">
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold text-purple-700 mb-3">The Hidden Costs</h3>
+                <p className="text-gray-700 leading-relaxed text-sm">
                   Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-xl font-semibold text-purple-700 mb-3">Challenge as Opportunity</h3>
-                <p className="text-gray-700 leading-relaxed">
+              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                <h3 className="text-lg font-semibold text-purple-700 mb-3">Challenge as Opportunity</h3>
+                <p className="text-gray-700 leading-relaxed text-sm">
                   Understanding these challenges positions you to lead positive change in your organization. The next step is learning how Imaginal Agility provides a systematic approach to thriving alongside AI.
                 </p>
               </div>
@@ -243,28 +243,28 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Imaginal Agility recognizes that our greatest competitive advantage lies not in what we can automate, but in what we can imagine. It's a framework designed to cultivate the uniquely human capacity for creative thinking, emotional intelligence, and innovative problem-solving.
             </p>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Five Core Capabilities</h3>
-              <div className="grid gap-4">
+            <div className="bg-purple-50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">Five Core Capabilities</h3>
+              <div className="space-y-2">
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-lg font-medium text-purple-700">Imagination</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
+                  <span className="text-sm font-medium text-purple-700">Imagination</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-lg font-medium text-purple-700">Curiosity</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
+                  <span className="text-sm font-medium text-purple-700">Curiosity</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-lg font-medium text-purple-700">Creativity</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
+                  <span className="text-sm font-medium text-purple-700">Creativity</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-lg font-medium text-purple-700">Courage</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
+                  <span className="text-sm font-medium text-purple-700">Courage</span>
                 </div>
                 <div className="flex items-center">
-                  <div className="w-4 h-4 bg-purple-600 rounded-full mr-3"></div>
-                  <span className="text-lg font-medium text-purple-700">Empathy</span>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mr-3 flex-shrink-0"></div>
+                  <span className="text-sm font-medium text-purple-700">Empathy</span>
                 </div>
               </div>
             </div>
@@ -279,8 +279,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               This framework provides concrete tools and practices for individuals, teams, and organizations to develop their imaginative capacity while maintaining psychological well-being and professional effectiveness.
             </p>
 
-            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-6 rounded-lg mb-8">
-              <p className="text-center text-lg font-medium text-purple-800">
+            <div className="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg mb-6">
+              <p className="text-center text-sm font-medium text-purple-800">
                 "The future belongs to those who can imagine what AI cannot—and then bring those visions to life."
               </p>
             </div>
@@ -366,21 +366,21 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="text-lg font-semibold text-gray-800 mb-3">What to Expect</h3>
-              <ul className="space-y-1 text-gray-700 text-sm">
+              <ul className="space-y-2 text-gray-700 text-sm">
                 <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <span>The assessment takes approximately 10-15 minutes to complete</span>
                 </li>
                 <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <span>You'll respond to scenarios and rank your preferences</span>
                 </li>
                 <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <span>Your results will show your capability profile</span>
                 </li>
                 <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-gray-500 rounded-full mt-2 mr-2 flex-shrink-0"></div>
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <span>Use these insights to guide your development journey</span>
                 </li>
               </ul>
@@ -460,29 +460,29 @@ const ContentViews: React.FC<ContentViewsProps> = ({
 
             <div className="bg-purple-50 p-4 rounded-lg mb-6">
               <h3 className="text-lg font-semibold text-purple-800 mb-3">Key Preparation Areas</h3>
-              <div className="space-y-2">
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div className="flex-1">
-                    <span className="font-medium text-purple-700">Individual Strengths Awareness</span>
-                    <span className="text-gray-600 text-sm block">Understanding your unique imaginative profile and contribution</span>
+                    <span className="font-medium text-purple-700">Individual Strengths Awareness:</span>
+                    <span className="text-gray-600"> Understanding your unique imaginative profile and contribution</span>
                   </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div className="flex-1">
-                    <span className="font-medium text-purple-700">Complementary Capabilities</span>
-                    <span className="text-gray-600 text-sm block">Recognizing how different imaginative styles work together</span>
+                    <span className="font-medium text-purple-700">Complementary Capabilities:</span>
+                    <span className="text-gray-600"> Recognizing how different imaginative styles work together</span>
                   </div>
-                </div>
-                <div className="flex items-start">
-                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-1.5 mr-3 flex-shrink-0"></div>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div className="flex-1">
-                    <span className="font-medium text-purple-700">Collective Intelligence</span>
-                    <span className="text-gray-600 text-sm block">Building team synergy that exceeds individual capabilities</span>
+                    <span className="font-medium text-purple-700">Collective Intelligence:</span>
+                    <span className="text-gray-600"> Building team synergy that exceeds individual capabilities</span>
                   </div>
-                </div>
-              </div>
+                </li>
+              </ul>
             </div>
 
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Readiness</h2>
@@ -490,8 +490,8 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               Your team workshop will focus on applying these individual insights to real challenges. Come prepared to share your assessment results and collaborate on meaningful projects using your collective imaginative power.
             </p>
 
-            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-6 rounded-lg mb-8">
-              <p className="text-center text-lg font-medium text-purple-800">
+            <div className="bg-gradient-to-r from-purple-100 to-indigo-100 p-4 rounded-lg mb-6">
+              <p className="text-center text-sm font-medium text-purple-800">
                 "Individual imagination becomes exponentially powerful when combined with others."
               </p>
             </div>
@@ -538,31 +538,31 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               The brain's Default Mode Network (DMN) is most active during rest and introspection. This network is crucial for imagination, self-referential thinking, and connecting disparate ideas—exactly the capabilities that complement AI systems.
             </p>
 
-            <div className="bg-purple-50 p-6 rounded-lg mb-8">
-              <h3 className="text-xl font-semibold text-purple-800 mb-4">Key Brain Networks for Imagination</h3>
-              <div className="space-y-4">
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+            <div className="bg-purple-50 p-4 rounded-lg mb-6">
+              <h3 className="text-lg font-semibold text-purple-800 mb-3">Key Brain Networks for Imagination</h3>
+              <ul className="space-y-2 text-sm">
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Default Mode Network</h4>
-                    <p className="text-gray-700">Enables mental simulation and creative connections</p>
+                    <span className="font-semibold text-purple-700">Default Mode Network:</span>
+                    <span className="text-gray-700"> Enables mental simulation and creative connections</span>
                   </div>
-                </div>
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Executive Control Network</h4>
-                    <p className="text-gray-700">Manages attention and working memory during creative tasks</p>
+                    <span className="font-semibold text-purple-700">Executive Control Network:</span>
+                    <span className="text-gray-700"> Manages attention and working memory during creative tasks</span>
                   </div>
-                </div>
-                <div className="flex">
-                  <div className="w-3 h-3 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
                   <div>
-                    <h4 className="font-semibold text-purple-700">Salience Network</h4>
-                    <p className="text-gray-700">Switches between internal imagination and external focus</p>
+                    <span className="font-semibold text-purple-700">Salience Network:</span>
+                    <span className="text-gray-700"> Switches between internal imagination and external focus</span>
                   </div>
-                </div>
-              </div>
+                </li>
+              </ul>
             </div>
 
             <h2 className="text-2xl font-semibold text-purple-700 mb-4">Neuroplasticity and Imagination</h2>
@@ -575,13 +575,13 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               When we outsource thinking to AI systems, we risk weakening the neural pathways associated with deep reflection and creative problem-solving. Understanding this helps us make conscious choices about when to engage our own cognitive resources.
             </p>
 
-            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-6 rounded-lg mb-8">
-              <p className="text-center text-lg font-medium text-purple-800">
+            <div className="bg-gradient-to-r from-purple-100 to-pink-100 p-4 rounded-lg mb-6">
+              <p className="text-center text-sm font-medium text-purple-800">
                 "The brain that imagines together, stays creative together."
               </p>
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-end">
               <Button 
                 onClick={() => {
                   markStepCompleted('ia-8-1');
