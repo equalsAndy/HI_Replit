@@ -166,7 +166,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
         {isImaginalAgility ? (
           <>
-            <div className="text-sm text-gray-700 space-y-3 mb-6">
+            <div className="text-base text-gray-700 space-y-4 mb-8">
               <p>Welcome.</p>
               
               <p>Einstein said imagination is more important than knowledge. This workshop shows you why — and how to use yours more intentionally.</p>
@@ -184,48 +184,56 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
               <p>You're not just learning about imagination. You're harnessing it — together.</p>
             </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Imaginal Agility is founded on the principle that human imagination becomes
-              more critical—not less—in the age of artificial intelligence. This workshop will
-              help you develop the capacity to envision possibilities beyond what
-              technology alone can generate.
-            </p>
+            <div className="bg-white p-6 rounded-lg border border-purple-200 shadow-sm mb-8">
+              <h2 className="text-xl font-semibold text-purple-700 mb-4">Workshop Philosophy</h2>
+              <p className="text-base text-gray-700 mb-6">
+                Imaginal Agility is founded on the principle that human imagination becomes
+                more critical—not less—in the age of artificial intelligence. This workshop will
+                help you develop the capacity to envision possibilities beyond what
+                technology alone can generate.
+              </p>
+            </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Learning Journey Overview</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Your journey begins with understanding imagination as an innate human
-              capability that can be systematically strengthened. Throughout this program,
-              you'll progress through awareness, practice, and application of the five core
-              capabilities that fuel Imaginal Agility.
-            </p>
+            <div className="bg-white p-6 rounded-lg border border-purple-200 shadow-sm mb-8">
+              <h2 className="text-xl font-semibold text-purple-700 mb-4">Learning Journey Overview</h2>
+              <p className="text-base text-gray-700 mb-6">
+                Your journey begins with understanding imagination as an innate human
+                capability that can be systematically strengthened. Throughout this program,
+                you'll progress through awareness, practice, and application of the five core
+                capabilities that fuel Imaginal Agility.
+              </p>
+            </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Workshop Principles</h2>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm text-gray-700">Everyone possesses natural imaginative capacities</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm text-gray-700">These capabilities grow stronger with deliberate practice</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm text-gray-700">The integration of all capabilities creates maximum impact</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-purple-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm text-gray-700">The goal is flourishing alongside technology, not competing with it</span>
-              </li>
-            </ul>
+            <div className="bg-white p-6 rounded-lg border border-purple-200 shadow-sm mb-8">
+              <h2 className="text-xl font-semibold text-purple-700 mb-4">Workshop Principles</h2>
+              <ul className="space-y-3 mb-4">
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                  <span className="text-base text-gray-700">Everyone possesses natural imaginative capacities</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                  <span className="text-base text-gray-700">These capabilities grow stronger with deliberate practice</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                  <span className="text-base text-gray-700">The integration of all capabilities creates maximum impact</span>
+                </li>
+                <li className="flex items-start">
+                  <div className="w-2 h-2 bg-purple-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                  <span className="text-base text-gray-700">The goal is flourishing alongside technology, not competing with it</span>
+                </li>
+              </ul>
+            </div>
 
-            <h2 className="text-2xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              The most innovative organizations today don't just implement AI—they
-              reimagine what's possible when human creativity works in concert with
-              technology.
-            </p>
+            <div className="bg-white p-6 rounded-lg border border-purple-200 shadow-sm mb-8">
+              <h2 className="text-xl font-semibold text-purple-700 mb-4">Imagination in Practice</h2>
+              <p className="text-base text-gray-700 mb-4">
+                The most innovative organizations today don't just implement AI—they
+                reimagine what's possible when human creativity works in concert with
+                technology.
+              </p>
+            </div>
           </>
         ) : (
           <>
