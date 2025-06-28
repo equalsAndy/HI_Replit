@@ -55,6 +55,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - [ ] **Session timeout handling** - Better UX when user sessions expire
 - [ ] **Error boundary improvements** - More graceful error handling throughout app
 - [ ] **Database performance optimization** - Query optimization for large user bases
+- [ ] **Workshop Card button logic consistency** - Consider standardizing "Go to Workshop" vs "Continue Workshop" vs "Switch to Workshop" logic across different user states
 
 ### **Medium Priority**
 *Issues that occasionally cause problems*
@@ -77,9 +78,13 @@ This file tracks feature requests, bugs, and improvements that come up during de
 
 ### **Recent Completions** *(Move items here when finished)*
 
-- ✅ **Test user progress display bug** *(2025-06-28)* - Fixed step ID mapping to show correct sequential progress
-- ✅ **Admin export permissions** *(2025-06-28)* - Allow admins to access any user data while maintaining security
-- ✅ **Data export consistency** *(2025-06-28)* - Unified admin and test user export formats
+- ✅ **Test user progress display bug** *(2025-06-28)* - Fixed step ID mapping to show correct sequential progress (4-1 → step 10 of 14)
+- ✅ **Admin export permissions** *(2025-06-28)* - Allow admins to access any user data while maintaining security for self-access
+- ✅ **Data export consistency** *(2025-06-28)* - Unified admin and test user export formats to use identical structure
+- ✅ **Function hoisting error** *(2025-06-28)* - Fixed "Cannot access before initialization" error by moving helper functions before usage
+- ✅ **Step number calculation** *(2025-06-28)* - Created proper mapping from AST step IDs to sequential positions (1-1=1, 2-1=2, ..., 4-1=10)
+- ✅ **Admin role detection** *(2025-06-28)* - Fixed permission check to use session.userRole instead of session.role
+- ✅ **Workshop step count accuracy** *(2025-06-28)* - Corrected AST workshop to show 14 steps instead of 19 (removed non-workshop steps from count)
 
 ---
 
@@ -92,10 +97,12 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - Maintain separation between AST and IA workshop logic
 
 ### **Architecture Decisions**
-- Test users use admin export endpoint with self-access permissions
-- Workshop step IDs map to sequential numbers for display (4-1 → step 10 of 14)
-- Navigation progress stored separately for AST and IA workshops
+- Test users use admin export endpoint with self-access permissions (session.userRole === 'admin' OR sessionUserId === requestedUserId)
+- Workshop step IDs map to sequential numbers for display (4-1 → step 10 of 14) using astStepOrder lookup table
+- Navigation progress stored separately for AST and IA workshops in navigationProgress.ast and navigationProgress.ia objects
 - Shared components use `isImaginalAgility` prop for workshop differentiation
+- AST workshop has 14 actual steps (1-1 through 4-5), not 19 as originally implemented
+- Helper functions must be defined before useMemo hooks that reference them to avoid hoisting errors
 
 ### **Testing Checklist Template**
 When implementing new features, test:
