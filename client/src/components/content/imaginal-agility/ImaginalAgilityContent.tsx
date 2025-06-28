@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
-import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 
 // Component for ia-4-1 Assessment step
-const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void }> = ({ onOpenAssessment }) => {
+const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void; onNext?: (stepId: string) => void }> = ({ onOpenAssessment, onNext }) => {
   // Check if assessment is completed
   const { data: assessmentData } = useQuery({
-    queryKey: ['/api/assessments/imaginal-agility'],
+    queryKey: ['/api/assessments/imaginal_agility'],
     retry: false
   });
 
@@ -17,25 +17,21 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
 
   return (
     <div className="prose max-w-none">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-purple-700">Self-Assessment</h1>
-      </div>
+      <h1 className="text-3xl font-bold text-purple-700 mb-6">
+        Self-Assessment
+      </h1>
       
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <div className="flex justify-center mb-4">
-          <div className="w-full max-w-2xl">
-            <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-              <iframe 
-                src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-                title="Self-Assessment" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-              ></iframe>
-            </div>
-          </div>
-        </div>
+      <div className="mb-8">
+        <iframe 
+          width="400" 
+          height="300" 
+          src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
+          title="Self-Assessment" 
+          frameBorder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowFullScreen
+          className="rounded-lg shadow-lg"
+        ></iframe>
       </div>
       
       <div className="text-lg text-gray-700 space-y-4">
@@ -56,7 +52,7 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
         <div className="mt-8">
           {isAssessmentCompleted ? (
             <Button 
-              onClick={() => window.location.href = '/imaginal-agility/ia-5-1'}
+              onClick={() => onNext && onNext('ia-5-1')}
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
             >
               Next: Assessment Results
@@ -66,7 +62,7 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
               onClick={onOpenAssessment}
               className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
             >
-              Start Assessment
+              Take the Assessment
             </Button>
           )}
         </div>
@@ -77,7 +73,7 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
 
 interface ImaginalAgilityContentProps {
   stepId: string;
-  onNext?: () => void;
+  onNext?: (nextStepId: string) => void;
   onOpenAssessment?: () => void;
   assessmentResults?: any;
   user?: any;
@@ -90,19 +86,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   assessmentResults,
   user
 }) => {
-
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
 
   const renderStepContent = () => {
     switch (stepId) {
       case 'ia-1-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                Introduction to Imaginal Agility
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Introduction to Imaginal Agility
+            </h1>
             
             {/* Video Section */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
@@ -155,16 +148,15 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   You're not just learning about imagination. You're harnessing it — together.
                 </p>
               </div>
-              
-              {/* Next Button */}
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => onNext && onNext('ia-2-1')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Next: The Triple Challenge
-                </Button>
-              </div>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-2-1')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Next: The Triple Challenge
+              </Button>
             </div>
           </div>
         );
@@ -172,12 +164,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-2-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                The Triple Challenge
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              The Triple Challenge
+            </h1>
             
             {/* Video Section */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
@@ -249,16 +238,15 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   </p>
                 </div>
               </div>
-              
-              {/* Next Button */}
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => onNext && onNext('ia-3-1')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Next: Imaginal Agility Solution
-                </Button>
-              </div>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-3-1')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Next: Imaginal Agility Solution
+              </Button>
             </div>
           </div>
         );
@@ -266,12 +254,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
       case 'ia-3-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                Imaginal Agility Solution
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              The Imaginal Agility Solution
+            </h1>
             
             {/* Video Section */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
@@ -300,671 +285,444 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 
                 {/* Five Core Capabilities */}
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8">
-                  <h3 className="text-xl font-semibold text-purple-800 mb-6 text-center">
+                  <h3 className="text-lg sm:text-xl font-semibold text-purple-800 mb-6 text-center">
                     The Five Core Capabilities for Imaginal Agility
                   </h3>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-purple-100">
-                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                        <img 
-                          src="/assets/Imagination_1749499596783.png" 
-                          alt="Imagination" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <h4 className="font-semibold text-purple-700 text-sm">Imagination</h4>
-                      <p className="text-xs text-gray-600 mt-1">Generate novel possibilities</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 justify-items-center max-w-6xl mx-auto">
+                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src="/assets/Imagination_1749499596783.png" 
+                        alt="Imagination" 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                        <img 
-                          src="/assets/Curiosity_1749499596783.png" 
-                          alt="Curiosity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <h4 className="font-semibold text-blue-700 text-sm">Curiosity</h4>
-                      <p className="text-xs text-gray-600 mt-1">Explore and question deeply</p>
+                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src="/assets/Curiosity_1749499596783.png" 
+                        alt="Curiosity" 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-green-100">
-                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                        <img 
-                          src="/assets/Creativity_1749499596783.png" 
-                          alt="Creativity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <h4 className="font-semibold text-green-700 text-sm">Creativity</h4>
-                      <p className="text-xs text-gray-600 mt-1">Develop original solutions</p>
+                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src="/assets/Creativity_1749499596783.png" 
+                        alt="Creativity" 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-orange-100">
-                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                        <img 
-                          src="/assets/courage_1749499596782.png" 
-                          alt="Courage" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <h4 className="font-semibold text-orange-700 text-sm">Courage</h4>
-                      <p className="text-xs text-gray-600 mt-1">Take meaningful risks</p>
+                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src="/assets/courage_1749499596782.png" 
+                        alt="Courage" 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                     
-                    <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-pink-100">
-                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
-                        <img 
-                          src="/assets/empathy_1749499596783.png" 
-                          alt="Empathy" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <h4 className="font-semibold text-pink-700 text-sm">Empathy</h4>
-                      <p className="text-xs text-gray-600 mt-1">Connect and understand</p>
+                    <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
+                      <img 
+                        src="/assets/empathy_1749499596783.png" 
+                        alt="Empathy" 
+                        className="w-full h-full object-contain"
+                      />
                     </div>
                   </div>
                 </div>
                 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
                   <p className="text-lg text-purple-800 font-medium text-center mb-4">
-                    Upon viewing the video, please click on the button below to complete your Core Capabilities Self-Assessment.
+                    These five capabilities work together to create Imaginal Agility — your ability to navigate complexity with creative confidence.
                   </p>
-                  <div className="text-center">
-                    <p className="text-sm text-purple-600">
-                      This assessment will help you understand your current strengths and growth opportunities across these five essential capabilities.
-                    </p>
-                  </div>
+                  
+                  <p className="text-base text-gray-700 text-center">
+                    In the next step, you'll assess your current strengths across these capabilities and create a personalized development map for moving forward.
+                  </p>
                 </div>
               </div>
-              
-              {/* Next Button */}
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => onNext && onNext('ia-4-1')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Next: Self-Assessment
-                </Button>
-              </div>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-4-1')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Next: Self-Assessment
+              </Button>
             </div>
           </div>
         );
 
       case 'ia-4-1':
-        return <ImaginalAgilityAssessmentContent onOpenAssessment={onOpenAssessment} />;
+        return <ImaginalAgilityAssessmentContent onOpenAssessment={onOpenAssessment} onNext={onNext} />;
 
-      case 'ia-4-2':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
+      case 'ia-5-1':
+        // Assessment Results with data fetching
+        const AssessmentResultsContent = () => {
+          const { data: assessmentData } = useQuery({
+            queryKey: ['/api/assessments/imaginal_agility'],
+            retry: false
+          });
+
+          const hasAssessmentData = assessmentData && (assessmentData as any).data;
+          let resultData = null;
+          
+          if (hasAssessmentData) {
+            const rawResults = (assessmentData as any).data.results;
+            
+            // Handle different result formats
+            if (typeof rawResults === 'string') {
+              // Normal JSON string (new correct format)
+              try {
+                resultData = JSON.parse(rawResults);
+              } catch (e) {
+                console.error('Failed to parse JSON string:', e);
+                resultData = null;
+              }
+            } else if (typeof rawResults === 'object' && rawResults !== null && !Array.isArray(rawResults)) {
+              // Check if it's already a parsed object
+              if (rawResults.imagination !== undefined) {
+                resultData = rawResults;
+              } else {
+                // Fallback: character-indexed object (legacy format)
+                const keys = Object.keys(rawResults).map(Number).sort((a, b) => a - b);
+                const jsonString = keys.map(key => rawResults[key]).join('');
+                
+                try {
+                  resultData = JSON.parse(jsonString);
+                } catch (e) {
+                  console.error('Failed to parse reconstructed JSON:', e);
+                  resultData = null;
+                }
+              }
+            }
+          }
+
+          return (
+            <div className="max-w-4xl mx-auto p-6">
+              <h1 className="text-3xl font-bold text-purple-700 mb-8">
                 Assessment Results
               </h1>
-            </div>
-            
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/If2FH40IgTM" 
-                      title="Review Results" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
+              
+              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+                <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                  <p className="text-lg leading-relaxed mb-6">
+                    Here are your Imaginal Agility assessment results. This radar chart shows your current strengths across the five core capabilities.
+                  </p>
+                  
+                  {hasAssessmentData && resultData ? (
+                    <div className="space-y-8">
+                      {/* Radar Chart */}
+                      <div className="flex justify-center mb-8">
+                        <ImaginalAgilityRadarChart data={{
+                          imagination: resultData.imagination || 0,
+                          curiosity: resultData.curiosity || 0,
+                          empathy: resultData.empathy || 0,
+                          creativity: resultData.creativity || 0,
+                          courage: resultData.courage || 0
+                        }} />
+                      </div>
+                      
+                      {/* Interpretation Guide */}
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-4">Understanding Your Profile</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h4 className="font-medium text-green-800 mb-2">Strengths (4.0+)</h4>
+                            <p className="text-sm text-gray-600 mb-3">
+                              These capacities are your superpowers. Leverage them in your work and relationships.
+                            </p>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              {[
+                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
+                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
+                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
+                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
+                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
+                              ].filter(item => item.score >= 4.0).map(item => (
+                                <li key={item.capacity} className="flex items-center">
+                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                                  {item.capacity}: {item.score.toFixed(1)}
+                                </li>
+                              ))}
+                              {[
+                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
+                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
+                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
+                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
+                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
+                              ].filter(item => item.score >= 4.0).length === 0 && (
+                                <li className="text-gray-500 italic">No areas currently at 4.0 or above</li>
+                              )}
+                            </ul>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-blue-800 mb-2">Growth Areas (Below 3.5)</h4>
+                            <p className="text-sm text-gray-600 mb-3">
+                              Consider developing these areas through targeted practice and reflection.
+                            </p>
+                            <ul className="text-sm text-gray-700 space-y-1">
+                              {[
+                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
+                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
+                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
+                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
+                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
+                              ].filter(item => item.score < 3.5).map(item => (
+                                <li key={item.capacity} className="flex items-center">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                                  {item.capacity}: {item.score.toFixed(1)}
+                                </li>
+                              ))}
+                              {[
+                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
+                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
+                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
+                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
+                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
+                              ].filter(item => item.score < 3.5).length === 0 && (
+                                <li className="text-gray-500 italic">No areas currently below 3.5</li>
+                              )}
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Development Recommendations */}
+                      <div className="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Development Recommendations</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <h4 className="font-medium text-purple-800 mb-2">Daily Practice</h4>
+                            <p className="text-sm text-gray-700">
+                              Spend 10 minutes daily on imagination exercises focused on your growth areas.
+                            </p>
+                          </div>
+                          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                            <h4 className="font-medium text-blue-800 mb-2">Team Collaboration</h4>
+                            <p className="text-sm text-gray-700">
+                              Partner with teammates who excel in your development areas for mutual learning.
+                            </p>
+                          </div>
+                          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                            <h4 className="font-medium text-green-800 mb-2">Strength Application</h4>
+                            <p className="text-sm text-gray-700">
+                              Use your strongest capabilities to tackle complex challenges and mentor others.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-8">
+                      <div className="text-center">
+                        <p className="text-lg font-medium text-yellow-800 mb-2">Assessment Not Completed</p>
+                        <p className="text-yellow-700 mb-4">
+                          Please complete your self-assessment first to see your radar chart results.
+                        </p>
+                        <Button 
+                          onClick={() => onNext && onNext('ia-4-1')}
+                          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2"
+                        >
+                          Take Assessment
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                    <h3 className="text-lg font-semibold text-purple-800 mb-4">Understanding Your Results</h3>
+                    <p className="text-base text-purple-700 mb-4">
+                      Your radar chart reveals your unique profile across the five capabilities. There are no "right" or "wrong" results — only insights into your current strengths and growth opportunities.
+                    </p>
+                    <ul className="list-disc pl-6 space-y-2 text-purple-700">
+                      <li><strong>Higher scores</strong> indicate areas where you feel confident and capable</li>
+                      <li><strong>Lower scores</strong> represent opportunities for intentional development</li>
+                      <li><strong>Balance</strong> across capabilities creates the most agile response to complex challenges</li>
+                    </ul>
                   </div>
+                  
+                  <p className="text-lg leading-relaxed">
+                    In the next step, you'll prepare for teamwork by understanding how these capabilities can be leveraged in collaborative settings.
+                  </p>
                 </div>
               </div>
-            </div>
-            
-            <div className="text-lg text-gray-700 space-y-4">
-              <h2 className="text-2xl font-semibold text-purple-700">Review Your Imagination Radar</h2>
               
-              <p>You've just completed your self-assessment. Now it's time to explore your results.</p>
-              
-              <p>Your Radar Map reveals how five essential human capabilities show up in your life and work.</p>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What This Is</h3>
-              <ul className="list-disc pl-6 space-y-1">
-                <li>A snapshot, not a scorecard</li>
-                <li>A reflection tool, not a judgment</li>
-                <li>A way to see patterns and possibilities</li>
-              </ul>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What Comes Next</h3>
-              <p>You'll bring this Radar into the next phase: the Team Practice Session, where it becomes a foundation for shared insight, creative alignment, and collaboration with AI.</p>
-              
-              {assessmentResults && (
-                <div className="mt-8">
-                  <ImaginalAgilityRadarChart data={assessmentResults} />
-                </div>
-              )}
-              
-              {/* Next Button */}
               <div className="flex justify-end mt-8">
                 <Button 
-                  onClick={() => onNext && onNext('ia-5-1')}
+                  onClick={() => onNext && onNext('ia-6-1')}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
                 >
                   Next: Teamwork Preparation
                 </Button>
               </div>
             </div>
-          </div>
-        );
+          );
+        };
 
-      case 'ia-5-1':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                Teamwork Preparation
-              </h1>
-            </div>
-            
-            {/* Video Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/hOV2zaWVxeU" 
-                      title="Assessment Results" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Content Card */}
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-purple-800 mb-4">
-                    Your Assessment Results
-                  </h3>
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    Now that you've completed your self-assessment, let's explore your radar profile and understand your unique Imaginal Agility strengths.
-                  </p>
-                </div>
-                
-                {/* What to Expect Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
-                  <h3 className="text-xl font-semibold text-purple-700 mb-4 text-center">
-                    What to Expect
-                  </h3>
-                  
-                  <div className="grid md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">🎯</span>
-                      </div>
-                      <h4 className="font-semibold text-blue-700 mb-2">Structured Whiteboard Practice</h4>
-                      <p className="text-sm text-gray-600">
-                        Guided exercises will help your team apply imaginal agility in a creative, visual, and action-oriented way.
-                      </p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">⚡</span>
-                      </div>
-                      <h4 className="font-semibold text-green-700 mb-2">Real-Time Co-Creation</h4>
-                      <p className="text-sm text-gray-600">
-                        You'll brainstorm, align, and design solutions together — rapidly and with purpose.
-                      </p>
-                    </div>
-                    
-                    <div className="text-center">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">🤖</span>
-                      </div>
-                      <h4 className="font-semibold text-purple-700 mb-2">Human + AI Synergy</h4>
-                      <p className="text-sm text-gray-600">
-                        You'll raise your HaiQ — the ability to stay imaginative, collaborative, and human while working with AI.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* What You Leave With Section */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6">
-                  <h3 className="text-xl font-semibold text-green-700 mb-4 text-center">
-                    What You Leave With
-                  </h3>
-                  
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-white font-bold text-sm">✓</span>
-                      </div>
-                      <p className="text-gray-700">A shared model for alignment and trust</p>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-white font-bold text-sm">✓</span>
-                      </div>
-                      <p className="text-gray-700">Tools and language to apply imagination at scale</p>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-white font-bold text-sm">✓</span>
-                      </div>
-                      <p className="text-gray-700">Personal and team AI insights and prompt packs</p>
-                    </div>
-                    
-                    <div className="flex items-start space-x-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                        <span className="text-white font-bold text-sm">✓</span>
-                      </div>
-                      <p className="text-gray-700">Clearer team identity and action direction</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-center bg-purple-50 border border-purple-200 rounded-lg p-6">
-                  <p className="text-lg text-purple-800 font-medium">
-                    Together, you'll enter a shared digital whiteboard space designed for real-time collaboration. This is where individual insights become team breakthroughs.
-                  </p>
-                </div>
-              </div>
-              
-              {/* Next Button */}
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => onNext && onNext('ia-6-1')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Next: Discernment Guide
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
+        return <AssessmentResultsContent />;
 
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                Discernment Guide
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Teamwork Preparation
+            </h1>
             
-            {/* Video Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/hOV2zaWVxeU" 
-                      title="Teamwork Preparation" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Content Card */}
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-purple-800 mb-4">
-                    Welcome to the Next Stage of the Imaginal Agility Workshop
-                  </h3>
-                  <p className="text-lg text-gray-700 leading-relaxed">
-                    Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.
-                  </p>
-                </div>
-                
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
-                  <h4 className="text-lg font-semibold text-purple-800 mb-3">What's Next</h4>
-                  <p className="text-gray-700 leading-relaxed">
-                    This workshop is designed to help teams develop their collective Imaginal Agility. You've now gained insight into your personal strengths and can contribute meaningfully to your team's journey forward.
-                  </p>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
-                    <h4 className="text-lg font-semibold text-blue-800 mb-3">Individual Preparation</h4>
-                    <ul className="space-y-2 text-sm text-blue-700">
-                      <li>• Review your assessment results</li>
-                      <li>• Identify your top strengths</li>
-                      <li>• Consider growth areas</li>
-                      <li>• Prepare to share insights with your team</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
-                    <h4 className="text-lg font-semibold text-green-800 mb-3">Team Workshop Focus</h4>
-                    <ul className="space-y-2 text-sm text-green-700">
-                      <li>• Collective strengths mapping</li>
-                      <li>• Complementary skill identification</li>
-                      <li>• Collaborative imagination exercises</li>
-                      <li>• Action planning for team agility</li>
-                    </ul>
-                  </div>
-                </div>
-              
-              {/* AI Mirror Test */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
-                <h3 className="text-2xl font-bold text-blue-800 mb-4">THE AI MIRROR TEST</h3>
-                <p className="text-xl font-semibold text-blue-700 mb-6">A 3-Phase Self-Awareness Tool for Conscious AI Collaboration</p>
-                
-                <p className="text-lg text-gray-700 leading-relaxed mb-8">
-                  The AI Mirror Test is a professional-grade reflection tool to help you assess the quality of your engagement with AI. It supports development of HaiQ (Human-AI Intelligence Quotient) by guiding you through a 3-phase cycle:
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed mb-6">
+                  Now that you understand your individual Imaginal Agility profile, it's time to prepare for collaborative application. Teams that combine diverse imaginal capabilities create breakthrough solutions.
                 </p>
                 
-                {/* Three Phases */}
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-lg">1</span>
-                      </div>
-                      <h4 className="text-lg font-semibold text-blue-700">Pre-Reflection</h4>
-                      <p className="text-sm text-blue-600 font-medium">Name the Frame</p>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
+                  <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">
+                    Preparing for Team Collaboration
+                  </h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
+                      <h4 className="font-semibold text-blue-700 mb-2">Share Your Strengths</h4>
+                      <p className="text-sm text-gray-700">
+                        Be ready to discuss which capabilities feel most natural to you and how you've used them successfully.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">Before you begin interacting with AI, take a moment to answer:</p>
-                    <ol className="text-xs text-gray-600 space-y-1 list-decimal pl-4">
-                      <li>What is your primary intention in this AI interaction?</li>
-                      <li>What do you expect the AI to do well — or poorly?</li>
-                      <li>Are you entering this as a co-creator, consumer, or critic?</li>
-                    </ol>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-green-100">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-lg">2</span>
-                      </div>
-                      <h4 className="text-lg font-semibold text-green-700">Active Observation</h4>
-                      <p className="text-sm text-green-600 font-medium">Catch Yourself in the Act</p>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-700 mb-2">Embrace Growth Areas</h4>
+                      <p className="text-sm text-gray-700">
+                        Identify capabilities you'd like to develop and be open to learning from teammates who excel in those areas.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">During your interaction with AI, gently observe:</p>
-                    <ol className="text-xs text-gray-600 space-y-1 list-decimal pl-4">
-                      <li>Did you revise your prompt at all, or accept the first response?</li>
-                      <li>Did you question anything the AI produced?</li>
-                      <li>What did you *not* say or ask that shaped the result?</li>
-                    </ol>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-purple-100">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-lg">3</span>
-                      </div>
-                      <h4 className="text-lg font-semibold text-purple-700">Post-Reflection</h4>
-                      <p className="text-sm text-purple-600 font-medium">What Did I Miss?</p>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-700 mb-2">Practice Active Curiosity</h4>
+                      <p className="text-sm text-gray-700">
+                        Ask questions about others' perspectives and approaches to expand your own imaginative toolkit.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">After your AI interaction, take 1–2 minutes to reflect:</p>
-                    <ol className="text-xs text-gray-600 space-y-1 list-decimal pl-4">
-                      <li>What surprised you about your own behavior?</li>
-                      <li>Did AI help you think more clearly — or just faster?</li>
-                      <li>What will you do differently next time?</li>
-                    </ol>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Self-Assessment Practice */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h4 className="text-xl font-semibold text-purple-700 mb-4">Self-Assessment Practice</h4>
-                <p className="text-lg text-gray-700 mb-6">Rate your interaction on these 5 dimensions (0 = not at all, 10 = fully):</p>
-                
-                <div className="grid md:grid-cols-5 gap-4">
-                  <div className="text-center p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <h5 className="font-semibold text-blue-700 text-sm mb-2">Agency</h5>
-                    <p className="text-xs text-gray-600">How much did you direct the interaction?</p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-green-50 rounded-lg border border-green-100">
-                    <h5 className="font-semibold text-green-700 text-sm mb-2">Reflection</h5>
-                    <p className="text-xs text-gray-600">Did you notice your own patterns and revise?</p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <h5 className="font-semibold text-purple-700 text-sm mb-2">Imaginative Initiative</h5>
-                    <p className="text-xs text-gray-600">Did you use the AI to expand your thinking?</p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-100">
-                    <h5 className="font-semibold text-orange-700 text-sm mb-2">Clarity</h5>
-                    <p className="text-xs text-gray-600">Did the interaction help clarify your ideas?</p>
-                  </div>
-                  
-                  <div className="text-center p-4 bg-pink-50 rounded-lg border border-pink-100">
-                    <h5 className="font-semibold text-pink-700 text-sm mb-2">Discernment</h5>
-                    <p className="text-xs text-gray-600">Did you evaluate AI outputs with critical thinking?</p>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-orange-200">
+                      <h4 className="font-semibold text-orange-700 mb-2">Build on Ideas</h4>
+                      <p className="text-sm text-gray-700">
+                        Use "Yes, and..." thinking to expand on teammates' contributions rather than immediately evaluating them.
+                      </p>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <p className="text-sm text-gray-600 text-center">
-                    This is a learning tool you can practice with any AI interaction to develop stronger discernment skills and more conscious collaboration with AI systems.
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-yellow-800 mb-3">Remember: Diversity Creates Agility</h3>
+                  <p className="text-base text-yellow-700">
+                    The most innovative teams combine different thinking styles, experiences, and capabilities. Your unique profile contributes to collective intelligence that no individual could achieve alone.
                   </p>
                 </div>
+                
+                <p className="text-lg leading-relaxed">
+                  You're now ready to apply these insights in collaborative practice. The final step will explore the neuroscience behind why this approach works.
+                </p>
               </div>
-              </div>
-              
-              {/* Next Button */}
-              <div className="flex justify-end mt-8">
-                <Button 
-                  onClick={() => onNext && onNext('ia-8-1')}
-                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-                >
-                  Next: The Neuroscience
-                </Button>
-              </div>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-8-1')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Next: The Neuroscience
+              </Button>
             </div>
           </div>
         );
 
-
       case 'ia-8-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
-            {/* Step Title */}
-            <div className="mb-6">
-              <h1 className="text-3xl font-bold text-purple-800">
-                The Neuroscience
-              </h1>
-            </div>
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Neuroscience
+            </h1>
             
-            {/* Video Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/43Qs7OvToeI" 
-                      title="The Neuroscience" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Content Cards */}
-            <div className="space-y-8">
-              {/* Main Introduction */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h2 className="text-2xl font-bold text-purple-800 mb-6 text-center">The Neuroscience of Imagination</h2>
-                
-                <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                  Modern neuroscience reveals that imagination isn't just creativity — it's a sophisticated cognitive process that involves multiple brain networks working together.
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed mb-6">
+                  Understanding the neuroscience behind Imaginal Agility helps explain why these practices are so powerful for human development and team performance.
                 </p>
                 
-                <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                  Understanding how your brain generates, evaluates, and implements imaginative thinking gives you practical tools for enhancing this essential human capability.
-                </p>
-              </div>
-              
-              {/* Key Brain Networks */}
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
-                <h3 className="text-xl font-bold text-blue-800 mb-6 text-center">Key Brain Networks</h3>
-                
-                <div className="grid md:grid-cols-3 gap-6">
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-blue-100">
-                    <div className="text-center mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">🧠</span>
-                      </div>
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6 mb-8">
+                  <h3 className="text-xl font-semibold text-purple-800 mb-4 text-center">
+                    The Brain Science of Imagination
+                  </h3>
+                  
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="bg-white p-4 rounded-lg border border-blue-200">
                       <h4 className="font-semibold text-blue-700 mb-2">Default Mode Network</h4>
+                      <p className="text-sm text-gray-700">
+                        Your brain's "imagination network" activates during rest and creative thinking, connecting distant ideas and generating novel solutions.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
-                      Generates spontaneous ideas and possibilities during rest and reflection
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-purple-100">
-                    <div className="text-center mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">🎯</span>
-                      </div>
-                      <h4 className="font-semibold text-purple-700 mb-2">Executive Control Network</h4>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-purple-200">
+                      <h4 className="font-semibold text-purple-700 mb-2">Neuroplasticity</h4>
+                      <p className="text-sm text-gray-700">
+                        Regular practice of imaginative thinking literally rewires your brain, strengthening neural pathways for creativity and problem-solving.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
-                      Evaluates and refines imaginative content with focused attention
-                    </p>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg p-6 shadow-sm border border-green-100">
-                    <div className="text-center mb-4">
-                      <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">🔄</span>
-                      </div>
-                      <h4 className="font-semibold text-green-700 mb-2">Salience Network</h4>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-green-200">
+                      <h4 className="font-semibold text-green-700 mb-2">Mirror Neurons</h4>
+                      <p className="text-sm text-gray-700">
+                        These specialized cells help you understand and empathize with others, essential for collaborative imagination and team innovation.
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 text-center">
-                      Switches between different modes of thinking and attention
-                    </p>
+                    
+                    <div className="bg-white p-4 rounded-lg border border-orange-200">
+                      <h4 className="font-semibold text-orange-700 mb-2">Prefrontal Cortex</h4>
+                      <p className="text-sm text-gray-700">
+                        This executive region helps you evaluate and implement imaginative ideas, turning creative insights into practical action.
+                      </p>
+                    </div>
                   </div>
                 </div>
                 
-                <div className="mt-6 p-4 bg-white rounded-lg border border-gray-200">
-                  <p className="text-center text-gray-700">
-                    By understanding these networks, you can learn to work with your brain's natural imagination processes more effectively.
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-3">Why It Matters</h3>
+                  <p className="text-base text-purple-700 mb-4">
+                    Research shows that intentional imagination practice:
                   </p>
-                </div>
-              </div>
-              
-              {/* Journey Completion */}
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-8 border border-green-200">
-                <h3 className="text-xl font-bold text-green-800 mb-6 text-center">Your Imaginal Agility Journey Continues</h3>
-                
-                <div className="text-center mb-6">
-                  <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-2xl">🎉</span>
-                  </div>
-                  <p className="text-lg font-medium text-green-700">Congratulations on completing the Imaginal Agility Workshop core modules!</p>
+                  <ul className="list-disc pl-6 space-y-2 text-purple-700">
+                    <li>Increases cognitive flexibility and adaptive thinking</li>
+                    <li>Enhances problem-solving ability under uncertainty</li>
+                    <li>Improves emotional regulation and resilience</li>
+                    <li>Strengthens social connection and team cohesion</li>
+                    <li>Builds confidence for navigating complex challenges</li>
+                  </ul>
                 </div>
                 
-                <h4 className="text-lg font-semibold text-green-700 mb-4">You've developed foundational skills in:</h4>
-                
-                <div className="grid md:grid-cols-2 gap-4 mb-6">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-xs">✓</span>
-                    </div>
-                    <p className="text-gray-700">Self-assessment of core imagination capabilities</p>
-                  </div>
-                  
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-xs">✓</span>
-                    </div>
-                    <p className="text-gray-700">Understanding the neuroscience of imaginative thinking</p>
-                  </div>
-                  
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-xs">✓</span>
-                    </div>
-                    <p className="text-gray-700">Practical tools for reality discernment</p>
-                  </div>
-                  
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-xs">✓</span>
-                    </div>
-                    <p className="text-gray-700">Framework for conscious AI collaboration</p>
-                  </div>
-                  
-                  <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                      <span className="text-white font-bold text-xs">✓</span>
-                    </div>
-                    <p className="text-gray-700">Team preparation for collaborative imagination</p>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Next Steps */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <h3 className="text-xl font-bold text-purple-700 mb-6 text-center">What's Next?</h3>
-                
-                <p className="text-lg text-gray-700 leading-relaxed mb-6 text-center">
-                  Your journey in developing Imaginal Agility doesn't end here. Consider these next steps:
-                </p>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div className="p-4 bg-purple-50 rounded-lg border border-purple-100">
-                    <h4 className="font-semibold text-purple-700 mb-2">Daily Practice</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Practice the AI Mirror Test regularly</li>
-                      <li>• Apply discernment tools in decision-making</li>
-                      <li>• Continue developing core capabilities</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-100">
-                    <h4 className="font-semibold text-blue-700 mb-2">Team Application</h4>
-                    <ul className="text-sm text-gray-600 space-y-1">
-                      <li>• Share radar results with your team</li>
-                      <li>• Explore collaborative applications</li>
-                      <li>• Foster transformative innovation capacity</li>
-                    </ul>
-                  </div>
-                </div>
-                
-                <div className="mt-8 p-6 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
-                  <p className="text-lg font-medium text-purple-800 text-center">
-                    Remember: Imaginal Agility is not a destination but a practice — a way of engaging with uncertainty, complexity, and possibility that grows stronger with intentional use.
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-xl p-6">
+                  <h3 className="text-lg font-semibold text-green-800 mb-3 text-center">
+                    The Path Forward
+                  </h3>
+                  <p className="text-base text-gray-700 text-center">
+                    You now have both the practical tools and scientific understanding to develop your Imaginal Agility. 
+                    Continue practicing these capabilities individually and with your team to build lasting cognitive fitness for the AI age.
                   </p>
                 </div>
                 
-                {/* Workshop Completion Button */}
-                <div className="text-center mt-8">
-                  <button 
+                <div className="mt-8 text-center">
+                  <Button 
                     onClick={() => {
-                      // Workshop completion modal would go here
-                      alert('Workshop Complete! Congratulations on completing the Imaginal Agility Workshop.');
+                      // Mark ia-8-1 as completed when workshop is completed
+                      if (onNext) {
+                        onNext('ia-8-1'); // This will trigger the completion logic
+                      }
+                      setShowCompletionModal(true);
                     }}
-                    className="bg-gradient-to-r from-green-600 to-green-800 text-white py-4 px-8 rounded-lg hover:opacity-90 transition-opacity text-lg font-semibold"
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
                   >
-                    🎉 Complete Workshop
-                  </button>
+                    Complete Workshop
+                  </Button>
                 </div>
               </div>
             </div>
@@ -973,17 +731,69 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
 
       default:
         return (
-          <div className="prose max-w-none">
-            <h1 className="text-3xl font-bold text-purple-700 mb-6">Step Not Found</h1>
-            <p>The requested step content is not available.</p>
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Step Not Found
+            </h1>
+            <p className="text-lg text-gray-700">
+              The requested step could not be found. Please check the step ID and try again.
+            </p>
           </div>
         );
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="imaginal-agility-content">
       {renderStepContent()}
+      
+      {/* Workshop Completion Modal */}
+      <Dialog open={showCompletionModal} onOpenChange={setShowCompletionModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-purple-700 text-center mb-4">
+              🎉 Congratulations!
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4 text-center">
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6">
+              <p className="text-lg font-semibold text-purple-800 mb-2">
+                Workshop Complete
+              </p>
+              <p className="text-sm text-gray-700">
+                You've successfully completed the Imaginal Agility Workshop!
+              </p>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-base text-gray-700">
+                You've gained valuable insights into your imaginative capabilities and are ready to apply them in collaborative settings.
+              </p>
+              
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-purple-800 mb-2">
+                  What You've Accomplished:
+                </p>
+                <ul className="text-xs text-purple-700 space-y-1">
+                  <li>✓ Understanding the Triple Challenge</li>
+                  <li>✓ Learning the Five Core Capabilities</li>
+                  <li>✓ Completing your personal assessment</li>
+                  <li>✓ Preparing for team collaboration</li>
+                  <li>✓ Understanding the neuroscience behind the approach</li>
+                </ul>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={() => setShowCompletionModal(false)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -279,11 +279,14 @@ export default function ImaginalAgilityHome() {
           isImaginalAgility={true}
         />
         {/* Debug logging for IA page props */}
-        {console.log('🎯 IA Navigation Props Debug:', {
-          isImaginalAgility: true,
-          currentContent,
-          location: window.location.pathname
-        })}
+        {(() => {
+          console.log('🎯 IA Navigation Props Debug:', {
+            isImaginalAgility: true,
+            currentContent,
+            location: window.location.pathname
+          });
+          return null;
+        })()}
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
@@ -310,19 +313,17 @@ export default function ImaginalAgilityHome() {
                   method: 'POST',
                   body: JSON.stringify({
                     assessmentType: 'imaginal_agility',
-                    results: JSON.stringify(results)
+                    results: results
                   }),
                   headers: {
                     'Content-Type': 'application/json'
                   }
                 });
 
-                // CRITICAL FIX: Invalidate the assessment query cache so UI updates immediately
-                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal-agility'] });
-
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
                 setIsAssessmentModalOpen(false);
-                markStepCompleted('ia-4-1'); // Mark self-assessment as completed
-                setCurrentContent("ia-5-1"); // Navigate to Review Results
+                markStepCompleted('ia-4-1'); // Mark assessment step as completed
+                setCurrentContent("ia-5-1"); // Navigate to Assessment Results
                 
                 toast({
                   title: "Assessment Complete!",
@@ -334,10 +335,7 @@ export default function ImaginalAgilityHome() {
                   title: "Assessment Saved Locally",
                   description: "Your results are saved but couldn't sync to the server.",
                 });
-                
-                // CRITICAL FIX: Even on error, invalidate cache since modal completed assessment
-                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal-agility'] });
-                
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1');
                 setCurrentContent("ia-5-1");

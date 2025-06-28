@@ -1,0 +1,68 @@
+REPLIT AGENT: Fix IA Workshop Next Buttons, Clean Headers, and Graphics
+✅ VERIFIED ENVIRONMENT: Ready for modifications
+TARGET: IA Workshop Content Fixes Only
+
+File: client/src/components/content/imaginal-agility/ImaginalAgilityContent.tsx
+Scope: Single file modification, IA workshop only
+
+CRITICAL CONSTRAINTS:
+
+❌ DO NOT modify AST files or navigation data
+❌ DO NOT change step IDs or navigation structure
+✅ ONLY fix content within ImaginalAgilityContent.tsx
+
+FIXES REQUIRED:
+1. Remove Logo/Title Headers from ALL Content Views
+
+Remove any IA logo imports and header cards with "Imaginal Agility Workshop Course"
+Keep only clean step titles (e.g., "Introduction to Imaginal Agility")
+
+2. Fix Graphics in ia-3-1
+
+Change ALL image paths from /assets/ to /public/assets/ or verify correct asset paths
+Ensure all 5 capability graphics load properly:
+
+Imagination_1749499596783.png
+Curiosity_1749499596783.png
+Creativity_1749499596783.png
+courage_1749499596782.png
+empathy_1749499596783.png
+
+
+
+3. Fix Step Progression Flow
+Based on navigationData.ts structure:
+
+ia-1-1 → ia-2-1 (Introduction → Triple Challenge)
+ia-2-1 → ia-3-1 (Triple Challenge → Solution)
+ia-3-1 → ia-4-1 (Solution → Self-Assessment)
+ia-4-1 → ia-5-1 (Assessment → Assessment Results)
+ia-5-1 → ia-6-1 (Assessment Results → Teamwork Preparation)
+ia-6-1 → ia-8-1 (Teamwork Preparation → Neuroscience)
+
+4. Remove Non-Existent ia-4-2 Step
+
+Delete the entire ia-4-2 case block
+No step should reference ia-4-2
+
+5. Fix Step Content Titles
+
+ia-5-1: Should be "Assessment Results" not "Teamwork Preparation"
+ia-6-1: Should be "Teamwork Preparation" not "Discernment Guide"
+
+6. Add Complete Workshop Modal to ia-8-1
+
+Replace the simple alert() with a proper modal like AST final reflection
+Modal should congratulate completion but have NO next steps
+Use purple IA theme for modal styling
+
+VERIFICATION:
+
+All IA steps have clean headers (no logo/course title)
+Graphics in ia-3-1 load properly
+Next buttons follow correct progression flow
+ia-8-1 has Complete Workshop modal
+No references to ia-4-2 exist
+
+MODIFY ONLY THE IA CONTENT COMPONENT - NO OTHER FILES.
+Please execute this comprehensive Replit Agent prompt to fix all the IA workshop issues.

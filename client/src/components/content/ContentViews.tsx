@@ -93,7 +93,15 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               scrollToContentTop();
             }
           }}
-          onOpenAssessment={() => setIsAssessmentModalOpen && setIsAssessmentModalOpen(true)}
+          onOpenAssessment={() => {
+            if (setIsAssessmentModalOpen) {
+              // Mark ia-3-1 as completed when assessment is opened
+              if (currentContent === 'ia-3-1' && markStepCompleted) {
+                markStepCompleted('ia-3-1');
+              }
+              setIsAssessmentModalOpen(true);
+            }
+          }}
           assessmentResults={null} // This would come from API in real implementation
           user={user}
         />
