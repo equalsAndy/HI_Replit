@@ -73,23 +73,6 @@ const ImaginalAgilityRadarChart: React.FC<RadarChartProps> = ({ data }) => {
           </RadarChart>
         </ResponsiveContainer>
       </div>
-
-      {/* Numerical Scores */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6">
-        {radarData.map((item) => (
-          <div key={item.capacity} className="text-center p-3 bg-purple-50 rounded-lg">
-            <div className="text-xl font-bold text-purple-600 mb-1">
-              {item.score.toFixed(1)}
-            </div>
-            <div className="text-sm font-medium text-gray-700">
-              {item.capacity}
-            </div>
-            <div className="text-xs text-gray-500 mt-1">
-              out of 5.0
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 };

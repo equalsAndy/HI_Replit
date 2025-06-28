@@ -523,9 +523,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                           {[
-                            {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/imagination_sq.png', color: 'bg-gray-50 border-gray-200'},
-                            {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/curiosity_sq.png', color: 'bg-green-50 border-green-200'},
-                            {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/creativity_sq.png', color: 'bg-orange-50 border-orange-200'},
+                            {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_sq.png', color: 'bg-gray-50 border-gray-200'},
+                            {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/Curiosity_sq.png', color: 'bg-green-50 border-green-200'},
+                            {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/Creativity_sq.png', color: 'bg-orange-50 border-orange-200'},
                             {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'bg-red-50 border-red-200'},
                             {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'bg-blue-50 border-blue-200'}
                           ].map(item => (
