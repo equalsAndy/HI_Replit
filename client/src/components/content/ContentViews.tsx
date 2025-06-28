@@ -27,7 +27,7 @@ import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
-import { DiscernmentModal } from '../imaginal-agility/DiscernmentModal';
+import ImaginalAgilityContent from './imaginal-agility/ImaginalAgilityContent';
 
 import { useApplication } from '@/hooks/use-application';
 
@@ -81,6 +81,26 @@ const ContentViews: React.FC<ContentViewsProps> = ({
   console.log('ContentViews - modalOpen:', modalOpen, 'isImaginalAgility:', isImaginalAgility);
   // Handle Imaginal Agility specific content mapping
   if (isImaginalAgility) {
+    // Use the improved ImaginalAgilityContent component for all IA steps
+    if (currentContent.startsWith('ia-')) {
+      return (
+        <ImaginalAgilityContent 
+          stepId={currentContent}
+          onNext={(nextStepId) => {
+            if (nextStepId && markStepCompleted && setCurrentContent) {
+              markStepCompleted(currentContent);
+              setCurrentContent(nextStepId);
+              scrollToContentTop();
+            }
+          }}
+          onOpenAssessment={() => setIsAssessmentModalOpen && setIsAssessmentModalOpen(true)}
+          assessmentResults={null} // This would come from API in real implementation
+          user={user}
+        />
+      );
+    }
+    
+    // Handle the welcome page for IA
     switch (currentContent) {
       case 'ia-1-1':
         return (
@@ -92,129 +112,7 @@ const ContentViews: React.FC<ContentViewsProps> = ({
             isImaginalAgility={true}
           />
         );
-      case 'ia-2-1':
-        return (
-          <div className="prose max-w-none">
-            <h1 id="content-title" className="text-3xl font-bold text-purple-700 mb-6">The Triple Challenge</h1>
-            
-            {/* YouTube Video Player */}
-            <div className="mb-6 w-full max-w-3xl mx-auto">
-              <VideoPlayer
-                workshopType="imaginal-agility"
-                stepId="ia-2-1"
-                fallbackUrl="https://youtu.be/EsExXeKFiKg"
-                title="The Triple Challenge"
-                aspectRatio="16:9"
-                autoplay={true}
-              />
-            </div>
-
-            <div className="text-lg text-gray-700 mb-8">
-              <p>As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.</p>
-            </div>
-
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-6 rounded-lg mb-8">
-              <h2 className="text-2xl font-semibold text-purple-700 mb-3">AI Triple Cognitive Challenge</h2>
-              <p className="text-lg text-purple-800 font-medium">
-                AI enhances efficiency — but at a rising psychological cost to individuals, teams, and organizations.
-              </p>
-            </div>
-
-            <div className="space-y-2 mb-6">
-              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
-                <div className="flex items-center">
-                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">🧠</span>
-                      <h3 className="text-base font-semibold text-orange-800">Metacognitive Laziness</h3>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 flex-1">
-                    <p className="text-gray-700 text-sm">Outsourcing thinking and sense-making</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
-                <div className="flex items-center">
-                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">💭</span>
-                      <h3 className="text-base font-semibold text-orange-800">Imagination Deficit</h3>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 flex-1">
-                    <p className="text-gray-700 text-sm">Diminishing the generative core of human potential</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-orange-50 border border-orange-200 rounded-md overflow-hidden">
-                <div className="flex items-center">
-                  <div className="bg-orange-100 px-4 py-3 min-w-0 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl">😔</span>
-                      <h3 className="text-base font-semibold text-orange-800">Psychological Debt</h3>
-                    </div>
-                  </div>
-                  <div className="px-4 py-3 flex-1">
-                    <p className="text-gray-700 text-sm">Fatigue, disconnection, and loss of purpose</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mb-6 bg-purple-100 p-4 rounded-lg border-l-4 border-purple-500">
-              <p className="text-center text-lg font-medium text-purple-800">
-                Recognizing and addressing these challenges is essential for thriving in the AI era
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-purple-700 mb-3">Understanding the Challenge</h3>
-                <p className="text-gray-700 leading-relaxed text-sm">
-                  The Triple Challenge represents interconnected threats to human potential in the AI era. Recognizing these patterns is the first step toward counteracting them in your personal and professional life.
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-purple-700 mb-3">Beyond Efficiency</h3>
-                <p className="text-gray-700 leading-relaxed text-sm">
-                  While AI excels at optimization and efficiency, these alone don't create breakthrough innovations or meaningful human experiences. The real opportunity lies in developing capabilities that AI cannot replicate.
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-purple-700 mb-3">The Hidden Costs</h3>
-                <p className="text-gray-700 leading-relaxed text-sm">
-                  Organizations focused exclusively on AI implementation often experience unexpected downsides: diminished creative thinking, reduced psychological safety, and growing disengagement.
-                </p>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                <h3 className="text-lg font-semibold text-purple-700 mb-3">Challenge as Opportunity</h3>
-                <p className="text-gray-700 leading-relaxed text-sm">
-                  Understanding these challenges positions you to lead positive change in your organization. The next step is learning how Imaginal Agility provides a systematic approach to thriving alongside AI.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex justify-end">
-              <Button 
-                onClick={() => {
-                  markStepCompleted('ia-2-1');
-                  setCurrentContent('ia-3-1');
-                  scrollToContentTop();
-                }}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-                size="lg"
-              >
-                Next: The Imaginal Agility Solution
-              </Button>
-            </div>
-          </div>
-        );
+      // Other IA content that's not step-based
       case 'ia-3-1':
         return (
           <div className="prose max-w-none">

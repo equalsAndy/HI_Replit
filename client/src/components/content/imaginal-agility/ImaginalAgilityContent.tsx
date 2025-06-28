@@ -322,40 +322,60 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-purple-100">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">✨</span>
+                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                        <img 
+                          src="/attached_assets/Imagination_1749499596783.png" 
+                          alt="Imagination" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h4 className="font-semibold text-purple-700 text-sm">Imagination</h4>
                       <p className="text-xs text-gray-600 mt-1">Generate novel possibilities</p>
                     </div>
                     
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">🔍</span>
+                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                        <img 
+                          src="/attached_assets/Curiosity_1749499596783.png" 
+                          alt="Curiosity" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h4 className="font-semibold text-blue-700 text-sm">Curiosity</h4>
                       <p className="text-xs text-gray-600 mt-1">Explore and question deeply</p>
                     </div>
                     
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-green-100">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">🎨</span>
+                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                        <img 
+                          src="/attached_assets/Creativity_1749499596783.png" 
+                          alt="Creativity" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h4 className="font-semibold text-green-700 text-sm">Creativity</h4>
                       <p className="text-xs text-gray-600 mt-1">Develop original solutions</p>
                     </div>
                     
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-orange-100">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">🦁</span>
+                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                        <img 
+                          src="/attached_assets/courage_1749499596782.png" 
+                          alt="Courage" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h4 className="font-semibold text-orange-700 text-sm">Courage</h4>
                       <p className="text-xs text-gray-600 mt-1">Take meaningful risks</p>
                     </div>
                     
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-pink-100">
-                      <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-lg">💝</span>
+                      <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                        <img 
+                          src="/attached_assets/empathy_1749499596783.png" 
+                          alt="Empathy" 
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                       <h4 className="font-semibold text-pink-700 text-sm">Empathy</h4>
                       <p className="text-xs text-gray-600 mt-1">Connect and understand</p>
