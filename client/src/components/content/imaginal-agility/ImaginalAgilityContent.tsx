@@ -558,7 +558,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                             <span className="font-medium text-blue-700">Developing (3.5-3.9):</span> Strong foundation - ready for advanced practice
                           </p>
                           <p className="text-sm text-gray-600">
-                            <span className="font-medium text-orange-700">Growth Areas (<3.5):</span> Opportunities for intentional development
+                            <span className="font-medium text-orange-700">Growth Areas (below 3.5):</span> Opportunities for intentional development
                           </p>
                         </div>
                       </div>
