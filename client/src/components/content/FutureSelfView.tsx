@@ -253,17 +253,28 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-4xl mx-auto mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Future Self Journey</h1>
           <div className="bg-amber-50 p-6 rounded-lg border border-amber-200">
-            <h2 className="text-xl font-semibold text-amber-900 mb-3">Purpose:</h2>
-            <p className="text-amber-800 leading-relaxed mb-4">
-              This exercise helps you imagine who you want to become—and how to shape a life that supports that becoming.
-            </p>
-            <p className="text-amber-800 leading-relaxed">
-              Use your Flow Assessment insights to guide your vision. You can start by looking 20 years ahead and work backward, 
-              or begin with who you are today and look forward.
-            </p>
-            <p className="text-amber-900 font-medium mt-4">
-              There's no right way—only your way.
-            </p>
+            <div className="flex flex-col md:flex-row items-start gap-6">
+              <div className="flex-1">
+                <h2 className="text-xl font-semibold text-amber-900 mb-3">Purpose:</h2>
+                <p className="text-amber-800 leading-relaxed mb-4">
+                  This exercise helps you imagine who you want to become—and how to shape a life that supports that becoming.
+                </p>
+                <p className="text-amber-800 leading-relaxed">
+                  Use your Flow Assessment insights to guide your vision. You can start by looking 20 years ahead and work backward, 
+                  or begin with who you are today and look forward.
+                </p>
+                <p className="text-amber-900 font-medium mt-4">
+                  There's no right way—only your way.
+                </p>
+              </div>
+              <div className="flex-shrink-0">
+                <img 
+                  src="/future_self_image.png" 
+                  alt="Future Self Timeline" 
+                  className="w-48 h-auto rounded-lg shadow-sm"
+                />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -320,37 +331,10 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           </div>
         </div>
 
-        {/* Timeline Section */}
+        {/* Timeline Reflection Section */}
         <div className="max-w-6xl mx-auto mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 2: Your Timeline</h2>
           
-          <div className="flex justify-center mb-12">
-            {/* Timeline Graphic */}
-            <div className="flex flex-col items-center">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={formData.direction}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.5 }}
-                  className="flex flex-col items-center"
-                >
-                  {timelineOrder.map((item, index) => (
-                    <TimelineCircle
-                      key={item.year}
-                      year={item.year}
-                      isActive={true}
-                      isStarting={index === 0}
-                      direction={formData.direction}
-                      position={index === 0 ? 'first' : index === timelineOrder.length - 1 ? 'last' : 'middle'}
-                    />
-                  ))}
-                </motion.div>
-              </AnimatePresence>
-            </div>
-          </div>
-
           {/* Reflection Cards */}
           <motion.div 
             className="grid gap-8"
