@@ -287,8 +287,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             </p>
           </div>
 
-          {/* Direction Toggle - Centered */}
-          <div className="flex justify-center mb-8">
+          {/* Direction Toggle and Demo Button */}
+          <div className="flex flex-col items-center space-y-4 mb-8">
             <div className="bg-white rounded-full p-1 border-2 border-gray-200 shadow-lg">
               <div className="flex">
                 <motion.button
@@ -317,6 +317,16 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                 </motion.button>
               </div>
             </div>
+            
+            {/* Demo Button */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={fillDemoData}
+              className="px-4 py-2 bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
+            >
+              Fill with Sample Reflections
+            </motion.button>
           </div>
 
         </div>
