@@ -279,11 +279,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 1: Choose Your Direction</h2>
           
           <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-8">
-            <p className="text-blue-800 leading-relaxed mb-4">
+            <p className="text-blue-800 leading-relaxed">
               Everyone imagines differently. Some start with a bold vision and trace it back. Others build step by step from the present.
-            </p>
-            <p className="text-blue-800 leading-relaxed font-medium">
-              There's no right way—only your way.
             </p>
           </div>
 
@@ -434,7 +431,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             disabled={!hasMinimumContent}
             className={`px-8 py-3 ${
               hasMinimumContent 
-                ? "bg-amber-600 hover:bg-amber-700 text-white" 
+                ? "bg-blue-600 hover:bg-blue-700 text-white" 
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
             size="lg"
