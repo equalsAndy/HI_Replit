@@ -43,34 +43,19 @@ const ReflectionCard: React.FC<ReflectionCardProps> = ({
   isActive,
   index
 }) => {
-  const cardVariants = {
-    hidden: { opacity: 0, y: 50 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { delay: index * 0.2 }
-    }
-  };
-
   return (
-    <motion.div
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      className={`
-        bg-white p-6 rounded-lg border-2 shadow-sm transition-all duration-200
-        ${isActive ? 'border-amber-300 bg-amber-50' : 'border-gray-200'}
-      `}
-    >
-      <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
-      <p className="text-gray-700 mb-4 leading-relaxed">{question}</p>
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+        <p className="text-gray-700 text-sm leading-relaxed">{question}</p>
+      </div>
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Your reflection..."
-        className="min-h-[120px] w-full resize-none border-gray-300 focus:border-amber-400 focus:ring-amber-400"
+        className="min-h-[100px] w-full resize-none bg-white/80 border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
       />
-    </motion.div>
+    </div>
   );
 };
 
@@ -287,79 +272,105 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           />
         </div>
 
-        {/* Direction Choice */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">Step 1: Choose Your Direction</h2>
-          <div className="bg-white p-6 rounded-lg border border-gray-200 mb-6">
-            <p className="text-gray-700 mb-6 leading-relaxed">
-              Everyone imagines differently. Some start with a bold vision and trace it back. 
-              Others build step by step from the present.
-            </p>
-            <p className="text-gray-900 font-medium mb-6">There's no right way—only your way.</p>
-            
-            <div className="flex gap-4">
-              <Button
-                variant={formData.direction === 'backward' ? 'default' : 'outline'}
-                onClick={() => handleDirectionChange('backward')}
-                className={`flex-1 p-4 h-auto ${
-                  formData.direction === 'backward' 
-                    ? 'bg-amber-600 hover:bg-amber-700' 
-                    : 'border-amber-300 text-amber-700 hover:bg-amber-50'
-                }`}
-              >
-                <div className="text-center">
-                  <div className="font-semibold">Start with 20 Years</div>
-                  <div className="text-sm opacity-90">(Bold vision approach)</div>
-                </div>
-              </Button>
-              
-              <Button
-                variant={formData.direction === 'forward' ? 'default' : 'outline'}
-                onClick={() => handleDirectionChange('forward')}
-                className={`flex-1 p-4 h-auto ${
-                  formData.direction === 'forward' 
-                    ? 'bg-amber-600 hover:bg-amber-700' 
-                    : 'border-amber-300 text-amber-700 hover:bg-amber-50'
-                }`}
-              >
-                <div className="text-center">
-                  <div className="font-semibold">Start with 5 Years</div>
-                  <div className="text-sm opacity-90">(Present momentum)</div>
-                </div>
-              </Button>
-            </div>
-          </div>
-        </div>
+
 
         {/* Timeline Reflection Section */}
-        <div className="max-w-6xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 2: Your Timeline</h2>
+        <div className="max-w-5xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Your Timeline Journey</h2>
           
-          {/* Reflection Cards */}
-          <motion.div 
-            className="grid gap-8"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: { staggerChildren: 0.2 }
-              }
-            }}
-            initial="hidden"
-            animate="visible"
-          >
-            {timelineOrder.map((item, index) => (
-              <ReflectionCard
-                key={`${formData.direction}-${item.year}`}
-                title={`${item.year} Years`}
-                question={questions[formData.direction][item.key as keyof typeof questions.backward]}
-                value={formData[item.key as keyof FutureSelfData] as string}
-                onChange={(value) => handleReflectionChange(item.key as keyof FutureSelfData, value)}
-                isActive={true}
-                index={index}
-              />
-            ))}
-          </motion.div>
+          {/* Reflection Cards Grid with Direction Toggle */}
+          <AnimatePresence mode="wait">
+            <motion.div 
+              key={formData.direction}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: { staggerChildren: 0.15 }
+                }
+              }}
+              initial="hidden"
+              animate="visible"
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.3 }}
+            >
+              {timelineOrder.map((item, index) => {
+                // Show direction toggle on the middle card (10 year)
+                const isMiddleCard = item.year === 10;
+                const cardColors = {
+                  20: 'border-purple-200 bg-purple-50',
+                  10: 'border-blue-200 bg-blue-50', 
+                  5: 'border-emerald-200 bg-emerald-50'
+                };
+                
+                return (
+                  <motion.div
+                    key={`${formData.direction}-${item.year}`}
+                    variants={{
+                      hidden: { opacity: 0, y: 30, scale: 0.9 },
+                      visible: { 
+                        opacity: 1, 
+                        y: 0, 
+                        scale: 1,
+                        transition: { 
+                          type: "spring",
+                          stiffness: 200,
+                          damping: 20
+                        }
+                      }
+                    }}
+                    className="relative"
+                  >
+                    <div className={`p-6 rounded-xl border-2 ${cardColors[item.year as keyof typeof cardColors]} shadow-sm hover:shadow-md transition-all duration-300`}>
+                      {/* Direction Toggle for Middle Card */}
+                      {isMiddleCard && (
+                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                          <div className="bg-white rounded-full p-1 border-2 border-gray-200 shadow-lg">
+                            <div className="flex">
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleDirectionChange('backward')}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
+                                  formData.direction === 'backward'
+                                    ? 'bg-amber-500 text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                }`}
+                              >
+                                20→5
+                              </motion.button>
+                              <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => handleDirectionChange('forward')}
+                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ml-1 ${
+                                  formData.direction === 'forward'
+                                    ? 'bg-amber-500 text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-100'
+                                }`}
+                              >
+                                5→20
+                              </motion.button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      <ReflectionCard
+                        title={`${item.year} Years`}
+                        question={questions[formData.direction][item.key as keyof typeof questions.backward]}
+                        value={formData[item.key as keyof FutureSelfData] as string}
+                        onChange={(value) => handleReflectionChange(item.key as keyof FutureSelfData, value)}
+                        isActive={true}
+                        index={index}
+                      />
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Flow Bridge Section */}
