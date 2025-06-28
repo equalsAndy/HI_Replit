@@ -24,69 +24,7 @@ interface FutureSelfData {
   completedAt?: Date;
 }
 
-interface TimelineCircleProps {
-  year: number;
-  isActive: boolean;
-  isStarting: boolean;
-  direction: 'backward' | 'forward';
-  position: 'first' | 'middle' | 'last';
-}
 
-const TimelineCircle: React.FC<TimelineCircleProps> = ({ 
-  year, 
-  isActive, 
-  isStarting, 
-  direction,
-  position 
-}) => {
-  return (
-    <div className="flex flex-col items-center relative">
-      {/* Connecting line above (except for first) */}
-      {position !== 'first' && (
-        <div className="w-1 h-8 bg-amber-200 mb-2" />
-      )}
-      
-      {/* Circle */}
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className={`
-          w-16 h-16 rounded-full border-4 flex items-center justify-center font-bold text-sm
-          ${isStarting 
-            ? 'bg-amber-600 border-amber-700 text-white shadow-lg' 
-            : isActive 
-              ? 'bg-amber-100 border-amber-400 text-amber-800' 
-              : 'bg-amber-50 border-amber-200 text-amber-600'
-          }
-        `}
-      >
-        {year}Y
-      </motion.div>
-      
-      {/* Direction indicator for starting circle */}
-      {isStarting && (
-        <motion.div
-          initial={{ opacity: 0, y: direction === 'backward' ? -10 : 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="absolute -bottom-8 flex items-center text-amber-700"
-        >
-          {direction === 'backward' ? (
-            <ArrowDown className="h-4 w-4" />
-          ) : (
-            <ArrowUp className="h-4 w-4" />
-          )}
-          <span className="text-xs ml-1">Start</span>
-        </motion.div>
-      )}
-      
-      {/* Connecting line below (except for last) */}
-      {position !== 'last' && (
-        <div className="w-1 h-8 bg-amber-200 mt-2" />
-      )}
-    </div>
-  );
-};
 
 interface ReflectionCardProps {
   title: string;
