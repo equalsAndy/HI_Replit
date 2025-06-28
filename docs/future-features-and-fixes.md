@@ -52,6 +52,8 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ### **High Priority**
 *Issues that affect core functionality*
 
+- [ ] **Enhanced Claude System Instructions** - Implement project-aware Claude instructions with workshop separation rules, error prevention, and Heliotrope-specific workflows to reduce development session setup time
+- [ ] **Development Documentation Consolidation** - Create single quick-reference guide to reduce fragmentation across multiple docs (brad-development-guide.md, claude-development-workflow.md, heliotrope-project-knowledge.md)
 - [ ] **Session timeout handling** - Better UX when user sessions expire
 - [ ] **Error boundary improvements** - More graceful error handling throughout app
 - [ ] **Database performance optimization** - Query optimization for large user bases
@@ -60,6 +62,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ### **Medium Priority**
 *Issues that occasionally cause problems*
 
+- [ ] **Logo sizing consistency** - IA and AST logos have different aspect ratios causing inconsistent appearance when using height-based sizing
 - [ ] **Loading state consistency** - Standardize loading indicators across all components
 - [ ] **Mobile responsive design** - Improve mobile experience for smaller screens
 - [ ] **Browser compatibility** - Test and fix issues with older browsers
@@ -78,6 +81,8 @@ This file tracks feature requests, bugs, and improvements that come up during de
 
 ### **Recent Completions** *(Move items here when finished)*
 
+- ✅ **Logo routing and display issues** *(2025-06-27)* - Fixed IA workshop showing AST logo due to incorrect routing, implemented proper workshop detection
+- ✅ **Logo dev vs deployed environment paths** *(2025-06-27)* - Resolved logo path inconsistencies by standardizing Logo component usage across all navigation
 - ✅ **Test user progress display bug** *(2025-06-28)* - Fixed step ID mapping to show correct sequential progress (4-1 → step 10 of 14)
 - ✅ **Admin export permissions** *(2025-06-28)* - Allow admins to access any user data while maintaining security for self-access
 - ✅ **Data export consistency** *(2025-06-28)* - Unified admin and test user export formats to use identical structure
@@ -90,11 +95,21 @@ This file tracks feature requests, bugs, and improvements that come up during de
 
 ## 📝 Implementation Notes
 
+### **Development Workflow Improvements Identified** *(June 2025)*
+- **Claude System Instructions Enhancement**: Need project-aware instructions that include workshop separation rules, error prevention patterns, and Heliotrope-specific constraints to eliminate architecture re-explanation in each session
+- **Documentation Structure Optimization**: Current docs have overlapping information across three files - could benefit from hierarchy with quick-reference sheet for common operations
+- **Workflow Decision Framework**: Three hats analysis revealed need for better error prevention (Black Hat), workflow optimization (Yellow Hat), and creative development approaches (Green Hat)
+- **Automatic Workshop Identification**: Claude should verify AST vs IA context before making any changes to prevent cross-workshop contamination
+- **Built-in Quality Assurance**: System instructions should include verification steps and success criteria for each type of change
+
 ### **Development Patterns Established**
 - Use precision prompts for complex multi-file changes
 - Claude direct editing for simple 1-2 file modifications
 - Always test both admin and test user workflows when making changes
 - Maintain separation between AST and IA workshop logic
+- Enhanced Claude instructions should include automatic workshop identification and verification steps
+- **Logo troubleshooting pattern**: Route detection → Component prop flow → Logo component type → Console debugging → Systematic fix
+- **Routing architecture**: Separate page components for workshops (/imaginal-agility → imaginal-agility.tsx, /allstarteams → allstarteams.tsx)
 
 ### **Architecture Decisions**
 - Test users use admin export endpoint with self-access permissions (session.userRole === 'admin' OR sessionUserId === requestedUserId)
@@ -103,6 +118,9 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - Shared components use `isImaginalAgility` prop for workshop differentiation
 - AST workshop has 14 actual steps (1-1 through 4-5), not 19 as originally implemented
 - Helper functions must be defined before useMemo hooks that reference them to avoid hoisting errors
+- **Logo component architecture**: Centralized Logo.tsx component handles all three logo types (allstarteams, imaginal-agility, heliotrope) with proper Vite asset bundling
+- **Workshop routing separation**: Each workshop has dedicated page component that sets correct currentApp state for proper logo detection
+- **Logo sizing approach**: Width-based responsive sizing (w-48 h-auto) instead of height-based to accommodate different aspect ratios
 
 ### **Testing Checklist Template**
 When implementing new features, test:
