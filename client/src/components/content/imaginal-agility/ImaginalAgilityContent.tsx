@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
-import DiscernmentModal from '../../imaginal-agility/DiscernmentModal';
+import { DiscernmentModal } from '../../imaginal-agility/DiscernmentModal';
 
 // Component for ia-4-1 Assessment step
 const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void }> = ({ onOpenAssessment }) => {
