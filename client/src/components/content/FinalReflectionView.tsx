@@ -54,27 +54,7 @@ export default function FinalReflectionView({
     }
   }, [existingData]);
 
-  // Auto-show modal for completed steps with 5-second countdown
-  useEffect(() => {
-    if (isStepCompleted && savedInsight) {
-      setIsCountingDown(true);
-      setCountdown(5);
-      
-      const timer = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 1) {
-            clearInterval(timer);
-            setIsCountingDown(false);
-            setShowModal(true);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(timer);
-    }
-  }, [isStepCompleted, savedInsight]);
+  // Remove auto-show modal - users will click "View Options" button instead
 
   // Auto-close modal after 20 seconds for first-time completion
   useEffect(() => {
@@ -316,18 +296,12 @@ export default function FinalReflectionView({
                       <p className="completed-text">Workshop completed!</p>
                     </div>
                     
-                    {isCountingDown ? (
-                      <p className="countdown-text">
-                        Options menu opens in {countdown} second{countdown !== 1 ? 's' : ''}...
-                      </p>
-                    ) : (
-                      <button 
-                        className="continue-button enabled" 
-                        onClick={() => setShowModal(true)}
-                      >
-                        View Options
-                      </button>
-                    )}
+                    <button 
+                      className="continue-button enabled" 
+                      onClick={() => setShowModal(true)}
+                    >
+                      View Options
+                    </button>
                   </div>
                 )}
               </div>
