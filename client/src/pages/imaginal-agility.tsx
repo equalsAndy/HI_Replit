@@ -162,7 +162,7 @@ export default function ImaginalAgilityHome() {
     const completedSteps = navProgress.completedSteps || [];
     const iaStepOrder = [
       'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
-      'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'
+      'ia-5-1', 'ia-6-1', 'ia-8-1' // ia-7-1 temporarily hidden
     ];
 
     // Find the next step after the last completed step
@@ -226,7 +226,7 @@ export default function ImaginalAgilityHome() {
     // Define the progression order for IA
     const iaStepOrder = [
       'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
-      'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1', 'ia-9-1'
+      'ia-5-1', 'ia-6-1', 'ia-8-1' // ia-7-1 temporarily hidden, removed ia-9-1
     ];
 
     const currentStepIndex = iaStepOrder.indexOf(stepId);

@@ -500,131 +500,18 @@ const ContentViews: React.FC<ContentViewsProps> = ({
               <Button 
                 onClick={() => {
                   markStepCompleted('ia-6-1');
-                  setCurrentContent('ia-7-1');
+                  setCurrentContent('ia-8-1');
                   scrollToContentTop();
                 }}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
                 size="lg"
               >
-                Next: Reality Discernment
+                Next: Neuroscience
               </Button>
             </div>
           </div>
         );
-      case 'ia-7-1':
-        return (
-          <div className="prose max-w-none">
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-purple-600 mb-2">Overview</h3>
-              <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-4">Reality Discernment</h1>
-            </div>
-            
-            {/* YouTube Video Player */}
-            <div className="mb-6 w-full max-w-3xl mx-auto">
-              <VideoPlayer
-                workshopType="imaginal-agility"
-                stepId="ia-7-1"
-                fallbackUrl="https://youtu.be/U7pQjMYKk_s"
-                title="Reality Discernment"
-                aspectRatio="16:9"
-                autoplay={true}
-              />
-            </div>
-
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">Train Your Mind to Know What's Real.</h2>
-                <p className="text-gray-700">
-                  In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.
-                </p>
-              </div>
-
-              <div>
-                <p className="text-gray-700">
-                  This short learning experience introduces you to the neuroscience behind <em>reality monitoring</em> — the brain's ability to tell what's real from what's imagined — and offers simple, practical tools to strengthen it.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">What You'll Learn:</h3>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Why imagination is your first line of cognitive defense
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    How AI content bypasses our natural filters
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    What neuroscience reveals about perception and deception
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    How to spot manipulation using fast, intuitive techniques
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-3">What You'll Practice:</h3>
-                <ul className="space-y-2 text-gray-700">
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    The <strong>3-Second Reality Check</strong>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    Visual "Real vs. Fake" discernment challenge
-                  </li>
-                  <li className="flex items-start">
-                    <span className="w-2 h-2 bg-gray-400 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-                    The <strong>Discernment Toolkit</strong> — 5 simple tests anyone can use
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-gray-50 p-6 rounded-lg">
-                <h3 className="text-lg font-bold text-gray-900 mb-3">Why It Matters:</h3>
-                <blockquote className="text-gray-700 italic mb-4">
-                  "You can't depend on your eyes when your imagination is out of focus." — Mark Twain
-                </blockquote>
-                <p className="text-gray-700">
-                  This is the starting point for building cognitive resilience — in school, at work, and in leadership. Before we scale imagination, we must sharpen it.
-                </p>
-              </div>
-            </div>
-
-            <div className="space-y-4 mt-8">
-              <button
-                onClick={() => {
-                  console.log('Discernment button clicked!');
-                  setModalOpen(true);
-                  console.log('Modal state set to true');
-                }}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
-              >
-                <span className="text-xl">🎯</span>
-                <span className="font-semibold">Reality Discernment Practice</span>
-              </button>
-              
-              <div className="flex justify-end">
-                <Button 
-                  onClick={() => {
-                    markStepCompleted('ia-7-1');
-                    setCurrentContent('ia-8-1');
-                    scrollToContentTop();
-                  }}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
-                  size="lg"
-                >
-                  Next: The Neuroscience →
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
+      // ia-7-1 case removed - Reality Discernment step hidden
       case 'ia-8-1':
         return (
           <div className="prose max-w-none">

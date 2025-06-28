@@ -46,12 +46,13 @@ export const imaginalAgilityNavigationSections = [
         type: 'collaboration',
         contentKey: 'ia-6-1'
       },
-      { 
-        id: 'ia-7-1', 
-        title: 'Reality Discernment', 
-        type: 'activity',
-        contentKey: 'ia-7-1'
-      },
+      // ia-7-1 temporarily hidden - Reality Discernment
+      // { 
+      //   id: 'ia-7-1', 
+      //   title: 'Reality Discernment', 
+      //   type: 'activity',
+      //   contentKey: 'ia-7-1'
+      // },
       { 
         id: 'ia-8-1', 
         title: 'Neuroscience', 
