@@ -155,6 +155,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   You're not just learning about imagination. You're harnessing it — together.
                 </p>
               </div>
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-2-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: The Triple Challenge
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -238,6 +248,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     These challenges cascade together, creating an urgent need for intentional development of human cognitive capabilities.
                   </p>
                 </div>
+              </div>
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-3-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: Imaginal Agility Solution
+                </Button>
               </div>
             </div>
           </div>
@@ -358,6 +378,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   </div>
                 </div>
               </div>
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-4-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: Self-Assessment
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -413,6 +443,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   <ImaginalAgilityRadarChart data={assessmentResults} />
                 </div>
               )}
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-5-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: Teamwork Preparation
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -538,6 +578,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     Together, you'll enter a shared digital whiteboard space designed for real-time collaboration. This is where individual insights become team breakthroughs.
                   </p>
                 </div>
+              </div>
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-6-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: Discernment Guide
+                </Button>
               </div>
             </div>
           </div>
@@ -711,6 +761,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   </p>
                 </div>
               </div>
+              </div>
+              
+              {/* Next Button */}
+              <div className="flex justify-end mt-8">
+                <Button 
+                  onClick={() => onNext && onNext('ia-8-1')}
+                  className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+                >
+                  Next: The Neuroscience
+                </Button>
               </div>
             </div>
           </div>
