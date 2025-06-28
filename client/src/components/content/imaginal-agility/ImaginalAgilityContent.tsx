@@ -383,37 +383,37 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       </div>
                     </div>
                     
-                    {/* Large screens and up: 5 columns - BIGGER graphics */}
+                    {/* Large screens and up: 5 columns - Moderately sized graphics */}
                     <div className="hidden lg:grid grid-cols-5 gap-8 justify-items-center">
-                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
                         <img 
                           src="/assets/Imagination_1749499596783.png" 
                           alt="Imagination" 
                           className="w-full h-full object-contain"
                         />
                       </div>
-                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
                         <img 
                           src="/assets/Curiosity_1749499596783.png" 
                           alt="Curiosity" 
                           className="w-full h-full object-contain"
                         />
                       </div>
-                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
                         <img 
                           src="/assets/Creativity_1749499596783.png" 
                           alt="Creativity" 
                           className="w-full h-full object-contain"
                         />
                       </div>
-                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
                         <img 
                           src="/assets/courage_1749499596782.png" 
                           alt="Courage" 
                           className="w-full h-full object-contain"
                         />
                       </div>
-                      <div className="w-52 h-52 xl:w-60 xl:h-60 flex items-center justify-center flex-shrink-0">
+                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
                         <img 
                           src="/assets/empathy_1749499596783.png" 
                           alt="Empathy" 
