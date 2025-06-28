@@ -22,11 +22,9 @@ const TestUserTools: React.FC<TestUserToolsProps> = ({ userId }) => {
   const handleExportData = async () => {
     setIsExporting(true);
     try {
-      const response = await fetch('/api/user/export-data', {
+      const response = await fetch(`/api/admin/users/${userId}/export`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -35,25 +33,21 @@ const TestUserTools: React.FC<TestUserToolsProps> = ({ userId }) => {
 
       const data = await response.json();
       
-      if (data.success) {
-        // Create and download JSON file
-        const dataStr = JSON.stringify(data.userData, null, 2);
-        const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        
-        const exportFileDefaultName = `test-user-data-${userId}-${new Date().toISOString().split('T')[0]}.json`;
-        
-        const linkElement = document.createElement('a');
-        linkElement.setAttribute('href', dataUri);
-        linkElement.setAttribute('download', exportFileDefaultName);
-        linkElement.click();
-        
-        toast({
-          title: 'Data Exported',
-          description: 'Your test user data has been downloaded successfully.',
-        });
-      } else {
-        throw new Error(data.error || 'Export failed');
-      }
+      // Create and download JSON file
+      const dataStr = JSON.stringify(data, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `test-user-data-${userId}-${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+      
+      toast({
+        title: 'Data Exported',
+        description: 'Your test user data has been downloaded successfully.',
+      });
     } catch (error) {
       console.error('Export error:', error);
       toast({
