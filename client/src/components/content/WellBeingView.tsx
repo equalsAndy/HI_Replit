@@ -259,7 +259,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         </div>
 
         {/* Content below video */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
           {/* SVG Ladder - larger on bigger screens */}
           <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
             <div className="w-full xl:w-11/12 2xl:w-full">
@@ -339,36 +339,36 @@ const WellBeingView: React.FC<ContentViewProps> = ({
         </div>
 
         {/* Interpretation section - as per provided content */}
-        <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
+        <div className="bg-amber-50 p-4 rounded-lg border border-amber-100 mb-6">
           <h3 className="text-amber-800 font-medium mb-3">
             Interpreting Your Position on the Ladder
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-              <h4 className="font-medium text-amber-800 mb-2">
+            <div className="bg-white bg-opacity-60 p-3 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2 text-sm">
                 Steps 0-4: Struggling
               </h4>
-              <p className="text-sm text-amber-700">
+              <p className="text-xs text-amber-700">
                 People in this range typically report high levels of worry,
                 sadness, stress, and pain. Daily challenges may feel
                 overwhelming, and hope for the future may be limited.
               </p>
             </div>
-            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-              <h4 className="font-medium text-amber-800 mb-2">
+            <div className="bg-white bg-opacity-60 p-3 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2 text-sm">
                 Steps 5-6: Getting By
               </h4>
-              <p className="text-sm text-amber-700">
+              <p className="text-xs text-amber-700">
                 This middle range represents moderate satisfaction with life.
                 You likely have some important needs met but still face
                 significant challenges or unfulfilled aspirations.
               </p>
             </div>
-            <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
-              <h4 className="font-medium text-amber-800 mb-2">
+            <div className="bg-white bg-opacity-60 p-3 rounded-md border border-amber-100">
+              <h4 className="font-medium text-amber-800 mb-2 text-sm">
                 Steps 7-10: Thriving
               </h4>
-              <p className="text-sm text-amber-700">
+              <p className="text-xs text-amber-700">
                 People in this range report high life satisfaction, with most
                 basic needs met. They typically experience a sense of purpose,
                 strong social connections, and optimism.

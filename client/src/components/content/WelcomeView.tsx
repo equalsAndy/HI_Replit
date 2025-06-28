@@ -233,34 +233,34 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             <p className="text-lg text-gray-700 mb-4">
               This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
             </p>
-            <ul className="space-y-2 mb-6 ml-6">
+            <ul className="space-y-2 mb-6">
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-blue-600 mr-3 mt-2"></div>
-                <span>Discover your Star Strengths</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">Discover your Star Strengths</span>
               </li>
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-blue-600 mr-3 mt-2"></div>
-                <span>Identify your Flow State</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">Identify your Flow State</span>
               </li>
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-blue-600 mr-3 mt-2"></div>
-                <span>Visualize your Professional Growth</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">Visualize your Professional Growth</span>
               </li>
             </ul>
 
             <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
-            <ul className="space-y-2 mb-8 ml-6">
+            <ul className="space-y-2 mb-6">
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-green-600 mr-3 mt-2"></div>
-                <span>A personalized Digital Star Card</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">A personalized Digital Star Card</span>
               </li>
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-green-600 mr-3 mt-2"></div>
-                <span>A personalized AI Holistic Profile Report</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">A personalized AI Holistic Profile Report</span>
               </li>
               <li className="flex items-start">
-                <div className="h-2 w-2 rounded-full bg-green-600 mr-3 mt-2"></div>
-                <span>Readiness for High-Impact Teamwork Practice</span>
+                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
               </li>
             </ul>
 
@@ -268,7 +268,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             <p className="text-lg text-gray-700 mb-6">
               Join your teammates in a guided session where you'll bring your insights to life.
             </p>
-            <p className="text-lg text-gray-700 mb-8">
+            <p className="text-lg text-gray-700 mb-6">
               Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
             </p>
           </>

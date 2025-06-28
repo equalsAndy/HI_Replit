@@ -62,23 +62,23 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
           Thinking, Acting, Feeling, Planning, and Imagining.
         </p>
 
-        <div className="bg-blue-50 rounded-lg p-6 mb-6 border border-blue-100">
-          <ul className="space-y-3">
+        <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100">
+          <ul className="space-y-2">
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>22 short questions about how you approach work and collaboration</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">22 short questions about how you approach work and collaboration</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>Takes approximately 10–15 minutes to complete</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">Takes approximately 10–15 minutes to complete</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>You'll order your responses from most like you (1) to least like you (4)</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">You'll order your responses from most like you (1) to least like you (4)</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-blue-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>Generates your personal Star Card—a visual snapshot of your strengths</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">Generates your personal Star Card—a visual snapshot of your strengths</span>
             </li>
           </ul>
         </div>
@@ -90,16 +90,16 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
           <ul className="space-y-2">
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>There are no right or wrong answers—just be honest about what feels true to you.</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">There are no right or wrong answers—just be honest about what feels true to you.</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">The four core strengths are quantified, color-coded, and placed on your Star Card based on your responses.</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-gray-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">Your fifth strength, Imagination, is not ranked or measured here. It appears at the top of your Star Card—blank like a canvas, symbolizing your unique potential.</span>
             </li>
           </ul>
         </div>
@@ -111,12 +111,12 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
         <div className="bg-green-50 rounded-lg p-4 mb-6 border border-green-200">
           <ul className="space-y-2">
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>Think, Act, Feel, and Plan are placed on the card based on how you use them.</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">Think, Act, Feel, and Plan are placed on the card based on how you use them.</span>
             </li>
             <li className="flex items-start">
-              <span className="inline-block w-2 h-2 bg-green-500 rounded-full mt-2 mr-3 flex-shrink-0"></span>
-              <span>Imagination appears at the apex, as your limitless fifth strength.</span>
+              <span className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></span>
+              <span className="text-sm">Imagination appears at the apex, as your limitless fifth strength.</span>
             </li>
           </ul>
         </div>
