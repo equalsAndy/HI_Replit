@@ -275,8 +275,9 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
 
         {/* Step 1: Choose Your Direction */}
-        <div className="max-w-4xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Step 1: Choose Your Direction</h2>
+        <div className="max-w-5xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 1: Choose Your Direction</h2>
+          
           <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 mb-8">
             <p className="text-blue-800 leading-relaxed mb-4">
               Everyone imagines differently. Some start with a bold vision and trace it back. Others build step by step from the present.
@@ -285,21 +286,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               There's no right way—only your way.
             </p>
           </div>
-        </div>
 
-        {/* Timeline Image */}
-        <div className="max-w-2xl mx-auto mb-12 text-center">
-          <img 
-            src="/future_self_image.png" 
-            alt="Future Self Timeline" 
-            className="w-full h-auto rounded-lg shadow-sm"
-          />
-        </div>
-
-        {/* Step 2: Timeline Reflection Section */}
-        <div className="max-w-5xl mx-auto mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 2: Explore Your Timeline</h2>
-          
           {/* Direction Toggle - Centered */}
           <div className="flex justify-center mb-8">
             <div className="bg-white rounded-full p-1 border-2 border-gray-200 shadow-lg">
@@ -332,6 +319,12 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             </div>
           </div>
 
+        </div>
+
+        {/* Step 2: Timeline Reflection Section */}
+        <div className="max-w-5xl mx-auto mb-12">
+          <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Step 2: Explore Your Timeline</h2>
+          
           {/* Reflection Cards - Vertical Layout */}
           <AnimatePresence mode="wait">
             <motion.div 
