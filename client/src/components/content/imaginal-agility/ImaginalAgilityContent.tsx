@@ -517,6 +517,36 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                         }} />
                       </div>
                       
+                      {/* Individual Capability Scores with Icons */}
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8 mb-8">
+                        <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">Your Capability Scores</h3>
+                        
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                          {[
+                            {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/imagination_sq.png', color: 'from-gray-100 to-gray-200'},
+                            {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/curiosity_sq.png', color: 'from-green-100 to-green-200'},
+                            {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/creativity_sq.png', color: 'from-orange-100 to-orange-200'},
+                            {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'from-red-100 to-red-200'},
+                            {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'from-blue-100 to-blue-200'}
+                          ].map(item => (
+                            <div key={item.capacity} className={`bg-gradient-to-br ${item.color} p-6 rounded-xl border border-gray-200 text-center`}>
+                              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                <img 
+                                  src={item.icon} 
+                                  alt={item.capacity} 
+                                  className="w-full h-full object-contain"
+                                />
+                              </div>
+                              <h4 className="font-semibold text-gray-800 mb-2">{item.capacity}</h4>
+                              <div className="text-2xl font-bold text-gray-900 mb-2">{item.score.toFixed(1)}</div>
+                              <div className="text-sm text-gray-600">
+                                {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      
                       {/* Interpretation Guide */}
                       <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-4">Understanding Your Profile</h3>
