@@ -521,25 +521,25 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8 mb-8">
                         <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">Your Capability Scores</h3>
                         
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                           {[
-                            {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/imagination_sq.png', color: 'from-gray-100 to-gray-200'},
-                            {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/curiosity_sq.png', color: 'from-green-100 to-green-200'},
-                            {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/creativity_sq.png', color: 'from-orange-100 to-orange-200'},
-                            {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'from-red-100 to-red-200'},
-                            {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'from-blue-100 to-blue-200'}
+                            {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/imagination_sq.png', color: 'bg-gray-50 border-gray-200'},
+                            {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/curiosity_sq.png', color: 'bg-green-50 border-green-200'},
+                            {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/creativity_sq.png', color: 'bg-orange-50 border-orange-200'},
+                            {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'bg-red-50 border-red-200'},
+                            {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'bg-blue-50 border-blue-200'}
                           ].map(item => (
-                            <div key={item.capacity} className={`bg-gradient-to-br ${item.color} p-6 rounded-xl border border-gray-200 text-center`}>
-                              <div className="w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                            <div key={item.capacity} className={`${item.color} p-4 rounded-lg border text-center flex flex-col items-center justify-center min-h-[180px]`}>
+                              <div className="w-12 h-12 mb-3 flex items-center justify-center">
                                 <img 
                                   src={item.icon} 
                                   alt={item.capacity} 
                                   className="w-full h-full object-contain"
                                 />
                               </div>
-                              <h4 className="font-semibold text-gray-800 mb-2">{item.capacity}</h4>
-                              <div className="text-2xl font-bold text-gray-900 mb-2">{item.score.toFixed(1)}</div>
-                              <div className="text-sm text-gray-600">
+                              <h4 className="font-semibold text-gray-800 mb-2 text-sm">{item.capacity}</h4>
+                              <div className="text-xl font-bold text-purple-700 mb-1">{item.score.toFixed(1)}</div>
+                              <div className="text-xs text-gray-600">
                                 {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
                               </div>
                             </div>
@@ -547,68 +547,19 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                         </div>
                       </div>
                       
-                      {/* Interpretation Guide */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-4">Understanding Your Profile</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                          <div>
-                            <h4 className="font-medium text-green-800 mb-2">Strengths (4.0+)</h4>
-                            <p className="text-sm text-gray-600 mb-3">
-                              These capacities are your superpowers. Leverage them in your work and relationships.
-                            </p>
-                            <ul className="text-sm text-gray-700 space-y-1">
-                              {[
-                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
-                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
-                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
-                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
-                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
-                              ].filter(item => item.score >= 4.0).map(item => (
-                                <li key={item.capacity} className="flex items-center">
-                                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                                  {item.capacity}: {item.score.toFixed(1)}
-                                </li>
-                              ))}
-                              {[
-                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
-                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
-                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
-                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
-                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
-                              ].filter(item => item.score >= 4.0).length === 0 && (
-                                <li className="text-gray-500 italic">No areas currently at 4.0 or above</li>
-                              )}
-                            </ul>
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-blue-800 mb-2">Growth Areas (Below 3.5)</h4>
-                            <p className="text-sm text-gray-600 mb-3">
-                              Consider developing these areas through targeted practice and reflection.
-                            </p>
-                            <ul className="text-sm text-gray-700 space-y-1">
-                              {[
-                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
-                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
-                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
-                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
-                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
-                              ].filter(item => item.score < 3.5).map(item => (
-                                <li key={item.capacity} className="flex items-center">
-                                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                                  {item.capacity}: {item.score.toFixed(1)}
-                                </li>
-                              ))}
-                              {[
-                                {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0},
-                                {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0},
-                                {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0},
-                                {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0},
-                                {capacity: 'Courage', score: parseFloat(resultData.courage) || 0}
-                              ].filter(item => item.score < 3.5).length === 0 && (
-                                <li className="text-gray-500 italic">No areas currently below 3.5</li>
-                              )}
-                            </ul>
-                          </div>
+                      {/* Simplified Interpretation */}
+                      <div className="bg-white border border-gray-200 rounded-lg p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Understanding Your Results</h3>
+                        <div className="text-center space-y-2">
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-green-700">Strengths (4.0+):</span> Your natural superpowers - leverage these capabilities
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-blue-700">Developing (3.5-3.9):</span> Strong foundation - ready for advanced practice
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            <span className="font-medium text-orange-700">Growth Areas (<3.5):</span> Opportunities for intentional development
+                          </p>
                         </div>
                       </div>
                       
