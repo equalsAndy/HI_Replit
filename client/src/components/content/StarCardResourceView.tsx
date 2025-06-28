@@ -4,6 +4,7 @@ import StarCard from '@/components/starcard/StarCard';
 import { Button } from '@/components/ui/button';
 import { Download, Star } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 
 const StarCardResourceView: React.FC<ContentViewProps> = ({
   navigate,
@@ -160,58 +161,6 @@ const StarCardResourceView: React.FC<ContentViewProps> = ({
   );
 };
 
-// Helper function to determine attribute color based on its category
-const getAttributeCategory = (attribute: string): 'green' | 'blue' | 'yellow' | 'red' | 'default' => {
-  const greenAttributes = [
-    'Abstract', 'Analytic', 'Analytical', 'Astute', 'Big Picture', 'Clever', 'Curious', 'Focussed', 'Focused',
-    'Innovative', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 
-    'Sensible', 'Strategic', 'Thoughtful'
-  ].map(a => a.toLowerCase());
-  
-  const blueAttributes = [
-    'Accepting', 'Authentic', 'Calm', 'Caring', 'Collaborative', 'Compassionate', 'Connected',
-    'Considerate', 'Diplomatic', 'Emotional', 'Empathetic', 'Empathic', 'Friendly', 'Generous',
-    'Gentle', 'Grateful', 'Harmonious', 'Helpful', 'Kind', 'Open', 'Sociable', 'Supportive', 
-    'Vulnerable', 'Creative', 'Encouraging', 'Expressive', 'Intuitive', 'Inspiring', 
-    'Passionate', 'Positive', 'Receptive'
-  ].map(a => a.toLowerCase());
-  
-  const yellowAttributes = [
-    'Careful', 'Consistent', 'Controlled', 'Dependable', 'Detailed', 'Detail-Oriented', 'Diligent',
-    'Methodical', 'Meticulous', 'Orderly', 'Organized', 'Precise', 'Punctual',
-    'Reliable', 'Responsible', 'Thorough', 'Trustworthy', 'Immersed', 'Industrious',
-    'Straightforward', 'Tidy', 'Systematic'
-  ].map(a => a.toLowerCase());
-  
-  const redAttributes = [
-    'Adaptable', 'Adventurous', 'Adventuresome', 'Assertive', 'Brave', 'Capable', 'Challenging',
-    'Confident', 'Courageous', 'Decisive', 'Dynamic', 'Energetic', 'Fearless',
-    'Physical', 'Resolute', 'Resourceful', 'Strong', 'Competitive', 'Effortless',
-    'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 'Practical', 
-    'Resilient', 'Spontaneous', 'Vigorous'
-  ].map(a => a.toLowerCase());
-  
-  const lowerAttribute = attribute.toLowerCase();
-  
-  if (greenAttributes.includes(lowerAttribute)) return 'green';
-  if (blueAttributes.includes(lowerAttribute)) return 'blue';
-  if (yellowAttributes.includes(lowerAttribute)) return 'yellow';
-  if (redAttributes.includes(lowerAttribute)) return 'red';
-  
-  return 'default';
-};
 
-// Get color for an attribute based on its category
-const getAttributeColor = (attribute: string): string => {
-  const category = getAttributeCategory(attribute);
-  
-  switch(category) {
-    case 'green': return 'rgb(1, 162, 82)';    // Green - Thinking
-    case 'blue': return 'rgb(22, 126, 253)';   // Blue - Feeling
-    case 'yellow': return 'rgb(255, 203, 47)'; // Yellow - Planning
-    case 'red': return 'rgb(241, 64, 64)';     // Red - Acting
-    default: return 'rgb(156, 163, 175)';      // Medium gray - Default
-  }
-};
 
 export default StarCardResourceView;
