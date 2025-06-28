@@ -518,8 +518,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       </div>
                       
                       {/* Individual Capability Scores with Icons */}
-                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-8 mb-8">
-                        <h3 className="text-xl font-semibold text-gray-900 mb-6 text-center">Your Capability Scores</h3>
+                      <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 mb-8">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-3 text-center">Your Capability Scores</h3>
                         
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                           {[
