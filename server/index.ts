@@ -5,7 +5,7 @@ import cookieParser from 'cookie-parser';
 import { router } from './routes';
 import reportRoutes from './routes/report-routes';
 import adminUploadRoutes from './routes/admin-upload-routes';
-import discernmentRoutes from './routes/discernment-routes.js';
+import discernmentRoutes from './routes/discernment-routes';
 import { initializeDatabase } from './db';
 import path from 'path';
 import multer from 'multer';
