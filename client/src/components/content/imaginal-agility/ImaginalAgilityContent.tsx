@@ -529,16 +529,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                             {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'bg-red-50 border-red-200'},
                             {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'bg-blue-50 border-blue-200'}
                           ].map(item => (
-                            <div key={item.capacity} className={`${item.color} p-4 rounded-lg border text-center flex flex-col items-center justify-center min-h-[180px]`}>
-                              <div className="w-12 h-12 mb-3 flex items-center justify-center">
+                            <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[140px]`}>
+                              <div className="w-16 h-16 mb-2 flex items-center justify-center">
                                 <img 
                                   src={item.icon} 
                                   alt={item.capacity} 
                                   className="w-full h-full object-contain"
                                 />
                               </div>
-                              <h4 className="font-semibold text-gray-800 mb-2 text-sm">{item.capacity}</h4>
-                              <div className="text-xl font-bold text-purple-700 mb-1">{item.score.toFixed(1)}</div>
+                              <h4 className="font-semibold text-gray-800 mb-1 text-sm">{item.capacity}</h4>
+                              <div className="text-xl font-bold text-purple-700">{item.score.toFixed(1)}</div>
                               <div className="text-xs text-gray-600">
                                 {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
                               </div>
