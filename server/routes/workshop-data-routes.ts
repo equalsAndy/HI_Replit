@@ -730,40 +730,76 @@ workshopDataRouter.post('/future-self', async (req: Request, res: Response) => {
       });
     }
     
-    const { futureSelfDescription, visualizationNotes, additionalNotes } = req.body;
-    
-    // Validation
-    if (!futureSelfDescription || typeof futureSelfDescription !== 'string' || futureSelfDescription.trim().length === 0 || futureSelfDescription.length > 1000) {
+    // Handle both new timeline structure and legacy format for backward compatibility
+    const { 
+      direction,
+      twentyYearVision, 
+      tenYearMilestone, 
+      fiveYearFoundation, 
+      flowOptimizedLife,
+      // Legacy fields for backward compatibility
+      futureSelfDescription, 
+      visualizationNotes, 
+      additionalNotes 
+    } = req.body;
+
+    // Validate that at least one field has meaningful content
+    const hasContent = (
+      (twentyYearVision && twentyYearVision.trim().length >= 10) ||
+      (tenYearMilestone && tenYearMilestone.trim().length >= 10) ||
+      (fiveYearFoundation && fiveYearFoundation.trim().length >= 10) ||
+      (flowOptimizedLife && flowOptimizedLife.trim().length >= 10) ||
+      (futureSelfDescription && futureSelfDescription.trim().length >= 10) ||
+      (visualizationNotes && visualizationNotes.trim().length >= 10)
+    );
+
+    if (!hasContent) {
       return res.status(400).json({
         success: false,
-        error: 'Future Self Description is required and must be 1-1000 characters',
-        code: 'VALIDATION_ERROR',
-        details: { futureSelfDescription: 'Required field, 1-1000 characters' }
+        error: 'At least one reflection field must contain at least 10 characters',
+        code: 'VALIDATION_ERROR'
       });
     }
-    
-    if (visualizationNotes && (typeof visualizationNotes !== 'string' || visualizationNotes.length > 1000)) {
+
+    // Validate individual field lengths (max 2000 for timeline fields)
+    const validateField = (field: string, value: string, maxLength: number = 2000) => {
+      if (value && (typeof value !== 'string' || value.length > maxLength)) {
+        throw new Error(`${field} must be a string with maximum ${maxLength} characters`);
+      }
+    };
+
+    try {
+      validateField('twentyYearVision', twentyYearVision);
+      validateField('tenYearMilestone', tenYearMilestone); 
+      validateField('fiveYearFoundation', fiveYearFoundation);
+      validateField('flowOptimizedLife', flowOptimizedLife);
+      validateField('futureSelfDescription', futureSelfDescription, 1000);
+      validateField('visualizationNotes', visualizationNotes, 1000);
+      validateField('additionalNotes', additionalNotes, 1000);
+    } catch (validationError) {
       return res.status(400).json({
         success: false,
-        error: 'Visualization Notes must be 1-1000 characters if provided',
-        code: 'VALIDATION_ERROR',
-        details: { visualizationNotes: 'Optional field, 1-1000 characters' }
+        error: validationError.message,
+        code: 'VALIDATION_ERROR'
       });
     }
-    
-    if (additionalNotes && (typeof additionalNotes !== 'string' || additionalNotes.length > 1000)) {
-      return res.status(400).json({
-        success: false,
-        error: 'Additional Notes must be 1-1000 characters if provided',
-        code: 'VALIDATION_ERROR',
-        details: { additionalNotes: 'Optional field, 1-1000 characters' }
-      });
-    }
-    
+
+    // Build assessment data structure (supports both new and legacy formats)
     const assessmentData = {
-      futureSelfDescription: futureSelfDescription.trim(),
-      visualizationNotes: visualizationNotes ? visualizationNotes.trim() : undefined,
-      additionalNotes: additionalNotes ? additionalNotes.trim() : undefined
+      // New timeline structure
+      direction: direction || 'backward',
+      twentyYearVision: twentyYearVision ? twentyYearVision.trim() : '',
+      tenYearMilestone: tenYearMilestone ? tenYearMilestone.trim() : '',
+      fiveYearFoundation: fiveYearFoundation ? fiveYearFoundation.trim() : '',
+      flowOptimizedLife: flowOptimizedLife ? flowOptimizedLife.trim() : '',
+      
+      // Legacy fields for backward compatibility
+      futureSelfDescription: futureSelfDescription ? futureSelfDescription.trim() : '',
+      visualizationNotes: visualizationNotes ? visualizationNotes.trim() : '',
+      additionalNotes: additionalNotes ? additionalNotes.trim() : '',
+      
+      // Completion timestamp
+      completedAt: new Date().toISOString()
     };
     
     // Check if assessment already exists
