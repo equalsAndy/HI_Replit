@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import imaginalAgilityLogo from '@assets/imaginal_agility_logo_nobkgrd.png';
-import { DiscernmentModal } from '../../imaginal-agility/DiscernmentModal';
+
 
 // Component for ia-4-1 Assessment step
 const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void }> = ({ onOpenAssessment }) => {
@@ -93,10 +93,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   assessmentResults,
   user
 }) => {
-  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
-  
-  // Debug logging
-  console.log('ImaginalAgilityContent - showDiscernmentModal:', showDiscernmentModal);
+
 
   const renderStepContent = () => {
     switch (stepId) {
@@ -800,19 +797,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               </ul>
             </div>
 
-            {/* Practice and Navigation Buttons */}
+            {/* Navigation Button */}
             <div className="space-y-4 mt-8">
-              <button
-                onClick={() => {
-                  console.log('Button clicked - setting modal to true');
-                  setShowDiscernmentModal(true);
-                }}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
-              >
-                <span className="text-xl">🎯</span>
-                <span className="font-semibold">Reality Discernment Practice</span>
-              </button>
-              
               <button
                 onClick={() => onNext && onNext('ia-8-1')}
                 className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors"
@@ -820,12 +806,6 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 Next: The Neuroscience →
               </button>
             </div>
-
-            {/* Discernment Modal */}
-            <DiscernmentModal
-              isOpen={showDiscernmentModal}
-              onClose={() => setShowDiscernmentModal(false)}
-            />
           </div>
         );
 
