@@ -446,6 +446,8 @@ export default function AllStarTeams() {
       // For steps not defined in the sequence (like resource items)
       console.log(`🧭 No navigation info found for ${stepId}, showing placeholder`);
       setCurrentContent(`placeholder-${stepId}`);
+      // Scroll to content top anchor
+      document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
       // DO NOT auto-mark as completed - only Next button progression should do this
       return;
     }
@@ -453,6 +455,9 @@ export default function AllStarTeams() {
     // Set the content based on the navigation mapping
     console.log(`🧭 Setting content to: ${navInfo.contentKey}`);
     setCurrentContent(navInfo.contentKey);
+    
+    // Scroll to content top anchor
+    document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
 
     // SIMPLIFIED MODE: Menu clicks should NEVER mark steps as completed
     // Only Next button progression should mark steps complete
@@ -464,6 +469,11 @@ export default function AllStarTeams() {
       setCurrentContent('flow-assessment');
     }
   };
+
+  // Scroll to top when currentContent changes (including programmatic navigation)
+  useEffect(() => {
+    document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentContent]);
 
   // Data check for debugging
   const hasData = React.useMemo(() => {
@@ -555,6 +565,8 @@ export default function AllStarTeams() {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
+          {/* Anchor for scroll-to-top navigation */}
+          <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
           <AllStarTeamsContent
             currentContent={currentContent}
             markStepCompleted={markNavStepCompleted}

@@ -256,9 +256,16 @@ export default function ImaginalAgilityHome() {
     // For IA workshop, navigate directly to step IDs
     if (isStepAccessible(sectionId, stepId)) {
       setCurrentContent(stepId);
+      // Scroll to content top anchor
+      document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
       // Note: Don't auto-complete steps on navigation - only when user explicitly progresses
     }
   };
+
+  // Scroll to top when currentContent changes (including programmatic navigation)
+  useEffect(() => {
+    document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
+  }, [currentContent]);
 
   return (
     <div className="flex flex-col h-screen bg-gray-50">
@@ -290,6 +297,8 @@ export default function ImaginalAgilityHome() {
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
+          {/* Anchor for scroll-to-top navigation */}
+          <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
           <ContentViews
             currentContent={currentContent}
             navigate={navigate}
