@@ -90,10 +90,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
   assessmentResults,
   user
 }) => {
-  const [showDiscernmentModal, setShowDiscernmentModal] = useState(false);
-  
-  // Debug logging
-  console.log('ImaginalAgilityContent - showDiscernmentModal:', showDiscernmentModal);
+
 
   const renderStepContent = () => {
     switch (stepId) {
@@ -204,10 +201,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
                         <span className="text-white font-bold text-xl">1</span>
                       </div>
-                      <h3 className="text-lg font-semibold text-red-800">Cognitive Decline</h3>
+                      <h3 className="text-lg font-semibold text-red-800">Metacognitive Laziness</h3>
                     </div>
                     <p className="text-sm text-red-700 text-center">
-                      Over-reliance on AI tools diminishing critical thinking and problem-solving capabilities
+                      Outsourcing thinking and sense-making to AI systems, weakening our ability to think critically
                     </p>
                   </div>
                   
@@ -216,10 +213,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
                         <span className="text-white font-bold text-xl">2</span>
                       </div>
-                      <h3 className="text-lg font-semibold text-orange-800">Imagination Atrophy</h3>
+                      <h3 className="text-lg font-semibold text-orange-800">Imagination Deficit</h3>
                     </div>
                     <p className="text-sm text-orange-700 text-center">
-                      Reduced capacity for creative thinking and innovative problem-solving approaches
+                      Diminishing the generative core of human potential through AI dependency
                     </p>
                   </div>
                   
@@ -228,10 +225,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                       <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3">
                         <span className="text-white font-bold text-xl">3</span>
                       </div>
-                      <h3 className="text-lg font-semibold text-yellow-800">Reality Confusion</h3>
+                      <h3 className="text-lg font-semibold text-yellow-800">Psychological Debt</h3>
                     </div>
                     <p className="text-sm text-yellow-700 text-center">
-                      Difficulty distinguishing between AI-generated and authentic human content
+                      Accumulating fatigue, disconnection, and loss of purpose from AI over-reliance
                     </p>
                   </div>
                 </div>
@@ -291,7 +288,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-purple-100">
                       <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
                         <img 
-                          src="/attached_assets/Imagination_1749499596783.png" 
+                          src="/assets/Imagination_1749499596783.png" 
                           alt="Imagination" 
                           className="w-full h-full object-contain"
                         />
@@ -303,7 +300,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-blue-100">
                       <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
                         <img 
-                          src="/attached_assets/Curiosity_1749499596783.png" 
+                          src="/assets/Curiosity_1749499596783.png" 
                           alt="Curiosity" 
                           className="w-full h-full object-contain"
                         />
@@ -315,7 +312,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-green-100">
                       <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
                         <img 
-                          src="/attached_assets/Creativity_1749499596783.png" 
+                          src="/assets/Creativity_1749499596783.png" 
                           alt="Creativity" 
                           className="w-full h-full object-contain"
                         />
@@ -327,7 +324,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-orange-100">
                       <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
                         <img 
-                          src="/attached_assets/courage_1749499596782.png" 
+                          src="/assets/courage_1749499596782.png" 
                           alt="Courage" 
                           className="w-full h-full object-contain"
                         />
@@ -339,7 +336,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                     <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-pink-100">
                       <div className="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
                         <img 
-                          src="/attached_assets/empathy_1749499596783.png" 
+                          src="/assets/empathy_1749499596783.png" 
                           alt="Empathy" 
                           className="w-full h-full object-contain"
                         />
@@ -437,7 +434,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                     <iframe 
                       src="https://www.youtube.com/embed/hOV2zaWVxeU" 
-                      title="Teamwork Preparation" 
+                      title="Assessment Results" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowFullScreen
@@ -453,10 +450,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
                 <div className="text-center mb-8">
                   <h3 className="text-2xl font-bold text-purple-800 mb-4">
-                    Welcome to the Next Stage of the Imaginal Agility Workshop
+                    Your Assessment Results
                   </h3>
                   <p className="text-lg text-gray-700 leading-relaxed">
-                    Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.
+                    Now that you've completed your self-assessment, let's explore your radar profile and understand your unique Imaginal Agility strengths.
                   </p>
                 </div>
                 
@@ -562,8 +559,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 <div className="w-full max-w-2xl">
                   <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                     <iframe 
-                      src="https://www.youtube.com/embed/U7pQjMYKk_s" 
-                      title="Discernment Guide" 
+                      src="https://www.youtube.com/embed/hOV2zaWVxeU" 
+                      title="Teamwork Preparation" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowFullScreen
@@ -574,23 +571,46 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               </div>
             </div>
             
-            {/* Content Cards */}
-            <div className="space-y-8">
-              {/* Reality Discernment Header */}
-              <div className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-8 border border-red-200">
-                <h2 className="text-3xl font-bold text-red-800 text-center mb-4">REALITY DISCERNMENT</h2>
-                <p className="text-xl font-semibold text-center text-red-700 mb-6">Train Your Mind to Know What's Real.</p>
-                <p className="text-lg text-gray-700 text-center leading-relaxed">
-                  In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.
-                </p>
-              </div>
-              
-              {/* Introduction */}
-              <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-                <p className="text-lg text-gray-700 leading-relaxed mb-6">
-                  This short learning experience introduces you to the neuroscience behind reality monitoring — the brain's ability to tell what's real from what's imagined — and offers practical tools.
-                </p>
-              </div>
+            {/* Content Card */}
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-8">
+                <div className="text-center mb-8">
+                  <h3 className="text-2xl font-bold text-purple-800 mb-4">
+                    Welcome to the Next Stage of the Imaginal Agility Workshop
+                  </h3>
+                  <p className="text-lg text-gray-700 leading-relaxed">
+                    Now that you've completed your self-assessment and explored your radar profile, it's time to bring your imagination into action — with your team.
+                  </p>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <h4 className="text-lg font-semibold text-purple-800 mb-3">What's Next</h4>
+                  <p className="text-gray-700 leading-relaxed">
+                    This workshop is designed to help teams develop their collective Imaginal Agility. You've now gained insight into your personal strengths and can contribute meaningfully to your team's journey forward.
+                  </p>
+                </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
+                    <h4 className="text-lg font-semibold text-blue-800 mb-3">Individual Preparation</h4>
+                    <ul className="space-y-2 text-sm text-blue-700">
+                      <li>• Review your assessment results</li>
+                      <li>• Identify your top strengths</li>
+                      <li>• Consider growth areas</li>
+                      <li>• Prepare to share insights with your team</li>
+                    </ul>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
+                    <h4 className="text-lg font-semibold text-green-800 mb-3">Team Workshop Focus</h4>
+                    <ul className="space-y-2 text-sm text-green-700">
+                      <li>• Collective strengths mapping</li>
+                      <li>• Complementary skill identification</li>
+                      <li>• Collaborative imagination exercises</li>
+                      <li>• Action planning for team agility</li>
+                    </ul>
+                  </div>
+                </div>
               
               {/* AI Mirror Test */}
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-8 border border-blue-200">
@@ -691,89 +711,11 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   </p>
                 </div>
               </div>
+              </div>
             </div>
           </div>
         );
 
-      case 'ia-7-1':
-        return (
-          <div className="prose max-w-none">
-            <div className="flex items-center mb-6">
-              <img 
-                src={imaginalAgilityLogo} 
-                alt="Imaginal Agility" 
-                className="h-12 w-auto mr-4"
-              />
-              <h1 className="text-3xl font-bold text-purple-700 mb-0">
-                Imaginal Agility Workshop Course &gt; Reality Discernment
-              </h1>
-            </div>
-            
-            <div className="mb-8">
-              <iframe 
-                width="400" 
-                height="300" 
-                src="https://www.youtube.com/embed/U7pQjMYKk_s" 
-                title="Reality Discernment" 
-                frameBorder="0" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowFullScreen
-                className="rounded-lg shadow-lg"
-              ></iframe>
-            </div>
-            
-            <div className="text-lg text-gray-700 space-y-4">
-              <h2 className="text-2xl font-semibold text-purple-700">REALITY DISCERNMENT</h2>
-              <p className="text-xl font-semibold">Train Your Mind to Know What's Real.</p>
-              
-              <p>In an age of AI-generated content, deepfakes, and digital manipulation, discernment is no longer optional — it's essential.</p>
-              
-              <p>This short learning experience introduces you to the neuroscience behind reality monitoring — the brain's ability to tell what's real from what's imagined — and offers practical tools.</p>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What You'll Learn:</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>Why imagination is your first line of cognitive defense</li>
-                <li>How AI content bypasses our natural filters</li>
-                <li>What neuroscience reveals about perception and deception</li>
-                <li>How to track your own AI interaction patterns in real time</li>
-              </ul>
-              
-              <h3 className="text-xl font-semibold text-purple-700">What You'll Practice:</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li>The 3-Second Reality Check — pause before reacting to emotional content</li>
-                <li>Visual detection challenge — spot AI-generated and manipulated images</li>
-                <li>5-Test Toolkit — systematic framework for content evaluation</li>
-              </ul>
-            </div>
-
-            {/* Practice and Navigation Buttons */}
-            <div className="space-y-4 mt-8">
-              <button
-                onClick={() => {
-                  console.log('Button clicked - setting modal to true');
-                  setShowDiscernmentModal(true);
-                }}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-800 text-white py-4 px-6 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-3"
-              >
-                <span className="text-xl">🎯</span>
-                <span className="font-semibold">Reality Discernment Practice</span>
-              </button>
-              
-              <button
-                onClick={() => onNext && onNext('ia-8-1')}
-                className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors"
-              >
-                Next: The Neuroscience →
-              </button>
-            </div>
-
-            {/* Discernment Modal */}
-            <DiscernmentModal
-              isOpen={showDiscernmentModal}
-              onClose={() => setShowDiscernmentModal(false)}
-            />
-          </div>
-        );
 
       case 'ia-8-1':
         return (
