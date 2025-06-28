@@ -507,7 +507,7 @@ function StarCard({
 
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
@@ -518,7 +518,7 @@ function StarCard({
 
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
@@ -529,7 +529,7 @@ function StarCard({
 
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>

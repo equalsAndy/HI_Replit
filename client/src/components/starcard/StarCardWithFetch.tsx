@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import StarCard from './StarCard';
+import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 
 interface StarCardWithFetchProps {
   userId?: number;
@@ -104,9 +105,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting: Number(directData.acting),
       feeling: Number(directData.feeling),
       planning: Number(directData.planning),
-      imageUrl: directData.imageUrl || null,
-      // Force state to complete to ensure display
-      state: 'complete'
+      imageUrl: directData.imageUrl || null
     };
   } else if (hasDirectJsonData) {
     // Direct JSON format
@@ -115,9 +114,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting: Number(directData.acting),
       feeling: Number(directData.feeling),
       planning: Number(directData.planning),
-      imageUrl: directData.imageUrl || null,
-      // Force state to complete to ensure display
-      state: 'complete'
+      imageUrl: directData.imageUrl || null
     };
   } else if (hasReactQueryData) {
     // React Query format
@@ -126,9 +123,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting: Number(starCardData.acting),
       feeling: Number(starCardData.feeling),
       planning: Number(starCardData.planning),
-      imageUrl: starCardData.imageUrl || null,
-      // Force state to complete to ensure display
-      state: 'complete'
+      imageUrl: starCardData.imageUrl || null
     };
   } else if (hasFallbackData && fallbackData) {
     // Fallback data format
@@ -137,9 +132,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting: Number(fallbackData.acting),
       feeling: Number(fallbackData.feeling),
       planning: Number(fallbackData.planning),
-      imageUrl: fallbackData.imageUrl || null,
-      // Force state to complete to ensure display
-      state: 'complete'
+      imageUrl: fallbackData.imageUrl || null
     };
   }
 
