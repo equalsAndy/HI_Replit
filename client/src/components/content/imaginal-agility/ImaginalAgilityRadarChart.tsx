@@ -41,14 +41,14 @@ const ImaginalAgilityRadarChart: React.FC<RadarChartProps> = ({ data }) => {
   ];
 
   return (
-    <div className="w-full bg-white rounded-lg border border-gray-200 p-4">
-      <h3 className="text-xl font-semibold text-purple-700 mb-4 text-center">
-        Your Imaginal Agility Radar
+    <div className="w-full bg-white rounded-lg border border-gray-200 p-3">
+      <h3 className="text-lg font-semibold text-purple-700 mb-2 text-center">
+        Five Core Capabilities
       </h3>
       
-      <div className="h-80 w-full">
+      <div className="h-64 w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <RadarChart data={radarData} margin={{ top: 10, right: 60, bottom: 10, left: 60 }}>
+          <RadarChart data={radarData} margin={{ top: 5, right: 40, bottom: 5, left: 40 }}>
             <PolarGrid stroke="#e5e7eb" />
             <PolarAngleAxis 
               dataKey="capacity" 
