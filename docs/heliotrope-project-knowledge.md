@@ -5,9 +5,18 @@
 **Read these for complete development context:**
 - **`docs/claude-development-workflow.md`** - Generic Claude workflow patterns, verified capabilities, Git resolution
 - **`docs/brad-development-guide.md`** - User preferences, communication style, prompt templates
+- **`docs/future-features-and-fixes.md`** - Feature backlog, known issues, implementation notes
 - **THIS FILE** - Heliotrope-specific architecture, workshop structure, technical details
 
 **✅ Environment Status:** Production ready - iCloud+Git conflicts resolved, 98.7% performance improvement
+
+### **📋 Development Session Protocol**
+
+**For every new development chat:**
+1. **Check backlog first** - Review `docs/future-features-and-fixes.md` for pending items
+2. **Ask user priorities** - "Would you like to work on any backlog items or start something new?"
+3. **Update backlog** - Add new items discovered during development
+4. **Document decisions** - Record any architecture choices or patterns established
 
 ## 🎯 Project Overview
 
