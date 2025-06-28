@@ -22,16 +22,23 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
       </h1>
       
       <div className="mb-8">
-        <iframe 
-          width="400" 
-          height="300" 
-          src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-          title="Self-Assessment" 
-          frameBorder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowFullScreen
-          className="rounded-lg shadow-lg"
-        ></iframe>
+        {/* Video Section */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+          <div className="flex justify-center mb-4">
+            <div className="w-full max-w-2xl">
+              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                <iframe 
+                  src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
+                  title="Self-Assessment" 
+                  frameBorder="0" 
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                  allowFullScreen
+                  className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+                ></iframe>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
       
       <div className="text-lg text-gray-700 space-y-4">
