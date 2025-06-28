@@ -19,7 +19,7 @@ interface DiscernmentScenario {
   difficulty_level: number;
 }
 
-export function DiscernmentModal({ isOpen, onClose }: DiscernmentModalProps) {
+function DiscernmentModal({ isOpen, onClose }: DiscernmentModalProps) {
   const [currentExercise, setCurrentExercise] = useState(1); // 1: reality_check, 2: visual_detection, 3: toolkit_practice
   const [currentScenarioIndex, setCurrentScenarioIndex] = useState(0);
   const [showTimer, setShowTimer] = useState(false);
@@ -530,3 +530,5 @@ export function DiscernmentModal({ isOpen, onClose }: DiscernmentModalProps) {
     </div>
   );
 }
+
+export default DiscernmentModal;
