@@ -53,7 +53,7 @@ const ReflectionCard: React.FC<ReflectionCardProps> = ({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Your reflection..."
-        className="min-h-[100px] w-full resize-none bg-white/80 border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
+        className="min-h-[140px] w-full resize-none bg-white/80 border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
       />
     </div>
   );
@@ -278,11 +278,43 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-5xl mx-auto mb-12">
           <h2 className="text-2xl font-semibold text-gray-900 mb-8 text-center">Your Timeline Journey</h2>
           
-          {/* Reflection Cards Grid with Direction Toggle */}
+          {/* Direction Toggle - Centered */}
+          <div className="flex justify-center mb-8">
+            <div className="bg-white rounded-full p-1 border-2 border-gray-200 shadow-lg">
+              <div className="flex">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleDirectionChange('backward')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                    formData.direction === 'backward'
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  20→10→5 Years
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => handleDirectionChange('forward')}
+                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ml-1 ${
+                    formData.direction === 'forward'
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  5→10→20 Years
+                </motion.button>
+              </div>
+            </div>
+          </div>
+
+          {/* Reflection Cards - Vertical Layout */}
           <AnimatePresence mode="wait">
             <motion.div 
               key={formData.direction}
-              className="grid grid-cols-1 md:grid-cols-3 gap-6"
+              className="space-y-8"
               variants={{
                 hidden: { opacity: 0 },
                 visible: {
@@ -296,8 +328,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               transition={{ duration: 0.3 }}
             >
               {timelineOrder.map((item, index) => {
-                // Show direction toggle on the middle card (10 year)
-                const isMiddleCard = item.year === 10;
                 const cardColors = {
                   20: 'border-purple-200 bg-purple-50',
                   10: 'border-blue-200 bg-blue-50', 
@@ -320,43 +350,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                         }
                       }
                     }}
-                    className="relative"
                   >
-                    <div className={`p-6 rounded-xl border-2 ${cardColors[item.year as keyof typeof cardColors]} shadow-sm hover:shadow-md transition-all duration-300`}>
-                      {/* Direction Toggle for Middle Card */}
-                      {isMiddleCard && (
-                        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                          <div className="bg-white rounded-full p-1 border-2 border-gray-200 shadow-lg">
-                            <div className="flex">
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleDirectionChange('backward')}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ${
-                                  formData.direction === 'backward'
-                                    ? 'bg-amber-500 text-white shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-100'
-                                }`}
-                              >
-                                20→5
-                              </motion.button>
-                              <motion.button
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                onClick={() => handleDirectionChange('forward')}
-                                className={`px-3 py-1 rounded-full text-xs font-medium transition-all duration-200 ml-1 ${
-                                  formData.direction === 'forward'
-                                    ? 'bg-amber-500 text-white shadow-sm'
-                                    : 'text-gray-600 hover:bg-gray-100'
-                                }`}
-                              >
-                                5→20
-                              </motion.button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
+                    <div className={`p-8 rounded-xl border-2 ${cardColors[item.year as keyof typeof cardColors]} shadow-sm hover:shadow-md transition-all duration-300`}>
                       <ReflectionCard
                         title={`${item.year} Years`}
                         question={questions[formData.direction][item.key as keyof typeof questions.backward]}

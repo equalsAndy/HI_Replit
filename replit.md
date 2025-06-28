@@ -141,8 +141,8 @@ The platform provides a guided, step-by-step learning experience with assessment
   - Full-width layout removing sidebar for maximum writing space
   - Interactive direction toggle: backward planning (20→10→5 years) vs forward planning (5→10→20 years)
   - Timeline graphic from public folder positioned near instructions with proper sizing
-  - Four dedicated reflection areas with contextual questions based on chosen direction
-  - Animated transitions when switching between planning approaches
+  - Vertical card layout with color-coded reflections (purple/blue/emerald)
+  - Enhanced animations with spring transitions and full-page re-rendering when switching directions
 - **ENHANCED USER EXPERIENCE**: Improved usability and engagement features
   - Demo button providing contextually appropriate sample data for both directions
   - Auto-save functionality with real-time status indicator (Saving/Saved/Error)
