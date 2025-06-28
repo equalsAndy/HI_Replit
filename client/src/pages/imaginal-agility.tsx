@@ -317,6 +317,9 @@ export default function ImaginalAgilityHome() {
                   }
                 });
 
+                // CRITICAL FIX: Invalidate the assessment query cache so UI updates immediately
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal-agility'] });
+
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1'); // Mark self-assessment as completed
                 setCurrentContent("ia-5-1"); // Navigate to Review Results
@@ -331,6 +334,10 @@ export default function ImaginalAgilityHome() {
                   title: "Assessment Saved Locally",
                   description: "Your results are saved but couldn't sync to the server.",
                 });
+                
+                // CRITICAL FIX: Even on error, invalidate cache since modal completed assessment
+                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal-agility'] });
+                
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1');
                 setCurrentContent("ia-5-1");
