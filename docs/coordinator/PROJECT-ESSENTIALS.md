@@ -77,7 +77,77 @@ git commit -m "Description"
 git push origin main
 ```
 
+## 📋 **Enhanced Handoff Templates**
+
+### **Standard Session Handoff:**
+```markdown
+# SESSION HANDOFF - [Task Name]
+*Created: [Date]*
+
+## CHAT GOALS:
+1. [Specific objective to accomplish]
+2. [Specific objective to accomplish] 
+3. [Specific objective to accomplish]
+
+## CURRENT STATE:
+- ✅ **Completed:** [What's working properly]
+- ❌ **Issues:** [What's broken/missing]
+- 🔄 **In Progress:** [Current step/partial work]
+
+## SPECIFIC FIXES NEEDED:
+1. **[Issue Name]:** [Detailed description and solution approach]
+2. **[Issue Name]:** [Detailed description and solution approach]
+
+## FILES INVOLVED:
+- `client/src/path/to/file.tsx` - [specific changes needed]
+- `client/src/other/file.ts` - [what needs modification]
+
+## START WITH:
+"[Exact phrase for new chat to continue work]"
+```
+
+### **Workshop-Specific Handoff:**
+```markdown
+# SESSION HANDOFF - [AST/IA] Workshop [Feature]
+*Created: [Date]*
+
+## CHAT GOALS:
+1. Fix [specific workshop issue]
+2. Verify [specific functionality] 
+3. Test [specific user flow]
+
+## WORKSHOP: [AST/IA] - [Theme: Blue/Purple]
+
+## CURRENT STATE:
+- ✅ **Navigation:** [working/broken]
+- ✅ **Content:** [working/broken]
+- ✅ **Progression:** [working/broken] 
+- ❌ **Issues:** [specific problems]
+
+## VERIFICATION NEEDED:
+1. Test workshop at `/[workshop-path]`
+2. Check [specific steps/features]
+3. Verify [specific functionality]
+
+## FOR NEW CHAT:
+"Continue [workshop] fixes from handoff - [next action]"
+```
+
+## 📊 **Key Learnings (June 28, 2025)**
+
+### **Coordination Success Patterns:**
+- **File Access Confirmed**: Claude direct editing works safely for 1-2 file changes
+- **Hybrid Workflow**: Claude analysis + targeted edits + Replit Agent prompts
+- **Workshop Flow**: Hidden steps (ia-7-1) work, but Next buttons are essential
+- **Graphics Location**: IA capability images exist in `/public/assets/` need path resolution
+
+### **Critical Workshop Requirements:**
+- **Next buttons**: Essential for step progression - never remove during content edits
+- **Path resolution**: Graphics in `/public/assets/` need proper loading paths
+- **Navigation flow**: Must skip hidden steps while maintaining progression
+- **Content consistency**: Maintain original voice/tone during technical fixes
+
 ---
 
-**Last Updated:** [Auto-updated by Claude]  
+**Last Updated:** June 28, 2025  
 **Environment Status:** Production ready, Git optimized

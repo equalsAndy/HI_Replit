@@ -181,7 +181,85 @@ Creating handoff document now. This will preserve our progress for a new chat.
 - ✅ New chat recommendations when scope changes
 - ✅ Project docs updated when needed
 
+## 📊 **Efficient Change Review Methods**
+
+### **Better Than Terminal Git Diff:**
+Instead of terminal `git diff` (inefficient scrolling output):
+- **VS Code:** Use built-in Git interface for visual diffs
+- **Replit:** Use Git tab visual diff view  
+- **Claude coordination:** Ask for specific file sections instead of full diffs
+- **Focused analysis:** Request targeted file examination rather than complete diffs
+
+### **When to Use Each Method:**
+- **Terminal diff:** Only for quick single-file verification
+- **Visual tools:** For comprehensive change review
+- **Claude file reading:** For targeted analysis of specific sections
+
+## ⚠️ **Workshop Progression Requirements**
+
+### **NEVER Remove Next Buttons During Content Edits:**
+- All workshop steps require progression buttons for user flow
+- Navigation is critical - users must be able to advance
+- Always verify progression works after header/styling changes
+- Test navigation path before considering changes complete
+
+### **Essential Workshop Elements:**
+- **Next buttons:** Required for step progression
+- **Assessment buttons:** For modal/assessment steps
+- **Completion buttons:** For final steps (workshop completion)
+- **Navigation flow:** Must skip hidden steps (like ia-7-1)
+
+## 📋 **Enhanced Handoff Template**
+
+### **Session Handoff Format:**
+```markdown
+# SESSION HANDOFF - [Task Name]
+*Created: [Date]*
+
+## CHAT GOALS:
+1. [Specific objective 1]
+2. [Specific objective 2]
+3. [Specific objective 3]
+
+## CURRENT STATE:
+- ✅ **Completed:** [What's working]
+- ❌ **Issues:** [What's broken/missing]
+- 🔄 **In Progress:** [Current step]
+
+## SPECIFIC FIXES NEEDED:
+1. **[Issue 1]:** [Detailed description and solution approach]
+2. **[Issue 2]:** [Detailed description and solution approach]
+
+## FILES INVOLVED:
+- `[exact/file/path.tsx]` - [what needs to change]
+- `[another/file/path.ts]` - [specific changes needed]
+
+## START WITH:
+"[Exact phrase for new chat to continue]"
+```
+
+## 📚 Recent Learnings & Updates
+
+### **IA Workshop Content Management (June 28, 2025)**
+- **Single File Structure**: All IA content in `ImaginalAgilityContent.tsx` switch statement
+- **Step Removal Impact**: Removing workshop steps requires updates to both navigation AND content switch cases
+- **Content Drift Risk**: Complex edits can alter original copy/voice - always verify against specs
+- **Video Standardization**: Both workshops should use consistent video sizing
+- **Import Error Pattern**: Unused imports cause build errors - remove completely vs comment out
+
+### **Workshop Content Restoration Process**
+1. **Preserve Original Voice**: Maintain simple, direct messaging tone
+2. **Verify Against Spec**: Compare restored content word-for-word with implementation docs
+3. **Test Before Commit**: Review all changes before Git commit
+4. **Graphics Integration**: Assets in `/public/assets/` need proper path resolution
+
+### **Coordination Success Patterns (June 28, 2025)**
+- **File Access Confirmed**: Claude direct editing works safely for 1-2 file changes
+- **Hybrid Workflow**: Claude analysis + targeted edits + Replit Agent prompts
+- **Workshop Flow**: ia-7-1 successfully hidden from navigation, Next buttons essential
+- **Graphics Location**: IA capability images exist in `/public/assets/` but need path resolution
+
 ---
 
-**Last Updated:** [Auto-updated by Claude]
+**Last Updated:** June 28, 2025
 **Project:** Heliotrope Imaginal Dual-Workshop Platform
