@@ -8,6 +8,7 @@ import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
 import cloudImage from '@/assets/starcardcloudimage.png';
+import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS, DEFAULT_COLOR } from '@/components/starcard/starCardConstants';
 
 // Profile data interface
 interface ProfileData {
@@ -17,111 +18,7 @@ interface ProfileData {
   avatarUrl?: string;
 }
 
-// Helper function to get attribute color based on quadrant mapping
-const getAttributeColor = (text: string): string => {
-  if (!text) return 'rgb(156, 163, 175)'; // Default gray
-  
-  // Default to primary colors by category
-  const attrColorMap: { [key: string]: string } = {
-    // Thinking quadrant attributes (green)
-    'Analytical': 'rgb(1, 162, 82)',
-    'Strategic': 'rgb(1, 162, 82)',
-    'Thoughtful': 'rgb(1, 162, 82)',
-    'Clever': 'rgb(1, 162, 82)',
-    'Innovative': 'rgb(1, 162, 82)',
-    'Investigative': 'rgb(1, 162, 82)',
-    'Abstract': 'rgb(1, 162, 82)',
-    'Analytic': 'rgb(1, 162, 82)',
-    'Astute': 'rgb(1, 162, 82)',
-    'Big Picture': 'rgb(1, 162, 82)',
-    'Curious': 'rgb(1, 162, 82)',
-    'Focussed': 'rgb(1, 162, 82)',
-    'Insightful': 'rgb(1, 162, 82)',
-    'Logical': 'rgb(1, 162, 82)',
-    'Rational': 'rgb(1, 162, 82)',
-    'Reflective': 'rgb(1, 162, 82)',
-    'Sensible': 'rgb(1, 162, 82)',
-    
-    // Acting quadrant attributes (red)
-    'Energetic': 'rgb(241, 64, 64)',
-    'Bold': 'rgb(241, 64, 64)',
-    'Decisive': 'rgb(241, 64, 64)',
-    'Proactive': 'rgb(241, 64, 64)',
-    'Persistent': 'rgb(241, 64, 64)',
-    'Physical': 'rgb(241, 64, 64)',
-    'Confident': 'rgb(241, 64, 64)',
-    'Adaptable': 'rgb(241, 64, 64)',
-    'Adventurous': 'rgb(241, 64, 64)',
-    'Assertive': 'rgb(241, 64, 64)',
-    'Brave': 'rgb(241, 64, 64)',
-    'Capable': 'rgb(241, 64, 64)',
-    'Challenging': 'rgb(241, 64, 64)',
-    'Courageous': 'rgb(241, 64, 64)',
-    'Dynamic': 'rgb(241, 64, 64)',
-    'Fearless': 'rgb(241, 64, 64)',
-    'Resolute': 'rgb(241, 64, 64)',
-    'Resourceful': 'rgb(241, 64, 64)',
-    'Strong': 'rgb(241, 64, 64)',
-    'Competitive': 'rgb(241, 64, 64)',
-    'Effortless': 'rgb(241, 64, 64)',
-    
-    // Feeling quadrant attributes (blue)
-    'Empathetic': 'rgb(22, 126, 253)',
-    'Friendly': 'rgb(22, 126, 253)',
-    'Supportive': 'rgb(22, 126, 253)',
-    'Compassionate': 'rgb(22, 126, 253)',
-    'Intuitive': 'rgb(22, 126, 253)',
-    'Empathic': 'rgb(22, 126, 253)',
-    'Accepting': 'rgb(22, 126, 253)',
-    'Authentic': 'rgb(22, 126, 253)',
-    'Calm': 'rgb(22, 126, 253)',
-    'Caring': 'rgb(22, 126, 253)',
-    'Connected': 'rgb(22, 126, 253)',
-    'Considerate': 'rgb(22, 126, 253)',
-    'Diplomatic': 'rgb(22, 126, 253)',
-    'Emotional': 'rgb(22, 126, 253)',
-    'Generous': 'rgb(22, 126, 253)',
-    'Gentle': 'rgb(22, 126, 253)',
-    'Grateful': 'rgb(22, 126, 253)',
-    'Harmonious': 'rgb(22, 126, 253)',
-    'Helpful': 'rgb(22, 126, 253)',
-    'Kind': 'rgb(22, 126, 253)',
-    'Open': 'rgb(22, 126, 253)',
-    'Sociable': 'rgb(22, 126, 253)',
-    'Vulnerable': 'rgb(22, 126, 253)',
-    'Passionate': 'rgb(22, 126, 253)',
-    'Creative': 'rgb(22, 126, 253)',
-    'Receptive': 'rgb(22, 126, 253)',
-    
-    // Planning quadrant attributes (yellow)
-    'Organized': 'rgb(255, 203, 47)',
-    'Meticulous': 'rgb(255, 203, 47)',
-    'Reliable': 'rgb(255, 203, 47)',
-    'Consistent': 'rgb(255, 203, 47)',
-    'Practical': 'rgb(255, 203, 47)',
-    'Careful': 'rgb(255, 203, 47)',
-    'Controlled': 'rgb(255, 203, 47)',
-    'Dependable': 'rgb(255, 203, 47)',
-    'Detailed': 'rgb(255, 203, 47)',
-    'Diligent': 'rgb(255, 203, 47)',
-    'Methodical': 'rgb(255, 203, 47)',
-    'Orderly': 'rgb(255, 203, 47)',
-    'Precise': 'rgb(255, 203, 47)',
-    'Punctual': 'rgb(255, 203, 47)', 
-    'Responsible': 'rgb(255, 203, 47)',
-    'Thorough': 'rgb(255, 203, 47)',
-    'Trustworthy': 'rgb(255, 203, 47)',
-    'Immersed': 'rgb(255, 203, 47)',
-  };
-  
-  // Try exact match first
-  if (attrColorMap[text]) {
-    return attrColorMap[text];
-  }
-  
-  // Fallback to default gray for unrecognized attributes
-  return 'rgb(156, 163, 175)';
-};
+
 
 // Flow attribute structure
 interface FlowAttribute {
@@ -150,15 +47,7 @@ interface StarCardProps {
   state?: string;     // 'empty', 'partial', or 'complete'
 }
 
-// Define quadrant colors
-const QUADRANT_COLORS = {
-  thinking: 'rgb(1, 162, 82)',    // Green
-  acting: 'rgb(241, 64, 64)',     // Red
-  feeling: 'rgb(22, 126, 253)',   // Blue
-  planning: 'rgb(255, 203, 47)'   // Yellow
-} as const;
 
-const DEFAULT_COLOR = 'rgb(229, 231, 235)'; // Gray for empty state
 
 type QuadrantType = 'thinking' | 'acting' | 'feeling' | 'planning';
 type QuadrantInfo = {
@@ -533,7 +422,7 @@ function StarCard({
       <div 
         ref={cardRef}
         className="bg-white border border-gray-200 rounded-lg p-5"
-        style={{ width: '440px', height: '610px' }}
+        style={{ width: CARD_WIDTH, height: CARD_HEIGHT }}
       >
         <h2 className="text-xl font-bold text-center uppercase mb-4">Star Card</h2>
 
@@ -607,7 +496,7 @@ function StarCard({
           <div className="absolute grid grid-cols-2 gap-[3px] w-[145px] h-[145px] z-10" style={{ left: '80px', top: '86px' }}>
             {/* Top Left */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(3)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(3)?.label}</div>
@@ -618,7 +507,7 @@ function StarCard({
 
             {/* Top Right */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(0)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(0)?.label}</div>
@@ -629,7 +518,7 @@ function StarCard({
 
             {/* Bottom Left */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(2)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(2)?.label}</div>
@@ -640,7 +529,7 @@ function StarCard({
 
             {/* Bottom Right */}
             <div className="aspect-square relative flex items-center justify-center" 
-                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || DEFAULT_COLOR) : DEFAULT_COLOR }}>
+                 style={{ backgroundColor: cardState !== 'empty' ? (getQuadrantAtPosition(1)?.color || 'rgb(229, 231, 235)') : 'rgb(229, 231, 235)' }}>
               {cardState !== 'empty' && (
                 <div className="text-white text-xs font-medium text-center">
                   <div>{getQuadrantAtPosition(1)?.label}</div>

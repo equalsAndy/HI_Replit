@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import StarCard from '../starcard/StarCard';
 import { useQuery } from '@tanstack/react-query';
+import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -10,37 +11,7 @@ interface ContentViewProps {
   setCurrentContent: (content: string) => void;
 }
 
-// Helper function to get attribute color based on official categorization
-const getAttributeColor = (text: string): string => {
-  if (!text) return 'rgb(156, 163, 175)'; // Default gray
-  
-  // THINK attributes (Green)
-  const thinkAttributes = ['Abstract', 'Analytic', 'Astute', 'Big Picture', 'Curious', 'Focussed', 'Focused', 'Insightful', 'Logical', 'Investigative', 'Rational', 'Reflective', 'Sensible', 'Strategic', 'Thoughtful'];
-  
-  // FEEL attributes (Blue)
-  const feelAttributes = ['Collaborative', 'Compassionate', 'Creative', 'Encouraging', 'Expressive', 'Empathic', 'Intuitive', 'Inspiring', 'Objective', 'Passionate', 'Positive', 'Receptive', 'Supportive'];
-  
-  // PLAN attributes (Yellow)
-  const planAttributes = ['Detail-Oriented', 'Diligent', 'Immersed', 'Industrious', 'Methodical', 'Organized', 'Organised', 'Precise', 'Punctual', 'Reliable', 'Responsible', 'Straightforward', 'Tidy', 'Systematic', 'Thorough'];
-  
-  // ACT attributes (Red)
-  const actAttributes = ['Adventuresome', 'Competitive', 'Dynamic', 'Effortless', 'Energetic', 'Engaged', 'Funny', 'Persuasive', 'Open-Minded', 'Optimistic', 'Practical', 'Resilient', 'Spontaneous', 'Vigorous'];
-  
-  const normalizedText = text.trim();
-  
-  if (thinkAttributes.includes(normalizedText)) {
-    return 'rgb(1, 162, 82)'; // Green for THINK - matches StarCard quadrant color
-  } else if (feelAttributes.includes(normalizedText)) {
-    return 'rgb(22, 126, 253)'; // Blue for FEEL - matches StarCard quadrant color
-  } else if (planAttributes.includes(normalizedText)) {
-    return 'rgb(255, 203, 47)'; // Yellow for PLAN - matches StarCard quadrant color
-  } else if (actAttributes.includes(normalizedText)) {
-    return 'rgb(241, 64, 64)'; // Red for ACT - matches StarCard quadrant color
-  }
-  
-  // Fallback to default gray for unrecognized attributes
-  return 'rgb(156, 163, 175)';
-};
+
 
 const YourStarCardView: React.FC<ContentViewProps> = ({
   navigate,
@@ -153,7 +124,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
               <p>Loading your StarCard data...</p>
             </div>
           ) : user?.user && starCard?.success ? (
-            <div ref={starCardRef} className="w-full max-w-md">
+            <div ref={starCardRef} className="flex justify-center" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH }}>
               <StarCard 
                 profile={{
                   name: user.user.name || 'Your Name',
