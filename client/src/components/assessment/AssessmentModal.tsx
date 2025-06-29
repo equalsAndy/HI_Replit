@@ -779,7 +779,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
         {/* Options to rank - displayed as draggable items */}
         <div className="mb-4">
           <div className="bg-amber-50 p-4 rounded-lg mb-4 min-h-[140px] flex flex-col justify-center">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px] items-center justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px]">
               {availableOptions.length > 0 ? (
                 availableOptions.map(option => (
                   <div 
@@ -787,13 +787,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
                     draggable
                     onDragStart={(e) => handleDragStart(e, option)}
                     onClick={() => handleOptionClick(option)}
-                    className="bg-gray-100 rounded-lg flex items-center justify-center p-3 cursor-pointer hover:bg-gray-200 transition-colors shadow relative"
+                    className="bg-gray-100 rounded-lg flex items-center justify-center p-3 cursor-pointer hover:bg-gray-200 shadow relative min-h-[60px]"
                   >
                     <p className="text-xs sm:text-sm text-center">{option.text}</p>
                   </div>
                 ))
               ) : (
-                <div className="col-span-full flex items-center justify-center">
+                <div className="col-span-full flex items-center justify-center min-h-[60px]">
                   <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
                 </div>
               )}
@@ -1096,7 +1096,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
         {/* Loading state */}
         {isLoading ? (
-          <div className="flex items-center justify-center h-64">
+          <div className="flex items-center justify-center min-h-[500px]">
             <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
           </div>
         ) : (
