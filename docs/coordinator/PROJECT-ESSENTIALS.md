@@ -51,6 +51,12 @@ Section 1: Imaginal Agility Program
 - IA changes must not affect AST files
 - Always specify which workshop when requesting changes
 
+### **Video System Architecture**
+- **Production Route**: `/api/workshop-data/videos/workshop/{workshopType}` (used by VideoPlayer)
+- **Admin Route**: `/api/admin/videos/*` (admin management interface)
+- **Database Persistence**: Implemented via storage service and user management service
+- **Video Updates**: Use seeding script or admin interface (both persist to database)
+
 ### **File Safety:**
 - Always `git status` before modifications
 - Use `git diff` to verify changes before commit
@@ -74,6 +80,20 @@ git pull origin main
 git diff
 git add .
 git commit -m "Description"
+git push origin main
+```
+
+### **Collaborative Git Workflow (Replit + Local):**
+```bash
+# Always start with
+git pull origin main
+git stash  # if conflicts
+git pull origin main
+git stash pop  # restore changes after pull
+
+# Then proceed with commits
+git add [files]
+git commit -m "message"
 git push origin main
 ```
 
