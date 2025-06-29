@@ -231,11 +231,14 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
 
 interface NavigationStep {
   id: string;
+  title: string;
   label: string;
   path: string;
   type: string;
   icon?: string;
   iconColor?: string;
+  estimatedTime?: number;
+  required?: boolean;
 }
 
 export interface NavigationSection {

@@ -30,7 +30,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   // Define navigation structure based on user role
   const getJourneySections = () => {
     // Check if user is student or facilitator
-    const isStudentOrFacilitator = userProfile?.role === 'student' || userProfile?.role === 'facilitator';
+    const isStudentOrFacilitator = (userProfile as any)?.role === 'student' || (userProfile as any)?.role === 'facilitator';
     
     if (isStudentOrFacilitator) {
       // Week-based structure for students and facilitators
@@ -293,7 +293,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     hasInitialized.current = true;
     
     // Use the journeySections we defined above 
-    updateNavigationSections(journeySections);
+    updateNavigationSections(journeySections.filter(section => !section.isHeader));
   }, []); // Removed the dependency since it causes infinite updates
   
   // Set current step based on props and scroll to top (only when it changes)
