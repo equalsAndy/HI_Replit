@@ -157,40 +157,37 @@ export default function StepByStepReflection({
     }
   }, [reflections, debouncedSave]);
 
-  // Function to populate reflections with demo lorem ipsum text
+  // Function to populate reflections with meaningful AST demo data
   const fillWithDemoData = () => {
     if (!isTestUser) {
       console.warn('Demo functionality only available to test users');
       return;
     }
     
-    const loremTexts = [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
-      "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.",
-      "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-      "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium.",
-      "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni."
-    ];
-
-    // Get random lorem ipsum paragraph
-    const getRandomLorem = () => {
-      const idx1 = Math.floor(Math.random() * loremTexts.length);
-      let idx2 = Math.floor(Math.random() * loremTexts.length);
-      while (idx2 === idx1) {
-        idx2 = Math.floor(Math.random() * loremTexts.length);
+    // Get strength-specific demo content based on sorted quadrants
+    const getStrengthDemo = (strengthLabel: string) => {
+      switch(strengthLabel) {
+        case 'PLANNING':
+          return "I use my planning strength when leading complex projects by creating detailed roadmaps and milestone tracking systems. Recently, I developed a project management framework that helped our team deliver a major initiative on time despite multiple dependencies and changing requirements.";
+        case 'ACTING':
+          return "I leverage my action-oriented approach when projects need momentum. Last quarter, when our team was stuck in analysis paralysis on a key decision, I facilitated rapid prototyping sessions that helped us test three solutions quickly and move forward with confidence.";
+        case 'FEELING':
+          return "I apply my feeling strength when building team cohesion and managing change. During a recent organizational restructure, I created informal check-in sessions and ensured everyone felt heard, which helped maintain team morale and productivity during uncertainty.";
+        case 'THINKING':
+          return "I use my analytical thinking to solve complex problems and identify optimization opportunities. Recently, I conducted a data analysis that revealed workflow bottlenecks, leading to process improvements that increased our team's efficiency by 35%.";
+        default:
+          return "I use this strength effectively by applying it strategically in situations where it can create the most value for my team and organization.";
       }
-      return loremTexts[idx1] + " " + loremTexts[idx2];
     };
 
-    // Fill all reflection fields
+    // Fill all reflection fields with meaningful, strength-specific content
     setReflections({
-      strength1: getRandomLorem(),
-      strength2: getRandomLorem(),
-      strength3: getRandomLorem(),
-      strength4: getRandomLorem(),
-      teamValues: getRandomLorem(),
-      uniqueContribution: getRandomLorem()
+      strength1: getStrengthDemo(sortedQuadrants[0].label),
+      strength2: getStrengthDemo(sortedQuadrants[1].label),
+      strength3: getStrengthDemo(sortedQuadrants[2].label),
+      strength4: getStrengthDemo(sortedQuadrants[3].label),
+      teamValues: "I thrive in team environments that balance clear structure with flexibility for creative problem-solving. I value open communication where team members feel safe to share ideas and concerns, along with regular feedback loops that help us continuously improve our collaboration and outcomes.",
+      uniqueContribution: `My unique contribution comes from combining my top strengths of ${sortedQuadrants[0].label.toLowerCase()} and ${sortedQuadrants[1].label.toLowerCase()}. This allows me to create structured approaches while maintaining focus on people and relationships, helping teams achieve goals efficiently while keeping everyone engaged and motivated.`
     });
 
     // Jump to the final question immediately
