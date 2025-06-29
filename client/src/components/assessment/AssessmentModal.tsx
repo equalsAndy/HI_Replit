@@ -7,6 +7,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { AssessmentPieChart } from './AssessmentPieChart';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
+import { youthAssessmentQuestions, optionCategoryMapping as youthOptionCategoryMapping } from '@/data/youthAssessmentQuestions';
 import { QuadrantData } from '@shared/schema';
 import { calculateQuadrantScores, type RankedOption } from '@/lib/assessmentScoring';
 import { useTestUser } from '@/hooks/useTestUser';
@@ -38,6 +39,26 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   const { toast } = useToast();
   const isTestUser = useTestUser();
 
+  // Get current user data to determine role
+  const { data: userData } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      role?: string;
+      isTestUser: boolean;
+    }
+  }>({ 
+    queryKey: ['/api/user/profile'],
+    enabled: isOpen
+  });
+
+  // Determine which question set to use based on user role
+  const isStudent = userData?.user?.role === 'student';
+  const currentAssessmentQuestions = isStudent ? youthAssessmentQuestions : assessmentQuestions;
+  const currentOptionCategoryMapping = isStudent ? youthOptionCategoryMapping : optionCategoryMapping;
+
   // State management
   const [view, setView] = useState<'intro' | 'assessment' | 'results'>('intro');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -67,8 +88,8 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
     staleTime: Infinity
   });
 
-  const currentQuestion = assessmentQuestions[currentQuestionIndex];
-  const totalQuestions = assessmentQuestions.length;
+  const currentQuestion = currentAssessmentQuestions[currentQuestionIndex];
+  const totalQuestions = currentAssessmentQuestions.length;
 
   // Check assessment status when modal opens
   useEffect(() => {
@@ -179,7 +200,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
     }));
 
     // Use the imported calculation function
-    return calculateQuadrantScores(answersArray, optionCategoryMapping);
+    return calculateQuadrantScores(answersArray, currentOptionCategoryMapping);
   };
 
   // Complete the assessment
@@ -537,7 +558,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           questionId: parseInt(questionId),
           rankings
         })),
-        optionCategoryMapping
+        currentOptionCategoryMapping
       );
 
       console.log('Calculated results:', results);
@@ -618,7 +639,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           questionId: parseInt(questionId),
           rankings: rankings as RankedOption[]
         })),
-        optionCategoryMapping
+        currentOptionCategoryMapping
       );
       
       // Set results and close modal - most "errors" are actually successful completions

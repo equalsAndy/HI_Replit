@@ -136,6 +136,28 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 29, 2025 - Role-Based Assessment Loading Implementation ✅
+- **YOUTH ASSESSMENT CREATION**: Created comprehensive youth-focused assessment questions
+  - Created `client/src/data/youthAssessmentQuestions.ts` with 22 age-appropriate scenarios
+  - Adapted professional workplace scenarios to school/training contexts
+  - Maintained identical assessment structure and scoring logic for compatibility
+  - Questions focus on school projects, classmates, studying, and personal development
+- **ROLE-BASED COMPONENT LOADING**: Implemented dynamic assessment loading based on user role
+  - Modified AssessmentModal component to detect user role via `/api/user/profile` endpoint
+  - Added role-based question set selection: students see youth scenarios, others see professional
+  - Updated assessment page component with identical role-based loading logic
+  - All scoring calculations use appropriate option category mapping for each question set
+- **SEAMLESS INTEGRATION**: Maintained complete compatibility with existing assessment system
+  - Same drag-and-drop ranking interface for both question sets
+  - Identical scoring algorithm produces valid Star Cards for both assessments
+  - Same assessment completion flow and result display for all user types
+  - Backend API unchanged - role detection handled entirely in frontend components
+- **TECHNICAL IMPLEMENTATION**: Clean separation of concerns with type-safe role detection
+  - User role query integrated into both assessment components
+  - Dynamic import and mapping selection based on role
+  - All assessment references updated to use role-appropriate question sets
+  - Maintains backward compatibility with existing professional assessments
+
 ### June 29, 2025 - Student Role Database Schema Extension ✅
 - **USER ROLE EXPANSION**: Extended users table schema to support new 'student' role
   - Added 'student' to valid user roles: 'admin', 'facilitator', 'participant', 'student'
