@@ -77,13 +77,8 @@ export const invites = pgTable('invites', {
   usedBy: integer('used_by'),
 });
 
-// Create insert schema for invites with proper omissions
-export const insertInviteSchema = createInsertSchema(invites).omit({
-  id: true,
-  createdAt: true,
-  usedAt: true,
-  usedBy: true
-});
+// Create insert schema for invites
+export const insertInviteSchema = createInsertSchema(invites);
 
 // Type definitions for TypeScript
 export type Invite = typeof invites.$inferSelect;
