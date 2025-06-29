@@ -114,7 +114,7 @@ const FlowIntroView: React.FC<ContentViewProps> = ({
           Next: Flow Assessment
         </Button>
       </div>
-    </>
+    </div>
   );
 };
 
