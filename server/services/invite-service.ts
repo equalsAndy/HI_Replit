@@ -24,8 +24,13 @@ class InviteService {
         };
       }
       
-      // Generate a unique invite code
+      // Generate a unique invite code (remove hyphens to fit 12-char limit)
       const inviteCode = generateInviteCode().replace(/-/g, '');
+      
+      // Ensure code fits database constraint (max 12 characters)
+      if (inviteCode.length > 12) {
+        throw new Error('Generated invite code exceeds database limit');
+      }
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
@@ -101,9 +106,10 @@ class InviteService {
         RETURNING *
       `);
       
+      const inviteData = (result as any)[0] || (result as any).rows?.[0];
       return {
         success: true,
-        invite: result[0]
+        invite: inviteData
       };
     } catch (error) {
       console.error('Error marking invite as used:', error);
@@ -166,9 +172,10 @@ class InviteService {
         RETURNING *
       `);
       
+      const inviteData = (result as any)[0] || (result as any).rows?.[0];
       return {
         success: true,
-        deletedInvite: result[0]
+        deletedInvite: inviteData
       };
     } catch (error) {
       console.error('Error deleting invite:', error);
