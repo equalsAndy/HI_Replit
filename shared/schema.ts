@@ -31,8 +31,10 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for users  
-export const insertUserSchema = createInsertSchema(users);
+// Create insert schema for users with role validation
+export const insertUserSchema = createInsertSchema(users).extend({
+  role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant')
+});
 
 // Type definitions for TypeScript
 export type User = typeof users.$inferSelect;
