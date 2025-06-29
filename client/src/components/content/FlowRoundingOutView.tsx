@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from './VideoPlayer';
 import { ContentViewProps } from '../../shared/types';
-import { Check, ChevronRight, Edit } from 'lucide-react';
+import { Check, ChevronRight, Edit, FileText } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useTestUser } from '@/hooks/useTestUser';
 import { debounce } from '@/lib/utils';
 
 // Reflection Questions
@@ -50,6 +51,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [showExample, setShowExample] = useState(false);
 
   const [saving, setSaving] = useState(false);
+  const isTestUser = useTestUser();
 
   const { toast } = useToast();
 
@@ -272,6 +274,25 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     setShowExample(prev => !prev);
   };
 
+  // Function to populate with meaningful demo data
+  const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoAnswers = {
+      1: "Flow happens most naturally for me when I'm working on complex problem-solving tasks that require deep thinking. Usually in the morning when my mind is fresh, especially when I have a clear challenge to work through and minimal interruptions.",
+      2: "Constant notifications, meetings that could have been emails, and unclear project requirements really disrupt my flow. Also when I'm working on tasks that don't match my strengths or when there's too much context switching between different types of work.",
+      3: "I need a quiet environment, clear goals for what I'm trying to accomplish, and ideally 2-3 hours of uninterrupted time. Having all my resources and tools easily accessible also helps me get into flow more quickly.",
+      4: "I could block out specific deep work hours on my calendar, turn off notifications during focused work periods, and better align my most challenging tasks with my peak energy times. I'd also advocate for fewer but more meaningful meetings."
+    };
+    
+    setAnswers(demoAnswers);
+    // Jump to the last question
+    setCurrentQuestion(roundingOutQuestions.length - 1);
+  };
+
   // Move to previous question
   const prevQuestion = () => {
     if (currentQuestion > 0) {
@@ -405,14 +426,27 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 <span className="text-sm font-medium text-gray-500">
                   Question {currentQuestion + 1} of {roundingOutQuestions.length}
                 </span>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={toggleExample}
-                  className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
-                >
-                  {showExample ? "Hide Example" : "Show Example"}
-                </Button>
+                <div className="flex gap-2">
+                  {isTestUser && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={fillWithDemoData}
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                    >
+                      <FileText className="w-3 h-3 mr-1" />
+                      Add Demo Data
+                    </Button>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={toggleExample}
+                    className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                  >
+                    {showExample ? "Hide Example" : "Show Example"}
+                  </Button>
+                </div>
               </div>
 
               <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">

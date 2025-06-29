@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useTestUser } from '@/hooks/useTestUser';
+import { FileText } from 'lucide-react';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
 
@@ -25,6 +27,7 @@ export default function FinalReflectionView({
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const isTestUser = useTestUser();
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -106,6 +109,23 @@ export default function FinalReflectionView({
   });
 
   // Debounced auto-save function
+  // Function to populate with meaningful demo data
+  const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoInsights = [
+      "I want to carry forward the understanding that my unique combination of strengths creates value when I lean into them fully. My top strength in planning gives me the foundation to create structure, while my feeling strength helps me ensure that structure serves people, not just processes.",
+      "The key insight I'm taking with me is that my authentic contribution emerges when I stop trying to be good at everything and instead focus on being excellent at what energizes me. My strengths work best when I use them intentionally in service of both individual and team goals.",
+      "What I want to remember is that self-awareness is not a destination but a practice. Understanding my strengths profile gives me a compass for decision-making, whether I'm choosing how to contribute to a project or advocating for the conditions where I can do my best work."
+    ];
+    
+    const randomInsight = demoInsights[Math.floor(Math.random() * demoInsights.length)];
+    setInsight(randomInsight);
+  };
+
   const debouncedSave = useCallback(
     (() => {
       let timeoutId: NodeJS.Timeout;
@@ -241,13 +261,27 @@ export default function FinalReflectionView({
           {/* Bottom Section: Reflection */}
           <div className="reflection-section">
             <div className="reflection-header">
-              <h2 className="section-title">What's the one insight you want to carry forward?</h2>
-              <p className="intro-text">
-                You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
-              </p>
-              <p className="intro-text">
-                Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
-              </p>
+              <div className="header-with-demo">
+                <div className="header-content">
+                  <h2 className="section-title">What's the one insight you want to carry forward?</h2>
+                  <p className="intro-text">
+                    You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
+                  </p>
+                  <p className="intro-text">
+                    Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
+                  </p>
+                </div>
+                {isTestUser && !isStepCompleted && (
+                  <button
+                    onClick={fillWithDemoData}
+                    className="demo-button"
+                    type="button"
+                  >
+                    <FileText className="demo-icon" />
+                    Add Demo Data
+                  </button>
+                )}
+              </div>
             </div>
             
             <div className="input-section">
@@ -467,6 +501,45 @@ export default function FinalReflectionView({
         .reflection-header {
           text-align: center;
           margin-bottom: 32px;
+        }
+
+        .header-with-demo {
+          position: relative;
+        }
+
+        .header-content {
+          text-align: center;
+        }
+
+        .demo-button {
+          position: absolute;
+          top: 0;
+          right: 0;
+          background: #ffffff;
+          border: 2px solid #e8f4fd;
+          border-radius: 8px;
+          padding: 8px 12px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #3498db;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .demo-button:hover {
+          background: #f8fbff;
+          border-color: #3498db;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(52, 152, 219, 0.15);
+        }
+
+        .demo-icon {
+          width: 14px;
+          height: 14px;
         }
 
         .section-title {

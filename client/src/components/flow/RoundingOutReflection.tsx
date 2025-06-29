@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card } from '@/components/ui/card';
+import { useTestUser } from '@/hooks/useTestUser';
+import { FileText } from 'lucide-react';
 
 interface RoundingOutQuestion {
   id: number;
@@ -37,6 +39,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showExample, setShowExample] = useState(false);
+  const isTestUser = useTestUser();
   
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
@@ -75,6 +78,24 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
   const toggleExample = () => {
     setShowExample(prev => !prev);
   };
+
+  // Function to populate with meaningful demo data
+  const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoAnswers = {
+      1: "When I have too many interruptions throughout the day or when I'm constantly switching between different types of tasks. Also when I'm working on something that doesn't align with my natural strengths - I notice stress building up and my focus becoming scattered.",
+      2: "I need to nurture my planning strength by creating more structured approaches to complex projects. This means taking time upfront to think through dependencies and potential obstacles, rather than jumping straight into execution mode.",
+      3: "I'll use my planning strength to break down uncertain situations into smaller, manageable pieces with clear next steps. When things feel stuck, I can create momentum by identifying the smallest possible action that moves us forward and builds from there."
+    };
+    
+    setAnswers(demoAnswers);
+    // Jump to the last question
+    setCurrentQuestion(roundingOutQuestions.length - 1);
+  };
   
   // Example answers for each question
   const getExampleAnswer = (questionId: number) => {
@@ -103,14 +124,27 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             <span className="text-sm font-medium text-gray-500">
               Question {currentQuestion + 1} of {roundingOutQuestions.length}
             </span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={toggleExample}
-              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
-            >
-              {showExample ? "Hide Example" : "Show Example"}
-            </Button>
+            <div className="flex gap-2">
+              {isTestUser && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={fillWithDemoData}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                >
+                  <FileText className="w-3 h-3 mr-1" />
+                  Add Demo Data
+                </Button>
+              )}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={toggleExample}
+                className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+              >
+                {showExample ? "Hide Example" : "Show Example"}
+              </Button>
+            </div>
           </div>
           
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
