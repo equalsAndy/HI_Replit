@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { assessmentQuestions, optionCategoryMapping, type AssessmentOption } from '@/data/assessmentQuestions';
+import { youthAssessmentQuestions, optionCategoryMapping as youthOptionCategoryMapping } from '@/data/youthAssessmentQuestions';
 // Import QuadrantData type directly to fix import error
 interface QuadrantData {
   thinking: number;
@@ -42,6 +43,25 @@ export default function Assessment() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isTestUser = useTestUser();
+
+  // Get current user data to determine role
+  const { data: userData } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      role?: string;
+      isTestUser: boolean;
+    }
+  }>({ 
+    queryKey: ['/api/user/profile']
+  });
+
+  // Determine which question set to use based on user role
+  const isStudent = userData?.user?.role === 'student';
+  const currentAssessmentQuestions = isStudent ? youthAssessmentQuestions : assessmentQuestions;
+  const currentOptionCategoryMapping = isStudent ? youthOptionCategoryMapping : optionCategoryMapping;
 
   // Get star card data to check if assessment is already completed
   const { data: starCard, isLoading: loadingStarCard } = useQuery<StarCardType>({
@@ -124,7 +144,7 @@ export default function Assessment() {
     leastLikeMe: null
   });
 
-  const currentQuestion = assessmentQuestions[currentQuestionIndex];
+  const currentQuestion = currentAssessmentQuestions[currentQuestionIndex];
   const totalQuestions = assessmentQuestions.length;
 
   // Update progress when answers change

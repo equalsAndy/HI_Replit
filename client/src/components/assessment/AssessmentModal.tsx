@@ -200,7 +200,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
     }));
 
     // Use the imported calculation function
-    return calculateQuadrantScores(answersArray, optionCategoryMapping);
+    return calculateQuadrantScores(answersArray, currentOptionCategoryMapping);
   };
 
   // Complete the assessment
@@ -558,7 +558,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           questionId: parseInt(questionId),
           rankings
         })),
-        optionCategoryMapping
+        currentOptionCategoryMapping
       );
 
       console.log('Calculated results:', results);
@@ -639,7 +639,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           questionId: parseInt(questionId),
           rankings: rankings as RankedOption[]
         })),
-        optionCategoryMapping
+        currentOptionCategoryMapping
       );
       
       // Set results and close modal - most "errors" are actually successful completions
