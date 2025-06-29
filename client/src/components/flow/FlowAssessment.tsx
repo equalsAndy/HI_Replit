@@ -719,16 +719,6 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
       <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Flow State Self-Assessment</h3>
-          
-          {isTestUser && (
-            <Button 
-              variant="outline" 
-              onClick={fillDemoAnswers}
-              className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
-            >
-              Fill Demo Answers
-            </Button>
-          )}
         </div>
         
         <p className="text-gray-600 mb-6">
@@ -940,25 +930,36 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
             </div>
           </div>
           
-          <Button 
-            onClick={nextQuestion}
-            className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance && currentQuestion < flowQuestions.length - 1 ? 'opacity-50' : ''}`}
-            disabled={
-              // Disable only if we're not on the last question AND auto-advance is on AND we have a value
-              (autoAdvance && currentQuestion < flowQuestions.length - 1 && currentValue > 0) || 
-              // Or if we're on the last question but haven't selected a value
-              (!currentValue && currentQuestion === flowQuestions.length - 1)
-            }
-            title={
-              autoAdvance && currentValue > 0 && currentQuestion < flowQuestions.length - 1
-                ? "Next question will advance automatically" 
-                : currentQuestion === flowQuestions.length - 1 && !currentValue
-                  ? "Please answer this question" 
-                  : ""
-            }
-          >
-            {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {isTestUser && (
+              <Button 
+                variant="outline" 
+                onClick={fillDemoAnswers}
+                className="text-xs py-1 px-2 h-auto border-dashed border-indigo-300 hover:border-indigo-500"
+              >
+                Fill Demo Answers
+              </Button>
+            )}
+            <Button 
+              onClick={nextQuestion}
+              className={`bg-indigo-700 hover:bg-indigo-800 ${autoAdvance && currentQuestion < flowQuestions.length - 1 ? 'opacity-50' : ''}`}
+              disabled={
+                // Disable only if we're not on the last question AND auto-advance is on AND we have a value
+                (autoAdvance && currentQuestion < flowQuestions.length - 1 && currentValue > 0) || 
+                // Or if we're on the last question but haven't selected a value
+                (!currentValue && currentQuestion === flowQuestions.length - 1)
+              }
+              title={
+                autoAdvance && currentValue > 0 && currentQuestion < flowQuestions.length - 1
+                  ? "Next question will advance automatically" 
+                  : currentQuestion === flowQuestions.length - 1 && !currentValue
+                    ? "Please answer this question" 
+                    : ""
+              }
+            >
+              {currentQuestion === flowQuestions.length - 1 ? "Finish" : "Next"}
+            </Button>
+          </div>
         </div>
       </div>
       
