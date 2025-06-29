@@ -7,13 +7,28 @@ export function NavigationSidebar() {
   const { progress, getSectionProgressData } = useNavigationProgress();
   
   // Query user profile to get role information for conditional navigation
-  const { data: userProfile } = useQuery({
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: 30000
   });
   
   // Check if user is student or facilitator for week-based navigation
-  const isStudentOrFacilitator = (userProfile as any)?.role === 'student' || (userProfile as any)?.role === 'facilitator';
+  const userRole = (userProfile as any)?.role;
+  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
+  
+  // Always log to debug what's happening
+  console.log('🔍 NavigationSidebar ALWAYS LOGS:', {
+    userProfile: userProfile,
+    userRole: userRole,
+    isStudentOrFacilitator: isStudentOrFacilitator,
+    profileLoading: profileLoading,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Force render for debugging - remove loading condition temporarily
+  // if (profileLoading || !userProfile) {
+  //   return <div className="space-y-2">Loading navigation...</div>;
+  // }
 
   // Define sections that match the Navigation component structure
   const getNavigationSections = () => {
