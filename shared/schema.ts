@@ -77,8 +77,10 @@ export const invites = pgTable('invites', {
   usedBy: integer('used_by'),
 });
 
-// Create insert schema for invites
-export const insertInviteSchema = createInsertSchema(invites);
+// Create insert schema for invites with role validation
+export const insertInviteSchema = createInsertSchema(invites).extend({
+  role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant')
+});
 
 // Type definitions for TypeScript
 export type Invite = typeof invites.$inferSelect;
