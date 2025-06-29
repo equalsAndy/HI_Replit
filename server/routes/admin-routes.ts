@@ -183,8 +183,16 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       name: z.string().min(1).optional(),
       email: z.string().email().optional(),
       organization: z.string().optional(),
-      title: z.string().optional(), // Job title
+      jobTitle: z.string().optional(),
+      title: z.string().optional(), // Job title (legacy support)
+      role: z.enum(['admin', 'facilitator', 'participant', 'student']).optional(),
+      contentAccess: z.enum(['student', 'professional', 'both']).optional(),
+      astAccess: z.boolean().optional(),
+      iaAccess: z.boolean().optional(),
       password: z.string().optional(),
+      resetPassword: z.boolean().optional(),
+      setCustomPassword: z.boolean().optional(),
+      newPassword: z.string().optional(),
     });
 
     const result = updateSchema.safeParse(req.body);

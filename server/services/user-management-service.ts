@@ -198,6 +198,9 @@ class UserManagementService {
     isTestUser?: boolean;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
     navigationProgress?: string | null;
+    contentAccess?: 'student' | 'professional' | 'both';
+    astAccess?: boolean;
+    iaAccess?: boolean;
     password?: string | null;
   }) {
     try {
@@ -213,6 +216,11 @@ class UserManagementService {
       if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
       if (data.role !== undefined) updateData.role = data.role;
       if (data.navigationProgress !== undefined) updateData.navigationProgress = data.navigationProgress;
+      
+      // Handle access control fields
+      if (data.contentAccess !== undefined) updateData.contentAccess = data.contentAccess;
+      if (data.astAccess !== undefined) updateData.astAccess = data.astAccess;
+      if (data.iaAccess !== undefined) updateData.iaAccess = data.iaAccess;
       
       let temporaryPassword = null;
       
