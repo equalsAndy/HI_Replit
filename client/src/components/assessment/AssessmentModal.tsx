@@ -758,7 +758,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
   // Render the assessment questions
   const renderAssessment = () => (
-    <div className="p-2 sm:p-4">
+    <div className="p-2 sm:p-4 min-h-[500px]">
       <div className="flex justify-between items-center mb-2">
         <h3 className="text-sm font-semibold text-gray-800">
           Question {currentQuestionIndex + 1} of {totalQuestions}
@@ -778,10 +778,10 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
         {/* Options to rank - displayed as draggable items */}
         <div className="mb-4">
-          <div className="bg-amber-50 p-4 rounded-lg mb-4">
-            {availableOptions.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto">
-                {availableOptions.map(option => (
+          <div className="bg-amber-50 p-4 rounded-lg mb-4 min-h-[140px] flex flex-col justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px] items-center justify-center">
+              {availableOptions.length > 0 ? (
+                availableOptions.map(option => (
                   <div 
                     key={option.id}
                     draggable
@@ -791,11 +791,13 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
                   >
                     <p className="text-xs sm:text-sm text-center">{option.text}</p>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
-            )}
+                ))
+              ) : (
+                <div className="col-span-full flex items-center justify-center">
+                  <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Ranking slots as drop zones */}
@@ -804,7 +806,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <div 
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'mostLikeMe')}
-                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center transition-colors min-h-[80px] ${
+                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center min-h-[80px] ${
                   rankings.mostLikeMe 
                     ? 'border-transparent bg-indigo-100' 
                     : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -829,7 +831,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <div 
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'second')}
-                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center transition-colors min-h-[80px] ${
+                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center min-h-[80px] ${
                   rankings.second 
                     ? 'border-transparent bg-purple-100' 
                     : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -854,7 +856,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <div 
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'third')}
-                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center transition-colors min-h-[80px] ${
+                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center min-h-[80px] ${
                   rankings.third 
                     ? 'border-transparent bg-teal-100' 
                     : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -879,7 +881,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
               <div 
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, 'leastLikeMe')}
-                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center transition-colors min-h-[80px] ${
+                className={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center min-h-[80px] ${
                   rankings.leastLikeMe 
                     ? 'border-transparent bg-rose-100' 
                     : 'border-gray-300 bg-gray-50 hover:border-indigo-300'
@@ -1082,7 +1084,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto min-h-[600px]">
         <DialogHeader>
           <DialogTitle>AllStarTeams Strengths Assessment</DialogTitle>
           <DialogDescription>
