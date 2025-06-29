@@ -231,14 +231,11 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
 
 interface NavigationStep {
   id: string;
-  title: string;
   label: string;
   path: string;
   type: string;
   icon?: string;
   iconColor?: string;
-  estimatedTime?: number;
-  required?: boolean;
 }
 
 export interface NavigationSection {
@@ -665,9 +662,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   // Navigation sections compatibility
   const updateNavigationSections = () => {
-    // This is a compatibility function that allows Navigation.tsx to call this
-    // In the current implementation, sections are managed within each component
-    console.log('📋 Navigation sections update called');
+    // No-op for simplified mode
   };
 
   const calculateOverallProgress = () => {
@@ -718,8 +713,6 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     }
     return null;
   };
-
-
 
   return {
     progress,
