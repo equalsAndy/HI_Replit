@@ -136,6 +136,24 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 29, 2025 - Unified Management Console with Role-Based Access ✅
+- **ROLE-BASED ACCESS CONTROL**: Transformed admin console into unified management console supporting both administrators and facilitators
+  - Created `isFacilitatorOrAdmin` middleware for shared feature access
+  - Updated frontend permission logic to allow facilitator access
+  - Maintained admin-only restrictions for Video Management and system settings
+- **DYNAMIC INTERFACE ADAPTATION**: Console adapts based on user role
+  - Admins see "Admin Console" title, facilitators see "Management Console"
+  - Role indicator shows logged-in user name and role
+  - Video Management tab disabled for facilitators with clear "(Admin Only)" label
+- **PRESERVED FUNCTIONALITY**: All existing features maintained with proper scoping
+  - Shared features: User Management, Cohort Management, Invite Management
+  - Admin-only features: Video Management (disabled for facilitators)
+  - Backend API updated to use role-based middleware for appropriate endpoints
+- **FOUNDATION FOR FACILITATOR FEATURES**: Ready for facilitator-specific enhancements
+  - Data filtering framework prepared for facilitator scope
+  - Role-based UI components established
+  - Security middleware properly configured
+
 ### June 29, 2025 - Admin Console Cleanup & Logout Implementation ✅
 - **ADMIN CONSOLE CLEANUP**: Removed non-essential components for focused interface
   - Removed UserUploader component and System Overview section
