@@ -527,20 +527,66 @@ class UserManagementService {
    */
   async updateVideo(id: number, data: any) {
     try {
-      // For now, just return success
-      // In a real implementation, this would update the video in the database
+      // Import videos table from schema
+      const { videos } = await import('@shared/schema');
+      const { eq } = await import('drizzle-orm');
+      
+      // Prepare update data - only update provided fields
+      const updateData: any = {
+        updatedAt: new Date()
+      };
+      
+      if (data.title !== undefined) updateData.title = data.title;
+      if (data.description !== undefined) updateData.description = data.description;
+      if (data.url !== undefined) updateData.url = data.url;
+      if (data.editableId !== undefined) updateData.editableId = data.editableId;
+      if (data.workshop_type !== undefined) updateData.workshopType = data.workshop_type;
+      if (data.workshopType !== undefined) updateData.workshopType = data.workshopType;
+      if (data.section !== undefined) updateData.section = data.section;
+      if (data.stepId !== undefined) updateData.stepId = data.stepId;
+      if (data.step_id !== undefined) updateData.stepId = data.step_id;
+      if (data.autoplay !== undefined) updateData.autoplay = data.autoplay;
+      if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
+      if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
+      
+      console.log(`Updating video ${id} with data:`, updateData);
+      
+      // Update the video in the database
+      const result = await db.update(videos)
+        .set(updateData)
+        .where(eq(videos.id, id))
+        .returning();
+      
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'Video not found'
+        };
+      }
+      
+      const updatedVideo = result[0];
+      console.log(`Successfully updated video ${id}:`, updatedVideo);
+      
       return {
         success: true,
         video: {
-          id,
-          ...data
+          id: updatedVideo.id,
+          title: updatedVideo.title,
+          description: updatedVideo.description,
+          url: updatedVideo.url,
+          editableId: updatedVideo.editableId,
+          workshop_type: updatedVideo.workshopType,
+          section: updatedVideo.section,
+          step_id: updatedVideo.stepId,
+          autoplay: updatedVideo.autoplay,
+          sortOrder: updatedVideo.sortOrder
         }
       };
     } catch (error) {
       console.error('Error updating video:', error);
       return {
         success: false,
-        error: 'Failed to update video'
+        error: 'Failed to update video: ' + (error instanceof Error ? error.message : 'Unknown error')
       };
     }
   }

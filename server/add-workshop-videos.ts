@@ -82,8 +82,8 @@ async function addWorkshopVideos() {
     {
       title: "Your Future Self",
       description: "Envisioning and planning for your future",
-      url: "https://www.youtube.com/embed/N9uCPe3xF5A?enablejsapi=1&autoplay=1&rel=0",
-      editableId: "N9uCPe3xF5A",
+      url: "https://www.youtube.com/embed/9Q5JMKoSFVk?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "9Q5JMKoSFVk",
       workshopType: "allstarteams",
       section: "future",
       stepId: "4-4",

@@ -394,13 +394,20 @@ router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Respon
       return res.status(400).json({ message: 'Invalid video ID' });
     }
 
-    // In a real implementation, this would update the video in storage
-    // For now, just return success
-    res.status(200).json({ 
-      success: true, 
-      message: 'Video updated successfully',
-      id: id
-    });
+    console.log(`Admin updating video ${id} with data:`, req.body);
+    
+    // Update video using the user management service
+    const updateResult = await userManagementService.updateVideo(id, req.body);
+    
+    if (!updateResult.success) {
+      return res.status(400).json({ 
+        message: updateResult.error || 'Failed to update video'
+      });
+    }
+    
+    console.log(`Video ${id} updated successfully:`, updateResult.video);
+    
+    res.status(200).json(updateResult.video);
   } catch (error) {
     console.error('Error updating video:', error);
     res.status(500).json({ message: 'Server error' });
