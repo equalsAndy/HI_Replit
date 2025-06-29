@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useApplication } from '@/hooks/use-application';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps {
@@ -18,6 +19,11 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   setCurrentContent,
   isImaginalAgility = false
 }) => {
+  // Get user role for content customization
+  const { currentApp } = useApplication();
+  const userRole = currentApp?.user?.role;
+  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
+  
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
   
@@ -37,15 +43,21 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   }, [stepId]);
   const title = isImaginalAgility 
     ? "Welcome to Imaginal Agility Workshop" 
-    : "Welcome to AllStarTeams Workshop";
+    : isStudentOrFacilitator 
+      ? "Welcome to AllStarTeams 5-Week Program"
+      : "Welcome to AllStarTeams Workshop";
 
   const description = isImaginalAgility
     ? null // IA content will be rendered separately in the main content area
-    : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
+    : isStudentOrFacilitator
+      ? "Welcome to AllStarTeams - a new kind of workshop designed just for you! This is where your personal strengths meet your future goals."
+      : "Welcome to the AllStarTeams workshop! Through this journey, you'll discover your unique strengths profile and learn how to leverage it in your professional life.";
 
   const fallbackUrl = isImaginalAgility 
     ? "https://youtu.be/JxdhWd8agmE" 
-    : "https://youtu.be/pp2wrqE8r2o";
+    : isStudentOrFacilitator
+      ? "https://www.youtube.com/watch?v=oHG4OJQtZ4g"
+      : "https://youtu.be/pp2wrqE8r2o";
 
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"
@@ -144,10 +156,26 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       <h1 id="content-title" className="text-3xl font-bold text-gray-900 mb-6">{title}</h1>
 
       <div className="prose max-w-none">
-        {!isImaginalAgility && (
+        {!isImaginalAgility && !isStudentOrFacilitator && (
           <p className="text-lg text-gray-700 mb-6">
             {description}
           </p>
+        )}
+        
+        {!isImaginalAgility && isStudentOrFacilitator && (
+          <div className="mb-6">
+            <p className="text-lg text-gray-700 mb-6">
+              {description}
+            </p>
+            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 shadow-sm mb-6">
+              <p className="text-base text-gray-700 mb-4">
+                Over the next five weeks, you'll take a journey that's all about self-awareness, imagination, and developing real-life skills. This is your space where you'll discover your core strengths, understand what helps you thrive, and imagine the kind of future you want.
+              </p>
+              <p className="text-base text-gray-700">
+                Every part of this course is about building insight that lasts for life - for work and for the teams you'll join.
+              </p>
+            </div>
+          </div>
         )}
 
         {/* YouTube Video Player */}
@@ -237,50 +265,117 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)</h2>
-            <p className="text-lg text-gray-700 mb-4">
-              This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
-            </p>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">Discover your Star Strengths</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">Identify your Flow State</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">Visualize your Professional Growth</span>
-              </li>
-            </ul>
+            {/* Student Content - 5 Week Program Outline */}
+            {isStudentOrFacilitator ? (
+              <>
+                <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm mb-8">
+                  <h2 className="text-2xl font-semibold text-blue-700 mb-6">Your 5-Week Journey</h2>
+                  
+                  <div className="space-y-6">
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Week 1: Discover Your Star Strengths</h3>
+                      <p className="text-gray-700">Take your Star Strengths self-assessment and discover your core strengths across imagination, thinking, planning, feeling, and acting.</p>
+                    </div>
+                    
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Week 2: Identify Your Flow</h3>
+                      <p className="text-gray-700">Discover when you feel and perform at your best. Complete your digital Star Card with your flow qualities.</p>
+                    </div>
+                    
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Week 3: Reflect on Well-being</h3>
+                      <p className="text-gray-700">Explore your personal growth and well-being through guided reflection exercises.</p>
+                    </div>
+                    
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Week 4: Visualize Your Future Self</h3>
+                      <p className="text-gray-700">Create a vision of who you're becoming. Select images that reflect your goals, energy, and dream life.</p>
+                    </div>
+                    
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h3 className="text-lg font-semibold text-gray-800 mb-2">Week 5: Team Up and Apply</h3>
+                      <p className="text-gray-700">Join your team for a live facilitated session where you'll apply everything you've learned together.</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 shadow-sm mb-8">
+                  <h2 className="text-xl font-semibold text-blue-700 mb-4">What You'll Receive</h2>
+                  <ul className="space-y-3">
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                      <span className="text-base text-gray-700">Your personalized Digital Star Card - ready for download</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                      <span className="text-base text-gray-700">A personalized AI report summarizing your strengths, flow, and vision</span>
+                    </li>
+                    <li className="flex items-start">
+                      <div className="w-2 h-2 bg-blue-600 rounded-full mt-2.5 mr-3 flex-shrink-0"></div>
+                      <span className="text-base text-gray-700">A completion badge you can share on LinkedIn and with future employers</span>
+                    </li>
+                  </ul>
+                </div>
+                
+                <div className="bg-white p-6 rounded-lg border border-blue-200 shadow-sm mb-8">
+                  <h2 className="text-xl font-semibold text-blue-700 mb-4">Remember</h2>
+                  <p className="text-base text-gray-700 mb-4">
+                    This isn't about perfection - it's about courage, reflection, and practice. Take it one step at a time. Each part builds on the last.
+                  </p>
+                  <p className="text-base text-gray-700 font-medium">
+                    This is your path forward, and it starts now.
+                  </p>
+                </div>
+              </>
+            ) : (
+              /* Original Adult Content */
+              <>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-6">PART I: INDIVIDUAL MICRO COURSE (SELF-GUIDED)</h2>
+                <p className="text-lg text-gray-700 mb-4">
+                  This self-paced experience is an opportunity for reflection and self-expression. Through several guided exercises and self-assessments, you will:
+                </p>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">Discover your Star Strengths</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">Identify your Flow State</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">Visualize your Professional Growth</span>
+                  </li>
+                </ul>
 
-            <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
-            <ul className="space-y-2 mb-6">
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">A personalized Digital Star Card</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">A personalized AI Holistic Profile Report</span>
-              </li>
-              <li className="flex items-start">
-                <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
-                <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
-              </li>
-            </ul>
+                <h3 className="text-xl font-semibold text-gray-800 mb-3">Your Takeaways:</h3>
+                <ul className="space-y-2 mb-6">
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">A personalized Digital Star Card</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">A personalized AI Holistic Profile Report</span>
+                  </li>
+                  <li className="flex items-start">
+                    <div className="w-2 h-2 bg-blue-600 rounded-full mt-2 mr-3 flex-shrink-0"></div>
+                    <span className="text-sm">Readiness for High-Impact Teamwork Practice</span>
+                  </li>
+                </ul>
 
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">PART II: TEAMWORK PRACTICE (FACILITATED)</h2>
-            <p className="text-lg text-gray-700 mb-6">
-              Join your teammates in a guided session where you'll bring your insights to life.
-            </p>
-            <p className="text-lg text-gray-700 mb-6">
-              Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
-            </p>
+                <h2 className="text-2xl font-semibold text-gray-800 mb-4">PART II: TEAMWORK PRACTICE (FACILITATED)</h2>
+                <p className="text-lg text-gray-700 mb-6">
+                  Join your teammates in a guided session where you'll bring your insights to life.
+                </p>
+                <p className="text-lg text-gray-700 mb-6">
+                  Together, you'll align your strengths, deepen collaboration, and practice in real time using a shared digital whiteboard.
+                </p>
+              </>
+            )}
           </>
-        )}
+        )}}
 
 
 
