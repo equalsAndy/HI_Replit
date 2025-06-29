@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ContentViewProps } from '../../shared/types';
-import { ChevronRight, Search, Upload, Save, Image, X, Plus } from 'lucide-react';
+import { ChevronRight, Search, Upload, Save, Image, X, Plus, FileText } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { apiRequest } from '@/lib/queryClient';
 import { queryClient } from '@/lib/queryClient';
 import { searchUnsplash, searchImages } from '@/services/api-services';
 import { useToast } from '@/hooks/use-toast';
+import { useTestUser } from '@/hooks/useTestUser';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -21,6 +22,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
+  const isTestUser = useTestUser();
 
   // Load existing image data when component mounts
   useEffect(() => {
@@ -142,9 +144,37 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     }
   };
 
+  // Function to populate with meaningful demo data
+  const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoMeaning = "These images represent my vision of becoming a confident leader who creates positive change in my organization. The collaboration image reflects my strength in bringing people together and fostering teamwork. The growth images symbolize my commitment to continuous learning and helping others develop their potential. The success images represent achieving meaningful goals while maintaining balance and well-being. Together, they show my future self as someone who uses their analytical and planning strengths to create structured approaches to complex challenges while staying connected to the human side of leadership.";
+    
+    setImageMeaning(demoMeaning);
+    
+    // Note: We don't add demo images since image selection is more personal and visual
+    // The text explanation is the key reflection piece for this component
+  };
+
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Visualizing Your Potential</h1>
+        {isTestUser && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
+      </div>
 
       <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
         <div className="flex justify-between items-start">

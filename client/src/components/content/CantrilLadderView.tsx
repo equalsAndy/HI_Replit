@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, FileText } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 import { debounce } from '@/lib/utils';
+import { useTestUser } from '@/hooks/useTestUser';
 
 // Props interface
 interface ContentViewProps {
@@ -27,6 +28,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     quarterlyProgress: '',
     quarterlyActions: ''
   });
+  const isTestUser = useTestUser();
 
   // Fetch user's actual wellbeing data from the visualization API
   const { data: visualizationData } = useQuery({
@@ -149,9 +151,40 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       [field]: value
     }));
   };
+
+  // Function to populate with meaningful demo data
+  const fillWithDemoData = () => {
+    if (!isTestUser) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoData = {
+      currentFactors: "My current well-being is shaped by meaningful work that aligns with my strengths, supportive relationships with colleagues and family, good physical health through regular exercise, and financial stability. I feel energized when I can use my planning and analytical skills to solve complex problems.",
+      futureImprovements: "In one year, I envision having greater autonomy in my role, leading a high-performing team that leverages everyone's strengths effectively, maintaining excellent work-life balance, and feeling confident about my career trajectory. I want to be recognized as a go-to person for strategic thinking and team development.",
+      specificChanges: "I'll have more flexible work arrangements, be managing or mentoring team members, have completed a leadership development program, improved my public speaking skills, and established better boundaries between work and personal time. My stress levels will be lower and my sense of purpose higher.",
+      quarterlyProgress: "I'll have initiated at least two process improvements using my analytical skills, received positive feedback on a leadership opportunity I've taken on, and established a consistent routine for professional development. I'll notice feeling more confident in meetings and decision-making.",
+      quarterlyActions: "I will schedule monthly one-on-ones with my manager to discuss growth opportunities, sign up for a leadership workshop or online course, volunteer to lead a cross-functional project, and implement a weekly planning routine that aligns my daily work with my long-term goals."
+    };
+    
+    setFormData(demoData);
+  };
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-900">Cantril Ladder Well-being Reflections</h1>
+        {isTestUser && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
+      </div>
 
       {/* Content below title - same layout as WellBeingView */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
