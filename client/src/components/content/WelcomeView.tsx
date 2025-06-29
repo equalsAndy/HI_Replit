@@ -375,9 +375,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
               </>
             )}
           </>
-        )}}
-
-
+        )}
 
         <div className="flex justify-end">
           <Button 
