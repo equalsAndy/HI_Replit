@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { invites } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { generateInviteCode } from '../utils/invite-code';
 
 class InviteService {
@@ -9,38 +9,34 @@ class InviteService {
    */
   async createInvite(data: {
     email: string;
-    role: 'admin' | 'facilitator' | 'participant' | 'student';
+    role: string;
     name?: string;
     createdBy: number;
     expiresAt?: Date;
   }) {
     try {
-      // Validate role
-      const validRoles = ['admin', 'facilitator', 'participant', 'student'];
-      if (!validRoles.includes(data.role)) {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
         return {
           success: false,
-          error: 'Invalid role provided'
+          error: 'Invalid email format'
         };
       }
       
       // Generate a unique invite code
       const inviteCode = generateInviteCode().replace(/-/g, '');
       
-      // Insert the invite into the database
-      const result = await db.insert(invites).values({
-        inviteCode,
-        email: data.email.toLowerCase(),
-        role: data.role,
-        name: data.name || null,
-        createdBy: data.createdBy,
-        expiresAt: data.expiresAt || null,
-        createdAt: new Date()
-      }).returning();
+      // Insert the invite into the database using raw SQL to bypass schema issues
+      const result = await db.execute(sql`
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null})
+        RETURNING *
+      `);
       
       return {
         success: true,
-        invite: result[0]
+        invite: result.rows[0]
       };
     } catch (error) {
       console.error('Error creating invite:', error);
@@ -72,10 +68,10 @@ class InviteService {
         invite: result[0]
       };
     } catch (error) {
-      console.error('Error getting invite by code:', error);
+      console.error('Error fetching invite:', error);
       return {
         success: false,
-        error: 'Failed to get invite'
+        error: 'Failed to fetch invite'
       };
     }
   }
@@ -85,24 +81,16 @@ class InviteService {
    */
   async markInviteAsUsed(inviteCode: string, userId: number) {
     try {
-      const result = await db.update(invites)
-        .set({
-          usedAt: new Date(),
-          usedBy: userId
-        })
-        .where(eq(invites.inviteCode, inviteCode))
-        .returning();
-      
-      if (!result || result.length === 0) {
-        return {
-          success: false,
-          error: 'Invite not found'
-        };
-      }
+      const result = await db.execute(sql`
+        UPDATE invites 
+        SET used_at = NOW(), used_by = ${userId}
+        WHERE invite_code = ${inviteCode}
+        RETURNING *
+      `);
       
       return {
         success: true,
-        invite: result[0]
+        invite: result.rows[0]
       };
     } catch (error) {
       console.error('Error marking invite as used:', error);
@@ -120,32 +108,37 @@ class InviteService {
     try {
       const result = await db.select()
         .from(invites)
-        .where(eq(invites.createdBy, creatorId))
-        .orderBy(invites.createdAt);
-      
-      return result;
-    } catch (error) {
-      console.error('Error getting invites by creator:', error);
-      return [];
-    }
-  }
-  
-  /**
-   * Get all invites for an admin view
-   */
-  async getAllInvites() {
-    try {
-      const result = await db.select().from(invites).orderBy(invites.createdAt);
+        .where(eq(invites.createdBy, creatorId));
       
       return {
         success: true,
         invites: result
       };
     } catch (error) {
-      console.error('Error getting all invites:', error);
+      console.error('Error fetching invites by creator:', error);
       return {
         success: false,
-        error: 'Failed to get invites'
+        error: 'Failed to fetch invites'
+      };
+    }
+  }
+  
+  /**
+   * Get all invites (admin only)
+   */
+  async getAllInvites() {
+    try {
+      const result = await db.select().from(invites);
+      
+      return {
+        success: true,
+        invites: result
+      };
+    } catch (error) {
+      console.error('Error fetching all invites:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch invites'
       };
     }
   }
@@ -155,20 +148,14 @@ class InviteService {
    */
   async deleteInvite(id: number) {
     try {
-      const result = await db.delete(invites)
-        .where(eq(invites.id, id))
-        .returning();
-      
-      if (!result || result.length === 0) {
-        return {
-          success: false,
-          error: 'Invite not found'
-        };
-      }
+      const result = await db.execute(sql`
+        DELETE FROM invites WHERE id = ${id}
+        RETURNING *
+      `);
       
       return {
         success: true,
-        invite: result[0]
+        deletedInvite: result.rows[0]
       };
     } catch (error) {
       console.error('Error deleting invite:', error);
