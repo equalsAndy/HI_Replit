@@ -20,6 +20,10 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
+  // ALWAYS LOG THIS TO SEE IF COMPONENT IS RUNNING
+  console.log('🚀 Navigation Component Loaded!');
+  console.log('🚀 currentApp object:', currentApp);
+  
   // Check if user is student or facilitator for week-based navigation
   const isStudentOrFacilitator = currentApp?.user?.role === 'student' || currentApp?.user?.role === 'facilitator';
   
