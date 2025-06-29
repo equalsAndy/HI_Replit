@@ -327,8 +327,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 {/* Steps List */}
                 {drawerOpen && (
                   <ul className="pl-12 space-y-1 relative">
-                    {/* Week Label spanning entire section */}
-                    {section.weekNumber && (
+                    {/* Week Label spanning entire section - TEMPORARILY HIDDEN */}
+                    {false && section.weekNumber && (
                       <div 
                         className="absolute left-2 top-0 bottom-0 flex items-center justify-center w-6"
                       >
