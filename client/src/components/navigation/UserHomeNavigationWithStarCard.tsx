@@ -74,13 +74,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
 
-  // Calculate section progress based on completed steps
+  // Calculate section progress based on completed steps - Updated for new structure
   const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
     const sectionSteps: { [key: string]: string[] } = {
       '1': ['1-1'],                              // Introduction (1/1)
-      '2': ['2-1', '2-2', '2-3', '2-4'],        // Star Strengths (4/4)
-      '3': ['3-1', '3-2', '3-3', '3-4'],        // Flow (4/4)
-      '4': ['4-1', '4-2', '4-3', '4-4', '4-5']  // Potential (5/5)
+      '2': ['2-1', '2-2', '2-3', '2-4'],        // Week 1: Star Strengths (4/4)
+      '3': ['3-1', '3-2', '3-3', '3-4'],        // Week 2: Flow (4/4)
+      '4': ['4-1', '4-2'],                      // Week 3: Potential Part 1 (2/2)
+      '5': ['4-3', '4-4', '4-5'],              // Week 4: Potential Part 2 (3/3)
+      '6': ['5-1', '5-2', '5-3', '5-4']        // Week 5: Next Steps (4/4)
     };
 
     const steps = sectionSteps[sectionId] || [];
@@ -306,15 +308,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 {/* Section Header with Week Label */}
                 {/* Hide section title for Introduction (section 1) */}
                 {section.id !== '1' && (
-                  <div className="flex items-start space-x-2 relative">
+                  <div className="flex items-start space-x-2 relative pl-6">
                     {/* 90-degree Week Label in Margin */}
                     {drawerOpen && section.weekNumber && (
                       <div 
-                        className="absolute -left-6 top-0 h-full flex items-center justify-center w-4"
+                        className="absolute left-0 top-0 h-8 flex items-center justify-center w-5"
                         style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
                       >
-                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-2 rounded transform -rotate-180"
-                              style={{ letterSpacing: '0.1em' }}>
+                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-1 rounded-md shadow-sm"
+                              style={{ letterSpacing: '0.1em', transform: 'rotate(180deg)' }}>
                           WEEK {section.weekNumber}
                         </span>
                       </div>
@@ -337,7 +339,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className={section.weekNumber ? "pl-4 space-y-1" : "pl-7 space-y-1"}>
+                  <ul className={section.weekNumber ? "pl-8 space-y-1" : "pl-7 space-y-1"}>
                     {section.steps.map((step) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
