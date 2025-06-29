@@ -70,11 +70,11 @@ export const invites = pgTable('invites', {
   email: varchar('email', { length: 255 }).notNull(),
   role: varchar('role', { length: 20 }).notNull().default('participant'),
   name: text('name'),
-  createdBy: serial('created_by').notNull(),
+  createdBy: integer('created_by').notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   expiresAt: timestamp('expires_at'),
   usedAt: timestamp('used_at'),
-  usedBy: serial('used_by'),
+  usedBy: integer('used_by'),
 });
 
 // Create insert schema for invites
