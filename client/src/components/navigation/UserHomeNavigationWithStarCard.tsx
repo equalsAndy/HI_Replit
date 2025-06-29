@@ -383,7 +383,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   ) : null}
                                 </div>
 
-                                <span className="flex-1">{step.title}</span>
+                                <span className="flex-1 whitespace-nowrap">{step.title}</span>
 
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
