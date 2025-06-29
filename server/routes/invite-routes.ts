@@ -19,7 +19,7 @@ router.post('/', requireAdmin, async (req, res) => {
       });
     }
     
-    if (!role || !['admin', 'facilitator', 'participant'].includes(role)) {
+    if (!role || !['admin', 'facilitator', 'participant', 'student'].includes(role)) {
       return res.status(400).json({
         success: false,
         error: 'Valid role is required'
@@ -28,7 +28,7 @@ router.post('/', requireAdmin, async (req, res) => {
     
     const result = await inviteService.createInvite({
       email,
-      role: role as 'admin' | 'facilitator' | 'participant',
+      role: role as 'admin' | 'facilitator' | 'participant' | 'student',
       name,
       createdBy: req.session.userId!,
       expiresAt: expiresAt ? new Date(expiresAt) : undefined

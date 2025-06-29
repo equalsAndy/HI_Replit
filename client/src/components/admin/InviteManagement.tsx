@@ -199,6 +199,8 @@ export const InviteManagement: React.FC = () => {
         return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       case 'participant':
         return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'student':
+        return 'bg-purple-100 text-purple-800 hover:bg-purple-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
@@ -264,6 +266,7 @@ export const InviteManagement: React.FC = () => {
                       <SelectItem value="admin">Admin</SelectItem>
                       <SelectItem value="facilitator">Facilitator</SelectItem>
                       <SelectItem value="participant">Participant</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

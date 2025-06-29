@@ -9,7 +9,7 @@ class InviteService {
    */
   async createInvite(data: {
     email: string;
-    role: 'admin' | 'facilitator' | 'participant';
+    role: 'admin' | 'facilitator' | 'participant' | 'student';
     name?: string;
     createdBy: number;
     expiresAt?: Date;
