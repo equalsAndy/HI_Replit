@@ -332,8 +332,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       <div 
                         className="absolute left-2 top-0 bottom-0 flex items-center justify-center w-6"
                       >
-                        <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-0.5 py-0.5 rounded text-center"
-                             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}>
+                        <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-0 py-0 rounded text-center"
+                             style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em', fontSize: '10px' }}>
                           WEEK {section.weekNumber}
                         </div>
                       </div>
