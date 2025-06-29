@@ -912,7 +912,9 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
             >
               <ChevronLeft className="h-4 w-4 mr-1" /> Back
             </Button>
+          </div>
 
+          <div className="flex items-center gap-3">
             {isTestUser && (
               <Button
                 variant="outline"
@@ -922,21 +924,20 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
                 Demo Data
               </Button>
             )}
+            <Button 
+              onClick={saveAnswerAndContinue}
+              className={`${currentQuestionIndex === totalQuestions - 1 ? 'bg-teal-600 hover:bg-teal-700' : 'bg-indigo-600 hover:bg-indigo-700'} h-10`}
+              disabled={!rankings.mostLikeMe || !rankings.second || !rankings.third || !rankings.leastLikeMe || isSubmitting}
+            >
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : currentQuestionIndex === totalQuestions - 1 ? (
+                'Complete Assessment'
+              ) : (
+                <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>
+              )}
+            </Button>
           </div>
-
-          <Button 
-            onClick={saveAnswerAndContinue}
-            className={`${currentQuestionIndex === totalQuestions - 1 ? 'bg-teal-600 hover:bg-teal-700' : 'bg-indigo-600 hover:bg-indigo-700'} h-10`}
-            disabled={!rankings.mostLikeMe || !rankings.second || !rankings.third || !rankings.leastLikeMe || isSubmitting}
-          >
-            {isSubmitting ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : currentQuestionIndex === totalQuestions - 1 ? (
-              'Complete Assessment'
-            ) : (
-              <>Continue <ChevronRight className="h-4 w-4 ml-1" /></>
-            )}
-          </Button>
         </div>
 
         {/* Cancel button removed from here, now in top-right corner */}
