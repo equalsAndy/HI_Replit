@@ -28,6 +28,9 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - [ ] **Real-time progress sync** - Currently progress only updates on page refresh
 - [ ] **Bulk user management** - Admin ability to import/export multiple users at once
 - [ ] **Workshop completion certificates** - Generate PDF certificates when users complete workshops
+- [ ] **Facilitator invite permissions** - Complete implementation allowing facilitators to create invites (partially implemented - admin only currently)
+- [ ] **Admin assessment management interface** - UI for admins to edit/create assessment questions and modify strength category mappings
+- [ ] **Facilitator cohort management** - Tools for facilitators to create, manage, and assign assessments to student cohorts
 
 ### **Medium Priority**
 *Nice-to-have features that would enhance the platform*
@@ -37,6 +40,10 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - [ ] **Workshop analytics dashboard** - Show completion rates, time spent, popular steps
 - [ ] **Email notifications** - Notify users of progress milestones or admin messages
 - [ ] **Workshop themes/branding** - Allow customization of colors and logos per organization
+- [ ] **Student-specific orientation content** - Week-based structure content and different orientation video for student users
+- [ ] **Week-based UI progress display** - Visual progress indicator showing weeks instead of steps for student users
+- [ ] **Assessment variation system** - Framework for creating multiple assessment types with different questions/mappings
+- [ ] **Additional workshop types for students** - IA workshop adaptation and other student-focused content
 
 ### **Low Priority**
 *Future enhancements for consideration*
@@ -82,6 +89,9 @@ This file tracks feature requests, bugs, and improvements that come up during de
 
 ### **Recent Completions** *(Move items here when finished)*
 
+- ✅ **Student user type database schema** *(2025-06-29)* - Added 'student' role to users table with full type safety and validation
+- ✅ **Youth assessment question mapping** *(2025-06-29)* - Created 22 school/training scenarios mapped to same 4 strength categories
+- ✅ **Role-based assessment loading** *(2025-06-29)* - Assessment component now loads youth scenarios for students, professional questions for others
 - ✅ **Logo routing and display issues** *(2025-06-27)* - Fixed IA workshop showing AST logo due to incorrect routing, implemented proper workshop detection
 - ✅ **Logo dev vs deployed environment paths** *(2025-06-27)* - Resolved logo path inconsistencies by standardizing Logo component usage across all navigation
 - ✅ **Test user progress display bug** *(2025-06-28)* - Fixed step ID mapping to show correct sequential progress (4-1 → step 10 of 14)
@@ -95,6 +105,13 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ---
 
 ## 📝 Implementation Notes
+
+### **Youth Participant Implementation Notes** *(June 2025)*
+- **Database Schema**: 'student' role implemented with UserRoles constant and UserRole type for type safety
+- **Assessment Architecture**: Role-based loading system allows different question sets while maintaining identical interface and scoring
+- **Question Structure**: Youth scenarios follow same 4-category mapping (thinking/acting/feeling/planning) as professional assessment
+- **Testing Limitation**: Full student flow testing requires admin invite creation UI to generate student invite codes
+- **Future Expansion**: Assessment variation framework established for additional user types or question sets
 
 ### **Development Workflow Improvements Identified** *(June 2025)*
 - **Claude System Instructions Enhancement**: Need project-aware instructions that include workshop separation rules, error prevention patterns, and Heliotrope-specific constraints to eliminate architecture re-explanation in each session
@@ -122,6 +139,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - **Logo component architecture**: Centralized Logo.tsx component handles all three logo types (allstarteams, imaginal-agility, heliotrope) with proper Vite asset bundling
 - **Workshop routing separation**: Each workshop has dedicated page component that sets correct currentApp state for proper logo detection
 - **Logo sizing approach**: Width-based responsive sizing (w-48 h-auto) instead of height-based to accommodate different aspect ratios
+- **Student assessment architecture**: Same assessment interface and scoring system with role-based question loading for seamless user experience
 
 ### **Testing Checklist Template**
 When implementing new features, test:
@@ -131,6 +149,7 @@ When implementing new features, test:
 - [ ] IA workshop behavior
 - [ ] Mobile responsiveness
 - [ ] Data export/import consistency
+- [ ] Student user role functionality (when invite creation UI complete)
 
 ---
 
@@ -150,5 +169,5 @@ When implementing new features, test:
 
 ---
 
-**Last Updated:** June 28, 2025  
-**Next Review:** July 28, 2025
+**Last Updated:** June 29, 2025  
+**Next Review:** July 29, 2025
