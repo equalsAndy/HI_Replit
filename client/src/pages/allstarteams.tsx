@@ -76,10 +76,92 @@ export default function AllStarTeams() {
     };
   }, [setCurrentApp, setCurrentContent, setCurrentStep, currentContent, location, currentApp]);
 
-  // Determine which navigation sections to use based on the selected app
-  const activeNavigationSections = currentApp === 'imaginal-agility' 
-    ? imaginalAgilityNavigationSections 
-    : navigationSections;
+  // Determine which navigation sections to use based on the selected app AND user role
+  // Get user role for navigation customization (using existing user query below)
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: 30000,
+  });
+  
+  const userRole = (userData as any)?.user?.role || (userData as any)?.role;
+  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
+  
+  // Debug role detection
+  console.log('🔍 AllStarTeams Role Debug:');
+  console.log('- Raw user data:', userData);
+  console.log('- Extracted userRole:', userRole);
+  console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
+  
+  // Function to get role-based navigation sections
+  const getRoleBasedNavigationSections = () => {
+    if (currentApp === 'imaginal-agility') {
+      return imaginalAgilityNavigationSections;
+    }
+    
+    if (isStudentOrFacilitator) {
+      // Student/Facilitator week-based structure
+      return [
+        {
+          id: '1',
+          title: '', // No title for introduction section
+          steps: [
+            { id: '2-1', title: 'Intro to Star Strengths', type: 'video' }
+          ]
+        },
+        {
+          id: '2',
+          title: 'WEEK 1: DISCOVER YOUR STAR STRENGTHS',
+          steps: [
+            { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
+            { id: '2-3', title: 'Review Your Star Card', type: 'viewing' },
+            { id: '2-4', title: 'Strength Reflection', type: 'reflection' }
+          ]
+        },
+        {
+          id: '3',
+          title: 'WEEK 2: IDENTIFY YOUR FLOW',
+          steps: [
+            { id: '3-1', title: 'Intro to Flow', type: 'video' },
+            { id: '3-2', title: 'Flow Assessment', type: 'assessment' },
+            { id: '3-3', title: 'Rounding Out', type: 'video' },
+            { id: '3-4', title: 'Add Flow to Star Card', type: 'adding' }
+          ]
+        },
+        {
+          id: '4',
+          title: 'WEEK 3: VISUALIZE YOUR POTENTIAL Part 1',
+          steps: [
+            { id: '4-1', title: 'Ladder of Well-being', type: 'interactive' },
+            { id: '4-2', title: 'Well-being Reflections', type: 'video' }
+          ]
+        },
+        {
+          id: '5',
+          title: 'WEEK 4: VISUALIZE YOUR POTENTIAL Part 2',
+          steps: [
+            { id: '4-3', title: 'Visualizing You', type: 'visual' },
+            { id: '4-4', title: 'Your Future Self', type: 'reflection' },
+            { id: '4-5', title: 'Final Reflection', type: 'reflection' }
+          ]
+        },
+        {
+          id: '6',
+          title: 'WEEK 5: NEXT STEPS',
+          steps: [
+            { id: '5-1', title: 'Download your Star Card', type: 'download' },
+            { id: '5-2', title: 'Your Holistic Report', type: 'download' },
+            { id: '5-3', title: 'Growth Plan', type: 'planning' },
+            { id: '5-4', title: 'Team Workshop Prep', type: 'collaboration' }
+          ]
+        }
+      ];
+    } else {
+      // Original structure for other user types
+      return navigationSections;
+    }
+  };
+  
+  const activeNavigationSections = getRoleBasedNavigationSections();
 
   // Simplified linear progression - no need for app-specific storage keys
 
