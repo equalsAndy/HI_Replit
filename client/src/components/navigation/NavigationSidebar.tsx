@@ -4,7 +4,7 @@ import { CollapsibleSection } from './CollapsibleSection';
 import { navigationSections } from './navigationData';
 
 export function NavigationSidebar() {
-  const { progress, getSectionProgressData, SECTION_STEPS } = useNavigationProgress();
+  const { progress, getSectionProgressData, sections } = useNavigationProgress();
 
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {
@@ -41,8 +41,9 @@ export function NavigationSidebar() {
     }
   };
 
+  // Use dynamic sections from navigation progress hook instead of static import
   // Create sections with real-time progress data
-  const sectionsWithProgress = navigationSections.map(section => {
+  const sectionsWithProgress = sections.map(section => {
     // Get section progress based on completed steps
     const sectionStepIds = section.steps.map(step => step.id);
     const progressData = getSectionProgressData(sectionStepIds);
