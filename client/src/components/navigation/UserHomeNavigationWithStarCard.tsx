@@ -271,7 +271,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           drawerOpen ? "translate-x-0" : "-translate-x-full"
         ) : cn(
           "h-full relative",
-          drawerOpen ? "w-80" : "hidden" // Hide completely when closed on desktop
+          drawerOpen ? "w-84" : "hidden" // Hide completely when closed on desktop
         )
       )}>
         {/* Application Logo */}
@@ -383,7 +383,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                   ) : null}
                                 </div>
 
-                                <span className="flex-1 whitespace-nowrap">{step.title}</span>
+                                <span className="flex-1">{step.title}</span>
 
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">
