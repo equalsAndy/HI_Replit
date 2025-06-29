@@ -330,9 +330,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                     {/* Week Label spanning entire section */}
                     {section.weekNumber && (
                       <div 
-                        className="absolute left-2 top-0 bottom-0 flex items-center justify-center w-4"
+                        className="absolute left-1 top-0 bottom-0 flex items-center justify-center w-3"
                       >
-                        <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-0 py-0 rounded text-center"
+                        <div className="text-xs font-bold text-indigo-600 text-center"
                              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}>
                           WEEK {section.weekNumber}
                         </div>
