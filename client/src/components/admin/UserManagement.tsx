@@ -42,6 +42,10 @@ interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant' | 'student';
   isTestUser: boolean;
+  // Access control fields
+  contentAccess: 'student' | 'professional' | 'both';
+  astAccess: boolean;
+  iaAccess: boolean;
   progress?: number;
   hasAssessment?: boolean;
   hasStarCard?: boolean;
@@ -78,6 +82,10 @@ const editUserSchema = z.object({
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
   role: z.enum(['admin', 'facilitator', 'participant', 'student']),
+  // Access control fields
+  contentAccess: z.enum(['student', 'professional', 'both']),
+  astAccess: z.boolean(),
+  iaAccess: z.boolean(),
   resetPassword: z.boolean().default(false),
   newPassword: z.string().optional(),
   setCustomPassword: z.boolean().default(false),
@@ -473,7 +481,10 @@ export function UserManagement() {
       email: user.email,
       organization: user.organization || '',
       jobTitle: user.jobTitle || '',
-      role: user.role as 'admin' | 'facilitator' | 'participant',
+      role: user.role as 'admin' | 'facilitator' | 'participant' | 'student',
+      contentAccess: user.contentAccess || 'professional',
+      astAccess: user.astAccess || true,
+      iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
       resetPassword: false,
       newPassword: '',
       setCustomPassword: false,
@@ -1177,6 +1188,110 @@ export function UserManagement() {
                           Mark as test account
                         </p>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content Type Access Section */}
+                <div className="space-y-4">
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-3">Content Type Access</h4>
+                    <FormField
+                      control={editForm.control}
+                      name="contentAccess"
+                      render={({ field }) => (
+                        <FormItem className="space-y-3">
+                          <FormControl>
+                            <div className="grid grid-cols-1 gap-2">
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id="student-only"
+                                  value="student"
+                                  checked={field.value === 'student'}
+                                  onChange={() => field.onChange('student')}
+                                  className="h-4 w-4 text-purple-600"
+                                />
+                                <Label htmlFor="student-only" className="text-sm">Student Content Only</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id="professional-only"
+                                  value="professional"
+                                  checked={field.value === 'professional'}
+                                  onChange={() => field.onChange('professional')}
+                                  className="h-4 w-4 text-blue-600"
+                                />
+                                <Label htmlFor="professional-only" className="text-sm">Professional Content Only</Label>
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="radio"
+                                  id="both-content"
+                                  value="both"
+                                  checked={field.value === 'both'}
+                                  onChange={() => field.onChange('both')}
+                                  className="h-4 w-4 text-green-600"
+                                />
+                                <Label htmlFor="both-content" className="text-sm">Both Content Types</Label>
+                              </div>
+                            </div>
+                          </FormControl>
+                          <FormDescription>
+                            Controls which assessment content this user can access
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  {/* Workshop Access Section */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-3">Workshop Access</h4>
+                    <div className="space-y-3">
+                      <FormField
+                        control={editForm.control}
+                        name="astAccess"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-sm">AllStarTeams Workshop</FormLabel>
+                              <FormDescription className="text-xs">
+                                Access to team collaboration and strengths discovery workshop
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+
+                      <FormField
+                        control={editForm.control}
+                        name="iaAccess"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-sm">Imaginal Agility Workshop</FormLabel>
+                              <FormDescription className="text-xs">
+                                Access to individual development and agility training workshop
+                              </FormDescription>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
                     </div>
                   </div>
                 </div>

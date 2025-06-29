@@ -87,7 +87,7 @@ export default function AdminDashboard() {
       <div className="flex justify-between items-center">
         <div className="flex flex-col space-y-1">
           <h1 className="text-3xl font-bold tracking-tight">
-            {isAdmin ? 'Admin Console' : 'Management Console'}
+            {isAdmin ? 'Admin Console' : 'Facilitator Console'}
           </h1>
           <p className="text-sm text-muted-foreground">
             Logged in as {currentUser.name} ({currentUser.role})
