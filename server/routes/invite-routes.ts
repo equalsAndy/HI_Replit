@@ -41,7 +41,7 @@ router.post('/', requireAdmin, async (req, res) => {
     // Format the invite code for display
     const formattedInvite = {
       ...result.invite,
-      formattedCode: formatInviteCode(result.invite.inviteCode)
+      formattedCode: formatInviteCode((result.invite as any)?.invite_code || (result.invite as any)?.inviteCode || '')
     };
     
     res.json({

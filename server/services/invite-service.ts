@@ -36,7 +36,7 @@ class InviteService {
       
       return {
         success: true,
-        invite: result.rows[0]
+        invite: (result as any).rows?.[0] || { invite_code: inviteCode, email: data.email, role: data.role }
       };
     } catch (error) {
       console.error('Error creating invite:', error);
@@ -90,7 +90,7 @@ class InviteService {
       
       return {
         success: true,
-        invite: result.rows[0]
+        invite: result[0]
       };
     } catch (error) {
       console.error('Error marking invite as used:', error);
@@ -155,7 +155,7 @@ class InviteService {
       
       return {
         success: true,
-        deletedInvite: result.rows[0]
+        deletedInvite: result[0]
       };
     } catch (error) {
       console.error('Error deleting invite:', error);
