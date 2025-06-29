@@ -305,23 +305,10 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
-                {/* Section Header with Week Label */}
+                {/* Section Header - Clean without Week Label */}
                 {/* Hide section title for Introduction (section 1) */}
                 {section.id !== '1' && (
-                  <div className="flex items-start space-x-2 relative pl-6">
-                    {/* 90-degree Week Label in Margin */}
-                    {drawerOpen && section.weekNumber && (
-                      <div 
-                        className="absolute left-0 top-0 h-8 flex items-center justify-center w-5"
-                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
-                      >
-                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-1 rounded-md shadow-sm"
-                              style={{ letterSpacing: '0.1em', transform: 'rotate(180deg)' }}>
-                          WEEK {section.weekNumber}
-                        </span>
-                      </div>
-                    )}
-                    
+                  <div className="flex items-start space-x-2">
                     {drawerOpen && (
                       <>
                         <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
@@ -339,11 +326,14 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className={section.weekNumber ? "pl-8 space-y-1" : "pl-7 space-y-1"}>
-                    {section.steps.map((step) => {
+                  <ul className="pl-7 space-y-1">
+                    {section.steps.map((step, stepIndex) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
+                      
+                      // Show week label only on first step of each section with weekNumber
+                      const showWeekLabel = section.weekNumber && stepIndex === 0;
 
                       // SIMPLIFIED MODE: Green checkmark logic - only show for completed steps in database
                       let isCompleted = false;
@@ -362,31 +352,45 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                         <TooltipProvider key={step.id}>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <li 
-                                className={cn(
-                                  "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this item corresponds to current content
-                                  getContentKeyFromStepId(section.id, step.id) === currentContent 
-                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium" : "",
-                                  isCompleted 
-                                    ? "text-green-700 bg-green-50" 
-                                    : isAccessible
-                                      ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
-                                      : "text-gray-400 cursor-not-allowed"
+                              <li className="relative">
+                                {/* Week Label positioned next to step */}
+                                {showWeekLabel && (
+                                  <div 
+                                    className="absolute -left-6 top-0 bottom-0 flex items-center justify-center w-5"
+                                    style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                                  >
+                                    <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-1 rounded-md shadow-sm"
+                                          style={{ letterSpacing: '0.1em', transform: 'rotate(180deg)' }}>
+                                      WEEK {section.weekNumber}
+                                    </span>
+                                  </div>
                                 )}
-                                onClick={() => {
-                                  if (isAccessible) {
-                                    console.log(`🧭 UserHomeNav: Clicked step ${step.id} in section ${section.id}`);
-                                    const contentKey = getContentKeyFromStepId(section.id, step.id);
-                                    console.log(`🧭 UserHomeNav: Content key for ${step.id}: ${contentKey}`);
-                                    handleStepClick(section.id, step.id);
-                                    // Close drawer on mobile after selection
-                                    if (isMobile) {
-                                      toggleDrawer();
+                                
+                                <div 
+                                  className={cn(
+                                    "rounded-md p-2 flex items-center text-sm transition",
+                                    // Check if this item corresponds to current content
+                                    getContentKeyFromStepId(section.id, step.id) === currentContent 
+                                      ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium" : "",
+                                    isCompleted 
+                                      ? "text-green-700 bg-green-50" 
+                                      : isAccessible
+                                        ? "text-gray-700 hover:bg-gray-100 cursor-pointer"
+                                        : "text-gray-400 cursor-not-allowed"
+                                  )}
+                                  onClick={() => {
+                                    if (isAccessible) {
+                                      console.log(`🧭 UserHomeNav: Clicked step ${step.id} in section ${section.id}`);
+                                      const contentKey = getContentKeyFromStepId(section.id, step.id);
+                                      console.log(`🧭 UserHomeNav: Content key for ${step.id}: ${contentKey}`);
+                                      handleStepClick(section.id, step.id);
+                                      // Close drawer on mobile after selection
+                                      if (isMobile) {
+                                        toggleDrawer();
+                                      }
                                     }
-                                  }
-                                }}
-                              >
+                                  }}
+                                >
                                 <div className="mr-2 flex-shrink-0">
                                   {isCompleted ? (
                                     <CheckCircle className="h-4 w-4 text-green-600" />
@@ -442,7 +446,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                     <FileText className="h-4 w-4 text-gray-400" />
                                   )}
                                 </div>
-                              </li>
+                              </div>
+                            </li>
                             </TooltipTrigger>
                             {!isAccessible && (
                               <TooltipContent side="right">
