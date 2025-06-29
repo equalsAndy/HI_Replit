@@ -65,7 +65,7 @@ const createUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
+  role: z.enum(['admin', 'facilitator', 'participant', 'student']),
   generatePassword: z.boolean().default(true),
 });
 
@@ -77,7 +77,7 @@ const editUserSchema = z.object({
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
-  role: z.enum(['admin', 'facilitator', 'participant']),
+  role: z.enum(['admin', 'facilitator', 'participant', 'student']),
   resetPassword: z.boolean().default(false),
   newPassword: z.string().optional(),
   setCustomPassword: z.boolean().default(false),
