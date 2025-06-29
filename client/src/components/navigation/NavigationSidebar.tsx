@@ -358,15 +358,50 @@ export function NavigationSidebar() {
     return items;
   };
 
+  // Force week-based navigation for students temporarily for debugging
+  const forceWeekNavigation = userRole === 'student' || userRole === 'facilitator';
+  
+  console.log('🔍 FINAL RENDER CHECK:', {
+    userRole,
+    forceWeekNavigation,
+    sectionsWithProgressLength: sectionsWithProgress.length,
+    renderingWeekBased: forceWeekNavigation
+  });
+
   return (
     <div className="space-y-2">
-      {isStudentOrFacilitator ? renderSectionsWithHeaders() : sectionsWithProgress.map((section) => (
-        <CollapsibleSection 
-          key={section.id} 
-          section={section}
-          icon={getSectionIcon(section.id)}
-        />
-      ))}
+      {forceWeekNavigation ? (
+        <div className="space-y-2">
+          <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide px-2 py-1">
+            WEEK 1: Foundation
+          </div>
+          {sectionsWithProgress.slice(0, 2).map((section) => (
+            <CollapsibleSection 
+              key={section.id} 
+              section={section}
+              icon={getSectionIcon(section.id)}
+            />
+          ))}
+          <div className="text-xs font-semibold text-purple-600 uppercase tracking-wide px-2 py-1 mt-4">
+            WEEK 2: Assessment
+          </div>
+          {sectionsWithProgress.slice(2, 4).map((section) => (
+            <CollapsibleSection 
+              key={section.id} 
+              section={section}
+              icon={getSectionIcon(section.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        sectionsWithProgress.map((section) => (
+          <CollapsibleSection 
+            key={section.id} 
+            section={section}
+            icon={getSectionIcon(section.id)}
+          />
+        ))
+      )}
     </div>
   );
 }
