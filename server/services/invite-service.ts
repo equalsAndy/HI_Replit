@@ -15,12 +15,9 @@ class InviteService {
     expiresAt?: Date;
   }) {
     try {
-      console.log('InviteService.createInvite - Input data:', data);
-      
       // Validate role
       const validRoles = ['admin', 'facilitator', 'participant', 'student'];
       if (!validRoles.includes(data.role)) {
-        console.error('Invalid role provided:', data.role);
         return {
           success: false,
           error: 'Invalid role provided'
@@ -29,10 +26,9 @@ class InviteService {
       
       // Generate a unique invite code
       const inviteCode = generateInviteCode().replace(/-/g, '');
-      console.log('Generated invite code:', inviteCode);
       
-      // Prepare the insert data
-      const insertData = {
+      // Insert the invite into the database
+      const result = await db.insert(invites).values({
         inviteCode,
         email: data.email.toLowerCase(),
         role: data.role,
@@ -40,26 +36,17 @@ class InviteService {
         createdBy: data.createdBy,
         expiresAt: data.expiresAt || null,
         createdAt: new Date()
-      };
-      
-      console.log('Insert data prepared:', insertData);
-      
-      // Insert the invite into the database
-      const result = await db.insert(invites).values(insertData).returning();
-      
-      console.log('Database insert result:', result);
+      }).returning();
       
       return {
         success: true,
         invite: result[0]
       };
     } catch (error) {
-      console.error('Error creating invite - Full error:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
+      console.error('Error creating invite:', error);
       return {
         success: false,
-        error: `Failed to create invite: ${error.message}`
+        error: 'Failed to create invite'
       };
     }
   }

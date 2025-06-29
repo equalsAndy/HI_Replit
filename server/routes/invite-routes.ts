@@ -12,12 +12,7 @@ router.post('/', requireAdmin, async (req, res) => {
   try {
     const { email, role, name, expiresAt } = req.body;
     
-    // Debug logging
-    console.log('Invite creation request body:', req.body);
-    console.log('Email:', email, 'Role:', role, 'Name:', name);
-    
     if (!email) {
-      console.log('Validation failed: Email is required');
       return res.status(400).json({
         success: false,
         error: 'Email is required'
@@ -25,7 +20,6 @@ router.post('/', requireAdmin, async (req, res) => {
     }
     
     if (!role || !['admin', 'facilitator', 'participant', 'student'].includes(role)) {
-      console.log('Validation failed: Invalid role:', role);
       return res.status(400).json({
         success: false,
         error: 'Valid role is required'
