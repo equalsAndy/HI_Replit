@@ -1,0 +1,66 @@
+Perfect clarification! Let me update the Agent prompt to correctly reflect that facilitators with dual workshop access can edit their users' access to both workshops.
+
+# REPLIT AGENT: Create Unified Console with Granular Access Control
+
+**Task**: Build a unified management console with role-based titles and implement granular access control for workshop and content types.
+
+**Requirements**:
+
+1. **Dynamic Console Titles**
+   - Show "Admin Console" for admin users
+   - Show "Facilitator Console" for facilitator users
+   - Keep existing logout and navigation functionality
+
+2. **Facilitator Content Access Control**
+   - **Student Interface Only**: Some facilitators can only see student content
+   - **Professional Interface**: Some facilitators can see participant (professional) content  
+   - **Both Interfaces**: Some facilitators can toggle between student and professional content
+   - **Admin Toggle**: Admins can always toggle between all content types
+
+3. **Workshop Access Control** 
+   - Users need individual access control for:
+     - **AST Workshop**: AllStarTeams access (true/false)
+     - **IA Workshop**: Imaginal Agility access (true/false)
+     - **Both Workshops**: Can have access to one, both, or neither
+
+4. **Enhanced User Edit Modal** (Role-Based Permissions)
+   - Add **Content Type Access** section:
+     - Radio buttons: "Student Only", "Professional Only", "Both" 
+     - **Admin**: Can edit for all users
+     - **Facilitator**: Can edit for users in their cohorts
+   
+   - Add **Workshop Access** section:
+     - Checkbox: "AllStarTeams Workshop Access"
+     - Checkbox: "Imaginal Agility Workshop Access"
+     - **Admin**: Can edit both workshops for all users
+     - **Facilitator**: Can only edit workshops they have access to
+       - If facilitator has AST access: can toggle AST for their users
+       - If facilitator has IA access: can toggle IA for their users
+       - If facilitator has both: can toggle both for their users
+
+5. **Database Schema Updates** (if needed)
+   - Add fields to users table:
+     - `content_access` enum: 'student', 'professional', 'both'
+     - `ast_access` boolean: AllStarTeams workshop access
+     - `ia_access` boolean: Imaginal Agility workshop access
+
+6. **Backend API Updates**
+   - Update user creation/editing endpoints to handle new access fields
+   - Implement middleware to check workshop and content access
+   - Ensure facilitators can only manage users within their access scope
+   - Validate facilitators can only grant access to workshops they have access to
+
+7. **Frontend Access Control**
+   - Implement content filtering based on user's content_access setting
+   - Show/hide workshop navigation based on ast_access and ia_access
+   - Facilitators see interface appropriate to their content access level
+   - Admins get toggle controls to switch between student/professional views
+   - Edit modal shows workshop checkboxes based on editing user's role and access
+
+**Files to Focus On**:
+- User management components and edit modal
+- Dashboard header and title logic
+- User schema and API endpoints
+- Navigation and content filtering logic
+
+**Expected Outcome**: A unified console where facilitators with dual workshop access can manage workshop permissions for their users, admins can manage everything, and the interface dynamically shows appropriate controls based on the editing user's role and access levels.

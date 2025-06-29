@@ -14,6 +14,10 @@ export interface QuadrantData {
 export const UserRoles = ['admin', 'facilitator', 'participant', 'student'] as const;
 export type UserRole = typeof UserRoles[number];
 
+// Define valid content access types
+export const ContentAccessTypes = ['student', 'professional', 'both'] as const;
+export type ContentAccess = typeof ContentAccessTypes[number];
+
 // Users table schema
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -27,13 +31,20 @@ export const users = pgTable('users', {
   profilePicture: text('profile_picture'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
+  // Access control fields
+  contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both
+  astAccess: boolean('ast_access').default(true).notNull(), // AllStarTeams workshop access
+  iaAccess: boolean('ia_access').default(true).notNull(), // Imaginal Agility workshop access
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for users with role validation
+// Create insert schema for users with role and access validation
 export const insertUserSchema = createInsertSchema(users).extend({
-  role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant')
+  role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant'),
+  contentAccess: z.enum(['student', 'professional', 'both']).default('professional'),
+  astAccess: z.boolean().default(true),
+  iaAccess: z.boolean().default(true)
 });
 
 // Type definitions for TypeScript
