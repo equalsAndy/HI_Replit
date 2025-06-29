@@ -10,6 +10,10 @@ export interface QuadrantData {
   planning: number;
 }
 
+// Define valid user roles
+export const UserRoles = ['admin', 'facilitator', 'participant', 'student'] as const;
+export type UserRole = typeof UserRoles[number];
+
 // Users table schema
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
