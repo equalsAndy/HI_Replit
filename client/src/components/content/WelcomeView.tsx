@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
-import { useApplication } from '@/hooks/use-application';
+import { useQuery } from '@tanstack/react-query';
 import VideoPlayer from './VideoPlayer';
 
 interface WelcomeViewProps {
@@ -20,13 +20,16 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   isImaginalAgility = false
 }) => {
   // Get user role for content customization
-  const { currentApp } = useApplication();
-  const userRole = currentApp?.user?.role;
+  const { data: userData, isLoading: userLoading } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: 30000,
+  });
+  const userRole = userData?.user?.role || userData?.role;
   const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
   
   // Debug logging
   console.log('🔍 WelcomeView Debug:');
-  console.log('- currentApp:', currentApp);
+  console.log('- userData:', userData);
   console.log('- userRole:', userRole);
   console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
   
