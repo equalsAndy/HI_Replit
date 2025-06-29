@@ -1,25 +1,26 @@
 import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/shared/types';
 import { useLocation } from 'wouter';
+import { apiRequest } from '@/lib/queryClient';
 
 // Components
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, LogOut } from 'lucide-react';
 
 // Admin Components
 import { UserManagement } from '@/components/admin/UserManagement';
 import { CohortManagement } from '@/components/admin/CohortManagement';
 import { InviteManagement } from '@/components/admin/InviteManagement';
 import { SimpleVideoManagement } from '@/components/admin/SimpleVideoManagement';
-import UserUploader from '@/components/admin/UserUploader';
 
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  const queryClient = useQueryClient();
 
   // Fetch current user to check permissions
   const { data: currentUser, isLoading: isLoadingUser } = useQuery<{
@@ -31,6 +32,26 @@ export default function AdminDashboard() {
   }>({
     queryKey: ['/api/user/me'],
     retry: false,
+  });
+
+  // Logout mutation
+  const logoutMutation = useMutation({
+    mutationFn: () => apiRequest('/api/auth/logout', { method: 'POST' }),
+    onSuccess: () => {
+      queryClient.clear();
+      toast({
+        title: 'Logged out successfully',
+        description: 'You have been logged out of the admin console.',
+      });
+      navigate('/');
+    },
+    onError: (error) => {
+      toast({
+        title: 'Logout failed',
+        description: 'There was an error logging out. Please try again.',
+        variant: 'destructive',
+      });
+    },
   });
 
   // Redirect non-admin users
@@ -60,7 +81,7 @@ export default function AdminDashboard() {
   return (
     <div className="container mx-auto py-10 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Console</h1>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => navigate('/allstarteams')}>
             AllStarTeams Workshop
@@ -68,29 +89,25 @@ export default function AdminDashboard() {
           <Button variant="outline" onClick={() => navigate('/imaginal-agility')}>
             Imaginal Agility Workshop
           </Button>
+          <Button
+            variant="destructive"
+            onClick={() => logoutMutation.mutate()}
+            disabled={logoutMutation.isPending}
+            className="flex items-center gap-2"
+          >
+            {logoutMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <LogOut className="h-4 w-4" />
+            )}
+            Logout
+          </Button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>System Overview</CardTitle>
-          <CardDescription>
-            View and manage your application's key components
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatsCard title="Total Users" value="..." />
-            <StatsCard title="Active Cohorts" value="..." />
-            <StatsCard title="Completed Assessments" value="..." />
-          </div>
-        </CardContent>
-      </Card>
-
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="upload">User Upload</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
           <TabsTrigger value="invites">Invite Management</TabsTrigger>
           <TabsTrigger value="videos">Video Management</TabsTrigger>
@@ -98,18 +115,6 @@ export default function AdminDashboard() {
 
         <TabsContent value="users" className="mt-6">
           <UserManagementTab />
-        </TabsContent>
-
-        <TabsContent value="upload" className="mt-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Bulk User Upload</CardTitle>
-              <CardDescription>Create users with complete workshop data</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <UserUploader />
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="cohorts" className="mt-6">
@@ -133,24 +138,6 @@ export default function AdminDashboard() {
         </TabsContent>
       </Tabs>
     </div>
-  );
-}
-
-interface StatsCardProps {
-  title: string;
-  value: string;
-}
-
-function StatsCard({ title, value }: StatsCardProps) {
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex flex-col space-y-2">
-          <span className="text-sm text-muted-foreground">{title}</span>
-          <span className="text-3xl font-bold">{value}</span>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
 
