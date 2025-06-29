@@ -32,7 +32,7 @@ export default function AllStarTeams() {
     shouldShowGreenCheckmark: isStepCompleted,
     getCurrentVideoProgress: getVideoProgress
   } = useNavigationProgress('ast');
-  
+
   // Use navigation progress state instead of separate completedSteps state
   const completedSteps = navProgress?.completedSteps || [];
 
@@ -43,7 +43,7 @@ export default function AllStarTeams() {
                       location.includes('/ia-') || 
                       location.includes('imaginal') ||
                       currentContent?.includes('imaginal');
-    
+
     const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
     console.log('🔍 Route Detection Debug:');
     console.log('  - Current location:', location);
@@ -52,25 +52,25 @@ export default function AllStarTeams() {
     console.log('  - isIARoute check result:', isIARoute);
     console.log('  - Setting currentAppType to:', currentAppType);
     console.log('  - Previous currentApp was:', currentApp);
-    
+
     // Only update if the app type actually changed
     if (currentApp !== currentAppType) {
       console.log('🔄 App type changed from', currentApp, 'to', currentAppType);
       setCurrentApp(currentAppType);
     }
-    
+
     // Listen for auto-navigation events from the navigation hook
     const handleAutoNavigation = (event: CustomEvent) => {
       const { content, stepId } = event.detail;
       console.log(`🧭 AUTO-NAVIGATION: Received navigation event - content: ${content}, step: ${stepId}`);
-      
+
       // Set current content and step
       setCurrentContent(content);
       setCurrentStep(stepId);
     };
-    
+
     window.addEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
-    
+
     return () => {
       window.removeEventListener('autoNavigateToContent', handleAutoNavigation as EventListener);
     };
@@ -82,22 +82,22 @@ export default function AllStarTeams() {
     queryKey: ['/api/user/profile'],
     staleTime: 30000,
   });
-  
+
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
   const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
-  
+
   // Debug role detection
   console.log('🔍 AllStarTeams Role Debug:');
   console.log('- Raw user data:', userData);
   console.log('- Extracted userRole:', userRole);
   console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
-  
+
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
     if (currentApp === 'imaginal-agility') {
       return imaginalAgilityNavigationSections;
     }
-    
+
     if (isStudentOrFacilitator) {
       // Student/Facilitator week-based structure
       return [
@@ -160,7 +160,7 @@ export default function AllStarTeams() {
       return navigationSections;
     }
   };
-  
+
   const activeNavigationSections = getRoleBasedNavigationSections();
 
   // Simplified linear progression - no need for app-specific storage keys
@@ -225,7 +225,7 @@ export default function AllStarTeams() {
       const currentStepId = navProgress.currentStepId;
       console.log(`🧭 AUTO-NAVIGATION: Current step from database: ${currentStepId}`);
       console.log(`🧭 AUTO-NAVIGATION: Available navigation sequence:`, Object.keys(navigationSequence));
-      
+
       // Map step ID to content key and navigate there
       const navInfo = navigationSequence[currentStepId];
       if (navInfo) {
@@ -248,7 +248,7 @@ export default function AllStarTeams() {
     }
   }, [navProgress?.currentStepId]);
 
-  const { data: user, isLoading: userLoading } = useQuery({
+  const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: 30000,
   });
@@ -256,14 +256,14 @@ export default function AllStarTeams() {
   // Fetch star card data separately to debug the issue
   const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useQuery({
     queryKey: ['/api/user/star-card-data'],
-    enabled: !!(user as any)?.id,
+    enabled: !!(userProfile as any)?.id,
     staleTime: 10000,
   });
 
   // Clear workshop progress when user changes OR when any user has progress: 0
   React.useEffect(() => {
     // Extract actual user data from the response wrapper
-    const actualUser = (user as any)?.user || (user as any);
+    const actualUser = (userProfile as any)?.user || (userProfile as any);
 
     if (actualUser?.id) {
       const lastUserId = localStorage.getItem('last-user-id');
@@ -332,8 +332,8 @@ export default function AllStarTeams() {
     }
 
     // Debug logging
-    if (user) {
-      console.log('AllStarTeams - User data:', user);
+    if (userProfile) {
+      console.log('AllStarTeams - User data:', userProfile);
     }
     if (starCardData) {
       console.log('AllStarTeams - Star card data:', starCardData);
@@ -341,7 +341,7 @@ export default function AllStarTeams() {
     if (starCardError) {
       console.log('AllStarTeams - Star card error:', starCardError);
     }
-  }, [user, starCardData, starCardError]);
+  }, [userProfile, starCardData, starCardError]);
 
   // Fetch star card data with better error handling and logging
   const { data: starCard, isLoading: starCardLoading1 } = useQuery({ 
@@ -359,11 +359,11 @@ export default function AllStarTeams() {
   // Reset user progress mutation
   const resetUserProgress = useMutation({
     mutationFn: async () => {
-      if (!(user as any)?.id) {
+      if (!(userProfile as any)?.id) {
         throw new Error("User ID is required to reset progress");
       }
 
-      const response = await fetch(`/api/test-users/reset/${(user as any).id}`, {
+      const response = await fetch(`/api/test-users/reset/${(userProfile as any).id}`, {
         method: 'POST',
         credentials: 'include',
         headers: {
@@ -432,7 +432,7 @@ export default function AllStarTeams() {
   // Function to mark a step as completed
   const markStepCompleted = (stepId: string) => {
     console.log("markStepCompleted called with:", stepId, "completedSteps:", completedSteps);
-    
+
     // Use the navigation progress hook's markStepCompleted function
     markNavStepCompleted(stepId);
     console.log(`Step ${stepId} marked as completed`);
@@ -442,11 +442,11 @@ export default function AllStarTeams() {
   const isStepAccessible = (sectionId: string, stepId: string) => {
     // Use navigation progress unlocked steps instead of completed steps
     const unlockedSteps = navProgress?.unlockedSteps || [];
-    
+
     // Check if step is in unlocked steps
     const isUnlocked = unlockedSteps.includes(stepId);
     console.log(`🔓 Step accessibility check: ${stepId} - unlocked: ${isUnlocked}, available steps: ${unlockedSteps.join(', ')}`);
-    
+
     return isUnlocked;
   };
 
@@ -457,10 +457,10 @@ export default function AllStarTeams() {
     // DO NOT mark step 2-2 as completed yet - user should stay on assessment results page
     // Step 2-2 will be marked as completed when user manually clicks Next button
     console.log("Assessment complete. User should now view results and manually click Next button to proceed to step 2-3");
-    
+
     // Refresh the star card data to ensure it's available for the next step
     queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
-    
+
     // Force refresh the assessment view to show results instead of intro
     queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
     queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
@@ -495,7 +495,7 @@ export default function AllStarTeams() {
     '5-2': { prev: '5-1', next: '5-3', contentKey: 'holistic-report' },
     '5-3': { prev: '5-2', next: '5-4', contentKey: 'growth-plan' },
     '5-4': { prev: '5-3', next: '6-1', contentKey: 'team-workshop-prep' },
-    
+
     // Section 6
     '6-1': { prev: '5-4', next: null, contentKey: 'workshop-resources' },
   };
@@ -519,7 +519,7 @@ export default function AllStarTeams() {
   // Handle step click with SIMPLIFIED LINEAR PROGRESSION - NO AUTO-COMPLETION
   const handleStepClick = (sectionId: string, stepId: string) => {
     console.log(`🧭 Menu navigation clicked: stepId=${stepId}, sectionId=${sectionId}`);
-    
+
     // Get navigation info for this step
     const navInfo = navigationSequence[stepId];
     console.log(`🧭 Navigation info for ${stepId}:`, navInfo);
@@ -537,7 +537,7 @@ export default function AllStarTeams() {
     // Set the content based on the navigation mapping
     console.log(`🧭 Setting content to: ${navInfo.contentKey}`);
     setCurrentContent(navInfo.contentKey);
-    
+
     // Scroll to content top anchor
     document.getElementById('content-top')?.scrollIntoView({ behavior: 'smooth' });
 
@@ -654,7 +654,7 @@ export default function AllStarTeams() {
             markStepCompleted={markNavStepCompleted}
             setCurrentContent={setCurrentContent}
             starCard={starCard}
-            user={user}
+            user={userProfile}
             flowAttributesData={flowAttributesData}
             setIsAssessmentModalOpen={setIsAssessmentModalOpen}
             isImaginalAgility={currentApp === 'imaginal-agility'}
