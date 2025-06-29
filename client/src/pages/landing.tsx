@@ -247,7 +247,7 @@ export default function Landing() {
               {/* Updated YouTube embed with new video ID */}
               <div style={{padding:'56.25% 0 0 0', position:'relative'}} className="rounded-lg shadow-lg overflow-hidden">
                 <iframe 
-                  src="https://www.youtube.com/embed/nFQPqSwzOLw?enablejsapi=1" 
+                  src="https://www.youtube.com/embed/BiyyGgLj7sY?enablejsapi=1" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
