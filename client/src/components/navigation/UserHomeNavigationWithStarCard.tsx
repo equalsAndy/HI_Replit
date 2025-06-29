@@ -326,11 +326,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className="pl-7 space-y-1 relative">
+                  <div className="relative">
                     {/* Week Label spanning entire section - centered in 50px gap */}
                     {section.weekNumber && (
                       <div 
-                        className="absolute left-6 top-0 bottom-0 flex items-center justify-center w-12"
+                        className="absolute left-6 top-0 bottom-0 flex items-center justify-center w-12 z-10"
                       >
                         <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-0.5 py-0.5 rounded text-center"
                              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}>
@@ -338,6 +338,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                         </div>
                       </div>
                     )}
+                    
+                    <ul className="pl-7 space-y-1 relative">
                     
                     {section.steps.map((step, stepIndex) => {
                       // For Resources section, we handle special logic for Your Star Card
@@ -457,6 +459,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       );
                     })}
                   </ul>
+                    </div>
                 )}
               </div>
             ))}
