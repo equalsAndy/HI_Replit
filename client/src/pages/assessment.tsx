@@ -145,7 +145,7 @@ export default function Assessment() {
   });
 
   const currentQuestion = currentAssessmentQuestions[currentQuestionIndex];
-  const totalQuestions = assessmentQuestions.length;
+  const totalQuestions = currentAssessmentQuestions.length;
 
   // Update progress when answers change
   useEffect(() => {
@@ -641,10 +641,10 @@ export default function Assessment() {
 
                 // Set all answers and move to last question
                 setAnswers(newAnswers);
-                setCurrentQuestionIndex(assessmentQuestions.length - 1);
+                setCurrentQuestionIndex(currentAssessmentQuestions.length - 1);
 
                 // Set rankings for last question display
-                const lastQuestion = assessmentQuestions[assessmentQuestions.length - 1];
+                const lastQuestion = currentAssessmentQuestions[currentAssessmentQuestions.length - 1];
                 const lastAnswers = newAnswers[lastQuestion.id];
 
                 const newRankings = {
