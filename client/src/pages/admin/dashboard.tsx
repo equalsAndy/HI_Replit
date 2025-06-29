@@ -110,7 +110,9 @@ export default function AdminDashboard() {
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
           <TabsTrigger value="invites">Invite Management</TabsTrigger>
-          <TabsTrigger value="videos">Video Management</TabsTrigger>
+          <TabsTrigger value="videos" disabled className="opacity-50 cursor-not-allowed">
+            Video Management
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="users" className="mt-6">
