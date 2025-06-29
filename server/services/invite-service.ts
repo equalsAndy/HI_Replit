@@ -34,9 +34,22 @@ class InviteService {
         RETURNING *
       `);
       
+      // Handle different result structures from drizzle
+      const inviteData = (result as any)[0] || (result as any).rows?.[0] || {
+        invite_code: inviteCode,
+        email: data.email.toLowerCase(),
+        role: data.role,
+        name: data.name || null,
+        created_by: data.createdBy,
+        expires_at: data.expiresAt || null,
+        created_at: new Date(),
+        used_at: null,
+        used_by: null
+      };
+      
       return {
         success: true,
-        invite: (result as any).rows?.[0] || { invite_code: inviteCode, email: data.email, role: data.role }
+        invite: inviteData
       };
     } catch (error) {
       console.error('Error creating invite:', error);
