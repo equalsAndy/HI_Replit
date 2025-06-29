@@ -28,7 +28,7 @@ class UserManagementService {
     password: string;
     name: string;
     email: string;
-    role: 'admin' | 'facilitator' | 'participant';
+    role: 'admin' | 'facilitator' | 'participant' | 'student';
     organization?: string | null;
     jobTitle?: string | null;
     profilePicture?: string | null;
@@ -196,7 +196,7 @@ class UserManagementService {
     title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
-    role?: 'admin' | 'facilitator' | 'participant';
+    role?: 'admin' | 'facilitator' | 'participant' | 'student';
     navigationProgress?: string | null;
     password?: string | null;
   }) {

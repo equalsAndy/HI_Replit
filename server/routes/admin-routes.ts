@@ -41,8 +41,8 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
       username: z.string().min(3),
       firstName: z.string().optional(),
       lastName: z.string().optional(),
-      role: z.string().refine((val) => ['admin', 'facilitator', 'participant'].includes(val), {
-        message: "Role must be admin, facilitator, or participant"
+      role: z.string().refine((val) => ['admin', 'facilitator', 'participant', 'student'].includes(val), {
+        message: "Role must be admin, facilitator, participant, or student"
       }),
       organization: z.string().optional(),
       jobTitle: z.string().optional()
@@ -72,7 +72,7 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
       password: password,
       name: name,
       email: result.data.email,
-      role: result.data.role,
+      role: result.data.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: result.data.organization,
       jobTitle: result.data.jobTitle
     });
@@ -120,7 +120,7 @@ router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Re
   try {
     const batchSchema = z.object({
       count: z.number().min(1).max(50),
-      role: z.enum(['admin', 'facilitator', 'participant']),
+      role: z.enum(['admin', 'facilitator', 'participant', 'student']),
       expiresAt: z.string().optional()
     });
 
@@ -229,7 +229,7 @@ router.put('/users/:id/role', requireAuth, isAdmin, async (req: Request, res: Re
     }
 
     const roleSchema = z.object({
-      role: z.enum(['admin', 'facilitator', 'participant'])
+      role: z.enum(['admin', 'facilitator', 'participant', 'student'])
     });
 
     const result = roleSchema.safeParse(req.body);
