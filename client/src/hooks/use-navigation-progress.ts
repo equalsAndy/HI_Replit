@@ -665,7 +665,9 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
   // Navigation sections compatibility
   const updateNavigationSections = () => {
-    // No-op for simplified mode
+    // This is a compatibility function that allows Navigation.tsx to call this
+    // In the current implementation, sections are managed within each component
+    console.log('📋 Navigation sections update called');
   };
 
   const calculateOverallProgress = () => {
@@ -716,6 +718,8 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     }
     return null;
   };
+
+
 
   return {
     progress,

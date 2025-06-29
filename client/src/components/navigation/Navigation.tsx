@@ -293,7 +293,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     hasInitialized.current = true;
     
     // Use the journeySections we defined above 
-    updateNavigationSections(journeySections.filter(section => !section.isHeader));
+    updateNavigationSections();
   }, []); // Removed the dependency since it causes infinite updates
   
   // Set current step based on props and scroll to top (only when it changes)
