@@ -32,6 +32,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ### **Medium Priority**
 *Nice-to-have features that would enhance the platform*
 
+- [ ] **Admin Video Management System** - Complete implementation of video CRUD operations in admin console ([See Development Guide](../docs/video-management-development-guide.md))
 - [ ] **User profile pictures** - Allow users to upload and display profile photos
 - [ ] **Workshop analytics dashboard** - Show completion rates, time spent, popular steps
 - [ ] **Email notifications** - Notify users of progress milestones or admin messages
