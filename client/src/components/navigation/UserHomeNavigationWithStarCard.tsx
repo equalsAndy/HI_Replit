@@ -326,11 +326,11 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className="pl-7 space-y-1 relative">
+                  <ul className="pl-12 space-y-1 relative">
                     {/* Week Label spanning entire section */}
                     {section.weekNumber && (
                       <div 
-                        className="absolute -left-6 top-0 bottom-0 flex items-center justify-center w-5"
+                        className="absolute left-2 top-0 bottom-0 flex items-center justify-center w-6"
                       >
                         <div className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-2 rounded-md shadow-sm text-center"
                              style={{ writingMode: 'vertical-rl', textOrientation: 'mixed', transform: 'rotate(180deg)', letterSpacing: '0.1em' }}>

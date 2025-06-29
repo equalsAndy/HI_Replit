@@ -24,6 +24,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   const userRole = currentApp?.user?.role;
   const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
   
+  // Debug logging
+  console.log('🔍 WelcomeView Debug:');
+  console.log('- currentApp:', currentApp);
+  console.log('- userRole:', userRole);
+  console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
+  
   // Different content based on which app is active
   const stepId = isImaginalAgility ? "ia-1-1" : "1-1";
   
