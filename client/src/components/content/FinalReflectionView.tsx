@@ -261,27 +261,13 @@ export default function FinalReflectionView({
           {/* Bottom Section: Reflection */}
           <div className="reflection-section">
             <div className="reflection-header">
-              <div className="header-with-demo">
-                <div className="header-content">
-                  <h2 className="section-title">What's the one insight you want to carry forward?</h2>
-                  <p className="intro-text">
-                    You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
-                  </p>
-                  <p className="intro-text">
-                    Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
-                  </p>
-                </div>
-                {isTestUser && !isStepCompleted && (
-                  <button
-                    onClick={fillWithDemoData}
-                    className="demo-button"
-                    type="button"
-                  >
-                    <FileText className="demo-icon" />
-                    Add Demo Data
-                  </button>
-                )}
-              </div>
+              <h2 className="section-title">What's the one insight you want to carry forward?</h2>
+              <p className="intro-text">
+                You've just completed a journey of personal discovery. From understanding your core strengths to envisioning your future potential, each step revealed something valuable about who you are.
+              </p>
+              <p className="intro-text">
+                Now, distill this experience into one clear insight that will guide you forward—something you want to remember as you move into team collaboration.
+              </p>
             </div>
             
             <div className="input-section">
@@ -308,13 +294,25 @@ export default function FinalReflectionView({
                 {!isStepCompleted ? (
                   // Original completion flow for first-time users
                   <>
-                    <button
-                      className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
-                      onClick={handleComplete}
-                      disabled={insight.length < 10}
-                    >
-                      Complete Your Journey
-                    </button>
+                    <div className="flex items-center justify-center gap-3">
+                      {isTestUser && (
+                        <button
+                          onClick={fillWithDemoData}
+                          className="demo-button-inline"
+                          type="button"
+                        >
+                          <FileText className="demo-icon" />
+                          Add Demo Data
+                        </button>
+                      )}
+                      <button
+                        className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
+                        onClick={handleComplete}
+                        disabled={insight.length < 10}
+                      >
+                        Complete Your Journey
+                      </button>
+                    </div>
                     
                     {insight.length < 10 && (
                       <p className="helper-text">
@@ -540,6 +538,29 @@ export default function FinalReflectionView({
         .demo-icon {
           width: 14px;
           height: 14px;
+        }
+
+        .demo-button-inline {
+          background: #ffffff;
+          border: 2px solid #e8f4fd;
+          border-radius: 8px;
+          padding: 12px 16px;
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: #3498db;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .demo-button-inline:hover {
+          background: #f8fbff;
+          border-color: #3498db;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(52, 152, 219, 0.15);
         }
 
         .section-title {

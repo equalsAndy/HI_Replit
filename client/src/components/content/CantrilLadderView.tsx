@@ -171,20 +171,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   };
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Cantril Ladder Well-being Reflections</h1>
-        {isTestUser && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={fillWithDemoData}
-            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Add Demo Data
-          </Button>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
 
       {/* Content below title - same layout as WellBeingView */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
@@ -337,15 +324,28 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       </div>
 
       <div className="flex justify-end">
-        <Button 
-          onClick={() => {
-            markStepCompleted('4-2');
-            setCurrentContent("visualizing-you");
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          Next: Visualizing You <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          {isTestUser && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Add Demo Data
+            </Button>
+          )}
+          <Button 
+            onClick={() => {
+              markStepCompleted('4-2');
+              setCurrentContent("visualizing-you");
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Next: Visualizing You <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </>
   );

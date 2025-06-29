@@ -144,8 +144,8 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     }
   };
 
-  // Function to populate with meaningful demo data
-  const fillWithDemoData = () => {
+  // Function to populate with meaningful demo data including images
+  const fillWithDemoData = async () => {
     if (!isTestUser) {
       console.warn('Demo functionality only available to test users');
       return;
@@ -155,26 +155,45 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     
     setImageMeaning(demoMeaning);
     
-    // Note: We don't add demo images since image selection is more personal and visual
-    // The text explanation is the key reflection piece for this component
+    // Add demo images from Unsplash
+    try {
+      const searchTerms = ['leadership team', 'professional growth', 'business success'];
+      const demoImages = [];
+      
+      for (const term of searchTerms) {
+        try {
+          const results = await searchUnsplash(term, 2);
+          if (results && results.length > 0) {
+            const image = results[0]; // Take first result
+            const newImage = {
+              id: `demo-${image.id}`,
+              url: image.urls.regular,
+              source: 'unsplash',
+              searchTerm: term,
+              credit: {
+                photographer: image.user.name,
+                photographerUrl: image.user.links.html,
+                sourceUrl: image.links.html
+              }
+            };
+            demoImages.push(newImage);
+          }
+        } catch (error) {
+          console.log(`Could not fetch demo image for term: ${term}`);
+        }
+      }
+      
+      if (demoImages.length > 0) {
+        setSelectedImages(demoImages);
+      }
+    } catch (error) {
+      console.log('Demo images could not be loaded, text demo data still applied');
+    }
   };
 
   return (
     <>
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Visualizing Your Potential</h1>
-        {isTestUser && (
-          <Button 
-            variant="outline" 
-            size="sm"
-            onClick={fillWithDemoData}
-            className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Add Demo Data
-          </Button>
-        )}
-      </div>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
 
       <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
         <div className="flex justify-between items-start">
@@ -367,15 +386,28 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       </div>
 
       <div className="flex justify-end">
-        <Button 
-          onClick={() => {
-            markStepCompleted('4-3');
-            setCurrentContent("future-self");
-          }}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white"
-        >
-          Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
-        </Button>
+        <div className="flex items-center gap-3">
+          {isTestUser && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Add Demo Data
+            </Button>
+          )}
+          <Button 
+            onClick={() => {
+              markStepCompleted('4-3');
+              setCurrentContent("future-self");
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
       </div>
     </>
   );
