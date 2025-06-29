@@ -64,9 +64,12 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
 
   const fallbackUrl = isImaginalAgility 
     ? "https://youtu.be/JxdhWd8agmE" 
-    : isStudentOrFacilitator
-      ? "https://www.youtube.com/watch?v=oHG4OJQtZ4g"
-      : "https://youtu.be/pp2wrqE8r2o";
+    : "https://youtu.be/pp2wrqE8r2o";
+
+  // For students/facilitators, force the student video URL
+  const forceUrl = isStudentOrFacilitator && !isImaginalAgility 
+    ? "https://www.youtube.com/watch?v=oHG4OJQtZ4g"
+    : undefined;
 
   const videoTitle = isImaginalAgility
     ? "Imaginal Agility Workshop Introduction"
@@ -193,6 +196,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
             workshopType={isImaginalAgility ? "imaginal-agility" : "allstarteams"}
             stepId={stepId}
             fallbackUrl={fallbackUrl}
+            forceUrl={forceUrl}
             title={videoTitle}
             aspectRatio="16:9"
             autoplay={true}

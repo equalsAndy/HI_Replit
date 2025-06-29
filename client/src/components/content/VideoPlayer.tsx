@@ -9,6 +9,7 @@ interface VideoPlayerProps {
   title?: string;
   className?: string;
   fallbackUrl?: string;
+  forceUrl?: string; // Force a specific video URL, bypassing database lookup
   aspectRatio?: '16:9' | '4:3' | '21:9';
   autoplay?: boolean;
   customParams?: VideoUrlParams;
@@ -23,6 +24,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   title,
   className = "",
   fallbackUrl,
+  forceUrl,
   aspectRatio = '16:9',
   autoplay = true,
   customParams = {},
@@ -56,7 +58,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
 
   // Process the video URL when it changes
   useEffect(() => {
-    const rawUrl = video?.url || fallbackUrl;
+    // Use forceUrl if provided, otherwise use database video or fallback
+    const rawUrl = forceUrl || video?.url || fallbackUrl;
     if (rawUrl) {
       const params: VideoUrlParams = {
         autoplay: autoplay ? 1 : 0,
@@ -71,8 +74,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       
       const processed = processVideoUrl(rawUrl, params);
       setProcessedUrl(processed.embedUrl);
+      
+      // Debug logging for video selection
+      if (forceUrl) {
+        console.log(`🎬 VideoPlayer: Using forceUrl: ${forceUrl}`);
+      } else {
+        console.log(`🎬 VideoPlayer: Using ${video?.url ? 'database' : 'fallback'} URL: ${rawUrl}`);
+      }
     }
-  }, [video?.url, fallbackUrl, autoplay, customParams]);
+  }, [forceUrl, video?.url, fallbackUrl, autoplay, customParams]);
 
   // Initialize YouTube API and progress tracking
   useEffect(() => {
