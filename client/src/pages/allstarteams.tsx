@@ -86,12 +86,6 @@ export default function AllStarTeams() {
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
   const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
   
-  // Debug role detection
-  console.log('🔍 AllStarTeams Role Debug:');
-  console.log('- Raw user data:', userData);
-  console.log('- Extracted userRole:', userRole);
-  console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
-  
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
     if (currentApp === 'imaginal-agility') {
@@ -103,15 +97,17 @@ export default function AllStarTeams() {
       return [
         {
           id: '1',
-          title: '', // No title for introduction section
+          title: 'Introduction',
           steps: [
-            { id: '2-1', title: 'Intro to Star Strengths', type: 'video' }
+            { id: '1-1', title: 'Introduction', type: 'video' }
           ]
         },
         {
           id: '2',
-          title: 'WEEK 1: DISCOVER YOUR STAR STRENGTHS',
+          title: 'DISCOVER YOUR STAR STRENGTHS',
+          weekNumber: 1,
           steps: [
+            { id: '2-1', title: 'Intro to Star Strengths', type: 'video' },
             { id: '2-2', title: 'Star Strengths Self-Assessment', type: 'assessment' },
             { id: '2-3', title: 'Review Your Star Card', type: 'viewing' },
             { id: '2-4', title: 'Strength Reflection', type: 'reflection' }
@@ -119,7 +115,8 @@ export default function AllStarTeams() {
         },
         {
           id: '3',
-          title: 'WEEK 2: IDENTIFY YOUR FLOW',
+          title: 'IDENTIFY YOUR FLOW',
+          weekNumber: 2,
           steps: [
             { id: '3-1', title: 'Intro to Flow', type: 'video' },
             { id: '3-2', title: 'Flow Assessment', type: 'assessment' },
@@ -129,7 +126,8 @@ export default function AllStarTeams() {
         },
         {
           id: '4',
-          title: 'WEEK 3: VISUALIZE YOUR POTENTIAL Part 1',
+          title: 'VISUALIZE YOUR POTENTIAL Part 1',
+          weekNumber: 3,
           steps: [
             { id: '4-1', title: 'Ladder of Well-being', type: 'interactive' },
             { id: '4-2', title: 'Well-being Reflections', type: 'video' }
@@ -137,7 +135,8 @@ export default function AllStarTeams() {
         },
         {
           id: '5',
-          title: 'WEEK 4: VISUALIZE YOUR POTENTIAL Part 2',
+          title: 'VISUALIZE YOUR POTENTIAL Part 2',
+          weekNumber: 4,
           steps: [
             { id: '4-3', title: 'Visualizing You', type: 'visual' },
             { id: '4-4', title: 'Your Future Self', type: 'reflection' },
@@ -146,7 +145,8 @@ export default function AllStarTeams() {
         },
         {
           id: '6',
-          title: 'WEEK 5: NEXT STEPS',
+          title: 'NEXT STEPS',
+          weekNumber: 5,
           steps: [
             { id: '5-1', title: 'Download your Star Card', type: 'download' },
             { id: '5-2', title: 'Your Holistic Report', type: 'download' },

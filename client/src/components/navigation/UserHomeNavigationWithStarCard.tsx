@@ -63,9 +63,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   currentContent,
   isImaginalAgility = false
 }) => {
-  // Debug logging for received props
-  console.log('🔍 NAV DEBUG - Received isImaginalAgility:', isImaginalAgility);
-  console.log('🔍 NAV DEBUG - Received currentContent:', currentContent);
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
 
@@ -284,7 +281,6 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
               size="md"
               className="mx-auto"
             />
-            {console.log('🔍 NAV DEBUG - Received isImaginalAgility:', isImaginalAgility)}
           </div>
         </div>
         {/* Toggle Button - position depends on mobile/desktop */}
@@ -307,13 +303,26 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
-                {/* Section Header */}
-                {/* Hide section title for AllStarTeams Introduction (section 1) */}
+                {/* Section Header with Week Label */}
+                {/* Hide section title for Introduction (section 1) */}
                 {section.id !== '1' && (
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-start space-x-2 relative">
+                    {/* 90-degree Week Label in Margin */}
+                    {drawerOpen && section.weekNumber && (
+                      <div 
+                        className="absolute -left-6 top-0 h-full flex items-center justify-center w-4"
+                        style={{ writingMode: 'vertical-rl', textOrientation: 'mixed' }}
+                      >
+                        <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-1 py-2 rounded transform -rotate-180"
+                              style={{ letterSpacing: '0.1em' }}>
+                          WEEK {section.weekNumber}
+                        </span>
+                      </div>
+                    )}
+                    
                     {drawerOpen && (
                       <>
-                        <h3 className="text-sm font-bold text-gray-800">{section.title}</h3>
+                        <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
 
                         {/* Dynamic progress indicator based on completed steps */}
                         {section.id !== '5' && section.id !== '6' && (
@@ -328,7 +337,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
                 {/* Steps List */}
                 {drawerOpen && (
-                  <ul className="pl-7 space-y-1">
+                  <ul className={section.weekNumber ? "pl-4 space-y-1" : "pl-7 space-y-1"}>
                     {section.steps.map((step) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
