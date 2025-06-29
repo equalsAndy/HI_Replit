@@ -12,7 +12,7 @@ router.post('/', isAdmin, async (req, res) => {
   try {
     const schema = z.object({
       email: z.string().email(),
-      role: z.enum(['admin', 'facilitator', 'participant']),
+      role: z.enum(['admin', 'facilitator', 'participant', 'student']),
       name: z.string().optional()
     });
 
@@ -30,8 +30,7 @@ router.post('/', isAdmin, async (req, res) => {
       email: result.data.email,
       role: result.data.role,
       name: result.data.name,
-      createdBy: req.session.userId!,
-      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days expiration
+      createdBy: req.session.userId!
     });
 
     if (!createResult.success) {
