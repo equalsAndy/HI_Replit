@@ -23,6 +23,13 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   // Check if user is student or facilitator for week-based navigation
   const isStudentOrFacilitator = currentApp?.user?.role === 'student' || currentApp?.user?.role === 'facilitator';
   
+  // DEBUG: Log role detection
+  console.log('🔍 Navigation Debug:');
+  console.log('- currentApp?.user?.role:', currentApp?.user?.role);
+  console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
+  console.log('- Full user object:', currentApp?.user);
+  console.log('- Navigation structure will be:', isStudentOrFacilitator ? 'WEEK-BASED' : 'SESSION-BASED');
+  
   // Function to get navigation sections based on user role
   const getJourneySections = () => {
     if (isStudentOrFacilitator) {
