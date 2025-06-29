@@ -5,36 +5,95 @@ import { CollapsibleSection } from './CollapsibleSection';
 
 export function NavigationSidebar() {
   const { progress, getSectionProgressData } = useNavigationProgress();
-  
-  // Query user profile to get role information for conditional navigation
-  const { data: userProfile, isLoading: profileLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
-    staleTime: 30000
-  });
-  
-  // Check if user is student or facilitator for week-based navigation
-  const userRole = (userProfile as any)?.role;
-  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
-  
-  // Always log to debug what's happening
-  console.log('🔍 NavigationSidebar ALWAYS LOGS:', {
-    userProfile: userProfile,
-    userRole: userRole,
-    isStudentOrFacilitator: isStudentOrFacilitator,
-    profileLoading: profileLoading,
-    timestamp: new Date().toISOString()
-  });
-  
-  // Force render for debugging - remove loading condition temporarily
-  // if (profileLoading || !userProfile) {
-  //   return <div className="space-y-2">Loading navigation...</div>;
-  // }
 
-  // Define sections that match the Navigation component structure
-  const getNavigationSections = () => {
-    if (isStudentOrFacilitator) {
-      // Week-based structure for students and facilitators
-      return [
+  // Define sections that match the Navigation component structure - hardcoded original
+  const navigationSections = [
+    { 
+      id: '1', 
+      title: 'All star teams Introduction', 
+      path: '/intro',
+      totalSteps: 1,
+      completedSteps: 0,
+      icon: 'Video',
+      iconColor: 'text-blue-600',
+      steps: [
+        { id: '1-1', label: 'Introduction', path: '/intro/video', type: 'Learning', icon: 'Video', iconColor: 'text-blue-600' },
+      ]
+    },
+    { 
+      id: '2', 
+      title: 'DISCOVER YOUR STAR STRENGTHS', 
+      path: '/discover-strengths',
+      totalSteps: 4,
+      completedSteps: 0,
+      icon: 'BookOpen',
+      iconColor: 'text-purple-600',
+      steps: [
+        { id: '2-1', label: 'Intro to Star Strengths', path: '/discover-strengths/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '2-2', label: 'Star Strengths Self-Assessment', path: '/assessment', type: 'Activity', icon: 'Activity', iconColor: 'text-yellow-600' },
+        { id: '2-3', label: 'Review Your Star Card', path: '/discover-strengths/review', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '2-4', label: 'Strength Reflection', path: '/star-strengths-reflection', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+      ]
+    },
+    { 
+      id: '3', 
+      title: 'IDENTIFY YOUR FLOW', 
+      path: '/identify-flow',
+      totalSteps: 4,
+      completedSteps: 0,
+      icon: 'Glasses',
+      iconColor: 'text-teal-600',
+      steps: [
+        { id: '3-1', label: 'Intro to Flow', path: '/identify-flow/intro', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '3-2', label: 'Flow Assessment', path: '/find-your-flow', type: 'Activity', icon: 'Activity', iconColor: 'text-yellow-600' },
+        { id: '3-3', label: 'Rounding Out', path: '/identify-flow/rounding-out', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+        { id: '3-4', label: 'Add Flow to Star Card', path: '/flow-to-star-card', type: 'Learning', icon: 'BookOpen', iconColor: 'text-blue-600' },
+      ]
+    },
+    { 
+      id: '4', 
+      title: 'VISUALIZE YOUR POTENTIAL', 
+      path: '/visualize-potential',
+      totalSteps: 5,
+      completedSteps: 0,
+      icon: 'Zap',
+      iconColor: 'text-indigo-600',
+      steps: [
+        { id: '4-1', label: 'Ladder of Well-being', path: '/well-being', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-2', label: 'Well-being Reflections', path: '/cantril-ladder', type: 'Activity and Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-3', label: 'Visualizing You', path: '/visualizing-you', type: 'Activity', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-4', label: 'Your Future Self', path: '/future-self', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '4-5', label: 'Final Reflection', path: '/your-statement', type: 'Writing', icon: 'PenLine', iconColor: 'text-pink-600' },
+      ]
+    },
+    {
+      id: '5',
+      title: 'NEXT STEPS',
+      path: '/next-steps',
+      totalSteps: 4,
+      completedSteps: 0,
+      icon: 'Download',
+      iconColor: 'text-green-700',
+      steps: [
+        { id: '5-1', label: 'Download your Star Card', path: '/download-starcard', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-2', label: 'Your Holistic Report', path: '/holistic-report', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-3', label: 'Growth Plan', path: '/growth-plan', type: 'Download', icon: 'PenLine', iconColor: 'text-pink-600' },
+        { id: '5-4', label: 'Team Workshop Prep', path: '/team-workshop-prep', type: 'Activity', icon: 'PenLine', iconColor: 'text-pink-600' },
+      ]
+    },
+    {
+      id: '6',
+      title: 'WORKSHOP RESOURCES',
+      path: '/more-info',
+      totalSteps: 1,
+      completedSteps: 0,
+      icon: 'BookOpen',
+      iconColor: 'text-slate-600',
+      steps: [
+        { id: '6-1', label: 'Workshop Resources', path: '/workshop-resources', type: 'Learning', icon: 'PenLine', iconColor: 'text-pink-600' },
+      ]
+    }
+  ];
         { 
           id: '1', 
           title: 'Intro to Star Strengths', 
