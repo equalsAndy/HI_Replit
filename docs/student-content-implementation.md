@@ -1,4 +1,16 @@
-# Student Content Implementation Guide
+# REPLIT AGENT: Student Content Updates - Orientation & Youth Menu Structure
+
+## 🚨 BEFORE STARTING
+**Read the complete session starter guide**: `docs/claude-session-starter.md`
+
+**MANDATORY FIRST STEP**: Always start with git sync check:
+```
+cd /Users/bradtopliff/Desktop/HI_Replit
+git pull origin main
+git status
+```
+
+**This is a REPLIT AGENT task** (multi-file changes, navigation restructuring)
 
 ## Context
 Student-appropriate video available: https://www.youtube.com/watch?v=oHG4OJQtZ4g
