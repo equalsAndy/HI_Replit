@@ -47,6 +47,17 @@ async function addWorkshopVideos() {
       sortOrder: 6
     },
     {
+      title: "Future Self",
+      description: "Future Self reflection and planning",
+      url: "https://www.youtube.com/embed/9Q5JMKoSFVk?enablejsapi=1&autoplay=1&rel=0",
+      editableId: "9Q5JMKoSFVk",
+      workshopType: "allstarteams",
+      section: "reflection",
+      stepId: "4-4",
+      autoplay: true,
+      sortOrder: 7
+    },
+    {
       title: "Rounding Out",
       description: "Developing a well-rounded approach",
       url: "https://www.youtube.com/embed/BBAx5dNZw6Y?enablejsapi=1&autoplay=1&rel=0",
