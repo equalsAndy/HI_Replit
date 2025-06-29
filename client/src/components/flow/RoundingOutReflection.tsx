@@ -124,27 +124,14 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             <span className="text-sm font-medium text-gray-500">
               Question {currentQuestion + 1} of {roundingOutQuestions.length}
             </span>
-            <div className="flex gap-2">
-              {isTestUser && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={fillWithDemoData}
-                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                >
-                  <FileText className="w-3 h-3 mr-1" />
-                  Add Demo Data
-                </Button>
-              )}
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={toggleExample}
-                className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
-              >
-                {showExample ? "Hide Example" : "Show Example"}
-              </Button>
-            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleExample}
+              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+            >
+              {showExample ? "Hide Example" : "Show Example"}
+            </Button>
           </div>
           
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -186,13 +173,26 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
             Previous
           </Button>
           
-          <Button
-            onClick={nextQuestion}
-            className="bg-indigo-700 hover:bg-indigo-800 ml-2"
-            disabled={currentAnswer.trim().length === 0}
-          >
-            {currentQuestion === roundingOutQuestions.length - 1 ? "Finish" : "Next"}
-          </Button>
+          <div className="flex items-center gap-3">
+            {isTestUser && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={fillWithDemoData}
+                className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+              >
+                <FileText className="w-3 h-3 mr-1" />
+                Add Demo Data
+              </Button>
+            )}
+            <Button
+              onClick={nextQuestion}
+              className="bg-indigo-700 hover:bg-indigo-800 ml-2"
+              disabled={currentAnswer.trim().length === 0}
+            >
+              {currentQuestion === roundingOutQuestions.length - 1 ? "Finish" : "Next"}
+            </Button>
+          </div>
         </div>
       </Card>
       

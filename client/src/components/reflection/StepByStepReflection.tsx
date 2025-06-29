@@ -734,27 +734,12 @@ export default function StepByStepReflection({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
           {/* Left side - Purple gradient area */}
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
-            <div className="flex justify-between items-start">
-              <div>
-                <h2 className="text-xl font-bold mb-2">Reflect on your Strengths</h2>
-                <p className="text-white/80">
-                  Understanding how your unique strengths work together helps you maximize your potential.
-                  Let's explore one strength at a time.
-                </p>
-              </div>
-
-              {isTestUser && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={fillWithDemoData}
-                  className="text-xs bg-white/90 hover:bg-white text-indigo-800 border-indigo-200"
-                  id="fillDemoDataButton"
-                >
-                  <FileText className="w-3 h-3 mr-1" />
-                  Add Demo Data
-                </Button>
-              )}
+            <div>
+              <h2 className="text-xl font-bold mb-2">Reflect on your Strengths</h2>
+              <p className="text-white/80">
+                Understanding how your unique strengths work together helps you maximize your potential.
+                Let's explore one strength at a time.
+              </p>
             </div>
 
             {/* Strengths Distribution */}
@@ -1003,18 +988,31 @@ export default function StepByStepReflection({
               Previous
             </Button>
 
-            <Button 
-              onClick={handleNext}
-              disabled={!isCurrentReflectionValid()}
-              variant="default"
-              className={`${
-                isCurrentReflectionValid() 
-                  ? "bg-indigo-600 hover:bg-indigo-700" 
-                  : "bg-gray-400 cursor-not-allowed"
-              }`}
-            >
-              {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
-            </Button>
+            <div className="flex items-center gap-3">
+              {isTestUser && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={fillWithDemoData}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                >
+                  <FileText className="w-4 h-4 mr-2" />
+                  Add Demo Data
+                </Button>
+              )}
+              <Button 
+                onClick={handleNext}
+                disabled={!isCurrentReflectionValid()}
+                variant="default"
+                className={`${
+                  isCurrentReflectionValid() 
+                    ? "bg-indigo-600 hover:bg-indigo-700" 
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
+              >
+                {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
+              </Button>
+            </div>
           </div>
         </div>
       </div>
