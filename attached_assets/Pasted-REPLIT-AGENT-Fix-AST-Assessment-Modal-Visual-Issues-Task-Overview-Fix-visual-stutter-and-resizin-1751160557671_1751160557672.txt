@@ -1,0 +1,104 @@
+REPLIT AGENT: Fix AST Assessment Modal Visual Issues
+🎯 Task Overview
+Fix visual stutter and resizing issues in the AST (AllStarTeams) 22-question strength assessment modal. The modal currently has loading stutter and resizes with each drag-and-drop interaction.
+📂 Target File
+client/src/components/assessment/AssessmentModal.tsx
+🐛 Specific Issues to Fix
+1. Visual Stutter on Loading
+
+Modal content jumps from loading spinner (64px height) to full assessment interface
+No height reservation during loading→assessment transition
+
+2. Resizing with Each Interaction
+
+Available options grid collapses from 2-column layout to single text line as options are selected
+Ranking slots change visual appearance causing height variations
+No minimum height for available options area
+
+3. Layout Instability
+
+Available options section height varies from ~120px (grid) to ~40px (text)
+Multiple CSS transitions firing simultaneously
+Modal container allows content to push boundaries inconsistently
+
+🔧 Required Fixes
+Fix 1: Stabilize Available Options Area Height
+In renderAssessment() function, find this section:
+tsx<div className="bg-amber-50 p-4 rounded-lg mb-4">
+Change to:
+tsx<div className="bg-amber-50 p-4 rounded-lg mb-4 min-h-[140px] flex flex-col justify-center">
+Fix 2: Maintain Consistent Grid Layout
+Replace the conditional grid/text rendering:
+Current problematic code:
+tsx{availableOptions.length > 0 ? (
+  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto">
+    {availableOptions.map(option => (...))}
+  </div>
+) : (
+  <p className="text-center text-gray-500 text-sm">All options have been ranked...</p>
+)}
+Replace with:
+tsx<div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 max-w-4xl mx-auto min-h-[100px] items-center justify-center">
+  {availableOptions.length > 0 ? (
+    availableOptions.map(option => (
+      <div 
+        key={option.id}
+        draggable
+        onDragStart={(e) => handleDragStart(e, option)}
+        onClick={() => handleOptionClick(option)}
+        className="bg-gray-100 rounded-lg flex items-center justify-center p-3 cursor-pointer hover:bg-gray-200 transition-colors shadow relative"
+      >
+        <p className="text-xs sm:text-sm text-center">{option.text}</p>
+      </div>
+    ))
+  ) : (
+    <div className="col-span-full flex items-center justify-center">
+      <p className="text-center text-gray-500 text-sm">All options have been ranked. You can drag them to reorder.</p>
+    </div>
+  )}
+</div>
+Fix 3: Reduce Transition Conflicts
+Find all ranking slot divs and reduce transitions:
+Find:
+tsxclassName={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center transition-colors min-h-[80px] ${...}`}
+Replace with:
+tsxclassName={`border-2 border-dashed rounded-lg p-3 w-full flex items-center justify-center min-h-[80px] ${...}`}
+Fix 4: Stabilize Modal Content Height
+Find the main modal container:
+Find:
+tsx<DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto">
+Replace with:
+tsx<DialogContent className="max-w-3xl sm:max-w-3xl w-[calc(100%-2rem)] sm:w-full max-h-[90vh] overflow-y-auto min-h-[600px]">
+Fix 5: Stabilize Assessment Content Area
+Wrap the assessment content in a height-stable container:
+Find the assessment render section and wrap the main content:
+tsx<div className="p-2 sm:p-4">
+  {/* existing content */}
+</div>
+Replace with:
+tsx<div className="p-2 sm:p-4 min-h-[500px]">
+  {/* existing content */}
+</div>
+✅ Testing Steps
+
+Open AST workshop
+Navigate to assessment modal
+Verify smooth loading transition (no stutter)
+Test drag-and-drop interactions
+Confirm modal doesn't resize with each interaction
+Test on both desktop and mobile viewports
+
+🎯 Success Criteria
+
+✅ No visual stutter when modal loads
+✅ Modal maintains consistent size during drag-and-drop
+✅ Available options area maintains minimum height
+✅ Smooth transitions between question states
+✅ No layout shifts during interactions
+
+⚠️ Important Notes
+
+This is AST workshop specific - do NOT modify IA workshop files
+Maintain all existing drag-and-drop functionality
+Preserve all existing styling and colors
+Test thoroughly before considering complete
