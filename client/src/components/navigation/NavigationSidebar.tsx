@@ -1,10 +1,19 @@
 import { Video, BookOpen, Zap, Glasses, PenLine, Download, ChevronRight, CheckCircle, Circle, Clock, Activity } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { CollapsibleSection } from './CollapsibleSection';
-import { navigationSections } from './navigationData';
 
 export function NavigationSidebar() {
-  const { progress, getSectionProgressData, SECTION_STEPS } = useNavigationProgress();
+  const { progress, getSectionProgressData } = useNavigationProgress();
+  
+  // Query user profile to get role information for conditional navigation
+  const { data: userProfile } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: 30000
+  });
+  
+  // Check if user is student or facilitator for week-based navigation
+  const isStudentOrFacilitator = userProfile?.role === 'student' || userProfile?.role === 'facilitator';
 
   // Get section icon based on section ID
   const getSectionIcon = (sectionId: string) => {

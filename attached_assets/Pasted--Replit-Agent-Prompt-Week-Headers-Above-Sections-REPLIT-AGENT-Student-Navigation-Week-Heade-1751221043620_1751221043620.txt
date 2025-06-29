@@ -1,0 +1,67 @@
+🚀 Replit Agent Prompt - Week Headers Above Sections
+# REPLIT AGENT: Student Navigation - Week Headers Above Sections
+
+## Context
+Need to implement student/facilitator navigation where "WEEK #:" appears as separate headers above the section titles, not inline.
+
+## Target Structure for Students/Facilitators
+
+Intro to Star Strengths
+
+WEEK 1:
+DISCOVER YOUR STAR STRENGTHS
+
+Star Strengths Self-Assessment
+Review Your Star Card
+Strength Reflection
+
+WEEK 2:
+IDENTIFY YOUR FLOW
+
+Intro to Flow
+Flow Assessment
+Rounding Out
+Add Flow to Star Card
+
+WEEK 3:
+VISUALIZE YOUR POTENTIAL Part 1
+
+Ladder of Well-being
+Well-being Reflections
+
+WEEK 4:
+VISUALIZE YOUR POTENTIAL Part 2
+
+Visualizing You
+Your Future Self
+Final Reflection
+
+WEEK 5:
+NEXT STEPS
+
+Download your Star Card
+Your Holistic Report
+Growth Plan
+Team Workshop Prep
+
+
+## Implementation Requirements
+1. **Role Detection**: Check if `currentApp?.user?.role === 'student'` OR `currentApp?.user?.role === 'facilitator'`
+2. **Week Headers**: Add separate navigation sections with just "WEEK 1:", "WEEK 2:", etc. as headers
+3. **Section Splitting**: Split "Visualize your Potential" into Part 1 (Week 3) and Part 2 (Week 4)
+4. **Preserve All Logic**: Keep exact same step IDs, paths, and progression logic
+5. **Conditional Structure**: Other user types see original navigation unchanged
+
+## File to Modify
+`client/src/components/navigation/Navigation.tsx` - Replace the `journeySections` array with conditional logic based on user role.
+
+## Critical Requirements
+- Preserve ALL existing step IDs and paths
+- Maintain ALL progression/unlocking logic
+- Only students and facilitators see week structure
+- "WEEK #:" as separate header sections above content sections
+- Split visualization section while keeping same steps
+
+## Expected Result
+Students/facilitators see week-based structure with clear week headers, others see original structure.
+This prompt will properly implement the week headers as separate sections above the content, which is what the navigation system needs to render them correctly.
