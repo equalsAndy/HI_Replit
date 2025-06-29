@@ -10,9 +10,9 @@ import { formatInviteCode } from '../utils/invite-code';
 const router = express.Router();
 
 /**
- * Get all users (admin only)
+ * Get all users (admin and facilitator access with role-based filtering)
  */
-router.get('/users', requireAuth, isAdmin, async (req: Request, res: Response) => {
+router.get('/users', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const includeDeleted = req.query.includeDeleted === 'true';
     const result = await userManagementService.getAllUsers(includeDeleted);

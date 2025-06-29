@@ -41,7 +41,7 @@ export default function AdminDashboard() {
       queryClient.clear();
       toast({
         title: 'Logged out successfully',
-        description: 'You have been logged out of the admin console.',
+        description: 'You have been logged out of the management console.',
       });
       navigate('/');
     },
@@ -54,17 +54,21 @@ export default function AdminDashboard() {
     },
   });
 
-  // Redirect non-admin users
+  // Check if user has management access (admin or facilitator)
+  const hasManagementAccess = currentUser?.role === 'admin' || currentUser?.role === 'facilitator';
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Redirect users without management access
   React.useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
+    if (currentUser && !hasManagementAccess) {
       toast({
         title: 'Access denied',
-        description: 'You do not have permission to access the admin dashboard.',
+        description: 'You do not have permission to access the management console.',
         variant: 'destructive',
       });
       navigate('/');
     }
-  }, [currentUser, navigate, toast]);
+  }, [currentUser, hasManagementAccess, navigate, toast]);
 
   if (isLoadingUser) {
     return (
@@ -74,14 +78,21 @@ export default function AdminDashboard() {
     );
   }
 
-  if (!currentUser || currentUser.role !== 'admin') {
-    return null; // Will redirect via useEffect for non-admin users
+  if (!currentUser || !hasManagementAccess) {
+    return null; // Will redirect via useEffect for users without management access
   }
 
   return (
     <div className="container mx-auto py-10 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold tracking-tight">Admin Console</h1>
+        <div className="flex flex-col space-y-1">
+          <h1 className="text-3xl font-bold tracking-tight">
+            {isAdmin ? 'Admin Console' : 'Management Console'}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Logged in as {currentUser.name} ({currentUser.role})
+          </p>
+        </div>
         <div className="flex space-x-2">
           <Button variant="outline" onClick={() => navigate('/allstarteams')}>
             AllStarTeams Workshop
@@ -110,8 +121,12 @@ export default function AdminDashboard() {
           <TabsTrigger value="users">User Management</TabsTrigger>
           <TabsTrigger value="cohorts">Cohort Management</TabsTrigger>
           <TabsTrigger value="invites">Invite Management</TabsTrigger>
-          <TabsTrigger value="videos" disabled className="opacity-50 cursor-not-allowed">
-            Video Management
+          <TabsTrigger 
+            value="videos" 
+            disabled={!isAdmin} 
+            className={!isAdmin ? "opacity-50 cursor-not-allowed" : ""}
+          >
+            Video Management {!isAdmin && "(Admin Only)"}
           </TabsTrigger>
         </TabsList>
 

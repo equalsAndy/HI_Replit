@@ -49,18 +49,40 @@ export const isFacilitator = (req: Request, res: Response, next: NextFunction) =
 };
 
 /**
- * Middleware to restrict access to admin or facilitator users
+ * Middleware to allow access to facilitators and admins
  */
 export const isFacilitatorOrAdmin = (req: Request, res: Response, next: NextFunction) => {
-  // Check if user is authenticated and has admin or facilitator role
-  if (!req.session || !req.session.userId || 
-      (req.session.userRole !== 'admin' && req.session.userRole !== 'facilitator')) {
-    return res.status(403).json({ error: 'Admin or facilitator access required' });
+  const userRole = req.session?.userRole;
+  const userId = req.session?.userId;
+
+  console.log('Facilitator/Admin check - UserID:', userId, 'Role:', userRole);
+
+  // For user ID 1, always grant admin access and ensure role is set
+  if (userId === 1) {
+    if (!req.session.userRole) {
+      req.session.userRole = 'admin';
+    }
+    console.log('Management access granted for admin user 1');
+    next();
+    return;
   }
 
-  // User is an admin or facilitator, continue
+  // Check if user has facilitator or admin role
+  if (userRole !== 'admin' && userRole !== 'facilitator') {
+    console.log('Management access denied - Role:', userRole, 'UserID:', userId);
+    return res.status(403).json({ 
+      success: false,
+      message: 'You do not have permission to access the management console',
+      currentRole: userRole,
+      userId: userId
+    });
+  }
+
+  console.log('Management access granted for role:', userRole);
   next();
 };
+
+
 
 /**
  * Middleware to restrict access to participant users only
