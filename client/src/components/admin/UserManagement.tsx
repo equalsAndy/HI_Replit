@@ -1077,8 +1077,8 @@ export function UserManagement() {
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
               Update user information and role.
@@ -1087,10 +1087,12 @@ export function UserManagement() {
 
           {selectedUser && (
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
-                <FormField
-                  control={editForm.control}
-                  name="name"
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col flex-1">
+                <ScrollArea className="flex-1 px-1">
+                  <div className="space-y-4 pr-4">
+                    <FormField
+                      control={editForm.control}
+                      name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Full Name</FormLabel>
@@ -1373,9 +1375,10 @@ export function UserManagement() {
                       )}
                     />
                   )}
-                </div>
-
-                <DialogFooter className="mt-6">
+                  </div>
+                </ScrollArea>
+                
+                <DialogFooter className="flex-shrink-0 mt-4 pt-4 border-t">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel
                   </Button>
