@@ -481,9 +481,10 @@ adminRouter.delete('/users/:id', async (req: Request, res: Response) => {
     }
 
     // First delete related data
-    await db.delete(schema.userRoles).where(eq(schema.userRoles.userId, userId));
-    await db.delete(schema.starCards).where(eq(schema.starCards.userId, userId));
-    await db.delete(schema.flowAttributes).where(eq(schema.flowAttributes.userId, userId));
+    // Delete user assessments (includes star cards, flow data, etc.)
+    await db.delete(schema.userAssessments).where(eq(schema.userAssessments.userId, userId));
+    // Delete navigation progress
+    await db.delete(schema.navigationProgress).where(eq(schema.navigationProgress.userId, userId));
     
     // Then delete the user
     await db.delete(schema.users).where(eq(schema.users.id, userId));

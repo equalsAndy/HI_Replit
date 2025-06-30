@@ -136,6 +136,25 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 30, 2025 - Critical Reset Data Functionality Fixed ✅
+- **CRITICAL RESET BUG RESOLUTION**: Successfully fixed reset functionality that was failing to clear final reflection and flow assessment data
+  - Root cause: resetUserWorkshopData function in admin-routes.ts was missing navigation_progress table deletion
+  - Updated reset function to properly clear both user_assessments and navigation_progress tables
+  - All user data now properly resets including: final reflection text, star cards, flow attributes, navigation progress
+  - Verified manual SQL deletion of 7 assessment records and 1 navigation record works correctly
+- **COMPREHENSIVE DATA CLEARING**: Enhanced reset to handle all assessment types
+  - Clears finalReflection, starCard, flowAssessment, cantrilLadder, stepByStepReflection data
+  - Removes navigation progress from both navigation_progress table and users.navigation_progress field
+  - Maintains user profile data (name, email, role, etc.) while clearing workshop-specific data
+- **ADMIN ROUTE IMPROVEMENTS**: Fixed TypeScript errors and schema references
+  - Removed references to non-existent tables (userRoles, starCards, flowAttributes)
+  - Updated to use correct schema references for userAssessments and navigationProgress
+  - Enhanced error handling and logging for better debugging
+- **DATA PERSISTENCE VERIFIED**: Reset functionality now works correctly across all user assessment types
+  - Users can properly restart workshops without old data persisting
+  - Final reflection component no longer shows previous session data after reset
+  - Workshop progress tracking accurately reflects clean slate after reset
+
 ### June 30, 2025 - User Management Scoping for Facilitators Complete ✅
 - **ROLE-BASED USER ACCESS CONTROL**: Implemented comprehensive facilitator user management scoping
   - Updated `/api/admin/users` route to filter users based on caller's role (admin sees all, facilitators see only assigned users)
