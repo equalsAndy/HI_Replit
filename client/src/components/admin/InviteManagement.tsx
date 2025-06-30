@@ -11,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Loader2, UserPlus, Mail, RefreshCw, Check, Copy, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
 
 // Helper function to format invite codes
 const formatInviteCode = (code: string) => {
@@ -21,14 +20,36 @@ const formatInviteCode = (code: string) => {
 
 // Helper function to safely format dates
 const formatDate = (dateString: string) => {
+  console.log('Formatting date:', dateString);
   if (!dateString) return 'Unknown';
   try {
     // Handle different date formats from backend
-    const date = new Date(dateString.replace(' ', 'T') + (dateString.includes('T') ? '' : 'Z'));
+    let date;
+    if (dateString.includes(' ') && !dateString.includes('T')) {
+      // Handle PostgreSQL timestamp format: "2025-06-30 15:22:45.087482"
+      date = new Date(dateString.replace(' ', 'T') + 'Z');
+    } else {
+      date = new Date(dateString);
+    }
+    
+    console.log('Parsed date:', date);
+    
     if (isNaN(date.getTime())) {
+      console.log('Invalid date detected');
       return 'Invalid date';
     }
-    return formatDistanceToNow(date, { addSuffix: true });
+    
+    // Format as a readable date instead of relative time
+    const formatted = date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    console.log('Formatted result:', formatted);
+    return formatted;
   } catch (error) {
     console.error('Date formatting error:', error, 'for date:', dateString);
     return 'Invalid date';
@@ -96,12 +117,15 @@ export const InviteManagement: React.FC = () => {
 
       if (data.success) {
         // Process the invites to add computed properties and normalize property names
-        const processedInvites = data.invites.map((invite: any) => ({
-          ...invite,
-          inviteCode: invite.inviteCode || invite.invite_code,
-          createdAt: invite.createdAt || invite.created_at,
-          isUsed: !!invite.usedAt || !!invite.used_at
-        }));
+        const processedInvites = data.invites.map((invite: any) => {
+          console.log('Processing invite:', invite);
+          return {
+            ...invite,
+            inviteCode: invite.inviteCode || invite.invite_code,
+            createdAt: invite.createdAt || invite.created_at,
+            isUsed: !!invite.usedAt || !!invite.used_at
+          };
+        });
         setInvites(processedInvites);
       } else {
         toast({
@@ -427,7 +451,13 @@ export const InviteManagement: React.FC = () => {
                           </TableCell>
                         )}
                         <TableCell>
-                          {formatDate(invite.createdAt || invite.created_at)}
+                          {(() => {
+                            const dateValue = invite.createdAt || invite.created_at;
+                            console.log('Date value for invite', invite.id, ':', dateValue);
+                            const result = formatDate(dateValue);
+                            console.log('Formatted result:', result);
+                            return result;
+                          })()}
                         </TableCell>
                         <TableCell>
                           {invite.isUsed ? (
