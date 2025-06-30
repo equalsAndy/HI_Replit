@@ -1,0 +1,72 @@
+# REPLIT AGENT: Implement Facilitator Invite Management with Role-Based Scoping
+Modify the invite system to support facilitator access with proper role-based filtering:
+TASK: Enable facilitators to create/manage invites while maintaining admin oversight
+Backend Changes Needed:
+
+Update admin routes for invite management:
+
+typescript// In server/routes/admin-routes.ts
+
+// Modify GET /invites route to be role-aware
+router.get('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  const userRole = (req.session as any).userRole;
+  const userId = (req.session as any).userId;
+  
+  let invitesResult;
+  if (userRole === 'facilitator') {
+    // Facilitators only see invites they created
+    invitesResult = await inviteService.getInvitesByCreator(userId);
+  } else {
+    // Admins see all invites
+    invitesResult = await inviteService.getAllInvites();
+  }
+  
+  // Add creator name to invites for admin view
+  if (userRole === 'admin') {
+    // Join with users table to get creator names
+  }
+});
+
+// Modify POST /invites route to support facilitators
+router.post('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  const userRole = (req.session as any).userRole;
+  
+  // Restrict facilitators to participant/student roles only
+  if (userRole === 'facilitator') {
+    const allowedRoles = ['participant', 'student'];
+    if (!allowedRoles.includes(req.body.role)) {
+      return res.status(403).json({ 
+        message: 'Facilitators can only create participant and student invites' 
+      });
+    }
+  }
+  
+  // Create invite with proper createdBy tracking
+});
+
+Update user registration to track invite creator:
+
+typescript// When user registers with invite, store who created the invite
+// This goes in the users table as a reference to the facilitator
+
+Add creator information to user management:
+
+typescript// Modify getAllUsers to include invite creator information
+// Add columns: "Created By" and "Invite Used"
+Frontend Changes Needed:
+
+Update InviteManagement component to be role-aware
+Restrict role options for facilitators (only participant/student)
+Add creator column to admin user management table
+Filter invite lists based on user role
+
+Database Schema Updates:
+sql-- Add invited_by field to users table to track who invited them
+ALTER TABLE users ADD COLUMN invited_by INTEGER REFERENCES users(id) ON DELETE SET NULL;
+Key Features:
+
+✅ Facilitators can create participant/student invites only
+✅ Facilitators see only their own invites
+✅ Admins see all invites with creator information
+✅ User management shows who invited each user
+✅ Proper role restrictions enforced
