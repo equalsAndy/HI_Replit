@@ -30,8 +30,20 @@ router.post('/login', async (req, res) => {
     req.session.username = result.user.username;
     req.session.userRole = result.user.role;
 
-    // Send the user data (without the password)
-    res.json(result);
+    // Save session and wait for completion
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.status(500).json({
+          success: false,
+          error: 'Failed to save session'
+        });
+      }
+      
+      console.log('Session saved successfully for user:', result.user.id);
+      // Send the user data (without the password)
+      res.json(result);
+    });
   } catch (error) {
     console.error('Error in login route:', error);
     res.status(500).json({
