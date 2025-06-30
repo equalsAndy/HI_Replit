@@ -23,12 +23,16 @@ interface Invite {
   expiresAt: string | null;
   usedAt: string | null;
   isUsed: boolean;
+  creator_name?: string;
+  creator_email?: string;
+  creator_role?: string;
 }
 
 export const InviteManagement: React.FC = () => {
   const [invites, setInvites] = useState<Invite[]>([]);
   const [isLoadingInvites, setIsLoadingInvites] = useState(true);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
+  const [userRole, setUserRole] = useState<string>('');
   const [newInvite, setNewInvite] = useState({
     email: '',
     role: 'participant',
@@ -37,8 +41,23 @@ export const InviteManagement: React.FC = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    fetchUserRole();
     fetchInvites();
   }, []);
+
+  const fetchUserRole = async () => {
+    try {
+      const response = await fetch('/api/user/profile', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success && data.user) {
+        setUserRole(data.user.role);
+      }
+    } catch (error) {
+      console.error('Error fetching user role:', error);
+    }
+  };
 
   const fetchInvites = async () => {
     setIsLoadingInvites(true);
@@ -263,12 +282,21 @@ export const InviteManagement: React.FC = () => {
                       <SelectValue placeholder="Select role" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="facilitator">Facilitator</SelectItem>
+                      {userRole === 'admin' && (
+                        <>
+                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="facilitator">Facilitator</SelectItem>
+                        </>
+                      )}
                       <SelectItem value="participant">Participant</SelectItem>
                       <SelectItem value="student">Student</SelectItem>
                     </SelectContent>
                   </Select>
+                  {userRole === 'facilitator' && (
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Facilitators can only create participant and student invites
+                    </p>
+                  )}
                 </div>
               </div>
               <Button type="submit" className="mt-4" disabled={isSendingInvite}>
@@ -316,6 +344,7 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Invite Code</TableHead>
                       <TableHead>Role</TableHead>
+                      {userRole === 'admin' && <TableHead>Created By</TableHead>}
                       <TableHead>Created</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Actions</TableHead>
@@ -355,6 +384,18 @@ export const InviteManagement: React.FC = () => {
                             {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}
                           </Badge>
                         </TableCell>
+                        {userRole === 'admin' && (
+                          <TableCell>
+                            {invite.creator_name ? (
+                              <div className="text-sm">
+                                <div className="font-medium">{invite.creator_name}</div>
+                                <div className="text-muted-foreground text-xs">{invite.creator_email}</div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Unknown</span>
+                            )}
+                          </TableCell>
+                        )}
                         <TableCell>
                           {formatDistanceToNow(new Date(invite.createdAt), { addSuffix: true })}
                         </TableCell>

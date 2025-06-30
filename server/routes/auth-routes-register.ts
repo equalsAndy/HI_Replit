@@ -108,16 +108,17 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Create the user
+    // Create the user with invite creator tracking
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
       name: data.name,
       email: data.email,
-      role: inviteResult.invite.role as 'admin' | 'facilitator' | 'participant',
+      role: inviteResult.invite.role as 'admin' | 'facilitator' | 'participant' | 'student',
       organization: data.organization,
       jobTitle: data.jobTitle,
-      profilePicture: data.profilePicture
+      profilePicture: data.profilePicture,
+      invitedBy: inviteResult.invite.createdBy
     });
     
     if (!createResult.success) {

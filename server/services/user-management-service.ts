@@ -32,6 +32,7 @@ class UserManagementService {
     organization?: string | null;
     jobTitle?: string | null;
     profilePicture?: string | null;
+    invitedBy?: number | null;
   }) {
     try {
       // Hash the password
