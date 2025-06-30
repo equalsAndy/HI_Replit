@@ -9,7 +9,7 @@ class InviteService {
    */
   async createInviteWithAssignment(data: {
     email: string;
-    role: 'participant' | 'student';
+    role: 'admin' | 'facilitator' | 'participant' | 'student';
     name?: string;
     cohortId?: number | null;
     organizationId?: string | null;

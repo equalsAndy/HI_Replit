@@ -7,12 +7,13 @@ import { validateInviteCode, formatInviteCode } from '../utils/invite-code';
 const router = express.Router();
 
 /**
- * Create a new invite (admins and facilitators with role restrictions)
+ * Create a new invite with cohort and organization assignments (admins and facilitators with role restrictions)
  */
 router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const { email, role, name, expiresAt } = req.body;
+    const { email, role, name, expiresAt, cohortId, organizationId } = req.body;
     const userRole = (req.session as any).userRole;
+    const userId = (req.session as any).userId;
     
     if (!email) {
       return res.status(400).json({
@@ -39,11 +40,14 @@ router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       }
     }
     
-    const result = await inviteService.createInvite({
+    // Use enhanced invite service with cohort and organization assignment
+    const result = await inviteService.createInviteWithAssignment({
       email,
-      role: role as 'admin' | 'facilitator' | 'participant' | 'student',
+      role,
       name,
-      createdBy: req.session.userId!,
+      createdBy: userId,
+      cohortId: cohortId || null,
+      organizationId: organizationId || null,
       expiresAt: expiresAt ? new Date(expiresAt) : undefined
     });
     
@@ -71,7 +75,7 @@ router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
 });
 
 /**
- * Get invites (role-based filtering)
+ * Get invites with enhanced details (role-based filtering)
  */
 router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
@@ -80,21 +84,23 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
     
     let result;
     if (userRole === 'facilitator') {
-      // Facilitators only see invites they created
-      result = await inviteService.getInvitesByCreatorWithInfo(userId);
+      // Facilitators only see invites they created with cohort/organization details
+      result = await inviteService.getInvitesWithDetails(userId);
     } else {
-      // Admins see all invites with creator information
-      result = await inviteService.getAllInvites();
+      // Admins see all invites with full details
+      result = await inviteService.getInvitesWithDetails();
     }
     
     if (!result.success) {
       return res.status(400).json(result);
     }
     
-    // Format invite codes for display
+    // Format invite codes for display and ensure consistent property names
     const formattedInvites = result.invites.map(invite => ({
       ...invite,
-      formattedCode: formatInviteCode(invite.inviteCode || invite.invite_code)
+      formattedCode: formatInviteCode(invite.inviteCode || invite.invite_code),
+      createdAt: invite.created_at || invite.createdAt,
+      inviteCode: invite.invite_code || invite.inviteCode
     }));
     
     res.json({
