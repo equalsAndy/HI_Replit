@@ -3,8 +3,8 @@
  * Handles creating and restoring user progress checkpoints
  */
 
-import { db } from '../db/index.js';
-import { schema } from '../../shared/schema.js';
+import { db } from '../db.js';
+import * as schema from '@shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 export interface CheckpointData {
@@ -173,8 +173,8 @@ export class CheckpointService {
         checkpoint.data = targetCheckpoint.data;
       }
 
-      // Clear existing data first
-      await this.clearUserData(userId);
+      // Clear existing data first (excluding checkpoints)
+      await this.clearUserDataExceptCheckpoints(userId);
 
       // Restore data from checkpoint
       const { data } = checkpoint;
