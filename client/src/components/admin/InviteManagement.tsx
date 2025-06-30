@@ -18,41 +18,38 @@ const formatInviteCode = (code: string) => {
   return code.replace(/(.{4})/g, '$1-').replace(/-$/, '');
 };
 
-// Helper function to safely format dates
+// Helper function to safely format dates - completely rewritten to avoid any relative time formatting
 const formatDate = (dateString: string) => {
-  console.log('Formatting date:', dateString);
   if (!dateString) return 'Unknown';
+  
   try {
-    // Handle different date formats from backend
-    let date;
+    // Parse PostgreSQL timestamp format: "2025-06-30 15:22:45.087482"
+    let dateObj;
     if (dateString.includes(' ') && !dateString.includes('T')) {
-      // Handle PostgreSQL timestamp format: "2025-06-30 15:22:45.087482"
-      date = new Date(dateString.replace(' ', 'T') + 'Z');
+      // Replace space with T and add Z for UTC timezone
+      const isoString = dateString.replace(' ', 'T') + 'Z';
+      dateObj = new Date(isoString);
     } else {
-      date = new Date(dateString);
+      dateObj = new Date(dateString);
     }
     
-    console.log('Parsed date:', date);
-    
-    if (isNaN(date.getTime())) {
-      console.log('Invalid date detected');
+    // Validate the date
+    if (isNaN(dateObj.getTime())) {
       return 'Invalid date';
     }
     
-    // Format as a readable date instead of relative time
-    const formatted = date.toLocaleDateString('en-US', {
+    // Format as absolute date/time: "Jun 30, 2025, 3:22 PM"
+    return dateObj.toLocaleString('en-US', {
       year: 'numeric',
-      month: 'short',
+      month: 'short', 
       day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
     });
-    
-    console.log('Formatted result:', formatted);
-    return formatted;
   } catch (error) {
-    console.error('Date formatting error:', error, 'for date:', dateString);
-    return 'Invalid date';
+    console.error('Date formatting error:', error);
+    return 'Error formatting date';
   }
 };
 
@@ -279,10 +276,7 @@ export const InviteManagement: React.FC = () => {
     }
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    return formatDistanceToNow(new Date(dateString), { addSuffix: true });
-  };
+
 
   return (
     <Tabs defaultValue="create" className="w-full">
