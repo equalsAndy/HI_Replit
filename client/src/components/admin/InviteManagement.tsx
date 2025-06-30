@@ -433,7 +433,7 @@ export const InviteManagement: React.FC = () => {
                         <SelectValue placeholder="Select organization" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No organization</SelectItem>
+                        <SelectItem value="none">No organization</SelectItem>
                         {organizations.map((org) => (
                           <SelectItem key={org.id} value={org.id}>
                             {org.name}
@@ -457,7 +457,7 @@ export const InviteManagement: React.FC = () => {
                         <SelectValue placeholder="Select cohort" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">No cohort</SelectItem>
+                        <SelectItem value="none">No cohort</SelectItem>
                         {cohorts.map((cohort) => (
                           <SelectItem key={cohort.id} value={cohort.id.toString()}>
                             {cohort.name} {cohort.organization_name ? `(${cohort.organization_name})` : ''}
