@@ -113,9 +113,11 @@ function UserManagement() {
   });
 
   // Fetch users
-  const { data: users = [], isLoading } = useQuery({
+  const { data: usersResponse, isLoading } = useQuery({
     queryKey: ['/api/admin/users'],
   });
+  
+  const users = usersResponse?.users || [];
 
   // Create user mutation
   const createUserMutation = useMutation({
@@ -254,7 +256,7 @@ function UserManagement() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {users.map((user: User) => (
+                {Array.isArray(users) && users.map((user: User) => (
                   <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
                     <div className="flex items-center space-x-4">
                       <div>
