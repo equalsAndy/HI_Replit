@@ -46,7 +46,7 @@ class UserManagementService {
       `);
       
       // Return the user without the password
-      const user = result.rows[0];
+      const user = result[0];
       if (user) {
         const { password, ...userWithoutPassword } = user;
         return {
@@ -283,13 +283,13 @@ class UserManagementService {
       
       const isCurrentlyTestUser = currentUser[0].isTestUser;
       
-      // Toggle the test status
-      const result = await db.update(users)
-        .set({
-          updatedAt: new Date()
-        })
-        .where(eq(users.id, id))
-        .returning();
+      // Toggle the test status using raw SQL to avoid schema conflicts
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET is_test_user = NOT is_test_user, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `);
       
       if (!result || result.length === 0) {
         return {
