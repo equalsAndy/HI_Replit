@@ -13,6 +13,7 @@ import workshopDataRoutes from './routes/workshop-data-routes';
 import growthPlanRoutes from './routes/growth-plan-routes';
 import { resetRouter } from './reset-routes';
 import { adminRouter } from './routes/admin-routes';
+import { facilitatorRouter } from './routes/facilitator-routes';
 
 // Create a router
 export const router = express.Router();
@@ -25,6 +26,7 @@ router.use('/auth', authRoutes);
 router.use('/invites', inviteRoutes);
 router.use('/admin/invites', fixedInviteRoutes);
 router.use('/admin', adminRouter);
+router.use('/facilitator', facilitatorRouter);
 router.use('/user', userRoutes);
 router.use('/test-users/reset', resetRouter);
 router.use('/workshop-data', workshopDataRoutes);

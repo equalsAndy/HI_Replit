@@ -67,25 +67,54 @@ interface Invite {
   creator_name?: string;
   creator_email?: string;
   creator_role?: string;
+  cohort_name?: string;
+  organization_name?: string;
+  cohort_id?: number;
+  organization_id?: string;
   [key: string]: any; // Allow additional properties for flexibility
+}
+
+interface Organization {
+  id: string;
+  name: string;
+  description?: string;
+}
+
+interface Cohort {
+  id: number;
+  name: string;
+  description?: string;
+  organization_name?: string;
+  ast_access: boolean;
+  ia_access: boolean;
 }
 
 export const InviteManagement: React.FC = () => {
   const [invites, setInvites] = useState<Invite[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
   const [isLoadingInvites, setIsLoadingInvites] = useState(true);
+  const [isLoadingOrganizations, setIsLoadingOrganizations] = useState(false);
+  const [isLoadingCohorts, setIsLoadingCohorts] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
   const [userRole, setUserRole] = useState<string>('');
   const [newInvite, setNewInvite] = useState({
     email: '',
     role: 'participant',
     name: '',
+    cohortId: '',
+    organizationId: '',
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchUserRole();
     fetchInvites();
-  }, []);
+    if (userRole === 'facilitator') {
+      fetchOrganizations();
+      fetchCohorts();
+    }
+  }, [userRole]);
 
   const fetchUserRole = async () => {
     try {
