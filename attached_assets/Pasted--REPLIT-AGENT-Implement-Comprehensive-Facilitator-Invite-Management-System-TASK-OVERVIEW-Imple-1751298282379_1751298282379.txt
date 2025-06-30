@@ -1,0 +1,270 @@
+# REPLIT AGENT: Implement Comprehensive Facilitator Invite Management System
+
+## TASK OVERVIEW
+Implement role-based invite management system that allows facilitators to create and manage invites while maintaining proper permission boundaries and auto-assignment to cohorts.
+
+## DATABASE UPDATES NEEDED
+
+### 1. Add invited_by field to users table
+```sql
+ALTER TABLE users ADD COLUMN invited_by INTEGER REFERENCES users(id) ON DELETE SET NULL;
+```
+
+### 2. Create default organization for existing facilitators
+```sql
+-- Create "Organization 1" entries for existing facilitators who don't have organizations
+INSERT INTO organizations (name, description, created_by, created_at, updated_at)
+SELECT 
+  'Organization 1' as name,
+  'Default organization' as description,
+  u.id as created_by,
+  NOW() as created_at,
+  NOW() as updated_at
+FROM users u 
+WHERE u.role = 'facilitator' 
+AND NOT EXISTS (
+  SELECT 1 FROM organizations o WHERE o.created_by = u.id
+);
+```
+
+## BACKEND IMPLEMENTATION
+
+### 1. Update invite service (server/services/invite-service.ts)
+Add these methods:
+```typescript
+/**
+ * Get invites with enhanced information (cohort, organization names)
+ */
+async getInvitesWithDetails(creatorId?: number) {
+  // Join invites with users, cohorts, organizations tables
+  // Return enhanced invite objects with readable names
+}
+
+/**
+ * Create invite with cohort and organization assignment
+ */
+async createInviteWithAssignment(data: {
+  email: string;
+  role: 'participant' | 'student';
+  name?: string;
+  cohortId: number | null;
+  organizationId: number | null;
+  createdBy: number;
+}) {
+  // Enhanced invite creation with assignment tracking
+}
+```
+
+### 2. Update admin routes (server/routes/admin-routes.ts)
+
+#### Modify GET /invites endpoint:
+```typescript
+router.get('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  const userRole = (req.session as any).userRole;
+  const userId = (req.session as any).userId;
+  
+  let invitesResult;
+  if (userRole === 'facilitator') {
+    // Facilitators only see invites they created
+    invitesResult = await inviteService.getInvitesWithDetails(userId);
+  } else {
+    // Admins see all invites with creator information
+    invitesResult = await inviteService.getInvitesWithDetails();
+  }
+  
+  // Return formatted invites with cohort/organization names
+});
+```
+
+#### Modify POST /invites endpoint:
+```typescript
+router.post('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
+  const userRole = (req.session as any).userRole;
+  const userId = (req.session as any).userId;
+  
+  // Restrict facilitators to participant/student roles only
+  if (userRole === 'facilitator') {
+    const allowedRoles = ['participant', 'student'];
+    if (!allowedRoles.includes(req.body.role)) {
+      return res.status(403).json({ 
+        message: 'Facilitators can only create participant and student invites' 
+      });
+    }
+  }
+  
+  // Create invite with cohort/organization assignment
+  const inviteResult = await inviteService.createInviteWithAssignment({
+    email: req.body.email,
+    role: req.body.role,
+    name: req.body.name,
+    cohortId: req.body.cohortId || null,
+    organizationId: req.body.organizationId || null,
+    createdBy: userId
+  });
+});
+```
+
+### 3. Add facilitator-specific routes (server/routes/facilitator-routes.ts)
+Create new file:
+```typescript
+import express from 'express';
+import { requireAuth } from '../middleware/auth';
+import { isFacilitator } from '../middleware/roles';
+
+const router = express.Router();
+
+// Get facilitator's organizations
+router.get('/organizations', requireAuth, isFacilitator, async (req, res) => {
+  // Return organizations created by this facilitator + "Independent" option
+});
+
+// Get facilitator's cohorts  
+router.get('/cohorts', requireAuth, isFacilitator, async (req, res) => {
+  // Return cohorts where facilitator_id = session.userId
+});
+
+export const facilitatorRouter = router;
+```
+
+### 4. Update user registration (server/routes/auth-routes.ts)
+When user registers with invite code:
+```typescript
+// After successful registration, update users table
+await db.update(users)
+  .set({ 
+    cohort_id: invite.cohortId,
+    invited_by: invite.createdBy,
+    organization_id: invite.organizationId 
+  })
+  .where(eq(users.id, newUserId));
+```
+
+## FRONTEND IMPLEMENTATION
+
+### 1. Update InviteManagement component (client/src/components/admin/InviteManagement.tsx)
+
+#### Add role-based form fields:
+```typescript
+// For facilitators - restrict role options
+const getRoleOptions = (userRole: string) => {
+  if (userRole === 'facilitator') {
+    return [
+      { value: 'participant', label: 'Participant' },
+      { value: 'student', label: 'Student' }
+    ];
+  }
+  // Admin gets all options
+  return [
+    { value: 'admin', label: 'Admin' },
+    { value: 'facilitator', label: 'Facilitator' },
+    { value: 'participant', label: 'Participant' },
+    { value: 'student', label: 'Student' }
+  ];
+};
+
+// Add cohort selection dropdown
+const [cohorts, setCohorts] = useState([]);
+const [organizations, setOrganizations] = useState([]);
+
+// Fetch facilitator's cohorts and organizations
+useEffect(() => {
+  if (userRole === 'facilitator') {
+    fetchFacilitatorData();
+  }
+}, [userRole]);
+```
+
+#### Add new form fields:
+```typescript
+// Add to invite creation form
+<FormField name="cohortId">
+  <FormLabel>Assign to Cohort</FormLabel>
+  <Select onValueChange={(value) => setNewInvite({...newInvite, cohortId: value})}>
+    <SelectTrigger>
+      <SelectValue placeholder="Select cohort" />
+    </SelectTrigger>
+    <SelectContent>
+      {cohorts.map(cohort => (
+        <SelectItem key={cohort.id} value={cohort.id.toString()}>
+          {cohort.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</FormField>
+
+<FormField name="organizationId">
+  <FormLabel>Organization</FormLabel>
+  <Select onValueChange={(value) => setNewInvite({...newInvite, organizationId: value})}>
+    <SelectTrigger>
+      <SelectValue placeholder="Select organization" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="null">Independent</SelectItem>
+      {organizations.map(org => (
+        <SelectItem key={org.id} value={org.id.toString()}>
+          {org.name}
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+</FormField>
+```
+
+### 2. Update UserManagement component (client/src/components/admin/UserManagement.tsx)
+
+#### Add "Invited By" column for admin view:
+```typescript
+// Add to table headers (admin only)
+{userRole === 'admin' && <TableHead>Invited By</TableHead>}
+
+// Add to table cells (admin only)
+{userRole === 'admin' && (
+  <TableCell>
+    {user.invitedBy ? (
+      <span className="text-sm">{user.invitedByName || `User #${user.invitedBy}`}</span>
+    ) : (
+      <span className="text-xs text-gray-500">Direct</span>
+    )}
+  </TableCell>
+)}
+```
+
+## TESTING REQUIREMENTS
+
+### 1. Permission Testing
+- [ ] Facilitators cannot create admin/facilitator invites
+- [ ] Facilitators only see their own invites
+- [ ] Admins see all invites with creator information
+- [ ] Role restrictions are enforced on invite creation
+
+### 2. Data Integration Testing  
+- [ ] User registration assigns cohort_id from invite
+- [ ] invited_by field is populated correctly
+- [ ] Organization assignment works properly
+- [ ] Cohort assignment is preserved through registration
+
+### 3. UI Testing
+- [ ] Role-appropriate form fields are shown
+- [ ] Facilitator dropdowns are populated correctly
+- [ ] Admin view shows creator information
+- [ ] Form validation works for all fields
+
+## SUCCESS CRITERIA
+- ✅ Facilitators can create participant/student invites only
+- ✅ Facilitators see only their invites in management interface
+- ✅ Admins see all invites with creator information
+- ✅ New users auto-assigned to specified cohort and organization
+- ✅ invited_by tracking works correctly
+- ✅ All permission boundaries are enforced
+- ✅ UI adapts based on user role
+
+## FILE LOCATIONS
+- `server/services/invite-service.ts` - Enhanced invite methods
+- `server/routes/admin-routes.ts` - Role-aware invite endpoints  
+- `server/routes/facilitator-routes.ts` - New facilitator-specific routes
+- `client/src/components/admin/InviteManagement.tsx` - Enhanced UI
+- `client/src/components/admin/UserManagement.tsx` - Added invite tracking
+- `shared/schema.ts` - Database schema (already complete)
+
+Implement all components systematically, test thoroughly, and ensure role-based permissions are strictly enforced throughout.

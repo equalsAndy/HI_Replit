@@ -1,11 +1,79 @@
 import { db } from '../db';
-import { invites } from '@shared/schema';
+import { invites, users, cohorts, organizations } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { generateInviteCode } from '../utils/invite-code';
 
 class InviteService {
   /**
-   * Create a new invite
+   * Create a new invite with cohort and organization assignment
+   */
+  async createInviteWithAssignment(data: {
+    email: string;
+    role: 'participant' | 'student';
+    name?: string;
+    cohortId?: number | null;
+    organizationId?: string | null;
+    createdBy: number;
+    expiresAt?: Date;
+  }) {
+    try {
+      // Validate email format
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(data.email)) {
+        return {
+          success: false,
+          error: 'Invalid email format'
+        };
+      }
+      
+      // Generate a unique invite code (remove hyphens to fit 12-char limit)
+      const inviteCode = generateInviteCode().replace(/-/g, '');
+      
+      // Ensure code fits database constraint (max 12 characters)
+      if (inviteCode.length > 12) {
+        throw new Error('Generated invite code exceeds database limit');
+      }
+      
+      // Insert the invite into the database with cohort and organization assignment
+      const result = await db.execute(sql`
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null})
+        RETURNING *
+      `);
+      
+      // Handle different result structures from drizzle
+      const inviteData = (result as any)[0] || (result as any).rows?.[0] || {
+        invite_code: inviteCode,
+        email: data.email.toLowerCase(),
+        role: data.role,
+        name: data.name || null,
+        created_by: data.createdBy,
+        expires_at: data.expiresAt || null,
+        cohort_id: data.cohortId || null,
+        organization_id: data.organizationId || null,
+        created_at: new Date(),
+        used_at: null,
+        used_by: null
+      };
+
+      return {
+        success: true,
+        invite: {
+          ...inviteData,
+          formattedCode: this.formatInviteCode(inviteCode)
+        }
+      };
+    } catch (error) {
+      console.error('Error creating invite:', error);
+      return {
+        success: false,
+        error: 'Failed to create invite'
+      };
+    }
+  }
+
+  /**
+   * Legacy create invite method for backward compatibility
    */
   async createInvite(data: {
     email: string;
@@ -143,6 +211,63 @@ class InviteService {
   }
   
   /**
+   * Get invites with enhanced information (cohort, organization names)
+   */
+  async getInvitesWithDetails(creatorId?: number) {
+    try {
+      let query = sql`
+        SELECT 
+          i.*,
+          u.name as creator_name,
+          u.email as creator_email,
+          u.role as creator_role,
+          c.name as cohort_name,
+          o.name as organization_name
+        FROM invites i
+        LEFT JOIN users u ON i.created_by = u.id
+        LEFT JOIN cohorts c ON i.cohort_id = c.id
+        LEFT JOIN organizations o ON i.organization_id = o.id
+      `;
+      
+      if (creatorId) {
+        query = sql`
+          SELECT 
+            i.*,
+            u.name as creator_name,
+            u.email as creator_email,
+            u.role as creator_role,
+            c.name as cohort_name,
+            o.name as organization_name
+          FROM invites i
+          LEFT JOIN users u ON i.created_by = u.id
+          LEFT JOIN cohorts c ON i.cohort_id = c.id
+          LEFT JOIN organizations o ON i.organization_id = o.id
+          WHERE i.created_by = ${creatorId}
+        `;
+      }
+      
+      query = sql`${query} ORDER BY i.created_at DESC`;
+      
+      const result = await db.execute(query);
+      const invitesData = (result as any) || (result as any).rows || [];
+      
+      return {
+        success: true,
+        invites: invitesData.map((invite: any) => ({
+          ...invite,
+          formattedCode: this.formatInviteCode(invite.invite_code)
+        }))
+      };
+    } catch (error) {
+      console.error('Error fetching invites with details:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch invites'
+      };
+    }
+  }
+
+  /**
    * Get all invites (admin only) with creator information
    */
   async getAllInvites() {
@@ -223,6 +348,14 @@ class InviteService {
         error: 'Failed to delete invite'
       };
     }
+  }
+
+  /**
+   * Format invite code with hyphens for display
+   */
+  formatInviteCode(code: string): string {
+    if (!code) return '';
+    return code.replace(/(.{4})/g, '$1-').replace(/-$/, '');
   }
 }
 
