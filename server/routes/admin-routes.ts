@@ -235,15 +235,6 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     // Update user via user management service
     const updateResult = await userManagementService.updateUser(id, processedUpdateData);
 
-    console.log('Password update debug:', {
-      resetPassword: updateData.resetPassword,
-      setCustomPassword: updateData.setCustomPassword,
-      processedPassword: processedUpdateData.password,
-      updateResultSuccess: updateResult.success,
-      hasTemporaryPassword: !!updateResult.temporaryPassword,
-      temporaryPassword: updateResult.temporaryPassword
-    });
-
     if (!updateResult.success) {
       return res.status(400).json({ message: updateResult.error || 'Failed to update user' });
     }
