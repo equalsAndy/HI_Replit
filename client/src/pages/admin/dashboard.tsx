@@ -23,16 +23,21 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
 
   // Fetch current user to check permissions
-  const { data: currentUser, isLoading: isLoadingUser } = useQuery<{
-    id: number;
-    name: string;
-    role: string;
-    title?: string;
-    organization?: string;
+  const { data: userProfile, isLoading: isLoadingUser } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      role: string;
+      title?: string;
+      organization?: string;
+    }
   }>({
-    queryKey: ['/api/user/me'],
+    queryKey: ['/api/user/profile'],
     retry: false,
   });
+
+  const currentUser = userProfile?.user;
 
   // Logout mutation
   const logoutMutation = useMutation({
