@@ -29,9 +29,13 @@ const logAdminAction = (adminId: number, action: string, targetUserId?: number, 
 // Enhanced reset user workshop data function
 const resetUserWorkshopData = async (userId: number) => {
   try {
-    // Clear all userAssessments for this user
+    // Clear all userAssessments for this user (includes finalReflection, starCard, flowAssessment, etc.)
     await db.delete(userAssessments)
       .where(eq(userAssessments.userId, userId));
+    
+    // Clear navigation progress from navigation_progress table
+    await db.delete(navigationProgress)
+      .where(eq(navigationProgress.userId, userId));
     
     // Clear navigation progress from users table
     await db.update(users)
@@ -43,8 +47,10 @@ const resetUserWorkshopData = async (userId: number) => {
     // PRESERVE these fields in users table:
     // - name, email, profilePicture, organization, jobTitle, username, role
     
+    console.log(`Successfully reset all workshop data for user ${userId}`);
     return { success: true, message: 'Workshop data reset successfully' };
   } catch (error) {
+    console.error(`Error resetting workshop data for user ${userId}:`, error);
     throw new Error('Failed to reset user data');
   }
 };

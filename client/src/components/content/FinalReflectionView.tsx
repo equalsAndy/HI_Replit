@@ -48,11 +48,22 @@ export default function FinalReflectionView({
 
   // Check if step is completed - using simple text length check for now
   // TODO: Replace with actual progression system check
-  const isStepCompleted = existingData?.success && existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
-  const savedInsight = existingData?.data?.futureLetterText || '';
+  const isStepCompleted = existingData && typeof existingData === 'object' && 'success' in existingData && 
+    existingData.success && 'data' in existingData && existingData.data && 
+    typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
+    existingData.data.futureLetterText && 
+    typeof existingData.data.futureLetterText === 'string' &&
+    existingData.data.futureLetterText.length >= 10;
+  
+  const savedInsight = existingData && typeof existingData === 'object' && 'data' in existingData && 
+    existingData.data && typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
+    typeof existingData.data.futureLetterText === 'string' ? existingData.data.futureLetterText : '';
 
   useEffect(() => {
-    if (existingData && existingData.success && existingData.data && existingData.data.futureLetterText) {
+    if (existingData && typeof existingData === 'object' && 'success' in existingData && 
+        existingData.success && 'data' in existingData && existingData.data && 
+        typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
+        existingData.data.futureLetterText) {
       // Always set the insight from saved data when available
       setInsight(String(existingData.data.futureLetterText));
     }
