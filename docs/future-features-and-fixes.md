@@ -28,9 +28,8 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - [ ] **Real-time progress sync** - Currently progress only updates on page refresh
 - [ ] **Bulk user management** - Admin ability to import/export multiple users at once
 - [ ] **Workshop completion certificates** - Generate PDF certificates when users complete workshops
-- [ ] **Facilitator invite permissions** - Complete implementation allowing facilitators to create invites (partially implemented - admin only currently)
-- [ ] **Admin assessment management interface** - UI for admins to edit/create assessment questions and modify strength category mappings
-- [ ] **Facilitator cohort management** - Tools for facilitators to create, manage, and assign assessments to student cohorts
+- [ ] **Admin assessment management interface** - UI for admins to edit/create assessment questions and modify strength category mappings (assessment engine complete, needs admin editing UI)
+- [ ] **Facilitator cohort management frontend** - Connect existing CohortManagement component to backend API (backend complete, needs API connection)
 
 ### **Medium Priority**
 *Nice-to-have features that would enhance the platform*
@@ -89,6 +88,9 @@ This file tracks feature requests, bugs, and improvements that come up during de
 
 ### **Recent Completions** *(Move items here when finished)*
 
+- ✅ **Facilitator invite permissions** *(2025-06-30)* - Complete implementation allowing facilitators to create participant/student invites only, with automatic cohort assignment and role restrictions enforced in UI and backend
+- ✅ **Facilitator cohort management backend** *(2025-06-30)* - Full API implementation in server/routes/facilitator-routes.ts allowing facilitators to create/manage cohorts and organizations
+- ✅ **Test user progress indicators refresh bug** *(2025-06-30)* - Fixed through enhanced TestUserBanner.tsx and ResetUserDataButton.tsx with proper state updates and query invalidation
 - ✅ **Student user type database schema** *(2025-06-29)* - Added 'student' role to users table with full type safety and validation
 - ✅ **Youth assessment question mapping** *(2025-06-29)* - Created 22 school/training scenarios mapped to same 4 strength categories
 - ✅ **Role-based assessment loading** *(2025-06-29)* - Assessment component now loads youth scenarios for students, professional questions for others
