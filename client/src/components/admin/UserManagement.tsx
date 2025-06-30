@@ -28,7 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { ScrollArea } from '@/components/ui/scroll-area';
+
 import { formatDistanceToNow } from 'date-fns';
 
 // Types
@@ -1097,8 +1097,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           {selectedUser && (
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
-                <ScrollArea className="max-h-[70vh] overflow-y-auto pr-4">
-                  <div className="space-y-6">
+                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={editForm.control}
@@ -1408,7 +1407,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     </div>
                   </div>
                 </div>
-                </ScrollArea>
 
                 <DialogFooter className="mt-6">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
