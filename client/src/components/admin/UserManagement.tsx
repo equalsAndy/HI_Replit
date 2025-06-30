@@ -156,7 +156,7 @@ const PasswordInput = React.forwardRef<HTMLInputElement, React.InputHTMLAttribut
 );
 PasswordInput.displayName = "PasswordInput";
 
-export function UserManagement() {
+export function UserManagement({ currentUser }: { currentUser?: { id: number; name: string; role: string; } }) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -1199,60 +1199,63 @@ export function UserManagement() {
                   </div>
                 </div>
 
-                {/* Content Type Access Section */}
-                <div className="space-y-4">
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium mb-3">Content Type Access</h4>
-                    <FormField
-                      control={editForm.control}
-                      name="contentAccess"
-                      render={({ field }) => (
-                        <FormItem className="space-y-3">
-                          <FormControl>
-                            <div className="grid grid-cols-1 gap-2">
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="radio"
-                                  id="student-only"
-                                  value="student"
-                                  checked={field.value === 'student'}
-                                  onChange={() => field.onChange('student')}
-                                  className="h-4 w-4 text-purple-600"
-                                />
-                                <Label htmlFor="student-only" className="text-sm">Student Content Only</Label>
+                {/* Content Type Access Section - Admin Only, Facilitator Users Only */}
+                {currentUser?.role === 'admin' && selectedUser?.role === 'facilitator' && (
+                  <div className="space-y-4">
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-3">Content Type Access</h4>
+                      <FormField
+                        control={editForm.control}
+                        name="contentAccess"
+                        render={({ field }) => (
+                          <FormItem className="space-y-3">
+                            <FormControl>
+                              <div className="grid grid-cols-1 gap-2">
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="radio"
+                                    id="student-only"
+                                    value="student"
+                                    checked={field.value === 'student'}
+                                    onChange={() => field.onChange('student')}
+                                    className="h-4 w-4 text-purple-600"
+                                  />
+                                  <Label htmlFor="student-only" className="text-sm">Student Content Only</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="radio"
+                                    id="professional-only"
+                                    value="professional"
+                                    checked={field.value === 'professional'}
+                                    onChange={() => field.onChange('professional')}
+                                    className="h-4 w-4 text-blue-600"
+                                  />
+                                  <Label htmlFor="professional-only" className="text-sm">Professional Content Only</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <input
+                                    type="radio"
+                                    id="both-content"
+                                    value="both"
+                                    checked={field.value === 'both'}
+                                    onChange={() => field.onChange('both')}
+                                    className="h-4 w-4 text-green-600"
+                                  />
+                                  <Label htmlFor="both-content" className="text-sm">Both Content Types</Label>
+                                </div>
                               </div>
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="radio"
-                                  id="professional-only"
-                                  value="professional"
-                                  checked={field.value === 'professional'}
-                                  onChange={() => field.onChange('professional')}
-                                  className="h-4 w-4 text-blue-600"
-                                />
-                                <Label htmlFor="professional-only" className="text-sm">Professional Content Only</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="radio"
-                                  id="both-content"
-                                  value="both"
-                                  checked={field.value === 'both'}
-                                  onChange={() => field.onChange('both')}
-                                  className="h-4 w-4 text-green-600"
-                                />
-                                <Label htmlFor="both-content" className="text-sm">Both Content Types</Label>
-                              </div>
-                            </div>
-                          </FormControl>
-                          <FormDescription>
-                            Controls which assessment content this user can access
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                            </FormControl>
+                            <FormDescription>
+                              Controls which assessment content this user can access
+                            </FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
                   </div>
+                )}
 
                   {/* Workshop Access Section */}
                   <div className="border-t pt-4">

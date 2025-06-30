@@ -160,7 +160,16 @@ export default function AdminDashboard() {
 
 // User Management Tab Component
 function UserManagementTab() {
-  return <UserManagement />;
+  const { data: currentUser } = useQuery<{
+    id: number;
+    name: string;
+    role: string;
+  }>({
+    queryKey: ['/api/user/me'],
+    retry: false,
+  });
+  
+  return <UserManagement currentUser={currentUser} />;
 }
 
 // Cohort Management Tab Component
