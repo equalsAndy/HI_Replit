@@ -1548,7 +1548,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
             </DialogDescription>
           </DialogHeader>
 
-          <ScrollArea className="h-[60vh] w-full border rounded-md p-4">
+          <div className="h-[60vh] w-full border rounded-md p-4 overflow-y-auto">
             {userData === null ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -1679,7 +1679,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 )}
               </div>
             )}
-          </ScrollArea>
+          </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDataViewOpen(false)}>
