@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, text, boolean, integer, jsonb, index, unique } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, text, boolean, integer, jsonb, index, unique, uuid } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -18,6 +18,39 @@ export type UserRole = typeof UserRoles[number];
 export const ContentAccessTypes = ['student', 'professional', 'both'] as const;
 export type ContentAccess = typeof ContentAccessTypes[number];
 
+// Organizations table
+export const organizations = pgTable('organizations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  createdBy: integer('created_by').references(() => users.id),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Cohorts table
+export const cohorts = pgTable('cohorts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  facilitatorId: integer('facilitator_id').references(() => users.id, { onDelete: 'cascade' }),
+  organizationId: uuid('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
+  astAccess: boolean('ast_access').default(false).notNull(),
+  iaAccess: boolean('ia_access').default(false).notNull(),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Teams table
+export const teams = pgTable('teams', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: varchar('name', { length: 255 }).notNull(),
+  cohortId: uuid('cohort_id').references(() => cohorts.id, { onDelete: 'cascade' }),
+  description: text('description'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
 // Users table schema
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
@@ -35,11 +68,19 @@ export const users = pgTable('users', {
   contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both
   astAccess: boolean('ast_access').default(true).notNull(), // AllStarTeams workshop access
   iaAccess: boolean('ia_access').default(true).notNull(), // Imaginal Agility workshop access
+  // Facilitator console fields
+  assignedFacilitatorId: integer('assigned_facilitator_id').references(() => users.id, { onDelete: 'set null' }),
+  cohortId: uuid('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
+  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for users with role and access validation
+// Create insert schemas for all tables
+export const insertOrganizationSchema = createInsertSchema(organizations);
+export const insertCohortSchema = createInsertSchema(cohorts);
+export const insertTeamSchema = createInsertSchema(teams);
+
 export const insertUserSchema = createInsertSchema(users).extend({
   role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant'),
   contentAccess: z.enum(['student', 'professional', 'both']).default('professional'),
@@ -48,6 +89,14 @@ export const insertUserSchema = createInsertSchema(users).extend({
 });
 
 // Type definitions for TypeScript
+export type Organization = typeof organizations.$inferSelect;
+export type InsertOrganization = z.infer<typeof insertOrganizationSchema>;
+
+export type Cohort = typeof cohorts.$inferSelect;
+export type InsertCohort = z.infer<typeof insertCohortSchema>;
+
+export type Team = typeof teams.$inferSelect;
+export type InsertTeam = z.infer<typeof insertTeamSchema>;
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
 
