@@ -223,8 +223,8 @@ export const InviteManagement: React.FC = () => {
     try {
       const inviteData = {
         ...newInvite,
-        cohortId: newInvite.cohortId ? parseInt(newInvite.cohortId) : null,
-        organizationId: newInvite.organizationId || null
+        cohortId: newInvite.cohortId && newInvite.cohortId !== 'none' ? newInvite.cohortId : null,
+        organizationId: newInvite.organizationId && newInvite.organizationId !== 'none' ? newInvite.organizationId : null
       };
 
       // Use role-appropriate endpoint for invite creation

@@ -81,6 +81,8 @@ class InviteService {
     name?: string;
     createdBy: number;
     expiresAt?: Date;
+    cohortId?: string;
+    organizationId?: string;
   }) {
     try {
       // Validate email format
@@ -102,8 +104,8 @@ class InviteService {
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null})
         RETURNING *
       `);
       
