@@ -19,6 +19,22 @@ const formatInviteCode = (code: string) => {
   return code.replace(/(.{4})/g, '$1-').replace(/-$/, '');
 };
 
+// Helper function to safely format dates
+const formatDate = (dateString: string) => {
+  if (!dateString) return 'Unknown';
+  try {
+    // Handle different date formats from backend
+    const date = new Date(dateString.replace(' ', 'T') + (dateString.includes('T') ? '' : 'Z'));
+    if (isNaN(date.getTime())) {
+      return 'Invalid date';
+    }
+    return formatDistanceToNow(date, { addSuffix: true });
+  } catch (error) {
+    console.error('Date formatting error:', error, 'for date:', dateString);
+    return 'Invalid date';
+  }
+};
+
 interface Invite {
   id: number;
   inviteCode?: string;
@@ -83,6 +99,7 @@ export const InviteManagement: React.FC = () => {
         const processedInvites = data.invites.map((invite: any) => ({
           ...invite,
           inviteCode: invite.inviteCode || invite.invite_code,
+          createdAt: invite.createdAt || invite.created_at,
           isUsed: !!invite.usedAt || !!invite.used_at
         }));
         setInvites(processedInvites);
@@ -410,7 +427,7 @@ export const InviteManagement: React.FC = () => {
                           </TableCell>
                         )}
                         <TableCell>
-                          {formatDistanceToNow(new Date(invite.createdAt), { addSuffix: true })}
+                          {formatDate(invite.createdAt || invite.created_at)}
                         </TableCell>
                         <TableCell>
                           {invite.isUsed ? (
