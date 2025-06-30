@@ -215,8 +215,34 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
 
     const updateData = result.data;
 
+    // Process password update logic
+    let processedUpdateData = { ...updateData };
+    
+    // Handle password reset or custom password setting
+    if (updateData.resetPassword) {
+      // Reset password - generate temporary password
+      processedUpdateData.password = null; // This will trigger temporary password generation
+    } else if (updateData.setCustomPassword && updateData.newPassword) {
+      // Set custom password
+      processedUpdateData.password = updateData.newPassword;
+    }
+    
+    // Remove the frontend form fields before sending to service
+    delete processedUpdateData.resetPassword;
+    delete processedUpdateData.setCustomPassword;
+    delete processedUpdateData.newPassword;
+
     // Update user via user management service
-    const updateResult = await userManagementService.updateUser(id, updateData);
+    const updateResult = await userManagementService.updateUser(id, processedUpdateData);
+
+    console.log('Password update debug:', {
+      resetPassword: updateData.resetPassword,
+      setCustomPassword: updateData.setCustomPassword,
+      processedPassword: processedUpdateData.password,
+      updateResultSuccess: updateResult.success,
+      hasTemporaryPassword: !!updateResult.temporaryPassword,
+      temporaryPassword: updateResult.temporaryPassword
+    });
 
     if (!updateResult.success) {
       return res.status(400).json({ message: updateResult.error || 'Failed to update user' });
@@ -224,8 +250,8 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
 
     let responseData: any = { message: 'User updated successfully' };
 
-    // If password was reset, include temporary password in response
-    if (updateData.password === undefined && 'temporaryPassword' in updateResult && updateResult.temporaryPassword) {
+    // If password was reset or updated, include temporary password in response
+    if (updateResult.temporaryPassword) {
       responseData.temporaryPassword = updateResult.temporaryPassword;
     }
 
