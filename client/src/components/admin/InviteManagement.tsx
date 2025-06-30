@@ -13,9 +13,16 @@ import { Loader2, UserPlus, Mail, RefreshCw, Check, Copy, Trash2 } from 'lucide-
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
+// Helper function to format invite codes
+const formatInviteCode = (code: string) => {
+  if (!code) return '';
+  return code.replace(/(.{4})/g, '$1-').replace(/-$/, '');
+};
+
 interface Invite {
   id: number;
-  inviteCode: string;
+  inviteCode?: string;
+  invite_code?: string;
   email: string;
   role: string;
   name: string | null;
@@ -26,6 +33,7 @@ interface Invite {
   creator_name?: string;
   creator_email?: string;
   creator_role?: string;
+  [key: string]: any; // Allow additional properties for flexibility
 }
 
 export const InviteManagement: React.FC = () => {
@@ -62,17 +70,20 @@ export const InviteManagement: React.FC = () => {
   const fetchInvites = async () => {
     setIsLoadingInvites(true);
     try {
-      const response = await fetch('/api/admin/invites', {
+      // Use role-appropriate endpoint
+      const endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
+      const response = await fetch(endpoint, {
         credentials: 'include'
       });
 
       const data = await response.json();
 
       if (data.success) {
-        // Process the invites to add computed properties
+        // Process the invites to add computed properties and normalize property names
         const processedInvites = data.invites.map((invite: any) => ({
           ...invite,
-          isUsed: !!invite.usedAt
+          inviteCode: invite.inviteCode || invite.invite_code,
+          isUsed: !!invite.usedAt || !!invite.used_at
         }));
         setInvites(processedInvites);
       } else {
@@ -109,7 +120,9 @@ export const InviteManagement: React.FC = () => {
     setIsSendingInvite(true);
 
     try {
-      const response = await fetch('/api/admin/invites', {
+      // Use role-appropriate endpoint for invite creation
+      const endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -358,7 +371,7 @@ export const InviteManagement: React.FC = () => {
                         <TableCell>
                           <div className="flex items-center space-x-2">
                             <code className="bg-muted px-1 py-0.5 rounded text-sm">
-                              {formatInviteCode(invite.inviteCode)}
+                              {formatInviteCode(invite.inviteCode || invite.invite_code)}
                             </code>
                             <TooltipProvider>
                               <Tooltip>
@@ -367,7 +380,7 @@ export const InviteManagement: React.FC = () => {
                                     variant="ghost"
                                     size="icon"
                                     className="h-7 w-7"
-                                    onClick={() => copyToClipboard(invite.inviteCode)}
+                                    onClick={() => copyToClipboard(invite.inviteCode || invite.invite_code)}
                                   >
                                     <Copy className="h-3.5 w-3.5" />
                                   </Button>
