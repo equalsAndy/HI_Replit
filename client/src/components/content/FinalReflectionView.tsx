@@ -48,11 +48,12 @@ export default function FinalReflectionView({
 
   // Check if step is completed - using simple text length check for now
   // TODO: Replace with actual progression system check
-  const isStepCompleted = existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
+  const isStepCompleted = existingData?.success && existingData?.data?.futureLetterText && existingData.data.futureLetterText.length >= 10;
   const savedInsight = existingData?.data?.futureLetterText || '';
 
   useEffect(() => {
     if (existingData && existingData.success && existingData.data && existingData.data.futureLetterText) {
+      // Always set the insight from saved data when available
       setInsight(String(existingData.data.futureLetterText));
     }
   }, [existingData]);
@@ -274,7 +275,7 @@ export default function FinalReflectionView({
               <div className="textarea-wrapper">
                 <textarea
                   className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
-                  value={isStepCompleted ? savedInsight : insight}
+                  value={insight}
                   onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
                   disabled={isStepCompleted}
                   readOnly={isStepCompleted}
