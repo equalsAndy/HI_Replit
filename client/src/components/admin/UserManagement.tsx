@@ -1395,25 +1395,25 @@ export function UserManagement() {
                       )}
                     />
                   )}
-                </div>
+                  </div>
+                </ScrollArea>
 
-                  <DialogFooter className="mt-6">
-                    <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      type="submit"
-                      disabled={updateUserMutation.isPending}
-                    >
-                      {updateUserMutation.isPending && (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      )}
-                      Save Changes
-                    </Button>
-                  </DialogFooter>
-                </form>
-              </Form>
-            </ScrollArea>
+                <DialogFooter className="mt-6">
+                  <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    disabled={updateUserMutation.isPending}
+                  >
+                    {updateUserMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    Save Changes
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           )}
         </DialogContent>
       </Dialog>
