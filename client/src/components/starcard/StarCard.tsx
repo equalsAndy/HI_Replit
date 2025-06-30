@@ -58,7 +58,7 @@ type QuadrantInfo = {
   position: number;
 };
 
-function StarCard({ 
+const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({ 
   // Support both object-based and direct props
   profile, 
   quadrantData,
@@ -76,11 +76,21 @@ function StarCard({
   enableImageUpload = false,
   pending = false,
   state = undefined
-}: StarCardProps) {
+}, ref) => {
   const [downloading, setDownloading] = useState(false);
   const [userProfileData, setUserProfileData] = useState<any>(null);
   const [fetchedFlowAttributes, setFetchedFlowAttributes] = useState<FlowAttribute[]>([]);
   const cardRef = useRef<HTMLDivElement | null>(null);
+  
+  // Combine external ref with internal ref
+  const combinedRef = (node: HTMLDivElement | null) => {
+    cardRef.current = node;
+    if (typeof ref === 'function') {
+      ref(node);
+    } else if (ref) {
+      ref.current = node;
+    }
+  };
 
   // Add state for fetched assessment data
   const [fetchedAssessmentData, setFetchedAssessmentData] = useState<QuadrantData | null>(null);
@@ -420,7 +430,7 @@ function StarCard({
   return (
     <div className="flex flex-col items-center">
       <div 
-        ref={cardRef}
+        ref={combinedRef}
         className="bg-white border border-gray-200 rounded-lg p-5 flex-shrink-0"
         style={{ 
           width: CARD_WIDTH, 
@@ -636,6 +646,6 @@ function StarCard({
       )}
     </div>
   );
-}
+});
 
 export default memo(StarCard);
