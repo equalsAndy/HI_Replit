@@ -330,7 +330,7 @@ const TestUserPage: React.FC = () => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Role:</p>
-                <p className="font-medium">Test User</p>
+                <p className="font-medium capitalize">{userResponse.user.role}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Username:</p>
