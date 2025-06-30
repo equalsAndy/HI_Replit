@@ -243,15 +243,15 @@ export function NavBar() {
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
-              {/* Admin button - only shown for admin users */}
-              {user?.role === 'admin' && (
+              {/* Admin/Facilitator button - shown for admin and facilitator users */}
+              {(user?.role === 'admin' || user?.role === 'facilitator') && (
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   className="rounded-md text-white hover:bg-yellow-400"
                   onClick={() => navigate('/admin')}
                 >
-                  Admin
+                  {user?.role === 'admin' ? 'Admin' : 'Facilitator'}
                 </Button>
               )}
 
