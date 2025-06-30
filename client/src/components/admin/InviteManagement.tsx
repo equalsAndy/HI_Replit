@@ -517,6 +517,8 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Invite Code</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Organization</TableHead>
+                      <TableHead>Cohort</TableHead>
                       {userRole === 'admin' && <TableHead>Created By</TableHead>}
                       <TableHead>Created</TableHead>
                       <TableHead>Status</TableHead>
@@ -556,6 +558,20 @@ export const InviteManagement: React.FC = () => {
                           <Badge className={getRoleBadgeColor(invite.role)}>
                             {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {invite.organization_name ? (
+                            <span className="text-sm">{invite.organization_name}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No organization</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {invite.cohort_name ? (
+                            <span className="text-sm">{invite.cohort_name}</span>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No cohort</span>
+                          )}
                         </TableCell>
                         {userRole === 'admin' && (
                           <TableCell>
