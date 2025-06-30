@@ -298,7 +298,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Work backwards
+                  Work backwards<br />
+                  <span className="text-xs">20→10→5 Years</span>
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.05 }}
@@ -310,7 +311,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                       : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
-                  Work forwards
+                  Work forwards<br />
+                  <span className="text-xs">5→10→20 Years</span>
                 </motion.button>
               </div>
             </div>
