@@ -136,6 +136,26 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 30, 2025 - User Management Scoping for Facilitators Complete ✅
+- **ROLE-BASED USER ACCESS CONTROL**: Implemented comprehensive facilitator user management scoping
+  - Updated `/api/admin/users` route to filter users based on caller's role (admin sees all, facilitators see only assigned users)
+  - Enhanced UserManagementService with `getUsersForFacilitator` method for cohort-scoped user filtering
+  - Added role-aware UI banner in UserManagement component showing facilitators their limited access scope
+  - Facilitators now only see users in their assigned cohorts/teams for security and data privacy
+- **BACKEND SECURITY ENHANCEMENTS**: Added proper role validation and data filtering
+  - Session-based role detection ensures facilitators cannot access unauthorized user data
+  - Database queries filtered by facilitator assignment relationships through cohorts table
+  - Comprehensive logging of user access attempts for audit trail
+  - Maintained backward compatibility for admin users who retain full system access
+- **FRONTEND UI IMPROVEMENTS**: Role-aware interface indicators for better user experience
+  - Blue informational banner for facilitators explaining their limited access scope
+  - Automatic role detection via user profile API integration
+  - Clear messaging about contacting administrators for broader access needs
+- **CRITICAL SECURITY FIX**: Prevents facilitators from accessing unauthorized user data
+  - Previously all users were visible to facilitators, now properly scoped to assigned cohorts
+  - Maintains data privacy by ensuring facilitators only see users they are authorized to manage
+  - Foundation ready for future facilitator-specific features and enhanced role management
+
 ### June 30, 2025 - Password Management System Fix Complete ✅
 - **CRITICAL BUG RESOLUTION**: Fixed password update functionality in admin user management system
   - Backend admin route now properly processes `resetPassword` and `setCustomPassword` form fields
