@@ -337,15 +337,29 @@ const TestUserPage: React.FC = () => {
                 <p className="font-medium">{userResponse.user.username}</p>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => logoutMutation.mutate()}
-              disabled={logoutMutation.isPending}
-              className="flex items-center gap-2"
-            >
-              <LogOut className="h-4 w-4" />
-              {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
-            </Button>
+            <div className="flex gap-2">
+              {/* Console Access Button for Facilitators and Admins */}
+              {(userResponse.user.role === 'facilitator' || userResponse.user.role === 'admin') && (
+                <Button 
+                  variant="default" 
+                  onClick={() => setLocation('/admin')}
+                  className="flex items-center gap-2"
+                >
+                  {userResponse.user.role === 'admin' ? 'Admin Console' : 'Facilitator Console'}
+                </Button>
+              )}
+              
+              {/* Red Logout Button */}
+              <Button 
+                variant="destructive" 
+                onClick={() => logoutMutation.mutate()}
+                disabled={logoutMutation.isPending}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
