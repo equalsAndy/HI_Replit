@@ -1324,88 +1324,90 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                       />
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <FormField
-                    control={editForm.control}
-                    name="resetPassword"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                editForm.setValue('setCustomPassword', false);
-                                editForm.setValue('newPassword', '');
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Reset password</FormLabel>
-                          <FormDescription>
-                            Generate a new temporary password for this user
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
+                  {/* Password Management Section */}
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-3">Password Management</h4>
+                    <div className="space-y-4">
+                      <FormField
+                        control={editForm.control}
+                        name="resetPassword"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  if (checked) {
+                                    editForm.setValue('setCustomPassword', false);
+                                    editForm.setValue('newPassword', '');
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Reset password</FormLabel>
+                              <FormDescription>
+                                Generate a new temporary password for this user
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
 
-                  <FormField
-                    control={editForm.control}
-                    name="setCustomPassword"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                editForm.setValue('resetPassword', false);
-                              } else {
-                                editForm.setValue('newPassword', '');
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <div className="space-y-1 leading-none">
-                          <FormLabel>Set custom password</FormLabel>
-                          <FormDescription>
-                            Manually set a specific password for this user
-                          </FormDescription>
-                        </div>
-                      </FormItem>
-                    )}
-                  />
+                      <FormField
+                        control={editForm.control}
+                        name="setCustomPassword"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={(checked) => {
+                                  field.onChange(checked);
+                                  if (checked) {
+                                    editForm.setValue('resetPassword', false);
+                                  } else {
+                                    editForm.setValue('newPassword', '');
+                                  }
+                                }}
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel>Set custom password</FormLabel>
+                              <FormDescription>
+                                Manually set a specific password for this user
+                              </FormDescription>
+                            </div>
+                          </FormItem>
+                        )}
+                      />
 
-                  {editForm.watch('setCustomPassword') && (
-                    <FormField
-                      control={editForm.control}
-                      name="newPassword"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>New Password</FormLabel>
-                          <FormControl>
-                            <PasswordInput
-                              {...field}
-                              placeholder="Enter new password"
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Enter a custom password for this user
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
+                      {editForm.watch('setCustomPassword') && (
+                        <FormField
+                          control={editForm.control}
+                          name="newPassword"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>New Password</FormLabel>
+                              <FormControl>
+                                <PasswordInput
+                                  {...field}
+                                  placeholder="Enter new password"
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Enter a custom password for this user
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                       )}
-                    />
-                  )}
-                </div>
-
+                    </div>
                   </div>
+                </div>
                 </ScrollArea>
 
                 <DialogFooter className="mt-6">
