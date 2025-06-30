@@ -480,7 +480,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     setLocalTestUserStatus(user.isTestUser || false);
 
     editForm.reset({
-      username: user.username,
       name: user.name,
       email: user.email,
       organization: user.organization || '',

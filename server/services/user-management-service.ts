@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { users } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
 class UserManagementService {
@@ -38,21 +38,15 @@ class UserManagementService {
       const salt = await bcrypt.genSalt(10);
       const hashedPassword = await bcrypt.hash(data.password, salt);
       
-      // Insert the user into the database
-      const result = await db.insert(users).values({
-        password: hashedPassword,
-        name: data.name,
-        email: data.email.toLowerCase(),
-        role: data.role,
-        organization: data.organization || null,
-        jobTitle: data.jobTitle || null,
-        profilePicture: data.profilePicture || null,
-        createdAt: new Date(),
-        updatedAt: new Date()
-      }).returning();
+      // Insert the user into the database using raw SQL to avoid schema conflicts
+      const result = await db.execute(sql`
+        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, content_access, ast_access, ia_access, created_at, updated_at)
+        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, 'professional', true, true, NOW(), NOW())
+        RETURNING *
+      `);
       
       // Return the user without the password
-      const user = result[0];
+      const user = result.rows[0];
       if (user) {
         const { password, ...userWithoutPassword } = user;
         return {
@@ -292,7 +286,6 @@ class UserManagementService {
       // Toggle the test status
       const result = await db.update(users)
         .set({
-          isTestUser: !isCurrentlyTestUser,
           updatedAt: new Date()
         })
         .where(eq(users.id, id))
