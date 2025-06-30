@@ -986,4 +986,58 @@ router.post('/reset-data', requireAuth, async (req, res) => {
   }
 });
 
+/**
+ * Update user content access preference (student/professional interface)
+ */
+router.post('/content-access', requireAuth, async (req, res) => {
+  try {
+    if (!req.session.userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { contentAccess } = req.body;
+
+    // Validate content access value
+    if (!contentAccess || !['student', 'professional'].includes(contentAccess)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content access must be either "student" or "professional"'
+      });
+    }
+
+    console.log(`Updating content access for user ${req.session.userId} to: ${contentAccess}`);
+
+    // Update user's content access preference
+    const result = await userManagementService.updateUser(req.session.userId, {
+      contentAccess: contentAccess
+    });
+
+    if (!result.success) {
+      console.error(`Failed to update content access for user ${req.session.userId}:`, result.error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update interface preference'
+      });
+    }
+
+    console.log(`✅ Content access updated for user ${req.session.userId} to: ${contentAccess}`);
+
+    res.json({
+      success: true,
+      message: `Interface preference updated to ${contentAccess}`,
+      contentAccess: contentAccess,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error(`Error updating content access for user ${req.session?.userId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update interface preference. Please try again later.'
+    });
+  }
+});
+
 export default router;

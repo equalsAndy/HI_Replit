@@ -9,8 +9,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Loader2, LogOut, Settings, User, GraduationCap, Star, Brain } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, LogOut, User, GraduationCap } from 'lucide-react';
 
 // Admin Components
 import { UserManagement } from '@/components/admin/UserManagement';
@@ -22,7 +21,7 @@ export default function AdminDashboard() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
-  const [selectedInterface, setSelectedInterface] = React.useState<string>('admin');
+  const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
 
   // Fetch current user to check permissions
   const { data: userProfile, isLoading: isLoadingUser } = useQuery<{
@@ -33,6 +32,7 @@ export default function AdminDashboard() {
       role: string;
       title?: string;
       organization?: string;
+      contentAccess?: string;
     }
   }>({
     queryKey: ['/api/user/profile'],
@@ -41,43 +41,40 @@ export default function AdminDashboard() {
 
   const currentUser = userProfile?.user;
 
-  // Interface switching handler
-  const handleInterfaceSwitch = (interfaceType: string) => {
-    setSelectedInterface(interfaceType);
-    
-    switch (interfaceType) {
-      case 'admin':
-        // Stay on admin console - no navigation needed
-        break;
-      case 'student':
-        toast({
-          title: 'Switching to Student Interface',
-          description: 'Redirecting to student workshop interface...',
-        });
-        navigate('/testuser');
-        break;
-      case 'professional':
-        toast({
-          title: 'Switching to Professional Interface',
-          description: 'Redirecting to professional workshop interface...',
-        });
-        navigate('/');
-        break;
-      case 'ast':
-        toast({
-          title: 'Switching to AllStarTeams Workshop',
-          description: 'Redirecting to AllStarTeams workshop...',
-        });
-        navigate('/allstarteams');
-        break;
-      case 'ia':
-        toast({
-          title: 'Switching to Imaginal Agility Workshop',
-          description: 'Redirecting to Imaginal Agility workshop...',
-        });
-        navigate('/imaginal-agility');
-        break;
+  // Update content access mutation
+  const updateContentAccessMutation = useMutation({
+    mutationFn: (newAccess: 'student' | 'professional') => 
+      apiRequest('/api/user/content-access', {
+        method: 'POST',
+        body: JSON.stringify({ contentAccess: newAccess }),
+      }),
+    onSuccess: (data, newAccess) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      toast({
+        title: 'Interface Updated',
+        description: `Switched to ${newAccess} interface. This will affect workshop content and assessments.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Update failed',
+        description: 'Failed to update interface preference. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
+  // Set initial content access from user profile
+  React.useEffect(() => {
+    if (currentUser?.contentAccess) {
+      setContentAccess(currentUser.contentAccess as 'student' | 'professional');
     }
+  }, [currentUser]);
+
+  // Handle interface toggle
+  const handleInterfaceToggle = (newAccess: 'student' | 'professional') => {
+    setContentAccess(newAccess);
+    updateContentAccessMutation.mutate(newAccess);
   };
 
   // Logout mutation
@@ -140,46 +137,31 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Interface Switcher */}
+          {/* Interface Toggle */}
           <div className="flex items-center space-x-2">
             <span className="text-sm font-medium text-muted-foreground">Interface:</span>
-            <Select value={selectedInterface} onValueChange={handleInterfaceSwitch}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Select interface" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="admin" className="flex items-center">
-                  <div className="flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Admin Console
-                  </div>
-                </SelectItem>
-                <SelectItem value="student" className="flex items-center">
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4" />
-                    Student Interface
-                  </div>
-                </SelectItem>
-                <SelectItem value="professional" className="flex items-center">
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Professional Interface
-                  </div>
-                </SelectItem>
-                <SelectItem value="ast" className="flex items-center">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    AllStarTeams Workshop
-                  </div>
-                </SelectItem>
-                <SelectItem value="ia" className="flex items-center">
-                  <div className="flex items-center gap-2">
-                    <Brain className="h-4 w-4" />
-                    Imaginal Agility Workshop
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center bg-muted rounded-lg p-1">
+              <Button
+                variant={contentAccess === 'student' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => handleInterfaceToggle('student')}
+                disabled={updateContentAccessMutation.isPending}
+                className="flex items-center gap-2 px-3 py-1"
+              >
+                <GraduationCap className="h-4 w-4" />
+                Student
+              </Button>
+              <Button
+                variant={contentAccess === 'professional' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => handleInterfaceToggle('professional')}
+                disabled={updateContentAccessMutation.isPending}
+                className="flex items-center gap-2 px-3 py-1"
+              >
+                <User className="h-4 w-4" />
+                Professional
+              </Button>
+            </div>
           </div>
 
           <Button
