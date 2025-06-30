@@ -3,6 +3,7 @@ import { userManagementService } from '../services/user-management-service';
 import { inviteService } from '../services/invite-service';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code';
+import { UserRole } from '@shared/schema';
 
 const router = express.Router();
 
@@ -126,12 +127,12 @@ router.post('/register', async (req, res) => {
     }
     
     // Mark the invite as used
-    await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id);
+    await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id as number);
     
     // Set session data
-    req.session.userId = createResult.user.id;
-    req.session.username = createResult.user.username;
-    req.session.userRole = createResult.user.role;
+    req.session.userId = createResult.user.id as number;
+    req.session.username = createResult.user.username as string;
+    req.session.userRole = createResult.user.role as any;
     
     // Return the user data
     res.json(createResult);

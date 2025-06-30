@@ -41,18 +41,34 @@ class UserManagementService {
       
       // Insert the user into the database using raw SQL to avoid schema conflicts
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, content_access, ast_access, ia_access, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, 'professional', true, true, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
+        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
         RETURNING *
       `);
       
       // Return the user without the password
-      const user = result[0];
-      if (user) {
-        const { password, ...userWithoutPassword } = user;
+      const userData = (result as any)[0] || (result as any).rows?.[0];
+      if (userData) {
+        const { password, ...userWithoutPassword } = userData;
         return {
           success: true,
-          user: userWithoutPassword
+          user: {
+            id: userData.id,
+            username: userData.username,
+            name: userData.name,
+            email: userData.email,
+            role: userData.role,
+            organization: userData.organization,
+            jobTitle: userData.job_title,
+            profilePicture: userData.profile_picture,
+            isTestUser: userData.is_test_user,
+            contentAccess: userData.content_access,
+            astAccess: userData.ast_access,
+            iaAccess: userData.ia_access,
+            invitedBy: userData.invited_by,
+            createdAt: userData.created_at,
+            updatedAt: userData.updated_at
+          }
         };
       }
       
