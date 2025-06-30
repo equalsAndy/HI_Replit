@@ -72,6 +72,12 @@ export function LoginForm() {
         description: `Welcome back, ${data.user.name || 'User'}!`,
       });
       
+      // Admin users should always go to admin console
+      if (data.user.role === 'admin') {
+        navigate('/admin');
+        return;
+      }
+      
       // Check if we should redirect to a specific workshop
       const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
       
