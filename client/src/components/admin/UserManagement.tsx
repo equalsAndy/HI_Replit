@@ -1097,7 +1097,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           {selectedUser && (
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
-                <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4">
+                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={editForm.control}
