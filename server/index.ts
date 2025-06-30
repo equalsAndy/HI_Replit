@@ -82,20 +82,53 @@ const sessionStore = new PgSession({
   createTableIfMissing: true
 });
 
-// Configure session middleware
+// Configure session middleware with incognito mode compatibility
 app.use(session({
   store: sessionStore,
   secret: process.env.SESSION_SECRET || 'heliotrope-workshop-secret',
-  resave: false,
-  saveUninitialized: false,
+  resave: true, // Changed to true for incognito compatibility
+  saveUninitialized: true, // Allow sessions without authentication
+  name: 'sessionId', // Explicit session name
   cookie: {
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    secure: false, // Set to false for Replit deployment compatibility
-    httpOnly: true,
-    sameSite: 'lax'
+    maxAge: 24 * 60 * 60 * 1000, // Reduced to 24 hours for incognito compatibility
+    secure: false, // Must be false for HTTP in development
+    httpOnly: true, // Keep true for security
+    sameSite: 'lax' // Changed back to 'lax' for better compatibility
   },
   rolling: true // Refresh session on each request
 }));
+
+// Configure CORS and security headers for incognito mode compatibility
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  
+  // Allow requests from any origin (for incognito mode compatibility)
+  if (origin) {
+    res.header('Access-Control-Allow-Origin', origin);
+  } else {
+    res.header('Access-Control-Allow-Origin', '*');
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, Set-Cookie');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
+  
+  // Security headers (relaxed for incognito compatibility)
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'SAMEORIGIN'); // Changed from DENY to SAMEORIGIN
+  res.header('X-XSS-Protection', '1; mode=block');
+  
+  // Remove restrictive CSP that might block incognito mode
+  res.header('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws: wss:;");
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  
+  next();
+});
 
 // Configure cookie parser
 app.use(cookieParser());
