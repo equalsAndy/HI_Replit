@@ -28,24 +28,30 @@ export const organizations = pgTable('organizations', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Cohorts table
+// Cohorts table (using existing integer ID structure)
 export const cohorts = pgTable('cohorts', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
+  description: text('description'),
+  startDate: timestamp('start_date'),
+  endDate: timestamp('end_date'),
+  status: varchar('status', { length: 50 }),
+  cohortType: varchar('cohort_type', { length: 50 }),
+  parentCohortId: integer('parent_cohort_id'),
+  // New facilitator console fields
   facilitatorId: integer('facilitator_id').references(() => users.id, { onDelete: 'cascade' }),
   organizationId: uuid('organization_id').references(() => organizations.id, { onDelete: 'set null' }),
   astAccess: boolean('ast_access').default(false).notNull(),
   iaAccess: boolean('ia_access').default(false).notNull(),
-  description: text('description'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
 // Teams table
 export const teams = pgTable('teams', {
-  id: uuid('id').primaryKey().defaultRandom(),
+  id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
-  cohortId: uuid('cohort_id').references(() => cohorts.id, { onDelete: 'cascade' }),
+  cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'cascade' }),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
@@ -70,8 +76,8 @@ export const users = pgTable('users', {
   iaAccess: boolean('ia_access').default(true).notNull(), // Imaginal Agility workshop access
   // Facilitator console fields
   assignedFacilitatorId: integer('assigned_facilitator_id').references(() => users.id, { onDelete: 'set null' }),
-  cohortId: uuid('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
-  teamId: uuid('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
