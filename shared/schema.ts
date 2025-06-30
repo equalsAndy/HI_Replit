@@ -78,6 +78,8 @@ export const users = pgTable('users', {
   assignedFacilitatorId: integer('assigned_facilitator_id').references(() => users.id, { onDelete: 'set null' }),
   cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
   teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  // Invite tracking field
+  invitedBy: integer('invited_by').references(() => users.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

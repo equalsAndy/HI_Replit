@@ -143,11 +143,20 @@ class InviteService {
   }
   
   /**
-   * Get all invites (admin only)
+   * Get all invites (admin only) with creator information
    */
   async getAllInvites() {
     try {
-      const result = await db.select().from(invites);
+      const result = await db.execute(sql`
+        SELECT 
+          i.*,
+          u.name as creator_name,
+          u.email as creator_email,
+          u.role as creator_role
+        FROM invites i
+        LEFT JOIN users u ON i.created_by = u.id
+        ORDER BY i.created_at DESC
+      `);
       
       return {
         success: true,
@@ -155,6 +164,36 @@ class InviteService {
       };
     } catch (error) {
       console.error('Error fetching all invites:', error);
+      return {
+        success: false,
+        error: 'Failed to fetch invites'
+      };
+    }
+  }
+
+  /**
+   * Get invites by creator with creator information
+   */
+  async getInvitesByCreatorWithInfo(creatorId: number) {
+    try {
+      const result = await db.execute(sql`
+        SELECT 
+          i.*,
+          u.name as creator_name,
+          u.email as creator_email,
+          u.role as creator_role
+        FROM invites i
+        LEFT JOIN users u ON i.created_by = u.id
+        WHERE i.created_by = ${creatorId}
+        ORDER BY i.created_at DESC
+      `);
+      
+      return {
+        success: true,
+        invites: result
+      };
+    } catch (error) {
+      console.error('Error fetching invites by creator:', error);
       return {
         success: false,
         error: 'Failed to fetch invites'

@@ -89,12 +89,22 @@ router.post('/users', requireAuth, isAdmin, async (req: Request, res: Response) 
 });
 
 /**
- * Get all invites (admin only)
+ * Get invites (role-based filtering)
  */
-router.get('/invites', requireAuth, isAdmin, async (req: Request, res: Response) => {
+router.get('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
-    // Get all invites
-    const invitesResult = await inviteService.getAllInvites();
+    const userRole = (req.session as any).userRole;
+    const userId = (req.session as any).userId;
+    
+    let invitesResult;
+    if (userRole === 'facilitator') {
+      // Facilitators only see invites they created
+      invitesResult = await inviteService.getInvitesByCreatorWithInfo(userId);
+    } else {
+      // Admins see all invites with creator information
+      invitesResult = await inviteService.getAllInvites();
+    }
+    
     const invitesList = invitesResult.success ? invitesResult.invites : [];
 
     // Format invite codes for display

@@ -1,16 +1,18 @@
 import express from 'express';
 import { inviteService } from '../services/invite-service';
-import { requireAdmin, requireFacilitator } from '../middleware/auth';
+import { requireAuth } from '../middleware/auth';
+import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
 import { validateInviteCode, formatInviteCode } from '../utils/invite-code';
 
 const router = express.Router();
 
 /**
- * Create a new invite (admin only)
+ * Create a new invite (admins and facilitators with role restrictions)
  */
-router.post('/', requireAdmin, async (req, res) => {
+router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
     const { email, role, name, expiresAt } = req.body;
+    const userRole = (req.session as any).userRole;
     
     if (!email) {
       return res.status(400).json({
@@ -24,6 +26,17 @@ router.post('/', requireAdmin, async (req, res) => {
         success: false,
         error: 'Valid role is required'
       });
+    }
+    
+    // Restrict facilitators to participant/student roles only
+    if (userRole === 'facilitator') {
+      const allowedRoles = ['participant', 'student'];
+      if (!allowedRoles.includes(role)) {
+        return res.status(403).json({ 
+          success: false,
+          error: 'Facilitators can only create participant and student invites' 
+        });
+      }
     }
     
     const result = await inviteService.createInvite({
@@ -58,11 +71,21 @@ router.post('/', requireAdmin, async (req, res) => {
 });
 
 /**
- * Get all invites (admin only)
+ * Get invites (role-based filtering)
  */
-router.get('/', requireAdmin, async (req, res) => {
+router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const result = await inviteService.getAllInvites();
+    const userRole = (req.session as any).userRole;
+    const userId = (req.session as any).userId;
+    
+    let result;
+    if (userRole === 'facilitator') {
+      // Facilitators only see invites they created
+      result = await inviteService.getInvitesByCreatorWithInfo(userId);
+    } else {
+      // Admins see all invites with creator information
+      result = await inviteService.getAllInvites();
+    }
     
     if (!result.success) {
       return res.status(400).json(result);
@@ -71,7 +94,7 @@ router.get('/', requireAdmin, async (req, res) => {
     // Format invite codes for display
     const formattedInvites = result.invites.map(invite => ({
       ...invite,
-      formattedCode: formatInviteCode(invite.inviteCode)
+      formattedCode: formatInviteCode(invite.inviteCode || invite.invite_code)
     }));
     
     res.json({
@@ -140,7 +163,7 @@ router.get('/code/:code', async (req, res) => {
 /**
  * Delete an invite (admin only)
  */
-router.delete('/:id', requireAdmin, async (req, res) => {
+router.delete('/:id', requireAuth, isAdmin, async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     
