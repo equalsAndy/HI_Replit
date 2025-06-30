@@ -1082,7 +1082,7 @@ export function UserManagement() {
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
           <DialogHeader>
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
@@ -1092,7 +1092,9 @@ export function UserManagement() {
 
           {selectedUser && (
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-4">
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
+                <ScrollArea className="max-h-[70vh] overflow-y-auto pr-4">
+                  <div className="space-y-6">
                 <FormField
                   control={editForm.control}
                   name="name"
@@ -1379,6 +1381,9 @@ export function UserManagement() {
                     />
                   )}
                 </div>
+
+                  </div>
+                </ScrollArea>
 
                 <DialogFooter className="mt-6">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
