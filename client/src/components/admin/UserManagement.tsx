@@ -77,10 +77,6 @@ type CreateUserFormValues = z.infer<typeof createUserSchema>;
 
 // Form schema for editing users
 const editUserSchema = z.object({
-  username: z.string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username cannot exceed 20 characters')
-    .regex(/^[a-z0-9][a-z0-9_\-]*[a-z0-9]$/i, 'Username must start and end with letter or number, and contain only letters, numbers, underscores, and hyphens'),
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Please enter a valid email').optional(),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
@@ -200,7 +196,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const editForm = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
-      username: '',
       name: '',
       email: '',
       organization: '',
@@ -1113,19 +1108,19 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                         )}
                       />
 
-                      <FormField
-                        control={editForm.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Username</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      <div>
+                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          Username
+                        </label>
+                        <Input 
+                          value={selectedUser?.username || ''}
+                          disabled
+                          className="mt-2 bg-muted"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Username cannot be changed
+                        </p>
+                      </div>
                     </div>
 
                 <FormField

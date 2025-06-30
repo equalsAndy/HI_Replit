@@ -40,7 +40,6 @@ class UserManagementService {
       
       // Insert the user into the database
       const result = await db.insert(users).values({
-        username: data.username,
         password: hashedPassword,
         name: data.name,
         email: data.email.toLowerCase(),
