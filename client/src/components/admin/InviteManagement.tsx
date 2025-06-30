@@ -107,15 +107,6 @@ export const InviteManagement: React.FC = () => {
   });
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchUserRole();
-    fetchInvites();
-    if (userRole === 'facilitator') {
-      fetchOrganizations();
-      fetchCohorts();
-    }
-  }, [userRole]);
-
   const fetchUserRole = async () => {
     try {
       const response = await fetch('/api/user/profile', {
@@ -129,6 +120,49 @@ export const InviteManagement: React.FC = () => {
       console.error('Error fetching user role:', error);
     }
   };
+
+  const fetchOrganizations = async () => {
+    setIsLoadingOrganizations(true);
+    try {
+      const response = await fetch('/api/facilitator/organizations', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setOrganizations(data.organizations);
+      }
+    } catch (error) {
+      console.error('Error fetching organizations:', error);
+    } finally {
+      setIsLoadingOrganizations(false);
+    }
+  };
+
+  const fetchCohorts = async () => {
+    setIsLoadingCohorts(true);
+    try {
+      const response = await fetch('/api/facilitator/cohorts', {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setCohorts(data.cohorts);
+      }
+    } catch (error) {
+      console.error('Error fetching cohorts:', error);
+    } finally {
+      setIsLoadingCohorts(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserRole();
+    fetchInvites();
+    if (userRole === 'facilitator') {
+      fetchOrganizations();
+      fetchCohorts();
+    }
+  }, [userRole]);
 
   const fetchInvites = async () => {
     setIsLoadingInvites(true);
@@ -187,6 +221,12 @@ export const InviteManagement: React.FC = () => {
     setIsSendingInvite(true);
 
     try {
+      const inviteData = {
+        ...newInvite,
+        cohortId: newInvite.cohortId ? parseInt(newInvite.cohortId) : null,
+        organizationId: newInvite.organizationId || null
+      };
+
       // Use role-appropriate endpoint for invite creation
       const endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
       const response = await fetch(endpoint, {
@@ -195,7 +235,7 @@ export const InviteManagement: React.FC = () => {
           'Content-Type': 'application/json',
         },
         credentials: 'include',
-        body: JSON.stringify(newInvite),
+        body: JSON.stringify(inviteData),
       });
 
       const data = await response.json();
@@ -211,6 +251,8 @@ export const InviteManagement: React.FC = () => {
           email: '',
           role: 'participant',
           name: '',
+          cohortId: '',
+          organizationId: '',
         });
         fetchInvites();
       } else {
@@ -376,6 +418,60 @@ export const InviteManagement: React.FC = () => {
                   )}
                 </div>
               </div>
+              
+              {/* Cohort and Organization Assignment Section for Facilitators */}
+              {userRole === 'facilitator' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                  <div className="space-y-2">
+                    <Label htmlFor="organization">Organization (Optional)</Label>
+                    <Select
+                      value={newInvite.organizationId}
+                      onValueChange={(value) => setNewInvite({ ...newInvite, organizationId: value })}
+                      disabled={isSendingInvite || isLoadingOrganizations}
+                    >
+                      <SelectTrigger id="organization">
+                        <SelectValue placeholder="Select organization" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No organization</SelectItem>
+                        {organizations.map((org) => (
+                          <SelectItem key={org.id} value={org.id}>
+                            {org.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isLoadingOrganizations && (
+                      <p className="text-sm text-muted-foreground">Loading organizations...</p>
+                    )}
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="cohort">Cohort (Optional)</Label>
+                    <Select
+                      value={newInvite.cohortId}
+                      onValueChange={(value) => setNewInvite({ ...newInvite, cohortId: value })}
+                      disabled={isSendingInvite || isLoadingCohorts}
+                    >
+                      <SelectTrigger id="cohort">
+                        <SelectValue placeholder="Select cohort" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">No cohort</SelectItem>
+                        {cohorts.map((cohort) => (
+                          <SelectItem key={cohort.id} value={cohort.id.toString()}>
+                            {cohort.name} {cohort.organization_name ? `(${cohort.organization_name})` : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {isLoadingCohorts && (
+                      <p className="text-sm text-muted-foreground">Loading cohorts...</p>
+                    )}
+                  </div>
+                </div>
+              )}
+              
               <Button type="submit" className="mt-4" disabled={isSendingInvite}>
                 {isSendingInvite ? (
                   <>
