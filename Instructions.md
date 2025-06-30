@@ -574,3 +574,35 @@ Creating a second application within the same codebase is feasible with the curr
   - Future reference
   - Team workshop preparation
   - Progress tracking
+
+# Agent Prompt Workflow
+
+## Creating Agent Prompts
+1. **Separate Documents**: Agent prompts are created as separate downloadable documents, not embedded in handoff docs
+2. **Status Tracking**: Handoff documents track agent prompt status with indicators:
+   - ⏳ **Created** - Prompt ready to use
+   - 🔄 **In Progress** - Agent currently working
+   - ✅ **Completed** - Implementation finished
+   - ❌ **Failed** - Needs revision
+
+## Agent Prompt Standards
+- **Complete Implementation Details**: Include database changes, backend/frontend code, testing requirements
+- **File Locations**: Specify exact paths for all modifications
+- **Success Criteria**: Clear deliverables to verify completion
+- **Role-Based Permissions**: Always enforce security boundaries
+
+## Workflow Process
+1. Create handoff document with implementation plan
+2. Create separate agent prompt document for specific feature
+3. Update handoff document with agent prompt status
+4. Execute agent prompt in Replit
+5. Update status as work progresses
+6. Mark as complete when verified
+
+This keeps prompts readable/editable while maintaining clean progress tracking.
+
+## Handoff Document Structure
+Handoff documents should start with:
+1. **Project Goals**: Overall project objectives
+2. **Current Focus**: Which specific part we're implementing
+3. **Session Starter**: Prompt for beginning conversation following established rules
