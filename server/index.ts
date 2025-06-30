@@ -119,8 +119,8 @@ app.use((req, res, next) => {
   res.header('X-Frame-Options', 'SAMEORIGIN'); // Changed from DENY to SAMEORIGIN
   res.header('X-XSS-Protection', '1; mode=block');
   
-  // Remove restrictive CSP that might block incognito mode
-  res.header('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws: wss:;");
+  // Updated CSP to allow YouTube embeds and maintain security
+  res.header('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws: wss: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://youtu.be; img-src 'self' data: https:; media-src 'self' https:;");
   
   // Handle preflight requests
   if (req.method === 'OPTIONS') {

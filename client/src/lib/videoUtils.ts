@@ -67,15 +67,15 @@ export function buildYouTubeEmbedUrl(
 ): string {
   const baseUrl = 'https://www.youtube-nocookie.com/embed';
   
-  // Default parameters for distraction-free autoplay experience
+  // Default parameters for reliable video playback
   const defaultParams: VideoUrlParams = {
-    autoplay: 1,           // Enable autoplay
+    autoplay: 0,           // Disable autoplay to avoid browser restrictions
     rel: 0,               // Suppress related videos
     modestbranding: 1,    // Hide YouTube branding
     showinfo: 0,          // Hide video info overlay
     controls: 1,          // Show player controls
-    mute: 0,              // Start unmuted (will fallback to muted if browser blocks)
-    enablejsapi: 1,       // Enable JavaScript API for better control
+    mute: 0,              // Start unmuted
+    enablejsapi: 0,       // Disable JavaScript API to avoid loading issues
   };
 
   // Merge custom parameters with defaults
