@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, ChevronRight } from 'lucide-react';
@@ -18,6 +18,8 @@ export default function DownloadStarCardView({
   markStepCompleted,
   setCurrentContent
 }: DownloadStarCardViewProps) {
+  const starCardRef = useRef<HTMLDivElement>(null);
+
   // Fetch star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
@@ -30,9 +32,26 @@ export default function DownloadStarCardView({
     refetchOnWindowFocus: false
   });
 
-  const handleDownload = () => {
-    console.log('Downloading Star Card...');
-    markStepCompleted('5-1');
+  const handleDownload = async () => {
+    console.log('Starting star card download...');
+    
+    if (!starCardRef.current) {
+      console.log('StarCard ref not found');
+      alert('Download failed. Please try again.');
+      return;
+    }
+
+    try {
+      // Use the utility function for consistent configuration
+      const { downloadElementAsImage } = await import('@/lib/html2canvas');
+      await downloadElementAsImage(starCardRef.current, 'your-star-card.png');
+      
+      console.log('Download completed successfully');
+      markStepCompleted('5-1');
+    } catch (error) {
+      console.error('Error generating star card image:', error);
+      alert('Download failed. Please try right-clicking on your star card and selecting "Save as Image"');
+    }
   };
 
   const handleNext = () => {
@@ -97,6 +116,7 @@ export default function DownloadStarCardView({
                     <div className="p-6 flex justify-center overflow-visible">
                       <div className="flex-shrink-0" style={{ width: CARD_WIDTH, minWidth: CARD_WIDTH, maxWidth: CARD_WIDTH }}>
                         <StarCard 
+                          ref={starCardRef}
                           thinking={(starCard as any)?.thinking || 0}
                           acting={(starCard as any)?.acting || 0}
                           feeling={(starCard as any)?.feeling || 0}
