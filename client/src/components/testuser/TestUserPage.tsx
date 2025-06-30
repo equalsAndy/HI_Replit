@@ -4,7 +4,7 @@ import { useLocation } from 'wouter';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { LogOut, User } from 'lucide-react';
+import { LogOut, User, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import WorkshopCard from './WorkshopCard';
 import TestUserTools from './TestUserTools';
