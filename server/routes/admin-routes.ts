@@ -15,11 +15,23 @@ const router = express.Router();
 router.get('/users', requireAuth, isFacilitatorOrAdmin, async (req: Request, res: Response) => {
   try {
     const includeDeleted = req.query.includeDeleted === 'true';
-    const result = await userManagementService.getAllUsers(includeDeleted);
+    const userRole = (req.session as any).userRole;
+    const userId = (req.session as any).userId;
+    
+    let result;
+    if (userRole === 'facilitator') {
+      // Facilitators only see users in their scope (assigned or in their cohorts)
+      result = await userManagementService.getUsersForFacilitator(userId, includeDeleted);
+    } else {
+      // Admins see all users
+      result = await userManagementService.getAllUsers(includeDeleted);
+    }
 
     if (!result.success) {
       return res.status(500).json({ message: result.error || 'Failed to retrieve users' });
     }
+
+    console.log(`${userRole === 'facilitator' ? 'Facilitator' : 'Admin'} ${userId} accessed ${result.users.length} users`);
 
     res.json({
       message: 'Users retrieved successfully',

@@ -749,6 +749,145 @@ class UserManagementService {
       };
     }
   }
+
+  /**
+   * Get users that are accessible to a facilitator (role-based scoping)
+   * Includes users assigned directly to facilitator and users in facilitator's cohorts
+   */
+  async getUsersForFacilitator(facilitatorId: number, includeDeleted: boolean = false) {
+    try {
+      const { sql } = await import('drizzle-orm');
+      
+      // Build the query to get users scoped to this facilitator
+      // Include users directly assigned to facilitator OR users in facilitator's cohorts
+      const usersQuery = sql`
+        SELECT DISTINCT u.*, 
+               c.name as cohort_name, 
+               o.name as organization_name
+        FROM users u
+        LEFT JOIN cohorts c ON u.cohort_id = c.id  
+        LEFT JOIN organizations o ON u.organization_id = o.id
+        WHERE (
+          u.assigned_facilitator_id = ${facilitatorId} 
+          OR u.cohort_id IN (
+            SELECT id FROM cohorts WHERE facilitator_id = ${facilitatorId}
+          )
+        )
+        ${includeDeleted ? sql`` : sql`AND u.deleted_at IS NULL`}
+        ORDER BY u.created_at DESC
+      `;
+      
+      const result = await db.execute(usersQuery);
+      
+      if (!result || result.length === 0) {
+        return {
+          success: true,
+          users: []
+        };
+      }
+      
+      // Import schema modules for assessment data
+      const { userAssessments, navigationProgress } = await import('../../shared/schema');
+      const { eq, and } = await import('drizzle-orm');
+      
+      // Get assessment data for all scoped users
+      const userIds = result.map((user: any) => user.id);
+      
+      // Fetch star card assessments
+      const starCardAssessments = await db
+        .select()
+        .from(userAssessments)
+        .where(
+          and(
+            eq(userAssessments.assessmentType, 'starCard')
+          )
+        );
+      
+      // Fetch flow attributes assessments
+      const flowAssessments = await db
+        .select()
+        .from(userAssessments)
+        .where(
+          and(
+            eq(userAssessments.assessmentType, 'flowAttributes')
+          )
+        );
+      
+      // Fetch all user assessments
+      const allAssessments = await db
+        .select()
+        .from(userAssessments);
+      
+      // Fetch navigation progress
+      const navProgress = await db
+        .select()
+        .from(navigationProgress);
+      
+      // Build user data with assessment status (same structure as getAllUsers)
+      const usersWithoutPasswords = result.map((user: any) => {
+        const { password, ...userWithoutPassword } = user;
+        
+        // Check for real assessment data
+        const hasStarCard = starCardAssessments.some(assessment => assessment.userId === user.id);
+        const hasFlowAttributes = flowAssessments.some(assessment => assessment.userId === user.id);
+        const hasAssessment = allAssessments.some(assessment => assessment.userId === user.id);
+        
+        // Get navigation progress data
+        const userNavProgress = navProgress.filter(nav => nav.userId === user.id);
+        const astProgress = userNavProgress.find(nav => nav.appType === 'ast');
+        const iaProgress = userNavProgress.find(nav => nav.appType === 'ia');
+        
+        return {
+          ...userWithoutPassword,
+          progress: 0,
+          hasAssessment,
+          hasStarCard,
+          hasFlowAttributes,
+          astProgress: astProgress ? {
+            completedSteps: Array.isArray(astProgress.completedSteps) 
+              ? astProgress.completedSteps 
+              : JSON.parse(astProgress.completedSteps || '[]'),
+            currentStepId: astProgress.currentStepId,
+            unlockedSteps: Array.isArray(astProgress.unlockedSteps) 
+              ? astProgress.unlockedSteps 
+              : JSON.parse(astProgress.unlockedSteps || '[]'),
+            videoProgress: typeof astProgress.videoProgress === 'object' 
+              ? astProgress.videoProgress 
+              : JSON.parse(astProgress.videoProgress || '{}')
+          } : null,
+          iaProgress: iaProgress ? {
+            completedSteps: Array.isArray(iaProgress.completedSteps) 
+              ? iaProgress.completedSteps 
+              : JSON.parse(iaProgress.completedSteps || '[]'),
+            currentStepId: iaProgress.currentStepId,
+            unlockedSteps: Array.isArray(iaProgress.unlockedSteps) 
+              ? iaProgress.unlockedSteps 
+              : JSON.parse(iaProgress.unlockedSteps || '[]'),
+            videoProgress: typeof iaProgress.videoProgress === 'object' 
+              ? iaProgress.videoProgress 
+              : JSON.parse(iaProgress.videoProgress || '{}')
+          } : null,
+          navigationProgress: user.navigationProgress,
+          // Include cohort and organization info from the join
+          cohortName: user.cohort_name,
+          organizationName: user.organization_name
+        };
+      });
+      
+      console.log(`Facilitator ${facilitatorId} accessed ${usersWithoutPasswords.length} scoped users`);
+      
+      return {
+        success: true,
+        users: usersWithoutPasswords
+      };
+    } catch (error) {
+      console.error('Error getting users for facilitator:', error);
+      return {
+        success: false,
+        error: 'Failed to get users for facilitator'
+      };
+    }
+  }
 }
 
 export const userManagementService = new UserManagementService();

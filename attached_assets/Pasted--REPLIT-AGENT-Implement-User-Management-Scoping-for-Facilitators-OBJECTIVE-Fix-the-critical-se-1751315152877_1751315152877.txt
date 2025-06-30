@@ -1,0 +1,135 @@
+# REPLIT AGENT: Implement User Management Scoping for Facilitators
+
+## OBJECTIVE
+Fix the critical security issue where facilitators can see ALL users and ALL invites instead of only their cohort members and their own created invites. Implement proper role-based filtering on both backend and frontend.
+
+## CURRENT PROBLEM
+- Facilitators currently see all users in the system (security issue)
+- Facilitators currently see all invites in the system (security issue)
+- Backend has the database structure but lacks proper scoping methods
+- Frontend doesn't differentiate between admin and facilitator views
+
+## REQUIRED CHANGES
+
+### 1. Backend Service Extension
+**File**: `server/services/user-management-service.ts`
+**Action**: Add new method `getUsersForFacilitator()` to UserManagementService class
+
+**Method Requirements**:
+- Filter users where `assigned_facilitator_id = facilitatorId` OR `cohort_id IN (facilitator's cohorts)`
+- Include joins for cohort_name and organization_name
+- Respect `includeDeleted` parameter
+- Return same User interface as existing methods
+
+### 2. API Route Modification  
+**File**: `server/routes/admin-routes.ts`
+**Action**: Update GET `/users` endpoint for role-based filtering
+
+**Logic Required**:
+- Check `req.user.role` from authenticated request
+- If admin: use existing `getUsers()` method (see all users)
+- If facilitator: use new `getUsersForFacilitator()` method (scoped users)
+- Maintain existing query parameter support (`include_deleted`)
+
+### 3. Invite Service Extension
+**File**: `server/services/invite-service.ts`
+**Action**: Add role-based filtering to invite retrieval methods
+
+**Method Requirements**:
+- Check if existing `getInvites()` method supports facilitator filtering
+- If not, add `getInvitesForFacilitator()` method
+- Filter invites where `invited_by = facilitatorId`
+- Maintain existing functionality for admins
+
+### 4. Invite API Route Modification
+**File**: `server/routes/admin-routes.ts`
+**Action**: Update GET `/invites` endpoint for role-based filtering
+
+**Logic Required**:
+- Check `req.user.role` from authenticated request
+- If admin: use existing method to see all invites
+- If facilitator: use scoped method to see only their created invites
+- Maintain existing query parameter support
+
+### 5. Frontend Component Update
+**File**: `client/src/components/admin/UserManagement.tsx` AND `client/src/components/admin/InviteManagement.tsx`
+**Action**: Add role-aware UI indicators for both components
+
+**Requirements**:
+- Add info banner for facilitators: "Facilitator View: Showing only users in your cohorts"
+- Add info banner for facilitators: "Facilitator View: Showing only invites you created"
+- Use existing fetch logic (backend now handles filtering automatically)
+- Ensure no breaking changes to admin functionality
+
+## DATABASE CONTEXT
+**Tables Available**:
+- `users` table has: `assigned_facilitator_id`, `cohort_id`, `organization_id`
+- `cohorts` table has: `facilitator_id` (links cohorts to facilitators)
+- `organizations` table has: `id`, `name`
+- `invites` table has: `invited_by` (tracks who created the invite)
+
+**Key Relationships**:
+- Users can be assigned directly to facilitators (`assigned_facilitator_id`)
+- Users can be in cohorts managed by facilitators (`cohort.facilitator_id`)
+- Both paths should show users to the facilitator
+- Invites track their creator via `invited_by` field
+- Facilitators should only see invites they created
+
+## SECURITY REQUIREMENTS
+- Facilitators must NEVER see users outside their scope
+- Facilitators must NEVER see invites they didn't create
+- Admin functionality must remain unchanged
+- Proper authentication middleware already exists (`isFacilitatorOrAdmin`)
+- Use parameterized queries to prevent SQL injection
+
+## SUCCESS CRITERIA
+1. **Facilitator User Test**: Login as facilitator → see only cohort members
+2. **Facilitator Invite Test**: Login as facilitator → see only own created invites
+3. **Admin Test**: Login as admin → see all users and invites (unchanged)
+4. **Security Test**: No way for facilitators to access other users' or invites' data
+5. **UI Test**: Clear indication of scoped view for facilitators in both components
+
+## FILES TO MODIFY
+```
+server/services/user-management-service.ts     (add method)
+server/services/invite-service.ts              (add/modify method)
+server/routes/admin-routes.ts                  (modify GET /users and /invites)
+client/src/components/admin/UserManagement.tsx (add UI indicator)
+client/src/components/admin/InviteManagement.tsx (add UI indicator)
+```
+
+## EXAMPLE QUERIES FOR REFERENCE
+**Facilitator's Users Query**:
+```sql
+SELECT DISTINCT u.*, c.name as cohort_name, o.name as organization_name
+FROM users u
+LEFT JOIN cohorts c ON u.cohort_id = c.id  
+LEFT JOIN organizations o ON u.organization_id = o.id
+WHERE (u.assigned_facilitator_id = $1 OR u.cohort_id IN (
+  SELECT id FROM cohorts WHERE facilitator_id = $1
+))
+AND u.deleted_at IS NULL
+ORDER BY u.created_at DESC
+```
+
+**Facilitator's Invites Query**:
+```sql
+SELECT * FROM invites 
+WHERE invited_by = $1 
+ORDER BY created_at DESC
+```
+
+## TESTING APPROACH
+1. Create test facilitator with assigned cohorts
+2. Create test invites by that facilitator
+3. Verify facilitator only sees their users and invites
+4. Verify admin still sees all users and invites
+5. Check browser console for errors
+6. Test with both assigned users and cohort members
+7. Test invite filtering across different facilitators
+
+**PRIORITY**: HIGH - This is a security issue affecting both user and invite data that must be resolved before other features.
+
+**ESTIMATED COMPLEXITY**: Medium - Clear requirements, existing patterns to follow, but involves multiple components.
+
+Implement this systematically and test thoroughly - user data and invite security are both critical.

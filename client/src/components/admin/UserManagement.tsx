@@ -166,6 +166,17 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
   const [localTestUserStatus, setLocalTestUserStatus] = useState<boolean>(false);
+
+  // Query for current user profile to get role information
+  const { data: userProfile } = useQuery({
+    queryKey: ['/api/user/profile'],
+    staleTime: 30000,
+  });
+
+  const currentUserRole = (userProfile as any)?.user?.role || (userProfile as any)?.role;
+  const isFacilitator = currentUserRole === 'facilitator';
+  const isAdmin = currentUserRole === 'admin';
+
   // Query for fetching users
   const { data: users = [], isLoading: isLoadingUsers, refetch: refetchUsers } = useQuery({
     queryKey: ['/api/admin/users'],
@@ -548,6 +559,23 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
   return (
     <div className="space-y-6">
+      {/* Role-aware UI Banner */}
+      {isFacilitator && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div>
+              <p className="text-sm font-medium text-blue-900">
+                Facilitator View - Limited Access
+              </p>
+              <p className="text-xs text-blue-700">
+                You can only see and manage users assigned to your cohorts. Contact an administrator for broader access.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <Tabs defaultValue="existing" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="existing">Manage Users</TabsTrigger>
