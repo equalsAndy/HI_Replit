@@ -136,6 +136,23 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### June 30, 2025 - Phase 2: Facilitator Invite Management with Role-Based Scoping Complete ✅
+- **ROLE-BASED INVITE SYSTEM**: Successfully implemented comprehensive facilitator invite management with proper access controls
+  - Backend API routes updated to support facilitator access with role restrictions (only participant/student invites)
+  - Enhanced invite service with creator tracking and role-based filtering methods
+  - Database schema extended with `invited_by` field for tracking invite relationships
+  - User registration process updated to record who invited each user during signup
+- **FRONTEND INTERFACE ENHANCEMENTS**: Updated InviteManagement component for role-aware functionality
+  - Role dropdown dynamically restricts facilitators to participant/student options only
+  - Creator information column displays for admin users to track invite origins
+  - Facilitators see only their own created invites in management table
+  - Admin users continue to see all invites with full creator information
+- **COMPREHENSIVE TESTING VERIFIED**: All role-based restrictions working correctly
+  - Facilitator can create participant invites successfully
+  - Facilitator blocked from creating admin/facilitator invites with proper error messaging
+  - Invite retrieval properly filtered by user role (facilitators see only own invites)
+  - Creator tracking functional for future user management and oversight
+
 ### June 30, 2025 - Phase 1: Facilitator Console Database Foundation Complete ✅
 - **DATABASE SCHEMA FOUNDATION**: Successfully implemented comprehensive database foundation for facilitator console system
   - Created `organizations` table with UUID primary keys for organizational structure
