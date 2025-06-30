@@ -200,11 +200,15 @@ export function UserManagement() {
   const editForm = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
     defaultValues: {
+      username: '',
       name: '',
       email: '',
       organization: '',
       jobTitle: '',
       role: 'participant',
+      contentAccess: 'professional',
+      astAccess: true,
+      iaAccess: true,
       resetPassword: false,
       newPassword: '',
       setCustomPassword: false,
@@ -481,13 +485,14 @@ export function UserManagement() {
     setLocalTestUserStatus(user.isTestUser || false);
 
     editForm.reset({
+      username: user.username,
       name: user.name,
       email: user.email,
       organization: user.organization || '',
       jobTitle: user.jobTitle || '',
       role: user.role as 'admin' | 'facilitator' | 'participant' | 'student',
       contentAccess: user.contentAccess || 'professional',
-      astAccess: user.astAccess || true,
+      astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
       resetPassword: false,
       newPassword: '',
