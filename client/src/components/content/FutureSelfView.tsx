@@ -107,38 +107,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
-  // Debounced save function
-  const debouncedSave = useCallback(
-    debounce(async (dataToSave: FutureSelfData) => {
-      try {
-        setSaveStatus('saving');
-        const response = await fetch('/api/workshop-data/future-self', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify(dataToSave)
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-          setSaveStatus('saved');
-        } else {
-          setSaveStatus('error');
-        }
-      } catch (error) {
-        console.error('Auto-save failed:', error);
-        setSaveStatus('error');
-      }
-    }, 1000),
-    []
-  );
-
-  // Trigger save whenever form data changes
-  useEffect(() => {
-    if (!isLoading && (formData.twentyYearVision || formData.tenYearMilestone || formData.fiveYearFoundation || formData.flowOptimizedLife)) {
-      debouncedSave(formData);
-    }
-  }, [formData, debouncedSave, isLoading]);
+  // Removed auto-save functionality - data will only save when user clicks "Next" button
 
   // Handle direction change
   const handleDirectionChange = (newDirection: 'backward' | 'forward') => {
@@ -463,7 +432,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           >
             <span>
               {hasMinimumContent 
-                ? "Next: Final Reflection" 
+                ? (saveStatus === 'saving' ? "Saving..." : "Save & Continue to Final Reflection")
                 : "Add reflection to continue"
               }
             </span>

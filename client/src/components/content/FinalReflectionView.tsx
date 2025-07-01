@@ -333,19 +333,16 @@ export default function FinalReflectionView({
                     )}
                   </>
                 ) : (
-                  // Completed state with countdown
+                  // Completed state - show completion message and lock the input
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
-                      <p className="completed-text">Workshop completed!</p>
+                      <p className="completed-text">You have completed your AllStarTeams Workshop!</p>
                     </div>
                     
-                    <button 
-                      className="continue-button enabled" 
-                      onClick={() => setShowModal(true)}
-                    >
-                      View Options
-                    </button>
+                    <p className="text-sm text-gray-600 text-center mt-4">
+                      Your reflection has been saved. You can now explore the professional section or return to the main menu.
+                    </p>
                   </div>
                 )}
               </div>
