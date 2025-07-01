@@ -1141,8 +1141,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[95vh] h-[95vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden p-6">
+          <DialogHeader className="flex-shrink-0 pb-4">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
               Update user information and role.
@@ -1151,8 +1151,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
           {selectedUser && (
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="space-y-6">
-                <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-4">
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto space-y-6 min-h-0 px-1 pb-2">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <FormField
                         control={editForm.control}
@@ -1197,7 +1197,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
                     name="organization"
@@ -1227,7 +1227,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <FormField
                     control={editForm.control}
                     name="role"
@@ -1517,7 +1517,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   </div>
                 </div>
 
-                <DialogFooter className="mt-6">
+                <DialogFooter className="flex-shrink-0 pt-4 mt-auto border-t bg-background">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel
                   </Button>
