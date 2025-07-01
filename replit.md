@@ -136,6 +136,15 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### July 1, 2025 - Demo Data Persistence Issue Fixed ✅
+- **CRITICAL BUG RESOLUTION**: Fixed demo data persistence issue in AllStarTeams reflection component where demo data disappeared after navigation
+- **ROOT CAUSE IDENTIFIED**: Data format mismatch between frontend loading logic and database response structure
+- **COMPREHENSIVE FIX**: Updated data loading logic in StepByStepReflection.tsx to handle both legacy and nested data formats
+- **BACKWARD COMPATIBILITY**: Maintained support for existing data while properly parsing new nested "reflections" structure
+- **PERSISTENCE VERIFIED**: Demo data now correctly persists across navigation sessions, fixing core workshop functionality
+- **DATA STRUCTURE HANDLING**: Added robust parsing that handles both `result.data.reflections` and `result.data` formats
+- **TESTING CONFIRMED**: User verification confirms demo data loads properly after navigating away and returning to reflection page
+
 ### July 1, 2025 - Admin Interface Toggle with Role-Based Content Recognition Complete ✅
 - **ROLE-BASED TOGGLE RESTRICTIONS**: Restricted interface toggle to admins and facilitators only
   - Added permission check `hasBothInterfaceAccess` for users with management access
