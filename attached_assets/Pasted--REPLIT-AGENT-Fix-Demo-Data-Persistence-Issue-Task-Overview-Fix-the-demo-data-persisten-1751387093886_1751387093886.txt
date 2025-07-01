@@ -1,0 +1,134 @@
+# REPLIT AGENT: Fix Demo Data Persistence Issue
+
+## 🎯 **Task Overview**
+Fix the demo data persistence issue in the AllStarTeams reflection component where demo data appears immediately but doesn't persist when navigating away and returning to the page.
+
+## 🔍 **Problem Description**
+**Current Behavior:**
+- Demo data fills the form fields immediately when "Add Demo Data" button is clicked
+- Data is saved to database (confirmed via network logs)
+- When user navigates away and returns, demo data disappears from form fields
+- Manual typed data persists correctly
+
+**Expected Behavior:**
+- Demo data should persist in form fields across navigation sessions
+- Demo data should load from database on page refresh/return
+
+## 📁 **File Locations**
+**Primary File:**
+- `client/src/components/reflection/StepByStepReflection.tsx`
+
+**Related Files:**
+- `client/src/components/content/ReflectionView.tsx` (wrapper component)
+- `server/routes/workshop-data-routes.ts` (API endpoint)
+
+## 🔧 **Technical Analysis**
+
+### **What's Working:**
+1. ✅ Demo data fills form immediately via `setReflections(demoData)`
+2. ✅ Demo data saves to database via immediate fetch call
+3. ✅ Manual typed data persists correctly across sessions
+4. ✅ Database contains saved demo data (confirmed)
+
+### **What's Broken:**
+1. ❌ Demo data doesn't load from database on component mount
+2. ❌ `useEffect` data loading logic may have issues with demo data format
+3. ❌ State initialization may be overriding loaded data
+
+## 🔍 **Investigation Focus**
+
+### **1. Data Loading on Mount**
+Check the `loadExistingData` useEffect in `StepByStepReflection.tsx`:
+```typescript
+useEffect(() => {
+  const loadExistingData = async () => {
+    // This function should properly load demo data from database
+    // Investigate if demo data format matches expected structure
+  };
+  loadExistingData();
+}, []);
+```
+
+### **2. State Initialization**
+Verify state initialization doesn't override loaded data:
+```typescript
+const [reflections, setReflections] = useState({
+  strength1: '',
+  strength2: '',
+  // ... check if initial empty strings interfere
+});
+```
+
+### **3. API Response Format**
+Check if demo data is saved/retrieved in the correct format:
+- API endpoint: `POST/GET /api/workshop-data/step-by-step-reflection`
+- Verify response structure matches expected format
+
+## 🛠️ **Specific Fix Tasks**
+
+### **Priority 1: Data Loading Logic**
+- [ ] Add console.log statements to track data loading flow
+- [ ] Verify `result.data` contains demo data when loading
+- [ ] Ensure `setReflections()` is called with loaded demo data
+- [ ] Check timing of `setReflections()` call vs component render
+
+### **Priority 2: State Management**
+- [ ] Ensure loaded data doesn't get overwritten by initial state
+- [ ] Check if multiple `useEffect` hooks are conflicting
+- [ ] Verify loading state management doesn't interfere
+
+### **Priority 3: API Consistency**
+- [ ] Verify demo data is saved in same format as manual data
+- [ ] Check if any data transformation is needed
+- [ ] Ensure database field mapping is correct
+
+## 🧪 **Testing Strategy**
+
+### **Test Scenario:**
+1. Click "Add Demo Data" button
+2. Verify fields populate immediately
+3. Navigate to different page (e.g., flow assessment)
+4. Return to reflection page
+5. **Expected**: Demo data should still be in fields
+6. **Current**: Fields are empty
+
+### **Debug Steps:**
+1. **Add console.log statements** in `loadExistingData()` function
+2. **Check browser network tab** for API response content
+3. **Verify database content** matches what's being loaded
+4. **Test with manual data** to confirm loading logic works
+
+## 💡 **Likely Root Causes**
+
+### **Hypothesis 1: State Timing Issue**
+Loading might happen after initial state sets empty values
+
+### **Hypothesis 2: Data Format Mismatch**
+Demo data might be saved in different format than expected loading format
+
+### **Hypothesis 3: useEffect Dependencies**
+Multiple useEffects might be interfering with each other
+
+## 🎯 **Success Criteria**
+- [ ] Demo data persists in form fields after navigation
+- [ ] Demo data loads correctly on page refresh
+- [ ] Manual data persistence continues to work
+- [ ] No regressions in normal reflection workflow
+
+## 🚨 **Important Notes**
+- **Don't break existing functionality** - manual data persistence works
+- **Test thoroughly** - this affects core workshop experience
+- **Preserve demo data logic** - just fix the persistence issue
+- **Check all 6 reflection fields** - ensure all demo data persists
+
+## 📋 **Quick Verification**
+After implementing fix:
+1. Add demo data → Navigate away → Return → Data should persist
+2. Type manual data → Navigate away → Return → Data should persist  
+3. Mix demo + manual → Navigate away → Return → Both should persist
+
+---
+
+**Priority**: HIGH - Core workshop functionality
+**Complexity**: MEDIUM - State management debugging  
+**Impact**: User experience for test users and development workflow
