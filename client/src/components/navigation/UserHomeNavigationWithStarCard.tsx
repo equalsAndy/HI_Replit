@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { NavigationSection, StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { navigationSections } from './navigationData';
 import { Button } from '@/components/ui/button';
@@ -83,6 +83,27 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
     length: completedSteps?.length
   });
 
+  // Add state to track when completedSteps has loaded
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
+
+  // Watch for changes in completedSteps and force re-render
+  useEffect(() => {
+    console.log(`🔄 UserHomeNav: completedSteps changed, length: ${completedSteps?.length}`);
+    
+    // Consider data loaded when we have actual steps (not empty array)
+    const hasData = Array.isArray(completedSteps) && completedSteps.length > 0;
+    
+    if (hasData && !isDataLoaded) {
+      console.log(`✅ UserHomeNav: Data loaded, forcing re-render`);
+      setIsDataLoaded(true);
+      setRenderKey(prev => prev + 1);
+    } else if (hasData) {
+      // Force re-render when completedSteps changes
+      setRenderKey(prev => prev + 1);
+    }
+  }, [completedSteps, isDataLoaded]);
+
   // Calculate section progress based on completed steps - Updated for dynamic navigation structure
   const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
     // Find the actual section from navigationSections to get its steps
@@ -164,12 +185,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   };
 
   // Helper function to check if individual step is completed
-  const isStepCompleted = (stepId: string) => {
+  const isStepCompleted = useCallback((stepId: string) => {
     const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
     const isCompleted = safeCompletedSteps.includes(stepId);
-    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', safeCompletedSteps);
+    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', safeCompletedSteps, 'renderKey:', renderKey);
     return isCompleted;
-  };
+  }, [completedSteps, renderKey]);
 
   // Reset local state when user progress is reset
   useEffect(() => {
@@ -335,8 +356,14 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
         {/* Navigation Content */}
         <div className="p-4 flex-1 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-          {/* Navigation Sections */}
-          <nav className="space-y-6">
+          {/* Show loading state until data is loaded */}
+          {!isDataLoaded && Array.isArray(completedSteps) && completedSteps.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-gray-500">Loading progress...</div>
+            </div>
+          ) : (
+            /* Navigation Sections */
+            <nav className="space-y-6" key={renderKey}>
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
                 {/* Section Header - Clean without Week Label */}
@@ -395,7 +422,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isAccessible = isSpecialAccessRestricted ? false : isStepAccessible(section.id, step.id);
 
                       return (
-                        <TooltipProvider key={step.id}>
+                        <TooltipProvider key={`${step.id}-${renderKey}-${isStepCompleted(step.id)}`}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <li 
@@ -499,6 +526,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
               </div>
             ))}
           </nav>
+          )}
         </div>
       </div>
     </>
