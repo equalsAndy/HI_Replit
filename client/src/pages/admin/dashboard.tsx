@@ -100,6 +100,10 @@ export default function AdminDashboard() {
   // Check if user has management access (admin or facilitator)
   const hasManagementAccess = currentUser?.role === 'admin' || currentUser?.role === 'facilitator';
   const isAdmin = currentUser?.role === 'admin';
+  
+  // Check if user has access to both student and professional interfaces
+  // Only admins and facilitators with both AST and IA access should see the toggle
+  const hasBothInterfaceAccess = hasManagementAccess;
 
   // Redirect users without management access
   React.useEffect(() => {
@@ -137,32 +141,54 @@ export default function AdminDashboard() {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          {/* Interface Toggle */}
+          {/* Workshop Navigation Buttons */}
           <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-muted-foreground">Interface:</span>
-            <div className="flex items-center bg-muted rounded-lg p-1">
-              <Button
-                variant={contentAccess === 'student' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleInterfaceToggle('student')}
-                disabled={updateContentAccessMutation.isPending}
-                className="flex items-center gap-2 px-3 py-1"
-              >
-                <GraduationCap className="h-4 w-4" />
-                Student
-              </Button>
-              <Button
-                variant={contentAccess === 'professional' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => handleInterfaceToggle('professional')}
-                disabled={updateContentAccessMutation.isPending}
-                className="flex items-center gap-2 px-3 py-1"
-              >
-                <User className="h-4 w-4" />
-                Professional
-              </Button>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/allstarteams')}
+              className="flex items-center gap-2"
+            >
+              ⭐ AllStarTeams
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/imaginal-agility')}
+              className="flex items-center gap-2"
+            >
+              🧠 Imaginal Agility
+            </Button>
           </div>
+
+          {/* Interface Toggle - Only for users with both interface access */}
+          {hasBothInterfaceAccess && (
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-muted-foreground">Interface:</span>
+              <div className="flex items-center bg-muted rounded-lg p-1">
+                <Button
+                  variant={contentAccess === 'student' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleInterfaceToggle('student')}
+                  disabled={updateContentAccessMutation.isPending}
+                  className="flex items-center gap-2 px-3 py-1"
+                >
+                  <GraduationCap className="h-4 w-4" />
+                  Student
+                </Button>
+                <Button
+                  variant={contentAccess === 'professional' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => handleInterfaceToggle('professional')}
+                  disabled={updateContentAccessMutation.isPending}
+                  className="flex items-center gap-2 px-3 py-1"
+                >
+                  <User className="h-4 w-4" />
+                  Professional
+                </Button>
+              </div>
+            </div>
+          )}
 
           <Button
             variant="destructive"

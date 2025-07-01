@@ -39,7 +39,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   const { toast } = useToast();
   const isTestUser = useTestUser();
 
-  // Get current user data to determine role
+  // Get current user data to determine content access preference
   const { data: userData } = useQuery<{
     success: boolean;
     user: {
@@ -47,6 +47,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
       name: string;
       username: string;
       role?: string;
+      contentAccess?: string;
       isTestUser: boolean;
     }
   }>({ 
@@ -54,10 +55,11 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
     enabled: isOpen
   });
 
-  // Determine which question set to use based on user role
-  const isStudent = userData?.user?.role === 'student';
-  const currentAssessmentQuestions = isStudent ? youthAssessmentQuestions : assessmentQuestions;
-  const currentOptionCategoryMapping = isStudent ? youthOptionCategoryMapping : optionCategoryMapping;
+  // Determine which question set to use based on content access preference
+  // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
+  const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
+  const currentAssessmentQuestions = isStudentContent ? youthAssessmentQuestions : assessmentQuestions;
+  const currentOptionCategoryMapping = isStudentContent ? youthOptionCategoryMapping : optionCategoryMapping;
 
   // State management
   const [view, setView] = useState<'intro' | 'assessment' | 'results'>('intro');

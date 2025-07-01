@@ -44,7 +44,7 @@ export default function Assessment() {
   const queryClient = useQueryClient();
   const isTestUser = useTestUser();
 
-  // Get current user data to determine role
+  // Get current user data to determine content access preference
   const { data: userData } = useQuery<{
     success: boolean;
     user: {
@@ -52,16 +52,18 @@ export default function Assessment() {
       name: string;
       username: string;
       role?: string;
+      contentAccess?: string;
       isTestUser: boolean;
     }
   }>({ 
     queryKey: ['/api/user/profile']
   });
 
-  // Determine which question set to use based on user role
-  const isStudent = userData?.user?.role === 'student';
-  const currentAssessmentQuestions = isStudent ? youthAssessmentQuestions : assessmentQuestions;
-  const currentOptionCategoryMapping = isStudent ? youthOptionCategoryMapping : optionCategoryMapping;
+  // Determine which question set to use based on content access preference
+  // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
+  const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
+  const currentAssessmentQuestions = isStudentContent ? youthAssessmentQuestions : assessmentQuestions;
+  const currentOptionCategoryMapping = isStudentContent ? youthOptionCategoryMapping : optionCategoryMapping;
 
   // Get star card data to check if assessment is already completed
   const { data: starCard, isLoading: loadingStarCard } = useQuery<StarCardType>({

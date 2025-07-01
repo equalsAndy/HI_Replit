@@ -19,13 +19,16 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
   setCurrentContent,
   isImaginalAgility = false
 }) => {
-  // Get user role for content customization
+  // Get user data for content customization
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
     staleTime: 30000,
   });
   const userRole = userData?.user?.role || userData?.role;
-  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
+  const contentAccess = userData?.user?.contentAccess;
+  // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
+  const isStudentContent = contentAccess === 'student' || userRole === 'student';
+  const isStudentOrFacilitator = isStudentContent || userRole === 'facilitator';
   
   // Debug logging
   console.log('🔍 WelcomeView Debug:');
