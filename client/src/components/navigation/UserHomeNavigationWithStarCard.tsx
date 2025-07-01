@@ -73,6 +73,15 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
+  
+  // Debug logging for completed steps
+  console.log(`📊 UserHomeNavigation Debug:`, {
+    completedSteps,
+    effectiveCompletedSteps,
+    completedStepsType: typeof completedSteps,
+    isArray: Array.isArray(completedSteps),
+    length: completedSteps?.length
+  });
 
   // Calculate section progress based on completed steps - Updated for dynamic navigation structure
   const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
@@ -156,8 +165,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
   // Helper function to check if individual step is completed
   const isStepCompleted = (stepId: string) => {
-    const isCompleted = completedSteps.includes(stepId);
-    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', completedSteps);
+    const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
+    const isCompleted = safeCompletedSteps.includes(stepId);
+    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', safeCompletedSteps);
     return isCompleted;
   };
 
@@ -375,8 +385,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       // SIMPLIFIED MODE: Green checkmark logic - only show for completed steps in database
                       let isCompleted = false;
                       if (!isResourceSection) {
-                        isCompleted = effectiveCompletedSteps.includes(step.id);
-                        console.log(`🔍 SIMPLIFIED MODE: Step ${step.id} completion check - completed: ${isCompleted}`);
+                        isCompleted = isStepCompleted(step.id);
                       }
 
                       // Special accessibility check for Star Card resource
