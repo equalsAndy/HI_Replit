@@ -45,7 +45,7 @@ export default function StepByStepReflection({
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
 
-  // State for reflections data
+  // State for reflections data - initialize with empty strings to prevent undefined
   const [reflections, setReflections] = useState({
     strength1: '',
     strength2: '',
@@ -111,13 +111,39 @@ export default function StepByStepReflection({
         console.log('📥 Reflection data response:', result);
         
         if (result.success && result.data) {
-          console.log('✅ Setting reflection data:', result.data);
-          setReflections(result.data);
+          console.log('✅ Setting reflection data from database:', result.data);
+          // Ensure all fields are properly set with empty strings as fallback
+          setReflections({
+            strength1: result.data.strength1 || '',
+            strength2: result.data.strength2 || '',
+            strength3: result.data.strength3 || '',
+            strength4: result.data.strength4 || '',
+            teamValues: result.data.teamValues || '',
+            uniqueContribution: result.data.uniqueContribution || ''
+          });
         } else {
-          console.log('⚠️ No reflection data found or failed to load');
+          console.log('⚠️ No reflection data found or failed to load, initializing empty state');
+          // Initialize with empty strings to prevent undefined values
+          setReflections({
+            strength1: '',
+            strength2: '',
+            strength3: '',
+            strength4: '',
+            teamValues: '',
+            uniqueContribution: ''
+          });
         }
       } catch (error) {
         console.error('❌ Error loading reflection data:', error);
+        // Initialize with empty strings on error
+        setReflections({
+          strength1: '',
+          strength2: '',
+          strength3: '',
+          strength4: '',
+          teamValues: '',
+          uniqueContribution: ''
+        });
       }
     };
     
