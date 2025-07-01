@@ -76,7 +76,7 @@ export default function AllStarTeams() {
     };
   }, [setCurrentApp, setCurrentContent, setCurrentStep, currentContent, location, currentApp]);
 
-  // Determine which navigation sections to use based on the selected app AND user role
+  // Determine which navigation sections to use based on the selected app AND user role/content access
   // Get user role for navigation customization (using existing user query below)
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['/api/user/profile'],
@@ -84,7 +84,8 @@ export default function AllStarTeams() {
   });
 
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
-  const isStudentOrFacilitator = userRole === 'student' || userRole === 'facilitator';
+  // Check contentAccess preference first (for admin/facilitator toggles), then fall back to user role
+  const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
 
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
@@ -92,7 +93,7 @@ export default function AllStarTeams() {
       return imaginalAgilityNavigationSections;
     }
 
-    if (isStudentOrFacilitator) {
+    if (isStudentContent) {
       // Student/Facilitator week-based structure
       return [
         {

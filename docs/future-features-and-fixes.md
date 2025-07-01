@@ -26,14 +26,13 @@ This file tracks feature requests, bugs, and improvements that come up during de
 *Features that would significantly improve user experience or functionality*
 
 - [ ] **Real-time progress sync** - Currently progress only updates on page refresh
-- [ ] **Bulk user management** - Admin ability to import/export multiple users at once
-- [ ] **Workshop completion certificates** - Generate PDF certificates when users complete workshops
-- [ ] **Admin assessment management interface** - UI for admins to edit/create assessment questions and modify strength category mappings (assessment engine complete, needs admin editing UI)
-- [ ] **Facilitator cohort management frontend** - Connect existing CohortManagement component to backend API (backend complete, needs API connection)
 
 ### **Medium Priority**
 *Nice-to-have features that would enhance the platform*
 
+- [ ] **Facilitator cohort management frontend** - Connect existing CohortManagement component to backend API (backend complete, needs API connection, currently in development)
+- [ ] **Bulk user management** - Admin ability to import/export multiple users at once
+- [ ] **Admin assessment management interface** - UI for admins to edit/create assessment questions and modify strength category mappings (assessment engine complete, needs admin editing UI)
 - [ ] **Admin Video Management System** - Complete implementation of video CRUD operations in admin console ([See Development Guide](../docs/video-management-development-guide.md))
 - [ ] **User profile pictures** - Allow users to upload and display profile photos
 - [ ] **Workshop analytics dashboard** - Show completion rates, time spent, popular steps
@@ -47,6 +46,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ### **Low Priority**
 *Future enhancements for consideration*
 
+- [ ] **Workshop completion certificates** - Generate PDF certificates when users complete workshops (not currently discussed priority)
 - [ ] **Mobile app** - Native iOS/Android apps for workshop access
 - [ ] **Multi-language support** - Translate workshops into multiple languages
 - [ ] **Workshop builder** - Allow admins to create custom workshop content
