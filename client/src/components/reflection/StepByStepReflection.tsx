@@ -158,7 +158,7 @@ export default function StepByStepReflection({
   }, [reflections, debouncedSave]);
 
   // Function to populate reflections with meaningful AST demo data
-  const fillWithDemoData = () => {
+  const fillWithDemoData = async () => {
     if (!isTestUser) {
       console.warn('Demo functionality only available to test users');
       return;
@@ -180,15 +180,38 @@ export default function StepByStepReflection({
       }
     };
 
-    // Fill all reflection fields with meaningful, strength-specific content
-    setReflections({
+    // Create demo data object
+    const demoData = {
       strength1: getStrengthDemo(sortedQuadrants[0].label),
       strength2: getStrengthDemo(sortedQuadrants[1].label),
       strength3: getStrengthDemo(sortedQuadrants[2].label),
       strength4: getStrengthDemo(sortedQuadrants[3].label),
       teamValues: "I thrive in team environments that balance clear structure with flexibility for creative problem-solving. I value open communication where team members feel safe to share ideas and concerns, along with regular feedback loops that help us continuously improve our collaboration and outcomes.",
       uniqueContribution: `My unique contribution comes from combining my top strengths of ${sortedQuadrants[0].label.toLowerCase()} and ${sortedQuadrants[1].label.toLowerCase()}. This allows me to create structured approaches while maintaining focus on people and relationships, helping teams achieve goals efficiently while keeping everyone engaged and motivated.`
-    });
+    };
+
+    // Fill all reflection fields with meaningful, strength-specific content
+    setReflections(demoData);
+
+    // Immediately save demo data to database - don't wait for debounced save
+    try {
+      console.log('💾 Immediately saving demo data to database...');
+      const response = await fetch('/api/workshop-data/step-by-step-reflection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(demoData)
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        console.log('✅ Demo data saved successfully to database');
+      } else {
+        console.error('❌ Failed to save demo data:', result);
+      }
+    } catch (error) {
+      console.error('❌ Error saving demo data to database:', error);
+    }
 
     // Jump to the final question immediately
     setCurrentStep(totalSteps);
