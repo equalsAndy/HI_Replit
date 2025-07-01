@@ -382,11 +382,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                       const isResourceSection = section.id === '5';
                       const isStarCardResource = step.id === '5-3';
 
-                      // SIMPLIFIED MODE: Green checkmark logic - only show for completed steps in database
-                      let isCompleted = false;
-                      if (!isResourceSection) {
-                        isCompleted = isStepCompleted(step.id);
-                      }
+                      // SIMPLIFIED MODE: Green checkmark logic - show checkmarks for all completed steps
+                      let isCompleted = isStepCompleted(step.id);
 
                       // Special accessibility check for Star Card resource
                       const isSpecialAccessRestricted = isResourceSection && isStarCardResource && !isStarCardComplete;
@@ -425,7 +422,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               >
                                 <div className="mr-2 flex-shrink-0">
                                   {isCompleted ? (
-                                    <CheckCircle className="h-4 w-4 text-green-600" />
+                                    <CheckCircle className="h-4 w-4 text-green-600 bg-white rounded-full" />
                                   ) : !isAccessible ? (
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
