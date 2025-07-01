@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -220,6 +220,39 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       setCustomPassword: false,
     },
   });
+
+  // Watch the role field to dynamically show/hide form sections
+  const watchedRole = editForm.watch('role');
+
+  // Auto-set appropriate defaults when role changes
+  useEffect(() => {
+    if (watchedRole) {
+      const currentValues = editForm.getValues();
+      
+      // Set role-specific defaults
+      if (watchedRole === 'admin') {
+        editForm.setValue('contentAccess', 'both');
+        editForm.setValue('astAccess', true);
+        editForm.setValue('iaAccess', true);
+      } else if (watchedRole === 'facilitator') {
+        if (currentValues.contentAccess !== 'student' && 
+            currentValues.contentAccess !== 'professional' && 
+            currentValues.contentAccess !== 'both') {
+          editForm.setValue('contentAccess', 'professional');
+        }
+        if (currentValues.astAccess === undefined) editForm.setValue('astAccess', true);
+        if (currentValues.iaAccess === undefined) editForm.setValue('iaAccess', true);
+      } else if (watchedRole === 'participant') {
+        editForm.setValue('contentAccess', 'professional');
+        if (currentValues.astAccess === undefined) editForm.setValue('astAccess', true);
+        if (currentValues.iaAccess === undefined) editForm.setValue('iaAccess', false);
+      } else if (watchedRole === 'student') {
+        editForm.setValue('contentAccess', 'student');
+        editForm.setValue('astAccess', true);
+        editForm.setValue('iaAccess', false);
+      }
+    }
+  }, [watchedRole, editForm]);
 
   // Mutation for creating a new user
   const createUserMutation = useMutation({
@@ -1240,11 +1273,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   </div>
                 </div>
 
-                {/* Content Type Access Section - Admin Only, Facilitator Users Only */}
-                {currentUser?.role === 'admin' && selectedUser?.role === 'facilitator' && (
+                {/* Content Type Access Section - Dynamic Role-Based Display */}
+                {(watchedRole === 'admin' || watchedRole === 'facilitator') && (
                   <div className="space-y-4">
                     <div className="border-t pt-4">
                       <h4 className="text-sm font-medium mb-3">Content Type Access</h4>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {watchedRole === 'admin' ? 'Administrators can toggle between content types during workshop testing' : 'Facilitators can access different content types for management purposes'}
+                      </p>
                       <FormField
                         control={editForm.control}
                         name="contentAccess"
@@ -1298,53 +1334,70 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   </div>
                 )}
 
-                  {/* Workshop Access Section */}
-                  <div className="border-t pt-4">
-                    <h4 className="text-sm font-medium mb-3">Workshop Access</h4>
-                    <div className="space-y-3">
-                      <FormField
-                        control={editForm.control}
-                        name="astAccess"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-sm">AllStarTeams Workshop</FormLabel>
-                              <FormDescription className="text-xs">
-                                Access to team collaboration and strengths discovery workshop
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                  {/* Workshop Access Section - All roles except student by default */}
+                  {watchedRole !== 'student' && (
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-3">Workshop Access</h4>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        {watchedRole === 'admin' 
+                          ? 'Administrators have access to all workshops for testing and management'
+                          : watchedRole === 'facilitator'
+                          ? 'Facilitators can access workshops they need to manage'
+                          : 'Controls which workshops this user can participate in'
+                        }
+                      </p>
+                      <div className="space-y-3">
+                        <FormField
+                          control={editForm.control}
+                          name="astAccess"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-sm">AllStarTeams Workshop</FormLabel>
+                                <FormDescription className="text-xs">
+                                  Access to team collaboration and strengths discovery workshop
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  disabled={watchedRole === 'admin'} // Admins always have access
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
 
-                      <FormField
-                        control={editForm.control}
-                        name="iaAccess"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                            <div className="space-y-0.5">
-                              <FormLabel className="text-sm">Imaginal Agility Workshop</FormLabel>
-                              <FormDescription className="text-xs">
-                                Access to individual development and agility training workshop
-                              </FormDescription>
-                            </div>
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
+                        <FormField
+                          control={editForm.control}
+                          name="iaAccess"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
+                              <div className="space-y-0.5">
+                                <FormLabel className="text-sm">Imaginal Agility Workshop</FormLabel>
+                                <FormDescription className="text-xs">
+                                  Access to individual development and agility training workshop
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  disabled={watchedRole === 'admin'} // Admins always have access
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                      {watchedRole === 'admin' && (
+                        <p className="text-xs text-muted-foreground mt-2 italic">
+                          Note: Administrators always have full workshop access and cannot be restricted.
+                        </p>
+                      )}
                     </div>
-                  </div>
+                  )}
 
                   {/* Password Management Section */}
                   <div className="border-t pt-4">
