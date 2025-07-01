@@ -73,7 +73,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     flowOptimizedLife: ''
   });
   
-  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving' | 'error'>('saved');
+  // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
 
   // Load existing data when component mounts
@@ -153,7 +153,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     
     try {
       // Save the data before proceeding to next step
-      setSaveStatus('saving');
       const response = await fetch('/api/workshop-data/future-self', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -163,10 +162,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       
       const result = await response.json();
       if (result.success) {
-        setSaveStatus('saved');
         console.log('FutureSelfView: Data saved successfully before navigation');
       } else {
-        setSaveStatus('error');
         console.warn('FutureSelfView: Save failed but proceeding anyway');
       }
       
@@ -175,7 +172,6 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       setCurrentContent('final-reflection');
     } catch (error) {
       console.error('FutureSelfView: Error saving or completing:', error);
-      setSaveStatus('error');
       // Still proceed to next step even if save fails
       markStepCompleted('4-4');
       setCurrentContent('final-reflection');
@@ -409,14 +405,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           />
         </div>
 
-        {/* Save Status */}
-        <div className="max-w-4xl mx-auto mb-6 text-center">
-          <p className="text-sm text-gray-500">
-            {saveStatus === 'saving' && 'Saving...'}
-            {saveStatus === 'saved' && 'All changes saved'}
-            {saveStatus === 'error' && 'Error saving - please try again'}
-          </p>
-        </div>
+        {/* No save status display - user controls saving via Next button */}
 
         {/* Next Button */}
         <div className="max-w-4xl mx-auto flex justify-center">
@@ -432,7 +421,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
           >
             <span>
               {hasMinimumContent 
-                ? (saveStatus === 'saving' ? "Saving..." : "Save & Continue to Final Reflection")
+                ? "Save & Continue to Final Reflection"
                 : "Add reflection to continue"
               }
             </span>
