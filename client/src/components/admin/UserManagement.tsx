@@ -1399,6 +1399,40 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     </div>
                   )}
 
+                  {/* Student-specific Settings Section */}
+                  {watchedRole === 'student' && (
+                    <div className="border-t pt-4">
+                      <h4 className="text-sm font-medium mb-3">Student Settings</h4>
+                      <p className="text-xs text-muted-foreground mb-3">
+                        Students are automatically configured for youth-focused workshop content
+                      </p>
+                      <div className="space-y-3">
+                        <div className="rounded-lg border p-3 bg-purple-50">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <span className="text-sm font-medium">Student Content</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Access to age-appropriate assessment questions and content
+                          </p>
+                        </div>
+                        
+                        <div className="rounded-lg border p-3 bg-yellow-50">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                            <span className="text-sm font-medium">AllStarTeams Workshop Only</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Primary workshop focus for team building and strengths discovery
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-3 italic">
+                        Note: Student settings are automatically optimized and cannot be modified.
+                      </p>
+                    </div>
+                  )}
+
                   {/* Password Management Section */}
                   <div className="border-t pt-4">
                     <h4 className="text-sm font-medium mb-3">Password Management</h4>
