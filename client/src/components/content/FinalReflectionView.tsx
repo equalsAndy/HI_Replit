@@ -388,7 +388,7 @@ export default function FinalReflectionView({
                 
                 <button className="option-card" onClick={() => handleModalOption('growth-plan')}>
                   <div className="option-icon">📈</div>
-                  <h3 className="option-title">See Our Growth Plan</h3>
+                  <h3 className="option-title">Create a Growth Plan</h3>
                   <p className="option-description">Explore our quarterly growth planning feature</p>
                 </button>
                 
