@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
@@ -38,6 +38,11 @@ export default function HolisticReportView({
   const completedAssessments = requiredAssessments.filter(type => userAssessments?.[type]);
   const allAssessmentsComplete = completedAssessments.length === requiredAssessments.length;
   const missingAssessments = requiredAssessments.filter(type => !userAssessments?.[type]);
+
+  // Auto-mark step as completed when component loads
+  useEffect(() => {
+    markStepCompleted('5-2');
+  }, [markStepCompleted]);
 
   const handleDownload = async () => {
     if (!allAssessmentsComplete) {
