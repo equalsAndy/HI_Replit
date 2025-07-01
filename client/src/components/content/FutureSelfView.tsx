@@ -183,10 +183,33 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     if (!hasMinimumContent) return;
     
     try {
+      // Save the data before proceeding to next step
+      setSaveStatus('saving');
+      const response = await fetch('/api/workshop-data/future-self', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(formData)
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        setSaveStatus('saved');
+        console.log('FutureSelfView: Data saved successfully before navigation');
+      } else {
+        setSaveStatus('error');
+        console.warn('FutureSelfView: Save failed but proceeding anyway');
+      }
+      
+      // Mark step completed and navigate regardless of save status
       markStepCompleted('4-4');
       setCurrentContent('final-reflection');
     } catch (error) {
-      console.error('Error completing future self reflection:', error);
+      console.error('FutureSelfView: Error saving or completing:', error);
+      setSaveStatus('error');
+      // Still proceed to next step even if save fails
+      markStepCompleted('4-4');
+      setCurrentContent('final-reflection');
     }
   };
 

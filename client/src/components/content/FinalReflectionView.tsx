@@ -144,35 +144,30 @@ export default function FinalReflectionView({
     setInsight(randomInsight);
   };
 
-  const debouncedSave = useCallback(
-    (() => {
-      let timeoutId: NodeJS.Timeout;
-      return (value: string) => {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-          if (!isStepCompleted && value.trim().length > 0) {
-            const saveData = { futureLetterText: value.trim() };
-            saveMutation.mutate(saveData);
-          }
-        }, 1000); // Wait 1 second after user stops typing
-      };
-    })(),
-    [isStepCompleted, saveMutation]
-  );
-
   const handleInsightChange = (value: string) => {
     setInsight(value);
-    
-    // Auto-save after user stops typing (only if not completed)
-    if (!isStepCompleted) {
-      debouncedSave(value);
-    }
+    // Removed auto-save - data will only save when user clicks "Complete Your Journey"
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     if (insight.trim().length >= 10) {
-      markStepCompleted('4-5');
-      setShowModal(true);
+      // Save the final reflection data before completing
+      setSaveStatus('saving');
+      try {
+        const saveData = { futureLetterText: insight.trim() };
+        await saveMutation.mutateAsync(saveData);
+        setSaveStatus('saved');
+        
+        // Mark step as completed and show modal
+        markStepCompleted('4-5');
+        setShowModal(true);
+      } catch (error) {
+        console.error('Failed to save final reflection:', error);
+        setSaveStatus('error');
+        // Still complete the step even if save fails
+        markStepCompleted('4-5');
+        setShowModal(true);
+      }
     }
   };
 
@@ -299,11 +294,10 @@ export default function FinalReflectionView({
                   placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
                   rows={4}
                 />
-                {!isStepCompleted && (
+                {/* Save status shown only when user clicks Complete Your Journey */}
+                {saveStatus === 'saving' && !isStepCompleted && (
                   <div className="save-status">
-                    {saveStatus === 'saving' && <span className="status saving">Saving...</span>}
-                    {saveStatus === 'saved' && <span className="status saved">Saved</span>}
-                    {saveStatus === 'error' && <span className="status error">Save failed</span>}
+                    <span className="status saving">Saving...</span>
                   </div>
                 )}
               </div>

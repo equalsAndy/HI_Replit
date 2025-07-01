@@ -399,7 +399,31 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             </Button>
           )}
           <Button 
-            onClick={() => {
+            onClick={async () => {
+              // Save data before proceeding
+              if (selectedImages.length > 0 || imageMeaning.trim()) {
+                console.log('VisualizingYouView: Saving data before proceeding to next step...');
+                try {
+                  const response = await fetch('/api/workshop-data/visualizing-potential', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                      selectedImages,
+                      imageMeaning
+                    })
+                  });
+
+                  const result = await response.json();
+                  if (result.success) {
+                    console.log('VisualizingYouView: Data saved successfully before navigation');
+                  } else {
+                    console.warn('VisualizingYouView: Save failed but proceeding anyway');
+                  }
+                } catch (error) {
+                  console.error('VisualizingYouView: Save error but proceeding anyway:', error);
+                }
+              }
               markStepCompleted('4-3');
               setCurrentContent("future-self");
             }}
