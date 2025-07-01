@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect, useState, useRef } from 'react';
 import { useLocation } from 'wouter';
-import { Video, BookOpen, Zap, Glasses, PenLine, Download, Activity } from 'lucide-react';
+import { Video, BookOpen, Zap, Glasses, PenLine, Download, Activity, CheckCircle } from 'lucide-react';
 import { useApplication } from '@/hooks/use-application';
 import { useNavigationProgress, NavigationSection } from '@/hooks/use-navigation-progress';
 import { NavigationHeader } from './NavigationHeader';
@@ -20,7 +20,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { currentApp } = useApplication();
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
-  
+
   // Get user data for content access preference
   const { data: userData } = useQuery<{
     success: boolean;
@@ -38,19 +38,19 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
-  
+
   // ALWAYS LOG THIS TO SEE IF COMPONENT IS RUNNING
   console.log('🚀 Navigation Component Loaded!');
   console.log('🚀 currentApp object:', currentApp);
   console.log('🚀 userData object:', userData);
-  
+
   // Check if user should see student interface for week-based navigation
   // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
   const userRole = userData?.user?.role;
   const contentAccess = userData?.user?.contentAccess;
   const isStudentContent = contentAccess === 'student' || userRole === 'student';
   const isStudentOrFacilitator = isStudentContent || userRole === 'facilitator';
-  
+
   // DEBUG: Log role detection
   console.log('🔍 Navigation Debug:');
   console.log('- userRole:', userRole);
@@ -59,13 +59,13 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
   console.log('- userData?.user:', userData?.user);
   console.log('- Navigation structure will be:', isStudentOrFacilitator ? 'WEEK-BASED' : 'SESSION-BASED');
-  
+
   // CRITICAL DEBUG: Force log when contentAccess is student
   if (contentAccess === 'student') {
     console.log('🚨 CRITICAL: User has contentAccess="student" - should show WEEK-BASED navigation!');
     console.log('🚨 Full userData object:', JSON.stringify(userData, null, 2));
   }
-  
+
   // Function to get navigation sections based on user role
   const getJourneySections = () => {
     if (isStudentOrFacilitator) {
@@ -246,25 +246,25 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       ];
     }
   };
-  
+
   // Get the appropriate navigation structure
   const journeySections = getJourneySections();
-  
+
   // Use a ref to track if we've initialized the navigation structure
   const hasInitialized = useRef(false);
-  
+
   // Initialize the navigation structure only once 
   useEffect(() => {
     // Skip if we've already initialized
     if (hasInitialized.current) return;
-    
+
     // Mark as initialized
     hasInitialized.current = true;
-    
+
     // Use the journeySections we defined above 
     updateNavigationSections();
   }, []); // Removed the dependency since it causes infinite updates
-  
+
   // Set current step based on props and scroll to top (only when it changes)
   useEffect(() => {
     if (currentStepId) {
@@ -273,15 +273,15 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       window.scrollTo(0, 0);
     }
   }, [currentStepId, location]); // Added location to dependencies to catch all navigation changes
-  
+
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Fixed navigation header */}
       <NavigationHeader />
-      
+
       {/* Quick Resume Modal */}
       <QuickResumeModal />
-      
+
       {/* Mobile Menu Toggle Button (shows at the top on mobile) */}
       <div className="md:hidden mx-4 mt-4">
         <Button 
@@ -292,7 +292,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
           {showMobileNav ? 'Hide Learning Journey' : 'Show Learning Journey'}
         </Button>
       </div>
-      
+
       {/* Mobile Navigation */}
       {showMobileNav && (
         <div className="md:hidden mt-4 mx-4 p-4 bg-white rounded-md border border-gray-200 shadow-sm">
@@ -302,7 +302,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
           />
         </div>
       )}
-      
+
       {/* Main content area */}
       <main className="flex-1 container mx-auto px-4 py-6 md:py-8">
         <div className="md:grid md:grid-cols-4 gap-6">
@@ -312,7 +312,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
               <NavigationSidebar />
             </div>
           </div>
-          
+
           {/* Main content */}
           <div className="md:col-span-3">
             {children}

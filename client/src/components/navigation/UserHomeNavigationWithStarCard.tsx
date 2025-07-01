@@ -131,6 +131,35 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const [localFlowData, setLocalFlowData] = useState<any>(null);
 
   // Removed problematic reset detection that was interfering with progression
+  const getSectionProgress = (steps: string[]) => {
+    const completedInSection = steps.filter(stepId => 
+      completedSteps.includes(stepId)
+    ).length;
+
+    // Debug logging for false positive detection
+    console.log(`📊 Section Progress Debug:`, {
+      sectionSteps: steps,
+      completedSteps,
+      completedInSection,
+      total: steps.length,
+      display: `${completedInSection}/${steps.length}`,
+      stackTrace: new Error().stack?.split('\n').slice(1, 3)
+    });
+
+    return {
+      completed: completedInSection,
+      total: steps.length,
+      display: `${completedInSection}/${steps.length}`,
+      isComplete: completedInSection === steps.length
+    };
+  };
+
+  // Helper function to check if individual step is completed
+  const isStepCompleted = (stepId: string) => {
+    const isCompleted = completedSteps.includes(stepId);
+    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', completedSteps);
+    return isCompleted;
+  };
 
   // Reset local state when user progress is reset
   useEffect(() => {
@@ -335,9 +364,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                         </div>
                       </div>
                     )}
-                    
+
                     <ul className="pl-7 space-y-1 relative">
-                    
+
                     {section.steps.map((step, stepIndex) => {
                       // For Resources section, we handle special logic for Your Star Card
                       const isResourceSection = section.id === '5';
