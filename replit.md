@@ -136,6 +136,29 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### July 1, 2025 - Admin Interface Toggle with Role-Based Content Recognition Complete ✅
+- **ROLE-BASED TOGGLE RESTRICTIONS**: Restricted interface toggle to admins and facilitators only
+  - Added permission check `hasBothInterfaceAccess` for users with management access
+  - Toggle only displays for admin and facilitator roles who can switch between interfaces
+  - Regular users (participants, students) see their role-appropriate content without toggle option
+- **WORKSHOP NAVIGATION RESTORATION**: Added workshop navigation buttons back to admin console
+  - Restored ⭐ AllStarTeams and 🧠 Imaginal Agility navigation buttons in admin header
+  - Direct workshop access for admins to test and demonstrate content
+  - Clean button layout with proper spacing and visual hierarchy
+- **COMPREHENSIVE CONTENT ACCESS SYSTEM**: Fixed role recognition across all workshop components
+  - Updated AssessmentModal, Assessment page, WelcomeView, and Navigation components
+  - All components now check `contentAccess` preference first, then fall back to role
+  - Admin toggle properly affects assessment question sets (student vs professional scenarios)
+  - Navigation component now fetches user profile directly instead of relying on app context
+- **BACKEND API ENHANCEMENT**: Created `/api/user/content-access` endpoint for preference management
+  - Real-time content access updates with proper validation
+  - Database persistence of interface preference selection
+  - Enhanced user profile responses include contentAccess field
+- **UNIFIED ROLE RECOGNITION LOGIC**: Standardized content determination across platform
+  - Pattern: `contentAccess === 'student' || role === 'student'` for student content
+  - Admin/facilitator toggle overrides role-based defaults
+  - Proper TypeScript typing for user profile queries with contentAccess field
+
 ### June 30, 2025 - Enhanced Admin Console with Interface Switcher Complete ✅
 - **COMPREHENSIVE INTERFACE SWITCHER**: Successfully implemented dropdown-based interface switching in admin console header
   - Five interface options: Admin Console, Student Interface, Professional Interface, AllStarTeams Workshop, Imaginal Agility Workshop

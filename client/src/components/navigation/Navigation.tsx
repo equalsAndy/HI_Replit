@@ -8,6 +8,7 @@ import { NavigationSidebar } from './NavigationSidebar';
 import { MobileNavigation } from './MobileNavigation';
 import { QuickResumeModal } from './QuickResumeModal';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
 
 interface NavigationProps {
   children: ReactNode;
@@ -20,21 +21,50 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   const { updateNavigationSections, setCurrentStep } = useNavigationProgress();
   const [showMobileNav, setShowMobileNav] = useState(false);
   
+  // Get user data for content access preference
+  const { data: userData } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      username: string;
+      role?: string;
+      contentAccess?: string;
+      isTestUser: boolean;
+    }
+  }>({
+    queryKey: ['/api/user/profile'],
+    staleTime: 0, // Force fresh data every time
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+  });
+  
   // ALWAYS LOG THIS TO SEE IF COMPONENT IS RUNNING
   console.log('🚀 Navigation Component Loaded!');
   console.log('🚀 currentApp object:', currentApp);
+  console.log('🚀 userData object:', userData);
   
   // Check if user should see student interface for week-based navigation
   // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
-  const isStudentContent = currentApp?.user?.contentAccess === 'student' || currentApp?.user?.role === 'student';
-  const isStudentOrFacilitator = isStudentContent || currentApp?.user?.role === 'facilitator';
+  const userRole = userData?.user?.role;
+  const contentAccess = userData?.user?.contentAccess;
+  const isStudentContent = contentAccess === 'student' || userRole === 'student';
+  const isStudentOrFacilitator = isStudentContent || userRole === 'facilitator';
   
   // DEBUG: Log role detection
   console.log('🔍 Navigation Debug:');
-  console.log('- currentApp?.user?.role:', currentApp?.user?.role);
+  console.log('- userRole:', userRole);
+  console.log('- contentAccess:', contentAccess);
+  console.log('- isStudentContent:', isStudentContent);
   console.log('- isStudentOrFacilitator:', isStudentOrFacilitator);
-  console.log('- Full user object:', currentApp?.user);
+  console.log('- userData?.user:', userData?.user);
   console.log('- Navigation structure will be:', isStudentOrFacilitator ? 'WEEK-BASED' : 'SESSION-BASED');
+  
+  // CRITICAL DEBUG: Force log when contentAccess is student
+  if (contentAccess === 'student') {
+    console.log('🚨 CRITICAL: User has contentAccess="student" - should show WEEK-BASED navigation!');
+    console.log('🚨 Full userData object:', JSON.stringify(userData, null, 2));
+  }
   
   // Function to get navigation sections based on user role
   const getJourneySections = () => {
