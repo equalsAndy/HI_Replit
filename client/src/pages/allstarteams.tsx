@@ -86,6 +86,14 @@ export default function AllStarTeams() {
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
   // Check contentAccess preference first (for admin/facilitator toggles), then fall back to user role
   const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
+  
+  // Debug role and content access
+  console.log('🎓 ROLE DEBUG:', {
+    userRole,
+    contentAccess: userData?.user?.contentAccess,
+    isStudentContent,
+    userDataSnapshot: userData?.user
+  });
 
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
