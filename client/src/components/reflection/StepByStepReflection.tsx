@@ -381,12 +381,12 @@ export default function StepByStepReflection({
   // Helper function to get current reflection text
   const getCurrentReflectionText = (): string => {
     switch(currentStep) {
-      case 1: return reflections.strength1;
-      case 2: return reflections.strength2;
-      case 3: return reflections.strength3;
-      case 4: return reflections.strength4;
-      case 5: return reflections.teamValues;
-      case 6: return reflections.uniqueContribution;
+      case 1: return reflections.strength1 || '';
+      case 2: return reflections.strength2 || '';
+      case 3: return reflections.strength3 || '';
+      case 4: return reflections.strength4 || '';
+      case 5: return reflections.teamValues || '';
+      case 6: return reflections.uniqueContribution || '';
       default: return '';
     }
   };
@@ -889,12 +889,7 @@ export default function StepByStepReflection({
               </p>
               <Textarea 
                 id={`strength-${currentStep}-reflection`}
-                value={currentStep === 1 ? reflections.strength1 : 
-                       currentStep === 2 ? reflections.strength2 : 
-                       currentStep === 3 ? reflections.strength3 : 
-                       currentStep === 4 ? reflections.strength4 :
-                       currentStep === 5 ? reflections.teamValues :
-                       reflections.uniqueContribution}
+                value={getCurrentReflectionText()}
                 onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
                 placeholder={currentStep <= 4 
                   ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
