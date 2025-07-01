@@ -24,8 +24,10 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
   console.log('🚀 Navigation Component Loaded!');
   console.log('🚀 currentApp object:', currentApp);
   
-  // Check if user is student or facilitator for week-based navigation
-  const isStudentOrFacilitator = currentApp?.user?.role === 'student' || currentApp?.user?.role === 'facilitator';
+  // Check if user should see student interface for week-based navigation
+  // Check contentAccess first (for admin/facilitator interface toggle), then fall back to role
+  const isStudentContent = currentApp?.user?.contentAccess === 'student' || currentApp?.user?.role === 'student';
+  const isStudentOrFacilitator = isStudentContent || currentApp?.user?.role === 'facilitator';
   
   // DEBUG: Log role detection
   console.log('🔍 Navigation Debug:');
