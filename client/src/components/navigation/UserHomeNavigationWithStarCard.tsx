@@ -74,18 +74,13 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
 
-  // Calculate section progress based on completed steps - Updated for new structure
+  // Calculate section progress based on completed steps - Updated for dynamic navigation structure
   const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
-    const sectionSteps: { [key: string]: string[] } = {
-      '1': ['1-1'],                              // Introduction (1/1)
-      '2': ['2-1', '2-2', '2-3', '2-4'],        // Week 1: Star Strengths (4/4)
-      '3': ['3-1', '3-2', '3-3', '3-4'],        // Week 2: Flow (4/4)
-      '4': ['4-1', '4-2'],                      // Week 3: Potential Part 1 (2/2)
-      '5': ['4-3', '4-4', '4-5'],              // Week 4: Potential Part 2 (3/3)
-      '6': ['5-1', '5-2', '5-3', '5-4']        // Week 5: Next Steps (4/4)
-    };
+    // Find the actual section from navigationSections to get its steps
+    const section = navigationSections.find(s => s.id === sectionId);
+    if (!section) return { completed: 0, total: 0, display: '0/0', isComplete: false };
 
-    const steps = sectionSteps[sectionId] || [];
+    const steps = section.steps.map(step => step.id);
     const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
     const completedInSection = steps.filter(stepId => safeCompletedSteps.includes(stepId)).length;
 
