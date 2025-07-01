@@ -112,14 +112,18 @@ export default function StepByStepReflection({
         
         if (result.success && result.data) {
           console.log('✅ Setting reflection data from database:', result.data);
+          
+          // Handle both old format (direct fields) and new format (nested under reflections)
+          const reflectionData = result.data.reflections || result.data;
+          
           // Ensure all fields are properly set with empty strings as fallback
           setReflections({
-            strength1: result.data.strength1 || '',
-            strength2: result.data.strength2 || '',
-            strength3: result.data.strength3 || '',
-            strength4: result.data.strength4 || '',
-            teamValues: result.data.teamValues || '',
-            uniqueContribution: result.data.uniqueContribution || ''
+            strength1: reflectionData.strength1 || '',
+            strength2: reflectionData.strength2 || '',
+            strength3: reflectionData.strength3 || '',
+            strength4: reflectionData.strength4 || '',
+            teamValues: reflectionData.teamValues || '',
+            uniqueContribution: reflectionData.uniqueContribution || ''
           });
         } else {
           console.log('⚠️ No reflection data found or failed to load, initializing empty state');
