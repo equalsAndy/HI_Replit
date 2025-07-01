@@ -341,7 +341,7 @@ export default function FinalReflectionView({
                     </div>
                     
                     <p className="text-sm text-gray-600 text-center mt-4">
-                      Your reflection has been saved. You can now explore the professional section or return to the main menu.
+                      Your reflection has been saved. You can now review your Star Card, your Holistic Report, and other next steps.
                     </p>
                   </div>
                 )}
