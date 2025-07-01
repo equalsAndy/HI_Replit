@@ -40,6 +40,12 @@ export default function FinalReflectionView({
   // Save status tracking
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
+  // Auto-complete step 4-5 when component loads
+  useEffect(() => {
+    console.log('🎯 FinalReflectionView mounted - marking step 4-5 as completed');
+    markStepCompleted('4-5');
+  }, [markStepCompleted]);
+
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
     queryKey: ['/api/workshop-data/final-reflection'],
