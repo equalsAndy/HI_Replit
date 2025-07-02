@@ -211,6 +211,9 @@ export default function FinalReflectionView({
       
       // Then complete the workshop
       console.log('🎯 Completing workshop...');
+      if (!completeWorkshop) {
+        throw new Error('Workshop completion function not available');
+      }
       await completeWorkshop();
       
       console.log('🎯 Workshop completed successfully!');
