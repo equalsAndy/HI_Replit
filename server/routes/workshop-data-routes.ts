@@ -1756,7 +1756,7 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
 });
 
 // POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
