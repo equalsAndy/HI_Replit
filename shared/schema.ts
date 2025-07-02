@@ -74,6 +74,11 @@ export const users = pgTable('users', {
   contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both
   astAccess: boolean('ast_access').default(true).notNull(), // AllStarTeams workshop access
   iaAccess: boolean('ia_access').default(true).notNull(), // Imaginal Agility workshop access
+  // Workshop completion tracking
+  astWorkshopCompleted: boolean('ast_workshop_completed').default(false).notNull(),
+  iaWorkshopCompleted: boolean('ia_workshop_completed').default(false).notNull(),
+  astCompletedAt: timestamp('ast_completed_at'),
+  iaCompletedAt: timestamp('ia_completed_at'),
   // Facilitator console fields
   assignedFacilitatorId: integer('assigned_facilitator_id').references(() => users.id, { onDelete: 'set null' }),
   cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
@@ -93,7 +98,9 @@ export const insertUserSchema = createInsertSchema(users).extend({
   role: z.enum(['admin', 'facilitator', 'participant', 'student']).default('participant'),
   contentAccess: z.enum(['student', 'professional', 'both']).default('professional'),
   astAccess: z.boolean().default(true),
-  iaAccess: z.boolean().default(true)
+  iaAccess: z.boolean().default(true),
+  astWorkshopCompleted: z.boolean().default(false),
+  iaWorkshopCompleted: z.boolean().default(false)
 });
 
 // Type definitions for TypeScript

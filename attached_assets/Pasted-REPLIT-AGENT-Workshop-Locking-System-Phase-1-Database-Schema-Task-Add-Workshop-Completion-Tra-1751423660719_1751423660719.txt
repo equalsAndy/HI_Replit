@@ -1,0 +1,54 @@
+REPLIT AGENT: Workshop Locking System - Phase 1 Database Schema
+🎯 Task: Add Workshop Completion Tracking to Database Schema
+You need to add workshop completion status fields to the existing users table in the AllStarTeams application. This will track when users complete AST or IA workshops and prevent further edits.
+📁 Files to Modify
+Primary File: shared/schema.ts
+REQUIRED CHANGES:
+
+Add new fields to the users table schema (around line where other boolean fields are defined):
+
+typescript// Workshop completion tracking
+astWorkshopCompleted: boolean('ast_workshop_completed').default(false).notNull(),
+iaWorkshopCompleted: boolean('ia_workshop_completed').default(false).notNull(),
+astCompletedAt: timestamp('ast_completed_at'),
+iaCompletedAt: timestamp('ia_completed_at'),
+EXACT PLACEMENT: Add these fields after the existing access control fields (astAccess, iaAccess) and before the facilitator console fields (assignedFacilitatorId).
+🔧 Implementation Requirements
+Database Schema Pattern
+
+Follow the existing naming convention in the file
+Use boolean fields with .default(false).notNull() for completion status
+Use nullable timestamp fields for completion dates
+Maintain consistent field ordering with other table definitions
+
+Field Specifications:
+
+astWorkshopCompleted: Boolean, defaults to false, not null
+iaWorkshopCompleted: Boolean, defaults to false, not null
+astCompletedAt: Timestamp, nullable (null until workshop completed)
+iaCompletedAt: Timestamp, nullable (null until workshop completed)
+
+✅ Success Criteria
+
+Schema Integration: New fields properly integrated into existing users table schema
+Type Safety: Fields follow existing TypeScript patterns in the file
+Naming Convention: Field names match the camelCase pattern used elsewhere
+Default Values: Boolean fields have proper defaults and null constraints
+File Integrity: No syntax errors, proper imports maintained
+
+🚨 Critical Requirements
+
+PRESERVE ALL EXISTING FIELDS: Do not modify or remove any existing user table fields
+MAINTAIN IMPORTS: Keep all existing imports at the top of the file
+FOLLOW PATTERNS: Use the exact same pattern as other boolean and timestamp fields in the schema
+NO BREAKING CHANGES: Ensure the changes don't break existing database queries
+
+🔍 Validation Steps
+After making changes:
+
+Verify the file has no TypeScript errors
+Confirm all existing fields remain unchanged
+Check that the new fields follow the established patterns
+Ensure proper formatting and indentation
+
+The schema changes will be used by the database migration system to add these columns to the production database. These fields will then be used by the frontend workshop locking system to track completion status.
