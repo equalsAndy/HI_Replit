@@ -3,11 +3,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useTestUser } from '@/hooks/useTestUser';
-import { FileText } from 'lucide-react';
+import { FileText, Lock } from 'lucide-react';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
 import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useToast } from '@/hooks/use-toast';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -30,6 +32,11 @@ export default function FinalReflectionView({
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
   const isTestUser = useTestUser();
+  
+  // Workshop status integration
+  const { completed: workshopCompleted, completeWorkshop, isWorkshopLocked } = useWorkshopStatus();
+  const { toast } = useToast();
+  const [isCompletingWorkshop, setIsCompletingWorkshop] = useState(false);
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -158,33 +165,66 @@ export default function FinalReflectionView({
     // Removed auto-save - data will only save when user clicks "Complete Your Journey"
   };
 
-  const handleComplete = async () => {
+  const handleSave = async () => {
     // Validate input before proceeding
     const error = validateTextInput(insight, 'insight', 10);
     if (error) {
       setValidationError(error.message);
-      return;
+      return false;
     }
     
     // Clear any previous validation errors
     setValidationError('');
     
-    // Save the final reflection data before completing
+    // Save the final reflection data
     setSaveStatus('saving');
     try {
       const saveData = { futureLetterText: insight.trim() };
       await saveMutation.mutateAsync(saveData);
       setSaveStatus('saved');
       
-      // Mark step as completed and show modal
+      // Mark step as completed
       markStepCompleted('4-5');
-      setShowModal(true);
+      return true;
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
-      // Still complete the step even if save fails
-      markStepCompleted('4-5');
+      return false;
+    }
+  };
+
+  const handleCompleteWorkshop = async () => {
+    setIsCompletingWorkshop(true);
+    
+    try {
+      // First save the reflection if not already saved
+      if (saveStatus !== 'saved') {
+        const saved = await handleSave();
+        if (!saved) {
+          setIsCompletingWorkshop(false);
+          return;
+        }
+      }
+      
+      // Then complete the workshop
+      await completeWorkshop();
+      
+      toast({
+        title: "Workshop Completed!",
+        description: "Your responses are now locked. You can still view content and download reports.",
+        duration: 5000
+      });
+      
       setShowModal(true);
+    } catch (error) {
+      console.error('Failed to complete workshop:', error);
+      toast({
+        title: "Failed to complete workshop",
+        description: "Please try again. If the problem persists, contact support.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCompletingWorkshop(false);
     }
   };
 
@@ -330,44 +370,65 @@ export default function FinalReflectionView({
               </div>
               
               <div className="action-section">
-                {!isStepCompleted ? (
-                  // Original completion flow for first-time users
-                  <>
-                    <div className="flex items-center justify-center gap-3">
-                      {isTestUser && (
-                        <button
-                          onClick={fillWithDemoData}
-                          className="demo-button-inline"
-                          type="button"
-                        >
-                          <FileText className="demo-icon" />
-                          Add Demo Data
-                        </button>
-                      )}
-                      
-                      {/* Gentle completion notice */}
-                      <div className="completion-notice mb-3">
-                        <p className="text-sm text-gray-600 flex items-center gap-2">
-                          <span className="text-blue-500">ℹ️</span>
-                          Finishing your workshop will prevent any further editing.
-                        </p>
-                      </div>
-                      
+                {!workshopCompleted ? (
+                  <div className="flex flex-col items-center gap-4">
+                    {isTestUser && (
                       <button
-                        className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
-                        onClick={handleComplete}
-                        disabled={insight.length < 10}
+                        onClick={fillWithDemoData}
+                        className="demo-button-inline"
+                        type="button"
                       >
-                        Complete Your Journey
+                        <FileText className="demo-icon" />
+                        Add Demo Data
                       </button>
-                    </div>
-                    
-                    {insight.length < 10 && (
-                      <p className="helper-text">
-                        Share your insight to complete the workshop
-                      </p>
                     )}
-                  </>
+                    
+                    {/* Save button */}
+                    {saveStatus !== 'saved' ? (
+                      <>
+                        <button
+                          className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
+                          onClick={handleSave}
+                          disabled={insight.length < 10 || saveStatus === 'saving'}
+                        >
+                          {saveStatus === 'saving' ? 'Saving...' : 'Save Your Reflection'}
+                        </button>
+                        
+                        {insight.length < 10 && (
+                          <p className="helper-text">
+                            Share your insight to save your reflection
+                          </p>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        {/* Gentle completion notice */}
+                        <div className="completion-notice mb-3">
+                          <p className="text-sm text-gray-600 flex items-center gap-2">
+                            <span className="text-green-500">✅</span>
+                            Reflection saved! Ready to finish your workshop.
+                          </p>
+                          <p className="text-sm text-gray-600 flex items-center gap-2 mt-2">
+                            <span className="text-blue-500">ℹ️</span>
+                            Finishing your workshop will lock all responses.
+                          </p>
+                        </div>
+                        
+                        <button
+                          className="finish-button"
+                          onClick={handleCompleteWorkshop}
+                          disabled={isCompletingWorkshop}
+                        >
+                          {isCompletingWorkshop ? 'Finishing...' : (
+                            <>
+                              Finish Workshop
+                              <Lock className="ml-2" size={16} />
+                            </>
+                          )}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 ) : (
                   // Completed state - show completion message and lock the input
                   <div className="completed-section">
@@ -448,7 +509,7 @@ export default function FinalReflectionView({
         </div>
       )}
 
-      <style jsx>{`
+      <style>{`
         .final-reflection-container {
           max-width: 1200px;
           margin: 0 auto;
@@ -755,6 +816,35 @@ export default function FinalReflectionView({
           background: #ecf0f1;
           color: #bdc3c7;
           cursor: not-allowed;
+        }
+
+        .finish-button {
+          padding: 18px 48px;
+          border: none;
+          border-radius: 12px;
+          font-size: 1.2rem;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+          color: white;
+          box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .finish-button:hover:not(:disabled) {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4);
+        }
+
+        .finish-button:disabled {
+          background: #ecf0f1;
+          color: #bdc3c7;
+          cursor: not-allowed;
+          transform: none;
+          box-shadow: none;
         }
 
         .helper-text {
