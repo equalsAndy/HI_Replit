@@ -16,8 +16,8 @@ export function LockedInputWrapper({ children, className = '' }: LockedInputWrap
     isLocked,
     completed,
     loading,
-    childrenType: children.type,
-    childrenProps: children.props
+    childrenType: children.type?.name || children.type,
+    childrenProps: Object.keys(children.props || {})
   });
 
   if (!isLocked) {
