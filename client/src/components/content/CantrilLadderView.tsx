@@ -7,8 +7,6 @@ import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
-import { LockedInputWrapper } from '@/components/ui/locked-input-wrapper';
-import { WorkshopCompletionBanner } from '@/components/ui/workshop-completion-banner';
 
 // Props interface
 interface ContentViewProps {
@@ -227,7 +225,10 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                       Consider setting a higher goal to work toward improvement.{' '}
                       <button
                         onClick={() => {
-                          setCurrentContent('visualization');
+                          const ladderSection = document.getElementById('ladder-section');
+                          if (ladderSection) {
+                            ladderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
                         }}
                         className="text-blue-600 underline hover:text-blue-800 font-normal"
                       >

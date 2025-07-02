@@ -1,10 +1,71 @@
-import { Router, Request, Response } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '../../shared/schema';
+import { users } from '../../shared/schema';
 
 // Create a router for workshop data operations
 const workshopDataRouter = Router();
+
+/**
+ * Authentication middleware for workshop data endpoints
+ */
+const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
+  // Get user ID from session (primary) or cookie (fallback)
+  let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+  
+  if (!userId) {
+    return res.status(401).json({
+      success: false,
+      message: 'Authentication required'
+    });
+  }
+  
+  // Fix for test users - use session userId instead of cookie userId (1) if available
+  if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
+    userId = req.session.userId;
+  }
+  
+  req.session.userId = userId;
+  next();
+};
+
+/**
+ * Middleware to check workshop completion status and prevent editing
+ */
+const checkWorkshopLocked = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.session.userId;
+    
+    // Determine workshop type from request body or params
+    const appType = req.body.appType || req.params.appType || 'ast';
+    
+    if (!['ast', 'ia'].includes(appType)) {
+      return next(); // Skip check for invalid app types
+    }
+    
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user[0]) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
+    const isLocked = user[0][completionField];
+    
+    if (isLocked) {
+      return res.status(403).json({ 
+        error: 'Workshop is completed and locked for editing',
+        workshopType: appType.toUpperCase(),
+        completedAt: user[0][appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']
+      });
+    }
+    
+    next();
+  } catch (error) {
+    console.error('Error checking workshop lock status:', error);
+    res.status(500).json({ error: 'Failed to check workshop lock status' });
+  }
+};
 
 /**
  * Video API routes - accessible without admin authentication
@@ -355,7 +416,7 @@ workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response
 });
 
 // Complete assessment
-workshopDataRouter.post('/assessment/complete', async (req: Request, res: Response) => {
+workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   console.log('=== ASSESSMENT COMPLETION START ===');
   console.log('Request body:', JSON.stringify(req.body, null, 2));
   console.log('Session data:', req.session);
@@ -461,7 +522,7 @@ workshopDataRouter.post('/assessment/complete', async (req: Request, res: Respon
 /**
  * Save flow attributes for the current user
  */
-workshopDataRouter.post('/flow-attributes', async (req: Request, res: Response) => {
+workshopDataRouter.post('/flow-attributes', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   // Always set content type to JSON
   res.setHeader('Content-Type', 'application/json');
   
@@ -715,7 +776,7 @@ workshopDataRouter.get('/rounding-out', async (req: Request, res: Response) => {
  * Future Self Reflection endpoints
  */
 // POST /api/workshop-data/future-self
-workshopDataRouter.post('/future-self', async (req: Request, res: Response) => {
+workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -900,7 +961,7 @@ workshopDataRouter.get('/future-self', async (req: Request, res: Response) => {
  * Cantril Ladder (Well-being) Reflection endpoints
  */
 // POST /api/workshop-data/cantril-ladder
-workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) => {
+workshopDataRouter.post('/cantril-ladder', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1344,7 +1405,7 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
  * Step-by-Step Reflection endpoints
  */
 // POST /api/workshop-data/step-by-step-reflection
-workshopDataRouter.post('/step-by-step-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1618,7 +1679,7 @@ workshopDataRouter.get('/visualizing-potential', async (req: Request, res: Respo
  * Final Reflection endpoints
  */
 // POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1695,7 +1756,7 @@ workshopDataRouter.post('/final-reflection', async (req: Request, res: Response)
 });
 
 // POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -2456,54 +2517,95 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
   }
 });
 
-// Get AST workshop completion status
-workshopDataRouter.get('/completion-status', async (req, res) => {
+/**
+ * GET /api/workshop-data/completion-status
+ * Get workshop completion status for the current user
+ */
+workshopDataRouter.get('/completion-status', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
-    }
-
+    const userId = req.session.userId;
+    
     const user = await db.select({
-      astWorkshopCompleted: schema.users.astWorkshopCompleted,
-      astCompletedAt: schema.users.astCompletedAt
-    }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
-
+      astWorkshopCompleted: users.astWorkshopCompleted,
+      iaWorkshopCompleted: users.iaWorkshopCompleted,
+      astCompletedAt: users.astCompletedAt,
+      iaCompletedAt: users.iaCompletedAt
+    }).from(users).where(eq(users.id, userId)).limit(1);
+    
     if (!user[0]) {
       return res.status(404).json({ error: 'User not found' });
     }
-
-    res.json({
-      completed: user[0].astWorkshopCompleted,
-      completedAt: user[0].astCompletedAt
-    });
+    
+    res.json(user[0]);
   } catch (error) {
     console.error('Error fetching completion status:', error);
     res.status(500).json({ error: 'Failed to fetch completion status' });
   }
 });
 
-// Mark AST workshop as completed
-workshopDataRouter.post('/complete-workshop', async (req, res) => {
+/**
+ * POST /api/workshop-data/complete-workshop
+ * Mark a workshop as completed for the current user
+ */
+workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const userId = req.session?.userId;
-
-    if (!userId) {
-      return res.status(401).json({ error: 'Not authenticated' });
+    const { appType } = req.body; // 'ast' or 'ia'
+    const userId = req.session.userId;
+    
+    if (!appType || !['ast', 'ia'].includes(appType)) {
+      return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });
     }
-
-    const now = new Date();
-    await db.update(schema.users)
+    
+    // Get user's navigation progress to verify completion
+    const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user[0]) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Parse navigation progress
+    let progress;
+    try {
+      progress = JSON.parse(user[0].navigationProgress || '{}');
+    } catch (e) {
+      progress = {};
+    }
+    
+    // Define required steps for each workshop type
+    const requiredSteps = appType === 'ast' 
+      ? ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'] 
+      : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
+    
+    const completedSteps = progress[appType]?.completedSteps || [];
+    const allCompleted = requiredSteps.every(step => completedSteps.includes(step));
+    
+    if (!allCompleted) {
+      const missingSteps = requiredSteps.filter(step => !completedSteps.includes(step));
+      return res.status(400).json({ 
+        error: 'Cannot complete workshop - not all steps finished',
+        missingSteps 
+      });
+    }
+    
+    // Check if already completed
+    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
+    if (user[0][completionField]) {
+      return res.status(400).json({ error: 'Workshop already completed' });
+    }
+    
+    // Mark workshop as completed
+    const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+    
+    await db.update(users)
       .set({ 
-        astWorkshopCompleted: true,
-        astCompletedAt: now
+        [completionField]: true,
+        [timestampField]: new Date()
       })
-      .where(eq(schema.users.id, userId));
-
+      .where(eq(users.id, userId));
+    
     res.json({ 
       success: true, 
-      message: 'AllStarTeams workshop completed',
-      completedAt: now
+      message: `${appType.toUpperCase()} workshop completed successfully`,
+      completedAt: new Date().toISOString()
     });
   } catch (error) {
     console.error('Error completing workshop:', error);
