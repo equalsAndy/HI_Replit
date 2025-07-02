@@ -350,6 +350,26 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         </button>
       </div>
 
+      {/* Workshop Completion Banner */}
+      {completed && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Check className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Step 3-3: Rounding Out Completed
+              </h3>
+              <p className="text-sm text-green-600">
+                Your responses are locked, but you can still view content and navigate between questions.
+              </p>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* YouTube Video Player */}
       <div className="mb-8">
         <VideoPlayer
@@ -472,9 +492,13 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             <Textarea
               value={currentAnswer}
               onChange={handleAnswerChange}
-              placeholder="Your answer here..."
-              className="min-h-[120px] mb-4 border border-gray-300"
+              placeholder={completed ? "This workshop is completed and locked for editing" : "Your answer here..."}
+              className={`min-h-[120px] mb-4 border border-gray-300 ${
+                completed ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
               rows={4}
+              disabled={completed}
+              readOnly={completed}
             />
 
             <div className="flex justify-between items-center">
@@ -488,7 +512,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               </Button>
 
               <div className="flex gap-2">
-                {isTestUser && (
+                {isTestUser && !completed && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -510,14 +534,14 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 ) : (
                   <Button
                     onClick={handleSaveReflection}
-                    disabled={saving || !allQuestionsAnswered()}
+                    disabled={saving || !allQuestionsAnswered() || completed}
                     className={`${
-                      allQuestionsAnswered() && !saving
+                      allQuestionsAnswered() && !saving && !completed
                         ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
                         : "bg-gray-300 cursor-not-allowed text-gray-500"
                     }`}
                   >
-                    {saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
+                    {completed ? 'Workshop Completed' : saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
                   </Button>
                 )}
               </div>
