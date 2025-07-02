@@ -225,10 +225,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                       Consider setting a higher goal to work toward improvement.{' '}
                       <button
                         onClick={() => {
-                          const ladderSection = document.getElementById('ladder-section');
-                          if (ladderSection) {
-                            ladderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                          }
+                          setCurrentContent('visualization');
                         }}
                         className="text-blue-600 underline hover:text-blue-800 font-normal"
                       >
