@@ -136,6 +136,21 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
+### July 2, 2025 - Admin Override Workshop Unlocking Complete ✅
+- **ADMIN DELETE DATA ENHANCEMENT**: Successfully implemented admin/facilitator override for workshop locking system
+  - Enhanced `deleteUserData` function to reset workshop completion flags when admins delete user data
+  - Added workshop completion status reset: `ast_workshop_completed = false`, `ia_workshop_completed = false`
+  - Cleared completion timestamps: `ast_completed_at = NULL`, `ia_completed_at = NULL`
+  - Verified functionality: Admin delete data button now properly unlocks workshops for continued user access
+- **SECURITY WITH FLEXIBILITY**: Workshop locking system maintains data integrity while allowing administrative control
+  - Users cannot modify data once workshop is completed (prevents accidental data loss)
+  - Admins and facilitators can always reset user data and unlock workshops when needed
+  - Assessment functionality restored immediately after admin data deletion
+- **COMPLETE WORKSHOP LIFECYCLE MANAGEMENT**: Full administrative control over user workshop progression
+  - Data protection during normal user workflow (workshop locking prevents overwrites)
+  - Administrative reset capability for testing, corrections, and user support scenarios
+  - Seamless transition between locked and unlocked states without system restart required
+
 ### July 2, 2025 - Workshop Locking System Backend API Phase 2 Complete ✅
 - **COMPLETION TRACKING API ENDPOINTS**: Implemented comprehensive backend API for workshop completion management
   - Added GET `/api/workshop-data/completion-status` endpoint returning user's completion status for both workshops
