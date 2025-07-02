@@ -6,6 +6,8 @@ import { useTestUser } from '@/hooks/useTestUser';
 import { FileText } from 'lucide-react';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
+import { validateTextInput } from '@/lib/validation';
+import { ValidationMessage } from '@/components/ui/validation-message';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -39,6 +41,9 @@ export default function FinalReflectionView({
   
   // Save status tracking
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  
+  // Validation state
+  const [validationError, setValidationError] = useState<string>('');
 
   // Auto-complete step 4-5 when component loads
   useEffect(() => {
@@ -146,28 +151,40 @@ export default function FinalReflectionView({
 
   const handleInsightChange = (value: string) => {
     setInsight(value);
+    // Clear validation error when user starts typing
+    if (validationError && value.trim().length >= 10) {
+      setValidationError('');
+    }
     // Removed auto-save - data will only save when user clicks "Complete Your Journey"
   };
 
   const handleComplete = async () => {
-    if (insight.trim().length >= 10) {
-      // Save the final reflection data before completing
-      setSaveStatus('saving');
-      try {
-        const saveData = { futureLetterText: insight.trim() };
-        await saveMutation.mutateAsync(saveData);
-        setSaveStatus('saved');
-        
-        // Mark step as completed and show modal
-        markStepCompleted('4-5');
-        setShowModal(true);
-      } catch (error) {
-        console.error('Failed to save final reflection:', error);
-        setSaveStatus('error');
-        // Still complete the step even if save fails
-        markStepCompleted('4-5');
-        setShowModal(true);
-      }
+    // Validate input before proceeding
+    const error = validateTextInput(insight, 'insight', 10);
+    if (error) {
+      setValidationError(error.message);
+      return;
+    }
+    
+    // Clear any previous validation errors
+    setValidationError('');
+    
+    // Save the final reflection data before completing
+    setSaveStatus('saving');
+    try {
+      const saveData = { futureLetterText: insight.trim() };
+      await saveMutation.mutateAsync(saveData);
+      setSaveStatus('saved');
+      
+      // Mark step as completed and show modal
+      markStepCompleted('4-5');
+      setShowModal(true);
+    } catch (error) {
+      console.error('Failed to save final reflection:', error);
+      setSaveStatus('error');
+      // Still complete the step even if save fails
+      markStepCompleted('4-5');
+      setShowModal(true);
     }
   };
 
@@ -286,7 +303,7 @@ export default function FinalReflectionView({
             <div className="input-section">
               <div className="textarea-wrapper">
                 <textarea
-                  className={`insight-input ${isStepCompleted ? 'readonly' : ''}`}
+                  className={`insight-input ${isStepCompleted ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
                   value={insight}
                   onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
                   disabled={isStepCompleted}
@@ -294,6 +311,16 @@ export default function FinalReflectionView({
                   placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
                   rows={4}
                 />
+                
+                {/* Validation feedback */}
+                {!isStepCompleted && (
+                  <ValidationMessage 
+                    message={validationError} 
+                    type="error" 
+                    show={!!validationError}
+                  />
+                )}
+                
                 {/* Save status shown only when user clicks Complete Your Journey */}
                 {saveStatus === 'saving' && !isStepCompleted && (
                   <div className="save-status">
