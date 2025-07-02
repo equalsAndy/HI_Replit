@@ -457,8 +457,14 @@ export default function StepByStepReflection({
     }
   };
 
-  // Check if current reflection meets minimum requirements
+  // Check if current reflection meets minimum requirements (or workshop is locked for viewing)
   const isCurrentReflectionValid = (): boolean => {
+    // If workshop is locked, allow navigation for viewing regardless of content length
+    if (workshopLocked || testWorkshopLocked) {
+      return true;
+    }
+    
+    // For unlocked workshops, require minimum content
     const currentText = getCurrentReflectionText();
     return currentText && typeof currentText === 'string' && currentText.trim().length >= 10;
   };
@@ -477,8 +483,12 @@ export default function StepByStepReflection({
       setCurrentStep(currentStep + 1);
       setShowExamples(false);
     } else if (currentStep === totalSteps) {
-      // Save reflections before completing
-      await saveReflections();
+      // Only save reflections if workshop is not locked
+      if (!workshopLocked && !testWorkshopLocked) {
+        await saveReflections();
+      } else {
+        console.log('🔒 Workshop locked - skipping save on completion');
+      }
 
       // We're on the last step, mark reflection as completed and advance to next section
       if (markStepCompleted) {
@@ -1076,10 +1086,10 @@ export default function StepByStepReflection({
               )}
               <Button 
               onClick={handleNext}
-              disabled={!isCurrentReflectionValid() || workshopLocked || testWorkshopLocked}
+              disabled={!isCurrentReflectionValid()}
               variant="default"
               className={`${
-              isCurrentReflectionValid() && !workshopLocked && !testWorkshopLocked
+              isCurrentReflectionValid()
               ? "bg-indigo-600 hover:bg-indigo-700" 
               : "bg-gray-400 cursor-not-allowed"
               }`}
