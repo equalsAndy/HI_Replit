@@ -44,10 +44,13 @@ export function validateTextFields(fields: Record<string, string>, minLength: nu
 /**
  * Validates that at least one field has content (for optional multi-field forms)
  */
-export function validateAtLeastOneField(fields: Record<string, string>, minLength: number = 10): ValidationResult {
-  const hasContent = Object.values(fields).some(value => 
-    value && value.trim().length >= minLength
-  );
+export function validateAtLeastOneField(fields: Record<string, any>, minLength: number = 10): ValidationResult {
+  const hasContent = Object.values(fields).some(value => {
+    if (!value) return false;
+    // Convert to string and trim to handle different data types
+    const stringValue = String(value).trim();
+    return stringValue.length >= minLength;
+  });
   
   if (!hasContent) {
     return {
