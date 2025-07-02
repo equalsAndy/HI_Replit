@@ -344,6 +344,15 @@ export default function FinalReflectionView({
                           Add Demo Data
                         </button>
                       )}
+                      
+                      {/* Gentle completion notice */}
+                      <div className="completion-notice mb-3">
+                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                          <span className="text-blue-500">ℹ️</span>
+                          Finishing your workshop will prevent any further editing.
+                        </p>
+                      </div>
+                      
                       <button
                         className={`continue-button ${insight.length >= 10 ? 'enabled' : 'disabled'}`}
                         onClick={handleComplete}

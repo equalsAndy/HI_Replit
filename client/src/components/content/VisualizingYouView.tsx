@@ -8,6 +8,8 @@ import { queryClient } from '@/lib/queryClient';
 import { searchUnsplash, searchImages } from '@/services/api-services';
 import { useToast } from '@/hooks/use-toast';
 import { useTestUser } from '@/hooks/useTestUser';
+import { validateTextInput } from '@/lib/validation';
+import { ValidationMessage } from '@/components/ui/validation-message';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -23,6 +25,9 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
   const isTestUser = useTestUser();
+  
+  // Validation state
+  const [validationError, setValidationError] = useState<string>('');
 
   // Load existing image data when component mounts
   useEffect(() => {

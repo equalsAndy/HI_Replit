@@ -5,6 +5,8 @@ import { ChevronRight, FileText } from 'lucide-react';
 import WellBeingLadderSvg from '../visualization/WellBeingLadderSvg';
 import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
+import { validateAtLeastOneField } from '@/lib/validation';
+import { ValidationMessage } from '@/components/ui/validation-message';
 
 // Props interface
 interface ContentViewProps {
@@ -29,6 +31,9 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     quarterlyActions: ''
   });
   const isTestUser = useTestUser();
+  
+  // Validation state
+  const [validationError, setValidationError] = useState<string>('');
 
   // Fetch user's actual wellbeing data from the visualization API
   const { data: visualizationData } = useQuery({
@@ -150,6 +155,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       ...prev,
       [field]: value
     }));
+    
+    // Clear validation error when user starts typing
+    if (validationError && value.trim().length >= 10) {
+      setValidationError('');
+    }
   };
 
   // Function to populate with meaningful demo data
@@ -323,6 +333,17 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
         </div>
       </div>
 
+      {/* Validation error display */}
+      {validationError && (
+        <div className="mb-4">
+          <ValidationMessage 
+            message={validationError} 
+            type="error" 
+            show={!!validationError}
+          />
+        </div>
+      )}
+
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
           {isTestUser && (
@@ -338,6 +359,15 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={() => {
+              // Validate at least one field is completed
+              const validation = validateAtLeastOneField(formData, 10);
+              if (!validation.isValid) {
+                setValidationError(validation.errors[0].message);
+                return;
+              }
+              
+              // Clear validation and proceed
+              setValidationError('');
               markStepCompleted('4-2');
               setCurrentContent("visualizing-you");
             }}
