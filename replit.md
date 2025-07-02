@@ -136,26 +136,28 @@ The platform provides a guided, step-by-step learning experience with assessment
 
 ## Recent Changes
 
-### July 2, 2025 - Workshop Input Locking Components Complete ✅
-- **INPUT LOCKING COMPONENTS**: Created two reusable components for workshop completion UI
-  - Created `client/src/components/ui/locked-input-wrapper.tsx` for disabling inputs when workshops are completed
-  - Created `client/src/components/ui/workshop-completion-banner.tsx` for displaying completion status
-  - Both components integrate seamlessly with useWorkshopStatus and useApplication hooks
-  - Type-safe mapping between application types ('allstarteams'/'imaginal-agility') and hook types ('ast'/'ia')
-- **LOCKED INPUT WRAPPER**: Automatically disables and styles inputs when workshop is completed
-  - Clones child input elements and adds disabled/readOnly properties
-  - Applies visual styling (opacity, cursor, background) to indicate locked state
-  - Shows lock icon indicator in top-right corner of disabled inputs
-  - Preserves original input styling while adding locked appearance
-- **COMPLETION BANNER**: Professional feedback for completed workshops
-  - Displays green banner with checkmark and lock icons when workshop is finished
-  - Shows workshop name, completion date, and informative message about locked responses
-  - Only renders when workshop is actually completed (conditional visibility)
-  - Clean Tailwind styling with proper spacing and typography
-- **READY FOR INTEGRATION**: Components ready for Phase 5 implementation
-  - Easy wrapper usage: `<LockedInputWrapper><input /></LockedInputWrapper>`
-  - Simple banner placement: `<WorkshopCompletionBanner />` on any workshop page
-  - Foundation prepared for adding "Finish Workshop" button to Final Reflection components
+### July 2, 2025 - AST-Only Workshop Locking System Complete ✅
+- **SIMPLIFIED AST-ONLY SYSTEM**: Streamlined workshop locking to focus exclusively on AllStarTeams workshop
+  - Removed all IA-related complexity and appType parameters throughout the system
+  - Backend endpoints now hard-coded to AST completion fields (astWorkshopCompleted, astCompletedAt)
+  - Frontend hook simplified to single workshop completion state management
+  - Components no longer depend on useApplication - hard-coded to "AllStarTeams" workshop name
+- **BACKEND SIMPLIFICATION**: Updated workshop-data-routes.ts endpoints
+  - GET `/api/workshop-data/completion-status` returns single completion status for AST workshop
+  - POST `/api/workshop-data/complete-workshop` marks AST workshop as completed without appType parameter
+  - Removed complex app type validation and conditional logic
+- **FRONTEND HOOK SIMPLIFICATION**: Streamlined useWorkshopStatus hook
+  - Single completion state (completed, completedAt) instead of separate AST/IA fields
+  - Removed appType parameters from all functions (completeWorkshop, isWorkshopLocked)
+  - Cleaner API with fewer fields and simpler state management
+- **COMPONENT UPDATES**: Simplified both input locking components
+  - LockedInputWrapper: Removed useApplication dependency and app type mapping
+  - WorkshopCompletionBanner: Hard-coded to "AllStarTeams" workshop display
+  - Both components now call isWorkshopLocked() without parameters
+- **READY FOR INTEGRATION**: Complete AST-only workshop locking system
+  - Simple wrapper usage: `<LockedInputWrapper><input /></LockedInputWrapper>`
+  - Banner placement: `<WorkshopCompletionBanner />` automatically shows for completed AST workshop
+  - Clean foundation ready for Phase 5 integration into Final Reflection components
 
 ### July 2, 2025 - Workshop Status React Hook Complete ✅
 - **USEWORKSHOPSTATUS HOOK**: Created comprehensive React hook for workshop completion management
