@@ -2456,4 +2456,65 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
   }
 });
 
+// Get workshop completion status
+workshopDataRouter.get('/completion-status', async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const user = await db.select({
+      astWorkshopCompleted: schema.users.astWorkshopCompleted,
+      iaWorkshopCompleted: schema.users.iaWorkshopCompleted,
+      astCompletedAt: schema.users.astCompletedAt,
+      iaCompletedAt: schema.users.iaCompletedAt
+    }).from(schema.users).where(eq(schema.users.id, userId)).limit(1);
+
+    if (!user[0]) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    res.json(user[0]);
+  } catch (error) {
+    console.error('Error fetching completion status:', error);
+    res.status(500).json({ error: 'Failed to fetch completion status' });
+  }
+});
+
+// Mark workshop as completed
+workshopDataRouter.post('/complete-workshop', async (req, res) => {
+  try {
+    const userId = req.session?.userId;
+    const { appType } = req.body; // 'ast' or 'ia'
+
+    if (!userId) {
+      return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    if (!appType || !['ast', 'ia'].includes(appType)) {
+      return res.status(400).json({ error: 'Invalid app type' });
+    }
+
+    // Simple completion - just mark as done
+    const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
+    const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+
+    await db.update(schema.users)
+      .set({ 
+        [completionField]: true,
+        [timestampField]: new Date()
+      })
+      .where(eq(schema.users.id, userId));
+
+    res.json({ 
+      success: true, 
+      message: `${appType.toUpperCase()} workshop completed` 
+    });
+  } catch (error) {
+    console.error('Error completing workshop:', error);
+    res.status(500).json({ error: 'Failed to complete workshop' });
+  }
+});
+
 export default workshopDataRouter;
