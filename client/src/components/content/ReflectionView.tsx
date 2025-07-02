@@ -6,6 +6,7 @@ import { useTestUser } from '@/hooks/useTestUser';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import StepByStepReflection from '@/components/reflection/StepByStepReflection';
 
 const ReflectionView: React.FC<ContentViewProps> = ({
   navigate,
