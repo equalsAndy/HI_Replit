@@ -645,11 +645,17 @@ class UserManagementService {
         console.log(`No navigation progress found for user ${userId}:`, error.message);
       }
 
-      // 3. Clear navigation progress field in users table
+      // 3. Clear navigation progress field in users table and reset workshop completion status
       try {
-        await db.execute(sql`UPDATE users SET navigation_progress = NULL WHERE id = ${userId}`);
+        await db.execute(sql`UPDATE users SET 
+          navigation_progress = NULL,
+          ast_workshop_completed = false,
+          ia_workshop_completed = false,
+          ast_completed_at = NULL,
+          ia_completed_at = NULL
+        WHERE id = ${userId}`);
         deletedData.navigationProgressField = true;
-        console.log(`Cleared navigation_progress field in users table for user ${userId}`);
+        console.log(`Cleared navigation_progress field and reset workshop completion status for user ${userId}`);
       } catch (error) {
         console.log(`Error clearing navigation_progress field for user ${userId}:`, error.message);
       }

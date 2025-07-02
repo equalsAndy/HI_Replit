@@ -12,7 +12,6 @@ const ReflectionView: React.FC<ContentViewProps> = ({
   starCard
 }) => {
   const isTestUser = useTestUser();
-  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
 
   const handleDemoData = () => {
     if (!isTestUser) {
