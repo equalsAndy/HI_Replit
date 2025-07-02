@@ -1,0 +1,124 @@
+# REPLIT AGENT: Phase 3 - Frontend useWorkshopStatus Hook
+
+## 🎯 OBJECTIVE
+Create a React hook to manage workshop completion status and provide completion functionality.
+
+## 📁 CREATE NEW FILE: `client/src/hooks/use-workshop-status.ts`
+
+```typescript
+import { useState, useEffect } from 'react';
+import { useAuth } from './use-auth';
+
+interface WorkshopStatus {
+  astCompleted: boolean;
+  iaCompleted: boolean;
+  astCompletedAt?: string;
+  iaCompletedAt?: string;
+  isLoading: boolean;
+}
+
+export function useWorkshopStatus() {
+  const [status, setStatus] = useState<WorkshopStatus>({
+    astCompleted: false,
+    iaCompleted: false,
+    isLoading: true
+  });
+  const { user } = useAuth();
+
+  // Fetch completion status
+  useEffect(() => {
+    const fetchStatus = async () => {
+      if (!user) {
+        setStatus(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/workshop-data/completion-status', {
+          credentials: 'include'
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStatus({
+            astCompleted: data.astWorkshopCompleted || false,
+            iaCompleted: data.iaWorkshopCompleted || false,
+            astCompletedAt: data.astCompletedAt,
+            iaCompletedAt: data.iaCompletedAt,
+            isLoading: false
+          });
+        } else {
+          console.error('Failed to fetch workshop status');
+          setStatus(prev => ({ ...prev, isLoading: false }));
+        }
+      } catch (error) {
+        console.error('Error fetching workshop status:', error);
+        setStatus(prev => ({ ...prev, isLoading: false }));
+      }
+    };
+
+    fetchStatus();
+  }, [user]);
+
+  // Complete workshop function
+  const completeWorkshop = async (appType: 'ast' | 'ia') => {
+    try {
+      const response = await fetch('/api/workshop-data/complete-workshop', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ appType })
+      });
+
+      if (response.ok) {
+        // Update local status
+        setStatus(prev => ({
+          ...prev,
+          [appType === 'ast' ? 'astCompleted' : 'iaCompleted']: true,
+          [appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']: new Date().toISOString()
+        }));
+        return { success: true };
+      } else {
+        const error = await response.json();
+        return { success: false, error: error.message || 'Failed to complete workshop' };
+      }
+    } catch (error) {
+      console.error('Error completing workshop:', error);
+      return { success: false, error: 'Network error' };
+    }
+  };
+
+  // Helper function to check if specific workshop is locked
+  const isWorkshopLocked = (appType: 'ast' | 'ia') => {
+    return appType === 'ast' ? status.astCompleted : status.iaCompleted;
+  };
+
+  return {
+    ...status,
+    completeWorkshop,
+    isWorkshopLocked
+  };
+}
+```
+
+## ✅ SUCCESS CRITERIA
+
+After creating this file:
+1. Hook fetches completion status from backend
+2. Hook provides `completeWorkshop` function 
+3. Hook provides `isWorkshopLocked` helper
+4. Integrates with existing `useAuth` hook
+5. Proper loading states and error handling
+6. TypeScript interfaces for type safety
+
+## 🔄 NEXT STEPS
+
+After this hook is created, it can be imported and used in components like:
+```typescript
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+
+// In component:
+const { isWorkshopLocked, completeWorkshop, astCompleted } = useWorkshopStatus();
+```
+
+This provides the foundation for Phase 4 (input locking components) and Phase 5 (finish workshop button).
