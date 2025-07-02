@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useTestUser } from '@/hooks/useTestUser';
 import { debounce } from '@/lib/utils';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 // Reflection Questions
 interface RoundingOutQuestion {
@@ -52,6 +53,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
 
   const [saving, setSaving] = useState(false);
   const isTestUser = useTestUser();
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
 
   const { toast } = useToast();
 
@@ -338,6 +340,14 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
           Now that you've completed the flow assessment, take some time to round out your understanding 
           of flow and how you can create more opportunities for it in your work and life.
         </p>
+      </div>
+
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          Test Lock Workshop
+        </button>
       </div>
 
       {/* YouTube Video Player */}
