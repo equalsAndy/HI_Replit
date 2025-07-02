@@ -8,8 +8,17 @@ interface LockedInputWrapperProps {
 }
 
 export function LockedInputWrapper({ children, className = '' }: LockedInputWrapperProps) {
-  const { isWorkshopLocked } = useWorkshopStatus();
+  const { isWorkshopLocked, completed, loading } = useWorkshopStatus();
   const isLocked = isWorkshopLocked();
+
+  // Debug locking status
+  console.log('🔒 LockedInputWrapper - Status:', {
+    isLocked,
+    completed,
+    loading,
+    childrenType: children.type,
+    childrenProps: children.props
+  });
 
   if (!isLocked) {
     return children;

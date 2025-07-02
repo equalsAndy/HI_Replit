@@ -6,6 +6,7 @@ import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
 import { LockedInputWrapper } from '@/components/ui/locked-input-wrapper';
 import { WorkshopCompletionBanner } from '@/components/ui/workshop-completion-banner';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -43,6 +44,19 @@ export default function StepByStepReflection({
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
   const isTestUser = useTestUser();
+  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+
+  // Debug workshop locking status
+  useEffect(() => {
+    console.log('🔐 StepByStepReflection - Workshop Status:', {
+      completed,
+      loading,
+      isLocked: isWorkshopLocked(),
+      currentStep
+    });
+  }, [completed, loading, currentStep]);
+
+  const isLocked = isWorkshopLocked();
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
@@ -785,9 +799,9 @@ export default function StepByStepReflection({
         <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
           <span className="text-xs font-medium text-gray-500">Your progress:</span>
           <div className="w-32 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-            <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${progressPercentage}%` }}></div>
+            <div className="h-full bg-indigo-600 rounded-full" style={{ width: `${completed ? 100 : (currentStep / totalSteps) * 100}%` }}></div>
           </div>
-          <span className="text-xs font-medium text-gray-700">Step {currentStep} of {totalSteps}</span>
+          <span className="text-xs font-medium text-gray-700">{completed ? 'Workshop Complete' : `Step ${currentStep} of ${totalSteps}`}</span>
         </div>
       </div>
 
