@@ -351,17 +351,17 @@ export default function FinalReflectionView({
             <div className="input-section">
               <div className="textarea-wrapper">
                 <textarea
-                  className={`insight-input ${isStepCompleted ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
+                  className={`insight-input ${workshopCompleted ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
                   value={insight}
-                  onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
-                  disabled={isStepCompleted}
-                  readOnly={isStepCompleted}
-                  placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
+                  onChange={workshopCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
+                  disabled={workshopCompleted}
+                  readOnly={workshopCompleted}
+                  placeholder={workshopCompleted ? '' : "What I want to carry forward is..."}
                   rows={4}
                 />
                 
                 {/* Validation feedback */}
-                {!isStepCompleted && (
+                {!workshopCompleted && (
                   <ValidationMessage 
                     message={validationError} 
                     type="error" 
@@ -370,7 +370,7 @@ export default function FinalReflectionView({
                 )}
                 
                 {/* Save status shown only when user clicks Complete Your Journey */}
-                {saveStatus === 'saving' && !isStepCompleted && (
+                {saveStatus === 'saving' && !workshopCompleted && (
                   <div className="save-status">
                     <span className="status saving">Saving...</span>
                   </div>
