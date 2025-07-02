@@ -184,7 +184,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
 
       {/* Content below title - same layout as WellBeingView */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8" id="ladder-section">
         {/* SVG Ladder - same sizing as WellBeingView */}
         <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
           <div className="w-full xl:w-11/12 2xl:w-full">
@@ -222,7 +222,18 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                       ⚠ Are you sure you want a lower future well-being level?
                     </p>
                     <p className="text-xs text-red-600 mt-1">
-                      Consider setting a higher goal to work toward improvement.
+                      Consider setting a higher goal to work toward improvement.{' '}
+                      <button
+                        onClick={() => {
+                          const ladderSection = document.getElementById('ladder-section');
+                          if (ladderSection) {
+                            ladderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                        className="text-blue-600 underline hover:text-blue-800 font-normal"
+                      >
+                        Go back to ladder
+                      </button>
                     </p>
                   </div>
                 )}
@@ -359,10 +370,18 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={() => {
-              // Validate at least one field is completed
-              const validation = validateAtLeastOneField(formData, 10);
+              // Validate at least one reflection field is completed
+              const reflectionFields = {
+                currentFactors: formData.currentFactors,
+                futureImprovements: formData.futureImprovements,
+                specificChanges: formData.specificChanges,
+                quarterlyProgress: formData.quarterlyProgress,
+                quarterlyActions: formData.quarterlyActions
+              };
+              
+              const validation = validateAtLeastOneField(reflectionFields, 10);
               if (!validation.isValid) {
-                setValidationError(validation.errors[0].message);
+                setValidationError('Please complete the reflections to continue.');
                 return;
               }
               
