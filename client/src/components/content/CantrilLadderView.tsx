@@ -7,6 +7,7 @@ import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 // Props interface
 interface ContentViewProps {
@@ -31,6 +32,10 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     quarterlyActions: ''
   });
   const isTestUser = useTestUser();
+  
+  // Workshop status for testing
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+  const testWorkshopLocked = isWorkshopLocked();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -141,13 +146,19 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     [] // No dependencies on ladder values since they're read-only
   );
 
-  // Trigger save only when form data changes (NOT ladder values)
+  // Trigger save only when form data changes (NOT ladder values) and workshop not locked
   useEffect(() => {
+    // Don't auto-save if workshop is locked
+    if (testWorkshopLocked) {
+      console.log('🔒 Workshop locked - skipping auto-save');
+      return;
+    }
+    
     if (Object.values(formData).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
       console.log('Cantril Ladder reflections changed, triggering save:', formData);
       debouncedSave(formData);
     }
-  }, [formData, debouncedSave]);
+  }, [formData, debouncedSave, testWorkshopLocked]);
 
   // Handle text input changes
   const handleInputChange = (field: string, value: string) => {
@@ -181,6 +192,14 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   };
   return (
     <>
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {testWorkshopLocked ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', background: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          {testWorkshopLocked ? 'Test Unlock Workshop' : 'Test Lock Workshop'}
+        </button>
+      </div>
+      
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
 
       {/* Content below title - same layout as WellBeingView */}
@@ -253,7 +272,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <textarea 
               value={formData.currentFactors}
               onChange={(e) => handleInputChange('currentFactors', e.target.value)}
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
               placeholder="Consider your work, relationships, health, finances, and personal growth..."
             />
           </div>
@@ -266,7 +289,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <textarea 
               value={formData.futureImprovements}
               onChange={(e) => handleInputChange('futureImprovements', e.target.value)}
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
               placeholder="Describe specific improvements you hope to see in your life..."
             />
 
@@ -279,7 +306,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               <textarea 
                 value={formData.specificChanges}
                 onChange={(e) => handleInputChange('specificChanges', e.target.value)}
-                className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+                disabled={testWorkshopLocked}
+                readOnly={testWorkshopLocked}
+                className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                  testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                }`}
                 placeholder="Describe concrete changes you'll experience..."
               />
             </div>
@@ -298,7 +329,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <textarea 
               value={formData.quarterlyProgress}
               onChange={(e) => handleInputChange('quarterlyProgress', e.target.value)}
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
               placeholder="Describe a measurable sign of progress..."
             />
           </div>
@@ -310,7 +345,11 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <textarea 
               value={formData.quarterlyActions}
               onChange={(e) => handleInputChange('quarterlyActions', e.target.value)}
-              className="min-h-[120px] w-full p-2 border border-gray-300 rounded-md"
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
               placeholder="Describe specific actions you'll take..."
             />
           </div>
@@ -362,6 +401,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               variant="outline" 
               size="sm"
               onClick={fillWithDemoData}
+              disabled={testWorkshopLocked}
               className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
               <FileText className="w-4 h-4 mr-2" />
@@ -370,7 +410,14 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={() => {
-              // Validate at least one reflection field is completed
+              // If workshop is locked, allow navigation for viewing
+              if (testWorkshopLocked) {
+                markStepCompleted('4-2');
+                setCurrentContent("visualizing-you");
+                return;
+              }
+              
+              // For unlocked workshops, validate at least one reflection field is completed
               const reflectionFields = {
                 currentFactors: formData.currentFactors,
                 futureImprovements: formData.futureImprovements,
