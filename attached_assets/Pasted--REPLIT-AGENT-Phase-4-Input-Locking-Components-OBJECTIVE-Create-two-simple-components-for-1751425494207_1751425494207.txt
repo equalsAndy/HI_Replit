@@ -1,0 +1,115 @@
+# REPLIT AGENT: Phase 4 - Input Locking Components
+
+## 🎯 OBJECTIVE
+Create two simple components for workshop input locking and completion feedback.
+
+## 📁 CREATE FILE 1: `client/src/components/ui/locked-input-wrapper.tsx`
+
+```typescript
+import React from 'react';
+import { Lock } from 'lucide-react';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useApplication } from '@/hooks/use-application';
+
+interface LockedInputWrapperProps {
+  children: React.ReactElement;
+  className?: string;
+}
+
+export function LockedInputWrapper({ children, className = '' }: LockedInputWrapperProps) {
+  const { isWorkshopLocked } = useWorkshopStatus();
+  const { currentApp } = useApplication();
+  
+  const isLocked = isWorkshopLocked(currentApp);
+
+  if (!isLocked) {
+    return children;
+  }
+
+  // Clone child and add disabled props
+  const lockedInput = React.cloneElement(children, {
+    disabled: true,
+    readOnly: true,
+    className: `${children.props.className || ''} opacity-60 cursor-not-allowed bg-gray-50`,
+  });
+
+  return (
+    <div className={`relative ${className}`}>
+      {lockedInput}
+      <div className="absolute top-2 right-2 text-gray-400 pointer-events-none">
+        <Lock size={16} />
+      </div>
+    </div>
+  );
+}
+```
+
+## 📁 CREATE FILE 2: `client/src/components/ui/workshop-completion-banner.tsx`
+
+```typescript
+import { CheckCircle, Lock } from 'lucide-react';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useApplication } from '@/hooks/use-application';
+
+export function WorkshopCompletionBanner() {
+  const { isWorkshopLocked, astCompletedAt, iaCompletedAt } = useWorkshopStatus();
+  const { currentApp } = useApplication();
+  
+  const isLocked = isWorkshopLocked(currentApp);
+  
+  if (!isLocked) return null;
+
+  const completedDate = currentApp === 'ast' ? astCompletedAt : iaCompletedAt;
+  const workshopName = currentApp === 'ast' ? 'AllStarTeams' : 'Imaginal Agility';
+
+  return (
+    <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+      <div className="flex items-center gap-3">
+        <CheckCircle className="text-green-600 flex-shrink-0" size={20} />
+        <div className="flex-1">
+          <h3 className="font-medium text-green-800">
+            {workshopName} Workshop Completed
+          </h3>
+          <p className="text-sm text-green-600 mt-1">
+            Completed on {completedDate ? new Date(completedDate).toLocaleDateString() : 'recently'}. 
+            Your responses are now locked, but you can still view all content and download reports.
+          </p>
+        </div>
+        <Lock className="text-green-600 flex-shrink-0" size={16} />
+      </div>
+    </div>
+  );
+}
+```
+
+## ✅ SUCCESS CRITERIA
+
+After creating these components:
+1. `LockedInputWrapper` disables any input when workshop is completed
+2. Shows lock icon indicator on disabled inputs
+3. `WorkshopCompletionBanner` displays completion status
+4. Both components integrate with `useWorkshopStatus` hook
+5. Both components work with AST and IA workshops via `useApplication`
+6. Clean styling with Tailwind classes
+7. Proper TypeScript interfaces
+
+## 🔄 USAGE EXAMPLES
+
+**Wrap any input:**
+```typescript
+import { LockedInputWrapper } from '@/components/ui/locked-input-wrapper';
+
+<LockedInputWrapper>
+  <input type="text" placeholder="This will be locked when workshop is done" />
+</LockedInputWrapper>
+```
+
+**Show completion banner:**
+```typescript
+import { WorkshopCompletionBanner } from '@/components/ui/workshop-completion-banner';
+
+// Add to any workshop page
+<WorkshopCompletionBanner />
+```
+
+Ready for Phase 5: Adding "Finish Workshop" button to Final Reflection!
