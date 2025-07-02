@@ -621,7 +621,7 @@ workshopDataRouter.post('/flow-attributes', authenticateUser, checkWorkshopLocke
  * Rounding Out Reflection endpoints
  */
 // POST /api/workshop-data/rounding-out
-workshopDataRouter.post('/rounding-out', async (req: Request, res: Response) => {
+workshopDataRouter.post('/rounding-out', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
