@@ -16,19 +16,20 @@ export function LockedInputWrapper({ children, className = '' }: LockedInputWrap
     isLocked,
     completed,
     loading,
-    childrenType: children.type?.name || children.type,
-    childrenProps: Object.keys(children.props || {})
+    hasChildren: !!children
   });
 
   if (!isLocked) {
     return children;
   }
 
-  // Clone child and add disabled props
+  // Clone child and add disabled props - MORE AGGRESSIVE LOCKING
   const lockedInput = React.cloneElement(children, {
     disabled: true,
     readOnly: true,
-    className: `${children.props.className || ''} opacity-60 cursor-not-allowed bg-gray-50`,
+    value: children.props.value || '', // Force value to prevent changes
+    onChange: () => {}, // Block all changes
+    className: `${children.props.className || ''} opacity-60 cursor-not-allowed bg-gray-100 border-gray-300`,
   });
 
   return (
