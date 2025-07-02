@@ -33,8 +33,9 @@ export default function FinalReflectionView({
   const [showModal, setShowModal] = useState(false);
   const isTestUser = useTestUser();
   
-  // Workshop status integration
-  const { completed: workshopCompleted, completeWorkshop, isWorkshopLocked } = useWorkshopStatus();
+  // Workshop status integration with error handling
+  const workshopStatus = useWorkshopStatus();
+  const { completed: workshopCompleted, completeWorkshop, isWorkshopLocked, loading: workshopLoading, error: workshopError } = workshopStatus || {};
   const { toast } = useToast();
   const [isCompletingWorkshop, setIsCompletingWorkshop] = useState(false);
   
@@ -64,8 +65,7 @@ export default function FinalReflectionView({
     staleTime: 30000,
   });
 
-  // Check if step is completed - using simple text length check for now
-  // TODO: Replace with actual progression system check
+  // Check if step is completed - simplified to check if data exists and has content
   const isStepCompleted = existingData && typeof existingData === 'object' && 'success' in existingData && 
     existingData.success && 'data' in existingData && existingData.data && 
     typeof existingData.data === 'object' && 'futureLetterText' in existingData.data &&
@@ -194,21 +194,26 @@ export default function FinalReflectionView({
   };
 
   const handleCompleteWorkshop = async () => {
+    console.log('🎯 Starting workshop completion...');
     setIsCompletingWorkshop(true);
     
     try {
       // First save the reflection if not already saved
       if (saveStatus !== 'saved') {
+        console.log('🎯 Saving reflection before completing workshop...');
         const saved = await handleSave();
         if (!saved) {
+          console.log('🎯 Failed to save reflection, aborting workshop completion');
           setIsCompletingWorkshop(false);
           return;
         }
       }
       
       // Then complete the workshop
+      console.log('🎯 Completing workshop...');
       await completeWorkshop();
       
+      console.log('🎯 Workshop completed successfully!');
       toast({
         title: "Workshop Completed!",
         description: "Your responses are now locked. You can still view content and download reports.",
@@ -217,7 +222,7 @@ export default function FinalReflectionView({
       
       setShowModal(true);
     } catch (error) {
-      console.error('Failed to complete workshop:', error);
+      console.error('🎯 Failed to complete workshop:', error);
       toast({
         title: "Failed to complete workshop",
         description: "Please try again. If the problem persists, contact support.",
