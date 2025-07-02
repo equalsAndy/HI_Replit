@@ -109,13 +109,6 @@ const ReflectionView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={() => {
-              // Validate at least one reflection field is completed
-              const validation = validateAtLeastOneField(reflections, 10);
-              if (!validation.isValid) {
-                setValidationError('Please complete at least one reflection to continue.');
-                return;
-              }
-
               // Clear validation and proceed
               setValidationError('');
               markStepCompleted('2-4');
