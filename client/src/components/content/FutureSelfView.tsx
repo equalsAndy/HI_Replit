@@ -5,6 +5,8 @@ import { ChevronRight, ArrowDown, ArrowUp } from 'lucide-react';
 import VideoPlayer from './VideoPlayer';
 import { motion, AnimatePresence } from 'framer-motion';
 import { debounce } from 'lodash';
+import { validateAtLeastOneField } from '@/lib/validation';
+import { ValidationMessage } from '@/components/ui/validation-message';
 
 // Define ContentViewProps interface
 interface ContentViewProps {
@@ -75,6 +77,9 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   
   // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Validation state
+  const [validationError, setValidationError] = useState<string>('');
 
   // Load existing data when component mounts
   useEffect(() => {

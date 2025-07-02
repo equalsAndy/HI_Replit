@@ -390,6 +390,17 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         />
       </div>
 
+      {/* Validation error display */}
+      {validationError && (
+        <div className="mb-4">
+          <ValidationMessage 
+            message={validationError} 
+            type="error" 
+            show={!!validationError}
+          />
+        </div>
+      )}
+
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
           {isTestUser && (
@@ -405,6 +416,15 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={async () => {
+              // Validate that user has selected at least one image OR provided image meaning
+              if (selectedImages.length === 0 && imageMeaning.trim().length < 10) {
+                setValidationError('Please select at least one image or provide a description of what your future vision means to you');
+                return;
+              }
+              
+              // Clear validation error
+              setValidationError('');
+              
               // Save data before proceeding
               if (selectedImages.length > 0 || imageMeaning.trim()) {
                 console.log('VisualizingYouView: Saving data before proceeding to next step...');
