@@ -4,6 +4,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -43,6 +44,10 @@ export default function StepByStepReflection({
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
   const isTestUser = useTestUser();
+  
+  // Workshop status for testing
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+  const testWorkshopLocked = isWorkshopLocked();
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
@@ -180,8 +185,8 @@ export default function StepByStepReflection({
 
   // Trigger save whenever reflections change (only if not locked)
   useEffect(() => {
-    // Don't auto-save if workshop is locked
-    if (workshopLocked) {
+    // Don't auto-save if workshop is locked (either prop or test lock)
+    if (workshopLocked || testWorkshopLocked) {
       console.log('🔒 Workshop locked - skipping auto-save');
       return;
     }
@@ -193,7 +198,7 @@ export default function StepByStepReflection({
       console.log('Triggering auto-save for reflections:', reflections);
       debouncedSave(reflections);
     }
-  }, [reflections, debouncedSave, workshopLocked]);
+  }, [reflections, debouncedSave, workshopLocked, testWorkshopLocked]);
 
   // Function to populate reflections with meaningful AST demo data
   const fillWithDemoData = async () => {
@@ -779,6 +784,14 @@ export default function StepByStepReflection({
 
   return (
     <>
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {testWorkshopLocked ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', background: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          {testWorkshopLocked ? 'Test Unlock Workshop' : 'Test Lock Workshop'}
+        </button>
+      </div>
+      
       {/* Progress indicator */}
       <div className="flex justify-end mb-4">
         <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
@@ -952,15 +965,15 @@ export default function StepByStepReflection({
                 id={`strength-${currentStep}-reflection`}
                 value={getCurrentReflectionText()}
                 onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
-                disabled={workshopLocked}
-                readOnly={workshopLocked}
+                disabled={workshopLocked || testWorkshopLocked}
+                readOnly={workshopLocked || testWorkshopLocked}
                 placeholder={currentStep <= 4 
                   ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
                   : currentStep === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
                 className={`min-h-[140px] w-full ${
-                  workshopLocked
+                  workshopLocked || testWorkshopLocked
                     ? 'opacity-60 cursor-not-allowed bg-gray-100'
                     : currentStep <= 4
                     ? sortedQuadrants[currentStep-1].label === 'THINKING'
@@ -1054,7 +1067,7 @@ export default function StepByStepReflection({
                   variant="outline" 
                   size="sm"
                   onClick={fillWithDemoData}
-                  disabled={workshopLocked}
+                  disabled={workshopLocked || testWorkshopLocked}
                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                 >
                   <FileText className="w-4 h-4 mr-2" />
@@ -1063,10 +1076,10 @@ export default function StepByStepReflection({
               )}
               <Button 
               onClick={handleNext}
-              disabled={!isCurrentReflectionValid() || workshopLocked}
+              disabled={!isCurrentReflectionValid() || workshopLocked || testWorkshopLocked}
               variant="default"
               className={`${
-              isCurrentReflectionValid() && !workshopLocked
+              isCurrentReflectionValid() && !workshopLocked && !testWorkshopLocked
               ? "bg-indigo-600 hover:bg-indigo-700" 
               : "bg-gray-400 cursor-not-allowed"
               }`}
