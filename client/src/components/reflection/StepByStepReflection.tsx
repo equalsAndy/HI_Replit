@@ -178,16 +178,22 @@ export default function StepByStepReflection({
     []
   );
 
-  // Trigger save whenever reflections change
+  // Trigger save whenever reflections change (only if not locked)
   useEffect(() => {
+    // Don't auto-save if workshop is locked
+    if (workshopLocked) {
+      console.log('🔒 Workshop locked - skipping auto-save');
+      return;
+    }
+    
     const hasContent = Object.values(reflections).some(value => value && typeof value === 'string' && value.trim().length > 0);
-    console.log('Reflection save check:', { reflections, hasContent });
+    console.log('Reflection save check:', { reflections, hasContent, workshopLocked });
     
     if (hasContent) {
       console.log('Triggering auto-save for reflections:', reflections);
       debouncedSave(reflections);
     }
-  }, [reflections, debouncedSave]);
+  }, [reflections, debouncedSave, workshopLocked]);
 
   // Function to populate reflections with meaningful AST demo data
   const fillWithDemoData = async () => {
@@ -946,13 +952,17 @@ export default function StepByStepReflection({
                 id={`strength-${currentStep}-reflection`}
                 value={getCurrentReflectionText()}
                 onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
+                disabled={workshopLocked}
+                readOnly={workshopLocked}
                 placeholder={currentStep <= 4 
                   ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
                   : currentStep === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
                 className={`min-h-[140px] w-full ${
-                  currentStep <= 4
+                  workshopLocked
+                    ? 'opacity-60 cursor-not-allowed bg-gray-100'
+                    : currentStep <= 4
                     ? sortedQuadrants[currentStep-1].label === 'THINKING'
                       ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
                       : sortedQuadrants[currentStep-1].label === 'ACTING'
@@ -1044,6 +1054,7 @@ export default function StepByStepReflection({
                   variant="outline" 
                   size="sm"
                   onClick={fillWithDemoData}
+                  disabled={workshopLocked}
                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                 >
                   <FileText className="w-4 h-4 mr-2" />
@@ -1051,16 +1062,16 @@ export default function StepByStepReflection({
                 </Button>
               )}
               <Button 
-                onClick={handleNext}
-                disabled={!isCurrentReflectionValid()}
-                variant="default"
-                className={`${
-                  isCurrentReflectionValid() 
-                    ? "bg-indigo-600 hover:bg-indigo-700" 
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
+              onClick={handleNext}
+              disabled={!isCurrentReflectionValid() || workshopLocked}
+              variant="default"
+              className={`${
+              isCurrentReflectionValid() && !workshopLocked
+              ? "bg-indigo-600 hover:bg-indigo-700" 
+              : "bg-gray-400 cursor-not-allowed"
+              }`}
               >
-                {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
+              {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
               </Button>
             </div>
           </div>

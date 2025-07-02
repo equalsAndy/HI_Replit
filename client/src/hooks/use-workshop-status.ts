@@ -31,8 +31,9 @@ export function useWorkshopStatus() {
 
   // Simple test function to manually toggle completion
   const testCompleteWorkshop = () => {
-    console.log('🧪 Test: Manually completing workshop...');
-    setCompleted(true);
+    console.log('🧪 Test: Toggling workshop lock state...');
+    setCompleted(!completed); // Toggle the state
+    console.log('🧪 New state:', !completed ? 'LOCKED' : 'UNLOCKED');
   };
 
   return {
