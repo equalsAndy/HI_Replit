@@ -154,7 +154,22 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     formData.flowOptimizedLife.trim().length >= 10;
 
   const handleSubmit = async () => {
-    if (!hasMinimumContent) return;
+    // Validate that at least one field has content
+    const fields = {
+      twentyYearVision: formData.twentyYearVision,
+      tenYearMilestone: formData.tenYearMilestone,
+      fiveYearFoundation: formData.fiveYearFoundation,
+      flowOptimizedLife: formData.flowOptimizedLife
+    };
+    
+    const validation = validateAtLeastOneField(fields, 10);
+    if (!validation.isValid) {
+      setValidationError(validation.errors[0].message);
+      return;
+    }
+    
+    // Clear validation error
+    setValidationError('');
     
     try {
       // Save the data before proceeding to next step
@@ -411,6 +426,17 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         </div>
 
         {/* No save status display - user controls saving via Next button */}
+
+        {/* Validation error display */}
+        {validationError && (
+          <div className="max-w-4xl mx-auto mb-4">
+            <ValidationMessage 
+              message={validationError} 
+              type="error" 
+              show={!!validationError}
+            />
+          </div>
+        )}
 
         {/* Next Button */}
         <div className="max-w-4xl mx-auto flex justify-center">
