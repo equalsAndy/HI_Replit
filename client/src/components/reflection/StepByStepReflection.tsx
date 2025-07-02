@@ -4,6 +4,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChevronDown, ChevronUp, FileText } from "lucide-react";
 import { debounce } from '@/lib/utils';
 import { useTestUser } from '@/hooks/useTestUser';
+import { LockedInputWrapper } from '@/components/ui/locked-input-wrapper';
+import { WorkshopCompletionBanner } from '@/components/ui/workshop-completion-banner';
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -602,32 +604,34 @@ export default function StepByStepReflection({
                   ? "Write 2-3 sentences about your ideal team environment"
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
-              <Textarea 
-                id={`strength-${step}-reflection`}
-                value={step === 1 ? reflections.strength1 : 
-                     step === 2 ? reflections.strength2 : 
-                     step === 3 ? reflections.strength3 : 
-                     step === 4 ? reflections.strength4 :
-                     step === 5 ? reflections.teamValues :
-                     reflections.uniqueContribution}
-                onChange={(e) => handleReflectionChange(step, e.target.value)}
-                placeholder={step <= 4 
-                  ? `Describe specific moments when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively...`
-                  : step === 5 
-                  ? "Describe the team environment where you perform at your best..."
-                  : "Describe your unique contribution to the team..."}
-                className={`min-h-[140px] w-full ${
-                  step <= 4
-                    ? sortedQuadrants[step-1].label === 'THINKING'
-                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
-                      : sortedQuadrants[step-1].label === 'ACTING'
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : sortedQuadrants[step-1].label === 'FEELING'
-                      ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
-                      : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
-                    : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500'
-                } rounded-md bg-white`}
-              />
+              <LockedInputWrapper>
+                <Textarea 
+                  id={`strength-${step}-reflection`}
+                  value={step === 1 ? reflections.strength1 : 
+                       step === 2 ? reflections.strength2 : 
+                       step === 3 ? reflections.strength3 : 
+                       step === 4 ? reflections.strength4 :
+                       step === 5 ? reflections.teamValues :
+                       reflections.uniqueContribution}
+                  onChange={(e) => handleReflectionChange(step, e.target.value)}
+                  placeholder={step <= 4 
+                    ? `Describe specific moments when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively...`
+                    : step === 5 
+                    ? "Describe the team environment where you perform at your best..."
+                    : "Describe your unique contribution to the team..."}
+                  className={`min-h-[140px] w-full ${
+                    step <= 4
+                      ? sortedQuadrants[step-1].label === 'THINKING'
+                        ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
+                        : sortedQuadrants[step-1].label === 'ACTING'
+                        ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
+                        : sortedQuadrants[step-1].label === 'FEELING'
+                        ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
+                        : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
+                      : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500'
+                  } rounded-md bg-white`}
+                />
+              </LockedInputWrapper>
           </div>
         </div>
       </div>
@@ -690,13 +694,15 @@ export default function StepByStepReflection({
             <p className="text-gray-700 mb-3 text-sm italic">
               Write 2-3 sentences about the team environment where you perform best
             </p>
-            <Textarea 
-              id="team-values-reflection"
-              value={reflections.teamValues}
-              onChange={(e) => handleReflectionChange(5, e.target.value)}
-              placeholder="Describe the team environment where you perform at your best..."
-              className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
-            />
+            <LockedInputWrapper>
+              <Textarea 
+                id="team-values-reflection"
+                value={reflections.teamValues}
+                onChange={(e) => handleReflectionChange(5, e.target.value)}
+                placeholder="Describe the team environment where you perform at your best..."
+                className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+              />
+            </LockedInputWrapper>
           </div>
         </div>
       </div>
@@ -756,13 +762,15 @@ export default function StepByStepReflection({
             <p className="text-gray-700 mb-3 text-sm italic">
               Write 2-3 sentences about your unique contribution to the team
             </p>
-            <Textarea 
-              id="unique-contribution-reflection"
-              value={reflections.uniqueContribution}
-              onChange={(e) => handleReflectionChange(6, e.target.value)}
-              placeholder="Describe your unique contribution to the team..."
-              className="min-h-[140px] w-full border-green-300 focus:border-green-500 focus:ring-green-500 rounded-md bg-white"
-            />
+            <LockedInputWrapper>
+              <Textarea 
+                id="unique-contribution-reflection"
+                value={reflections.uniqueContribution}
+                onChange={(e) => handleReflectionChange(6, e.target.value)}
+                placeholder="Describe your unique contribution to the team..."
+                className="min-h-[140px] w-full border-green-300 focus:border-green-500 focus:ring-green-500 rounded-md bg-white"
+              />
+            </LockedInputWrapper>
           </div>
         </div>
       </div>
@@ -771,6 +779,7 @@ export default function StepByStepReflection({
 
   return (
     <>
+      <WorkshopCompletionBanner />
       {/* Progress indicator */}
       <div className="flex justify-end mb-4">
         <div className="bg-white rounded-md shadow-sm border border-gray-200 px-3 py-1.5 flex items-center space-x-2">
