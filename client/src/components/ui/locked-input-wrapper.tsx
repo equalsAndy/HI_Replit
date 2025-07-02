@@ -1,7 +1,6 @@
 import React from 'react';
 import { Lock } from 'lucide-react';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
-import { useApplication } from '@/hooks/use-application';
 
 interface LockedInputWrapperProps {
   children: React.ReactElement;
@@ -10,11 +9,7 @@ interface LockedInputWrapperProps {
 
 export function LockedInputWrapper({ children, className = '' }: LockedInputWrapperProps) {
   const { isWorkshopLocked } = useWorkshopStatus();
-  const { currentApp } = useApplication();
-  
-  // Map currentApp to the format expected by the hook
-  const appType: 'ast' | 'ia' = currentApp === 'allstarteams' ? 'ast' : 'ia';
-  const isLocked = isWorkshopLocked(appType);
+  const isLocked = isWorkshopLocked();
 
   if (!isLocked) {
     return children;

@@ -2,91 +2,81 @@ import { useState, useEffect } from 'react';
 import { useProfile } from './use-profile';
 
 interface WorkshopStatus {
-  astCompleted: boolean;
-  iaCompleted: boolean;
-  astCompletedAt?: string;
-  iaCompletedAt?: string;
-  isLoading: boolean;
+  completed: boolean;
+  completedAt: string | null;
 }
 
 export function useWorkshopStatus() {
   const [status, setStatus] = useState<WorkshopStatus>({
-    astCompleted: false,
-    iaCompleted: false,
-    isLoading: true
+    completed: false,
+    completedAt: null
   });
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
   const { profile } = useProfile();
 
-  // Fetch completion status
   useEffect(() => {
-    const fetchStatus = async () => {
-      if (!profile) {
-        setStatus(prev => ({ ...prev, isLoading: false }));
-        return;
-      }
+    if (!profile) return;
 
+    const fetchStatus = async () => {
       try {
-        const response = await fetch('/api/workshop-data/completion-status', {
-          credentials: 'include'
-        });
+        setLoading(true);
+        const response = await fetch('/api/workshop-data/completion-status');
         
-        if (response.ok) {
-          const data = await response.json();
-          setStatus({
-            astCompleted: data.astWorkshopCompleted || false,
-            iaCompleted: data.iaWorkshopCompleted || false,
-            astCompletedAt: data.astCompletedAt,
-            iaCompletedAt: data.iaCompletedAt,
-            isLoading: false
-          });
-        } else {
-          console.error('Failed to fetch workshop status');
-          setStatus(prev => ({ ...prev, isLoading: false }));
+        if (!response.ok) {
+          throw new Error('Failed to fetch completion status');
         }
-      } catch (error) {
-        console.error('Error fetching workshop status:', error);
-        setStatus(prev => ({ ...prev, isLoading: false }));
+        
+        const data = await response.json();
+        setStatus(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchStatus();
   }, [profile]);
 
-  // Complete workshop function
-  const completeWorkshop = async (appType: 'ast' | 'ia') => {
+  const completeWorkshop = async () => {
     try {
       const response = await fetch('/api/workshop-data/complete-workshop', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ appType })
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
-      if (response.ok) {
-        // Update local status
-        setStatus(prev => ({
-          ...prev,
-          [appType === 'ast' ? 'astCompleted' : 'iaCompleted']: true,
-          [appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt']: new Date().toISOString()
-        }));
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.message || 'Failed to complete workshop' };
+      if (!response.ok) {
+        throw new Error('Failed to complete workshop');
       }
-    } catch (error) {
-      console.error('Error completing workshop:', error);
-      return { success: false, error: 'Network error' };
+
+      const result = await response.json();
+      
+      // Update local state optimistically
+      setStatus({
+        completed: true,
+        completedAt: result.completedAt
+      });
+
+      return result;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      throw err;
     }
   };
 
-  // Helper function to check if specific workshop is locked
-  const isWorkshopLocked = (appType: 'ast' | 'ia') => {
-    return appType === 'ast' ? status.astCompleted : status.iaCompleted;
+  const isWorkshopLocked = () => {
+    return status.completed;
   };
 
   return {
-    ...status,
+    completed: status.completed,
+    completedAt: status.completedAt,
+    loading,
+    error,
     completeWorkshop,
     isWorkshopLocked
   };

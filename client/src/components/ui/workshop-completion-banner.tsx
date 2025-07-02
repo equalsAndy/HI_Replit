@@ -1,19 +1,13 @@
 import { CheckCircle, Lock } from 'lucide-react';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
-import { useApplication } from '@/hooks/use-application';
 
 export function WorkshopCompletionBanner() {
-  const { isWorkshopLocked, astCompletedAt, iaCompletedAt } = useWorkshopStatus();
-  const { currentApp } = useApplication();
-  
-  // Map currentApp to the format expected by the hook
-  const appType: 'ast' | 'ia' = currentApp === 'allstarteams' ? 'ast' : 'ia';
-  const isLocked = isWorkshopLocked(appType);
+  const { isWorkshopLocked, completedAt } = useWorkshopStatus();
+  const isLocked = isWorkshopLocked();
   
   if (!isLocked) return null;
 
-  const completedDate = appType === 'ast' ? astCompletedAt : iaCompletedAt;
-  const workshopName = currentApp === 'allstarteams' ? 'AllStarTeams' : 'Imaginal Agility';
+  const workshopName = 'AllStarTeams';
 
   return (
     <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
@@ -24,7 +18,7 @@ export function WorkshopCompletionBanner() {
             {workshopName} Workshop Completed
           </h3>
           <p className="text-sm text-green-600 mt-1">
-            Completed on {completedDate ? new Date(completedDate).toLocaleDateString() : 'recently'}. 
+            Completed on {completedAt ? new Date(completedAt).toLocaleDateString() : 'recently'}. 
             Your responses are now locked, but you can still view all content and download reports.
           </p>
         </div>
