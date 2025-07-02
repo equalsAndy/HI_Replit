@@ -35,11 +35,13 @@ const ReflectionView: React.FC<ContentViewProps> = ({
     <>
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Reflect on Your Strengths</h1>
 
-      {/* Workshop Locking Test Section */}
+      {/* Workshop Locking Test Section - Debug */}
+      {console.log('🧪 ReflectionView Debug:', { isTestUser, workshopLocked, workshopLoading })}
+      
       {isTestUser && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
           <h3 className="text-yellow-800 font-medium mb-3 flex items-center">
-            🧪 Workshop Locking Test
+            🧪 Workshop Locking Test (DEBUG: isTestUser={isTestUser.toString()})
           </h3>
           <div className="space-y-3">
             <div className="flex items-center justify-between">
@@ -47,7 +49,10 @@ const ReflectionView: React.FC<ContentViewProps> = ({
                 Workshop Status: {workshopLocked ? '🔒 LOCKED' : '🔓 UNLOCKED'}
               </span>
               <Button
-                onClick={testCompleteWorkshop}
+                onClick={() => {
+                  console.log('🔘 Test button clicked!');
+                  testCompleteWorkshop();
+                }}
                 variant="outline"
                 size="sm"
                 className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
@@ -68,6 +73,15 @@ const ReflectionView: React.FC<ContentViewProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* Fallback test button if above doesn't work */}
+      {!isTestUser && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <p className="text-red-700 text-sm">
+            🚫 Test button not visible because isTestUser = {isTestUser ? 'true' : 'false'}
+          </p>
         </div>
       )}
 
