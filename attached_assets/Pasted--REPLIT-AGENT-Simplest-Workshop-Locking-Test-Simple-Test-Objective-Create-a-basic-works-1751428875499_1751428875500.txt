@@ -1,0 +1,115 @@
+# REPLIT AGENT: Simplest Workshop Locking Test
+
+## 🎯 **Simple Test Objective**
+Create a basic workshop locking test that we can verify works before building anything complex.
+
+## 📁 **Task: Create Simple Test Hook**
+
+**Create file:** `client/src/hooks/use-workshop-status.ts`
+
+```typescript
+import { useState, useEffect } from 'react';
+
+export function useWorkshopStatus() {
+  const [completed, setCompleted] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Test the backend API connection
+    const testAPI = async () => {
+      try {
+        console.log('🧪 Testing workshop completion API...');
+        
+        const response = await fetch('/api/workshop-data/completion-status');
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('✅ API Response:', data);
+          setCompleted(data.completed || false);
+        } else {
+          console.log('❌ API Error:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.log('❌ Network Error:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    testAPI();
+  }, []);
+
+  // Simple test function to manually toggle completion
+  const testCompleteWorkshop = () => {
+    console.log('🧪 Test: Manually completing workshop...');
+    setCompleted(true);
+  };
+
+  return {
+    completed,
+    loading,
+    isWorkshopLocked: () => completed,
+    testCompleteWorkshop // For testing only
+  };
+}
+```
+
+## 📁 **Task: Add Test to ReflectionView**
+
+**Modify:** `client/src/components/content/ReflectionView.tsx`
+
+**Add these imports at the top:**
+```typescript
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+```
+
+**Add after existing useState declarations:**
+```typescript
+const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+```
+
+**Add a test button somewhere visible in the component (temporary for testing):**
+```typescript
+{/* TEMPORARY TEST BUTTON - Remove after testing */}
+<div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer' }}>
+  <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+  <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px' }}>
+    Test Lock Workshop
+  </button>
+</div>
+```
+
+## ✅ **Simple Test Plan**
+
+After implementing:
+
+1. **Open ReflectionView in browser**
+2. **Check browser console** - should see API test logs
+3. **Look for red test button** in top-right corner
+4. **Click "Test Lock Workshop"** - status should change to LOCKED
+5. **Verify console logs** show the state changes
+
+## 🎯 **Success Criteria**
+
+- [ ] Hook connects to backend API (check console logs)
+- [ ] Test button appears on screen
+- [ ] Clicking button changes status from UNLOCKED to LOCKED
+- [ ] Console shows all the test messages
+- [ ] No errors in browser console
+
+## 📝 **What This Tests**
+
+✅ **API Connection**: Verifies backend `/completion-status` endpoint works
+✅ **Hook Logic**: Tests basic state management  
+✅ **Component Integration**: Proves hook can be used in components
+✅ **Manual Toggle**: Simulates completion without complex backend calls
+
+## 🚀 **Why This Approach**
+
+- **Minimal code** - just a hook and a test button
+- **Visible results** - red button shows status clearly
+- **Console feedback** - detailed logging for debugging
+- **No complex UI** - focuses purely on functionality
+- **Easy to remove** - temporary test elements
+
+Once this simple test works, we know the foundation is solid and can build the actual locking components.
