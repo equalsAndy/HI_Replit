@@ -961,7 +961,7 @@ workshopDataRouter.get('/future-self', async (req: Request, res: Response) => {
  * Cantril Ladder (Well-being) Reflection endpoints
  */
 // POST /api/workshop-data/cantril-ladder
-workshopDataRouter.post('/cantril-ladder', async (req: Request, res: Response) => {
+workshopDataRouter.post('/cantril-ladder', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1405,7 +1405,7 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
  * Step-by-Step Reflection endpoints
  */
 // POST /api/workshop-data/step-by-step-reflection
-workshopDataRouter.post('/step-by-step-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
@@ -1679,7 +1679,7 @@ workshopDataRouter.get('/visualizing-potential', async (req: Request, res: Respo
  * Final Reflection endpoints
  */
 // POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', async (req: Request, res: Response) => {
+workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
