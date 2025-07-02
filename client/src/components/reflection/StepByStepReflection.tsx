@@ -29,12 +29,14 @@ interface StepByStepReflectionProps {
   starCard: StarCardType | undefined;
   setCurrentContent?: (content: string) => void;
   markStepCompleted?: (stepId: string) => void;
+  workshopLocked?: boolean;
 }
 
 export default function StepByStepReflection({ 
   starCard: initialStarCard, 
   setCurrentContent,
-  markStepCompleted 
+  markStepCompleted,
+  workshopLocked = false
 }: StepByStepReflectionProps) {
   // State for managing reflection steps
   const [currentStep, setCurrentStep] = useState(1);
