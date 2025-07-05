@@ -32,8 +32,8 @@ export default function FinalReflectionView({
   const [showModal, setShowModal] = useState(false);
   const isTestUser = useTestUser();
   
-  // Workshop status for testing
-  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+  // Workshop status
+  const { completed, loading, isWorkshopLocked, completeWorkshop } = useWorkshopStatus();
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -180,8 +180,19 @@ export default function FinalReflectionView({
       await saveMutation.mutateAsync(saveData);
       setSaveStatus('saved');
       
-      // Mark step as completed and show modal
+      // Mark step as completed first
       markStepCompleted('4-5');
+      
+      // Call the real workshop completion system
+      const completionResult = await completeWorkshop();
+      
+      if (completionResult.success) {
+        console.log('🎉 Workshop completed successfully!');
+      } else {
+        console.warn('⚠️ Workshop completion failed:', completionResult.error);
+      }
+      
+      // Show completion modal regardless
       setShowModal(true);
     } catch (error) {
       console.error('Failed to save final reflection:', error);
@@ -252,13 +263,7 @@ export default function FinalReflectionView({
 
   return (
     <>
-      {/* TEMPORARY TEST BUTTON - Remove after testing */}
-      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
-        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
-        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
-          Test Lock Workshop
-        </button>
-      </div>
+
 
       {/* Workshop Completion Banner */}
       {completed && (

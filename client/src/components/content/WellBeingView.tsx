@@ -25,8 +25,8 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
   
-  // Workshop status for testing
-  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+  // Workshop status
+  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
@@ -236,13 +236,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   return (
     <>
-      {/* TEMPORARY TEST BUTTON - Remove after testing */}
-      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
-        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
-        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
-          Test Lock Workshop
-        </button>
-      </div>
+
 
       {/* Workshop Completion Banner */}
       {completed && (
