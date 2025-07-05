@@ -27,6 +27,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   
   // Workshop status
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const testWorkshopLocked = isWorkshopLocked();
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
