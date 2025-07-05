@@ -1,68 +1,43 @@
 import { useState, useEffect } from 'react';
 
+// Global completion state that all components share
+let globalCompletionState = false;
+const completionListeners: (() => void)[] = [];
+
 export function useWorkshopStatus() {
-  const [completed, setCompleted] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [completed, setCompleted] = useState(globalCompletionState);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkCompletionStatus();
+    // Register this component as a listener for global completion changes
+    const updateCompletion = () => setCompleted(globalCompletionState);
+    completionListeners.push(updateCompletion);
+    
+    // Cleanup listener on unmount
+    return () => {
+      const index = completionListeners.indexOf(updateCompletion);
+      if (index > -1) {
+        completionListeners.splice(index, 1);
+      }
+    };
   }, []);
 
-  const checkCompletionStatus = async () => {
-    try {
-      console.log('🔍 Checking workshop completion status...');
-      
-      const response = await fetch('/api/workshop-data/completion-status', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Workshop completion status:', data);
-        setCompleted(data.astWorkshopCompleted || false);
-      } else {
-        console.log('❌ API Error:', response.status, response.statusText);
-        setCompleted(false);
-      }
-    } catch (error) {
-      console.log('❌ Network Error:', error);
-      setCompleted(false);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const completeWorkshop = async () => {
-    try {
-      console.log('🎯 Completing workshop...');
-      
-      const response = await fetch('/api/workshop-data/complete-workshop', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ appType: 'ast' })
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Workshop completed successfully:', data);
-        setCompleted(true);
-        return { success: true };
-      } else {
-        console.log('❌ Workshop completion failed:', response.status);
-        return { success: false, error: 'Failed to complete workshop' };
-      }
-    } catch (error) {
-      console.error('❌ Workshop completion error:', error);
-      return { success: false, error: 'Network error' };
-    }
+  const triggerGlobalCompletion = () => {
+    console.log('🎯 Triggering global workshop completion...');
+    globalCompletionState = true;
+    
+    // Notify all listening components to update their state
+    completionListeners.forEach(listener => listener());
+    
+    console.log('✅ All workshop steps have been locked');
   };
 
   return {
     completed,
     loading,
     isWorkshopLocked: () => completed,
-    completeWorkshop,
-    refreshStatus: checkCompletionStatus
+    triggerGlobalCompletion,
+    // Keep test function but make it hidden by default
+    testCompleteWorkshop: process.env.NODE_ENV === 'development' ? triggerGlobalCompletion : undefined
   };
 }

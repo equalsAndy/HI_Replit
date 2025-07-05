@@ -33,7 +33,7 @@ export default function FinalReflectionView({
   const isTestUser = useTestUser();
   
   // Workshop status
-  const { completed, loading, isWorkshopLocked, completeWorkshop } = useWorkshopStatus();
+  const { completed, loading, isWorkshopLocked, triggerGlobalCompletion } = useWorkshopStatus();
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -183,21 +183,19 @@ export default function FinalReflectionView({
       // Mark step as completed first
       markStepCompleted('4-5');
       
-      // Call the real workshop completion system
-      const completionResult = await completeWorkshop();
+      // TRIGGER GLOBAL COMPLETION - This will lock ALL workshop steps
+      triggerGlobalCompletion();
       
-      if (completionResult.success) {
-        console.log('🎉 Workshop completed successfully!');
-      } else {
-        console.warn('⚠️ Workshop completion failed:', completionResult.error);
-      }
-      
-      // Show completion modal regardless
+      // Show completion modal
       setShowModal(true);
+      
+      console.log('🎉 Workshop completed - all steps are now locked');
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
-      // Still complete the step even if save fails
+      
+      // Still complete the workshop even if save fails
+      triggerGlobalCompletion();
       markStepCompleted('4-5');
       setShowModal(true);
     }

@@ -34,7 +34,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   const isTestUser = useTestUser();
   
   // Workshop status for testing
-  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
   const testWorkshopLocked = isWorkshopLocked();
   
   // Validation state
