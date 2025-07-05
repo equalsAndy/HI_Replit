@@ -349,11 +349,8 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             <Check className="text-green-600" size={20} />
             <div className="flex-1">
               <h3 className="font-medium text-green-800">
-                Step 3-3: Rounding Out Completed
+                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
               </h3>
-              <p className="text-sm text-green-600">
-                Your responses are locked, but you can still view content and navigate between questions.
-              </p>
             </div>
             <div className="text-green-600">
               🔒

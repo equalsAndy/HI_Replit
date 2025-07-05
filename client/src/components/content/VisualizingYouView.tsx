@@ -207,11 +207,8 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             <Image className="text-green-600" size={20} />
             <div className="flex-1">
               <h3 className="font-medium text-green-800">
-                Step 4-3: Visualizing Your Potential Completed
+                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
               </h3>
-              <p className="text-sm text-green-600">
-                Your responses are locked, but you can still view content and navigate.
-              </p>
             </div>
             <div className="text-green-600">
               🔒

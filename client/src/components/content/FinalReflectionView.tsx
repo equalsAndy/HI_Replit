@@ -270,11 +270,8 @@ export default function FinalReflectionView({
             <FileText className="text-green-600" size={20} />
             <div className="flex-1">
               <h3 className="font-medium text-green-800">
-                Step 4-5: Final Reflection Completed
+                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
               </h3>
-              <p className="text-sm text-green-600">
-                Your responses are locked, but you can still view content and navigate.
-              </p>
             </div>
             <div className="text-green-600">
               🔒
@@ -408,12 +405,8 @@ export default function FinalReflectionView({
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
-                      <p className="completed-text">AllStarTeams Workshop Completed & Locked!</p>
+                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
                     </div>
-                    
-                    <p className="text-sm text-gray-600 text-center mt-4">
-                      Your workshop has been completed and locked. You can view your results below.
-                    </p>
                     
                     <div className="flex justify-center mt-4">
                       <button
@@ -429,12 +422,8 @@ export default function FinalReflectionView({
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
-                      <p className="completed-text">You have completed your AllStarTeams Workshop!</p>
+                      <p className="completed-text">Workshop complete. Your responses are locked, but you can watch videos and read your answers.</p>
                     </div>
-                    
-                    <p className="text-sm text-gray-600 text-center mt-4">
-                      Your answers have been saved. You can now review your Star Card, your Holistic Report, and other next steps.
-                    </p>
                   </div>
                 )}
               </div>

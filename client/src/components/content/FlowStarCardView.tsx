@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { 
   DndContext, 
   closestCenter,
@@ -181,6 +182,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   const [starCardFlowAttributes, setStarCardFlowAttributes] = useState<FlowAttribute[]>([]);
   const [showSelectionInterface, setShowSelectionInterface] = useState<boolean>(true); // Modified: Keep interface visible initially
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+  
+  // Workshop status for locking functionality
+  const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
 
   // Fetch user data
   const { data: userData } = useQuery({
@@ -480,7 +484,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
         </p>
       </div>
 
-      {hasExistingAttributes && !showSelectionInterface && (
+      {hasExistingAttributes && !showSelectionInterface && !workshopCompleted && (
         <div className="bg-green-50 p-4 rounded-lg border border-green-100 mb-6">
           <div className="flex justify-between items-start">
             <div>
@@ -497,6 +501,23 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             >
               Edit Attributes
             </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Workshop completion message */}
+      {workshopCompleted && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <ChevronRight className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Workshop complete. Your responses are locked, but you can watch videos and read your answers.
+              </h3>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
           </div>
         </div>
       )}
