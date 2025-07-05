@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTestUser } from '@/hooks/useTestUser';
 import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -25,6 +26,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
   const isTestUser = useTestUser();
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -197,7 +199,35 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   };
 
   return (
-    <>
+    <>      
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          Test Lock Workshop
+        </button>
+      </div>
+
+      {/* Workshop Completion Banner */}
+      {completed && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Image className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Step 4-3: Visualizing Your Potential Completed
+              </h3>
+              <p className="text-sm text-green-600">
+                Your responses are locked, but you can still view content and navigate.
+              </p>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Visualizing Your Potential</h1>
 
       <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-100 mb-4">
@@ -267,6 +297,8 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                   onClick={() => removeImage(image.id)}
                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-70 hover:opacity-100 transition"
                   title="Remove image"
+                  disabled={completed}
+                  style={{ display: completed ? 'none' : 'block' }}
                 >
                   <X className="h-4 w-4 text-red-500" />
                 </button>
@@ -318,11 +350,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
+                disabled={completed}
               />
               <Button 
                 variant="default" 
                 onClick={handleSearch}
-                disabled={isSearching || !searchQuery.trim()}
+                disabled={isSearching || !searchQuery.trim() || completed}
                 className="flex items-center gap-2"
               >
                 <Search className="h-4 w-4" /> 
@@ -355,8 +388,10 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 {searchResults.map(image => (
                   <div 
                     key={image.id} 
-                    className="relative group cursor-pointer rounded-md overflow-hidden border border-gray-200"
-                    onClick={() => addImage(image)}
+                    className={`relative group rounded-md overflow-hidden border border-gray-200 ${
+                      completed ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                    }`}
+                    onClick={() => completed ? null : addImage(image)}
                   >
                     <img 
                       src={image.urls.regular} 
@@ -385,8 +420,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         <textarea
           value={imageMeaning}
           onChange={(e) => setImageMeaning(e.target.value)}
-          placeholder="These images represent my vision because..."
-          className="w-full p-2 min-h-[120px] border border-gray-300 rounded-md"
+          placeholder={completed ? "This workshop is completed and locked for editing" : "These images represent my vision because..."}
+          className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
+            completed ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+          }`}
+          disabled={completed}
+          readOnly={completed}
         />
       </div>
 
@@ -403,7 +442,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
-          {isTestUser && (
+          {isTestUser && !completed && (
             <Button 
               variant="outline" 
               size="sm"
@@ -416,6 +455,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={async () => {
+              if (completed) {
+                // If workshop is completed, just navigate
+                markStepCompleted('4-3');
+                setCurrentContent("future-self");
+                return;
+              }
               // Validate that user has selected at least one image OR provided image meaning
               if (selectedImages.length === 0 && imageMeaning.trim().length < 10) {
                 setValidationError('Please select at least one image or provide a description of what your future vision means to you');
@@ -454,7 +499,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             }}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
-            Next: Your Future Self <ChevronRight className="ml-2 h-4 w-4" />
+            {completed ? 'Continue to Future Self' : 'Next: Your Future Self'} <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>
