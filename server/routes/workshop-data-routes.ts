@@ -1526,7 +1526,7 @@ workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Res
  * Visualizing Potential (Images) endpoints
  */
 // POST /api/workshop-data/visualizing-potential
-workshopDataRouter.post('/visualizing-potential', async (req: Request, res: Response) => {
+workshopDataRouter.post('/visualizing-potential', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
     let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
