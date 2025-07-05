@@ -8,6 +8,7 @@ import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
 import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -30,6 +31,9 @@ export default function FinalReflectionView({
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
   const isTestUser = useTestUser();
+  
+  // Workshop status for testing
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -248,6 +252,34 @@ export default function FinalReflectionView({
 
   return (
     <>
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          Test Lock Workshop
+        </button>
+      </div>
+
+      {/* Workshop Completion Banner */}
+      {completed && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">
+          <div className="flex items-center gap-3">
+            <FileText className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Step 4-5: Final Reflection Completed
+              </h3>
+              <p className="text-sm text-green-600">
+                Your responses are locked, but you can still view content and navigate.
+              </p>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="final-reflection-container">
         <div className="content-layout">
           {/* Top Section: Ladder + Explanation Side by Side */}
@@ -303,17 +335,17 @@ export default function FinalReflectionView({
             <div className="input-section">
               <div className="textarea-wrapper">
                 <textarea
-                  className={`insight-input ${isStepCompleted ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
+                  className={`insight-input ${isStepCompleted || completed ? 'readonly' : ''} ${validationError ? 'border-red-300 focus:border-red-500' : ''}`}
                   value={insight}
-                  onChange={isStepCompleted ? undefined : (e) => handleInsightChange(e.target.value)}
-                  disabled={isStepCompleted}
-                  readOnly={isStepCompleted}
-                  placeholder={isStepCompleted ? '' : "What I want to carry forward is..."}
+                  onChange={isStepCompleted || completed ? undefined : (e) => handleInsightChange(e.target.value)}
+                  disabled={isStepCompleted || completed}
+                  readOnly={isStepCompleted || completed}
+                  placeholder={isStepCompleted || completed ? (completed ? "This workshop is completed and locked for editing" : "") : "What I want to carry forward is..."}
                   rows={4}
                 />
                 
                 {/* Validation feedback */}
-                {!isStepCompleted && (
+                {!isStepCompleted && !completed && (
                   <ValidationMessage 
                     message={validationError} 
                     type="error" 
@@ -330,7 +362,7 @@ export default function FinalReflectionView({
               </div>
               
               <div className="action-section">
-                {!isStepCompleted ? (
+                {!isStepCompleted && !completed ? (
                   // Original completion flow for first-time users
                   <>
                     <div className="flex items-center justify-center gap-3">
@@ -368,8 +400,29 @@ export default function FinalReflectionView({
                       </p>
                     )}
                   </>
+                ) : completed ? (
+                  // Workshop completed via locking system
+                  <div className="completed-section">
+                    <div className="completion-indicator">
+                      <span className="checkmark">✅</span>
+                      <p className="completed-text">AllStarTeams Workshop Completed & Locked!</p>
+                    </div>
+                    
+                    <p className="text-sm text-gray-600 text-center mt-4">
+                      Your workshop has been completed and locked. You can view your results below.
+                    </p>
+                    
+                    <div className="flex justify-center mt-4">
+                      <button
+                        onClick={() => setShowModal(true)}
+                        className="continue-button enabled"
+                      >
+                        View Options
+                      </button>
+                    </div>
+                  </div>
                 ) : (
-                  // Completed state - show completion message and lock the input
+                  // Completed state via natural completion flow - show completion message and lock the input
                   <div className="completed-section">
                     <div className="completion-indicator">
                       <span className="checkmark">✅</span>
