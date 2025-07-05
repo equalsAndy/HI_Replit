@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 // Props interface
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -23,6 +24,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   const [futureWellBeingLevel, setFutureWellBeingLevel] = useState<number>(7);
   const [saving, setSaving] = useState(false);
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Workshop status for testing
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
 
   // Fetch user's existing wellbeing data to initialize sliders
   const { data: visualizationData } = useQuery({
@@ -61,6 +65,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
   // Save to localStorage and database whenever values change (but not during initialization)
   useEffect(() => {
     if (!isInitialized) return;
+    
+    // Prevent auto-save when workshop is completed
+    if (completed) return;
 
     const wellbeingData = {
       wellBeingLevel,
@@ -94,7 +101,7 @@ const WellBeingView: React.FC<ContentViewProps> = ({
     }, 1000); // 1 second debounce
 
     return () => clearTimeout(timeoutId);
-  }, [wellBeingLevel, futureWellBeingLevel, isInitialized]);
+  }, [wellBeingLevel, futureWellBeingLevel, isInitialized, completed]);
 
   // YouTube API state
   const [hasReachedMinimum, setHasReachedMinimum] = useState(false);
@@ -229,6 +236,34 @@ const WellBeingView: React.FC<ContentViewProps> = ({
 
   return (
     <>
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          Test Lock Workshop
+        </button>
+      </div>
+
+      {/* Workshop Completion Banner */}
+      {completed && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
+          <div className="flex items-center gap-3">
+            <ChevronRight className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Step 4-1: Ladder of Well-being Completed
+              </h3>
+              <p className="text-sm text-green-600">
+                Your responses are locked, but you can still view content and navigate.
+              </p>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
+          </div>
+        </div>
+      )}
+
       <h1 className="text-3xl font-bold text-gray-900 mb-6">
         The Cantril Ladder of Well-Being
       </h1>
@@ -274,8 +309,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
           <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
             <div className="grid grid-cols-1 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h3 className="text-md font-medium text-blue-800 mb-2">
+                <h3 className="text-md font-medium text-blue-800 mb-2 flex items-center gap-2">
                   Where are you now?
+                  {completed && <span className="text-blue-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -291,8 +327,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={(values) => setWellBeingLevel(values[0])}
-                      className="py-2"
+                      onValueChange={completed ? undefined : (values) => setWellBeingLevel(values[0])}
+                      className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={completed}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-blue-700">
@@ -304,8 +341,9 @@ const WellBeingView: React.FC<ContentViewProps> = ({
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 className="text-md font-medium text-green-800 mb-2">
+                <h3 className="text-md font-medium text-green-800 mb-2 flex items-center gap-2">
                   Where do you want to be?
+                  {completed && <span className="text-green-600">🔒</span>}
                 </h3>
                 <div className="space-y-3">
                   <p className="text-gray-700 text-sm">
@@ -321,10 +359,11 @@ const WellBeingView: React.FC<ContentViewProps> = ({
                       min={0}
                       max={10}
                       step={1}
-                      onValueChange={(values) =>
+                      onValueChange={completed ? undefined : (values) =>
                         setFutureWellBeingLevel(values[0])
                       }
-                      className="py-2"
+                      className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
+                      disabled={completed}
                     />
                     <div className="text-center mt-1">
                       <span className="font-medium text-lg text-green-700">
@@ -381,11 +420,15 @@ const WellBeingView: React.FC<ContentViewProps> = ({
       <div className="flex justify-end">
         <Button
           onClick={handleSave}
-          disabled={saving}
+          disabled={saving || completed}
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
         >
-          {saving ? "Saving..." : "Next: Well-being Reflections"}{" "}
-          <ChevronRight className="ml-2 h-4 w-4" />
+          {completed 
+            ? "Continue to Well-being Reflections"
+            : saving 
+              ? "Saving..." 
+              : "Next: Well-being Reflections"
+          } <ChevronRight className="ml-2 h-4 w-4" />
         </Button>
       </div>
     </>

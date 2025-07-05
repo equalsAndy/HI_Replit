@@ -1,0 +1,228 @@
+# REPLIT AGENT: Implement Workshop Locking for Step 4-1 (WellBeingView)
+
+## 🎯 **Task Objective**
+Add complete workshop locking implementation to `WellBeingView.tsx` following the established pattern from working steps 4-3, 4-4, and 4-5.
+
+## 📁 **File to Modify**
+`client/src/components/content/WellBeingView.tsx`
+
+## 🔧 **Required Changes**
+
+### **1. Add Workshop Status Hook Import**
+Add to existing imports (after line 3):
+```typescript
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+```
+
+### **2. Add Workshop Status Hook Usage**
+Add after existing useState declarations (around line 20):
+```typescript
+const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
+```
+
+### **3. Add Red Test Button**
+Replace the existing return statement opening:
+```typescript
+// BEFORE:
+return (
+  <>
+    <h1 className="text-3xl font-bold text-gray-900 mb-6">
+
+// AFTER:
+return (
+  <>
+    {/* TEMPORARY TEST BUTTON - Remove after testing */}
+    <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+      <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+      <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+        Test Lock Workshop
+      </button>
+    </div>
+
+    {/* Workshop Completion Banner */}
+    {completed && (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto">
+        <div className="flex items-center gap-3">
+          <ChevronRight className="text-green-600" size={20} />
+          <div className="flex-1">
+            <h3 className="font-medium text-green-800">
+              Step 4-1: Ladder of Well-being Completed
+            </h3>
+            <p className="text-sm text-green-600">
+              Your responses are locked, but you can still view content and navigate.
+            </p>
+          </div>
+          <div className="text-green-600">
+            🔒
+          </div>
+        </div>
+      </div>
+    )}
+
+    <h1 className="text-3xl font-bold text-gray-900 mb-6">
+```
+
+### **4. Disable Sliders When Locked**
+Replace both Slider components to add disabled state:
+
+**First Slider (Current Well-being):**
+```typescript
+// Find this section around line 200:
+<Slider
+  value={[wellBeingLevel]}
+  min={0}
+  max={10}
+  step={1}
+  onValueChange={(values) => setWellBeingLevel(values[0])}
+  className="py-2"
+/>
+
+// REPLACE WITH:
+<Slider
+  value={[wellBeingLevel]}
+  min={0}
+  max={10}
+  step={1}
+  onValueChange={completed ? undefined : (values) => setWellBeingLevel(values[0])}
+  className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
+  disabled={completed}
+/>
+```
+
+**Second Slider (Future Well-being):**
+```typescript
+// Find this section around line 235:
+<Slider
+  value={[futureWellBeingLevel]}
+  min={0}
+  max={10}
+  step={1}
+  onValueChange={(values) =>
+    setFutureWellBeingLevel(values[0])
+  }
+  className="py-2"
+/>
+
+// REPLACE WITH:
+<Slider
+  value={[futureWellBeingLevel]}
+  min={0}
+  max={10}
+  step={1}
+  onValueChange={completed ? undefined : (values) =>
+    setFutureWellBeingLevel(values[0])
+  }
+  className={`py-2 ${completed ? 'opacity-60 cursor-not-allowed' : ''}`}
+  disabled={completed}
+/>
+```
+
+### **5. Update Save Button**
+Replace the save button section:
+```typescript
+// BEFORE:
+<Button
+  onClick={handleSave}
+  disabled={saving}
+  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+>
+  {saving ? "Saving..." : "Next: Well-being Reflections"}{" "}
+  <ChevronRight className="ml-2 h-4 w-4" />
+</Button>
+
+// AFTER:
+<Button
+  onClick={handleSave}
+  disabled={saving || completed}
+  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+>
+  {completed 
+    ? "Continue to Well-being Reflections"
+    : saving 
+      ? "Saving..." 
+      : "Next: Well-being Reflections"
+  } <ChevronRight className="ml-2 h-4 w-4" />
+</Button>
+```
+
+### **6. Add Lock Indicators to Slider Sections**
+Add lock indicators to both slider sections:
+
+**For Current Well-being section:**
+```typescript
+// Add after the h3 title:
+<h3 className="text-md font-medium text-blue-800 mb-2 flex items-center gap-2">
+  Where are you now?
+  {completed && <span className="text-blue-600">🔒</span>}
+</h3>
+```
+
+**For Future Well-being section:**
+```typescript
+// Add after the h3 title:
+<h3 className="text-md font-medium text-green-800 mb-2 flex items-center gap-2">
+  Where do you want to be?
+  {completed && <span className="text-green-600">🔒</span>}
+</h3>
+```
+
+### **7. Prevent Auto-save When Locked**
+Update the auto-save useEffect to check for completion:
+```typescript
+// Find the useEffect around line 50 that handles auto-saving:
+useEffect(() => {
+  if (!isInitialized) return;
+  
+  // ADD THIS CHECK:
+  if (completed) return;
+  
+  const wellbeingData = {
+    // ... rest of existing code remains the same
+  };
+  // ... rest of useEffect remains unchanged
+}, [wellBeingLevel, futureWellBeingLevel, isInitialized, completed]); // ADD completed to dependencies
+```
+
+## ✅ **Success Criteria**
+
+After implementation:
+- [ ] Red test button appears in top-right corner
+- [ ] Button toggles between 🔓 UNLOCKED and 🔒 LOCKED
+- [ ] Both sliders become disabled and grayed out when locked
+- [ ] Lock icons appear next to slider titles when locked
+- [ ] Completion banner appears when locked
+- [ ] Save button text changes when locked
+- [ ] Auto-save is prevented when locked
+- [ ] Navigation still works when locked
+
+## 🧪 **Testing Instructions**
+
+1. **Load Step 4-1** in browser
+2. **Verify red test button** appears in top-right
+3. **Test sliders work** when unlocked
+4. **Click test button** to toggle lock state
+5. **Confirm when locked**:
+   - Sliders become disabled and grayed out
+   - Lock icons appear next to titles
+   - Completion banner shows
+   - Button text changes to "Continue to Well-being Reflections"
+   - No auto-saving occurs
+6. **Test navigation** still works when locked
+
+## 📋 **Important Notes**
+
+- **Follow exact pattern** from Steps 4-3, 4-4, and 4-5
+- **Preserve all existing functionality** including video player
+- **Both sliders must be locked** when workshop is completed
+- **Prevent auto-save when locked** to avoid unnecessary API calls
+- **Keep the ladder visualization working** (it's read-only anyway)
+
+## 🎯 **Workshop Context**
+
+This is Step 4-1 (Ladder of Well-being) of the AST workshop. Users set their current and future well-being levels using sliders. The locking system prevents editing after completion while preserving navigation and viewing capabilities.
+
+---
+
+**File Location**: `client/src/components/content/WellBeingView.tsx`
+**Priority**: High - Completes workshop locking implementation for all Section 4 steps
+**Testing**: Red test button pattern established in Steps 4-3, 4-4, and 4-5
