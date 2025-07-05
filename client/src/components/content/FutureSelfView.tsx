@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { debounce } from 'lodash';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 
 // Define ContentViewProps interface
 interface ContentViewProps {
@@ -35,6 +36,7 @@ interface ReflectionCardProps {
   onChange: (value: string) => void;
   isActive: boolean;
   index: number;
+  disabled?: boolean;
 }
 
 const ReflectionCard: React.FC<ReflectionCardProps> = ({
@@ -43,7 +45,8 @@ const ReflectionCard: React.FC<ReflectionCardProps> = ({
   value,
   onChange,
   isActive,
-  index
+  index,
+  disabled = false
 }) => {
   return (
     <div className="space-y-4">
@@ -54,8 +57,12 @@ const ReflectionCard: React.FC<ReflectionCardProps> = ({
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        placeholder="Your reflection..."
-        className="min-h-[140px] w-full resize-none bg-white/80 border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg"
+        placeholder={disabled ? "This workshop is completed and locked for editing" : "Your reflection..."}
+        className={`min-h-[140px] w-full resize-none border-gray-200 focus:border-amber-400 focus:ring-amber-400 rounded-lg ${
+          disabled ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'bg-white/80'
+        }`}
+        disabled={disabled}
+        readOnly={disabled}
       />
     </div>
   );
@@ -77,6 +84,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   
   // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
+  const { completed, loading, isWorkshopLocked, testCompleteWorkshop } = useWorkshopStatus();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -154,6 +162,13 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     formData.flowOptimizedLife.trim().length >= 10;
 
   const handleSubmit = async () => {
+    if (completed) {
+      // If workshop is completed, just navigate
+      markStepCompleted('4-4');
+      setCurrentContent('final-reflection');
+      return;
+    }
+    
     // Validate that at least one field has content
     const fields = {
       twentyYearVision: formData.twentyYearVision,
@@ -227,20 +242,50 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* TEMPORARY TEST BUTTON - Remove after testing */}
+      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+        <div>Workshop Status: {completed ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', backgroundColor: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+          Test Lock Workshop
+        </button>
+      </div>
+
+      {/* Workshop Completion Banner */}
+      {completed && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">
+          <div className="flex items-center gap-3">
+            <ChevronRight className="text-green-600" size={20} />
+            <div className="flex-1">
+              <h3 className="font-medium text-green-800">
+                Step 4-4: Your Future Self Completed
+              </h3>
+              <p className="text-sm text-green-600">
+                Your responses are locked, but you can still view content and navigate.
+              </p>
+            </div>
+            <div className="text-green-600">
+              🔒
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Full-width container */}
       <div className="w-full px-6 py-8">
         
         {/* Demo button */}
-        <div className="absolute top-4 right-4 z-10">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fillDemoData}
-            className="text-gray-500 hover:text-gray-700 text-xs"
-          >
-            Demo
-          </Button>
-        </div>
+        {!completed && (
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fillDemoData}
+              className="text-gray-500 hover:text-gray-700 text-xs"
+            >
+              Demo
+            </Button>
+          </div>
+        )}
 
         {/* Header */}
         <div className="max-w-4xl mx-auto mb-8">
@@ -326,14 +371,16 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             </div>
             
             {/* Demo Button */}
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={fillDemoData}
-              className="px-4 py-2 bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
-            >
-              Fill with Sample Reflections
-            </motion.button>
+            {!completed && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={fillDemoData}
+                className="px-4 py-2 bg-blue-100 text-blue-700 border border-blue-200 rounded-lg text-sm font-medium hover:bg-blue-200 transition-colors duration-200"
+              >
+                Fill with Sample Reflections
+              </motion.button>
+            )}
           </div>
 
         </div>
@@ -391,6 +438,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                         onChange={(value) => handleReflectionChange(item.key as keyof FutureSelfData, value)}
                         isActive={true}
                         index={index}
+                        disabled={completed}
                       />
                     </div>
                   </motion.div>
@@ -422,6 +470,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             onChange={(value) => handleReflectionChange('flowOptimizedLife', value)}
             isActive={true}
             index={0}
+            disabled={completed}
           />
         </div>
 
@@ -442,18 +491,20 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-4xl mx-auto flex justify-center">
           <Button 
             onClick={handleSubmit}
-            disabled={!hasMinimumContent}
+            disabled={!hasMinimumContent && !completed}
             className={`px-8 py-3 ${
-              hasMinimumContent 
+              (hasMinimumContent || completed) 
                 ? "bg-blue-600 hover:bg-blue-700 text-white" 
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
             size="lg"
           >
             <span>
-              {hasMinimumContent 
-                ? "Save & Continue to Final Reflection"
-                : "Add reflection to continue"
+              {completed 
+                ? "Continue to Final Reflection"
+                : hasMinimumContent 
+                  ? "Save & Continue to Final Reflection"
+                  : "Add reflection to continue"
               }
             </span>
             <ChevronRight className="ml-2 h-4 w-4" />
