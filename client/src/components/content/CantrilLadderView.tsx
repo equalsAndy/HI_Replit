@@ -192,13 +192,15 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   };
   return (
     <>
-      {/* TEMPORARY TEST BUTTON - Remove after testing */}
-      <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
-        <div>Workshop Status: {testWorkshopLocked ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
-        <button onClick={testCompleteWorkshop} style={{ marginTop: '5px', padding: '5px', background: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
-          {testWorkshopLocked ? 'Test Unlock Workshop' : 'Test Lock Workshop'}
-        </button>
-      </div>
+      {/* DEVELOPMENT MODE TEST BUTTON - Only visible in development */}
+      {import.meta.env.DEV && (
+        <div style={{ position: 'fixed', top: '10px', right: '10px', zIndex: 9999, background: 'red', color: 'white', padding: '10px', cursor: 'pointer', borderRadius: '5px' }}>
+          <div>Workshop Status: {testWorkshopLocked ? '🔒 LOCKED' : '🔓 UNLOCKED'}</div>
+          <button onClick={() => console.log('Test button disabled - use Step 4-5 to complete workshop')} style={{ marginTop: '5px', padding: '5px', background: 'darkred', color: 'white', border: 'none', borderRadius: '3px', cursor: 'pointer' }}>
+            Test Button (Development Only)
+          </button>
+        </div>
+      )}
       
       <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
 
