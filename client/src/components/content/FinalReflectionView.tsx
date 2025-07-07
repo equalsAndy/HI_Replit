@@ -9,6 +9,7 @@ import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
 import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useApplication } from '@/hooks/use-application';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -32,8 +33,13 @@ export default function FinalReflectionView({
   const [showModal, setShowModal] = useState(false);
   const isTestUser = useTestUser();
   
+  // Application context for proper app type detection
+  const { currentApp } = useApplication();
+  const appType = currentApp === 'allstarteams' ? 'ast' : 'ia';
+  
   // Workshop status
-  const { completed, loading, isWorkshopLocked, triggerGlobalCompletion } = useWorkshopStatus();
+  const { astCompleted, iaCompleted, loading, isWorkshopLocked, completeWorkshop, triggerGlobalCompletion } = useWorkshopStatus();
+  const completed = appType === 'ast' ? astCompleted : iaCompleted;
   
   // Return visit auto-modal countdown (5 seconds)
   const [countdown, setCountdown] = useState(5);
@@ -183,19 +189,26 @@ export default function FinalReflectionView({
       // Mark step as completed first
       markStepCompleted('4-5');
       
-      // TRIGGER GLOBAL COMPLETION - This will lock ALL workshop steps
-      triggerGlobalCompletion();
+      // COMPLETE WORKSHOP - This will save to database and lock ALL workshop steps
+      console.log(`🎯 Calling completeWorkshop for ${appType.toUpperCase()}...`);
+      const result = await completeWorkshop(appType);
+      
+      if (!result.success) {
+        console.error('❌ Failed to complete workshop:', result.error);
+        // Still show modal but log the error
+      }
       
       // Show completion modal
       setShowModal(true);
       
-      console.log('🎉 Workshop completed - all steps are now locked');
+      console.log(`🎉 ${appType.toUpperCase()} Workshop completed - all steps are now locked`);
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
       
       // Still complete the workshop even if save fails
-      triggerGlobalCompletion();
+      console.log(`🎯 Fallback: Calling completeWorkshop for ${appType.toUpperCase()} after save error...`);
+      await completeWorkshop(appType);
       markStepCompleted('4-5');
       setShowModal(true);
     }
