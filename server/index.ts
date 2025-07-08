@@ -12,277 +12,154 @@ import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { setupVite } from './vite';
 import { createServer } from 'http';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 
-const execAsync = promisify(exec);
-
-// Function to kill processes on port 5000
-async function killProcessOnPort(port: number) {
-  try {
-    console.log(`🔄 Checking for processes on port ${port}...`);
-    
-    // Find processes using the port
-    const { stdout } = await execAsync(`lsof -ti:${port}`);
-    
-    if (stdout.trim()) {
-      const pids = stdout.trim().split('\n');
-      console.log(`🔪 Killing ${pids.length} process(es) on port ${port}: ${pids.join(', ')}`);
-      
-      // Kill each process
-      for (const pid of pids) {
-        try {
-          await execAsync(`kill -9 ${pid.trim()}`);
-          console.log(`✅ Killed process ${pid.trim()}`);
-        } catch (killError) {
-          console.log(`⚠️  Process ${pid.trim()} may have already terminated`);
-        }
-      }
-      
-      // Wait a moment for processes to fully terminate
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log(`✅ Port ${port} is now available`);
-    } else {
-      console.log(`✅ No processes found on port ${port}`);
-    }
-  } catch (error) {
-    // lsof returns exit code 1 when no processes are found, which is fine
-    if (error.code === 1) {
-      console.log(`✅ No processes found on port ${port}`);
-    } else {
-      console.error(`❌ Error checking/killing processes on port ${port}:`, error.message);
-    }
-  }
-}
-
-// Set up dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Initialize Express app
 const app = express();
-const port = parseInt(process.env.PORT || '5000');
-
-// Initialize database connection
-initializeDatabase()
-  .then((success) => {
-    if (!success) {
-      console.error('Failed to initialize database, but continuing server startup');
-    }
-  })
-  .catch((error) => {
-    console.error('Error initializing database:', error);
-  });
-
-// Configure session store with PostgreSQL
-const PgSession = connectPgSimple(session);
-const sessionStore = new PgSession({
-  conString: process.env.DATABASE_URL,
-  tableName: 'sessions',
-  createTableIfMissing: true
-});
-
-// Configure session middleware with incognito mode compatibility
-app.use(session({
-  store: sessionStore,
-  secret: process.env.SESSION_SECRET || 'heliotrope-workshop-secret',
-  resave: true, // Changed to true for incognito compatibility
-  saveUninitialized: true, // Allow sessions without authentication
-  name: 'sessionId', // Explicit session name
-  cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // Reduced to 24 hours for incognito compatibility
-    secure: false, // Must be false for HTTP in development
-    httpOnly: true, // Keep true for security
-    sameSite: 'lax' // Changed back to 'lax' for better compatibility
-  },
-  rolling: true // Refresh session on each request
-}));
-
-// Configure CORS and security headers for incognito mode compatibility
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  
-  // Allow requests from any origin (for incognito mode compatibility)
-  if (origin) {
-    res.header('Access-Control-Allow-Origin', origin);
-  } else {
-    res.header('Access-Control-Allow-Origin', '*');
-  }
-  
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie, Set-Cookie');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Expose-Headers', 'Set-Cookie');
-  
-  // Security headers (relaxed for incognito compatibility)
-  res.header('X-Content-Type-Options', 'nosniff');
-  res.header('X-Frame-Options', 'SAMEORIGIN'); // Changed from DENY to SAMEORIGIN
-  res.header('X-XSS-Protection', '1; mode=block');
-  
-  // Updated CSP to allow YouTube embeds and maintain security
-  res.header('Content-Security-Policy', "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:; connect-src 'self' ws: wss: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://youtu.be; img-src 'self' data: https:; media-src 'self' https:;");
-  
-  // Handle preflight requests
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  
-  next();
-});
-
-// Configure cookie parser
-app.use(cookieParser());
-
-// Configure JSON body parser with increased limit for photo uploads
-app.use(express.json({ limit: '5mb' }));
-app.use(express.urlencoded({ extended: true, limit: '5mb' }));
-
-// Configure static file serving for uploads
-const uploadsDir = path.join(__dirname, '..', 'uploads');
-app.use('/uploads', express.static(uploadsDir));
-
-// Configure static file serving for public assets (before Vite middleware)
-const publicDir = path.join(__dirname, '..', 'public');
-app.use(express.static(publicDir));
-
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, uniqueSuffix + ext);
-  }
-});
-
-const upload = multer({ 
-  storage,
-  limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB limit
-  } 
-});
-
-// Make the upload middleware available to routes
-app.locals.upload = upload;
-
-// Report routes - must be handled before Vite middleware
-app.use('/api/report', (req, res, next) => {
-  console.log(`[Express] Report route: ${req.path}`);
-  next();
-}, reportRoutes);
-
-// API routes - these need to be handled before Vite middleware
-app.use('/api', (req, res, next) => {
-  // Ensure API routes are handled by Express, not Vite
-  console.log(`[Express] API route: ${req.path}`);
-  next();
-}, router);
-
-// Admin upload routes
-app.use('/api/admin', adminUploadRoutes);
-
-// Discernment routes
-app.use('/api/discernment', discernmentRoutes);
-
-// Health check endpoint
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
-// Root route is handled by Vite middleware for the React app
-
-// In production, serve static files from the dist directory
-if (process.env.NODE_ENV === 'production') {
-  const distPath = path.join(__dirname, '../dist/public');
-  console.log('Production mode - serving static files from:', distPath);
-
-  // Serve static files with proper MIME types and cache headers
-  app.use(express.static(distPath, {
-    maxAge: '1d',
-    etag: true,
-    setHeaders: (res, path) => {
-      // Set correct MIME type for JavaScript modules
-      if (path.endsWith('.js')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.mjs')) {
-        res.setHeader('Content-Type', 'application/javascript');
-      } else if (path.endsWith('.css')) {
-        res.setHeader('Content-Type', 'text/css');
-      }
-    }
-  }));
-
-  // Catch-all handler for client-side routing (must be after API routes and static files)
-  app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
-    
-    // Skip static asset requests - let them 404 naturally if not found
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$/)) {
-      return next();
-    }
-    
-    const indexPath = path.join(distPath, 'index.html');
-    console.log('Serving index.html from:', indexPath);
-    res.sendFile(indexPath, (err) => {
-      if (err) {
-        console.error('Error serving index.html:', err);
-        res.status(500).send('Internal Server Error');
-      }
-    });
-  });
-}
-
-// Create HTTP server
+const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
 const server = createServer(app);
 
-// Setup Vite middleware before starting the server
-async function initializeServer() {
-  // In development mode, use Vite to serve the client
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      const { setupVite } = await import('./vite');
-      await setupVite(app, server);
-      console.log('Vite middleware setup complete');
-    } catch (err) {
-      console.error('Failed to setup Vite:', err);
-    }
+// Track initialization state
+let isInitialized = false;
+let initializationPromise: Promise<void> | null = null;
+
+// FAST HEALTH ENDPOINT - Responds immediately without waiting for full initialization
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'ok', 
+    initialized: isInitialized,
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
+// Lazy initialization function
+async function initializeApp() {
+  if (initializationPromise) {
+    return initializationPromise;
   }
+
+  initializationPromise = (async () => {
+    try {
+      console.log('🔄 Starting application initialization...');
+      
+      // Database initialization
+      console.log('📊 Initializing database connection...');
+      await initializeDatabase();
+      console.log('✅ Database connection successful');
+
+      // Session configuration
+      const PgSession = connectPgSimple(session);
+      
+      app.use(session({
+        store: new PgSession({
+          conString: process.env.DATABASE_URL,
+          tableName: 'session',
+          createTableIfMissing: true,
+        }),
+        secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
+        resave: false,
+        saveUninitialized: false,
+        cookie: {
+          secure: process.env.NODE_ENV === 'production',
+          httpOnly: true,
+          maxAge: 24 * 60 * 60 * 1000 // 24 hours
+        }
+      }));
+
+      // Middleware setup
+      app.use(express.json({ limit: '50mb' }));
+      app.use(express.urlencoded({ extended: true }));
+      app.use(cookieParser());
+
+      // Configure multer for file uploads
+      const upload = multer({
+        storage: multer.memoryStorage(),
+        limits: {
+          fileSize: 10 * 1024 * 1024, // 10MB limit
+        },
+      });
+
+      // Routes
+      app.use('/api', router);
+      app.use('/api/reports', reportRoutes);
+      app.use('/api/admin', upload.single('file'), adminUploadRoutes);
+      app.use('/api/discernment', discernmentRoutes);
+
+      // Only setup Vite in development or when needed
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('🔧 Setting up Vite middleware...');
+        await setupVite(app);
+        console.log('✅ Vite middleware ready');
+      } else {
+        // Serve static files in production
+        app.use(express.static(path.join(__dirname, '../client/dist')));
+        
+        // Catch-all handler for client-side routing
+        app.get('*', (req, res) => {
+          res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+        });
+      }
+
+      isInitialized = true;
+      console.log('✅ Application initialization complete');
+      
+    } catch (error) {
+      console.error('❌ Application initialization failed:', error);
+      throw error;
+    }
+  })();
+
+  return initializationPromise;
 }
 
-// Start the server
-console.log('Initializing database connection...');
+// Middleware to ensure initialization before handling non-health requests
+app.use(async (req, res, next) => {
+  // Skip initialization check for health endpoint
+  if (req.path === '/health') {
+    return next();
+  }
+
+  // Initialize app if not already done
+  if (!isInitialized) {
+    try {
+      await initializeApp();
+    } catch (error) {
+      console.error('❌ Failed to initialize application:', error);
+      return res.status(503).json({ error: 'Service temporarily unavailable' });
+    }
+  }
+
+  next();
+});
 
 async function startServer() {
   try {
-    // Skip port cleanup in production/containers
-    if (process.env.NODE_ENV !== 'production' && !process.env.SKIP_PORT_CLEANUP) {
-      await killProcessOnPort(port);
-    }
+    console.log('🚀 Starting server...');
     
-    // Initialize Vite middleware
-    await initializeServer();
-    
-    // Start server on port 5000 (should be available now)
+    // Start server immediately - initialization happens lazily
     server.listen(port, '0.0.0.0', () => {
       console.log(`✅ Server successfully started on port ${port}`);
       console.log(`🌐 Access your app at: http://0.0.0.0:${port}`);
+      console.log(`❤️  Health check available at: http://0.0.0.0:${port}/health`);
+      
+      // Start background initialization
+      initializeApp().catch(error => {
+        console.error('❌ Background initialization failed:', error);
+      });
     });
 
     server.on('error', (err: any) => {
       if (err.code === 'EADDRINUSE') {
-        console.error(`❌ Port ${port} is still busy after cleanup attempt`);
-        console.error('❌ Failed to start server - unable to free port');
+        console.error(`❌ Port ${port} is busy`);
         process.exit(1);
       } else {
-        console.error('❌ Failed to start server:', err);
+        console.error('❌ Server error:', err);
         process.exit(1);
       }
     });
+    
   } catch (error) {
     console.error('❌ Failed to start server:', error);
     process.exit(1);
@@ -291,19 +168,14 @@ async function startServer() {
 
 startServer();
 
-// Handle server shutdown gracefully
-process.on('SIGTERM', () => {
-  console.log('🛑 Received SIGTERM, shutting down gracefully...');
+// Graceful shutdown
+const shutdown = () => {
+  console.log('🛑 Shutting down gracefully...');
   server.close(() => {
     console.log('✅ Server closed successfully');
     process.exit(0);
   });
-});
+};
 
-process.on('SIGINT', () => {
-  console.log('🛑 Received SIGINT, shutting down gracefully...');
-  server.close(() => {
-    console.log('✅ Server closed successfully');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
