@@ -9,14 +9,11 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install ALL dependencies (needed for build)
+# Install ALL dependencies
 RUN npm ci && npm cache clean --force
 
 # Copy all application code
 COPY . ./
-
-# Build the application (Vite + ESBuild)
-RUN npm run build
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -25,16 +22,12 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nodeuser
 
-# Expose port 3000
-EXPOSE 3000
+# Expose port 5000 (matches server default)
+EXPOSE 5000
 
 # Environment
 ENV NODE_ENV=production
 
-# Health check (adjust port if needed)
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
-
-# Use dumb-init and start built app
+# Use tsx to run TypeScript directly (like development)
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "start"]
+CMD ["npx", "tsx", "server/index.ts"]

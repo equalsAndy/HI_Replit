@@ -259,8 +259,10 @@ console.log('Initializing database connection...');
 
 async function startServer() {
   try {
-    // Kill any existing processes on port 5000 first
-    await killProcessOnPort(port);
+    // Skip port cleanup in production/containers
+    if (process.env.NODE_ENV !== 'production' && !process.env.SKIP_PORT_CLEANUP) {
+      await killProcessOnPort(port);
+    }
     
     // Initialize Vite middleware
     await initializeServer();
