@@ -242,14 +242,14 @@ function generateComprehensiveReportHTML(data: any): string {
 }
 
 function generateExecutiveSummaryContent(starCard: any, stepByStep: any, userName: string, percentages: any): string {
-  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1] as string) > parseFloat(b[1] as string) ? a : b);
+  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b);
   const strengthName = topStrength[0].charAt(0).toUpperCase() + topStrength[0].slice(1);
   
   return `
     <div class="summary-content">
       <p>${userName} demonstrates a unique combination of strengths with ${strengthName} as their primary strength (${topStrength[1]}%). 
       Their assessment reveals a well-rounded profile with strong capabilities in ${Object.entries(percentages)
-        .filter(([, value]) => parseFloat(value) > 20)
+        .filter(([, value]) => parseFloat(String(value)) > 20)
         .map(([key]) => key)
         .join(', ')}.</p>
       
@@ -273,22 +273,22 @@ function generateStrengthsTableContent(percentages: any, stepByStep: any): strin
       <tbody>
         <tr>
           <td>Feeling</td>
-          <td>${percentages.feeling}%</td>
+          <td>${String(percentages.feeling)}%</td>
           <td>${reflections.strength4 || 'Empathy, team support, emotional intelligence'}</td>
         </tr>
         <tr>
           <td>Acting</td>
-          <td>${percentages.acting}%</td>
+          <td>${String(percentages.acting)}%</td>
           <td>${reflections.strength3 || 'Initiative, rapid execution, energy in implementation'}</td>
         </tr>
         <tr>
           <td>Thinking</td>
-          <td>${percentages.thinking}%</td>
+          <td>${String(percentages.thinking)}%</td>
           <td>${reflections.strength2 || 'Problem-solving, analytical approach, innovation'}</td>
         </tr>
         <tr>
           <td>Planning</td>
-          <td>${percentages.planning}%</td>
+          <td>${String(percentages.planning)}%</td>
           <td>${reflections.strength1 || 'Strategic thinking, organization, systematic approach'}</td>
         </tr>
       </tbody>
@@ -375,19 +375,19 @@ function generateFutureVisionContent(futureSelf: any, cantril: any): string {
 }
 
 function generateConstraintsContent(roundingOut: any, stepByStep: any, percentages: any): string {
-  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) < parseFloat(b[1]) ? a : b);
+  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) < parseFloat(String(b[1])) ? a : b);
   
   return `
     <div class="constraints-content">
       <h4>Strengths in Action</h4>
       <ul>
-        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) > parseFloat(b[1]) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
+        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
         <li><strong>Supporting Strengths:</strong> Balanced approach across multiple areas</li>
       </ul>
       
       <h4>Constraints & Stretch Zones</h4>
       <ul>
-        <li><strong>Development Area:</strong> ${lowestStrength[0]} (${lowestStrength[1]}%) - ${roundingOut.values || 'Opportunity for growth and skill building'}</li>
+        <li><strong>Development Area:</strong> ${lowestStrength[0]} (${String(lowestStrength[1])}%) - ${roundingOut.values || 'Opportunity for growth and skill building'}</li>
         <li><strong>Stress Triggers:</strong> ${roundingOut.strengths || 'High-pressure situations with unclear expectations'}</li>
       </ul>
       

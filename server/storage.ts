@@ -24,7 +24,7 @@ export interface IStorage {
   createUser(user: Partial<User>): Promise<User>;
   updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
-  getUsersByRole(role: UserRole): Promise<User[]>;
+  getUsersByRole(role: string): Promise<User[]>;
   
   // Authentication
   authenticateUser(username: string, password: string): Promise<User | undefined>;
@@ -34,9 +34,9 @@ export interface IStorage {
   getTestUsers(): Promise<User[]>;
   
   // User role operations
-  assignRole(userId: number, role: UserRole): Promise<void>;
-  removeRole(userId: number, role: UserRole): Promise<void>;
-  getUserRoles(userId: number): Promise<UserRole[]>;
+  assignRole(userId: number, role: string): Promise<void>;
+  removeRole(userId: number, role: string): Promise<void>;
+  getUserRoles(userId: number): Promise<string[]>;
   
   // Cohort operations
   createCohort(cohortData: any): Promise<any>;

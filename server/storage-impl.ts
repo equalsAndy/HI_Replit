@@ -166,36 +166,27 @@ export class DatabaseStorage implements IStorage {
       .from(schema.users)
       .where(eq(schema.users.role, role));
     
-    const userIds = roleRecords.map(r => r.userId);
-    const users = await db
-      .select()
-      .from(schema.users)
-      .where(inArray(schema.users.id, userIds));
-    
-    // Map roles to users
-    return users.map(user => ({
+    // Return users directly since role is already in the user record
+    return roleRecords.map(user => ({
       ...user,
-      role
+      role: user.role || 'participant'
     }));
   }
   
   async assignRole(userId: number, role: string): Promise<void> {
-    await setUserRole(userId, role);
+    await setUserRole(userId, role as any);
   }
   
   async removeRole(userId: number, role: string): Promise<void> {
+    // Update user role to default 'participant' instead of deleting
     await db
-      .delete(schema.users)
-      .where(
-        and(
-          eq(schema.users.id, userId),
-          eq(schema.users.role, role)
-        )
-      );
+      .update(schema.users)
+      .set({ role: 'participant' })
+      .where(eq(schema.users.id, userId));
   }
   
   async getUserRoles(userId: number): Promise<string[]> {
-    return getUserRoles(userId);
+    return (getUserRoles(userId) as any);
   }
   
   // Test user operations
