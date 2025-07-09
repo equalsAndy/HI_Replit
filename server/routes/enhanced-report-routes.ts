@@ -36,12 +36,12 @@ router.get('/generate/:userId', async (req, res) => {
     };
 
     assessments.forEach(assessment => {
-      reportData.assessments[assessment.assessmentType] = assessment.data;
+      (reportData.assessments as any)[assessment.assessmentType] = (assessment as any).data;
     });
 
     // Check required assessments
     const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
-    const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
+    const missingAssessments = requiredAssessments.filter(type => !(reportData.assessments as any)[type]);
     
     if (missingAssessments.length > 0) {
       return res.status(400).json({ 

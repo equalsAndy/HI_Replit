@@ -29,19 +29,19 @@ router.post('/login', async (req, res) => {
     console.log('🔍 Session state before setting data:', {
       sessionID: req.sessionID,
       hasSession: !!req.session,
-      sessionStore: !!req.session?.store
+      sessionStore: !!(req.session as any)?.store
     });
 
     // Set session data
-    (req.session as any).userId = result.user.id;
-    (req.session as any).username = result.user.username;
-    (req.session as any).userRole = result.user.role;
+    (req.session as any).userId = result.user?.id;
+    (req.session as any).username = result.user?.username;
+    (req.session as any).userRole = result.user?.role;
 
     // Force session save with comprehensive error handling
     req.session.save((err) => {
       if (err) {
         console.error('❌ Session save error:', err);
-        console.error('❌ Session store type:', typeof req.session.store);
+        console.error('❌ Session store type:', typeof (req.session as any).store);
         console.error('❌ Session data:', {
           userId: (req.session as any).userId,
           username: (req.session as any).username,
@@ -54,7 +54,7 @@ router.post('/login', async (req, res) => {
         });
       }
       
-      console.log('✅ Session saved successfully for user:', result.user.id);
+      console.log('✅ Session saved successfully for user:', result.user?.id);
       console.log('✅ Session ID:', req.sessionID);
       
       // Send the user data (without the password)

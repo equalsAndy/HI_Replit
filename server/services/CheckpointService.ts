@@ -346,7 +346,7 @@ export class CheckpointService {
           and(
             eq(schema.userAssessments.userId, userId),
             // Keep checkpoints
-            schema.userAssessments.assessmentType !== 'checkpoint' as any
+            ne(schema.userAssessments.assessmentType, 'checkpoint')
           )
         );
 

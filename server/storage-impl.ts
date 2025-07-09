@@ -60,7 +60,7 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : participant // Default to participant
+      role: roles.length > 0 ? roles[0] : 'participant' // Default to participant
     };
   }
   
@@ -77,7 +77,7 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : participant // Default to participant
+      role: roles.length > 0 ? roles[0] : 'participant' // Default to participant
     };
   }
   
@@ -101,7 +101,7 @@ export class DatabaseStorage implements IStorage {
       await setUserRole(user.id, role);
     }
     
-    return { ...user, role: role || participant };
+    return { ...user, role: role || 'participant' };
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
@@ -130,7 +130,7 @@ export class DatabaseStorage implements IStorage {
     // Get current roles
     const roles = await getUserRoles(id);
     
-    return { ...updatedUser, role: roles.length > 0 ? roles[0] : participant };
+    return { ...updatedUser, role: roles.length > 0 ? roles[0] : 'participant' };
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -138,21 +138,11 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(schema.users);
     
-    // Get all users' roles
-    const userIds = users.map(user => user.id);
-    const allRoles = await db
-      .select()
-      .from(schema.users)
-      .where(inArray(schema.users.userId, userIds));
-    
-    // Map roles to users
-    return users.map(user => {
-      const userRoles = allRoles.filter(r => r.userId === user.id);
-      return {
-        ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : participant // Default to participant
-      };
-    });
+    // Return users with their roles (already in the user record)
+    return users.map(user => ({
+      ...user,
+      role: user.role || 'participant' // Default to participant
+    }));
   }
 
   // Authentication method

@@ -127,12 +127,12 @@ router.post('/register', async (req, res) => {
     }
     
     // Mark the invite as used
-    await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id as number);
+    await inviteService.markInviteAsUsed(normalizedCode, createResult.user?.id as number);
     
     // Set session data with proper error handling
-    (req.session as any).userId = createResult.user.id as number;
-    (req.session as any).username = createResult.user.username as string;
-    (req.session as any).userRole = createResult.user.role as any;
+    (req.session as any).userId = createResult.user?.id as number;
+    (req.session as any).username = createResult.user?.username as string;
+    (req.session as any).userRole = createResult.user?.role as any;
     
     // Force session save with comprehensive error handling
     req.session.save((err) => {
@@ -150,7 +150,7 @@ router.post('/register', async (req, res) => {
         });
       }
       
-      console.log('✅ Session saved successfully for new user:', createResult.user.id);
+      console.log('✅ Session saved successfully for new user:', createResult.user?.id);
       console.log('✅ Session ID:', req.sessionID);
       
       // Return the user data

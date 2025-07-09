@@ -1,6 +1,6 @@
 import { db } from '../db.js';
 import { users, userAssessments } from '../../shared/schema.js';
-import { eq } from 'drizzle-orm';
+import { eq, ne } from 'drizzle-orm';
 
 interface NavigationProgress {
   completedSteps: string[];

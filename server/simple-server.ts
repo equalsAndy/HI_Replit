@@ -33,13 +33,7 @@ app.use(session({
 
 // Connect to database
 console.log('Initializing database connection...');
-db.connect()
-  .then(() => {
-    console.log('Database connection successful');
-  })
-  .catch(err => {
-    console.error('Database connection error:', err);
-  });
+// Database connection handled by Drizzle ORM automatically
 
 // API routes
 app.use('/api', router);

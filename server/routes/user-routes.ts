@@ -73,13 +73,13 @@ router.get('/me', async (req, res) => {
 
     // Return simplified user info for /me endpoint
     const userInfo = {
-      id: result.user.id,
-      name: result.user.name,
-      email: result.user.email,
-      role: result.user.role,
-      username: result.user.username,
-      organization: result.user.organization,
-      jobTitle: result.user.jobTitle
+      id: result.user?.id,
+      name: result.user?.name,
+      email: result.user?.email,
+      role: result.user?.role,
+      username: result.user?.username,
+      organization: result.user?.organization,
+      jobTitle: result.user?.jobTitle
     };
 
     console.log(`Final user info being returned:`, userInfo);
