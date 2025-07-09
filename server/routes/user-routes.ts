@@ -34,7 +34,7 @@ router.get('/me', async (req, res) => {
     console.log('Me request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = (req.session as any)?.userId;
+    let userId = req.session?.userId;
 
     console.log('Session userId:', req.session?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
@@ -104,7 +104,7 @@ router.get('/profile', async (req, res) => {
     console.log('Profile request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = (req.session as any)?.userId;
+    let userId = req.session?.userId;
 
     console.log('Session userId:', req.session?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
@@ -171,7 +171,7 @@ router.get('/profile', async (req, res) => {
  */
 router.put('/profile', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -188,7 +188,7 @@ router.put('/profile', requireAuth, async (req, res) => {
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
     if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
 
-    const result = await userManagementService.updateUser((req.session as any).userId, updateData);
+    const result = await userManagementService.updateUser(req.session.userId, updateData);
 
     if (!result.success) {
       return res.status(404).json({
@@ -320,7 +320,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
  */
 router.post('/assessments', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -363,7 +363,7 @@ router.post('/assessments', requireAuth, async (req, res) => {
  */
 router.get('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -397,7 +397,7 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.post('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -532,7 +532,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -601,7 +601,7 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -638,7 +638,7 @@ router.put('/progress', requireAuth, async (req, res) => {
 router.post('/upload-photo', upload.single('photo'), async (req, res) => {
   try {
     // Check session or cookie authentication
-    let userId = (req.session as any)?.userId;
+    let userId = req.session?.userId;
 
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
@@ -991,7 +991,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
  */
 router.post('/content-access', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any)?.userId) {
+    if (!req.session?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
