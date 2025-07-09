@@ -88,7 +88,7 @@ app.get('/health', async (req, res) => {
   } catch (error: any) {
     res.status(500).json({ 
       status: 'unhealthy', 
-      error: error.message,
+      error: (error as Error).message,
       timestamp: new Date().toISOString()
     });
   }

@@ -85,10 +85,10 @@ router.post('/users/upload', async (req, res) => {
         username: newUser.username,
         name: newUser.name,
         email: newUser.email,
-        role: newUser.role,
-        organization: newUser.organization,
-        jobTitle: newUser.jobTitle,
-        isTestUser: newUser.isTestUser
+        role: (newUser as any).role,
+        organization: (newUser as any).organization,
+        jobTitle: (newUser as any).jobTitle,
+        isTestUser: (newUser as any).isTestUser
       },
       assessmentsCreated: createdAssessments.length,
       navigationProgressCreated: !!navProgress
@@ -98,7 +98,7 @@ router.post('/users/upload', async (req, res) => {
     console.error('Error creating user:', error);
     res.status(500).json({ 
       error: 'Failed to create user',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });

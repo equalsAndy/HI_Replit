@@ -33,9 +33,9 @@ router.post('/login', async (req, res) => {
     });
 
     // Set session data
-    req.session.userId = result.user.id;
-    req.session.username = result.user.username;
-    req.session.userRole = result.user.role;
+    (req.session as any).userId = result.user.id;
+    (req.session as any).username = result.user.username;
+    (req.session as any).userRole = result.user.role;
 
     // Force session save with comprehensive error handling
     req.session.save((err) => {
@@ -43,9 +43,9 @@ router.post('/login', async (req, res) => {
         console.error('❌ Session save error:', err);
         console.error('❌ Session store type:', typeof req.session.store);
         console.error('❌ Session data:', {
-          userId: req.session.userId,
-          username: req.session.username,
-          userRole: req.session.userRole
+          userId: (req.session as any).userId,
+          username: (req.session as any).username,
+          userRole: (req.session as any).userRole
         });
         return res.status(500).json({
           success: false,
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Authentication failed',
-      details: error.message
+      details: (error as Error).message
     });
   }
 });
@@ -94,7 +94,7 @@ router.post('/logout', (req, res) => {
  */
 router.get('/me', requireAuth, async (req, res) => {
   try {
-    const result = await userManagementService.getUserById(req.session.userId!);
+    const result = await userManagementService.getUserById((req.session as any).userId!);
 
     if (!result.success) {
       return res.status(404).json(result);
@@ -115,14 +115,14 @@ router.get('/me', requireAuth, async (req, res) => {
  */
 router.get('/profile', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
     
-    const result = await userManagementService.getUserById(req.session.userId);
+    const result = await userManagementService.getUserById((req.session as any).userId);
 
     if (!result.success) {
       return res.status(404).json({

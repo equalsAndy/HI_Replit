@@ -30,7 +30,7 @@ router.post('/', isAdmin, async (req, res) => {
       email: result.data.email,
       role: result.data.role,
       name: result.data.name,
-      createdBy: req.session.userId!
+      createdBy: (req.session as any).userId!
     });
 
     if (!createResult.success) {

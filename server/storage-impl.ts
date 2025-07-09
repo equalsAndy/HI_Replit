@@ -5,7 +5,7 @@ import {
   FlowAttributesRecord
 } from "../shared/schema.js";
 import bcrypt from 'bcryptjs';
-import { db } from './db';
+import { db } from './db.js';
 import { eq, and, inArray } from 'drizzle-orm';
 import * as schema from '../shared/schema.js';
 import connectPg from 'connect-pg-simple';
@@ -142,8 +142,8 @@ export class DatabaseStorage implements IStorage {
     const userIds = users.map(user => user.id);
     const allRoles = await db
       .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
+      .from(schema.users)
+      .where(inArray(schema.users.userId, userIds));
     
     // Map roles to users
     return users.map(user => {
@@ -173,8 +173,8 @@ export class DatabaseStorage implements IStorage {
   async getUsersByRole(role: UserRole): Promise<User[]> {
     const roleRecords = await db
       .select()
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.role, role));
+      .from(schema.users)
+      .where(eq(schema.users.role, role));
     
     const userIds = roleRecords.map(r => r.userId);
     const users = await db
@@ -195,11 +195,11 @@ export class DatabaseStorage implements IStorage {
   
   async removeRole(userId: number, role: UserRole): Promise<void> {
     await db
-      .delete(schema.userRoles)
+      .delete(schema.users)
       .where(
         and(
-          eq(schema.userRoles.userId, userId),
-          eq(schema.userRoles.role, role)
+          eq(schema.users.id, userId),
+          eq(schema.users.role, role)
         )
       );
   }
@@ -254,8 +254,8 @@ export class DatabaseStorage implements IStorage {
     const userIds = testUsers.map(user => user.id);
     const allRoles = await db
       .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
+      .from(schema.users)
+      .where(inArray(schema.users.userId, userIds));
     
     // Map roles to users
     return testUsers.map(user => {
@@ -462,8 +462,8 @@ export class DatabaseStorage implements IStorage {
     const userIds = participants.map(p => p.user.id);
     const allRoles = await db
       .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
+      .from(schema.users)
+      .where(inArray(schema.users.userId, userIds));
     
     // Map roles to users
     return participants.map(p => {

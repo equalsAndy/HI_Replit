@@ -603,7 +603,7 @@ class UserManagementService {
       console.error('Error updating video:', error);
       return {
         success: false,
-        error: 'Failed to update video: ' + (error instanceof Error ? error.message : 'Unknown error')
+        error: 'Failed to update video: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
       };
     }
   }
@@ -633,7 +633,7 @@ class UserManagementService {
         deletedData.userAssessments = assessmentResult.length;
         console.log(`Deleted ${deletedData.userAssessments} assessment records for user ${userId}`);
       } catch (error) {
-        console.log(`No user assessments found for user ${userId}:`, error.message);
+        console.log(`No user assessments found for user ${userId}:`, (error as Error).message);
       }
 
       // 2. Delete navigation progress from dedicated table
@@ -642,7 +642,7 @@ class UserManagementService {
         deletedData.navigationProgressTable = navResult.length;
         console.log(`Deleted ${deletedData.navigationProgressTable} navigation progress records for user ${userId}`);
       } catch (error) {
-        console.log(`No navigation progress found for user ${userId}:`, error.message);
+        console.log(`No navigation progress found for user ${userId}:`, (error as Error).message);
       }
 
       // 3. Clear navigation progress field in users table and reset workshop completion status
@@ -657,7 +657,7 @@ class UserManagementService {
         deletedData.navigationProgressField = true;
         console.log(`Cleared navigation_progress field and reset workshop completion status for user ${userId}`);
       } catch (error) {
-        console.log(`Error clearing navigation_progress field for user ${userId}:`, error.message);
+        console.log(`Error clearing navigation_progress field for user ${userId}:`, (error as Error).message);
       }
 
       // 4. Delete workshop participation data
@@ -715,7 +715,7 @@ class UserManagementService {
       console.error('Error deleting user data:', error);
       return {
         success: false,
-        error: 'Failed to delete user data: ' + (error instanceof Error ? error.message : 'Unknown error')
+        error: 'Failed to delete user data: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
       };
     }
   }

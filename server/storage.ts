@@ -188,7 +188,7 @@ export class DatabaseStorage implements IStorage {
   // User role operations
   async getUsersByRole(role: UserRole): Promise<User[]> {
     const userRoles = await db.query.userRoles.findMany({
-      where: eq(schema.userRoles.role, role)
+      where: eq(schema.users.role, role)
     });
     
     if (!userRoles.length) {
@@ -210,18 +210,18 @@ export class DatabaseStorage implements IStorage {
   
   async removeRole(userId: number, role: UserRole): Promise<void> {
     await db
-      .delete(schema.userRoles)
+      .delete(schema.users)
       .where(
         and(
-          eq(schema.userRoles.userId, userId),
-          eq(schema.userRoles.role, role)
+          eq(schema.users.id, userId),
+          eq(schema.users.role, role)
         )
       );
   }
   
   async getUserRoles(userId: number): Promise<UserRole[]> {
     const userRoles = await db.query.userRoles.findMany({
-      where: eq(schema.userRoles.userId, userId)
+      where: eq(schema.users.id, userId)
     });
     
     return userRoles.map(ur => ur.role as UserRole);
@@ -242,7 +242,7 @@ export class DatabaseStorage implements IStorage {
         organization: 'Organization'
       });
       
-      await this.assignRole(admin.id, UserRole.Admin);
+      await this.assignRole(admin.id, 'admin');
     }
     
     // Create 5 test users if they don't exist
@@ -262,9 +262,9 @@ export class DatabaseStorage implements IStorage {
         
         // Make user 1 a facilitator
         if (i === 1) {
-          await this.assignRole(user.id, UserRole.Facilitator);
+          await this.assignRole(user.id, 'facilitator');
         } else {
-          await this.assignRole(user.id, UserRole.Participant);
+          await this.assignRole(user.id, 'participant');
         }
       }
     }

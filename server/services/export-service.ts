@@ -235,7 +235,7 @@ export class ExportService {
       return exportData;
     } catch (error) {
       console.error('Export failed:', error);
-      throw new Error(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Export failed: ${error instanceof Error ? (error as Error).message : 'Unknown error'}`);
     }
   }
 
@@ -277,7 +277,7 @@ export class ExportService {
           Math.max(...assessments.map(a => new Date(a.createdAt).getTime())) : null
       };
     } catch (error) {
-      throw new Error(`Validation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      throw new Error(`Validation failed: ${error instanceof Error ? (error as Error).message : 'Unknown error'}`);
     }
   }
 }

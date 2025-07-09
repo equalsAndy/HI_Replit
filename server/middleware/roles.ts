@@ -12,8 +12,8 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
   // For user ID 1, always grant admin access and ensure role is set
   if (userId === 1) {
-    if (!req.session.userRole) {
-      req.session.userRole = 'admin';
+    if (!(req.session as any).userRole) {
+      (req.session as any).userRole = 'admin';
     }
     console.log('Admin access granted for user 1');
     next();
@@ -40,7 +40,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
  */
 export const isFacilitator = (req: Request, res: Response, next: NextFunction) => {
   // Check if user is authenticated and has facilitator role
-  if (!req.session || !req.session.userId || req.session.userRole !== 'facilitator') {
+  if (!req.session || !(req.session as any).userId || (req.session as any).userRole !== 'facilitator') {
     return res.status(403).json({ error: 'Facilitator access required' });
   }
 
@@ -59,8 +59,8 @@ export const isFacilitatorOrAdmin = (req: Request, res: Response, next: NextFunc
 
   // For user ID 1, always grant admin access and ensure role is set
   if (userId === 1) {
-    if (!req.session.userRole) {
-      req.session.userRole = 'admin';
+    if (!(req.session as any).userRole) {
+      (req.session as any).userRole = 'admin';
     }
     console.log('Management access granted for admin user 1');
     next();
@@ -89,7 +89,7 @@ export const isFacilitatorOrAdmin = (req: Request, res: Response, next: NextFunc
  */
 export const isParticipant = (req: Request, res: Response, next: NextFunction) => {
   // Check if user is authenticated and has participant role
-  if (!req.session || !req.session.userId || req.session.userRole !== 'participant') {
+  if (!req.session || !(req.session as any).userId || (req.session as any).userRole !== 'participant') {
     return res.status(403).json({ error: 'Participant access required' });
   }
 

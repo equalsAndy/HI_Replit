@@ -127,7 +127,7 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to reset user data',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -177,7 +177,7 @@ resetRouter.post('/user/:userId/starcard', async (req: Request, res: Response) =
     return res.status(500).json({
       success: false,
       message: 'Failed to reset star card',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -227,7 +227,7 @@ resetRouter.post('/user/:userId/flow', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to reset flow attributes',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -265,7 +265,7 @@ resetRouter.post('/all-users', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to reset all users',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });

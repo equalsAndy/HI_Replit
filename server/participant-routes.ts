@@ -1,7 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
-import { storage } from './storage';
-import { UserRole } from '../shared/types';
+import { storage } from './storage.js';
 
 // Create router for participant management routes
 const participantRouter = Router();
@@ -24,8 +23,8 @@ const requireAdminOrFacilitator = async (req: Request, res: Response, next: Func
     }
     
     // Check if user has admin or facilitator role
-    const isAdmin = user.role === UserRole.Admin;
-    const isFacilitator = user.role === UserRole.Facilitator;
+    const isAdmin = user.role === 'admin';
+    const isFacilitator = user.role === 'facilitator';
     
     if (!isAdmin && !isFacilitator) {
       return res.status(403).json({ message: 'Access denied: Admin or Facilitator role required' });

@@ -14,7 +14,7 @@ const router = express.Router();
 // Generate comprehensive HI Holistic Development Report
 router.get('/generate/:userId', async (req, res) => {
   try {
-    const userId = req.params.userId === 'me' ? req.session.userId : parseInt(req.params.userId);
+    const userId = req.params.userId === 'me' ? (req.session as any).userId : parseInt(req.params.userId);
     
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });
@@ -112,7 +112,7 @@ router.get('/generate/:userId', async (req, res) => {
 // Generate HTML version of the report for viewing in browser
 router.get('/html/:userId', async (req, res) => {
   try {
-    const userId = req.params.userId === 'me' ? req.session.userId : parseInt(req.params.userId);
+    const userId = req.params.userId === 'me' ? (req.session as any).userId : parseInt(req.params.userId);
     
     if (!userId) {
       return res.status(401).json({ error: 'User not authenticated' });

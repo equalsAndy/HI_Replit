@@ -171,7 +171,7 @@ router.get('/profile', async (req, res) => {
  */
 router.put('/profile', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -188,7 +188,7 @@ router.put('/profile', requireAuth, async (req, res) => {
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
     if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
     
-    const result = await userManagementService.updateUser(req.session.userId, updateData);
+    const result = await userManagementService.updateUser((req.session as any).userId, updateData);
 
     if (!result.success) {
       return res.status(404).json({
@@ -217,7 +217,7 @@ router.put('/profile', requireAuth, async (req, res) => {
 router.get('/assessments', requireAuth, async (req, res) => {
   try {
     // Get the session user ID from the session cookie
-    const sessionUserId = req.session.userId;
+    const sessionUserId = (req.session as any).userId;
     if (!sessionUserId) {
       return res.status(401).json({
         success: false,
@@ -320,7 +320,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
  */
 router.post('/assessments', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -338,12 +338,12 @@ router.post('/assessments', requireAuth, async (req, res) => {
 
     // Save the assessment to the userAssessments table
     const newAssessment = await db.insert(schema.userAssessments).values({
-      userId: req.session.userId!,
+      userId: (req.session as any).userId!,
       assessmentType,
       results: JSON.stringify(results)
     }).returning();
 
-    console.log(`Saved ${assessmentType} assessment for user ${req.session.userId}:`, results);
+    console.log(`Saved ${assessmentType} assessment for user ${(req.session as any).userId}:`, results);
 
     res.json({
       success: true,
@@ -363,14 +363,14 @@ router.post('/assessments', requireAuth, async (req, res) => {
  */
 router.get('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
     
-    const result = await userManagementService.getUserById(req.session.userId);
+    const result = await userManagementService.getUserById((req.session as any).userId);
     
     if (!result.success) {
       return res.status(404).json({
@@ -397,7 +397,7 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.post('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -425,7 +425,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
     }
     
     // Get current user data to perform atomic merge
-    const currentUserResult = await userManagementService.getUserById(req.session.userId);
+    const currentUserResult = await userManagementService.getUserById((req.session as any).userId);
     if (!currentUserResult.success) {
       return res.status(404).json({
         success: false,
@@ -492,25 +492,25 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       mergedProgress.videoProgress[stepId] = Math.max(currentValue, newValue);
     });
     
-    console.log(`🔄 Atomic video progress merge for user ${req.session.userId}:`);
+    console.log(`🔄 Atomic video progress merge for user ${(req.session as any).userId}:`);
     console.log(`   Current:`, currentProgress.videoProgress);
     console.log(`   Incoming:`, incomingData.videoProgress);
     console.log(`   Merged:`, mergedProgress.videoProgress);
     
     // Save the atomically merged progress (single stringify only)
-    const result = await userManagementService.updateUser(req.session.userId, {
+    const result = await userManagementService.updateUser((req.session as any).userId, {
       navigationProgress: JSON.stringify(mergedProgress)
     });
     
     if (!result.success) {
-      console.error(`Failed to update navigation progress for user ${req.session.userId}:`, result.error);
+      console.error(`Failed to update navigation progress for user ${(req.session as any).userId}:`, result.error);
       return res.status(404).json({
         success: false,
         error: 'Failed to update navigation progress'
       });
     }
     
-    console.log(`✅ Atomic progress saved for user ${req.session.userId}`);
+    console.log(`✅ Atomic progress saved for user ${(req.session as any).userId}`);
     
     res.json({
       success: true,
@@ -532,7 +532,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -561,26 +561,26 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
     }
     
     // Log progress update for debugging
-    console.log(`Updating navigation progress for user ${req.session.userId}:`, {
+    console.log(`Updating navigation progress for user ${(req.session as any).userId}:`, {
       completedSteps: progressData.completedSteps?.length || 0,
       currentStep: progressData.currentStepId,
       appType: progressData.appType,
       lastVisited: progressData.lastVisitedAt ? new Date(progressData.lastVisitedAt).toISOString() : 'unknown'
     });
     
-    const result = await userManagementService.updateUser(req.session.userId, {
+    const result = await userManagementService.updateUser((req.session as any).userId, {
       navigationProgress
     });
     
     if (!result.success) {
-      console.error(`Failed to update navigation progress for user ${req.session.userId}:`, result.error);
+      console.error(`Failed to update navigation progress for user ${(req.session as any).userId}:`, result.error);
       return res.status(404).json({
         success: false,
         error: 'Failed to update navigation progress'
       });
     }
     
-    console.log(`Successfully updated navigation progress for user ${req.session.userId}`);
+    console.log(`Successfully updated navigation progress for user ${(req.session as any).userId}`);
     
     res.json({
       success: true,
@@ -601,7 +601,7 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -755,7 +755,7 @@ router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
 // Delete user data endpoint for test users (self-service)
 router.delete('/data', requireAuth, async (req: any, res: any) => {
   try {
-    const sessionUserId = req.session.userId;
+    const sessionUserId = (req.session as any).userId;
     
     if (!sessionUserId) {
       return res.status(401).json({ 
@@ -991,7 +991,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
  */
 router.post('/content-access', requireAuth, async (req, res) => {
   try {
-    if (!req.session.userId) {
+    if (!(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -1008,22 +1008,22 @@ router.post('/content-access', requireAuth, async (req, res) => {
       });
     }
 
-    console.log(`Updating content access for user ${req.session.userId} to: ${contentAccess}`);
+    console.log(`Updating content access for user ${(req.session as any).userId} to: ${contentAccess}`);
 
     // Update user's content access preference
-    const result = await userManagementService.updateUser(req.session.userId, {
+    const result = await userManagementService.updateUser((req.session as any).userId, {
       contentAccess: contentAccess
     });
 
     if (!result.success) {
-      console.error(`Failed to update content access for user ${req.session.userId}:`, result.error);
+      console.error(`Failed to update content access for user ${(req.session as any).userId}:`, result.error);
       return res.status(500).json({
         success: false,
         error: 'Failed to update interface preference'
       });
     }
 
-    console.log(`✅ Content access updated for user ${req.session.userId} to: ${contentAccess}`);
+    console.log(`✅ Content access updated for user ${(req.session as any).userId} to: ${contentAccess}`);
 
     res.json({
       success: true,

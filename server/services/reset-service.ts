@@ -118,7 +118,7 @@ export class ResetService {
         message: 'Failed to reset all user data',
         userId,
         deletedData,
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? (error as Error).message : 'Unknown error'
       };
     }
   }

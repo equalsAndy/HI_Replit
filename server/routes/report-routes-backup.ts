@@ -128,12 +128,12 @@ router.get('/api/report/generate/:userId', async (req, res) => {
   } catch (error) {
     console.error('Report generation failed:', error);
     console.error('Error details:', {
-      message: error.message,
+      message: (error as Error).message,
       stack: error.stack
     });
     res.status(500).json({ 
       error: 'Report generation failed',
-      details: error.message 
+      details: (error as Error).message 
     });
   }
 });

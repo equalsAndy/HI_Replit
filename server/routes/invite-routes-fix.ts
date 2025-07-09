@@ -28,7 +28,7 @@ router.post('/create', requireAuth, isAdmin, async (req: Request, res: Response)
     }
     
     // Check if session exists and has user ID
-    if (!req.session || !req.session.userId) {
+    if (!req.session || !(req.session as any).userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -40,7 +40,7 @@ router.post('/create', requireAuth, isAdmin, async (req: Request, res: Response)
       email: result.data.email,
       role: result.data.role,
       name: result.data.name,
-      createdBy: req.session.userId,
+      createdBy: (req.session as any).userId,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
     });
     

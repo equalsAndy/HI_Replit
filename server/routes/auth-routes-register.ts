@@ -54,9 +54,9 @@ router.post('/validate-invite', async (req, res) => {
     res.json({
       success: true,
       invite: {
-        email: result.invite.email,
-        role: result.invite.role,
-        name: result.invite.name
+        email: result.invite?.email,
+        role: result.invite?.role,
+        name: result.invite?.name
       }
     });
   } catch (error) {
@@ -102,7 +102,7 @@ router.post('/register', async (req, res) => {
 
     
     // Check if the email matches the invite
-    if (data.email.toLowerCase() !== inviteResult.invite.email.toLowerCase()) {
+    if (data.email.toLowerCase() !== inviteResult.invite?.email.toLowerCase()) {
       return res.status(400).json({
         success: false,
         error: 'Email does not match the invite'
@@ -130,18 +130,18 @@ router.post('/register', async (req, res) => {
     await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id as number);
     
     // Set session data with proper error handling
-    req.session.userId = createResult.user.id as number;
-    req.session.username = createResult.user.username as string;
-    req.session.userRole = createResult.user.role as any;
+    (req.session as any).userId = createResult.user.id as number;
+    (req.session as any).username = createResult.user.username as string;
+    (req.session as any).userRole = createResult.user.role as any;
     
     // Force session save with comprehensive error handling
     req.session.save((err) => {
       if (err) {
         console.error('❌ Session save error during registration:', err);
         console.error('❌ Session data:', {
-          userId: req.session.userId,
-          username: req.session.username,
-          userRole: req.session.userRole
+          userId: (req.session as any).userId,
+          username: (req.session as any).username,
+          userRole: (req.session as any).userRole
         });
         return res.status(500).json({
           success: false,

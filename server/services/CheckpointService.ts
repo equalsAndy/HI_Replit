@@ -244,7 +244,7 @@ export class CheckpointService {
 
     } catch (error) {
       console.error('Error restoring checkpoint:', error);
-      throw new Error(`Failed to restore checkpoint: ${error.message}`);
+      throw new Error(`Failed to restore checkpoint: ${(error as Error).message}`);
     }
   }
 

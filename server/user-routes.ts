@@ -1,10 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { storage } from './new-storage.js';
+import { storage } from './storage.js';
 import { z } from 'zod';
 import { db } from './db.js';
 import * as schema from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
-import { UserRole } from '../shared/types.js';
 
 export const userRouter = Router();
 

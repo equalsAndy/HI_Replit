@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { storage } from './new-storage';
-import { db } from './db';
+import { storage } from './storage.js';
+import { db } from './db.js';
 import { eq } from 'drizzle-orm';
-import * as schema from '../shared/schema';
+import * as schema from '../shared/schema.js';
 
 // Create a router for test admin routes
 const testAdminRouter = Router();
@@ -171,7 +171,7 @@ testAdminRouter.post('/reset/:userId', async (req: Request, res: Response) => {
     return res.status(500).json({ 
       success: false,
       message: 'Error resetting user data',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -243,7 +243,7 @@ testAdminRouter.get('/reset-data/:userId', async (req: Request, res: Response) =
     return res.status(500).json({ 
       success: false,
       message: 'Error resetting user data',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });

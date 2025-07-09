@@ -12,7 +12,7 @@ const workshopDataRouter = Router();
  */
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
   // Get user ID from session (primary) or cookie (fallback)
-  let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+  let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
   
   if (!userId) {
     return res.status(401).json({
@@ -22,11 +22,11 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
   }
   
   // Fix for test users - use session userId instead of cookie userId (1) if available
-  if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-    userId = req.session.userId;
+  if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+    userId = (req.session as any).userId;
   }
   
-  req.session.userId = userId;
+  (req.session as any).userId = userId;
   next();
 };
 
@@ -35,7 +35,7 @@ const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
  */
 const checkWorkshopLocked = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const userId = req.session.userId;
+    const userId = (req.session as any).userId;
     
     // Determine workshop type from request body or params
     const appType = req.body.appType || req.params.appType || 'ast';
@@ -139,7 +139,7 @@ workshopDataRouter.get('/videos/:id', async (req: Request, res: Response) => {
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
   try {
     // Get user ID from session (primary) or cookie (fallback)
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -150,9 +150,9 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
     
     // Fix for test users - use session userId instead of cookie userId (1) if available
     // This ensures we're fetching star card data for the correct user
-    console.log(`StarCard: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    console.log(`StarCard: User IDs - Session: ${(req.session as any).userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
       console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
@@ -213,7 +213,7 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to get star card data',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -224,7 +224,7 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
 workshopDataRouter.get('/flow-attributes', async (req: Request, res: Response) => {
   try {
     // Get user ID from session (primary) or cookie (fallback)
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -234,9 +234,9 @@ workshopDataRouter.get('/flow-attributes', async (req: Request, res: Response) =
     }
     
     // Fix for test users - use session userId instead of cookie userId (1) if available
-    console.log(`Flow Attributes: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    console.log(`Flow Attributes: User IDs - Session: ${(req.session as any).userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
       console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
@@ -279,7 +279,7 @@ workshopDataRouter.get('/flow-attributes', async (req: Request, res: Response) =
     return res.status(500).json({
       success: false,
       message: 'Failed to get flow attributes',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -330,7 +330,7 @@ workshopDataRouter.get('/assessment/questions', async (req: Request, res: Respon
     return res.status(500).json({
       success: false,
       message: 'Failed to get assessment questions',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -380,7 +380,7 @@ workshopDataRouter.post('/assessment/start', async (req: Request, res: Response)
     return res.status(500).json({
       success: false,
       message: 'Failed to start assessment',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -410,7 +410,7 @@ workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response
     return res.status(500).json({
       success: false,
       message: 'Failed to save answer',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -424,7 +424,7 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
   
   try {
     // Get user ID from session (primary) or cookie (fallback) for better reliability
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     console.log('Initial userId determination:', userId);
     
@@ -438,9 +438,9 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
     
     // If test user with cookie userId is 1 but session userId is different, use session ID
     // This ensures star card data is saved for the correct user
-    console.log(`Assessment: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    console.log(`Assessment: User IDs - Session: ${(req.session as any).userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
       console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
@@ -514,7 +514,7 @@ workshopDataRouter.post('/assessment/complete', authenticateUser, checkWorkshopL
     return res.status(500).json({
       success: false,
       message: 'Failed to complete assessment',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -530,12 +530,12 @@ workshopDataRouter.post('/flow-attributes', authenticateUser, checkWorkshopLocke
     console.log('Flow attributes save request received:', req.body);
     
     // Get user ID from session (primary) or cookie (fallback)
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     // Fix for test users - use session userId instead of cookie userId (1) if available
-    console.log(`Flow Attributes POST: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    console.log(`Flow Attributes POST: User IDs - Session: ${(req.session as any).userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
       console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
@@ -612,7 +612,7 @@ workshopDataRouter.post('/flow-attributes', authenticateUser, checkWorkshopLocke
     return res.status(500).json({
       success: false,
       message: 'Failed to save flow attributes',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -623,10 +623,10 @@ workshopDataRouter.post('/flow-attributes', authenticateUser, checkWorkshopLocke
 // POST /api/workshop-data/rounding-out
 workshopDataRouter.post('/rounding-out', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -721,7 +721,7 @@ workshopDataRouter.post('/rounding-out', authenticateUser, checkWorkshopLocked, 
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -730,10 +730,10 @@ workshopDataRouter.post('/rounding-out', authenticateUser, checkWorkshopLocked, 
 // GET /api/workshop-data/rounding-out
 workshopDataRouter.get('/rounding-out', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -778,10 +778,10 @@ workshopDataRouter.get('/rounding-out', async (req: Request, res: Response) => {
 // POST /api/workshop-data/future-self
 workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -840,7 +840,7 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
     } catch (validationError) {
       return res.status(400).json({
         success: false,
-        error: validationError.message,
+        error: (validationError as Error).message,
         code: 'VALIDATION_ERROR'
       });
     }
@@ -902,7 +902,7 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -911,10 +911,10 @@ workshopDataRouter.post('/future-self', authenticateUser, checkWorkshopLocked, a
 // GET /api/workshop-data/future-self
 workshopDataRouter.get('/future-self', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -963,10 +963,10 @@ workshopDataRouter.get('/future-self', async (req: Request, res: Response) => {
 // POST /api/workshop-data/cantril-ladder
 workshopDataRouter.post('/cantril-ladder', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1065,7 +1065,7 @@ workshopDataRouter.post('/cantril-ladder', authenticateUser, checkWorkshopLocked
     console.error('Cantril ladder save error:', error);
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR',
       details: error instanceof Error ? error.stack : 'Unknown error'
     });
@@ -1076,10 +1076,10 @@ workshopDataRouter.post('/cantril-ladder', authenticateUser, checkWorkshopLocked
 workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) => {
   console.log('=== CANTRIL LADDER GET ENDPOINT HIT ===');
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     console.log('Cantril ladder GET - userId from session/cookie:', userId);
@@ -1174,10 +1174,10 @@ workshopDataRouter.get('/cantril-ladder', async (req: Request, res: Response) =>
 // POST /api/workshop-data/final-insights
 workshopDataRouter.post('/final-insights', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1262,7 +1262,7 @@ workshopDataRouter.post('/final-insights', async (req: Request, res: Response) =
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -1271,10 +1271,10 @@ workshopDataRouter.post('/final-insights', async (req: Request, res: Response) =
 // GET /api/workshop-data/final-insights
 workshopDataRouter.get('/final-insights', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1319,12 +1319,12 @@ workshopDataRouter.get('/final-insights', async (req: Request, res: Response) =>
 workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
   try {
     // Get user ID from session or cookie
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     // Fix for test users - use session userId instead of cookie userId (1) if available
-    console.log(`Assessments POST: User IDs - Session: ${req.session.userId}, Cookie: ${req.cookies.userId}`);
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    console.log(`Assessments POST: User IDs - Session: ${(req.session as any).userId}, Cookie: ${req.cookies.userId}`);
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
       console.log(`Using session user ID ${userId} instead of cookie user ID 1`);
     }
     
@@ -1396,7 +1396,7 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Failed to save assessment',
-      error: error instanceof Error ? error.message : 'Unknown error'
+      error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
 });
@@ -1407,10 +1407,10 @@ workshopDataRouter.post('/assessments', async (req: Request, res: Response) => {
 // POST /api/workshop-data/step-by-step-reflection
 workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1471,7 +1471,7 @@ workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorks
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -1480,10 +1480,10 @@ workshopDataRouter.post('/step-by-step-reflection', authenticateUser, checkWorks
 // GET /api/workshop-data/step-by-step-reflection
 workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1528,10 +1528,10 @@ workshopDataRouter.get('/step-by-step-reflection', async (req: Request, res: Res
 // POST /api/workshop-data/visualizing-potential
 workshopDataRouter.post('/visualizing-potential', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1619,7 +1619,7 @@ workshopDataRouter.post('/visualizing-potential', authenticateUser, checkWorksho
     console.error('VisualizingPotential save error:', error);
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -1628,10 +1628,10 @@ workshopDataRouter.post('/visualizing-potential', authenticateUser, checkWorksho
 // GET /api/workshop-data/visualizing-potential
 workshopDataRouter.get('/visualizing-potential', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1681,10 +1681,10 @@ workshopDataRouter.get('/visualizing-potential', async (req: Request, res: Respo
 // POST /api/workshop-data/final-reflection
 workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1749,7 +1749,7 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -1758,10 +1758,10 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
 // POST /api/workshop-data/final-reflection
 workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1836,7 +1836,7 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
     console.error('Error saving final reflection:', error);
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -1845,10 +1845,10 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
 // GET /api/workshop-data/final-reflection
 workshopDataRouter.get('/final-reflection', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -1928,7 +1928,7 @@ workshopDataRouter.get('/debug/step-1-1', async (req: Request, res: Response) =>
     });
   } catch (error) {
     console.error('Debug endpoint error:', error);
-    res.status(500).json({ success: false, error: error.message });
+    res.status(500).json({ success: false, error: (error as Error).message });
   }
 });
 
@@ -1938,10 +1938,10 @@ workshopDataRouter.get('/debug/step-1-1', async (req: Request, res: Response) =>
 // POST /api/visualization
 workshopDataRouter.post('/visualization', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -2014,7 +2014,7 @@ workshopDataRouter.post('/visualization', async (req: Request, res: Response) =>
   } catch (error) {
     res.status(400).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed',
+      error: error instanceof Error ? (error as Error).message : 'Save failed',
       code: 'SAVE_ERROR'
     });
   }
@@ -2023,10 +2023,10 @@ workshopDataRouter.post('/visualization', async (req: Request, res: Response) =>
 // GET /api/visualization
 workshopDataRouter.get('/visualization', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -2080,10 +2080,10 @@ workshopDataRouter.get('/visualization', async (req: Request, res: Response) => 
 // GET /api/workshop-data/flow-assessment
 workshopDataRouter.get('/flow-assessment', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -2120,7 +2120,7 @@ workshopDataRouter.get('/flow-assessment', async (req: Request, res: Response) =
     console.error('Error fetching flow assessment:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Fetch failed'
+      error: error instanceof Error ? (error as Error).message : 'Fetch failed'
     });
   }
 });
@@ -2128,10 +2128,10 @@ workshopDataRouter.get('/flow-assessment', async (req: Request, res: Response) =
 // POST /api/workshop-data/flow-assessment
 workshopDataRouter.post('/flow-assessment', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -2204,7 +2204,7 @@ workshopDataRouter.post('/flow-assessment', async (req: Request, res: Response) 
     console.error('Error saving flow assessment:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Save failed'
+      error: error instanceof Error ? (error as Error).message : 'Save failed'
     });
   }
 });
@@ -2212,10 +2212,10 @@ workshopDataRouter.post('/flow-assessment', async (req: Request, res: Response) 
 // GET /api/workshop-data/userAssessments
 workshopDataRouter.get('/userAssessments', async (req: Request, res: Response) => {
   try {
-    let userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && req.session.userId && req.session.userId !== 1) {
-      userId = req.session.userId;
+    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
+      userId = (req.session as any).userId;
     }
     
     if (!userId) {
@@ -2257,7 +2257,7 @@ workshopDataRouter.get('/userAssessments', async (req: Request, res: Response) =
     console.error('Error fetching user assessments:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Fetch failed'
+      error: error instanceof Error ? (error as Error).message : 'Fetch failed'
     });
   }
 });
@@ -2269,7 +2269,7 @@ workshopDataRouter.get('/userAssessments', async (req: Request, res: Response) =
 // Get navigation progress for IA workshop
 workshopDataRouter.get('/navigation-progress/:appType', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     const { appType } = req.params;
     
     if (!userId) {
@@ -2333,7 +2333,7 @@ workshopDataRouter.get('/navigation-progress/:appType', async (req: Request, res
 // Save navigation progress for IA workshop
 workshopDataRouter.post('/navigation-progress', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -2405,7 +2405,7 @@ workshopDataRouter.post('/navigation-progress', async (req: Request, res: Respon
 workshopDataRouter.get('/ia-assessment/:userId?', async (req: Request, res: Response) => {
   try {
     const targetUserId = req.params.userId ? parseInt(req.params.userId) : 
-                        (req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null));
+                        ((req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null));
     
     if (!targetUserId) {
       return res.status(401).json({
@@ -2457,7 +2457,7 @@ workshopDataRouter.get('/ia-assessment/:userId?', async (req: Request, res: Resp
 // Save IA assessment results
 workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    const userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({
@@ -2523,7 +2523,7 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
  */
 workshopDataRouter.get('/completion-status', authenticateUser, async (req: Request, res: Response) => {
   try {
-    const userId = req.session.userId;
+    const userId = (req.session as any).userId;
     
     const user = await db.select({
       astWorkshopCompleted: users.astWorkshopCompleted,
@@ -2550,7 +2550,7 @@ workshopDataRouter.get('/completion-status', authenticateUser, async (req: Reque
 workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Request, res: Response) => {
   try {
     const { appType } = req.body; // 'ast' or 'ia'
-    const userId = req.session.userId;
+    const userId = (req.session as any).userId;
     
     if (!appType || !['ast', 'ia'].includes(appType)) {
       return res.status(400).json({ error: 'Invalid app type. Must be "ast" or "ia"' });

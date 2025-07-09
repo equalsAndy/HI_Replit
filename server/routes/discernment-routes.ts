@@ -11,7 +11,7 @@ const router = Router();
 router.get('/scenarios/:exerciseType', requireAuth, async (req, res) => {
   try {
     const { exerciseType } = req.params;
-    const userId = req.session.userId;
+    const userId = (req.session as any).userId;
 
     console.log(`[Discernment] Fetching scenarios for ${exerciseType}, user ${userId}`);
 
@@ -45,7 +45,7 @@ router.get('/scenarios/:exerciseType', requireAuth, async (req, res) => {
 router.post('/progress', requireAuth, async (req, res) => {
   try {
     const { scenarioId } = req.body;
-    const userId = req.session.userId;
+    const userId = (req.session as any).userId;
 
     // TODO: Fix database schema mismatch for discernment progress tracking
     // For now, return success to prevent compilation errors

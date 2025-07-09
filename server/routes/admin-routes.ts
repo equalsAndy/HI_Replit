@@ -31,7 +31,7 @@ router.get('/users', requireAuth, isFacilitatorOrAdmin, async (req: Request, res
       return res.status(500).json({ message: result.error || 'Failed to retrieve users' });
     }
 
-    console.log(`${userRole === 'facilitator' ? 'Facilitator' : 'Admin'} ${userId} accessed ${result.users.length} users`);
+    console.log(`${userRole === 'facilitator' ? 'Facilitator' : 'Admin'} ${userId} accessed ${result.users?.length || 0} users`);
 
     res.json({
       message: 'Users retrieved successfully',
@@ -120,10 +120,10 @@ router.get('/invites', requireAuth, isFacilitatorOrAdmin, async (req: Request, r
     const invitesList = invitesResult.success ? invitesResult.invites : [];
 
     // Format invite codes for display
-    const formattedInvites = invitesList.map(invite => ({
+    const formattedInvites = invitesList?.map(invite => ({
       ...invite,
-      formattedCode: formatInviteCode(invite.inviteCode)
-    }));
+      formattedCode: formatInviteCode(invite.inviteCode as string)
+    })) || [];
 
     res.json({
       message: 'Invites retrieved successfully',
@@ -166,7 +166,7 @@ router.post('/invites/batch', requireAuth, isAdmin, async (req: Request, res: Re
         const inviteResult = await inviteService.createInvite({
           email: uniqueEmail,
           role: role,
-          createdBy: req.session.userId || 1, // Fallback to admin ID 1 if no session
+          createdBy: (req.session as any).userId || 1, // Fallback to admin ID 1 if no session
           expiresAt: expiresAt ? new Date(expiresAt) : undefined
         });
 
@@ -233,7 +233,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     // Handle password reset or custom password setting
     if (updateData.resetPassword) {
       // Reset password - generate temporary password
-      processedUpdateData.password = null; // This will trigger temporary password generation
+      processedUpdateData.password = undefined; // This will trigger temporary password generation
     } else if (updateData.setCustomPassword && updateData.newPassword) {
       // Set custom password
       processedUpdateData.password = updateData.newPassword;
@@ -288,7 +288,7 @@ router.put('/users/:id/role', requireAuth, isAdmin, async (req: Request, res: Re
     }
 
     // Prevent changing own role (to avoid locking yourself out)
-    if (id === req.session.userId) {
+    if (id === (req.session as any).userId) {
       return res.status(403).json({ 
         message: 'Cannot change your own role'
       });
@@ -472,7 +472,7 @@ router.delete('/users/:id', requireAuth, isAdmin, async (req: Request, res: Resp
     }
 
     // Prevent deleting yourself
-    if (id === req.session.userId) {
+    if (id === (req.session as any).userId) {
       return res.status(403).json({ 
         message: 'Cannot delete your own account'
       });
@@ -559,7 +559,7 @@ router.get('/users/:userId/export', requireAuth, async (req: Request, res: Respo
     console.error('Error exporting user data:', error);
     res.status(500).json({
       success: false,
-      error: error instanceof Error ? error.message : 'Export failed'
+      error: error instanceof Error ? (error as Error).message : 'Export failed'
     });
   }
 });
@@ -583,7 +583,7 @@ router.get('/users/:userId/validate', requireAuth, isAdmin, async (req: Request,
     console.error('Error validating user data:', error);
     res.status(500).json({ 
       success: false, 
-      error: error instanceof Error ? error.message : 'Validation failed'
+      error: error instanceof Error ? (error as Error).message : 'Validation failed'
     });
   }
 });
