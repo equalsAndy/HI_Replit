@@ -3,10 +3,10 @@ import { createServer } from 'http';
 import path from 'path';
 import dotenv from 'dotenv';
 import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import { db } from './db.js';
 import { router } from './routes';
-import { sessionStore } from './session-store.js';
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +20,20 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // Session configuration
+const PgSession = connectPgSimple(session);
+const sessionStore = new PgSession({
+  conString: process.env.DATABASE_URL,
+  tableName: 'session_aws',
+  createTableIfMissing: false,
+  schemaName: 'public',
+  pruneSessionInterval: 60 * 15, // 15 minutes
+});
+
+// Add session store error handling
+sessionStore.on('error', (error) => {
+  console.error('❌ Session store error:', error);
+});
+
 app.use(session({
   store: sessionStore,
   secret: process.env.SESSION_SECRET || 'heliotrope-workshop-secret',
