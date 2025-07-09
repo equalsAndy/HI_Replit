@@ -1,0 +1,92 @@
+ REPLIT AGENT: Complete TypeScript Migration - Final Phase
+markdown# REPLIT AGENT: Complete AllStarTeams TypeScript Migration to Production
+
+## 🎯 **Mission:** 
+Complete the migration of the entire AllStarTeams application to AWS by fixing ALL TypeScript errors and creating a production-ready server with full functionality.
+
+## 📊 **Current Status:**
+- ✅ Basic production server working (auth + sessions)
+- ✅ Container deployment infrastructure complete
+- ❌ 200+ TypeScript errors blocking full application migration
+- ❌ Missing workshop routes, admin system, assessments, reports
+
+## 🔧 **Comprehensive Fix Strategy:**
+
+### **Phase 1: Fix All Import Paths (Critical)**
+Systematically convert ALL TypeScript imports to container-compatible format:
+```typescript
+// Pattern to apply across ALL server files:
+import { User } from "../shared/types"; → import { User } from "../shared/types.js";
+import { db } from "./db"; → import { db } from "./db.js";
+import schema from "../shared/schema"; → import schema from "../shared/schema.js";
+Target Files: ALL files in server/ directory (25+ files)
+Phase 2: Fix Schema Type Mismatches
+Resolve database schema inconsistencies:
+
+Fix userRoles table references → users.role field access
+Fix rowCount vs array.length issues
+Resolve User type compatibility (password property handling)
+Update Drizzle ORM query result handling
+
+Phase 3: Complete Production Server Integration
+Merge essential routes into server/index-simple-prod.js:
+typescript// Add these critical route groups:
+- /api/workshop-data/* (all workshop endpoints)
+- /api/admin/* (user management, dashboard)
+- /api/reports/* (report generation)
+- /api/growth-plan/* (quarterly planning)
+- /api/auth/* (complete auth system)
+Phase 4: Type Export Chain Fixes
+Ensure all shared types are properly exported:
+
+Fix missing StarCard, FlowAttributesRecord exports
+Resolve Cohort type import/export chain
+Fix UserRole enum consistency
+Update all type definitions for container compatibility
+
+Phase 5: Production Route Implementation
+For each major route group, implement essential endpoints in production server:
+Workshop Data Routes:
+
+GET/POST /api/workshop-data/starcard
+GET/POST /api/workshop-data/flow-attributes
+GET/POST /api/workshop-data/assessments
+GET/POST /api/workshop-data/navigation-progress
+
+Admin Routes:
+
+GET /api/admin/users (user management)
+POST /api/admin/reset-user
+GET /api/admin/dashboard
+GET/api/admin/statistics
+
+Report Routes:
+
+GET /api/reports/individual/:userId
+GET /api/reports/team/:teamId
+POST /api/reports/generate
+
+✅ Success Criteria:
+
+npx tsc --noEmit --skipLibCheck shows 0 errors
+Production server includes all essential API routes
+Container builds successfully with full application
+All workshop functionality works on AWS
+Admin panel fully functional
+Zero dependencies on Replit
+
+🎯 Implementation Priority:
+
+Start with shared/ directory type fixes
+Fix all import paths systematically across server/
+Merge working routes into production server
+Test each route group incrementally
+Build and deploy complete production container
+
+🚨 Critical Requirements:
+
+Maintain container compatibility (all .js extensions)
+Preserve existing database schema structure
+Keep session authentication working
+Ensure all route handlers have proper error handling
+Test database connectivity for all endpoints

@@ -85,7 +85,7 @@ app.get('/health', async (req, res) => {
     }
 
     res.status(200).json(health);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ 
       status: 'unhealthy', 
       error: error.message,
@@ -126,7 +126,7 @@ async function initializeApp() {
         conString: process.env.DATABASE_URL,
         tableName: 'session_aws',
         createTableIfMissing: false, // Table already exists
-        errorOnUnknownOptions: false,
+
         // Simplified configuration for better compatibility
         schemaName: 'public',
         pruneSessionInterval: 60 * 15, // 15 minutes
@@ -184,7 +184,7 @@ async function initializeApp() {
       // Only setup Vite in development or when needed
       if (process.env.NODE_ENV !== 'production') {
         console.log('🔧 Setting up Vite middleware...');
-        await setupVite(app);
+        await setupVite(app, server);
         console.log('✅ Vite middleware ready');
       } else {
         // Serve static files in production

@@ -532,7 +532,7 @@ export class DatabaseStorage {
   async updateStarCard(userId: number, starCardData: Partial<schema.StarCard>): Promise<schema.StarCard | undefined> {
     const [updatedStarCard] = await db
       .update(schema.starCards)
-      .set({ ...starCardData, updatedAt: new Date() })
+      .set({ ...starCardData })
       .where(eq(schema.starCards.userId, userId))
       .returning();
     
@@ -561,7 +561,7 @@ export class DatabaseStorage {
   async updateFlowAttributes(userId: number, attributes: any[]): Promise<schema.FlowAttributesRecord | undefined> {
     const [updatedFlowAttributes] = await db
       .update(schema.flowAttributes)
-      .set({ attributes, updatedAt: new Date() })
+      .set({ attributes })
       .where(eq(schema.flowAttributes.userId, userId))
       .returning();
     

@@ -1,6 +1,6 @@
 import express from "express";
 import path from "path";
-import fs from "fs";
+import * as fs from "fs";
 import session from "express-session";
 import connectPgSimple from "connect-pg-simple";
 import cookieParser from "cookie-parser";
@@ -160,7 +160,7 @@ process.on('SIGINT', () => {
   process.exit(0);
 });
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, () => {
   console.log(`🚀 Production server running on port ${PORT}`);
   console.log(`📁 Serving static files from: ${distPath}`);
   console.log(`🔗 Database: ${process.env.DATABASE_URL ? 'Connected' : 'Not configured'}`);

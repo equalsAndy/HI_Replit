@@ -1,95 +1,31 @@
-import { 
-  User, InsertUser, 
-  UserRole, 
-  StarCard, 
-  FlowAttributesRecord
-} from "../shared/schema.js";
+import { eq, and, inArray, count } from "drizzle-orm";
 import { db } from "./db.js";
-import { eq, and, inArray } from "drizzle-orm";
 import * as schema from "../shared/schema.js";
+import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types.js";
+import { Cohort } from "../shared/schema.js";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
 
-export interface IStorage {
-  // For authentication
-  sessionStore: any; // session.Store type
-  
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: Partial<User>): Promise<User>;
-  updateUser(id: number, userData: Partial<User>): Promise<User | undefined>;
-  getAllUsers(): Promise<User[]>;
-  getUsersByRole(role: UserRole): Promise<User[]>;
-  
-  // Authentication
-  authenticateUser(username: string, password: string): Promise<User | undefined>;
-  
-  // Test user operations
-  createTestUsers(): Promise<void>;
-  getTestUsers(): Promise<User[]>;
-  
-  // User role operations
-  assignRole(userId: number, role: UserRole): Promise<void>;
-  removeRole(userId: number, role: UserRole): Promise<void>;
-  getUserRoles(userId: number): Promise<UserRole[]>;
-  setUserRole(userId: number, role: UserRole): Promise<void>;
-  
-  // Star Card operations
-  getStarCard(userId: number): Promise<StarCard | undefined>;
-  updateStarCard(userId: number, data: Partial<StarCard>): Promise<StarCard | undefined>;
-  
-  // Flow attributes operations
-  getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
-  updateFlowAttributes(userId: number, data: Partial<FlowAttributesRecord>): Promise<FlowAttributesRecord | undefined>;
-  
-  // Cohort operations
-  createCohort(cohortData: any): Promise<any>;
-  getCohort(id: number): Promise<any | undefined>;
-  updateCohort(id: number, cohortData: any): Promise<any | undefined>;
-  getAllCohorts(): Promise<any[]>;
-  getCohortsByFacilitator(facilitatorId: number): Promise<any[]>;
-  
-  // Cohort participant operations
-  addParticipantToCohort(cohortId: number, participantId: number): Promise<void>;
-  removeParticipantFromCohort(cohortId: number, participantId: number): Promise<void>;
-  getCohortParticipants(cohortId: number): Promise<User[]>;
-  getParticipantCohorts(participantId: number): Promise<any[]>;
-  
-  // Star Card operations
-  getStarCard(userId: number): Promise<StarCard | undefined>;
-  createStarCard(starCard: any): Promise<StarCard>;
-  updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined>;
-  
-  // Flow Attributes operations
-  getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
-  createFlowAttributes(flowAttributes: any): Promise<FlowAttributesRecord>;
-  updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined>;
-}
-
 // Role management helper functions
 async function getUserRoles(userId: number): Promise<UserRole[]> {
   const userRoles = await db
-    .select({ role: schema.userRoles.role })
-    .from(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
+    .select({ role: schema.users.role })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId));
   
-  return userRoles.map(r => r.role);
+  return userRoles.map(r => r.role as UserRole);
 }
 
 async function setUserRole(userId: number, role: UserRole): Promise<void> {
-  // First delete any existing roles (in case we're changing the role)
-  await db.delete(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
-  
-  // Insert the new role
-  await db.insert(schema.userRoles)
-    .values({ userId, role });
+  // Update the user's role directly in the users table
+  await db.update(schema.users)
+    .set({ role })
+    .where(eq(schema.users.id, userId));
 }
 
-// Database storage implementation
-export class DatabaseStorage implements IStorage {
+// Database Storage class implementation
+export class DatabaseStorage {
   public sessionStore: any;
 
   constructor() {
@@ -100,11 +36,6 @@ export class DatabaseStorage implements IStorage {
       createTableIfMissing: true,
       tableName: 'sessions',
       ttl: 7 * 24 * 60 * 60 * 1000 // 1 week
-    });
-    
-    // Initialize by creating test users
-    this.createTestUsers().catch(error => {
-      console.error('Error creating test users:', error);
     });
   }
   
@@ -122,12 +53,11 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
-    };
+      role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
+    } as User;
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
-    // Get user from database
     const [user] = await db
       .select()
       .from(schema.users)
@@ -135,71 +65,56 @@ export class DatabaseStorage implements IStorage {
     
     if (!user) return undefined;
     
-    // Get roles directly from database
-    const userRoles = await db
-      .select({ role: schema.userRoles.role })
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.userId, user.id));
+    // Get user roles
+    const roles = await getUserRoles(user.id);
     
-    console.log(`User ${username} (ID: ${user.id}) has roles:`, userRoles);
-    
-    // Return user with role
     return {
       ...user,
-      role: userRoles.length > 0 ? userRoles[0].role as UserRole : UserRole.Participant
-    };
+      role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
+    } as User;
   }
   
   async createUser(userData: Partial<User>): Promise<User> {
     // Hash password if provided
+    let hashedPassword = undefined;
     if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
+      hashedPassword = await bcrypt.hash(userData.password, 10);
     }
     
-    // Remove role before inserting (will be added separately)
-    const { role, ...userDataWithoutRole } = userData;
-    
-    // Insert user
+    // Insert user with role directly
     const [user] = await db
       .insert(schema.users)
-      .values(userDataWithoutRole)
+      .values({
+        ...userData,
+        password: hashedPassword,
+        role: userData.role || 'participant'
+      })
       .returning();
     
-    // Add role if specified
-    if (role) {
-      await setUserRole(user.id, role);
-    }
-    
-    return { ...user, role: role || UserRole.Participant };
+    return { ...user, role: user.role as UserRole || 'participant' } as User;
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
     // Hash password if provided
+    let hashedPassword = undefined;
     if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
+      hashedPassword = await bcrypt.hash(userData.password, 10);
     }
     
-    // Remove role before updating (will be updated separately)
-    const { role, ...userDataWithoutRole } = userData;
-    
-    // Update user
+    // Update user with role directly
     const [updatedUser] = await db
       .update(schema.users)
-      .set({ ...userDataWithoutRole, updatedAt: new Date() })
+      .set({ 
+        ...userData, 
+        password: hashedPassword || userData.password,
+        updatedAt: new Date() 
+      })
       .where(eq(schema.users.id, id))
       .returning();
     
     if (!updatedUser) return undefined;
     
-    // Update role if provided
-    if (role) {
-      await setUserRole(id, role);
-    }
-    
-    // Get current roles
-    const roles = await getUserRoles(id);
-    
-    return { ...updatedUser, role: roles.length > 0 ? roles[0] : UserRole.Participant };
+    return { ...updatedUser, role: updatedUser.role as UserRole || 'participant' } as User;
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -207,26 +122,11 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(schema.users);
     
-    // Get all users' roles
-    const userIds = users.map(user => user.id);
-    
-    if (userIds.length === 0) {
-      return [];
-    }
-    
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return users.map(user => {
-      const userRoles = allRoles.filter(r => r.userId === user.id);
-      return {
-        ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant // Default to participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return users.map(user => ({
+      ...user,
+      role: user.role as UserRole || 'participant' // Default to participant
+    })) as User[];
   }
 
   // Authentication method
@@ -245,27 +145,16 @@ export class DatabaseStorage implements IStorage {
   
   // Role management methods
   async getUsersByRole(role: UserRole): Promise<User[]> {
-    const roleRecords = await db
-      .select()
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.role, role));
-    
-    const userIds = roleRecords.map(r => r.userId);
-    
-    if (userIds.length === 0) {
-      return [];
-    }
-    
     const users = await db
       .select()
       .from(schema.users)
-      .where(inArray(schema.users.id, userIds));
+      .where(eq(schema.users.role, role));
     
-    // Map roles to users
+    // Map users with their roles 
     return users.map(user => ({
       ...user,
-      role
-    }));
+      role: user.role as UserRole
+    })) as User[];
   }
   
   async assignRole(userId: number, role: UserRole): Promise<void> {
@@ -273,68 +162,50 @@ export class DatabaseStorage implements IStorage {
   }
   
   async removeRole(userId: number, role: UserRole): Promise<void> {
+    // Reset user role to participant when removing a role
     await db
-      .delete(schema.userRoles)
-      .where(
-        and(
-          eq(schema.userRoles.userId, userId),
-          eq(schema.userRoles.role, role)
-        )
-      );
+      .update(schema.users)
+      .set({ role: 'participant' })
+      .where(eq(schema.users.id, userId));
   }
   
   async getUserRoles(userId: number): Promise<UserRole[]> {
     return getUserRoles(userId);
   }
   
-  async setUserRole(userId: number, role: UserRole): Promise<void> {
-    // Delete existing roles first
-    await db.delete(schema.userRoles)
-      .where(eq(schema.userRoles.userId, userId));
-      
-    // Add the new role
-    await db.insert(schema.userRoles)
-      .values({ userId, role });
-  }
-  
   // Test user operations
   async createTestUsers(): Promise<void> {
-    try {
-      // Create admin user if it doesn't exist
-      const adminUsername = 'admin';
-      const existingAdmin = await this.getUserByUsername(adminUsername);
+    // Create admin user if it doesn't exist
+    const adminUsername = 'admin';
+    const existingAdmin = await this.getUserByUsername(adminUsername);
+    
+    if (!existingAdmin) {
+      await this.createUser({
+        username: adminUsername,
+        password: await bcrypt.hash('admin123', 10),
+        name: 'Administrator',
+        email: 'admin@example.com',
+        role: 'admin'
+      });
+    }
+    
+    // Create 5 test users if they don't exist
+    const testUserCount = 5;
+    const hashedPassword = await bcrypt.hash('password', 10);
+    
+    for (let i = 1; i <= testUserCount; i++) {
+      const username = `user${i}`;
+      const existingUser = await this.getUserByUsername(username);
       
-      if (!existingAdmin) {
+      if (!existingUser) {
         await this.createUser({
-          username: adminUsername,
-          password: 'admin123', // Will be hashed in createUser
-          name: 'Administrator',
-          email: 'admin@example.com',
-          role: UserRole.Admin
+          username,
+          password: hashedPassword,
+          name: `Test User ${i}`,
+          email: `user${i}@example.com`,
+          role: 'participant'
         });
-        console.log('Created admin user');
       }
-      
-      // Create 5 test users if they don't exist
-      const testUserCount = 5;
-      
-      for (let i = 1; i <= testUserCount; i++) {
-        const username = `user${i}`;
-        const existingUser = await this.getUserByUsername(username);
-        
-        if (!existingUser) {
-          await this.createUser({
-            username,
-            password: 'password', // Will be hashed in createUser
-            name: `Test User ${i}`,
-            email: `user${i}@example.com`,
-            role: UserRole.Participant
-          });
-          console.log(`Created test user ${i}`);
-        }
-      }
-    } catch (error) {
-      console.error('Error creating test users:', error);
     }
   }
   
@@ -344,26 +215,11 @@ export class DatabaseStorage implements IStorage {
       .from(schema.users)
       .where(inArray(schema.users.username, ['user1', 'user2', 'user3', 'user4', 'user5', 'admin']));
     
-    // Get all roles
-    const userIds = testUsers.map(user => user.id);
-    
-    if (userIds.length === 0) {
-      return [];
-    }
-    
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return testUsers.map(user => {
-      const userRoles = allRoles.filter(r => r.userId === user.id);
-      return {
-        ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return testUsers.map(user => ({
+      ...user,
+      role: user.role as UserRole || 'participant'
+    })) as User[];
   }
   
   // Cohort operations
@@ -412,7 +268,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get participant count
     const participantCount = await db
-      .select({ value: db.fn.count() })
+      .select({ value: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
@@ -456,7 +312,7 @@ export class DatabaseStorage implements IStorage {
     
     // Get participant count
     const participantCount = await db
-      .select({ value: db.fn.count() })
+      .select({ value: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
@@ -472,12 +328,16 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(schema.cohorts);
     
-    if (cohorts.length === 0) {
-      return [];
-    }
-    
     // Get all facilitators for these cohorts
-    const cohortIds = cohorts.map(cohort => cohort.id);
+    const cohortIds = cohorts.map(cohort => cohort.id).filter(id => id !== null);
+    
+    if (cohortIds.length === 0) {
+      return cohorts.map(cohort => ({
+        ...cohort,
+        facilitatorId: undefined,
+        memberCount: 0
+      }));
+    }
     
     const facilitators = await db
       .select()
@@ -488,7 +348,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -515,7 +375,7 @@ export class DatabaseStorage implements IStorage {
       .from(schema.cohortFacilitators)
       .where(eq(schema.cohortFacilitators.facilitatorId, facilitatorId));
     
-    const cohortIds = cohortFacilitators.map(cf => cf.cohortId);
+    const cohortIds = cohortFacilitators.map(cf => cf.cohortId).filter(id => id !== null);
     
     if (cohortIds.length === 0) {
       return [];
@@ -530,7 +390,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -561,25 +421,11 @@ export class DatabaseStorage implements IStorage {
       )
       .where(eq(schema.cohortParticipants.cohortId, cohortId));
     
-    if (participants.length === 0) {
-      return [];
-    }
-    
-    // Get user roles
-    const userIds = participants.map(p => p.user.id);
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return participants.map(p => {
-      const userRoles = allRoles.filter(r => r.userId === p.user.id);
-      return {
-        ...p.user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return participants.map(p => ({
+      ...p.user,
+      role: p.user.role as UserRole || 'participant'
+    }));
   }
   
   async addParticipantToCohort(cohortId: number, userId: number): Promise<void> {
@@ -624,7 +470,7 @@ export class DatabaseStorage implements IStorage {
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.participantId, participantId));
     
-    const cohortIds = cohortParticipants.map(cp => cp.cohortId);
+    const cohortIds = cohortParticipants.map(cp => cp.cohortId).filter(id => id !== null);
     
     if (cohortIds.length === 0) {
       return [];
@@ -645,7 +491,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -665,7 +511,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Star Card methods
-  async getStarCard(userId: number): Promise<StarCard | undefined> {
+  async getStarCard(userId: number): Promise<schema.StarCard | undefined> {
     const [starCard] = await db
       .select()
       .from(schema.starCards)
@@ -674,7 +520,7 @@ export class DatabaseStorage implements IStorage {
     return starCard;
   }
   
-  async createStarCard(starCardData: any): Promise<StarCard> {
+  async createStarCard(starCardData: any): Promise<schema.StarCard> {
     const [starCard] = await db
       .insert(schema.starCards)
       .values(starCardData)
@@ -683,10 +529,10 @@ export class DatabaseStorage implements IStorage {
     return starCard;
   }
   
-  async updateStarCard(userId: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined> {
+  async updateStarCard(userId: number, starCardData: Partial<schema.StarCard>): Promise<schema.StarCard | undefined> {
     const [updatedStarCard] = await db
       .update(schema.starCards)
-      .set({ ...starCardData, updatedAt: new Date() })
+      .set({ ...starCardData })
       .where(eq(schema.starCards.userId, userId))
       .returning();
     
@@ -694,7 +540,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Flow attributes methods
-  async getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined> {
+  async getFlowAttributes(userId: number): Promise<schema.FlowAttributesRecord | undefined> {
     const [flowAttributes] = await db
       .select()
       .from(schema.flowAttributes)
@@ -703,7 +549,7 @@ export class DatabaseStorage implements IStorage {
     return flowAttributes;
   }
   
-  async createFlowAttributes(flowAttributesData: any): Promise<FlowAttributesRecord> {
+  async createFlowAttributes(flowAttributesData: any): Promise<schema.FlowAttributesRecord> {
     const [flowAttributes] = await db
       .insert(schema.flowAttributes)
       .values(flowAttributesData)
@@ -712,57 +558,16 @@ export class DatabaseStorage implements IStorage {
     return flowAttributes;
   }
   
-  async updateFlowAttributes(userId: number, data: Partial<FlowAttributesRecord>): Promise<FlowAttributesRecord | undefined> {
-    // Ensure userId isn't being updated
-    const { userId: _, id: __, ...updateData } = data as any;
-    
+  async updateFlowAttributes(userId: number, attributes: any[]): Promise<schema.FlowAttributesRecord | undefined> {
     const [updatedFlowAttributes] = await db
       .update(schema.flowAttributes)
-      .set({ ...updateData, updatedAt: new Date() })
+      .set({ attributes })
       .where(eq(schema.flowAttributes.userId, userId))
       .returning();
     
     return updatedFlowAttributes;
   }
-  
-  // Star Card operations
-  async getStarCard(userId: number): Promise<StarCard | undefined> {
-    const [starCard] = await db
-      .select()
-      .from(schema.starCards)
-      .where(eq(schema.starCards.userId, userId));
-    
-    return starCard;
-  }
-  
-  async updateStarCard(userId: number, data: Partial<StarCard>): Promise<StarCard | undefined> {
-    // Ensure userId isn't being updated
-    const { userId: _, id: __, ...updateData } = data as any;
-    
-    const [updatedStarCard] = await db
-      .update(schema.starCards)
-      .set({ ...updateData, updatedAt: new Date() })
-      .where(eq(schema.starCards.userId, userId))
-      .returning();
-    
-    if (!updatedStarCard) {
-      // If there's no existing star card, create a new one
-      const [newStarCard] = await db
-        .insert(schema.starCards)
-        .values({
-          userId,
-          ...updateData,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        })
-        .returning();
-      
-      return newStarCard;
-    }
-    
-    return updatedStarCard;
-  }
 }
 
 // Create and export a singleton instance
-export const storage = new DatabaseStorage();
+export const dbStorage = new DatabaseStorage();
