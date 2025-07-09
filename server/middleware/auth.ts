@@ -23,7 +23,7 @@ declare global {
  * Middleware to require authentication
  */
 export const requireAuth = (req: Request, res: Response, next: NextFunction) => {
-  const sessionUserId = req.session?.userId;
+  const sessionUserId = (req.session as any)?.userId;
   const cookieUserId = req.cookies?.userId;
 
   console.log('Auth check - Session:', sessionUserId, 'Cookie:', cookieUserId);
@@ -40,17 +40,17 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
   }
 
   // Ensure session has the user ID and role
-  if (!req.session.userId) {
-    req.session.userId = userId;
+  if (!(req.session as any).userId) {
+    (req.session as any).userId = userId;
   }
 
   // For user 1 (admin), ensure admin role is set
-  if (userId === 1 && !req.session.userRole) {
-    req.session.userRole = 'admin';
-    req.session.username = 'admin';
+  if (userId === 1 && !(req.session as any).userRole) {
+    (req.session as any).userRole = 'admin';
+    (req.session as any).username = 'admin';
   }
 
-  console.log('Authentication successful for user:', userId, 'Role:', req.session.userRole);
+  console.log('Authentication successful for user:', userId, 'Role:', (req.session as any).userRole);
   next();
 };
 
@@ -58,14 +58,14 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
  * Middleware to require admin role
  */
 export const requireAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
+  if (!(req.session as any).userId) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required'
     });
   }
 
-  if (req.session.userRole !== 'admin') {
+  if ((req.session as any).userRole !== 'admin') {
     return res.status(403).json({
       success: false,
       error: 'Admin privileges required'
@@ -79,14 +79,14 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction) =>
  * Middleware to require facilitator role or higher
  */
 export const requireFacilitator = (req: Request, res: Response, next: NextFunction) => {
-  if (!req.session.userId) {
+  if (!(req.session as any).userId) {
     return res.status(401).json({
       success: false,
       error: 'Authentication required'
     });
   }
 
-  if (req.session.userRole !== 'admin' && req.session.userRole !== 'facilitator') {
+  if ((req.session as any).userRole !== 'admin' && (req.session as any).userRole !== 'facilitator') {
     return res.status(403).json({
       success: false,
       error: 'Facilitator privileges required'
@@ -100,11 +100,11 @@ export const requireFacilitator = (req: Request, res: Response, next: NextFuncti
  * Middleware to attach the user to the request if authenticated
  */
 export const attachUser = (req: Request, res: Response, next: NextFunction) => {
-  if (req.session.userId) {
+  if ((req.session as any).userId) {
     req.user = {
-      id: req.session.userId,
-      username: req.session.username || '',
-      role: req.session.userRole || 'participant',
+      id: (req.session as any).userId,
+      username: (req.session as any).username || '',
+      role: (req.session as any).userRole || 'participant',
       name: '',  // These are placeholders as we don't store these in the session
       email: ''  // for security reasons
     };

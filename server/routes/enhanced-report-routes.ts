@@ -4,7 +4,7 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { writeFile } from 'fs/promises';
 import path from 'path';
-import { db } from '../db';
+import { db } from '../db.js';
 import { users, userAssessments } from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 

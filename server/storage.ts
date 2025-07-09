@@ -72,30 +72,20 @@ export interface IStorage {
 
 // Get user roles helper function
 async function getUserRoles(userId: number): Promise<UserRole[]> {
-  const userRoles = await db.query.userRoles.findMany({
-    where: eq(schema.userRoles.userId, userId)
-  });
+  const userRoles = await db
+    .select({ role: schema.users.role })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId));
   
   return userRoles.map(ur => ur.role as UserRole);
 }
 
 // Set user role helper function
 async function setUserRole(userId: number, role: UserRole): Promise<void> {
-  // Check if the role already exists for the user
-  const existingRole = await db.query.userRoles.findFirst({
-    where: and(
-      eq(schema.userRoles.userId, userId),
-      eq(schema.userRoles.role, role)
-    )
-  });
-  
-  // If role doesn't exist, add it
-  if (!existingRole) {
-    await db.insert(schema.userRoles).values({
-      userId,
-      role
-    });
-  }
+  // Update the user's role directly in the users table
+  await db.update(schema.users)
+    .set({ role })
+    .where(eq(schema.users.id, userId));
 }
 
 // Database storage implementation

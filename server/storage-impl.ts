@@ -14,21 +14,18 @@ import session from 'express-session';
 // Role management helper functions
 async function getUserRoles(userId: number): Promise<UserRole[]> {
   const userRoles = await db
-    .select({ role: schema.userRoles.role })
-    .from(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
+    .select({ role: schema.users.role })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId));
   
-  return userRoles.map(r => r.role);
+  return userRoles.map(r => r.role as UserRole);
 }
 
 async function setUserRole(userId: number, role: UserRole): Promise<void> {
-  // First delete any existing roles (in case we're changing the role)
-  await db.delete(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
-  
-  // Insert the new role
-  await db.insert(schema.userRoles)
-    .values({ userId, role });
+  // Update the user's role directly in the users table
+  await db.update(schema.users)
+    .set({ role })
+    .where(eq(schema.users.id, userId));
 }
 
 // Import the storage interface
@@ -63,7 +60,7 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
+      role: roles.length > 0 ? roles[0] : participant // Default to participant
     };
   }
   
@@ -80,7 +77,7 @@ export class DatabaseStorage implements IStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
+      role: roles.length > 0 ? roles[0] : participant // Default to participant
     };
   }
   
@@ -104,7 +101,7 @@ export class DatabaseStorage implements IStorage {
       await setUserRole(user.id, role);
     }
     
-    return { ...user, role: role || UserRole.Participant };
+    return { ...user, role: role || participant };
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
@@ -133,7 +130,7 @@ export class DatabaseStorage implements IStorage {
     // Get current roles
     const roles = await getUserRoles(id);
     
-    return { ...updatedUser, role: roles.length > 0 ? roles[0] : UserRole.Participant };
+    return { ...updatedUser, role: roles.length > 0 ? roles[0] : participant };
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -153,7 +150,7 @@ export class DatabaseStorage implements IStorage {
       const userRoles = allRoles.filter(r => r.userId === user.id);
       return {
         ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant // Default to participant
+        role: userRoles.length > 0 ? userRoles[0].role : participant // Default to participant
       };
     });
   }
@@ -223,7 +220,7 @@ export class DatabaseStorage implements IStorage {
         password: await bcrypt.hash('admin123', 10),
         name: 'Administrator',
         email: 'admin@example.com',
-        role: UserRole.Admin
+        role: admin
       });
     }
     
@@ -241,7 +238,7 @@ export class DatabaseStorage implements IStorage {
           password: hashedPassword,
           name: `Test User ${i}`,
           email: `user${i}@example.com`,
-          role: UserRole.Participant
+          role: participant
         });
       }
     }
@@ -265,7 +262,7 @@ export class DatabaseStorage implements IStorage {
       const userRoles = allRoles.filter(r => r.userId === user.id);
       return {
         ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
+        role: userRoles.length > 0 ? userRoles[0].role : participant
       };
     });
   }
@@ -473,7 +470,7 @@ export class DatabaseStorage implements IStorage {
       const userRoles = allRoles.filter(r => r.userId === p.user.id);
       return {
         ...p.user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
+        role: userRoles.length > 0 ? userRoles[0].role : participant
       };
     });
   }
