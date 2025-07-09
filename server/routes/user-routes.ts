@@ -279,7 +279,9 @@ router.get('/assessments', requireAuth, async (req, res) => {
       .filter(a => a.userId === sessionUserId)
       .reduce((result: Record<string, any>, assessment) => {
         const type = assessment.type;
-        (result as any)[type] = assessment;
+        if (type) {
+          (result as any)[type] = assessment;
+        }
         return result;
       }, {});
 
@@ -896,13 +898,13 @@ router.get('/export-data', requireAuth, async (req, res) => {
       const finalReflections = await db.select()
         .from(schema.finalReflections)
         .where(eq(schema.finalReflections.userId, sessionUserId));
-      userData.finalReflections = finalReflections;
+      (userData as any).finalReflections = finalReflections;
 
       // Get discernment progress
       const discernmentProgress = await db.select()
         .from(schema.userDiscernmentProgress)
         .where(eq(schema.userDiscernmentProgress.userId, sessionUserId));
-      userData.discernmentProgress = discernmentProgress;
+      (userData as any).discernmentProgress = discernmentProgress;
 
     } catch (dbError) {
       console.error('Error fetching user data for export:', dbError);

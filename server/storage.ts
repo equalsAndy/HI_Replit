@@ -329,7 +329,7 @@ export class DatabaseStorage implements IStorage {
     const cohortIds = facilitatorCohorts.map(fc => fc.cohortId);
     
     const cohorts = await db.query.cohorts.findMany({
-      where: inArray(schema.cohorts.id, cohortIds)
+      where: inArray(schema.cohorts.id, cohortIds as any)
     });
     
     return cohorts;
@@ -394,14 +394,14 @@ export class DatabaseStorage implements IStorage {
     const cohortIds = cohortParticipants.map(cp => cp.cohortId);
     
     const cohorts = await db.query.cohorts.findMany({
-      where: inArray(schema.cohorts.id, cohortIds)
+      where: inArray(schema.cohorts.id, cohortIds as any)
     });
     
     return cohorts;
   }
   
   // Star Card operations
-  async getStarCard(userId: number): Promise<StarCard | undefined> {
+  async getStarCard(userId: number): Promise<any | undefined> {
     const starCard = await db.query.starCards.findFirst({
       where: eq(schema.starCards.userId, userId)
     });

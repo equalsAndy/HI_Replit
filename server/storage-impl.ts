@@ -360,7 +360,7 @@ export class DatabaseStorage implements IStorage {
     const facilitators = await db
       .select()
       .from(schema.cohortFacilitators)
-      .where(inArray(schema.cohortFacilitators.cohortId, cohortIds));
+      .where(inArray(schema.cohortFacilitators.cohortId, cohortIds as any));
     
     // Get participant counts for all cohorts
     const participantCounts = await db
@@ -369,7 +369,7 @@ export class DatabaseStorage implements IStorage {
         count: count()
       })
       .from(schema.cohortParticipants)
-      .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
+      .where(inArray(schema.cohortParticipants.cohortId, cohortIds as any))
       .groupBy(schema.cohortParticipants.cohortId);
     
     // Map data to cohorts
@@ -402,7 +402,7 @@ export class DatabaseStorage implements IStorage {
     const cohorts = await db
       .select()
       .from(schema.cohorts)
-      .where(inArray(schema.cohorts.id, cohortIds));
+      .where(inArray(schema.cohorts.id, cohortIds as any));
     
     // Get participant counts for all cohorts
     const participantCounts = await db
@@ -411,7 +411,7 @@ export class DatabaseStorage implements IStorage {
         count: count()
       })
       .from(schema.cohortParticipants)
-      .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
+      .where(inArray(schema.cohortParticipants.cohortId, cohortIds as any))
       .groupBy(schema.cohortParticipants.cohortId);
     
     // Map data to cohorts

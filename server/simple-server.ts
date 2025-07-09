@@ -6,7 +6,7 @@ import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import { db } from './db.js';
 import { router } from './routes';
-import { sessionStore } from './session-store';
+import { sessionStore } from './session-store.js';
 
 // Load environment variables
 dotenv.config();
@@ -54,7 +54,7 @@ const server = createServer(app);
 
 // Start the server
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(Number(PORT), '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
 
