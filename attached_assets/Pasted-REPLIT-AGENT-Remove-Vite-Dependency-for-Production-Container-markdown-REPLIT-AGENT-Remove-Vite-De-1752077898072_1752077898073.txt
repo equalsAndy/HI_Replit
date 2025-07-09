@@ -1,0 +1,133 @@
+REPLIT AGENT: Remove Vite Dependency for Production Container
+markdown# REPLIT AGENT: Remove Vite Dependency for Production Container
+
+## 🎯 **Task:** 
+Remove vite.ts and its dependency for production deployment to eliminate module resolution issues.
+
+## 📁 **Context:**
+The container keeps failing because it can't find vite.config.js. For production, we don't need Vite dev server - we just need to serve static files from dist/public/.
+
+## 🔧 **Required Changes:**
+
+### **1. Create Production-Only Server Entry Point**
+Create `server/index-production.ts`:
+```typescript
+import express from "express";
+import path from "path";
+import fs from "fs";
+import session from "express-session";
+import connectPgSimple from "connect-pg-simple";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+// Import routes
+import authRoutes from "./auth-routes.js";
+import workshopDataRoutes from "./workshop-data-routes.js";
+import adminRoutes from "./admin-routes.js";
+import reportRoutes from "./report-routes.js";
+import growthPlanRoutes from "./growth-plan-routes.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const PORT = process.env.PORT || 8080;
+
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Session configuration
+const PgSession = connectPgSimple(session);
+app.use(session({
+  store: new PgSession({
+    conString: process.env.DATABASE_URL,
+    tableName: 'session_aws'
+  }),
+  secret: process.env.SESSION_SECRET || 'fallback-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false,
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/workshop-data', workshopDataRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/growth-plan', growthPlanRoutes);
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+});
+
+// Serve static files from dist/public
+const distPath = path.resolve(__dirname, '../dist/public');
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+  
+  // Fallback to index.html for SPA routing
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+} else {
+  app.get('*', (req, res) => {
+    res.status(500).send('Build directory not found. Please build the client first.');
+  });
+}
+
+app.listen(PORT, () => {
+  console.log(`🚀 Production server running on port ${PORT}`);
+  console.log(`📁 Serving static files from: ${distPath}`);
+});
+2. Update Dockerfile to Use Production Entry
+Modify Dockerfile.simple to use the production entry point:
+dockerfileFROM node:18-alpine
+
+WORKDIR /app
+
+# Install PM2 globally
+RUN npm install pm2 -g
+
+# Copy package files and install dependencies
+COPY package*.json ./
+RUN npm ci --only=production
+
+# Copy application code
+COPY server/ ./server/
+COPY shared/ ./shared/
+COPY dist/public/ ./dist/public/
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+
+# Expose port
+EXPOSE 8080
+
+# Start with PM2 using production entry point
+CMD ["pm2-runtime", "start", "npx", "--name", "allstarteams-app", "--", "tsx", "server/index-production.ts"]
+3. Verify File Structure
+Ensure these files exist and are properly imported:
+
+server/auth-routes.ts (or .js)
+server/workshop-data-routes.ts (or .js)
+server/admin-routes.ts (or .js)
+server/report-routes.ts (or .js)
+server/growth-plan-routes.ts (or .js)
+
+4. Fix Any Import Path Issues
+Update any relative import paths in the new production file to use .js extensions for container compatibility.
+✅ Success Criteria:
+
+Container starts without vite-related errors
+Static files served from dist/public/
+All API routes functional
+Session authentication working
+Health check responds at /health
+
+🎯 Priority: HIGH - This eliminates the root cause instead of working around it
