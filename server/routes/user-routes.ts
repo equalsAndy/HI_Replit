@@ -32,13 +32,13 @@ router.get('/me', async (req, res) => {
   try {
     console.log('Me request - Session data:', req.session);
     console.log('Me request - Cookies:', req.cookies);
-    
+
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = req.session?.userId;
-    
+    let userId = (req.session as any)?.userId;
+
     console.log('Session userId:', req.session?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
-    
+
     // Only use cookie as fallback if no session exists
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
@@ -46,9 +46,9 @@ router.get('/me', async (req, res) => {
     } else if (userId) {
       console.log('Using session userId:', userId);
     }
-    
+
     console.log(`Me request - Resolved user ID: ${userId}`);
-    
+
     if (!userId) {
       console.log('Me request - No user ID found, authentication failed');
       return res.status(401).json({
@@ -56,9 +56,9 @@ router.get('/me', async (req, res) => {
         error: 'Authentication required'
       });
     }
-    
+
     console.log(`Fetching user info for user ID: ${userId}`);
-    
+
     const result = await userManagementService.getUserById(userId);
 
     if (!result.success) {
@@ -102,13 +102,13 @@ router.get('/profile', async (req, res) => {
   try {
     console.log('Profile request - Session data:', req.session);
     console.log('Profile request - Cookies:', req.cookies);
-    
+
     // Check session or cookie authentication - prioritize session over cookie
-    let userId = req.session?.userId;
-    
+    let userId = (req.session as any)?.userId;
+
     console.log('Session userId:', req.session?.userId);
     console.log('Cookie userId:', req.cookies?.userId);
-    
+
     // Only use cookie as fallback if no session exists
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
@@ -116,9 +116,9 @@ router.get('/profile', async (req, res) => {
     } else if (userId) {
       console.log('Using session userId:', userId);
     }
-    
+
     console.log(`Profile request - Resolved user ID: ${userId}`);
-    
+
     if (!userId) {
       console.log('Profile request - No user ID found, authentication failed');
       return res.status(401).json({
@@ -126,9 +126,9 @@ router.get('/profile', async (req, res) => {
         error: 'Authentication required'
       });
     }
-    
+
     console.log(`Fetching user profile for user ID: ${userId}`);
-    
+
     const result = await userManagementService.getUserById(userId);
 
     if (!result.success) {
@@ -171,23 +171,23 @@ router.get('/profile', async (req, res) => {
  */
 router.put('/profile', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     const { name, email, organization, jobTitle, profilePicture } = req.body;
-    
+
     const updateData: any = {};
-    
+
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
     if (organization !== undefined) updateData.organization = organization;
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
     if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
-    
+
     const result = await userManagementService.updateUser((req.session as any).userId, updateData);
 
     if (!result.success) {
@@ -224,18 +224,18 @@ router.get('/assessments', requireAuth, async (req, res) => {
         error: 'Authentication required'
       });
     }
-    
+
     // Get the user ID from the userId cookie for debugging
     const cookieUserId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
-    
+
     // Import and use the correct Drizzle eq operator
     const { eq } = await import('drizzle-orm');
-    
+
     // Execute a query to get all user assessment records
     const allAssessments = await db
       .select()
       .from(schema.userAssessments);
-      
+
     // Parse the results to make them more readable
     const formattedAssessments = allAssessments.map(assessment => {
       try {
@@ -246,7 +246,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
         } catch (e) {
           parsedResults = { error: "Failed to parse results JSON" };
         }
-        
+
         // Format the assessment record
         return {
           id: assessment.id,
@@ -263,7 +263,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
         };
       }
     });
-    
+
     // Group by user ID for better organization
     const assessmentsByUser: Record<number, any[]> = {};
     formattedAssessments.forEach(assessment => {
@@ -273,7 +273,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
       }
       assessmentsByUser[userId].push(assessment);
     });
-    
+
     // Format by assessment type for the current user
     const currentUserAssessments = formattedAssessments
       .filter(a => a.userId === sessionUserId)
@@ -282,10 +282,10 @@ router.get('/assessments', requireAuth, async (req, res) => {
         result[type] = assessment;
         return result;
       }, {});
-      
+
     // Get star card data specifically
     const starCardData = currentUserAssessments.starCard?.formattedResults || null;
-    
+
     // Return formatted data that's easy to read in the UI
     // Only include current user's data for privacy/clarity
     res.json({
@@ -320,7 +320,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
  */
 router.post('/assessments', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -328,7 +328,7 @@ router.post('/assessments', requireAuth, async (req, res) => {
     }
 
     const { assessmentType, results } = req.body;
-    
+
     if (!assessmentType || !results) {
       return res.status(400).json({
         success: false,
@@ -363,22 +363,22 @@ router.post('/assessments', requireAuth, async (req, res) => {
  */
 router.get('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     const result = await userManagementService.getUserById((req.session as any).userId);
-    
+
     if (!result.success) {
       return res.status(404).json({
         success: false,
         error: 'User not found'
       });
     }
-    
+
     res.json({
       success: true,
       progress: result.user?.navigationProgress || null
@@ -397,22 +397,22 @@ router.get('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.post('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     const { navigationProgress } = req.body;
-    
+
     if (!navigationProgress || typeof navigationProgress !== 'string') {
       return res.status(400).json({
         success: false,
         error: 'Navigation progress must be a valid JSON string'
       });
     }
-    
+
     // Parse the incoming progress data
     let incomingData;
     try {
@@ -423,7 +423,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
         error: 'Invalid JSON in navigation progress'
       });
     }
-    
+
     // Get current user data to perform atomic merge
     const currentUserResult = await userManagementService.getUserById((req.session as any).userId);
     if (!currentUserResult.success) {
@@ -432,7 +432,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
         error: 'User not found'
       });
     }
-    
+
     // Parse current navigation progress
     let currentProgress = {
       completedSteps: [],
@@ -442,17 +442,17 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
       unlockedSteps: ['1-1'],
       videoProgress: {}
     };
-    
+
     if (currentUserResult.user?.navigationProgress) {
       try {
         let progressData = currentUserResult.user.navigationProgress;
         let parsed;
-        
+
         // Handle deeply nested JSON by parsing until we get actual progress data
         for (let i = 0; i < 5; i++) {
           try {
             parsed = JSON.parse(progressData);
-            
+
             // If this has navigationProgress as a string, parse deeper
             if (parsed.navigationProgress && typeof parsed.navigationProgress === 'string') {
               progressData = parsed.navigationProgress;
@@ -474,7 +474,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
         console.log('Using default progress due to parse error');
       }
     }
-    
+
     // Perform atomic merge with highest video progress values
     const mergedProgress = {
       ...currentProgress,
@@ -484,24 +484,24 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
         ...incomingData.videoProgress
       }
     };
-    
+
     // Ensure video progress always maintains highest values
     Object.keys(incomingData.videoProgress || {}).forEach(stepId => {
       const currentValue = currentProgress.videoProgress[stepId] || 0;
       const newValue = incomingData.videoProgress[stepId] || 0;
       mergedProgress.videoProgress[stepId] = Math.max(currentValue, newValue);
     });
-    
+
     console.log(`🔄 Atomic video progress merge for user ${(req.session as any).userId}:`);
     console.log(`   Current:`, currentProgress.videoProgress);
     console.log(`   Incoming:`, incomingData.videoProgress);
     console.log(`   Merged:`, mergedProgress.videoProgress);
-    
+
     // Save the atomically merged progress (single stringify only)
     const result = await userManagementService.updateUser((req.session as any).userId, {
       navigationProgress: JSON.stringify(mergedProgress)
     });
-    
+
     if (!result.success) {
       console.error(`Failed to update navigation progress for user ${(req.session as any).userId}:`, result.error);
       return res.status(404).json({
@@ -509,9 +509,9 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
         error: 'Failed to update navigation progress'
       });
     }
-    
+
     console.log(`✅ Atomic progress saved for user ${(req.session as any).userId}`);
-    
+
     res.json({
       success: true,
       message: 'Navigation progress updated atomically',
@@ -532,22 +532,22 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/navigation-progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     const { navigationProgress } = req.body;
-    
+
     if (!navigationProgress || typeof navigationProgress !== 'string') {
       return res.status(400).json({
         success: false,
         error: 'Navigation progress must be a valid JSON string'
       });
     }
-    
+
     // Validate and parse JSON
     let progressData;
     try {
@@ -559,7 +559,7 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
         error: 'Navigation progress must be valid JSON'
       });
     }
-    
+
     // Log progress update for debugging
     console.log(`Updating navigation progress for user ${(req.session as any).userId}:`, {
       completedSteps: progressData.completedSteps?.length || 0,
@@ -567,11 +567,11 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
       appType: progressData.appType,
       lastVisited: progressData.lastVisitedAt ? new Date(progressData.lastVisitedAt).toISOString() : 'unknown'
     });
-    
+
     const result = await userManagementService.updateUser((req.session as any).userId, {
       navigationProgress
     });
-    
+
     if (!result.success) {
       console.error(`Failed to update navigation progress for user ${(req.session as any).userId}:`, result.error);
       return res.status(404).json({
@@ -579,9 +579,9 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
         error: 'Failed to update navigation progress'
       });
     }
-    
+
     console.log(`Successfully updated navigation progress for user ${(req.session as any).userId}`);
-    
+
     res.json({
       success: true,
       message: 'Navigation progress updated successfully',
@@ -601,22 +601,22 @@ router.put('/navigation-progress', requireAuth, async (req, res) => {
  */
 router.put('/progress', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     const { progress } = req.body;
-    
+
     if (typeof progress !== 'number' || progress < 0 || progress > 100) {
       return res.status(400).json({
         success: false,
         error: 'Progress must be a number between 0 and 100'
       });
     }
-    
+
     // This endpoint is kept for compatibility but doesn't actually store anything
     res.json({
       success: true,
@@ -638,19 +638,19 @@ router.put('/progress', requireAuth, async (req, res) => {
 router.post('/upload-photo', upload.single('photo'), async (req, res) => {
   try {
     // Check session or cookie authentication
-    let userId = req.session?.userId;
-    
+    let userId = (req.session as any)?.userId;
+
     if (!userId && req.cookies?.userId) {
       userId = parseInt(req.cookies.userId);
     }
-    
+
     if (!userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
       });
     }
-    
+
     // Handle file upload
     if (!req.file) {
       return res.status(400).json({
@@ -661,9 +661,9 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
 
     // Convert file to base64 for database storage
     const base64Image = `data:${req.file.mimetype};base64,${req.file.buffer.toString('base64')}`;
-    
+
     console.log(`Uploading photo for user ${userId}, size: ${req.file.size} bytes`);
-    
+
     // Update user's profile picture
     const result = await userManagementService.updateUser(userId, {
       profilePicture: base64Image
@@ -677,7 +677,7 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
     }
 
     console.log(`Photo uploaded successfully for user ${userId}`);
-    
+
     res.json({
       success: true,
       profilePicture: base64Image
@@ -697,7 +697,7 @@ router.post('/upload-photo', upload.single('photo'), async (req, res) => {
 router.post('/sync-navigation/:userId', requireAuth, isAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    
+
     if (isNaN(userId)) {
       return res.status(400).json({
         success: false,
@@ -706,9 +706,9 @@ router.post('/sync-navigation/:userId', requireAuth, isAdmin, async (req, res) =
     }
 
     console.log(`[API] Syncing navigation progress for user ${userId}`);
-    
+
     const success = await NavigationSyncService.syncUserProgress(userId);
-    
+
     if (success) {
       res.json({
         success: true,
@@ -735,9 +735,9 @@ router.post('/sync-navigation/:userId', requireAuth, isAdmin, async (req, res) =
 router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
   try {
     console.log('[API] Starting bulk navigation progress sync');
-    
+
     const syncedCount = await NavigationSyncService.syncAllUsersProgress();
-    
+
     res.json({
       success: true,
       message: `Navigation progress synced for ${syncedCount} users`,
@@ -756,7 +756,7 @@ router.post('/sync-navigation-all', requireAuth, isAdmin, async (req, res) => {
 router.delete('/data', requireAuth, async (req: any, res: any) => {
   try {
     const sessionUserId = (req.session as any).userId;
-    
+
     if (!sessionUserId) {
       return res.status(401).json({ 
         success: false, 
@@ -785,7 +785,7 @@ router.delete('/data', requireAuth, async (req: any, res: any) => {
 
     // Delete user data using the service
     const deleteResult = await userManagementService.deleteUserData(sessionUserId);
-    
+
     if (!deleteResult.success) {
       console.error(`Data deletion failed for user ${sessionUserId}:`, deleteResult.error);
       return res.status(500).json({ 
@@ -816,8 +816,8 @@ router.delete('/data', requireAuth, async (req: any, res: any) => {
  */
 router.get('/export-data', requireAuth, async (req, res) => {
   try {
-    const sessionUserId = req.session?.userId;
-    
+    const sessionUserId = (req.session as any)?.userId;
+
     if (!sessionUserId) {
       return res.status(401).json({ 
         success: false, 
@@ -930,8 +930,8 @@ router.get('/export-data', requireAuth, async (req, res) => {
  */
 router.post('/reset-data', requireAuth, async (req, res) => {
   try {
-    const sessionUserId = req.session?.userId;
-    
+    const sessionUserId = (req.session as any)?.userId;
+
     if (!sessionUserId) {
       return res.status(401).json({ 
         success: false, 
@@ -960,7 +960,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
 
     // Delete user data using the service
     const deleteResult = await userManagementService.deleteUserData(sessionUserId);
-    
+
     if (!deleteResult.success) {
       console.error(`Data reset failed for user ${sessionUserId}:`, deleteResult.error);
       return res.status(500).json({ 
@@ -991,7 +991,7 @@ router.post('/reset-data', requireAuth, async (req, res) => {
  */
 router.post('/content-access', requireAuth, async (req, res) => {
   try {
-    if (!(req.session as any).userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
