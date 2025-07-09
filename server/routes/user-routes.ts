@@ -279,7 +279,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
       .filter(a => a.userId === sessionUserId)
       .reduce((result: Record<string, any>, assessment) => {
         const type = assessment.type;
-        (result as any)[type] = assessment;
+        result[type] = assessment;
         return result;
       }, {});
 
@@ -320,7 +320,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
  */
 router.post('/assessments', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'

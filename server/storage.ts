@@ -195,7 +195,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
     
-    const userIds = userRoles.map(ur => ur.userId);
+    const userIds = userRoles.map(ur => ur.id);
     
     const users = await db.query.users.findMany({
       where: inArray(schema.users.id, userIds)
@@ -205,7 +205,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   async assignRole(userId: number, role: string): Promise<void> {
-    await setUserRole(userId, role);
+    await db.update(schema.users).set({ role }).where(eq(schema.users.id, userId));
   }
   
   async removeRole(userId: number, role: string): Promise<void> {
