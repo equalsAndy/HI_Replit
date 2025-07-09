@@ -96,7 +96,7 @@ router.get('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
     }
     
     // Format invite codes for display and ensure consistent property names
-    const formattedInvites = result.invites.map(invite => ({
+    const formattedInvites = (result.invites || []).map((invite: any) => ({
       ...invite,
       formattedCode: formatInviteCode((invite as any).inviteCode || (invite as any).invite_code),
       createdAt: (invite as any).created_at || (invite as any).createdAt,

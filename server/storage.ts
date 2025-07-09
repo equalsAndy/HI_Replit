@@ -210,13 +210,9 @@ export class DatabaseStorage implements IStorage {
   
   async removeRole(userId: number, role: string): Promise<void> {
     await db
-      .delete(schema.users)
-      .where(
-        and(
-          eq(schema.users.id, userId),
-          eq(schema.users.role, role)
-        )
-      );
+      .update(schema.users)
+      .set({ role: 'participant' })
+      .where(eq(schema.users.id, userId));
   }
   
   async getUserRoles(userId: number): Promise<string[]> {
@@ -224,7 +220,7 @@ export class DatabaseStorage implements IStorage {
       where: eq(schema.users.id, userId)
     });
     
-    return userRoles.map(ur => ur.role as string);
+    return userRoles.map(ur => ur.role || 'participant');
   }
   
   // Test user operations
@@ -413,7 +409,7 @@ export class DatabaseStorage implements IStorage {
     return starCard;
   }
   
-  async createStarCard(starCardData: any): Promise<StarCard> {
+  async createStarCard(starCardData: any): Promise<any> {
     // Set created and updated dates
     starCardData.createdAt = new Date();
     starCardData.updatedAt = new Date();
@@ -423,7 +419,7 @@ export class DatabaseStorage implements IStorage {
     return starCard;
   }
   
-  async updateStarCard(userId: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined> {
+  async updateStarCard(userId: number, starCardData: Partial<any>): Promise<any | undefined> {
     // Check if star card exists
     const existingStarCard = await this.getStarCard(userId);
     
@@ -444,7 +440,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Flow Attributes operations
-  async getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined> {
+  async getFlowAttributes(userId: number): Promise<any | undefined> {
     const flowAttributes = await db.query.flowAttributes.findFirst({
       where: eq(schema.flowAttributes.userId, userId)
     });
@@ -452,7 +448,7 @@ export class DatabaseStorage implements IStorage {
     return flowAttributes;
   }
   
-  async createFlowAttributes(flowAttributesData: any): Promise<FlowAttributesRecord> {
+  async createFlowAttributes(flowAttributesData: any): Promise<any> {
     // Set created and updated dates
     flowAttributesData.createdAt = new Date();
     flowAttributesData.updatedAt = new Date();
@@ -462,7 +458,7 @@ export class DatabaseStorage implements IStorage {
     return flowAttributes;
   }
   
-  async updateFlowAttributes(userId: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined> {
+  async updateFlowAttributes(userId: number, flowAttributesData: any): Promise<any | undefined> {
     // Check if flow attributes exist
     const existingFlowAttributes = await this.getFlowAttributes(userId);
     

@@ -444,11 +444,11 @@ export class DatabaseStorage implements IStorage {
     const allRoles = await db
       .select()
       .from(schema.users)
-      .where(inArray(schema.users.userId, userIds));
+      .where(inArray(schema.users.id, userIds));
     
     // Map roles to users
     return participants.map(p => {
-      const userRoles = allRoles.filter(r => r.userId === p.user.id);
+      const userRoles = allRoles.filter(r => r.id === p.user.id);
       return {
         ...p.user,
         role: userRoles.length > 0 ? userRoles[0].role : 'participant' as any

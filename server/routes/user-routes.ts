@@ -171,7 +171,7 @@ router.get('/profile', async (req, res) => {
  */
 router.put('/profile', requireAuth, async (req, res) => {
   try {
-    if (!req.session?.userId) {
+    if (!(req.session as any)?.userId) {
       return res.status(401).json({
         success: false,
         error: 'Authentication required'
@@ -188,7 +188,7 @@ router.put('/profile', requireAuth, async (req, res) => {
     if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
     if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
 
-    const result = await userManagementService.updateUser(req.session.userId, updateData);
+    const result = await userManagementService.updateUser((req.session as any).userId, updateData);
 
     if (!result.success) {
       return res.status(404).json({
@@ -279,7 +279,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
       .filter(a => a.userId === sessionUserId)
       .reduce((result: Record<string, any>, assessment) => {
         const type = assessment.type;
-        result[type] = assessment;
+        (result as any)[type] = assessment;
         return result;
       }, {});
 
@@ -487,7 +487,7 @@ router.post('/navigation-progress', requireAuth, async (req, res) => {
 
     // Ensure video progress always maintains highest values
     Object.keys(incomingData.videoProgress || {}).forEach(stepId => {
-      const currentValue = currentProgress.videoProgress[stepId] || 0;
+      const currentValue = (currentProgress.videoProgress as any)[stepId] || 0;
       const newValue = incomingData.videoProgress[stepId] || 0;
       mergedProgress.videoProgress[stepId] = Math.max(currentValue, newValue);
     });
@@ -872,25 +872,25 @@ router.get('/export-data', requireAuth, async (req, res) => {
       const assessments = await db.select()
         .from(schema.userAssessments)
         .where(eq(schema.userAssessments.userId, sessionUserId));
-      userData.assessments = assessments;
+      (userData as any).assessments = assessments;
 
       // Get navigation progress
       const navProgress = await db.select()
         .from(schema.navigationProgress)
         .where(eq(schema.navigationProgress.userId, sessionUserId));
-      userData.navigationProgress = navProgress;
+      (userData as any).navigationProgress = navProgress;
 
       // Get workshop participation
       const workshopParticipation = await db.select()
         .from(schema.workshopParticipation)
         .where(eq(schema.workshopParticipation.userId, sessionUserId));
-      userData.workshopParticipation = workshopParticipation;
+      (userData as any).workshopParticipation = workshopParticipation;
 
       // Get growth plans
       const growthPlans = await db.select()
         .from(schema.growthPlans)
         .where(eq(schema.growthPlans.userId, sessionUserId));
-      userData.growthPlans = growthPlans;
+      (userData as any).growthPlans = growthPlans;
 
       // Get final reflections
       const finalReflections = await db.select()

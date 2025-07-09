@@ -5,8 +5,8 @@ import dotenv from 'dotenv';
 import session from 'express-session';
 import cookieParser from 'cookie-parser';
 import { db } from './db.js';
-import { router } from './routes.js';
-import { sessionStore } from './session-store.js';
+import { router } from './routes';
+import { sessionStore } from './session-store';
 
 // Load environment variables
 dotenv.config();

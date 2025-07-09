@@ -308,7 +308,7 @@ function generateFlowOptimizationContent(flow: any, flowAttributes: any): string
       <ul>
         <li><strong>Peak Flow Indicators:</strong> Deep focus states, creative immersion, time distortion</li>
         <li><strong>Flow Catalysts:</strong> Uninterrupted focus time, challenging but achievable tasks</li>
-        <li><strong>Optimal Conditions:</strong> ${attributes.map(attr => attr.name).join(', ') || 'Structured environment with clear objectives'}</li>
+        <li><strong>Optimal Conditions:</strong> ${(attributes || []).map((attr: any) => String(attr?.name || '')).join(', ') || 'Structured environment with clear objectives'}</li>
       </ul>
       
       <div class="ai-suggestion">
@@ -316,7 +316,7 @@ function generateFlowOptimizationContent(flow: any, flowAttributes: any): string
         <p><em>How can this person further optimize their work environment to maximize flow?</em></p>
         
         <h4>AI Suggestion:</h4>
-        <p>Schedule critical and creative tasks during optimal focus periods; minimize interruptions during deep work; leverage top attributes (${attributes.slice(0, 2).map(attr => attr.name).join(', ')}) to structure challenging projects.</p>
+        <p>Schedule critical and creative tasks during optimal focus periods; minimize interruptions during deep work; leverage top attributes (${(attributes || []).slice(0, 2).map((attr: any) => String(attr?.name || '')).join(', ')}) to structure challenging projects.</p>
       </div>
     </div>
   `;
