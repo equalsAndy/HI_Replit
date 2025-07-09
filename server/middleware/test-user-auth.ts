@@ -6,7 +6,7 @@ import * as schema from '../../shared/schema.js';
 export const requireTestUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Get user ID from session or cookies
-    const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+    const userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
     
     if (!userId) {
       return res.status(401).json({ 
@@ -42,7 +42,7 @@ export const requireTestUser = async (req: Request, res: Response, next: NextFun
 export const validateTestAction = (action: string) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const userId = req.session?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
+      const userId = (req.session as any)?.userId || (req.cookies?.userId ? parseInt(req.cookies.userId) : null);
       
       if (!userId) {
         return res.status(401).json({ 

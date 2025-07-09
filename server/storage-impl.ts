@@ -6,7 +6,7 @@ import {
 } from "../shared/schema.js";
 import bcrypt from 'bcryptjs';
 import { db } from './db.js';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, inArray, count } from 'drizzle-orm';
 import * as schema from '../shared/schema.js';
 import connectPg from 'connect-pg-simple';
 import session from 'express-session';
@@ -293,15 +293,15 @@ export class DatabaseStorage implements IStorage {
       .where(eq(schema.cohortFacilitators.cohortId, id));
     
     // Get participant count
-    const [{ count }] = await db
-      .select({ count: db.fn.count() })
+    const [{ count: participantCount }] = await db
+      .select({ count: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
     return {
       ...cohort,
       facilitatorId: facilitators.length > 0 ? facilitators[0].facilitatorId : undefined,
-      memberCount: Number(count) || 0
+      memberCount: Number(participantCount) || 0
     };
   }
   
@@ -337,15 +337,15 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Get participant count
-    const [{ count }] = await db
-      .select({ count: db.fn.count() })
+    const [{ count: participantCount }] = await db
+      .select({ count: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
     return {
       ...updatedCohort,
       facilitatorId,
-      memberCount: Number(count) || 0
+      memberCount: Number(participantCount) || 0
     };
   }
   
@@ -366,7 +366,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -408,7 +408,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -594,6 +594,35 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return updatedFlowAttributes;
+  }
+
+  // Video management methods (required by IStorage interface)
+  async getAllVideos(): Promise<any[]> {
+    return await db.select().from(schema.videos);
+  }
+
+  async getVideosByWorkshop(workshopType: string): Promise<any[]> {
+    return await db.select().from(schema.videos).where(eq(schema.videos.workshopType, workshopType));
+  }
+
+  async getVideo(id: number): Promise<any | undefined> {
+    const [video] = await db.select().from(schema.videos).where(eq(schema.videos.id, id));
+    return video;
+  }
+
+  async createVideo(videoData: any): Promise<any> {
+    const [video] = await db.insert(schema.videos).values(videoData).returning();
+    return video;
+  }
+
+  async updateVideo(id: number, videoData: any): Promise<any | undefined> {
+    const [video] = await db.update(schema.videos).set(videoData).where(eq(schema.videos.id, id)).returning();
+    return video;
+  }
+
+  async deleteVideo(id: number): Promise<boolean> {
+    const result = await db.delete(schema.videos).where(eq(schema.videos.id, id));
+    return result.length > 0;
   }
 }
 

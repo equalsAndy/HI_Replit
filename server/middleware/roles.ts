@@ -4,8 +4,8 @@ import { Request, Response, NextFunction } from 'express';
  * Middleware to restrict access to admin users only
  */
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.session?.userRole;
-  const userId = req.session?.userId;
+  const userRole = (req.session as any)?.userRole;
+  const userId = (req.session as any)?.userId;
 
   console.log('Admin check - UserID:', userId, 'Role:', userRole);
   console.log('Full session in admin check:', req.session);
@@ -52,8 +52,8 @@ export const isFacilitator = (req: Request, res: Response, next: NextFunction) =
  * Middleware to allow access to facilitators and admins
  */
 export const isFacilitatorOrAdmin = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.session?.userRole;
-  const userId = req.session?.userId;
+  const userRole = (req.session as any)?.userRole;
+  const userId = (req.session as any)?.userId;
 
   console.log('Facilitator/Admin check - UserID:', userId, 'Role:', userRole);
 
