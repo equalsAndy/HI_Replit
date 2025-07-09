@@ -1,5 +1,5 @@
 import { db } from './db';
-import { videos } from '@shared/schema';
+import { videos } from '../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 async function updateStep44Video() {

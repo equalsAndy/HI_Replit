@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { users } from '@shared/schema';
+import { users } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
@@ -484,7 +484,7 @@ class UserManagementService {
   async getVideos() {
     try {
       // Import videos table from schema
-      const { videos } = await import('@shared/schema');
+      const { videos } = await import('../../shared/schema.js');
       
       // Query the actual database for videos
       const result = await db.select().from(videos).orderBy(videos.sortOrder);
@@ -511,7 +511,7 @@ class UserManagementService {
   async getVideosByWorkshop(workshopType: string) {
     try {
       // Import videos table from schema
-      const { videos } = await import('@shared/schema');
+      const { videos } = await import('../../shared/schema.js');
       const { eq } = await import('drizzle-orm');
       
       // Query the actual database for videos by workshop type
@@ -545,7 +545,7 @@ class UserManagementService {
   async updateVideo(id: number, data: any) {
     try {
       // Import videos table from schema
-      const { videos } = await import('@shared/schema');
+      const { videos } = await import('../../shared/schema.js');
       const { eq } = await import('drizzle-orm');
       
       // Prepare update data - only update provided fields

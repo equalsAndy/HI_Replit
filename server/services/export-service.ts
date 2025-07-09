@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { users, userAssessments, workshopParticipation, navigationProgress } from '@shared/schema';
+import { users, userAssessments, workshopParticipation, navigationProgress } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 export interface ExportData {

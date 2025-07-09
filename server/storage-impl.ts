@@ -3,11 +3,11 @@ import {
   UserRole, 
   StarCard, 
   FlowAttributesRecord
-} from "@shared/schema";
+} from "../shared/schema.js";
 import bcrypt from 'bcryptjs';
 import { db } from './db';
 import { eq, and, inArray } from 'drizzle-orm';
-import * as schema from '@shared/schema';
+import * as schema from '../shared/schema.js';
 import connectPg from 'connect-pg-simple';
 import session from 'express-session';
 

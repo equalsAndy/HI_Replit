@@ -4,9 +4,9 @@ import { z } from 'zod';
 import { User } from '@shared/types';
 import { nanoid } from 'nanoid';
 import { db } from './db';
-import { users, userAssessments, navigationProgress } from '@shared/schema';
+import { users, userAssessments, navigationProgress } from '../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
-import * as schema from '@shared/schema';
+import * as schema from '../shared/schema.js';
 
 // Create a router for admin routes
 const adminRouter = Router();

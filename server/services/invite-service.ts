@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { invites, users, cohorts, organizations } from '@shared/schema';
+import { invites, users, cohorts, organizations } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import { generateInviteCode } from '../utils/invite-code';
 

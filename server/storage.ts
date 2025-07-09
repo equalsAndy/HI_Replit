@@ -9,7 +9,7 @@ import {
   User, InsertUser, 
   Video,
   InsertVideo
-} from "@shared/schema";
+} from "../shared/schema.js";
 // Define UserRole type locally to avoid import issues
 type UserRole = 'admin' | 'facilitator' | 'participant';
 

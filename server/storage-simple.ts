@@ -5,7 +5,7 @@ import * as schema from "../shared/schema";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
-import { User, InsertUser, Video, InsertVideo } from "@shared/schema";
+import { User, InsertUser, Video, InsertVideo } from "../shared/schema.js";
 
 // Define UserRole type locally
 type UserRole = 'admin' | 'facilitator' | 'participant';

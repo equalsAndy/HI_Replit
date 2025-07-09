@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth';
 import { isFacilitator } from '../middleware/roles';
 import { db } from '../db';
-import { organizations, cohorts } from '@shared/schema';
+import { organizations, cohorts } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 
 const router = express.Router();

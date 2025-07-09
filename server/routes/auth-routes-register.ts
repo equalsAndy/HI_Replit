@@ -3,7 +3,7 @@ import { userManagementService } from '../services/user-management-service';
 import { inviteService } from '../services/invite-service';
 import { z } from 'zod';
 import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code';
-import { UserRole } from '@shared/schema';
+import { UserRole } from '../../shared/schema.js';
 
 const router = express.Router();
 

@@ -4,7 +4,7 @@
  */
 
 import { db } from '../db.js';
-import * as schema from '@shared/schema';
+import * as schema from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 
 export interface CheckpointData {
