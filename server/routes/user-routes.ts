@@ -279,7 +279,7 @@ router.get('/assessments', requireAuth, async (req, res) => {
       .filter(a => a.userId === sessionUserId)
       .reduce((result: Record<string, any>, assessment) => {
         const type = assessment.type;
-        result[type] = assessment;
+        (result as any)[type] = assessment;
         return result;
       }, {});
 

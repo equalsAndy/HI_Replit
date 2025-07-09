@@ -140,7 +140,7 @@ router.get('/code/:code', async (req, res) => {
     }
     
     // Check if the invite code has already been used
-    if (result.invite?.usedAt) {
+    if ((result.invite as any)?.usedAt) {
       return res.status(400).json({
         success: false,
         error: 'This invite code has already been used'
@@ -151,8 +151,8 @@ router.get('/code/:code', async (req, res) => {
     res.json({
       success: true,
       invite: {
-        email: result.invite?.email,
-        role: result.invite?.role,
+        email: (result.invite as any)?.email,
+        role: (result.invite as any)?.role,
         name: result.invite?.name,
         expiresAt: result.invite?.expiresAt
       }

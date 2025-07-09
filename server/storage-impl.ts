@@ -160,7 +160,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Role management methods
-  async getUsersByRole(role: UserRole): Promise<User[]> {
+  async getUsersByRole(role: string): Promise<User[]> {
     const roleRecords = await db
       .select()
       .from(schema.users)
@@ -179,11 +179,11 @@ export class DatabaseStorage implements IStorage {
     }));
   }
   
-  async assignRole(userId: number, role: UserRole): Promise<void> {
+  async assignRole(userId: number, role: string): Promise<void> {
     await setUserRole(userId, role);
   }
   
-  async removeRole(userId: number, role: UserRole): Promise<void> {
+  async removeRole(userId: number, role: string): Promise<void> {
     await db
       .delete(schema.users)
       .where(
@@ -194,7 +194,7 @@ export class DatabaseStorage implements IStorage {
       );
   }
   
-  async getUserRoles(userId: number): Promise<UserRole[]> {
+  async getUserRoles(userId: number): Promise<string[]> {
     return getUserRoles(userId);
   }
   
@@ -210,7 +210,7 @@ export class DatabaseStorage implements IStorage {
         password: await bcrypt.hash('admin123', 10),
         name: 'Administrator',
         email: 'admin@example.com',
-        role: admin
+        role: 'admin' as any
       });
     }
     
@@ -228,7 +228,7 @@ export class DatabaseStorage implements IStorage {
           password: hashedPassword,
           name: `Test User ${i}`,
           email: `user${i}@example.com`,
-          role: participant
+          role: 'participant' as any
         });
       }
     }
@@ -252,7 +252,7 @@ export class DatabaseStorage implements IStorage {
       const userRoles = allRoles.filter(r => r.userId === user.id);
       return {
         ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : participant
+        role: userRoles.length > 0 ? userRoles[0].role : 'participant' as any
       };
     });
   }
@@ -460,7 +460,7 @@ export class DatabaseStorage implements IStorage {
       const userRoles = allRoles.filter(r => r.userId === p.user.id);
       return {
         ...p.user,
-        role: userRoles.length > 0 ? userRoles[0].role : participant
+        role: userRoles.length > 0 ? userRoles[0].role : 'participant' as any
       };
     });
   }

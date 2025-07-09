@@ -186,8 +186,8 @@ export class DatabaseStorage implements IStorage {
   }
   
   // User role operations
-  async getUsersByRole(role: UserRole): Promise<User[]> {
-    const userRoles = await db.query.userRoles.findMany({
+  async getUsersByRole(role: string): Promise<User[]> {
+    const userRoles = await db.query.users.findMany({
       where: eq(schema.users.role, role)
     });
     
@@ -204,11 +204,11 @@ export class DatabaseStorage implements IStorage {
     return users;
   }
   
-  async assignRole(userId: number, role: UserRole): Promise<void> {
+  async assignRole(userId: number, role: string): Promise<void> {
     await setUserRole(userId, role);
   }
   
-  async removeRole(userId: number, role: UserRole): Promise<void> {
+  async removeRole(userId: number, role: string): Promise<void> {
     await db
       .delete(schema.users)
       .where(
@@ -219,12 +219,12 @@ export class DatabaseStorage implements IStorage {
       );
   }
   
-  async getUserRoles(userId: number): Promise<UserRole[]> {
-    const userRoles = await db.query.userRoles.findMany({
+  async getUserRoles(userId: number): Promise<string[]> {
+    const userRoles = await db.query.users.findMany({
       where: eq(schema.users.id, userId)
     });
     
-    return userRoles.map(ur => ur.role as UserRole);
+    return userRoles.map(ur => ur.role as string);
   }
   
   // Test user operations

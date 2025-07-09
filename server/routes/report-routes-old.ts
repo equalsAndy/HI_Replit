@@ -36,12 +36,17 @@ router.get('/generate/:userId', async (req, res) => {
     };
 
     assessments.forEach(assessment => {
-      (reportData.assessments as any)[assessment.assessmentType] = (assessment as any).data;
+      try {
+        reportData.assessments[assessment.assessmentType] = JSON.parse(assessment.results);
+      } catch (error) {
+        console.error(`Error parsing assessment data for ${assessment.assessmentType}:`, error);
+        reportData.assessments[assessment.assessmentType] = {};
+      }
     });
 
     // Check required assessments
     const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
-    const missingAssessments = requiredAssessments.filter(type => !(reportData.assessments as any)[type]);
+    const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
     
     if (missingAssessments.length > 0) {
       return res.status(400).json({ 
@@ -100,6 +105,63 @@ router.get('/generate/:userId', async (req, res) => {
 
   } catch (error) {
     console.error('Enhanced report generation failed:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Generate HTML version of the report for viewing in browser
+router.get('/html/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId === 'me' ? (req.session as any).userId : parseInt(req.params.userId);
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Fetch user data
+    const user = await db.select().from(users).where(eq(users.id, userId));
+    if (!user.length) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Fetch all assessments
+    const assessments = await db.select().from(userAssessments).where(eq(userAssessments.userId, userId));
+    
+    // Organize assessment data
+    const reportData = {
+      user: user[0],
+      assessments: {}
+    };
+
+    assessments.forEach(assessment => {
+      try {
+        reportData.assessments[assessment.assessmentType] = JSON.parse(assessment.results);
+      } catch (error) {
+        console.error(`Error parsing assessment data for ${assessment.assessmentType}:`, error);
+        reportData.assessments[assessment.assessmentType] = {};
+      }
+    });
+
+    // Check required assessments
+    const requiredAssessments = ['starCard', 'flowAssessment', 'cantrilLadder', 'stepByStepReflection'];
+    const missingAssessments = requiredAssessments.filter(type => !reportData.assessments[type]);
+    
+    if (missingAssessments.length > 0) {
+      return res.status(400).json({ 
+        error: 'Cannot generate report - missing required assessments',
+        missing: missingAssessments 
+      });
+    }
+
+    // Generate comprehensive HTML report
+    const html = generateComprehensiveReportHTML(reportData);
+    
+    // Set content type to HTML and send
+    res.setHeader('Content-Type', 'text/html');
+    res.send(html);
+
+  } catch (error) {
+    console.error('HTML report generation failed:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -242,14 +304,14 @@ function generateComprehensiveReportHTML(data: any): string {
 }
 
 function generateExecutiveSummaryContent(starCard: any, stepByStep: any, userName: string, percentages: any): string {
-  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1] as string) > parseFloat(b[1] as string) ? a : b);
-  const strengthName = topStrength[0].charAt(0).toUpperCase() + topStrength[0].slice(1);
+  const topStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b);
+  const strengthName = String(topStrength[0]).charAt(0).toUpperCase() + String(topStrength[0]).slice(1);
   
   return `
     <div class="summary-content">
       <p>${userName} demonstrates a unique combination of strengths with ${strengthName} as their primary strength (${topStrength[1]}%). 
       Their assessment reveals a well-rounded profile with strong capabilities in ${Object.entries(percentages)
-        .filter(([, value]) => parseFloat(value) > 20)
+        .filter(([, value]) => parseFloat(String(value)) > 20)
         .map(([key]) => key)
         .join(', ')}.</p>
       
@@ -375,13 +437,13 @@ function generateFutureVisionContent(futureSelf: any, cantril: any): string {
 }
 
 function generateConstraintsContent(roundingOut: any, stepByStep: any, percentages: any): string {
-  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) < parseFloat(b[1]) ? a : b);
+  const lowestStrength = Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) < parseFloat(String(b[1])) ? a : b);
   
   return `
     <div class="constraints-content">
       <h4>Strengths in Action</h4>
       <ul>
-        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(a[1]) > parseFloat(b[1]) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
+        <li><strong>Primary Strength:</strong> ${Object.entries(percentages).reduce((a, b) => parseFloat(String(a[1])) > parseFloat(String(b[1])) ? a : b)[0]} - ${stepByStep.reflections?.strength1 || 'Core capability driving success'}</li>
         <li><strong>Supporting Strengths:</strong> Balanced approach across multiple areas</li>
       </ul>
       

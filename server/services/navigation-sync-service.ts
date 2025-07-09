@@ -106,7 +106,7 @@ export class NavigationSyncService {
       const { currentStep, completedSteps, appType } = this.determineCurrentStepFromAssessments(assessments);
 
       // Parse existing navigation progress or create new one
-      let existingProgress: NavigationProgress;
+      let existingProgress: NavigationProgress | null;
       try {
         existingProgress = user[0].navigationProgress ? JSON.parse(user[0].navigationProgress) : null;
       } catch (e) {
