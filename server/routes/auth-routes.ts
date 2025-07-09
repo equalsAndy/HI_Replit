@@ -25,30 +25,47 @@ router.post('/login', async (req, res) => {
       return res.status(401).json(result);
     }
 
+    // Debug session state before setting data
+    console.log('🔍 Session state before setting data:', {
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      sessionStore: !!req.session?.store
+    });
+
     // Set session data
     req.session.userId = result.user.id;
     req.session.username = result.user.username;
     req.session.userRole = result.user.role;
 
-    // Save session and wait for completion
+    // Force session save with comprehensive error handling
     req.session.save((err) => {
       if (err) {
-        console.error('Session save error:', err);
+        console.error('❌ Session save error:', err);
+        console.error('❌ Session store type:', typeof req.session.store);
+        console.error('❌ Session data:', {
+          userId: req.session.userId,
+          username: req.session.username,
+          userRole: req.session.userRole
+        });
         return res.status(500).json({
           success: false,
-          error: 'Failed to save session'
+          error: 'Session creation failed',
+          details: err.message
         });
       }
       
-      console.log('Session saved successfully for user:', result.user.id);
+      console.log('✅ Session saved successfully for user:', result.user.id);
+      console.log('✅ Session ID:', req.sessionID);
+      
       // Send the user data (without the password)
       res.json(result);
     });
   } catch (error) {
-    console.error('Error in login route:', error);
+    console.error('❌ Error in login route:', error);
     res.status(500).json({
       success: false,
-      error: 'Authentication failed'
+      error: 'Authentication failed',
+      details: error.message
     });
   }
 });

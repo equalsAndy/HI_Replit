@@ -129,13 +129,33 @@ router.post('/register', async (req, res) => {
     // Mark the invite as used
     await inviteService.markInviteAsUsed(normalizedCode, createResult.user.id as number);
     
-    // Set session data
+    // Set session data with proper error handling
     req.session.userId = createResult.user.id as number;
     req.session.username = createResult.user.username as string;
     req.session.userRole = createResult.user.role as any;
     
-    // Return the user data
-    res.json(createResult);
+    // Force session save with comprehensive error handling
+    req.session.save((err) => {
+      if (err) {
+        console.error('❌ Session save error during registration:', err);
+        console.error('❌ Session data:', {
+          userId: req.session.userId,
+          username: req.session.username,
+          userRole: req.session.userRole
+        });
+        return res.status(500).json({
+          success: false,
+          error: 'Registration completed but session creation failed',
+          details: err.message
+        });
+      }
+      
+      console.log('✅ Session saved successfully for new user:', createResult.user.id);
+      console.log('✅ Session ID:', req.sessionID);
+      
+      // Return the user data
+      res.json(createResult);
+    });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({
