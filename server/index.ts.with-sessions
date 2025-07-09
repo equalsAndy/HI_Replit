@@ -55,8 +55,8 @@ async function initializeApp() {
       app.use(session({
         store: new PgSession({
           conString: process.env.DATABASE_URL,
-          tableName: 'session_aws',
-          createTableIfMissing: true,
+          tableName: 'session',
+          createTableIfMissing: false,
           errorOnUnknownOptions: false,
         }),
         secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',

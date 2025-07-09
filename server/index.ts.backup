@@ -55,9 +55,8 @@ async function initializeApp() {
       app.use(session({
         store: new PgSession({
           conString: process.env.DATABASE_URL,
-          tableName: 'session_aws',
+          tableName: 'session',
           createTableIfMissing: true,
-          errorOnUnknownOptions: false,
         }),
         secret: process.env.SESSION_SECRET || 'your-secret-key-change-in-production',
         resave: false,
@@ -95,11 +94,11 @@ async function initializeApp() {
         console.log('✅ Vite middleware ready');
       } else {
         // Serve static files in production
-        app.use(express.static(path.join(__dirname, '../dist/public')));
+        app.use(express.static(path.join(__dirname, '../client/dist')));
         
         // Catch-all handler for client-side routing
         app.get('*', (req, res) => {
-          res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+          res.sendFile(path.join(__dirname, '../client/dist/index.html'));
         });
       }
 
