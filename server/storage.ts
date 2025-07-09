@@ -52,14 +52,14 @@ export interface IStorage {
   getParticipantCohorts(participantId: number): Promise<any[]>;
   
   // Star Card operations
-  getStarCard(userId: number): Promise<StarCard | undefined>;
-  createStarCard(starCard: any): Promise<StarCard>;
-  updateStarCard(id: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined>;
+  getStarCard(userId: number): Promise<any | undefined>;
+  createStarCard(starCard: any): Promise<any>;
+  updateStarCard(id: number, starCardData: any): Promise<any | undefined>;
   
   // Flow Attributes operations
-  getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined>;
-  createFlowAttributes(flowAttributes: any): Promise<FlowAttributesRecord>;
-  updateFlowAttributes(id: number, flowAttributesData: any): Promise<FlowAttributesRecord | undefined>;
+  getFlowAttributes(userId: number): Promise<any | undefined>;
+  createFlowAttributes(flowAttributes: any): Promise<any>;
+  updateFlowAttributes(id: number, flowAttributesData: any): Promise<any | undefined>;
   
   // Video management operations
   getAllVideos(): Promise<Video[]>;
