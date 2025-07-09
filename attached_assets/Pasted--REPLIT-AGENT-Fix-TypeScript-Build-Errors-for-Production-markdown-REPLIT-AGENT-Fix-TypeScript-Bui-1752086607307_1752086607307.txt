@@ -1,0 +1,50 @@
+ REPLIT AGENT: Fix TypeScript Build Errors for Production
+markdown# REPLIT AGENT: Fix TypeScript Build Errors for Production Deployment
+
+## 🎯 **Task:** 
+Fix all TypeScript compilation errors preventing production build
+
+## 🔧 **Required Fixes:**
+
+### **1. Fix Missing Exports in shared/types.ts**
+Add these missing exports to `shared/types.ts`:
+```typescript
+// Add these exports
+export type FlowAttributesRecord = FlowAttributesResponse;
+2. Fix admin-routes.ts Property Access
+In server/admin-routes.ts line 52, fix the .changes property access:
+typescript// Replace line 52 with:
+console.log(`Successfully reset all workshop data for user ${userId} - Assessments cleared: ${deletedAssessments.rowCount || 0}, Navigation cleared: ${deletedNavProgress.rowCount || 0}`);
+3. Fix auth-routes.ts Password Destructuring
+In server/auth-routes.ts line 65, fix password destructuring:
+typescript// Replace line 65 with:
+const { password, ...userDataWithoutPassword } = userWithRole as any;
+4. Fix db-storage.ts Import Issues
+In server/db-storage.ts line 4, fix the imports:
+typescript// Replace line 4 with:
+import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types";
+import { Cohort } from "../shared/schema";
+5. Fix db-storage.ts Schema Reference
+In server/db-storage.ts line 12, fix userRoles reference:
+typescript// Replace with correct schema reference
+.select({ role: schema.users.role })
+6. Add Cohort Export to shared/types.ts
+Add to shared/types.ts:
+typescript// Import and re-export Cohort from schema
+export type { Cohort } from './schema';
+7. Check for Additional TypeScript Errors
+Run through all server/*.ts files and fix any similar pattern issues:
+
+Missing property access (use rowCount instead of changes)
+Missing type exports
+Incorrect schema property references
+Type assertion issues
+
+✅ Success Criteria:
+
+npm run build completes without TypeScript errors
+All type imports resolved correctly
+Database query result properties accessed correctly
+Production container builds successfully
+
+🎯 Priority: CRITICAL - Blocking production deployment

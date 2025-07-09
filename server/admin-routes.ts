@@ -49,7 +49,7 @@ const resetUserWorkshopData = async (userId: number) => {
     // PRESERVE these fields in users table:
     // - name, email, profilePicture, organization, jobTitle, username, role
     
-    console.log(`Successfully reset all workshop data for user ${userId} - Assessments cleared: ${deletedAssessments.changes || 0}, Navigation cleared: ${deletedNavProgress.changes || 0}`);
+    console.log(`Successfully reset all workshop data for user ${userId} - Assessments cleared: ${deletedAssessments.length || 0}, Navigation cleared: ${deletedNavProgress.length || 0}`);
     return { success: true, message: 'Workshop data reset successfully' };
   } catch (error) {
     console.error(`Error resetting workshop data for user ${userId}:`, error);

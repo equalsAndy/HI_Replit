@@ -1,7 +1,8 @@
 import { eq, and, inArray } from "drizzle-orm";
 import { db } from "./db";
 import * as schema from "../shared/schema";
-import { User, UserRole, Cohort, StarCard, FlowAttributesRecord } from "../shared/types";
+import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types";
+import { Cohort } from "../shared/schema";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -9,21 +10,18 @@ import session from "express-session";
 // Role management helper functions
 async function getUserRoles(userId: number): Promise<UserRole[]> {
   const userRoles = await db
-    .select({ role: schema.userRoles.role })
-    .from(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
+    .select({ role: schema.users.role })
+    .from(schema.users)
+    .where(eq(schema.users.id, userId));
   
-  return userRoles.map(r => r.role);
+  return userRoles.map(r => r.role as UserRole);
 }
 
 async function setUserRole(userId: number, role: UserRole): Promise<void> {
-  // First delete any existing roles (in case we're changing the role)
-  await db.delete(schema.userRoles)
-    .where(eq(schema.userRoles.userId, userId));
-  
-  // Insert the new role
-  await db.insert(schema.userRoles)
-    .values({ userId, role });
+  // Update the user's role directly in the users table
+  await db.update(schema.users)
+    .set({ role })
+    .where(eq(schema.users.id, userId));
 }
 
 // Database Storage class implementation
@@ -55,7 +53,7 @@ export class DatabaseStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
+      role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
     };
   }
   
@@ -72,60 +70,51 @@ export class DatabaseStorage {
     
     return {
       ...user,
-      role: roles.length > 0 ? roles[0] : UserRole.Participant // Default to participant
+      role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
     };
   }
   
   async createUser(userData: Partial<User>): Promise<User> {
     // Hash password if provided
+    let hashedPassword = undefined;
     if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
+      hashedPassword = await bcrypt.hash(userData.password, 10);
     }
     
-    // Remove role before inserting (will be added separately)
-    const { role, ...userDataWithoutRole } = userData;
-    
-    // Insert user
+    // Insert user with role directly
     const [user] = await db
       .insert(schema.users)
-      .values(userDataWithoutRole)
+      .values({
+        ...userData,
+        password: hashedPassword,
+        role: userData.role || 'participant'
+      })
       .returning();
     
-    // Add role if specified
-    if (role) {
-      await setUserRole(user.id, role);
-    }
-    
-    return { ...user, role: role || UserRole.Participant };
+    return { ...user, role: user.role as UserRole || 'participant' };
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
     // Hash password if provided
+    let hashedPassword = undefined;
     if (userData.password) {
-      userData.password = await bcrypt.hash(userData.password, 10);
+      hashedPassword = await bcrypt.hash(userData.password, 10);
     }
     
-    // Remove role before updating (will be updated separately)
-    const { role, ...userDataWithoutRole } = userData;
-    
-    // Update user
+    // Update user with role directly
     const [updatedUser] = await db
       .update(schema.users)
-      .set({ ...userDataWithoutRole, updatedAt: new Date() })
+      .set({ 
+        ...userData, 
+        password: hashedPassword || userData.password,
+        updatedAt: new Date() 
+      })
       .where(eq(schema.users.id, id))
       .returning();
     
     if (!updatedUser) return undefined;
     
-    // Update role if provided
-    if (role) {
-      await setUserRole(id, role);
-    }
-    
-    // Get current roles
-    const roles = await getUserRoles(id);
-    
-    return { ...updatedUser, role: roles.length > 0 ? roles[0] : UserRole.Participant };
+    return { ...updatedUser, role: updatedUser.role as UserRole || 'participant' };
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -133,21 +122,11 @@ export class DatabaseStorage {
       .select()
       .from(schema.users);
     
-    // Get all users' roles
-    const userIds = users.map(user => user.id);
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return users.map(user => {
-      const userRoles = allRoles.filter(r => r.userId === user.id);
-      return {
-        ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant // Default to participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return users.map(user => ({
+      ...user,
+      role: user.role as UserRole || 'participant' // Default to participant
+    }));
   }
 
   // Authentication method
@@ -166,21 +145,15 @@ export class DatabaseStorage {
   
   // Role management methods
   async getUsersByRole(role: UserRole): Promise<User[]> {
-    const roleRecords = await db
-      .select()
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.role, role));
-    
-    const userIds = roleRecords.map(r => r.userId);
     const users = await db
       .select()
       .from(schema.users)
-      .where(inArray(schema.users.id, userIds));
+      .where(eq(schema.users.role, role));
     
-    // Map roles to users
+    // Map users with their roles 
     return users.map(user => ({
       ...user,
-      role
+      role: user.role as UserRole
     }));
   }
   
@@ -189,14 +162,11 @@ export class DatabaseStorage {
   }
   
   async removeRole(userId: number, role: UserRole): Promise<void> {
+    // Reset user role to participant when removing a role
     await db
-      .delete(schema.userRoles)
-      .where(
-        and(
-          eq(schema.userRoles.userId, userId),
-          eq(schema.userRoles.role, role)
-        )
-      );
+      .update(schema.users)
+      .set({ role: 'participant' })
+      .where(eq(schema.users.id, userId));
   }
   
   async getUserRoles(userId: number): Promise<UserRole[]> {
@@ -215,7 +185,7 @@ export class DatabaseStorage {
         password: await bcrypt.hash('admin123', 10),
         name: 'Administrator',
         email: 'admin@example.com',
-        role: UserRole.Admin
+        role: 'admin'
       });
     }
     
@@ -233,7 +203,7 @@ export class DatabaseStorage {
           password: hashedPassword,
           name: `Test User ${i}`,
           email: `user${i}@example.com`,
-          role: UserRole.Participant
+          role: 'participant'
         });
       }
     }
@@ -245,21 +215,11 @@ export class DatabaseStorage {
       .from(schema.users)
       .where(inArray(schema.users.username, ['user1', 'user2', 'user3', 'user4', 'user5', 'admin']));
     
-    // Get all roles
-    const userIds = testUsers.map(user => user.id);
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return testUsers.map(user => {
-      const userRoles = allRoles.filter(r => r.userId === user.id);
-      return {
-        ...user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return testUsers.map(user => ({
+      ...user,
+      role: user.role as UserRole || 'participant'
+    }));
   }
   
   // Cohort operations
@@ -453,21 +413,11 @@ export class DatabaseStorage {
       )
       .where(eq(schema.cohortParticipants.cohortId, cohortId));
     
-    // Get user roles
-    const userIds = participants.map(p => p.user.id);
-    const allRoles = await db
-      .select()
-      .from(schema.userRoles)
-      .where(inArray(schema.userRoles.userId, userIds));
-    
-    // Map roles to users
-    return participants.map(p => {
-      const userRoles = allRoles.filter(r => r.userId === p.user.id);
-      return {
-        ...p.user,
-        role: userRoles.length > 0 ? userRoles[0].role : UserRole.Participant
-      };
-    });
+    // Map users with their roles directly from the user record
+    return participants.map(p => ({
+      ...p.user,
+      role: p.user.role as UserRole || 'participant'
+    }));
   }
   
   async addParticipantToCohort(cohortId: number, userId: number): Promise<void> {
