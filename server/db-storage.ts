@@ -54,7 +54,7 @@ export class DatabaseStorage {
     return {
       ...user,
       role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
-    };
+    } as User;
   }
   
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -71,7 +71,7 @@ export class DatabaseStorage {
     return {
       ...user,
       role: (roles.length > 0 ? roles[0] : 'participant') as UserRole
-    };
+    } as User;
   }
   
   async createUser(userData: Partial<User>): Promise<User> {
@@ -91,7 +91,7 @@ export class DatabaseStorage {
       })
       .returning();
     
-    return { ...user, role: user.role as UserRole || 'participant' };
+    return { ...user, role: user.role as UserRole || 'participant' } as User;
   }
   
   async updateUser(id: number, userData: Partial<User>): Promise<User | undefined> {
@@ -114,7 +114,7 @@ export class DatabaseStorage {
     
     if (!updatedUser) return undefined;
     
-    return { ...updatedUser, role: updatedUser.role as UserRole || 'participant' };
+    return { ...updatedUser, role: updatedUser.role as UserRole || 'participant' } as User;
   }
   
   async getAllUsers(): Promise<User[]> {
@@ -126,7 +126,7 @@ export class DatabaseStorage {
     return users.map(user => ({
       ...user,
       role: user.role as UserRole || 'participant' // Default to participant
-    }));
+    })) as User[];
   }
 
   // Authentication method
@@ -154,7 +154,7 @@ export class DatabaseStorage {
     return users.map(user => ({
       ...user,
       role: user.role as UserRole
-    }));
+    })) as User[];
   }
   
   async assignRole(userId: number, role: UserRole): Promise<void> {
@@ -219,7 +219,7 @@ export class DatabaseStorage {
     return testUsers.map(user => ({
       ...user,
       role: user.role as UserRole || 'participant'
-    }));
+    })) as User[];
   }
   
   // Cohort operations

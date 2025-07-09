@@ -5,6 +5,7 @@ export type VideoType = 'intro' | 'guide' | 'instruction' | 'activity' | 'reflec
 export interface User {
   id: number;
   username: string;
+  password: string;
   name: string;
   email: string;
   role: UserRole;

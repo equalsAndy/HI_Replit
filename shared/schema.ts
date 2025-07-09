@@ -138,6 +138,21 @@ export const insertVideoSchema = createInsertSchema(videos);
 export type Video = typeof videos.$inferSelect;
 export type InsertVideo = z.infer<typeof insertVideoSchema>;
 
+// Cohort facilitators junction table
+export const cohortFacilitators = pgTable('cohort_facilitators', {
+  id: serial('id').primaryKey(),
+  cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'cascade' }),
+  facilitatorId: integer('facilitator_id').references(() => users.id, { onDelete: 'cascade' }),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+// Create insert schema for cohort facilitators
+export const insertCohortFacilitatorSchema = createInsertSchema(cohortFacilitators);
+
+// Type definitions for cohort facilitators
+export type CohortFacilitator = typeof cohortFacilitators.$inferSelect;
+export type InsertCohortFacilitator = z.infer<typeof insertCohortFacilitatorSchema>;
+
 // Invite codes table schema
 export const invites = pgTable('invites', {
   id: serial('id').primaryKey(),
