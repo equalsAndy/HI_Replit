@@ -62,7 +62,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     (req.session as any).userId = user.id;
     
     // Return user data (excluding password)
-    const { password: _, ...userDataWithoutPassword } = userWithRole;
+    const { password: _, ...userDataWithoutPassword } = userWithRole as any;
     
     console.log(`Login successful for user with role: ${userDataWithoutPassword.role}`);
     res.status(200).json(userDataWithoutPassword);

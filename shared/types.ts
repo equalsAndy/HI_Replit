@@ -123,6 +123,12 @@ export interface FlowAttributesResponse {
   isEmpty?: boolean;
 }
 
+// Add missing exports
+export type FlowAttributesRecord = FlowAttributesResponse;
+
+// Import and re-export Cohort from schema
+export type { Cohort } from './schema';
+
 
 
 // Extended session type
