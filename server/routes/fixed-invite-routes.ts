@@ -1,7 +1,7 @@
 import express from 'express';
 import { z } from 'zod';
-import { inviteService } from '../services/invite-service';
-import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
+import { inviteService } from '../services/invite-service.js';
+import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
 
 const router = express.Router();
 

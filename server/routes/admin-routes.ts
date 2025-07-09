@@ -1,11 +1,11 @@
 import express, { Request, Response } from 'express';
 import { z } from 'zod';
-import { userManagementService } from '../services/user-management-service';
-import { inviteService } from '../services/invite-service';
-import { ExportService } from '../services/export-service';
-import { requireAuth } from '../middleware/auth';
-import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
-import { formatInviteCode } from '../utils/invite-code';
+import { userManagementService } from '../services/user-management-service.js';
+import { inviteService } from '../services/invite-service.js';
+import { ExportService } from '../services/export-service.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
+import { formatInviteCode } from '../utils/invite-code.js';
 
 const router = express.Router();
 

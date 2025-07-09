@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { db } from '../db';
-import { discernmentScenarios, userDiscernmentProgress } from '../../shared/schema';
+import { requireAuth } from '../middleware/auth.js';
+import { db } from '../db.js';
+import { discernmentScenarios, userDiscernmentProgress } from '../../shared/schema.js';
 import { eq, and, notInArray } from 'drizzle-orm';
 
 const router = Router();

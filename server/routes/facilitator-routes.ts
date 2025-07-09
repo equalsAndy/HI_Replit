@@ -1,8 +1,8 @@
 import express from 'express';
 import { Request, Response } from 'express';
-import { requireAuth } from '../middleware/auth';
-import { isFacilitator } from '../middleware/roles';
-import { db } from '../db';
+import { requireAuth } from '../middleware/auth.js';
+import { isFacilitator } from '../middleware/roles.js';
+import { db } from '../db.js';
 import { organizations, cohorts } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 

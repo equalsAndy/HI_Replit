@@ -1,4 +1,4 @@
-import { pgTable, serial, varchar, timestamp, text, boolean, integer, jsonb, index, unique, uuid } from 'drizzle-orm/pg-core';
+import { pgTable, serial, varchar, timestamp, text, boolean, integer, jsonb, index, unique, uuid, primaryKey } from 'drizzle-orm/pg-core';
 import { createInsertSchema } from 'drizzle-zod';
 import { z } from 'zod';
 
@@ -58,7 +58,7 @@ export const teams = pgTable('teams', {
 });
 
 // Users table schema
-export const users = pgTable('users', {
+export const users: any = pgTable('users', {
   id: serial('id').primaryKey(),
   username: varchar('username', { length: 100 }).notNull().unique(),
   password: varchar('password', { length: 255 }).notNull(),
@@ -80,11 +80,11 @@ export const users = pgTable('users', {
   astCompletedAt: timestamp('ast_completed_at'),
   iaCompletedAt: timestamp('ia_completed_at'),
   // Facilitator console fields
-  assignedFacilitatorId: integer('assigned_facilitator_id').references(() => users.id, { onDelete: 'set null' }),
-  cohortId: integer('cohort_id').references(() => cohorts.id, { onDelete: 'set null' }),
-  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  assignedFacilitatorId: integer('assigned_facilitator_id'),
+  cohortId: integer('cohort_id'),
+  teamId: integer('team_id'),
   // Invite tracking field
-  invitedBy: integer('invited_by').references(() => users.id, { onDelete: 'set null' }),
+  invitedBy: integer('invited_by'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -146,12 +146,28 @@ export const cohortFacilitators = pgTable('cohort_facilitators', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
 });
 
+// Cohort participants junction table
+export const cohortParticipants = pgTable('cohort_participants', {
+  cohortId: integer('cohort_id').notNull().references(() => cohorts.id, { onDelete: 'cascade' }),
+  participantId: integer('participant_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  joinedAt: timestamp('joined_at').defaultNow(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.cohortId, table.participantId] }),
+}));
+
 // Create insert schema for cohort facilitators
 export const insertCohortFacilitatorSchema = createInsertSchema(cohortFacilitators);
 
 // Type definitions for cohort facilitators
 export type CohortFacilitator = typeof cohortFacilitators.$inferSelect;
 export type InsertCohortFacilitator = z.infer<typeof insertCohortFacilitatorSchema>;
+
+// Create insert schema for cohort participants
+export const insertCohortParticipantSchema = createInsertSchema(cohortParticipants);
+
+// Type definitions for cohort participants
+export type CohortParticipant = typeof cohortParticipants.$inferSelect;
+export type InsertCohortParticipant = z.infer<typeof insertCohortParticipantSchema>;
 
 // Invite codes table schema
 export const invites = pgTable('invites', {
@@ -321,3 +337,36 @@ export const insertFinalReflectionSchema = createInsertSchema(finalReflections);
 // Type definitions for final reflections
 export type FinalReflection = typeof finalReflections.$inferSelect;
 export type InsertFinalReflection = z.infer<typeof insertFinalReflectionSchema>;
+
+// Star cards table for user assessment results
+export const starCards = pgTable('star_cards', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  thinking: integer('thinking').notNull(),
+  acting: integer('acting').notNull(),
+  feeling: integer('feeling').notNull(),
+  planning: integer('planning').notNull(),
+  imageUrl: text('image_url'),
+  state: text('state'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Flow attributes table for user flow assessment data
+export const flowAttributes = pgTable('flow_attributes', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  attributes: jsonb('attributes').notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schemas for star cards and flow attributes
+export const insertStarCardSchema = createInsertSchema(starCards);
+export const insertFlowAttributesSchema = createInsertSchema(flowAttributes);
+
+// Type definitions for star cards and flow attributes
+export type StarCard = typeof starCards.$inferSelect;
+export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
+export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
+export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;

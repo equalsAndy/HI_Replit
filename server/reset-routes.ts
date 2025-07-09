@@ -1,8 +1,8 @@
 import { Router, Request, Response } from 'express';
-import { db } from './db';
+import { db } from './db.js';
 import { eq, and, sql } from 'drizzle-orm';
-import * as schema from '../shared/schema';
-import { requireTestUser } from './middleware/test-user-auth';
+import * as schema from '../shared/schema.js';
+import { requireTestUser } from './middleware/test-user-auth.js';
 
 // Create a router for data reset operations
 const resetRouter = Router();

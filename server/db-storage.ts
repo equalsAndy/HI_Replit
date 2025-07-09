@@ -1,8 +1,8 @@
-import { eq, and, inArray } from "drizzle-orm";
-import { db } from "./db";
-import * as schema from "../shared/schema";
-import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types";
-import { Cohort } from "../shared/schema";
+import { eq, and, inArray, count } from "drizzle-orm";
+import { db } from "./db.js";
+import * as schema from "../shared/schema.js";
+import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types.js";
+import { Cohort } from "../shared/schema.js";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import session from "express-session";
@@ -268,7 +268,7 @@ export class DatabaseStorage {
     
     // Get participant count
     const participantCount = await db
-      .select({ value: db.fn.count() })
+      .select({ value: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
@@ -312,7 +312,7 @@ export class DatabaseStorage {
     
     // Get participant count
     const participantCount = await db
-      .select({ value: db.fn.count() })
+      .select({ value: count() })
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.cohortId, id));
     
@@ -329,7 +329,15 @@ export class DatabaseStorage {
       .from(schema.cohorts);
     
     // Get all facilitators for these cohorts
-    const cohortIds = cohorts.map(cohort => cohort.id);
+    const cohortIds = cohorts.map(cohort => cohort.id).filter(id => id !== null);
+    
+    if (cohortIds.length === 0) {
+      return cohorts.map(cohort => ({
+        ...cohort,
+        facilitatorId: undefined,
+        memberCount: 0
+      }));
+    }
     
     const facilitators = await db
       .select()
@@ -340,7 +348,7 @@ export class DatabaseStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -367,7 +375,7 @@ export class DatabaseStorage {
       .from(schema.cohortFacilitators)
       .where(eq(schema.cohortFacilitators.facilitatorId, facilitatorId));
     
-    const cohortIds = cohortFacilitators.map(cf => cf.cohortId);
+    const cohortIds = cohortFacilitators.map(cf => cf.cohortId).filter(id => id !== null);
     
     if (cohortIds.length === 0) {
       return [];
@@ -382,7 +390,7 @@ export class DatabaseStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -462,7 +470,7 @@ export class DatabaseStorage {
       .from(schema.cohortParticipants)
       .where(eq(schema.cohortParticipants.participantId, participantId));
     
-    const cohortIds = cohortParticipants.map(cp => cp.cohortId);
+    const cohortIds = cohortParticipants.map(cp => cp.cohortId).filter(id => id !== null);
     
     if (cohortIds.length === 0) {
       return [];
@@ -483,7 +491,7 @@ export class DatabaseStorage {
     const participantCounts = await db
       .select({
         cohortId: schema.cohortParticipants.cohortId,
-        count: db.fn.count()
+        count: count()
       })
       .from(schema.cohortParticipants)
       .where(inArray(schema.cohortParticipants.cohortId, cohortIds))
@@ -503,7 +511,7 @@ export class DatabaseStorage {
   }
   
   // Star Card methods
-  async getStarCard(userId: number): Promise<StarCard | undefined> {
+  async getStarCard(userId: number): Promise<schema.StarCard | undefined> {
     const [starCard] = await db
       .select()
       .from(schema.starCards)
@@ -512,7 +520,7 @@ export class DatabaseStorage {
     return starCard;
   }
   
-  async createStarCard(starCardData: any): Promise<StarCard> {
+  async createStarCard(starCardData: any): Promise<schema.StarCard> {
     const [starCard] = await db
       .insert(schema.starCards)
       .values(starCardData)
@@ -521,7 +529,7 @@ export class DatabaseStorage {
     return starCard;
   }
   
-  async updateStarCard(userId: number, starCardData: Partial<StarCard>): Promise<StarCard | undefined> {
+  async updateStarCard(userId: number, starCardData: Partial<schema.StarCard>): Promise<schema.StarCard | undefined> {
     const [updatedStarCard] = await db
       .update(schema.starCards)
       .set({ ...starCardData, updatedAt: new Date() })
@@ -532,7 +540,7 @@ export class DatabaseStorage {
   }
   
   // Flow attributes methods
-  async getFlowAttributes(userId: number): Promise<FlowAttributesRecord | undefined> {
+  async getFlowAttributes(userId: number): Promise<schema.FlowAttributesRecord | undefined> {
     const [flowAttributes] = await db
       .select()
       .from(schema.flowAttributes)
@@ -541,7 +549,7 @@ export class DatabaseStorage {
     return flowAttributes;
   }
   
-  async createFlowAttributes(flowAttributesData: any): Promise<FlowAttributesRecord> {
+  async createFlowAttributes(flowAttributesData: any): Promise<schema.FlowAttributesRecord> {
     const [flowAttributes] = await db
       .insert(schema.flowAttributes)
       .values(flowAttributesData)
@@ -550,7 +558,7 @@ export class DatabaseStorage {
     return flowAttributes;
   }
   
-  async updateFlowAttributes(userId: number, attributes: any[]): Promise<FlowAttributesRecord | undefined> {
+  async updateFlowAttributes(userId: number, attributes: any[]): Promise<schema.FlowAttributesRecord | undefined> {
     const [updatedFlowAttributes] = await db
       .update(schema.flowAttributes)
       .set({ attributes, updatedAt: new Date() })

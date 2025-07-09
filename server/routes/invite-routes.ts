@@ -1,8 +1,8 @@
 import express from 'express';
-import { inviteService } from '../services/invite-service';
-import { requireAuth } from '../middleware/auth';
-import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles';
-import { validateInviteCode, formatInviteCode } from '../utils/invite-code';
+import { inviteService } from '../services/invite-service.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isAdmin, isFacilitatorOrAdmin } from '../middleware/roles.js';
+import { validateInviteCode, formatInviteCode } from '../utils/invite-code.js';
 
 const router = express.Router();
 

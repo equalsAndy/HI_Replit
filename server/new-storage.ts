@@ -4,7 +4,7 @@ import {
   StarCard, 
   FlowAttributesRecord
 } from "../shared/schema.js";
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, and, inArray } from "drizzle-orm";
 import * as schema from "../shared/schema.js";
 import bcrypt from "bcryptjs";

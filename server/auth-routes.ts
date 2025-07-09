@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { storage } from './new-storage';
-import { db } from './db';
-import * as schema from '../shared/schema';
+import { storage } from './new-storage.js';
+import { db } from './db.js';
+import * as schema from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 // Create router for authentication routes

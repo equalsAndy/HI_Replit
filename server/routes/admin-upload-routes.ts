@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
-import { db } from '../db';
-import { users, userAssessments } from '../../shared/schema';
-import { requireAuth, requireAdmin } from '../middleware/auth';
+import { db } from '../db.js';
+import { users, userAssessments } from '../../shared/schema.js';
+import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { sql } from 'drizzle-orm';
 
 const router = Router();

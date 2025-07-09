@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { db } from '../db';
+import { db } from '../db.js';
 import { eq } from 'drizzle-orm';
-import * as schema from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
 
 export const requireTestUser = async (req: Request, res: Response, next: NextFunction) => {
   try {

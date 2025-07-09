@@ -31,21 +31,18 @@ userRouter.get('/profile', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Get user roles directly from database
-    const roles = await db
-      .select({ role: schema.userRoles.role })
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.userId, userId));
+    // Get user role directly from users table
+    const userRole = user.role;
     
-    console.log(`Found roles for user ${userId}:`, roles);
+    console.log(`Found role for user ${userId}:`, userRole);
     
     // Remove password from user data
     const { password, ...userWithoutPassword } = user;
     
-    // Return user with roles
+    // Return user with role
     return res.json({
       ...userWithoutPassword,
-      role: roles.length > 0 ? roles[0].role : UserRole.Participant
+      role: userRole
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
@@ -92,11 +89,8 @@ userRouter.put('/update', async (req: Request, res: Response) => {
       return res.status(404).json({ message: 'User not found' });
     }
     
-    // Get user roles
-    const roles = await db
-      .select({ role: schema.userRoles.role })
-      .from(schema.userRoles)
-      .where(eq(schema.userRoles.userId, userId));
+    // Get user role directly from updated user
+    const userRole = updatedUser.role;
     
     // Remove password from response
     const { password, ...userWithoutPassword } = updatedUser;
@@ -104,7 +98,7 @@ userRouter.put('/update', async (req: Request, res: Response) => {
     // Return updated user with role
     return res.json({
       ...userWithoutPassword,
-      role: roles.length > 0 ? roles[0].role : UserRole.Participant
+      role: userRole
     });
   } catch (error) {
     console.error('Error updating user profile:', error);

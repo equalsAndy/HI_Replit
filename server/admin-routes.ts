@@ -1,9 +1,9 @@
 import { Router, Request, Response } from 'express';
-import { storage } from './storage';
+import { storage } from './storage.js';
 import { z } from 'zod';
-import { User } from '@shared/types';
+import { User } from '../shared/types.js';
 import { nanoid } from 'nanoid';
-import { db } from './db';
+import { db } from './db.js';
 import { users, userAssessments, navigationProgress } from '../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '../shared/schema.js';

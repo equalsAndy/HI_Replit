@@ -1,8 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
-import { db } from '../db';
+import { db } from '../db.js';
 import { eq, and } from 'drizzle-orm';
-import * as schema from '../../shared/schema';
-import { users } from '../../shared/schema';
+import * as schema from '../../shared/schema.js';
+import { users } from '../../shared/schema.js';
 
 // Create a router for workshop data operations
 const workshopDataRouter = Router();

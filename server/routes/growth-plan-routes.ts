@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { eq, and } from 'drizzle-orm';
-import { db } from '../db';
+import { db } from '../db.js';
 import { growthPlans, insertGrowthPlanSchema } from '../../shared/schema.js';
 import { z } from 'zod';
 

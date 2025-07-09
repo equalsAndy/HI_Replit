@@ -5,7 +5,7 @@
 
 import { db } from '../db.js';
 import * as schema from '../../shared/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, ne } from 'drizzle-orm';
 
 export interface CheckpointData {
   id: string;
@@ -95,8 +95,7 @@ export class CheckpointService {
       await db.insert(schema.userAssessments).values({
         userId,
         assessmentType: 'checkpoint',
-        responses: JSON.stringify(checkpoint),
-        completedAt: new Date()
+        results: JSON.stringify(checkpoint)
       });
 
       console.log(`Checkpoint created successfully: ${checkpointId}`);
@@ -124,10 +123,10 @@ export class CheckpointService {
         );
 
       return checkpointRecords.map(record => {
-        const checkpoint = JSON.parse(record.responses);
+        const checkpoint = JSON.parse(record.results);
         return {
           ...checkpoint,
-          createdAt: record.completedAt.toISOString()
+          createdAt: record.createdAt.toISOString()
         };
       }).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
@@ -159,7 +158,7 @@ export class CheckpointService {
         throw new Error('Checkpoint not found');
       }
 
-      const checkpoint: CheckpointData = JSON.parse(checkpointRecord.responses);
+      const checkpoint: CheckpointData = JSON.parse(checkpointRecord.results);
       
       if (checkpoint.id !== checkpointId) {
         // Find the specific checkpoint if multiple exist
@@ -174,7 +173,7 @@ export class CheckpointService {
       }
 
       // Clear existing data first (excluding checkpoints)
-      await this.clearUserDataExceptCheckpoints(userId);
+      await CheckpointService.clearUserDataExceptCheckpoints(userId);
 
       // Restore data from checkpoint
       const { data } = checkpoint;
@@ -189,8 +188,7 @@ export class CheckpointService {
           await db.insert(schema.userAssessments).values({
             userId: assessment.userId,
             assessmentType: assessment.assessmentType,
-            responses: assessment.responses,
-            completedAt: new Date(assessment.completedAt)
+            results: assessment.results
           });
         }
       }
@@ -276,7 +274,7 @@ export class CheckpointService {
         );
 
       for (const record of checkpointRecords) {
-        const checkpoint = JSON.parse(record.responses);
+        const checkpoint = JSON.parse(record.results);
         if (checkpoint.id === checkpointId) {
           await db
             .delete(schema.userAssessments)
@@ -291,6 +289,48 @@ export class CheckpointService {
     } catch (error) {
       console.error('Error deleting checkpoint:', error);
       throw new Error('Failed to delete checkpoint');
+    }
+  }
+
+  /**
+   * Clear user data except checkpoints (used before restoring checkpoint)
+   */
+  static async clearUserDataExceptCheckpoints(userId: number): Promise<void> {
+    try {
+      // Delete from all tables except checkpoints
+      await db
+        .delete(schema.userAssessments)
+        .where(
+          and(
+            eq(schema.userAssessments.userId, userId),
+            ne(schema.userAssessments.assessmentType, 'checkpoint')
+          )
+        );
+
+      await db
+        .delete(schema.navigationProgress)
+        .where(eq(schema.navigationProgress.userId, userId));
+
+      await db
+        .delete(schema.userDiscernmentProgress)
+        .where(eq(schema.userDiscernmentProgress.userId, userId));
+
+      await db
+        .delete(schema.finalReflections)
+        .where(eq(schema.finalReflections.userId, userId));
+
+      await db
+        .delete(schema.growthPlans)
+        .where(eq(schema.growthPlans.userId, userId));
+
+      await db
+        .delete(schema.workshopParticipation)
+        .where(eq(schema.workshopParticipation.userId, userId));
+
+      console.log(`User data cleared for user ${userId} (except checkpoints)`);
+    } catch (error) {
+      console.error('Error clearing user data:', error);
+      throw new Error('Failed to clear user data');
     }
   }
 

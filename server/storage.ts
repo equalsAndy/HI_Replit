@@ -1,7 +1,7 @@
 // We need to export both the storage interface and the actual storage instance
-import { db } from "./db";
+import { db } from "./db.js";
 import { eq, and, inArray } from "drizzle-orm";
-import * as schema from "../shared/schema";
+import * as schema from "../shared/schema.js";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
 import session from "express-session";

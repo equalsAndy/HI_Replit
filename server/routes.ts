@@ -1,19 +1,19 @@
 import express from 'express';
-import { attachUser } from './middleware/auth';
-import { db } from './db';
+import { attachUser } from './middleware/auth.js';
+import { db } from './db.js';
 import { eq, and, desc } from 'drizzle-orm';
-import * as schema from '../shared/schema';
+import * as schema from '../shared/schema.js';
 
 // Import route modules
-import authRoutes from './routes/auth-routes';
-import inviteRoutes from './routes/invite-routes';
-import fixedInviteRoutes from './routes/fixed-invite-routes';
-import userRoutes from './routes/user-routes';
-import workshopDataRoutes from './routes/workshop-data-routes';
-import growthPlanRoutes from './routes/growth-plan-routes';
-import { resetRouter } from './reset-routes';
-import { adminRouter } from './routes/admin-routes';
-import { facilitatorRouter } from './routes/facilitator-routes';
+import authRoutes from './routes/auth-routes.js';
+import inviteRoutes from './routes/invite-routes.js';
+import fixedInviteRoutes from './routes/fixed-invite-routes.js';
+import userRoutes from './routes/user-routes.js';
+import workshopDataRoutes from './routes/workshop-data-routes.js';
+import growthPlanRoutes from './routes/growth-plan-routes.js';
+import { resetRouter } from './reset-routes.js';
+import { adminRouter } from './routes/admin-routes.js';
+import { facilitatorRouter } from './routes/facilitator-routes.js';
 
 // Create a router
 export const router = express.Router();

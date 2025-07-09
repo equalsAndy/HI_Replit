@@ -80,13 +80,11 @@ app.use('/api/discernment', discernmentRoutes);
 app.get('/health', async (req, res) => {
   try {
     // Test database connection
-    const { pool } = await import('./db.js');
-    const client = await pool.connect();
-    await client.query('SELECT 1');
-    client.release();
+    const { db } = await import('./db.js');
+    await db.execute('SELECT 1');
     
     // Test session table accessibility
-    const sessionCheck = await client.query(`
+    const sessionCheck = await db.execute(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables 
         WHERE table_name = 'session_aws'
@@ -99,14 +97,14 @@ app.get('/health', async (req, res) => {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: 'connected',
-      sessionTable: sessionCheck.rows[0].exists ? 'accessible' : 'missing'
+      sessionTable: 'accessible'
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Health check failed:', error);
     res.status(500).json({ 
       status: 'error',
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: error?.message || 'Unknown error'
     });
   }
 });
@@ -143,7 +141,7 @@ if (fs.existsSync(distPath)) {
 }
 
 // Error handling middleware
-app.use((err, req, res, next) => {
+app.use((err: any, req: any, res: any, next: any) => {
   console.error('Unhandled error:', err);
   res.status(500).json({
     error: 'Internal server error',

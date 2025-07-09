@@ -1,7 +1,7 @@
 import express from 'express';
-import { userManagementService } from '../services/user-management-service';
-import { requireAuth } from '../middleware/auth';
-import { validateInviteCode } from '../utils/invite-code';
+import { userManagementService } from '../services/user-management-service.js';
+import { requireAuth } from '../middleware/auth.js';
+import { validateInviteCode } from '../utils/invite-code.js';
 
 const router = express.Router();
 

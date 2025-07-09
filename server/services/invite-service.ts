@@ -1,7 +1,7 @@
-import { db } from '../db';
+import { db } from '../db.js';
 import { invites, users, cohorts, organizations } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
-import { generateInviteCode } from '../utils/invite-code';
+import { generateInviteCode } from '../utils/invite-code.js';
 
 class InviteService {
   /**

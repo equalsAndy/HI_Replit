@@ -1,11 +1,11 @@
 import express from 'express';
 import multer from 'multer';
-import { userManagementService } from '../services/user-management-service';
-import { NavigationSyncService } from '../services/navigation-sync-service';
-import { requireAuth } from '../middleware/auth';
-import { isAdmin } from '../middleware/roles';
-import { db } from '../db';
-import * as schema from '../../shared/schema';
+import { userManagementService } from '../services/user-management-service.js';
+import { NavigationSyncService } from '../services/navigation-sync-service.js';
+import { requireAuth } from '../middleware/auth.js';
+import { isAdmin } from '../middleware/roles.js';
+import { db } from '../db.js';
+import * as schema from '../../shared/schema.js';
 import { eq } from 'drizzle-orm';
 
 const router = express.Router();
