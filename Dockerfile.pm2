@@ -1,6 +1,0 @@
-FROM node:18-alpine
-WORKDIR /app
-RUN npm install pm2 -g
-COPY simple-pm2.js ./server.js
-EXPOSE 8080
-CMD ["pm2-runtime", "start", "server.js", "--name", "hi-app"]
