@@ -109,7 +109,7 @@ export const InviteManagement: React.FC = () => {
 
   const fetchUserRole = async () => {
     try {
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch('/api/auth/me', {
         credentials: 'include'
       });
       const data = await response.json();

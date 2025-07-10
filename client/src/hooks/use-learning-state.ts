@@ -17,7 +17,7 @@ export function useLearningState() {
     username: string;
     title?: string;
     organization?: string;
-  }>({ queryKey: ['/api/user/profile'] });
+  }>({ queryKey: ['/api/auth/me'] });
 
   // Fetch star card data  
   const { data: starCard } = useQuery<{

@@ -19,7 +19,7 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   
   const { data: user, isLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity
   });
 
@@ -45,11 +45,11 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
 
   const updateProfile = useMutation({
     mutationFn: async (data: ProfileData) => {
-      const res = await apiRequest('PUT', '/api/user/profile', data);
+      const res = await apiRequest('PUT', '/api/auth/me', data);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       toast({
         title: "Profile updated successfully!",
         description: "Your profile information has been saved.",

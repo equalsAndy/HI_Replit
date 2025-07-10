@@ -206,7 +206,7 @@ export default function WorkshopResetTest() {
 
     try {
       // Fetch user profile
-      const profileResponse = await fetch('/api/user/profile', {
+      const profileResponse = await fetch('/api/auth/me', {
         credentials: 'include',
         headers: { 'Accept': 'application/json' }
       });
@@ -331,7 +331,7 @@ export default function WorkshopResetTest() {
     
     try {
       // Get current user ID from API
-      const userResponse = await fetch('/api/user/profile', {
+      const userResponse = await fetch('/api/auth/me', {
         method: 'GET',
         headers: {
           'Accept': 'application/json',

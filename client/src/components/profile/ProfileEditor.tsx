@@ -50,7 +50,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/user/profile', {
+      return apiRequest('/api/auth/me', {
         method: 'PUT',
         body: data,
       });
@@ -60,7 +60,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         title: 'Profile updated successfully',
         description: 'Your profile information has been saved.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       setIsEditing(false);
     },
     onError: (error) => {
@@ -96,7 +96,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         title: 'Photo uploaded successfully',
         description: 'Your profile photo has been updated.',
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: () => {
       toast({

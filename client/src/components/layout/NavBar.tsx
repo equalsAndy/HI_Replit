@@ -49,11 +49,11 @@ export function NavBar() {
       profilePicture?: string;
     }
   }>({ 
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     queryFn: async () => {
       console.log('NavBar: Fetching user profile...');
 
-      const response = await fetch('/api/user/profile', {
+      const response = await fetch('/api/auth/me', {
         method: 'GET',
         credentials: 'include',
         headers: {

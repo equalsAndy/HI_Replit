@@ -433,7 +433,7 @@ export default function FindYourFlow() {
 
   // Get user profile data
   const { data: user, isLoading: userLoading, error: userError } = useQuery<UserType>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
   });
 
@@ -446,7 +446,7 @@ export default function FindYourFlow() {
     // Force a manual fetch to debug
     if (!user && !userLoading) {
       console.log('Manually fetching user profile...');
-      fetch('/api/user/profile', {
+      fetch('/api/auth/me', {
         credentials: 'include',
         headers: {
           'Content-Type': 'application/json'

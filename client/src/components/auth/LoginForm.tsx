@@ -64,7 +64,7 @@ export function LoginForm() {
     },
     onSuccess: (data) => {
       // Update authentication state
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       // Show success message
       toast({

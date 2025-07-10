@@ -110,7 +110,7 @@ export default function Foundations() {
 
   // Get user profile and star card data to determine progress
   const { data: user } = useQuery<UserType>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
   });
 

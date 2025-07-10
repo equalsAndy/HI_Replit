@@ -44,7 +44,7 @@ const TestUserPage: React.FC = () => {
     success: boolean;
     user: UserProfile;
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     retry: false,
     refetchOnWindowFocus: false
   });

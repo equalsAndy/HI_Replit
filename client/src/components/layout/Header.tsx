@@ -18,7 +18,7 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
   
   // Check if user is logged in by querying user profile
   const { data: user } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
     // Don't show errors for 401 (unauthenticated)
     retry: (failureCount, error: any) => {

@@ -30,7 +30,7 @@ const YourStarCardView: React.FC<ContentViewProps> = ({
     const fetchData = async () => {
       try {
         // Fetch user profile
-        const userResponse = await fetch('/api/user/profile', { credentials: 'include' });
+        const userResponse = await fetch('/api/auth/me', { credentials: 'include' });
         if (userResponse.ok) {
           const userData = await userResponse.json();
           setUser(userData);

@@ -25,7 +25,7 @@ export function DemoModeProvider({ children }: { children: ReactNode }) {
       isTestUser?: boolean;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000, // 1 minute
   });

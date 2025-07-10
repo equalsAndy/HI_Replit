@@ -11,7 +11,7 @@ export default function Landing() {
   
   // Check if user is already authenticated
   const { data: userData, isLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
     refetchInterval: false,
     retry: false // Don't retry if authentication fails

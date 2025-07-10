@@ -45,7 +45,7 @@ interface StarCardData {
 export default function QuarterlyReportView({ navigate, setCurrentContent }: QuarterlyReportProps) {
   // Fetch user profile
   const { data: userProfile } = useQuery({
-    queryKey: ['/api/user/me'],
+    queryKey: ['/api/auth/me'],
     staleTime: 5 * 60 * 1000,
   });
 

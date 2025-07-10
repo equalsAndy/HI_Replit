@@ -188,7 +188,7 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
   // Fetch user data
   const { data: userData } = useQuery({
-    queryKey: ['/api/user/me'],
+    queryKey: ['/api/auth/me'],
     enabled: true,
   });
 

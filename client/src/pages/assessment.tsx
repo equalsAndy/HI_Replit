@@ -56,7 +56,7 @@ export default function Assessment() {
       isTestUser: boolean;
     }
   }>({ 
-    queryKey: ['/api/user/profile']
+    queryKey: ['/api/auth/me']
   });
 
   // Determine which question set to use based on content access preference
@@ -327,7 +327,7 @@ export default function Assessment() {
               body: JSON.stringify({ progress: 100 })
             });
             // Invalidate user profile query to refresh progress data
-            queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+            queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
           } catch (error) {
             console.error("Failed to update progress:", error);
           }

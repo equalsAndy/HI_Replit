@@ -51,7 +51,7 @@ export default function ImaginalAgilityHome() {
     
     const checkAuth = async () => {
       try {
-        const response = await fetch('/api/user/profile');
+        const response = await fetch('/api/auth/me');
         if (response.status === 401) {
           toast({
             title: "Authentication Required",
@@ -84,7 +84,7 @@ export default function ImaginalAgilityHome() {
       progress?: number;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000,
   });
@@ -125,7 +125,7 @@ export default function ImaginalAgilityHome() {
       localStorage.removeItem(PROGRESS_STORAGE_KEY);
 
       // Invalidate queries to refresh data
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
 
       toast({
         title: "Progress Reset",

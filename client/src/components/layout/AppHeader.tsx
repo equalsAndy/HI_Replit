@@ -6,7 +6,7 @@ import type { User } from "@shared/schema";
 
 export default function AppHeader() {
   const { data: user } = useQuery<User>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity
   });
 

@@ -13,7 +13,7 @@ export default function Home() {
   
   // Fetch user profile
   const { data: userData } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
     refetchInterval: false, // We don't need constant updates on landing page
     retry: false // Don't retry if authentication fails

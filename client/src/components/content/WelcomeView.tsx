@@ -31,7 +31,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
       isTestUser: boolean;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: 30000,
   });
   const userRole = userData?.user?.role;

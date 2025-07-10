@@ -31,7 +31,7 @@ export function TestUserBanner({
       isTestUser?: boolean;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     refetchOnWindowFocus: false,
     staleTime: 60 * 1000, // 1 minute
     enabled: !userId, // Only fetch if userId not provided

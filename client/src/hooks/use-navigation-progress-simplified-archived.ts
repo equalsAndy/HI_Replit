@@ -130,7 +130,7 @@ export function useNavigationProgressSimplified() {
     const loadProgress = async () => {
       try {
         console.log('🔄 SIMPLIFIED MODE: Loading progress from database...');
-        const response = await fetch('/api/user/profile', {
+        const response = await fetch('/api/auth/me', {
           credentials: 'include'
         });
         

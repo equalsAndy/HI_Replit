@@ -19,7 +19,7 @@ export default function ProfileManagement() {
 
   // Fetch current user data
   const { data: currentUser, isLoading: isCurrentUserLoading } = useQuery<User>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
   });
 
   // Determine if current user is admin or facilitator (would be based on the roleId in a real implementation)

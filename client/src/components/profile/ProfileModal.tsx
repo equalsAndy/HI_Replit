@@ -36,7 +36,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     organization: string | null;
     role?: string;
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     enabled: isOpen,
   });
   
@@ -78,7 +78,7 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
       );
       
       // Invalidate user profile cache to trigger a refetch
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       toast({
         title: 'Profile Updated',

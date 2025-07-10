@@ -104,7 +104,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
         // Only fetch if we don't already have user profile data
         if (!userProfileData && isMounted) {
           console.log('StarCard: Attempting to fetch user profile...');
-          const profileResponse = await fetch('/api/user/profile', {
+          const profileResponse = await fetch('/api/auth/me', {
             credentials: 'include'
           });
 

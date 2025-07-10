@@ -9,18 +9,18 @@ export function useProfile() {
 
   // Get user profile
   const { data: profile, isLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity
   });
 
   // Update profile
   const updateProfile = useMutation({
     mutationFn: async (data: ProfileData) => {
-      const res = await apiRequest('PUT', '/api/user/profile', data);
+      const res = await apiRequest('PUT', '/api/auth/me', data);
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       toast({
         title: "Profile updated",
@@ -44,7 +44,7 @@ export function useProfile() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
     },
     onError: (error) => {
       toast({

@@ -79,7 +79,7 @@ export default function AllStarTeams() {
   // Determine which navigation sections to use based on the selected app AND user role/content access
   // Get user role for navigation customization (using existing user query below)
   const { data: userData, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: 30000,
   });
 
@@ -190,7 +190,7 @@ export default function AllStarTeams() {
 
     const checkUserAndRefresh = async () => {
       try {
-        const response = await fetch('/api/user/me', { credentials: 'include' });
+        const response = await fetch('/api/auth/me', { credentials: 'include' });
         if (response.ok) {
           const userData = await response.json();
           const currentUserId = userData.user?.id;
@@ -250,7 +250,7 @@ export default function AllStarTeams() {
   }, [navProgress?.currentStepId]);
 
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: 30000,
   });
 
@@ -406,7 +406,7 @@ export default function AllStarTeams() {
       // Refresh data from server and clear all cached assessment data
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
       queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
 
       // Clear any cached flow assessment data

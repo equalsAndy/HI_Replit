@@ -51,7 +51,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
       isTestUser: boolean;
     }
   }>({ 
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     enabled: isOpen
   });
 

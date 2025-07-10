@@ -120,7 +120,7 @@ export default function Report() {
   
   // Get user profile
   const { data: user, isLoading: userLoading } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
   });
   

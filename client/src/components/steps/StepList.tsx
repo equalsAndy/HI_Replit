@@ -19,7 +19,7 @@ export default function StepList({ activeStep }: StepListProps) {
   
   // Fetch user profile with progress
   const { data: user, isLoading } = useQuery<User>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity
   });
 

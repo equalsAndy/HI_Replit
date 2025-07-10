@@ -35,7 +35,7 @@ export default function MainContainer({
   
   // Get user profile
   const { data: user } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: Infinity,
   });
   

@@ -14,7 +14,7 @@ export function MobileFooterNav() {
     title?: string;
     organization?: string;
     role?: string;
-  }>({ queryKey: ['/api/user/profile'] });
+  }>({ queryKey: ['/api/auth/me'] });
 
   // Function to reset user data
   const handleResetUserData = async () => {

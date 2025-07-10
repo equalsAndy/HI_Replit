@@ -28,7 +28,7 @@ export default function ImaginalAgilityWorkshopNew() {
 
   // Fetch user data
   const { data: user } = useQuery({
-    queryKey: ['/api/user/me'],
+    queryKey: ['/api/auth/me'],
     retry: false
   });
 

@@ -49,7 +49,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ contentAccess: newAccess }),
       }),
     onSuccess: (data, newAccess) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       toast({
         title: 'Interface Updated',
         description: `Switched to ${newAccess} interface. This will affect workshop content and assessments.`,
@@ -255,7 +255,7 @@ function UserManagementTab() {
     name: string;
     role: string;
   }>({
-    queryKey: ['/api/user/me'],
+    queryKey: ['/api/auth/me'],
     retry: false,
   });
   

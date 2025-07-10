@@ -58,7 +58,7 @@ export default function WorkshopReset() {
 
   // Get user profile data
   const { data: userData } = useQuery<any>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
   });
 
   // Load local storage and server data on component mount
@@ -119,7 +119,7 @@ export default function WorkshopReset() {
 
       // Fetch user profile
       try {
-        const profileResponse = await fetch('/api/user/profile', {
+        const profileResponse = await fetch('/api/auth/me', {
           credentials: 'include',
           headers: { 'Accept': 'application/json' }
         });

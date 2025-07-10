@@ -33,7 +33,7 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
       isTestUser: boolean;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: 0, // Force fresh data every time
     refetchOnMount: true,
     refetchOnWindowFocus: true,

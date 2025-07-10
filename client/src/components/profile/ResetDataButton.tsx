@@ -91,7 +91,7 @@ export function ResetDataButton({
       // Invalidate queries to refetch data
       queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
       queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
       
       if (onResetComplete) {
         onResetComplete();
