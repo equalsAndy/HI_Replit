@@ -135,6 +135,180 @@ app.post('/api/auth/logout', (req, res) => {
   });
 });
 
+// Workshop Data Routes - Core Assessment Functionality
+app.get('/api/workshop-data/starcard', requireAuth, async (req, res) => {
+  try {
+    const result = await dbClient.query(
+      'SELECT starcard_data FROM users WHERE id = $1',
+      [req.session.userId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const starcardData = result.rows[0].starcard_data || {};
+    res.json(starcardData);
+  } catch (error) {
+    console.error('Error fetching starcard:', error);
+    res.status(500).json({ error: 'Failed to fetch starcard data' });
+  }
+});
+
+app.post('/api/workshop-data/starcard', requireAuth, async (req, res) => {
+  try {
+    const { thinking, feeling, acting, planning, ...otherData } = req.body;
+    
+    const starcardData = {
+      thinking: thinking || 0,
+      feeling: feeling || 0,
+      acting: acting || 0,
+      planning: planning || 0,
+      ...otherData,
+      updatedAt: new Date().toISOString()
+    };
+    
+    await dbClient.query(
+      'UPDATE users SET starcard_data = $1 WHERE id = $2',
+      [JSON.stringify(starcardData), req.session.userId]
+    );
+    
+    res.json({ success: true, data: starcardData });
+  } catch (error) {
+    console.error('Error saving starcard:', error);
+    res.status(500).json({ error: 'Failed to save starcard data' });
+  }
+});
+
+app.get('/api/workshop-data/flow-attributes', requireAuth, async (req, res) => {
+  try {
+    const result = await dbClient.query(
+      'SELECT flow_attributes FROM users WHERE id = $1',
+      [req.session.userId]
+    );
+    
+    const flowAttributes = result.rows[0]?.flow_attributes || [];
+    res.json({ attributes: flowAttributes });
+  } catch (error) {
+    console.error('Error fetching flow attributes:', error);
+    res.status(500).json({ error: 'Failed to fetch flow attributes' });
+  }
+});
+
+app.post('/api/workshop-data/flow-attributes', requireAuth, async (req, res) => {
+  try {
+    const { attributes } = req.body;
+    
+    await dbClient.query(
+      'UPDATE users SET flow_attributes = $1 WHERE id = $2',
+      [JSON.stringify(attributes), req.session.userId]
+    );
+    
+    res.json({ success: true, attributes });
+  } catch (error) {
+    console.error('Error saving flow attributes:', error);
+    res.status(500).json({ error: 'Failed to save flow attributes' });
+  }
+});
+
+// Navigation Progress Route
+app.get('/api/workshop-data/navigation-progress/:appType', requireAuth, async (req, res) => {
+  try {
+    const { appType } = req.params;
+    const column = appType === 'ast' ? 'ast_progress' : 'ia_progress';
+    
+    const result = await dbClient.query(
+      `SELECT ${column} FROM users WHERE id = $1`,
+      [req.session.userId]
+    );
+    
+    const progress = result.rows[0]?.[column] || { completedSteps: [] };
+    res.json(progress);
+  } catch (error) {
+    console.error('Error fetching navigation progress:', error);
+    res.status(500).json({ error: 'Failed to fetch progress' });
+  }
+});
+
+app.post('/api/workshop-data/navigation-progress/:appType', requireAuth, async (req, res) => {
+  try {
+    const { appType } = req.params;
+    const { completedSteps } = req.body;
+    const column = appType === 'ast' ? 'ast_progress' : 'ia_progress';
+    
+    const progressData = {
+      completedSteps: completedSteps || [],
+      updatedAt: new Date().toISOString()
+    };
+    
+    await dbClient.query(
+      `UPDATE users SET ${column} = $1 WHERE id = $2`,
+      [JSON.stringify(progressData), req.session.userId]
+    );
+    
+    res.json({ success: true, progress: progressData });
+  } catch (error) {
+    console.error('Error saving navigation progress:', error);
+    res.status(500).json({ error: 'Failed to save progress' });
+  }
+});
+
+// Admin Routes - User Management
+app.get('/api/admin/users', requireAuth, async (req, res) => {
+  try {
+    // Simple admin check - you can enhance this later
+    const adminCheck = await dbClient.query(
+      'SELECT username FROM users WHERE id = $1',
+      [req.session.userId]
+    );
+    
+    if (adminCheck.rows[0]?.username !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const result = await dbClient.query(`
+      SELECT 
+        id, 
+        username, 
+        created_at
+      FROM users 
+      ORDER BY created_at DESC
+    `);
+    
+    res.json(result.rows);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+app.get('/api/admin/dashboard-stats', requireAuth, async (req, res) => {
+  try {
+    const adminCheck = await dbClient.query(
+      'SELECT username FROM users WHERE id = $1',
+      [req.session.userId]
+    );
+    
+    if (adminCheck.rows[0]?.username !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const stats = await dbClient.query(`
+      SELECT 
+        COUNT(*) as total_users,
+        COUNT(CASE WHEN role = 'admin' THEN 1 END) as admin_count,
+        COUNT(CASE WHEN ast_workshop_completed = true THEN 1 END) as ast_completed,
+        COUNT(CASE WHEN ia_workshop_completed = true THEN 1 END) as ia_completed
+      FROM users
+    `);
+    
+    res.json(stats.rows[0]);
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    res.status(500).json({ error: 'Failed to fetch stats' });
+  }
+});
+
 // Serve static files
 const distPath = path.resolve(__dirname, '../dist/public');
 console.log(`📁 Looking for static files at: ${distPath}`);

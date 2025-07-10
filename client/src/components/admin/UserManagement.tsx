@@ -169,7 +169,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     staleTime: 30000,
   });
 

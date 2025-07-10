@@ -35,7 +35,7 @@ export default function AdminDashboard() {
       contentAccess?: string;
     }
   }>({
-    queryKey: ['/api/user/profile'],
+    queryKey: ['/api/auth/me'],
     retry: false,
   });
 
