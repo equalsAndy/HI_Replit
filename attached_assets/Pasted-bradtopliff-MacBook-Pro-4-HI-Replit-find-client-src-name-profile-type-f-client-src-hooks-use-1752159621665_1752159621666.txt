@@ -1,0 +1,68 @@
+bradtopliff@MacBook-Pro-4 HI_Replit % find client/src -name "*profile*" -type f
+client/src/hooks/use-profile.ts
+client/src/pages/profile-management.tsx
+bradtopliff@MacBook-Pro-4 HI_Replit % grep -r "user/profile\|user/me" client/src/ --include="*.tsx" --include="*.ts"
+client/src/App.tsx:    queryKey: ['/api/user/me'],
+client/src/components/auth/LoginForm.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/layout/NavBar.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/layout/NavBar.tsx:      const response = await fetch('/api/user/profile', {
+client/src/components/layout/MainContainer.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/layout/AppHeader.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/layout/MobileFooterNav.tsx:  }>({ queryKey: ['/api/user/profile'] });
+client/src/components/layout/Header.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/admin/InviteManagement.tsx:      const response = await fetch('/api/user/profile', {
+client/src/components/navigation/Navigation.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/content/FlowStarCardView.tsx:    queryKey: ['/api/user/me'],
+client/src/components/content/YourStarCardView.tsx:        const userResponse = await fetch('/api/user/profile', { credentials: 'include' });
+client/src/components/content/WelcomeView.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/content/allstarteams/QuarterlyReportView.tsx:    queryKey: ['/api/user/me'],
+client/src/components/assessment/AssessmentModal.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/steps/StepList.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/profile/ResetDataButton.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/profile/ProfileForm.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/profile/ProfileForm.tsx:      const res = await apiRequest('PUT', '/api/user/profile', data);
+client/src/components/profile/ProfileForm.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/profile/ProfileEditor.tsx:      return apiRequest('/api/user/profile', {
+client/src/components/profile/ProfileEditor.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/profile/ProfileEditor.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/profile/ProfileModal.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/profile/ProfileModal.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/components/starcard/StarCard.tsx:          const profileResponse = await fetch('/api/user/profile', {
+client/src/components/testuser/TestUserPage.tsx:    queryKey: ['/api/user/profile'],
+client/src/components/test-users/TestUserBanner.tsx:    queryKey: ['/api/user/profile'],
+client/src/hooks/use-assessment.ts:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/hooks/use-profile.ts:    queryKey: ['/api/user/profile'],
+client/src/hooks/use-profile.ts:      const res = await apiRequest('PUT', '/api/user/profile', data);
+client/src/hooks/use-profile.ts:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/hooks/use-profile.ts:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/hooks/use-navigation-progress-enhanced.ts:        const response = await fetch('/api/user/profile', {
+client/src/hooks/use-navigation-progress-clean-archived.ts:        const response = await fetch('/api/user/profile', {
+client/src/hooks/use-demo-mode.tsx:    queryKey: ['/api/user/profile'],
+client/src/hooks/use-navigation-progress-simplified-archived.ts:        const response = await fetch('/api/user/profile', {
+client/src/hooks/useTestUser.ts:    queryKey: ['/api/user/profile'],
+client/src/hooks/use-learning-state.ts:  }>({ queryKey: ['/api/user/profile'] });
+client/src/pages/profile-management.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/workshop-reset.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/workshop-reset.tsx:        const profileResponse = await fetch('/api/user/profile', {
+client/src/pages/ImaginalAgilityWorkshopNew.tsx:    queryKey: ['/api/user/me'],
+client/src/pages/home.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/allstarteams.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/allstarteams.tsx:        const response = await fetch('/api/user/me', { credentials: 'include' });
+client/src/pages/allstarteams.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/allstarteams.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/pages/admin/dashboard.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/pages/admin/dashboard.tsx:    queryKey: ['/api/user/me'],
+client/src/pages/workshop-reset-test.tsx:      const profileResponse = await fetch('/api/user/profile', {
+client/src/pages/workshop-reset-test.tsx:      const userResponse = await fetch('/api/user/profile', {
+client/src/pages/find-your-flow.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/find-your-flow.tsx:      fetch('/api/user/profile', {
+client/src/pages/imaginal-agility.tsx:        const response = await fetch('/api/user/profile');
+client/src/pages/imaginal-agility.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/imaginal-agility.tsx:      queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/pages/assessment.tsx:    queryKey: ['/api/user/profile']
+client/src/pages/assessment.tsx:            queryClient.invalidateQueries({ queryKey: ['/api/user/profile'] });
+client/src/pages/landing.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/visualize-yourself.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/report.tsx:    queryKey: ['/api/user/profile'],
+client/src/pages/foundations.tsx:    queryKey: ['/api/user/profile'],
+bradtopliff@MacBook-Pro-4 HI_Replit % 
