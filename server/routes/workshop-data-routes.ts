@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import { getFeatureStatus } from '../middleware/feature-flags.js';
 import { db } from '../db.js';
 import { eq, and } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
@@ -2516,6 +2517,12 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
     });
   }
 });
+
+/**
+ * GET /api/workshop-data/feature-status
+ * Get feature flag status for current environment
+ */
+workshopDataRouter.get('/feature-status', getFeatureStatus);
 
 /**
  * GET /api/workshop-data/completion-status

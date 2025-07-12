@@ -27,4 +27,3 @@ export function getFeatureStatus(req: Request, res: Response) {
     features
   });
 }
-
