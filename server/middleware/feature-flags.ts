@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { isFeatureEnabled } from '../utils/feature-flags.js';
+import { isFeatureEnabled, featureFlags } from '../utils/feature-flags.js';
 
 export function requireFeature(featureName: string) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -16,7 +16,7 @@ export function requireFeature(featureName: string) {
 
 export function getFeatureStatus(req: Request, res: Response) {
   const environment = process.env.ENVIRONMENT || 'production';
-  const features = Object.entries(require('../utils/feature-flags.js').featureFlags)
+  const features = Object.entries(featureFlags)
     .reduce((acc, [name, flag]) => {
       acc[name] = isFeatureEnabled(name, environment);
       return acc;
