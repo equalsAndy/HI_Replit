@@ -46,6 +46,7 @@ This file tracks feature requests, bugs, and improvements that come up during de
 ### **Low Priority**
 *Future enhancements for consideration*
 
+- [ ] **Database migration to AWS Lightsail** - Move from Neon PostgreSQL to Lightsail Managed Database for consolidated infrastructure control and predictable costs ($15-60/month vs usage-based pricing)
 - [ ] **Workshop completion certificates** - Generate PDF certificates when users complete workshops (not currently discussed priority)
 - [ ] **Mobile app** - Native iOS/Android apps for workshop access
 - [ ] **Multi-language support** - Translate workshops into multiple languages
@@ -131,6 +132,15 @@ This file tracks feature requests, bugs, and improvements that come up during de
 - **Logo troubleshooting pattern**: Route detection → Component prop flow → Logo component type → Console debugging → Systematic fix
 - **Routing architecture**: Separate page components for workshops (/imaginal-agility → imaginal-agility.tsx, /allstarteams → allstarteams.tsx)
 
+### **Database Migration Implementation Notes** *(July 2025)*
+- **Current Setup**: Neon PostgreSQL (AWS-based, serverless, usage-based pricing)
+- **Target Setup**: AWS Lightsail Managed Database (predictable costs, same datacenter as container)
+- **Migration Process**: pg_dump export → Lightsail import → connection string update → thorough testing
+- **Cost Analysis**: Lightsail $15-60/month vs Neon usage-based (need to evaluate current costs)
+- **Benefits**: Infrastructure consolidation, predictable costs, lower latency, more database control
+- **Considerations**: Migration complexity, potential downtime, current Neon setup already working well
+- **Recommendation**: Evaluate current Neon costs first, plan migration during low-usage period
+
 ### **Architecture Decisions**
 - Test users use admin export endpoint with self-access permissions (session.userRole === 'admin' OR sessionUserId === requestedUserId)
 - Workshop step IDs map to sequential numbers for display (4-1 → step 10 of 14) using astStepOrder lookup table
@@ -173,3 +183,24 @@ When implementing new features, test:
 
 **Last Updated:** June 29, 2025  
 **Next Review:** July 29, 2025
+## Database Infrastructure - COMPLETED (July 12, 2025)
+
+### ✅ Achievements This Session:
+- **Development Database**: AWS Lightsail PostgreSQL configured and working
+- **Schema Import**: All 21 production tables replicated to development database  
+- **Environment Configuration**: dotenv, SSL settings, session store configured
+- **Admin User**: Created admin/Heliotrope@2025 with successful login
+- **Database Isolation**: Complete separation - zero production risk during development
+- **Documentation**: Dual environment workflow strategy created
+
+### 🔧 Technical Implementation:
+- Database URL: AWS Lightsail PostgreSQL with SSL bypass for development
+- Environment: .env file with DATABASE_URL, SESSION_DATABASE_URL, NODE_TLS_REJECT_UNAUTHORIZED
+- Session Store: Modified to use SESSION_DATABASE_URL for compatibility
+- Admin Creation: create-admin.ts script working with environment variables
+
+### 📊 Current Status:
+- Local development: Running on development database (port 5001)
+- Production: Still on Neon PostgreSQL  
+- Next: Implement dual-environment workflow with feature flags
+

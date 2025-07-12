@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from 'express';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
@@ -123,7 +124,7 @@ async function initializeApp() {
       const PgSession = connectPgSimple(session);
       
       const sessionStore = new PgSession({
-        conString: process.env.DATABASE_URL,
+        conString: process.env.SESSION_DATABASE_URL || process.env.DATABASE_URL,
         tableName: 'session_aws',
         createTableIfMissing: false, // Table already exists
 
