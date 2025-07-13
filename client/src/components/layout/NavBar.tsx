@@ -231,8 +231,12 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-
-
+            {/* DEV badge - only show in development or localhost */}
+            {(process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'))) && (
+              <span className="ml-4 text-xs text-yellow-800 bg-yellow-200 rounded-full px-2 py-1 font-semibold">
+                DEV
+              </span>
+            )}
           </div>
         </div>
 

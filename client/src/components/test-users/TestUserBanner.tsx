@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +46,10 @@ export function TestUserBanner({
 
   if (!currentUserId || !isTestUser) return null;
 
+  // DEV badge condition
+  const showDevBadge = (process.env.NODE_ENV === 'development') || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'));
+  if (showDevBadge) console.log('DEV badge should show');
+
   return (
     <div className={`bg-yellow-100 border-b border-yellow-200 px-4 py-2 ${className}`}>
       <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -62,6 +65,12 @@ export function TestUserBanner({
           <span className="text-yellow-700 text-sm">
             You are using a test account - all actions and data are for testing purposes only
           </span>
+          {/* DEV MODE badge - only show in development or localhost */}
+          {showDevBadge && (
+            <span className="ml-4 text-xs text-yellow-800 bg-yellow-200 rounded-full px-2 py-1 font-semibold">
+              DEV MODE
+            </span>
+          )}
         </div>
         
         <div className="flex items-center space-x-2">

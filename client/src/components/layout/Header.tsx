@@ -35,7 +35,12 @@ export default function Header({ showDashboardLink = true }: HeaderProps) {
         <Link href="/" className="logo flex items-center cursor-pointer">
           <Logo type="heliotrope" className="h-8 w-auto" />
         </Link>
-        
+        {/* DEV badge - only show in development or localhost */}
+        {(process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'))) && (
+          <span className="ml-3 text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-1 font-semibold">
+            DEV
+          </span>
+        )}
         <div className="flex items-center space-x-2">
           {showDashboardLink && isLoggedIn && (
             <Button variant="outline" size="sm" className="rounded-md text-xs h-8" asChild>

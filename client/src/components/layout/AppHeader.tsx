@@ -10,10 +10,13 @@ export default function AppHeader() {
     staleTime: Infinity
   });
 
+  const showDevBadge = (process.env.NODE_ENV === 'development') || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'));
+
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-yellow-600">
       <div className="container mx-auto px-4 py-3 flex justify-between items-center">
-        <Link href="/" className="flex items-center">
+        <div className="flex items-center">
+          <Link href="/" className="flex items-center">
             <div className="logo flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 40 40" className="mr-2">
                 <rect width="40" height="40" rx="8" fill="#4639A2"/>
@@ -22,7 +25,13 @@ export default function AppHeader() {
               </svg>
               <span className="text-indigo-600 font-bold text-xl">allstarteams</span>
             </div>
-        </Link>
+          </Link>
+          {showDevBadge && (
+            <span className="ml-4 text-xs bg-orange-100 text-orange-800 rounded-full px-2 py-1 font-semibold">
+              DEV
+            </span>
+          )}
+        </div>
         
         <div className="flex items-center space-x-3">
           {user && (
