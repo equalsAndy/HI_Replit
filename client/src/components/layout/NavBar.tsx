@@ -24,6 +24,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { isFeatureEnabled, getEnvironmentBadge } from '../../utils/featureFlags';
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode, canUseDemoMode } = useDemoMode();
@@ -231,10 +232,18 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-            {/* DEV badge - only show in development or localhost */}
-            {(process.env.NODE_ENV === 'development' || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'))) && (
-              <span className="ml-4 text-xs text-yellow-800 bg-yellow-200 rounded-full px-2 py-1 font-semibold">
-                DEV
+            {/* Environment badge using feature flag system */}
+            {isFeatureEnabled('showEnvironmentBadge') && getEnvironmentBadge() && (
+              <span
+                className={`ml-4 text-xs rounded-full px-2 py-1 font-semibold ${
+                  getEnvironmentBadge() === 'DEV'
+                    ? 'bg-orange-100 text-orange-800'
+                    : getEnvironmentBadge() === 'STAGING'
+                    ? 'bg-blue-100 text-blue-800'
+                    : ''
+                }`}
+              >
+                {getEnvironmentBadge()}
               </span>
             )}
           </div>
