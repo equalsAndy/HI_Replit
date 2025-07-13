@@ -478,24 +478,41 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
   // Mutation for toggling test user status
   const toggleTestUserMutation = useMutation({
-    mutationFn: async (userId: number) => {
+    mutationFn: async ({ userId, isTestUser }: { userId: number; isTestUser: boolean }) => {
       return await apiRequest(`/api/admin/users/${userId}/test-status`, {
         method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isTestUser }),
       });
     },
-    onSuccess: (data) => {
-      const isNowTestUser = data.user?.isTestUser;
-      // Update local state to match database state
-      setLocalTestUserStatus(isNowTestUser);
+    onSuccess: (_data, variables) => {
+      // Persist the intended value
+      setLocalTestUserStatus(variables.isTestUser);
+      // Optimistically update user in cache
+      queryClient.setQueryData(['/api/admin/users'], (oldData: any) => {
+        if (!oldData?.users) return oldData;
+        return {
+          ...oldData,
+          users: oldData.users.map((u: any) =>
+            u.id === variables.userId ? { ...u, isTestUser: variables.isTestUser } : u
+          ),
+        };
+      });
       toast({
         title: 'Test user status updated',
-        description: `User is ${isNowTestUser ? 'now' : 'no longer'} a test user.`,
+        description: variables.isTestUser
+          ? 'User is now a test user.'
+          : 'User is no longer a test user.',
       });
-
-      // Refresh users list
+      // Invalidate all user-related queries to ensure fresh data everywhere
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      // Add more if you have other user-related queries
     },
-    onError: (error: any) => {
+    onError: (error: any, _variables) => {
       // Revert local state on error
       setLocalTestUserStatus(!localTestUserStatus);
       toast({
@@ -540,11 +557,35 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     setEditDialogOpen(true);
   };
 
-  // Handler for toggling test user status
+  // --- Test User Toggle Handler ---
   const handleToggleTestUser = (userId: number) => {
-    // Immediately update visual state for responsive UI
-    setLocalTestUserStatus(!localTestUserStatus);
-    toggleTestUserMutation.mutate(userId);
+    if (!selectedUser) return;
+    // Determine intended new value
+    const intendedStatus = !localTestUserStatus;
+    // Optimistically update local state
+    setLocalTestUserStatus(intendedStatus);
+    // Call mutation with intended value
+    toggleTestUserMutation.mutate(
+      { userId, isTestUser: intendedStatus },
+      {
+        onSuccess: () => {
+          toast({
+            title: intendedStatus
+              ? 'User is now a test user'
+              : 'User is no longer a test user',
+            status: 'success',
+          });
+        },
+        onError: () => {
+          // Revert local state on error
+          setLocalTestUserStatus(!intendedStatus);
+          toast({
+            title: 'Failed to update test user status',
+            status: 'error',
+          });
+        },
+      }
+    );
   };
 
   // Handler for viewing user data
@@ -1152,36 +1193,37 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
           {selectedUser && (
             <Form {...editForm}>
               <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full">
-                <div className="flex-1 overflow-y-auto space-y-6 min-h-0 px-1 pb-2">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={editForm.control}
-                        name="name"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Full Name</FormLabel>
-                            <FormControl>
-                              <Input {...field} />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                {/* Make this div scrollable and flex-1 */}
+                <div className="flex-1 min-h-0 overflow-y-auto space-y-6 px-1 pb-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <FormField
+                      control={editForm.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Full Name</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
 
-                      <div>
-                        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          Username
-                        </label>
-                        <Input 
-                          value={selectedUser?.username || ''}
-                          disabled
-                          className="mt-2 bg-muted"
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Username cannot be changed
-                        </p>
-                      </div>
+                    <div>
+                      <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                        Username
+                      </label>
+                      <Input 
+                        value={selectedUser?.username || ''}
+                        disabled
+                        className="mt-2 bg-muted"
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Username cannot be changed
+                      </p>
                     </div>
+                  </div>
 
                 <FormField
                   control={editForm.control}
@@ -1517,6 +1559,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   </div>
                 </div>
 
+                {/* Fixed footer stays at the bottom */}
                 <DialogFooter className="flex-shrink-0 pt-4 mt-auto border-t bg-background">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel

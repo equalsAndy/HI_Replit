@@ -117,10 +117,11 @@ export default function Landing() {
             />
           </div>
           
+          {/* Login button removed for production test */}
           <div className="flex items-center space-x-3">
-            <Link href="/auth">
+            {/* <Link href="/auth">
               <Button variant="outline" size="sm" className="rounded-md">Login</Button>
-            </Link>
+            </Link> */}
           </div>
         </div>
       </header>
@@ -136,98 +137,97 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-12">
-            {/* AllStarTeams Card */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="p-8">
-                <div className="flex justify-center mb-6">
-                  <img 
-                    src={AllStarTeamsLogo} 
-                    alt="AllStarTeams" 
-                    className="h-16 w-auto"
-                  />
+          <div className="flex justify-center mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* AllStarTeams Card */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
+                <div className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <img 
+                      src={AllStarTeamsLogo} 
+                      alt="AllStarTeams" 
+                      className="h-16 w-auto"
+                    />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">AllStarTeams</h3>
+                  <p className="text-gray-600 mb-6 text-center">
+                    Discover your star potential and understand your unique strengths to 
+                    leverage them for personal growth and team success.
+                  </p>
+                  <div className="flex justify-center">
+                    <Button 
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
+                      onClick={() => {
+                        // Store the selection in sessionStorage
+                        sessionStorage.setItem('selectedApp', 'ast');
+                        // Use window.location for more reliable navigation with query params
+                        window.location.href = '/auth?app=ast';
+                      }}
+                    >
+                      Start AllStarTeams
+                    </Button>
+                  </div>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">AllStarTeams</h3>
-                <p className="text-gray-600 mb-6 text-center">
-                  Discover your star potential and understand your unique strengths to 
-                  leverage them for personal growth and team success.
-                </p>
-                <div className="flex justify-center">
-                  <Button 
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
-                    onClick={() => {
-                      // Store the selection in sessionStorage
-                      sessionStorage.setItem('selectedApp', 'ast');
-                      // Use window.location for more reliable navigation with query params
-                      window.location.href = '/auth?app=ast';
-                    }}
-                  >
-                    Start AllStarTeams
-                  </Button>
+
+                <div className="bg-gray-50 px-8 py-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-indigo-500 font-semibold mb-1">Self-Discovery</div>
+                      <p className="text-sm text-gray-500">Identify your natural talents</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-indigo-500 font-semibold mb-1">Team Dynamics</div>
+                      <p className="text-sm text-gray-500">Understand how strengths combine</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-indigo-500 font-semibold mb-1">Growth Insights</div>
+                      <p className="text-sm text-gray-500">Develop action strategies</p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="bg-gray-50 px-8 py-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-indigo-500 font-semibold mb-1">Self-Discovery</div>
-                    <p className="text-sm text-gray-500">Identify your natural talents</p>
+              {/* Imaginal Agility Card - Button disabled for production test */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
+                <div className="p-8">
+                  <div className="flex justify-center mb-6">
+                    <img 
+                      src={ImaginalAgilityLogo} 
+                      alt="Imaginal Agility" 
+                      className="h-16 w-auto"
+                    />
                   </div>
-                  <div className="text-center">
-                    <div className="text-indigo-500 font-semibold mb-1">Team Dynamics</div>
-                    <p className="text-sm text-gray-500">Understand how strengths combine</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-indigo-500 font-semibold mb-1">Growth Insights</div>
-                    <p className="text-sm text-gray-500">Develop action strategies</p>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
+                  <p className="text-gray-600 mb-6 text-center">
+                    Cultivate your imaginal agility and learn how the 5Cs (Curiosity, Empathy, 
+                    Creativity, and Courage) can transform your approach to challenges.
+                  </p>
+                  <div className="flex flex-col items-center">
+                    <Button 
+                      className="bg-purple-300 text-white px-6 py-2 rounded-md cursor-not-allowed"
+                      disabled={true}
+                      // No onClick handler
+                    >
+                      Start Imaginal Agility
+                    </Button>
+                    <span className="mt-2 text-xs text-purple-700 font-semibold">Coming Soon</span>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Imaginal Agility Card */}
-            <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
-              <div className="p-8">
-                <div className="flex justify-center mb-6">
-                  <img 
-                    src={ImaginalAgilityLogo} 
-                    alt="Imaginal Agility" 
-                    className="h-16 w-auto"
-                  />
-                </div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
-                <p className="text-gray-600 mb-6 text-center">
-                  Cultivate your imaginal agility and learn how the 5Cs (Curiosity, Empathy, 
-                  Creativity, and Courage) can transform your approach to challenges.
-                </p>
-                <div className="flex justify-center">
-                  <Button 
-                    className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-md"
-                    onClick={() => {
-                      // Store the selection in sessionStorage
-                      sessionStorage.setItem('selectedApp', 'imaginal-agility');
-                      // Use window.location for more reliable navigation with query params
-                      window.location.href = '/auth?app=imaginal-agility';
-                    }}
-                  >
-                    Start Imaginal Agility
-                  </Button>
-                </div>
-              </div>
-
-              <div className="bg-gray-50 px-8 py-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="text-center">
-                    <div className="text-purple-500 font-semibold mb-1">5Cs Assessment</div>
-                    <p className="text-sm text-gray-500">Map your capabilities</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-purple-500 font-semibold mb-1">AI Insights</div>
-                    <p className="text-sm text-gray-500">Personalized feedback</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-purple-500 font-semibold mb-1">Team Workshops</div>
-                    <p className="text-sm text-gray-500">Collaborative exercises</p>
+                <div className="bg-gray-50 px-8 py-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="text-center">
+                      <div className="text-purple-500 font-semibold mb-1">5Cs Assessment</div>
+                      <p className="text-sm text-gray-500">Map your capabilities</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-purple-500 font-semibold mb-1">AI Insights</div>
+                      <p className="text-sm text-gray-500">Personalized feedback</p>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-purple-500 font-semibold mb-1">Team Workshops</div>
+                      <p className="text-sm text-gray-500">Collaborative exercises</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -247,7 +247,7 @@ export default function Landing() {
               {/* Updated YouTube embed with new video ID */}
               <div style={{padding:'56.25% 0 0 0', position:'relative'}} className="rounded-lg shadow-lg overflow-hidden">
                 <iframe 
-                  src="https://www.youtube.com/embed/BiyyGgLj7sY?enablejsapi=1" 
+                  src="https://www.youtube.com/embed/LkoL6MErRkg?enablejsapi=1" 
                   frameBorder="0" 
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                   allowFullScreen
