@@ -8,7 +8,7 @@ RUN npm ci --only=production && npm cache clean --force
 
 # Build TypeScript to JavaScript
 COPY . ./
-RUN npx tsc --build
+RUN npx tsc --build tsconfig.docker.json
 
 # Production stage
 FROM node:18-alpine AS production

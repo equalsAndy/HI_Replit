@@ -5,6 +5,7 @@ import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/type
 import { Cohort } from "../shared/schema.js";
 import bcrypt from "bcryptjs";
 import connectPg from "connect-pg-simple";
+import './types.js';
 import session from "express-session";
 
 // Role management helper functions

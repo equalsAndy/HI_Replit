@@ -1,10 +1,12 @@
 import { Router, Request, Response } from 'express';
+import './types.js';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { storage } from './storage.js';
 import { db } from './db.js';
 import * as schema from '../shared/schema.js';
 import { eq } from 'drizzle-orm';
+import '../types';
 
 // Create router for authentication routes
 const authRouter = Router();
@@ -127,7 +129,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 // User logout
 authRouter.post('/logout', (req: Request, res: Response) => {
   // Destroy session
-  req.session.destroy((err) => {
+  req.session.destroy((err: any) => {
     if (err) {
       console.error('Error destroying session:', err);
       return res.status(500).json({ message: 'Could not log out' });

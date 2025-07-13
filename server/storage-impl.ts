@@ -9,6 +9,7 @@ import { db } from './db.js';
 import { eq, and, inArray, count } from 'drizzle-orm';
 import * as schema from '../shared/schema.js';
 import connectPg from 'connect-pg-simple';
+import './types.js';
 import session from 'express-session';
 
 // Role management helper functions

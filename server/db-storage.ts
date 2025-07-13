@@ -1,4 +1,5 @@
 import { eq, and, inArray, count } from "drizzle-orm";
+import './types.js';
 import { db } from "./db.js";
 import * as schema from "../shared/schema.js";
 import { User, UserRole, StarCard, FlowAttributesResponse } from "../shared/types.js";

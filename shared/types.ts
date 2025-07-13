@@ -132,11 +132,3 @@ export type { Cohort } from './schema';
 
 
 
-// Extended session type
-declare module 'express-session' {
-  interface SessionData {
-    userId: number;
-    username: string;
-    userRole: UserRole;
-  }
-}
