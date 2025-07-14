@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import '../../server/types-missing-modules'; // Ensure custom type declaration is imported
 
 // Define user types in Express Request
 declare global {
@@ -101,12 +102,12 @@ export const requireFacilitator = (req: Request, res: Response, next: NextFuncti
  */
 export const attachUser = (req: Request, res: Response, next: NextFunction) => {
   if ((req.session as any).userId) {
-    req.user = {
+    (req as any).user = {
       id: (req.session as any).userId,
       username: (req.session as any).username || '',
       role: (req.session as any).userRole || 'participant',
-      name: '',  // These are placeholders as we don't store these in the session
-      email: ''  // for security reasons
+      name: '',
+      email: ''
     };
   }
 

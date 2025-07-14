@@ -38,7 +38,7 @@ router.post('/login', async (req, res) => {
     (req.session as any).userRole = result.user?.role;
 
     // Force session save with comprehensive error handling
-    req.session.save((err) => {
+    req.session.save((err: unknown) => {
       if (err) {
         console.error('❌ Session save error:', err);
         console.error('❌ Session store type:', typeof (req.session as any).store);
@@ -50,7 +50,7 @@ router.post('/login', async (req, res) => {
         return res.status(500).json({
           success: false,
           error: 'Session creation failed',
-          details: err.message
+          details: typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err)
         });
       }
       
@@ -65,7 +65,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Authentication failed',
-      details: (error as Error).message
+      details: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
     });
   }
 });
@@ -74,11 +74,12 @@ router.post('/login', async (req, res) => {
  * Logout route
  */
 router.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
+  req.session.destroy((err: unknown) => {
     if (err) {
       return res.status(500).json({
         success: false,
-        error: 'Failed to logout'
+        error: 'Logout failed',
+        details: typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err)
       });
     }
 

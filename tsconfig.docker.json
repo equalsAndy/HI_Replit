@@ -30,6 +30,7 @@
     "server/routes.ts",
     "server/db.ts",
     "server/types-express-session.d.ts",
+    "server/types-missing-modules.d.ts",
     "server/**/*.ts",
     "shared/**/*.ts"
   ],

@@ -31,7 +31,7 @@ const sessionStore = new PgSession({
 });
 
 // Add session store error handling
-sessionStore.on('error', (error) => {
+sessionStore.on('error', (error: unknown) => {
   console.error('❌ Session store error:', error);
 });
 

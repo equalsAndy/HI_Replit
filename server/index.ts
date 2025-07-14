@@ -49,7 +49,7 @@ async function testDatabaseConnection() {
     
     return true;
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    console.error('❌ Database connection failed:', typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error));
     return false;
   }
 }
@@ -134,7 +134,7 @@ async function initializeApp() {
       });
 
       // Add session store error handling
-      sessionStore.on('error', (error) => {
+      sessionStore.on('error', (error: unknown) => {
         console.error('❌ Session store error:', error);
       });
 

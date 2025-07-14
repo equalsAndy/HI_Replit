@@ -135,7 +135,7 @@ router.post('/register', async (req, res) => {
     (req.session as any).userRole = createResult.user?.role as any;
     
     // Force session save with comprehensive error handling
-    req.session.save((err) => {
+    req.session.save((err: unknown) => {
       if (err) {
         console.error('❌ Session save error during registration:', err);
         console.error('❌ Session data:', {
@@ -145,8 +145,8 @@ router.post('/register', async (req, res) => {
         });
         return res.status(500).json({
           success: false,
-          error: 'Registration completed but session creation failed',
-          details: err.message
+          error: 'Session creation failed',
+          details: typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err)
         });
       }
       
