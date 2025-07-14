@@ -191,8 +191,8 @@ async function initializeApp() {
         // Serve static files in production
         app.use(express.static(path.join(__dirname, '../dist/public')));
         
-        // Catch-all handler for client-side routing
-        app.get('*', (req, res) => {
+        // Catch-all handler for client-side routing (exclude API routes)
+        app.get(/^(?!\/api).*/, (req, res) => {
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));
         });
       }

@@ -1,9 +1,1 @@
-{
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "strict": false,
-    "noImplicitAny": false,
-    "skipLibCheck": true
-  },
-  "exclude": ["vite.config.ts", "client/**/*", "**/*.js", "node_modules", "dist"]
-}
+{"compilerOptions":{"skipLibCheck":true,"allowJs":true,"noEmit":false},"include":["server/index.ts","server/routes.ts","server/db.ts"]}
