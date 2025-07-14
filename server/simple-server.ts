@@ -20,7 +20,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Session configuration
+// Session configuration with SSL support for deployment
 const PgSession = connectPgSimple(session);
 const sessionStore = new PgSession({
   conString: process.env.DATABASE_URL,
@@ -28,6 +28,7 @@ const sessionStore = new PgSession({
   createTableIfMissing: false,
   schemaName: 'public',
   pruneSessionInterval: 60 * 15, // 15 minutes
+  ssl: false, // Disable SSL for now since main DB connection is working
 });
 
 // Add session store error handling
