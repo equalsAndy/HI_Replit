@@ -26,9 +26,12 @@
     }
   },
   "include": [
-    "server/types.d.ts",
-    "server/**/*",
-    "shared/**/*"
+    "server/index.ts",
+    "server/routes.ts",
+    "server/db.ts",
+    "server/types-express-session.d.ts",
+    "server/**/*.ts",
+    "shared/**/*.ts"
   ],
   "exclude": [
     "node_modules",
@@ -37,8 +40,5 @@
     "**/*.test.ts",
     "**/*.spec.ts",
     "**/*.js"
-  ],
-  "ts-node": {
-    "esm": true
-  }
+  ]
 }

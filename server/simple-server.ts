@@ -4,6 +4,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
+import './types.js';
 import cookieParser from 'cookie-parser';
 import { db } from './db.js';
 import { router } from './routes';
