@@ -120,19 +120,11 @@ async function initializeApp() {
         process.exit(1);
       }
 
-      // Session configuration with proper error handling
-      const PgSession = connectPgSimple(session);
-      
-      // Use the same database connection that's already working
-      const sessionStore = new PgSession({
-        conString: process.env.SESSION_DATABASE_URL || process.env.DATABASE_URL,
-        tableName: 'session_aws',
-        createTableIfMissing: false, // Table already exists
-
-        // Simplified configuration for better compatibility
-        schemaName: 'public',
-        pruneSessionInterval: 60 * 15, // 15 minutes
-        ssl: false, // Disable SSL for now since main DB connection is working
+      // Session configuration - use memory store temporarily to bypass SSL issues
+      const memorystore = await import('memorystore');
+      const MemoryStore = memorystore.default(session);
+      const sessionStore = new MemoryStore({
+        checkPeriod: 86400000 // prune expired entries every 24h
       });
 
       // Add session store error handling

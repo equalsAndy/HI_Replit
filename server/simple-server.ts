@@ -20,16 +20,16 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Session configuration with SSL support for deployment
-const PgSession = connectPgSimple(session);
-const sessionStore = new PgSession({
-  conString: process.env.DATABASE_URL,
-  tableName: 'session_aws',
-  createTableIfMissing: false,
-  schemaName: 'public',
-  pruneSessionInterval: 60 * 15, // 15 minutes
-  ssl: false, // Disable SSL for now since main DB connection is working
-});
+// Session configuration - use memory store temporarily to bypass SSL issues
+async function createSessionStore() {
+  const memorystore = await import('memorystore');
+  const MemoryStore = memorystore.default(session);
+  return new MemoryStore({
+    checkPeriod: 86400000 // prune expired entries every 24h
+  });
+}
+
+const sessionStore = await createSessionStore();
 
 // Add session store error handling
 sessionStore.on('error', (error: unknown) => {
