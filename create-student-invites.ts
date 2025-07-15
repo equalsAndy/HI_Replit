@@ -3,18 +3,20 @@ import fetch from 'node-fetch';
 
 async function createStudentInvites() {
   try {
-    console.log('Creating 3 student invites...\n');
+    console.log('Creating 5 student invites...\n');
     
     // Student invite data
     const students = [
       { email: 'test1@example.com', name: 'Test Student 1' },
       { email: 'test2@example.com', name: 'Test Student 2' },
-      { email: 'test3@example.com', name: 'Test Student 3' }
+      { email: 'test3@example.com', name: 'Test Student 3' },
+      { email: 'test4@example.com', name: 'Test Student 4' },
+      { email: 'test5@example.com', name: 'Test Student 5' }
     ];
     
     // First, login as admin to get session
     console.log('Logging in as admin...');
-    const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
+    const loginResponse = await fetch('https://app.heliotropeimaginal.com/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -38,7 +40,7 @@ async function createStudentInvites() {
       
       console.log(`Creating invite for ${student.name} (${student.email})...`);
       
-      const inviteResponse = await fetch('http://localhost:5000/api/invites', {
+      const inviteResponse = await fetch('https://app.heliotropeimaginal.com/api/invites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
