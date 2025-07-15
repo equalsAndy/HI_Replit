@@ -30,10 +30,13 @@
     "server/routes.ts",
     "server/db.ts",
     "server/types-express-session.d.ts",
+    "server/types-missing-modules.d.ts",
     "server/**/*.ts",
     "shared/**/*.ts"
   ],
   "exclude": [
+    "server/vite.ts",
+    "vite.config.ts",
     "node_modules",
     "dist",
     "client",

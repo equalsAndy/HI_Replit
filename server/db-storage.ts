@@ -31,8 +31,8 @@ export class DatabaseStorage {
 
   constructor() {
     // Create PostgreSQL session store
-    const pgStore = connectPg(session);
-    this.sessionStore = new pgStore({
+    const PgSession = connectPg(session);
+    this.sessionStore = new PgSession({
       conString: process.env.DATABASE_URL,
       createTableIfMissing: true,
       tableName: 'sessions',

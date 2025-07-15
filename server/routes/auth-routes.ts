@@ -6,6 +6,73 @@ import { validateInviteCode } from '../utils/invite-code.js';
 const router = express.Router();
 
 /**
+ * Update the current user profile
+ */
+router.put('/me', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Extract allowed fields for profile update
+    const {
+      name,
+      email,
+      organization,
+      jobTitle,
+      profilePicture
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and email are required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+
+    // Update the user profile
+    const result = await userManagementService.updateUser(userId, {
+      name,
+      email,
+      organization,
+      jobTitle,
+      profilePicture
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      user: result.user,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error updating user profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update profile. Please try again later.',
+      details: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
+    });
+  }
+});
+
+/**
  * Login route
  */
 router.post('/login', async (req, res) => {
@@ -38,7 +105,7 @@ router.post('/login', async (req, res) => {
     (req.session as any).userRole = result.user?.role;
 
     // Force session save with comprehensive error handling
-    req.session.save((err) => {
+    req.session.save((err: unknown) => {
       if (err) {
         console.error('❌ Session save error:', err);
         console.error('❌ Session store type:', typeof (req.session as any).store);
@@ -50,7 +117,7 @@ router.post('/login', async (req, res) => {
         return res.status(500).json({
           success: false,
           error: 'Session creation failed',
-          details: err.message
+          details: typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err)
         });
       }
       
@@ -65,7 +132,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Authentication failed',
-      details: (error as Error).message
+      details: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
     });
   }
 });
@@ -74,11 +141,12 @@ router.post('/login', async (req, res) => {
  * Logout route
  */
 router.post('/logout', (req, res) => {
-  req.session.destroy((err) => {
+  req.session.destroy((err: unknown) => {
     if (err) {
       return res.status(500).json({
         success: false,
-        error: 'Failed to logout'
+        error: 'Logout failed',
+        details: typeof err === 'object' && err !== null && 'message' in err ? (err as any).message : String(err)
       });
     }
 
@@ -174,7 +242,7 @@ router.post('/check-username', async (req, res) => {
 });
 
 // Import registration routes
-import registerRoutes from './auth-routes-register';
+import registerRoutes from './auth-routes-register.js';
 router.use(registerRoutes);
 
 export default router;
