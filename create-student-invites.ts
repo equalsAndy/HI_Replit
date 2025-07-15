@@ -16,7 +16,7 @@ async function createStudentInvites() {
     
     // First, login as admin to get session
     console.log('Logging in as admin...');
-    const loginResponse = await fetch('https://app.heliotropeimaginal.com/api/auth/login', {
+    const loginResponse = await fetch('http://localhost:5000/api/auth/login', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -28,7 +28,10 @@ async function createStudentInvites() {
     });
     
     if (!loginResponse.ok) {
-      throw new Error('Failed to login as admin');
+      const errorText = await loginResponse.text();
+      console.error('Login failed with status:', loginResponse.status);
+      console.error('Error response:', errorText);
+      throw new Error(`Failed to login as admin: ${loginResponse.status} - ${errorText}`);
     }
     
     const cookies = loginResponse.headers.get('set-cookie');
@@ -40,7 +43,7 @@ async function createStudentInvites() {
       
       console.log(`Creating invite for ${student.name} (${student.email})...`);
       
-      const inviteResponse = await fetch('https://app.heliotropeimaginal.com/api/invites', {
+      const inviteResponse = await fetch('http://localhost:5000/api/invites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
