@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import AvatarUploader from '@/components/profile/AvatarUploader';
 
 // Define the form schema
 const profileFormSchema = z
@@ -155,6 +156,11 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) =
     }
   };
 
+  // Handle avatar change from AvatarUploader
+  const handleAvatarChange = (base64Image: string) => {
+    form.setValue('profilePicture', base64Image);
+  };
+
   return (
     <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
@@ -165,7 +171,31 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) =
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* Profile Picture Section */}
+            <div className="flex flex-col items-center space-y-2">
+              <FormField
+                control={form.control}
+                name="profilePicture"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col items-center">
+                    <FormLabel className="text-base font-semibold">Profile Picture</FormLabel>
+                    <FormControl>
+                      <AvatarUploader
+                        currentAvatar={field.value}
+                        onAvatarChange={handleAvatarChange}
+                      />
+                    </FormControl>
+                    <p className="text-sm text-muted-foreground text-center">
+                      Upload a profile picture (optional)
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Form Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}

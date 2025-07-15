@@ -1,6 +1,4 @@
 import { Request, Response, NextFunction } from 'express';
-import '../../server/types-missing-modules'; // Ensure custom type declaration is imported
-
 // Define user types in Express Request
 declare global {
   namespace Express {

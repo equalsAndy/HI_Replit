@@ -50,10 +50,21 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/auth/me', {
+      const response = await fetch('/api/auth/me', {
         method: 'PUT',
-        body: data,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to update profile');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({

@@ -12,7 +12,7 @@ export async function apiRequest(
       ...headers,
     },
     credentials: 'include', // Include cookies/session in requests
-    body: body,
+    body: body ? JSON.stringify(body) : undefined,
   });
 
   // Parse the JSON response

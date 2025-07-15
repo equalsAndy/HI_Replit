@@ -194,12 +194,12 @@ async function initializeApp() {
         });
         console.log('✅ Production static file serving ready');
       } else {
-        // Development: serve from client/dist (no Vite dependency)
-        console.log('📁 Development: serving static files from client/dist...');
-        app.use(express.static(path.join(__dirname, '../client/dist')));
+        // Development: serve from dist/public (same as production)
+        console.log('📁 Development: serving static files from dist/public...');
+        app.use(express.static(path.join(__dirname, '../dist/public')));
         
         app.get(/^(?!\/api).*/, (req, res) => {
-          res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+          res.sendFile(path.join(__dirname, '../dist/public/index.html'));
         });
         console.log('✅ Development static file serving ready');
       }
