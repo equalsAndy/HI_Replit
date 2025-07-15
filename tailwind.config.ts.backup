@@ -5,15 +5,15 @@ import tailwindcssAspectRatio from "@tailwindcss/aspect-ratio";
 
 export default {
   darkMode: ["class"],
-  content: [
-    "./index.html", 
-    "./src/**/*.{js,jsx,ts,tsx}",
-    // Also include the original paths for local development
-    "./client/index.html",
-    "./client/src/**/*.{js,jsx,ts,tsx}"
-  ],
+  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      backgroundColor: {
+        "chart-1": "hsl(var(--chart-1))",
+        "chart-2": "hsl(var(--chart-2))",
+        "chart-3": "hsl(var(--chart-3))",
+        "chart-4": "hsl(var(--chart-4))",
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
