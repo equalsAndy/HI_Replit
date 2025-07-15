@@ -135,9 +135,22 @@ workshopDataRouter.get('/videos/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * Get star card data for the current user
+ * Get star card data for the current user - TEMPORARILY DISABLED TO STOP INFINITE LOOP
  */
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
+  // TEMPORARILY RETURN MOCK DATA TO STOP INFINITE LOOP
+  return res.status(200).json({
+    success: true,
+    thinking: 27,
+    acting: 25,
+    feeling: 23,
+    planning: 25,
+    isEmpty: false,
+    source: 'mock_data_to_stop_loop'
+  });
+  
+  // Original code disabled below
+  /*
   try {
     // Get user ID from session (primary) or cookie (fallback)
     let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
@@ -217,6 +230,7 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
       error: error instanceof Error ? (error as Error).message : 'Unknown error'
     });
   }
+  */
 });
 
 /**

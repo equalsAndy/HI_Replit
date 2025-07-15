@@ -16,6 +16,27 @@ import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
+
+// Environment badge helper - improved detection
+const getEnvironmentBadge = () => {
+  // Check multiple sources for environment detection
+  const viteMode = import.meta.env.MODE;
+  const nodeEnv = import.meta.env.VITE_NODE_ENV;
+  const isDev = import.meta.env.DEV;
+  const isProd = import.meta.env.PROD;
+  
+  // Development detection
+  if (isDev || viteMode === 'development' || window.location.hostname === 'localhost' || window.location.port === '8080') {
+    return <Badge variant="destructive" className="ml-2">DEV</Badge>;
+  }
+  
+  // Staging detection
+  if (viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com')) {
+    return <Badge variant="secondary" className="ml-2">STAGING</Badge>;
+  }
+  
+  return null;
+};
 import {
   Dialog,
   DialogContent,
@@ -231,6 +252,7 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
+            {getEnvironmentBadge()}
 
 
           </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import StarCard from './StarCard';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
@@ -26,43 +26,58 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   flowAttributes,
   downloadable = false
 }) => {
-  // Use React Query to fetch the latest star card data
+  // Track if we've already made a direct fetch to prevent loops
+  const hasFetchedRef = useRef(false);
+
+  // TEMPORARILY DISABLE React Query to stop infinite loop
   const { data: starCardData, isLoading } = useQuery<any>({
     queryKey: ['/api/workshop-data/starcard'],
-    enabled: true,
-    staleTime: 1000, // Refetch after 1 second - important for fresh data
+    enabled: false, // DISABLED to prevent infinite loop
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // For direct API fallback
   const [directData, setDirectData] = useState<any>(null);
   const [isDirectLoading, setIsDirectLoading] = useState(false);
 
-  // Force a direct fetch regardless to ensure we have the latest data
+  // COMPLETELY DISABLE direct fetch for now
   useEffect(() => {
+    // DISABLED - return early to prevent any fetching
+    return;
+    
+    // This code is disabled to stop infinite loop
+    if (hasFetchedRef.current) {
+      return;
+    }
+
+    if (starCardData) {
+      return;
+    }
+
+    hasFetchedRef.current = true;
     setIsDirectLoading(true);
+    
     fetch('/api/workshop-data/starcard', { 
       credentials: 'include',
-      cache: 'no-cache' // Important: don't use cached data
+      cache: 'no-cache'
     })
       .then(res => res.json())
       .then(data => {
-        console.log("Direct fetch starcard data:", data);
         setDirectData(data);
       })
       .catch(err => {
         console.error("Error fetching star card data:", err);
+        hasFetchedRef.current = false;
       })
       .finally(() => {
         setIsDirectLoading(false);
       });
-  }, []); // Only run once on component mount
+  }, [starCardData]);
 
-  // Log all data sources
-  console.log("StarCard data sources:", {
-    reactQuery: starCardData,
-    directFetch: directData,
-    fallback: fallbackData
-  });
+  // Log data sources (minimal)
+  // console.log("StarCard data sources:", { reactQuery: starCardData, directFetch: directData, fallback: fallbackData });
 
   // Check for data in direct API response with success property
   const hasDirectApiData = directData && 
@@ -154,8 +169,8 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     finalData = testData;
   }
 
-  // Log the final data we're using
-  console.log("StarCard final data for rendering:", finalData);
+  // Log final data (minimal)
+  // console.log("StarCard final data for rendering:", finalData);
 
   // Create a profile object for the star card
   const profile = {

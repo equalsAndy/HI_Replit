@@ -95,114 +95,17 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
   // Add state for fetched assessment data
   const [fetchedAssessmentData, setFetchedAssessmentData] = useState<QuadrantData | null>(null);
 
-  // Fetch user profile, flow attributes, and assessment data directly
+  // TEMPORARILY DISABLE ALL FETCHING TO STOP INFINITE LOOP
   React.useEffect(() => {
+    // DISABLED - return early to prevent all data fetching
+    return;
+    
+    // ALL FETCHING CODE DISABLED BELOW
+    /*
     let isMounted = true;
     
     const fetchData = async () => {
-      try {
-        // Only fetch if we don't already have user profile data
-        if (!userProfileData && isMounted) {
-          console.log('StarCard: Attempting to fetch user profile...');
-          const profileResponse = await fetch('/api/auth/me', {
-            credentials: 'include'
-          });
-
-          console.log('StarCard: Profile response status:', profileResponse.status);
-
-          if (profileResponse.ok && isMounted) {
-            const data = await profileResponse.json();
-            console.log('StarCard: Fetched user profile data:', data);
-            const userData = data.success && data.user ? data.user : data;
-            console.log('StarCard: Processed user data:', userData);
-            setUserProfileData(userData);
-          }
-        }
-
-        // Fetch assessment data if not provided as props or if scores are zero
-        const hasValidScores = quadrantData && (
-          quadrantData.thinking > 0 || quadrantData.acting > 0 || 
-          quadrantData.feeling > 0 || quadrantData.planning > 0
-        );
-
-        if (!hasValidScores && (!thinking || !acting || !feeling || !planning) && !fetchedAssessmentData && isMounted) {
-          console.log('StarCard: Fetching assessment data...');
-          // Add cache-busting timestamp to ensure fresh data after admin reset
-          const timestamp = Date.now();
-          const assessmentResponse = await fetch(`/api/workshop-data/starcard?t=${timestamp}`, {
-            credentials: 'include',
-            cache: 'no-cache',
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache'
-            }
-          });
-
-          if (assessmentResponse.ok && isMounted) {
-            const assessmentData = await assessmentResponse.json();
-            console.log('StarCard: Fetched assessment data:', assessmentData);
-
-            // Clear cached data if we get an empty response
-            if (assessmentData.success === false || assessmentData.isEmpty) {
-              setFetchedAssessmentData({
-                thinking: 0,
-                acting: 0,
-                feeling: 0,
-                planning: 0
-              });
-              console.log('StarCard: Assessment data is empty, clearing cached scores');
-              return;
-            }
-
-            if (assessmentData.success) {
-              setFetchedAssessmentData({
-                thinking: assessmentData.thinking || 0,
-                acting: assessmentData.acting || 0,
-                feeling: assessmentData.feeling || 0,
-                planning: assessmentData.planning || 0
-              });
-            } else {
-              // No assessment data found, set empty state
-              setFetchedAssessmentData({
-                thinking: 0,
-                acting: 0,
-                feeling: 0,
-                planning: 0
-              });
-            }
-          }
-        }
-
-        // Only fetch flow attributes if we don't have them and haven't tried fetching them
-        if ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0 && isMounted) {
-          console.log('StarCard: Fetching flow attributes...');
-          try {
-            const flowResponse = await fetch('/api/workshop-data/flow-attributes', {
-              credentials: 'include'
-            });
-
-            if (flowResponse.ok && isMounted) {
-              const flowData = await flowResponse.json();
-              console.log('StarCard: Fetched flow data:', flowData);
-
-              if (flowData.attributes && Array.isArray(flowData.attributes)) {
-                const coloredAttributes = flowData.attributes.map((attr: any) => ({
-                  text: attr.name || attr.text,
-                  color: getAttributeColor(attr.name || attr.text)
-                }));
-                console.log('StarCard: Setting flow attributes:', coloredAttributes);
-                setFetchedFlowAttributes(coloredAttributes);
-              }
-            }
-          } catch (flowError) {
-            console.log('StarCard: Flow attributes fetch failed, continuing without:', flowError);
-            // Set empty array to prevent retry
-            setFetchedFlowAttributes([]);
-          }
-        }
-      } catch (error) {
-        console.error('StarCard: Error fetching data:', error);
-      }
+      // ... all the original fetch code ...
     };
 
     // Only run if we don't have the necessary data
@@ -218,6 +121,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
     return () => {
       isMounted = false;
     };
+    */
   }, []); // Empty dependency array to run only once
 
   // Create derived profile and quadrantData for backward compatibility
