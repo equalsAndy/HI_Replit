@@ -23,7 +23,7 @@ async function createStudentInvites() {
       },
       body: JSON.stringify({
         username: 'admin',
-        password: 'password'
+        password: 'admin123'
       })
     });
     
