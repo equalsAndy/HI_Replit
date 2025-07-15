@@ -175,7 +175,7 @@ router.post('/check-username', async (req, res) => {
 });
 
 // Import registration routes
-import registerRoutes from './auth-routes-register';
+import registerRoutes from './auth-routes-register.js';
 router.use(registerRoutes);
 
 export default router;

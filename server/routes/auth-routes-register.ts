@@ -1,8 +1,8 @@
 import express from 'express';
-import { userManagementService } from '../services/user-management-service';
-import { inviteService } from '../services/invite-service';
+import { userManagementService } from '../services/user-management-service.js';
+import { inviteService } from '../services/invite-service.js';
 import { z } from 'zod';
-import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code';
+import { validateInviteCode, normalizeInviteCode } from '../utils/invite-code.js';
 import { UserRole } from '../../shared/schema.js';
 
 const router = express.Router();

@@ -74,3 +74,6 @@ docker-compose.yml
 # AWS and deployment files
 .aws/
 *.pem
+vite.config.ts
+vite.config.js
+server/vite.ts

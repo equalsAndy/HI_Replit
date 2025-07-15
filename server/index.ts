@@ -12,7 +12,7 @@ import { db } from './db.js';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-import { setupVite } from './vite.js';
+// Vite import removed for production builds
 import { createServer } from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -182,19 +182,26 @@ async function initializeApp() {
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
 
-      // Only setup Vite in development or when needed
-      if (process.env.NODE_ENV !== 'production') {
-        console.log('🔧 Setting up Vite middleware...');
-        await setupVite(app, server);
-        console.log('✅ Vite middleware ready');
-      } else {
-        // Serve static files in production
+      // Static file serving for both production and development
+      if (process.env.NODE_ENV === 'production') {
+        // Production: serve from dist/public
+        console.log('📁 Production: serving static files from dist/public...');
         app.use(express.static(path.join(__dirname, '../dist/public')));
         
         // Catch-all handler for client-side routing (exclude API routes)
         app.get(/^(?!\/api).*/, (req, res) => {
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));
         });
+        console.log('✅ Production static file serving ready');
+      } else {
+        // Development: serve from client/dist (no Vite dependency)
+        console.log('📁 Development: serving static files from client/dist...');
+        app.use(express.static(path.join(__dirname, '../client/dist')));
+        
+        app.get(/^(?!\/api).*/, (req, res) => {
+          res.sendFile(path.join(__dirname, '../client/dist/index.html'));
+        });
+        console.log('✅ Development static file serving ready');
       }
 
       isInitialized = true;
