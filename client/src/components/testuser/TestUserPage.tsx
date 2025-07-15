@@ -45,8 +45,9 @@ const TestUserPage: React.FC = () => {
     user: UserProfile;
   }>({
     queryKey: ['/api/auth/me'],
-    retry: false,
-    refetchOnWindowFocus: false
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false,
+    retry: 1
   });
 
   // Fetch navigation progress data using admin endpoint (same structure)

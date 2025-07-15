@@ -32,7 +32,7 @@ const WelcomeView: React.FC<WelcomeViewProps> = ({
     }
   }>({
     queryKey: ['/api/auth/me'],
-    staleTime: 30000,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
   });
   const userRole = userData?.user?.role;
   const contentAccess = userData?.user?.contentAccess;

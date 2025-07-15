@@ -37,6 +37,9 @@ const ProfileModal: React.FC<ProfileModalProps> = ({ isOpen, onClose }) => {
     role?: string;
   }>({
     queryKey: ['/api/auth/me'],
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false,
+    retry: 1,
     enabled: isOpen,
   });
   

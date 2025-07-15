@@ -210,8 +210,12 @@ export default function AllStarTeams() {
     };
 
     checkUserAndRefresh();
-    const interval = setInterval(checkUserAndRefresh, 1500);
-    return () => clearInterval(interval);
+    // Only check user on initial mount, not every 1.5 seconds
+    checkUserAndRefresh();
+    
+    // Removed aggressive polling to prevent auth loop
+    // const interval = setInterval(checkUserAndRefresh, 1500);
+    // return () => clearInterval(interval);
   }, []);
 
   // Navigation progress is now loaded from database via useNavigationProgress hook

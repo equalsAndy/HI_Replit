@@ -14,7 +14,8 @@ export default function Home() {
   // Fetch user profile
   const { data: userData } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false,
     refetchInterval: false, // We don't need constant updates on landing page
     retry: false // Don't retry if authentication fails
   });

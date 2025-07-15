@@ -189,6 +189,8 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   // Fetch user data
   const { data: userData } = useQuery({
     queryKey: ['/api/auth/me'],
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false,
     enabled: true,
   });
 

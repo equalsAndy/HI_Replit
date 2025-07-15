@@ -20,7 +20,8 @@ export default function ProfileForm({ onCompleted }: ProfileFormProps) {
   
   const { data: user, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false
   });
 
   useEffect(() => {

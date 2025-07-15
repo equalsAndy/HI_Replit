@@ -28,8 +28,24 @@ import { useQuery } from '@tanstack/react-query';
 const AutoSyncWrapper: React.FC = () => {
   const { data: user } = useQuery<{ id: number; name: string; role: string }>({
     queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.user; // Return just the user object
+    },
     retry: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent excessive refetching
+    enabled: true
   });
 
   return user?.id ? <AutoSync userId={user.id} /> : null;

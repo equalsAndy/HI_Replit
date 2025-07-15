@@ -95,10 +95,10 @@ export function NavBar() {
       console.log('NavBar: Profile data received:', data);
       return data;
     },
-    // Force fresh data fetch
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Always fetch fresh data
-    retry: 2
+    // Optimized refetch settings to prevent auth loop
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent excessive refetching
+    retry: 1
   });
 
   // Extract user data from the response

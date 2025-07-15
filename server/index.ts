@@ -143,15 +143,17 @@ async function initializeApp() {
       app.use(express.urlencoded({ extended: true }));
       app.use(cookieParser());
 
-      // Add session debugging middleware
-      app.use((req, res, next) => {
-        console.log('🔍 Session Debug:', {
-          sessionID: req.sessionID,
-          hasSession: !!req.session,
-          cookies: req.headers.cookie
-        });
-        next();
-      });
+      // Add session debugging middleware - TEMPORARILY DISABLED
+      // app.use((req, res, next) => {
+      //   console.log('🔍 Session Debug:', {
+      //     url: req.url,
+      //     method: req.method,
+      //     sessionID: req.sessionID,
+      //     hasSession: !!req.session,
+      //     cookies: req.headers.cookie
+      //   });
+      //   next();
+      // });
 
       // Session middleware MUST come after body parsing but before routes
       app.use(session({
