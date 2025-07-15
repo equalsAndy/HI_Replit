@@ -6,6 +6,73 @@ import { validateInviteCode } from '../utils/invite-code.js';
 const router = express.Router();
 
 /**
+ * Update the current user profile
+ */
+router.put('/me', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    // Extract allowed fields for profile update
+    const {
+      name,
+      email,
+      organization,
+      jobTitle,
+      profilePicture
+    } = req.body;
+
+    // Validate required fields
+    if (!name || !email) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and email are required'
+      });
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid email format'
+      });
+    }
+
+    // Update the user profile
+    const result = await userManagementService.updateUser(userId, {
+      name,
+      email,
+      organization,
+      jobTitle,
+      profilePicture
+    });
+
+    if (!result.success) {
+      return res.status(400).json(result);
+    }
+
+    res.json({
+      success: true,
+      user: result.user,
+      message: 'Profile updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ Error updating user profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update profile. Please try again later.',
+      details: typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : String(error)
+    });
+  }
+});
+
+/**
  * Login route
  */
 router.post('/login', async (req, res) => {
