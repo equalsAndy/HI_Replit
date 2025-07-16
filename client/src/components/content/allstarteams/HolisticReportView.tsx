@@ -54,7 +54,7 @@ export default function HolisticReportView({
       setGenerating(true);
       
       // Generate and download report
-      const response = await fetch('/api/report/generate/me', {
+      const response = await fetch('/api/reports/generate/me', {
         credentials: 'include'
       });
       
@@ -97,7 +97,7 @@ export default function HolisticReportView({
     }
     
     // Open HTML report in new tab
-    window.open('/api/report/html/me', '_blank');
+    window.open('/api/reports/html/me', '_blank');
   };
 
   if (isLoading) {
