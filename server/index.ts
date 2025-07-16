@@ -12,9 +12,8 @@ import { db } from './db.js';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
-// Vite import for development mode
+// Vite import removed for production builds
 import { createServer } from 'http';
-import { setupVite } from './vite.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -191,10 +190,14 @@ async function initializeApp() {
         });
         console.log('✅ Production static file serving ready');
       } else {
-        // Development: use Vite development server
-        console.log('📁 Development: setting up Vite development server...');
-        await setupVite(app, server);
-        console.log('✅ Development Vite server ready');
+        // Development: serve from dist/public (same as production)
+        console.log('📁 Development: serving static files from dist/public...');
+        app.use(express.static(path.join(__dirname, '../dist/public')));
+        
+        app.get(/^(?!\/api).*/, (req, res) => {
+          res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+        });
+        console.log('✅ Development static file serving ready');
       }
 
       isInitialized = true;
