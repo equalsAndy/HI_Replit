@@ -105,6 +105,17 @@ export default function AdminDashboard() {
   // Only admins and facilitators with both AST and IA access should see the toggle
   const hasBothInterfaceAccess = hasManagementAccess;
 
+  // Debug logging for interface toggle visibility
+  React.useEffect(() => {
+    console.log('🔍 Interface Toggle Debug:', {
+      currentUser: currentUser,
+      hasManagementAccess,
+      hasBothInterfaceAccess,
+      contentAccess,
+      isLoadingUser
+    });
+  }, [currentUser, hasManagementAccess, hasBothInterfaceAccess, contentAccess, isLoadingUser]);
+
   // Redirect users without management access
   React.useEffect(() => {
     if (currentUser && !hasManagementAccess) {
