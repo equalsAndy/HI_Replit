@@ -39,6 +39,8 @@ export default function AdminDashboard() {
     retry: false,
   });
 
+  // IMPORTANT: Extract user from the response structure to prevent blank dashboard
+  // The API returns { success: boolean, user: {...} }, so we need userProfile?.user
   const currentUser = userProfile?.user;
 
   // Update content access mutation
@@ -125,6 +127,7 @@ export default function AdminDashboard() {
     );
   }
 
+  
   if (!currentUser || !hasManagementAccess) {
     return null; // Will redirect via useEffect for users without management access
   }
