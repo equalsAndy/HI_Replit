@@ -253,14 +253,20 @@ export default function AdminDashboard() {
 
 // User Management Tab Component
 function UserManagementTab() {
-  const { data: currentUser } = useQuery<{
-    id: number;
-    name: string;
-    role: string;
+  const { data: userProfile } = useQuery<{
+    success: boolean;
+    user: {
+      id: number;
+      name: string;
+      role: string;
+    }
   }>({
     queryKey: ['/api/auth/me'],
     retry: false,
   });
+  
+  // Extract user from response structure consistently with main component
+  const currentUser = userProfile?.user;
   
   return <UserManagement currentUser={currentUser} />;
 }
