@@ -14,6 +14,8 @@ import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useTestUser } from '@/hooks/useTestUser';
+import { forceAssessmentCacheDump } from '../utils/forceRefresh';
 
 export default function AllStarTeams() {
   const [location, navigate] = useLocation();
@@ -80,12 +82,24 @@ export default function AllStarTeams() {
   // Get user role for navigation customization (using existing user query below)
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: 30000,
+    staleTime: 0, // Force fresh data for interface switching
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
   // Check contentAccess preference first (for admin/facilitator toggles), then fall back to user role
   const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
+
+  // Debug logging for interface switching
+  console.log('🎯 AllStarTeams Interface Debug:', {
+    userData: userData,
+    userDataUser: (userData as any)?.user,
+    contentAccess: (userData as any)?.user?.contentAccess,
+    userRole: (userData as any)?.user?.role,
+    isStudentContent: isStudentContent,
+    timestamp: new Date().toISOString()
+  });
 
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
@@ -255,14 +269,18 @@ export default function AllStarTeams() {
 
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: 30000,
+    staleTime: 0, // Force fresh data for interface switching
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Fetch star card data separately to debug the issue
   const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useQuery({
     queryKey: ['/api/user/star-card-data'],
     enabled: !!(userProfile as any)?.id,
-    staleTime: 10000,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Clear workshop progress when user changes OR when any user has progress: 0
@@ -351,14 +369,17 @@ export default function AllStarTeams() {
   // Fetch star card data with better error handling and logging
   const { data: starCard, isLoading: starCardLoading1 } = useQuery({ 
     queryKey: ['/api/workshop-data/starcard'],
-    refetchOnWindowFocus: false,
-    refetchInterval: 30000, // Refresh every 30 seconds to ensure data consistency
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Reset user progress mutation
@@ -399,25 +420,8 @@ export default function AllStarTeams() {
       }
     },
     onSuccess: () => {
-      // Navigation progress will be reset through the hook
-
-      // Clear all possible localStorage keys for maximum compatibility
-      // No localStorage keys needed in simplified mode
-      localStorage.removeItem('allstarteams-navigation-progress');
-      localStorage.removeItem('imaginal-agility-navigation-progress');
-      localStorage.removeItem('allstar_navigation_progress');
-
-      // Refresh data from server and clear all cached assessment data
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-
-      // Clear any cached flow assessment data
-      queryClient.removeQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
-      queryClient.removeQueries({ queryKey: ['/api/workshop-data/starcard'] });
-
-      // Reset functionality disabled to prevent auto-reset loops
+      // Use comprehensive cache dump utility
+      forceAssessmentCacheDump(queryClient);
 
       toast({
         title: "Progress Reset",

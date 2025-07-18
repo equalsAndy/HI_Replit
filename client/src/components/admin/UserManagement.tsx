@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { forceAssessmentCacheDump } from '../../utils/forceRefresh';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -430,6 +431,11 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      
+      // FORCE CACHE DUMP: Clear all assessment-related cached data
+      // This ensures that when the user navigates back to workshop pages,
+      // they won't see stale cached data showing completed assessments
+      forceAssessmentCacheDump(queryClient);
     },
     onError: (error: any) => {
       toast({

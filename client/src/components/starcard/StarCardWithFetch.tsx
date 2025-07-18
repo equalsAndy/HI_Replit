@@ -29,51 +29,42 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   // Track if we've already made a direct fetch to prevent loops
   const hasFetchedRef = useRef(false);
 
-  // TEMPORARILY DISABLE React Query to stop infinite loop
+  // Use React Query with fresh data from database
   const { data: starCardData, isLoading } = useQuery<any>({
     queryKey: ['/api/workshop-data/starcard'],
-    enabled: false, // DISABLED to prevent infinite loop
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    enabled: true, // Enable query to fetch fresh data
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // For direct API fallback
   const [directData, setDirectData] = useState<any>(null);
   const [isDirectLoading, setIsDirectLoading] = useState(false);
 
-  // COMPLETELY DISABLE direct fetch for now
+  // Direct API fetch as fallback if React Query fails
   useEffect(() => {
-    // DISABLED - return early to prevent any fetching
-    return;
-    
-    // This code is disabled to stop infinite loop
-    if (hasFetchedRef.current) {
-      return;
-    }
-
-    if (starCardData) {
-      return;
-    }
-
-    hasFetchedRef.current = true;
-    setIsDirectLoading(true);
-    
-    fetch('/api/workshop-data/starcard', { 
-      credentials: 'include',
-      cache: 'no-cache'
-    })
-      .then(res => res.json())
-      .then(data => {
-        setDirectData(data);
+    // Only fetch if we don't have React Query data and haven't already fetched
+    if (!starCardData && !hasFetchedRef.current) {
+      hasFetchedRef.current = true;
+      setIsDirectLoading(true);
+      
+      fetch('/api/workshop-data/starcard', { 
+        credentials: 'include',
+        cache: 'no-cache'
       })
-      .catch(err => {
-        console.error("Error fetching star card data:", err);
-        hasFetchedRef.current = false;
-      })
-      .finally(() => {
-        setIsDirectLoading(false);
-      });
+        .then(res => res.json())
+        .then(data => {
+          setDirectData(data);
+        })
+        .catch(err => {
+          console.error("Error fetching star card data:", err);
+          hasFetchedRef.current = false;
+        })
+        .finally(() => {
+          setIsDirectLoading(false);
+        });
+    }
   }, [starCardData]);
 
   // Log data sources (minimal)

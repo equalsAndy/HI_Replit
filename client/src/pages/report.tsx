@@ -128,14 +128,18 @@ export default function Report() {
   const { data: starCard, isLoading: starCardLoading } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
     enabled: !!user,
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
   
   // Get flow attributes data
   const { data: flowAttributes } = useQuery<any[]>({
     queryKey: ['/api/flow-attributes'],
     enabled: !!user,
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
   
   // Mark report as reviewed

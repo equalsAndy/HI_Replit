@@ -23,13 +23,17 @@ export default function DownloadStarCardView({
   // Fetch star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery({
     queryKey: ['/api/workshop-data/starcard'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   const handleDownload = async () => {

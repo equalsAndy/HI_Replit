@@ -189,8 +189,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   // Fetch user data
   const { data: userData } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
-    refetchOnWindowFocus: false,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
     enabled: true,
   });
 
@@ -201,6 +202,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     flowScore: number;
   }>({
     queryKey: ['/api/workshop-data/flow-attributes'],
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
     enabled: true,
   });
 

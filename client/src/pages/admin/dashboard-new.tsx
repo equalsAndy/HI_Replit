@@ -815,14 +815,20 @@ export default function AdminDashboard() {
         method: 'PUT',
         body: JSON.stringify({ contentAccess: newAccess }),
       }),
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      toast({ title: `Switched to ${contentAccess === 'student' ? 'Professional' : 'Student'} interface` });
+      // Temporary debug message - remove in production
+      console.log(`✅ Interface switched to: ${variables}`);
     },
   });
 
   // Set initial content access from user profile
   React.useEffect(() => {
+    console.log('🔧 Content Access Debug:', { 
+      currentUser: currentUser, 
+      contentAccess: currentUser?.contentAccess,
+      currentState: contentAccess 
+    });
     if (currentUser?.contentAccess) {
       setContentAccess(currentUser.contentAccess as 'student' | 'professional');
     }
@@ -1020,6 +1026,19 @@ export default function AdminDashboard() {
             >
               Student
             </button>
+          </div>
+          {/* Subtle indicator showing current interface */}
+          <div style={{ 
+            fontSize: '12px', 
+            color: '#2563eb', 
+            marginTop: '8px',
+            fontWeight: 'bold',
+            padding: '4px 8px',
+            backgroundColor: '#f1f5f9',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            🔄 Active: {contentAccess} interface
           </div>
           <a href="/allstarteams" style={styles.button}>⭐ AllStarTeams</a>
           <a href="/imaginal-agility" style={styles.button}>🧠 Imaginal Agility</a>

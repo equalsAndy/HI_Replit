@@ -68,7 +68,9 @@ export default function Assessment() {
   // Get star card data to check if assessment is already completed
   const { data: starCard, isLoading: loadingStarCard } = useQuery<StarCardType>({
     queryKey: ['/api/starcard'],
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Current question state

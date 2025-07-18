@@ -95,6 +95,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
+
+
 // Lazy initialization function
 async function initializeApp() {
   if (initializationPromise) {
@@ -183,6 +185,87 @@ async function initializeApp() {
       app.use('/api/reports', reportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
+
+      // Temporary endpoint to fix admin user test status
+      app.post('/fix-admin-test-user', async (req, res) => {
+        try {
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          // Update admin user (ID 1) to be a test user
+          const result = await db.update(users)
+            .set({ isTestUser: true })
+            .where(eq(users.id, 1))
+            .returning({
+              id: users.id,
+              username: users.username,
+              name: users.name,
+              role: users.role,
+              isTestUser: users.isTestUser
+            });
+
+          if (result.length > 0) {
+            console.log('✅ Admin user updated to test user:', result[0]);
+            res.json({
+              success: true,
+              message: 'Admin user successfully updated to test user',
+              user: result[0]
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              message: 'Admin user not found'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error updating admin user:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to update admin user',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Debug endpoint to check user status
+      app.get('/debug-user-status', async (req, res) => {
+        try {
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          // Get admin user (ID 1) current status
+          const result = await db.select({
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            role: users.role,
+            isTestUser: users.isTestUser
+          })
+          .from(users)
+          .where(eq(users.id, 1));
+
+          if (result.length > 0) {
+            console.log('🔍 Admin user current status:', result[0]);
+            res.json({
+              success: true,
+              user: result[0],
+              message: 'Current admin user status from database'
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              message: 'Admin user not found'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error checking user status:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to check user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
 
       // Static file serving for both production and development
       if (process.env.NODE_ENV === 'production') {
