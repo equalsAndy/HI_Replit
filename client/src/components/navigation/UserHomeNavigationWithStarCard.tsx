@@ -65,6 +65,32 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 }) => {
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Accordion state for IA navigation
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
+    if (isImaginalAgility) {
+      // Initialize with first 3 sections expanded for IA
+      return {
+        '1': true,
+        '2': true, 
+        '3': true,
+        '4': false,
+        '5': false,
+        '6': false,
+        '7': false
+      };
+    }
+    return {};
+  });
+
+  const toggleSection = (sectionId: string) => {
+    if (isImaginalAgility) {
+      setExpandedSections(prev => ({
+        ...prev,
+        [sectionId]: !prev[sectionId]
+      }));
+    }
+  };
 
   // Reset detection hooks
   const { progress: navigationProgress } = useNavigationProgress();
@@ -339,20 +365,42 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
-                {/* Section Header - Clean without Week Label */}
-                {/* Hide section title for Introduction (section 1) */}
-                {section.id !== '1' && (
+                {/* Section Header - Accordion for IA, regular for AST */}
+                {(isImaginalAgility || section.id !== '1') && (
                   <div className="flex items-start space-x-2">
                     {drawerOpen && (
                       <>
-                        <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
-
-                        {/* Dynamic progress indicator based on completed steps */}
-                        {/* Exclude sections that are resource/info sections (MORE INFORMATION, etc.) */}
-                        {!section.title?.includes('MORE INFORMATION') && section.title !== 'NEXT STEPS' && section.title !== '' && (
-                          <span className="ml-auto text-xs text-gray-500">
-                            {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
-                          </span>
+                        {isImaginalAgility ? (
+                          // Accordion header for IA
+                          <button
+                            onClick={() => toggleSection(section.id)}
+                            className="w-full flex items-center justify-between text-left p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{section.title}</h3>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500">
+                                  {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
+                                </span>
+                                {expandedSections[section.id] ? (
+                                  <ChevronLeft className="w-4 h-4 text-gray-600 transform rotate-90" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ) : (
+                          // Regular header for AST
+                          <>
+                            <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
+                            {/* Dynamic progress indicator based on completed steps */}
+                            {!section.title?.includes('MORE INFORMATION') && section.title !== 'NEXT STEPS' && section.title !== '' && (
+                              <span className="ml-auto text-xs text-gray-500">
+                                {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
+                              </span>
+                            )}
+                          </>
                         )}
                       </>
                     )}
@@ -360,7 +408,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 )}
 
                 {/* Steps List */}
-                {drawerOpen && (
+                {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] !== false) : true) && (
                   <div className="relative">
                     {/* Week Label spanning entire section - centered in 50px gap */}
                     {section.weekNumber && (

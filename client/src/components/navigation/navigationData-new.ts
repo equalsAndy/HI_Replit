@@ -4,31 +4,15 @@ import {
   Download, Calendar, Brain, Play
 } from 'lucide-react';
 
-// Type definitions for Imaginal Agility navigation
-export interface IANavigationStep {
-  id: string;
-  title: string;
-  type: string;
-  contentKey: string;
-}
-
-export interface IANavigationSection {
-  id: string;
-  title: string;
-  expanded: boolean;
-  steps: IANavigationStep[];
-}
-
 // Imaginal Agility navigation - 7-section hierarchical menu with 26 steps
-export const imaginalAgilityNavigationSections: IANavigationSection[] = [
+export const imaginalAgilityNavigationSections = [
   {
     id: '1',
-    title: 'WELCOME',
-    expanded: true, // Default expanded
+    title: 'WELCOME & ORIENTATION',
     steps: [
       { 
         id: 'ia-1-1', 
-        title: 'Orientation', 
+        title: 'Introduction to Imaginal Agility', 
         type: 'video',
         contentKey: 'ia-1-1'
       },
@@ -43,7 +27,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '2',
     title: 'THE I4C MODEL',
-    expanded: true, // Default expanded
     steps: [
       { 
         id: 'ia-2-1', 
@@ -67,8 +50,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '3',
-    title: 'LADDER OF IMAGINATION',
-    expanded: true, // Default expanded
+    title: 'LADDER OF IMAGINATION (BASICS)',
     steps: [
       { 
         id: 'ia-3-1', 
@@ -111,7 +93,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '4',
     title: 'ADVANCED LADDER OF IMAGINATION',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-4-1', 
@@ -154,7 +135,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '5',
     title: 'OUTCOMES & BENEFITS',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-5-1', 
@@ -191,7 +171,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '6',
     title: 'QUARTERLY TUNE-UP',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-6-1', 
@@ -209,8 +188,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '7',
-    title: 'ADDITIONAL INFO',
-    expanded: false, // Default collapsed
+    title: 'MORE INFO',
     steps: [
       { 
         id: 'ia-7-1', 

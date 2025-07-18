@@ -4,31 +4,15 @@ import {
   Download, Calendar, Brain, Play
 } from 'lucide-react';
 
-// Type definitions for Imaginal Agility navigation
-export interface IANavigationStep {
-  id: string;
-  title: string;
-  type: string;
-  contentKey: string;
-}
-
-export interface IANavigationSection {
-  id: string;
-  title: string;
-  expanded: boolean;
-  steps: IANavigationStep[];
-}
-
 // Imaginal Agility navigation - 7-section hierarchical menu with 26 steps
-export const imaginalAgilityNavigationSections: IANavigationSection[] = [
+export const imaginalAgilityNavigationSections = [
   {
     id: '1',
-    title: 'WELCOME',
-    expanded: true, // Default expanded
+    title: 'WELCOME & ORIENTATION',
     steps: [
       { 
         id: 'ia-1-1', 
-        title: 'Orientation', 
+        title: 'Introduction to Imaginal Agility', 
         type: 'video',
         contentKey: 'ia-1-1'
       },
@@ -43,7 +27,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '2',
     title: 'THE I4C MODEL',
-    expanded: true, // Default expanded
     steps: [
       { 
         id: 'ia-2-1', 
@@ -67,8 +50,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '3',
-    title: 'LADDER OF IMAGINATION',
-    expanded: true, // Default expanded
+    title: 'LADDER OF IMAGINATION (BASICS)',
     steps: [
       { 
         id: 'ia-3-1', 
@@ -111,7 +93,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '4',
     title: 'ADVANCED LADDER OF IMAGINATION',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-4-1', 
@@ -154,7 +135,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '5',
     title: 'OUTCOMES & BENEFITS',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-5-1', 
@@ -191,7 +171,6 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '6',
     title: 'QUARTERLY TUNE-UP',
-    expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-6-1', 
@@ -209,8 +188,7 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   },
   {
     id: '7',
-    title: 'ADDITIONAL INFO',
-    expanded: false, // Default collapsed
+    title: 'MORE INFO',
     steps: [
       { 
         id: 'ia-7-1', 
@@ -227,14 +205,177 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     ]
   }
 ];
+  {
+    id: '3',
+    title: 'Ladder of Imagination (Basics)',
+    steps: [
+      { 
+        id: 'ia-3-1', 
+        title: 'Ladder Overview', 
+        type: 'video',
+        contentKey: 'ia-3-1'
+      },
+      { 
+        id: 'ia-3-2', 
+        title: 'Autoflow Practice', 
+        type: 'activity',
+        contentKey: 'ia-3-2'
+      },
+      { 
+        id: 'ia-3-3', 
+        title: 'Visualization Exercise', 
+        type: 'activity',
+        contentKey: 'ia-3-3'
+      },
+      { 
+        id: 'ia-3-4', 
+        title: 'Higher Purpose Reflection', 
+        type: 'reflection',
+        contentKey: 'ia-3-4'
+      },
+      { 
+        id: 'ia-3-5', 
+        title: 'Inspiration Moments', 
+        type: 'activity',
+        contentKey: 'ia-3-5'
+      },
+      { 
+        id: 'ia-3-6', 
+        title: 'The Unimaginable', 
+        type: 'activity',
+        contentKey: 'ia-3-6'
+      }
+    ]
+  },
+  {
+    id: '4',
+    title: 'Advanced Ladder',
+    steps: [
+      { 
+        id: 'ia-4-1', 
+        title: 'Advanced Ladder Overview', 
+        type: 'video',
+        contentKey: 'ia-4-1'
+      },
+      { 
+        id: 'ia-4-2', 
+        title: 'Autoflow Mindful Prompts', 
+        type: 'activity',
+        contentKey: 'ia-4-2'
+      },
+      { 
+        id: 'ia-4-3', 
+        title: 'Visualization Stretch', 
+        type: 'activity',
+        contentKey: 'ia-4-3'
+      },
+      { 
+        id: 'ia-4-4', 
+        title: 'Higher Purpose Uplift', 
+        type: 'reflection',
+        contentKey: 'ia-4-4'
+      },
+      { 
+        id: 'ia-4-5', 
+        title: 'Inspiration Support', 
+        type: 'activity',
+        contentKey: 'ia-4-5'
+      },
+      { 
+        id: 'ia-4-6', 
+        title: 'Nothing is Unimaginable', 
+        type: 'activity',
+        contentKey: 'ia-4-6'
+      }
+    ]
+  },
+  {
+    id: '5',
+    title: 'Outcomes & Benefits',
+    steps: [
+      { 
+        id: 'ia-5-1', 
+        title: 'HaiQ', 
+        type: 'assessment',
+        contentKey: 'ia-5-1'
+      },
+      { 
+        id: 'ia-5-2', 
+        title: 'ROI 2.0', 
+        type: 'viewing',
+        contentKey: 'ia-5-2'
+      },
+      { 
+        id: 'ia-5-3', 
+        title: 'Course Completion Badge', 
+        type: 'achievement',
+        contentKey: 'ia-5-3'
+      },
+      { 
+        id: 'ia-5-4', 
+        title: 'Imaginal Agility Compendium', 
+        type: 'download',
+        contentKey: 'ia-5-4'
+      },
+      { 
+        id: 'ia-5-5', 
+        title: 'Community of Practice', 
+        type: 'community',
+        contentKey: 'ia-5-5'
+      }
+    ]
+  },
+  {
+    id: '6',
+    title: 'Quarterly Tune-Up',
+    steps: [
+      { 
+        id: 'ia-6-1', 
+        title: 'Orientation', 
+        type: 'video',
+        contentKey: 'ia-6-1'
+      },
+      { 
+        id: 'ia-6-2', 
+        title: 'Practices', 
+        type: 'activity',
+        contentKey: 'ia-6-2'
+      }
+    ]
+  },
+  {
+    id: '7',
+    title: 'More Info',
+    steps: [
+      { 
+        id: 'ia-7-1', 
+        title: 'The Neuroscience of Imagination', 
+        type: 'video',
+        contentKey: 'ia-7-1'
+      },
+      { 
+        id: 'ia-7-2', 
+        title: 'About Heliotrope Imaginal', 
+        type: 'video',
+        contentKey: 'ia-7-2'
+      }
+    ]
+  } 
+        title: 'Neuroscience', 
+        type: 'video',
+        contentKey: 'ia-8-1'
+      }
+    ]
+  }
+];
 
-// All Star Teams navigation sections
+// AllStarTeams navigation sections (corrected structure)
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
-    title: 'STAR',
+    title: '', // No title for introduction section
     steps: [
-      { id: '1-1', title: 'Introduction to Star Cards', type: 'video' }
+      { id: '1-1', title: 'Introduction', type: 'video' }
     ]
   },
   {

@@ -6,7 +6,7 @@ import ContentViews from '@/components/content/ContentViews';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { User } from '@/shared/types';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, X, Menu } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import LogoutButton from '@/components/auth/LogoutButton';
@@ -161,8 +161,20 @@ export default function ImaginalAgilityHome() {
 
     const completedSteps = navProgress.completedSteps || [];
     const iaStepOrder = [
-      'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
-      'ia-5-1', 'ia-6-1', 'ia-8-1' // ia-7-1 temporarily hidden
+      // Welcome & Orientation
+      'ia-1-1', 'ia-1-2',
+      // The I4C Model
+      'ia-2-1', 'ia-2-2', 'ia-2-3',
+      // Ladder of Imagination (Basics)
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      // Advanced Ladder of Imagination
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      // Outcomes & Benefits
+      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+      // Quarterly Tune-Up
+      'ia-6-1', 'ia-6-2',
+      // More Info
+      'ia-7-1', 'ia-7-2'
     ];
 
     // Find the next step after the last completed step
@@ -225,8 +237,20 @@ export default function ImaginalAgilityHome() {
 
     // Define the progression order for IA
     const iaStepOrder = [
-      'ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 
-      'ia-5-1', 'ia-6-1', 'ia-8-1' // ia-7-1 temporarily hidden, removed ia-9-1
+      // Welcome & Orientation
+      'ia-1-1', 'ia-1-2',
+      // The I4C Model
+      'ia-2-1', 'ia-2-2', 'ia-2-3',
+      // Ladder of Imagination (Basics)
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      // Advanced Ladder of Imagination
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      // Outcomes & Benefits
+      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+      // Quarterly Tune-Up
+      'ia-6-1', 'ia-6-2',
+      // More Info
+      'ia-7-1', 'ia-7-2'
     ];
 
     const currentStepIndex = iaStepOrder.indexOf(stepId);

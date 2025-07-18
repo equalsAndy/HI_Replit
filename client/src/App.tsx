@@ -12,7 +12,7 @@ import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 
-import AdminDashboard from '@/pages/admin/dashboard';
+import AdminDashboard from '@/pages/admin/dashboard-new';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -56,6 +56,7 @@ const App: React.FC = () => {
 
   // Debug current route
   React.useEffect(() => {
+    console.log('Current route:', 
       location.includes('/imaginal-agility') ? 'imaginal-agility.tsx' : 
       location.includes('/allstarteams') ? 'allstarteams.tsx' : 
       'default routing'

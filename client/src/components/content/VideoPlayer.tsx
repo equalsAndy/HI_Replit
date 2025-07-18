@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useVideoBySection, useVideoByStepId } from '@/hooks/use-videos';
-import { processVideoUrl, type VideoUrlParams } from '@/lib/videoUtils';
+import { useVideoBySection, useVideoByStepId } from '../../hooks/use-videos';
+import { processVideoUrl, type VideoUrlParams } from '../../lib/videoUtils';
 
 interface VideoPlayerProps {
   workshopType: string;
@@ -14,6 +14,7 @@ interface VideoPlayerProps {
   autoplay?: boolean;
   customParams?: VideoUrlParams;
   onProgress?: (percentage: number) => void;
+  onUnlockNext?: (stepId: string) => void; // New callback for unlocking next step
   startTime?: number; // Start time in seconds for resume functionality
 }
 
@@ -29,12 +30,14 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   autoplay = true,
   customParams = {},
   onProgress,
+  onUnlockNext,
   startTime = 0
 }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [progressSimulated, setProgressSimulated] = useState(false);
+  const [currentProgress, setCurrentProgress] = useState(0);
   
   // Try to get video by stepId first, then by section
   const { data: videoByStepId, isLoading: isLoadingStepId } = useVideoByStepId(
@@ -84,20 +87,39 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
     }
   }, [forceUrl, video?.url, fallbackUrl, autoplay, customParams]);
 
-  // Simple progress tracking without YouTube API dependency
+  // Enhanced progress tracking with unlocking logic
   useEffect(() => {
     if (videoLoaded && onProgress && !progressSimulated) {
       setProgressSimulated(true);
       
-      // Simulate basic progress tracking - mark as viewed after a few seconds
-      const progressTimer = setTimeout(() => {
-        console.log('🎬 Video marked as viewed (simplified tracking)');
-        onProgress(100); // Mark as complete after basic viewing time
-      }, 3000); // 3 seconds viewing time
+      // Simulate progressive tracking with multiple checkpoints
+      const progressCheckpoints = [10, 25, 50, 75, 90, 100];
+      let checkpointIndex = 0;
       
-      return () => clearTimeout(progressTimer);
+      const progressTimer = setInterval(() => {
+        if (checkpointIndex < progressCheckpoints.length) {
+          const progress = progressCheckpoints[checkpointIndex];
+          setCurrentProgress(progress);
+          onProgress(progress);
+          
+          console.log(`🎬 Video progress: ${progress}% for step ${stepId}`);
+          
+          // Check if this progress meets the required threshold for unlocking
+          const requiredThreshold = video?.requiredWatchPercentage || 75;
+          if (progress >= requiredThreshold && onUnlockNext && stepId) {
+            console.log(`🔓 Unlocking next step - watched ${progress}% (required: ${requiredThreshold}%)`);
+            onUnlockNext(stepId);
+          }
+          
+          checkpointIndex++;
+        } else {
+          clearInterval(progressTimer);
+        }
+      }, 2000); // Progress every 2 seconds for demo
+      
+      return () => clearInterval(progressTimer);
     }
-  }, [videoLoaded, onProgress, progressSimulated]);
+  }, [videoLoaded, onProgress, onUnlockNext, stepId, video?.requiredWatchPercentage, progressSimulated]);
 
   // Handle iframe load event
   const handleIframeLoad = () => {

@@ -102,12 +102,13 @@ export function NavBar() {
   });
 
   // Extract user data from the response
-  const user = data?.user;
+  const user = data?.user || data; // Handle both wrapped and direct user data
   const isTestUser = user?.isTestUser || false;
 
   useEffect(() => {
     // Log user data for debugging
     console.log("NavBar - API response:", data);
+    console.log("NavBar - User extracted:", user);
     console.log("NavBar - User extracted:", user);
     if (user) {
       console.log("User data in NavBar:", user);

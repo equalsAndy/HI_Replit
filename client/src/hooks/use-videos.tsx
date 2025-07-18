@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useCurrentUser } from './use-current-user';
 
 interface Video {
   id: number;
@@ -11,6 +12,15 @@ interface Video {
   stepId?: string;
   autoplay?: boolean;
   sortOrder?: number;
+  contentMode?: 'student' | 'professional' | 'both';
+  requiredWatchPercentage?: number;
+}
+
+// Hook to get current user's content access mode
+function useCurrentUserAccess() {
+  const { data: user } = useCurrentUser();
+  // Return the user's content access mode or default to 'professional'
+  return user?.contentAccess || 'professional';
 }
 
 export function useVideos() {
@@ -29,8 +39,17 @@ export function useVideosByWorkshop(workshopType: string) {
 
 export function useVideoBySection(workshopType: string, section: string) {
   const { data: videos, ...query } = useVideosByWorkshop(workshopType);
+  const userAccess = useCurrentUserAccess();
   
-  const video = videos?.find(v => v.section === section);
+  // Filter videos by section and user's content access mode
+  const applicableVideos = videos?.filter(v => 
+    v.section === section && 
+    (v.contentMode === 'both' || v.contentMode === userAccess)
+  );
+  
+  // Prefer mode-specific video over 'both' mode
+  const video = applicableVideos?.find(v => v.contentMode === userAccess) 
+               || applicableVideos?.find(v => v.contentMode === 'both');
   
   return {
     ...query,
@@ -40,13 +59,22 @@ export function useVideoBySection(workshopType: string, section: string) {
 
 export function useVideoByStepId(workshopType: string, stepId: string) {
   const { data: videos, ...query } = useVideosByWorkshop(workshopType);
+  const userAccess = useCurrentUserAccess();
   
-  console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}"`);
-  console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId })));
+  console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}" for access mode "${userAccess}"`);
+  console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId, contentMode: v.contentMode })));
   
-  const video = videos?.find(v => v.stepId === stepId);
+  // Filter videos by stepId and user's content access mode
+  const applicableVideos = videos?.filter(v => 
+    v.stepId === stepId && 
+    (v.contentMode === 'both' || v.contentMode === userAccess)
+  );
   
-  console.log(`🎥 Found video for step ${stepId}:`, video ? { title: video.title, editableId: video.editableId, url: video.url } : 'No video found');
+  // Prefer mode-specific video over 'both' mode
+  const video = applicableVideos?.find(v => v.contentMode === userAccess) 
+               || applicableVideos?.find(v => v.contentMode === 'both');
+  
+  console.log(`🎥 Found video for step ${stepId}:`, video ? { title: video.title, editableId: video.editableId, url: video.url, contentMode: video.contentMode } : 'No video found');
   
   return {
     ...query,

@@ -66,11 +66,12 @@ const createUserSchema = z.object({
     .max(20, 'Username cannot exceed 20 characters')
     .regex(/^[a-z0-9][a-z0-9_\-]*[a-z0-9]$/i, 'Username must start and end with letter or number, and contain only letters, numbers, underscores, and hyphens'),
   name: z.string().min(1, 'Name is required'),
-  email: z.string().email('Please enter a valid email').optional(),
+  email: z.string().email('Please enter a valid email'),
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
   role: z.enum(['admin', 'facilitator', 'participant', 'student']),
   generatePassword: z.boolean().default(true),
+  isTestUser: z.boolean().default(false),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -86,6 +87,7 @@ const editUserSchema = z.object({
   contentAccess: z.enum(['student', 'professional', 'both']),
   astAccess: z.boolean(),
   iaAccess: z.boolean(),
+  isTestUser: z.boolean(),
   resetPassword: z.boolean().default(false),
   newPassword: z.string().optional(),
   setCustomPassword: z.boolean().default(false),
@@ -165,7 +167,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [dataViewOpen, setDataViewOpen] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-  const [localTestUserStatus, setLocalTestUserStatus] = useState<boolean>(false);
 
   // Query for current user profile to get role information
   const { data: userProfile } = useQuery({
@@ -200,6 +201,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       jobTitle: '',
       role: 'participant',
       generatePassword: true,
+      isTestUser: false,
     },
   });
 
@@ -215,6 +217,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: 'professional',
       astAccess: true,
       iaAccess: true,
+      isTestUser: false,
       resetPassword: false,
       newPassword: '',
       setCustomPassword: false,
@@ -257,13 +260,37 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   // Mutation for creating a new user
   const createUserMutation = useMutation({
     mutationFn: async (data: CreateUserFormValues) => {
-      return await apiRequest('/api/admin/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log('🌐 Making POST request to:', `/api/admin/users`);
+      console.log('🌐 Request body:', JSON.stringify(data, null, 2));
+      
+      // Enhanced error handling
+      try {
+        const response = await fetch('/api/admin/users', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        });
+        
+        console.log('🌐 Response status:', response.status);
+        console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log('🌐 Response data:', responseData);
+          return responseData;
+        } else {
+          const text = await response.text();
+          console.error('🌐 Non-JSON response:', text.substring(0, 500));
+          throw new Error('Server returned non-JSON response');
+        }
+      } catch (error) {
+        console.error('🌐 Fetch error:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({
@@ -291,15 +318,40 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
   // Mutation for updating a user
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number, data: EditUserFormValues }) => {
-      return await apiRequest(`/api/admin/users/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
+      console.log('🌐 Making PUT request to:', `/api/admin/users/${id}`);
+      console.log('🌐 Request body:', JSON.stringify(data, null, 2));
+      
+      // Enhanced error handling
+      try {
+        const response = await fetch(`/api/admin/users/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+          credentials: 'include',
+        });
+        
+        console.log('🌐 Response status:', response.status);
+        console.log('🌐 Response headers:', Object.fromEntries(response.headers.entries()));
+        
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          const responseData = await response.json();
+          console.log('🌐 Response data:', responseData);
+          return responseData;
+        } else {
+          const text = await response.text();
+          console.error('🌐 Non-JSON response:', text.substring(0, 500));
+          throw new Error('Server returned non-JSON response');
+        }
+      } catch (error) {
+        console.error('🌐 Fetch error:', error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
+      console.log('✅ Update successful:', data);
       toast({
         title: 'User updated successfully',
         description: data.temporaryPassword 
@@ -315,6 +367,13 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
     },
     onError: (error: any) => {
+      console.error('❌ Update failed:', error);
+      console.error('❌ Error details:', {
+        message: error.message,
+        status: error.status,
+        response: error.response
+      });
+      
       toast({
         title: 'Error updating user',
         description: error.message || 'Failed to update user. Please try again.',
@@ -476,53 +535,6 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
-  // Mutation for toggling test user status
-  const toggleTestUserMutation = useMutation({
-    mutationFn: async ({ userId, isTestUser }: { userId: number; isTestUser: boolean }) => {
-      return await apiRequest(`/api/admin/users/${userId}/test-status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ isTestUser }),
-      });
-    },
-    onSuccess: (_data, variables) => {
-      // Persist the intended value
-      setLocalTestUserStatus(variables.isTestUser);
-      // Optimistically update user in cache
-      queryClient.setQueryData(['/api/admin/users'], (oldData: any) => {
-        if (!oldData?.users) return oldData;
-        return {
-          ...oldData,
-          users: oldData.users.map((u: any) =>
-            u.id === variables.userId ? { ...u, isTestUser: variables.isTestUser } : u
-          ),
-        };
-      });
-      toast({
-        title: 'Test user status updated',
-        description: variables.isTestUser
-          ? 'User is now a test user.'
-          : 'User is no longer a test user.',
-      });
-      // Invalidate all user-related queries to ensure fresh data everywhere
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['user'] });
-      // Add more if you have other user-related queries
-    },
-    onError: (error: any, _variables) => {
-      // Revert local state on error
-      setLocalTestUserStatus(!localTestUserStatus);
-      toast({
-        title: 'Error updating test user status',
-        description: error.message || 'Failed to update test user status. Please try again.',
-        variant: 'destructive',
-      });
-    },
-  });
-
   // Handler for creating a new user
   const onCreateSubmit = (values: CreateUserFormValues) => {
     createUserMutation.mutate(values);
@@ -530,15 +542,19 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
   // Handler for editing a user
   const onEditSubmit = (values: EditUserFormValues) => {
+    console.log('🔍 onEditSubmit called with values:', values);
+    console.log('🔍 selectedUser:', selectedUser);
+    
     if (selectedUser) {
-      updateUserMutation.mutate({ id: selectedUser.id, data: values });
+      const payload = { id: selectedUser.id, data: values };
+      console.log('🔍 About to send mutation payload:', payload);
+      updateUserMutation.mutate(payload);
     }
   };
 
   // Open edit dialog and populate form with user data
   const handleEditUser = (user: User) => {
     setSelectedUser(user);
-    setLocalTestUserStatus(user.isTestUser || false);
 
     editForm.reset({
       name: user.name,
@@ -549,43 +565,13 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       contentAccess: user.contentAccess || 'professional',
       astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
+      isTestUser: user.isTestUser || false,
       resetPassword: false,
       newPassword: '',
       setCustomPassword: false,
     });
 
     setEditDialogOpen(true);
-  };
-
-  // --- Test User Toggle Handler ---
-  const handleToggleTestUser = (userId: number) => {
-    if (!selectedUser) return;
-    // Determine intended new value
-    const intendedStatus = !localTestUserStatus;
-    // Optimistically update local state
-    setLocalTestUserStatus(intendedStatus);
-    // Call mutation with intended value
-    toggleTestUserMutation.mutate(
-      { userId, isTestUser: intendedStatus },
-      {
-        onSuccess: () => {
-          toast({
-            title: intendedStatus
-              ? 'User is now a test user'
-              : 'User is no longer a test user',
-            status: 'success',
-          });
-        },
-        onError: () => {
-          // Revert local state on error
-          setLocalTestUserStatus(!intendedStatus);
-          toast({
-            title: 'Failed to update test user status',
-            status: 'error',
-          });
-        },
-      }
-    );
   };
 
   // Handler for viewing user data
@@ -1069,10 +1055,13 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email (Optional)</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
                           <Input placeholder="user@example.com" {...field} value={field.value || ''} />
                         </FormControl>
+                        <FormDescription>
+                          Email is required for user authentication
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -1157,6 +1146,32 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                       )}
                     />
                   </div>
+                  
+                  <FormField
+                    control={createForm.control}
+                    name="isTestUser"
+                    render={({ field }) => (
+                      <FormItem>
+                        <div className="flex items-center space-x-3 rounded-md border p-3">
+                          <FormControl>
+                            <Switch 
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                              aria-label="Toggle test user status"
+                              className="data-[state=checked]:bg-amber-500"
+                            />
+                          </FormControl>
+                          <div className="space-y-1 leading-none">
+                            <FormLabel className="text-sm font-medium">Test User</FormLabel>
+                            <FormDescription className="text-xs text-muted-foreground">
+                              Mark as test account
+                            </FormDescription>
+                          </div>
+                        </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
                   <Button 
                     type="submit" 
@@ -1182,8 +1197,8 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       {/* Edit User Dialog */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-2xl w-[95vw] max-h-[95vh] h-[95vh] sm:h-auto sm:max-h-[90vh] flex flex-col overflow-hidden p-6">
-          <DialogHeader className="flex-shrink-0 pb-4">
+        <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="flex-shrink-0 px-6 pt-6 pb-4">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
               Update user information and role.
@@ -1192,9 +1207,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
           {selectedUser && (
             <Form {...editForm}>
-              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full">
-                {/* Make this div scrollable and flex-1 */}
-                <div className="flex-1 min-h-0 overflow-y-auto space-y-6 px-1 pb-2">
+              <form onSubmit={editForm.handleSubmit(onEditSubmit)} className="flex flex-col h-full overflow-y-auto">
+                {/* Scrollable content area */}
+                <div className="px-6 space-y-6 pb-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <FormField
                       control={editForm.control}
@@ -1298,20 +1313,31 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                   />
 
                   <div className="flex flex-col justify-end">
-                    <div className="flex items-center space-x-3 rounded-md border p-3">
-                      <Switch 
-                        checked={localTestUserStatus}
-                        onCheckedChange={() => selectedUser && handleToggleTestUser(selectedUser.id)}
-                        aria-label="Toggle test user status"
-                        className="data-[state=checked]:bg-amber-500"
-                      />
-                      <div className="space-y-1 leading-none">
-                        <label className="text-sm font-medium">Test User</label>
-                        <p className="text-xs text-muted-foreground">
-                          Mark as test account
-                        </p>
-                      </div>
-                    </div>
+                    <FormField
+                      control={editForm.control}
+                      name="isTestUser"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle test user status"
+                                className="data-[state=checked]:bg-amber-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Test User</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Mark as test account
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                   </div>
                 </div>
 
@@ -1560,7 +1586,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 </div>
 
                 {/* Fixed footer stays at the bottom */}
-                <DialogFooter className="flex-shrink-0 pt-4 mt-auto border-t bg-background">
+                <DialogFooter className="flex-shrink-0 px-6 pb-6 pt-4 border-t bg-background">
                   <Button variant="outline" type="button" onClick={() => setEditDialogOpen(false)}>
                     Cancel
                   </Button>

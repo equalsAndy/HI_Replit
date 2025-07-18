@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import ImaginalAgilityRadarChart from './ImaginalAgilityRadarChart';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { VideoPlayer } from '@/components/content/VideoPlayer';
 
 
 // Component for ia-4-1 Assessment step
@@ -101,25 +102,20 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Introduction to Imaginal Agility
+              Welcome to Imaginal Agility
             </h1>
             
-            {/* Video Section */}
+            {/* Video Section using VideoPlayer component */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/k3mDEAbUwZ4" 
-                      title="Introduction to Imaginal Agility" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-1-1"
+                title="Welcome to Imaginal Agility"
+                forceUrl="https://youtu.be/F1qGAW4OofQ"
+                aspectRatio="16:9"
+                autoplay={true}
+                className="w-full max-w-2xl mx-auto"
+              />
             </div>
             
             {/* Content Card */}
@@ -147,22 +143,18 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                   It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.
                 </p>
                 
-                <p className="text-lg leading-relaxed">
-                  Next, you'll meet with your team to turn fresh insight into shared breakthroughs.
-                </p>
-                
-                <p className="text-xl font-medium text-purple-700 pt-4">
-                  You're not just learning about imagination. You're harnessing it — together.
+                <p className="text-xl font-semibold text-purple-600 mt-8">
+                  You're not just learning about imagination. You're harnessing it
                 </p>
               </div>
             </div>
             
             <div className="flex justify-end mt-8">
               <Button 
-                onClick={() => onNext && onNext('ia-2-1')}
+                onClick={() => onNext && onNext('ia-1-2')}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
               >
-                Next: The Triple Challenge
+                Continue to Next Step
               </Button>
             </div>
           </div>
@@ -172,7 +164,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
         return (
           <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              The Triple Challenge
+              The Imaginal Agility Solution
             </h1>
             
             {/* Video Section */}
@@ -181,8 +173,8 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 <div className="w-full max-w-2xl">
                   <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
                     <iframe 
-                      src="https://www.youtube.com/embed/EsExXeKFiKg" 
-                      title="The Triple Challenge" 
+                      src="https://www.youtube.com/embed/l3XVwPGE6UY" 
+                      title="Imaginal Agility Solution" 
                       frameBorder="0" 
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                       allowFullScreen
@@ -197,51 +189,12 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
                 <p className="text-lg leading-relaxed mb-8">
-                  As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.
+                  Imagination is a primal human power — not content with what we know, but impelled to ask: 'What if?' Let's explore what this means, and how to harness it — individually and as a team.
                 </p>
-                
-                {/* Triple Challenge Cards */}
-                <div className="grid md:grid-cols-3 gap-6 mt-8">
-                  <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg border border-red-200">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-xl">1</span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-red-800">Metacognitive Laziness</h3>
-                    </div>
-                    <p className="text-sm text-red-700 text-center">
-                      Outsourcing thinking and sense-making to AI systems, weakening our ability to think critically
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg border border-orange-200">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-xl">2</span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-orange-800">Imagination Deficit</h3>
-                    </div>
-                    <p className="text-sm text-orange-700 text-center">
-                      Diminishing the generative core of human potential through AI dependency
-                    </p>
-                  </div>
-                  
-                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-lg border border-yellow-200">
-                    <div className="text-center mb-4">
-                      <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <span className="text-white font-bold text-xl">3</span>
-                      </div>
-                      <h3 className="text-lg font-semibold text-yellow-800">Psychological Debt</h3>
-                    </div>
-                    <p className="text-sm text-yellow-700 text-center">
-                      Accumulating fatigue, disconnection, and loss of purpose from AI over-reliance
-                    </p>
-                  </div>
-                </div>
                 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mt-8">
                   <p className="text-lg text-purple-800 font-medium text-center">
-                    These challenges cascade together, creating an urgent need for intentional development of human cognitive capabilities.
+                    Imaginal Agility is the antidote to AI's cognitive challenges, empowering humans to thrive alongside artificial intelligence.
                   </p>
                 </div>
               </div>
@@ -249,10 +202,10 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
             
             <div className="flex justify-end mt-8">
               <Button 
-                onClick={() => onNext && onNext('ia-3-1')}
+                onClick={() => onNext && onNext('ia-2-2')}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
               >
-                Next: Imaginal Agility Solution
+                Next: I4C Self-Assessment
               </Button>
             </div>
           </div>
@@ -835,6 +788,202 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
                 </div>
               </div>
             </div>
+          </div>
+        );
+
+      // NEW STEPS - Phase 4 Implementation
+      case 'ia-1-2':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              The Triple Challenge
+            </h1>
+            
+            {/* Video Section */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+              <div className="flex justify-center mb-4">
+                <div className="w-full max-w-2xl">
+                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
+                    <iframe 
+                      src="https://www.youtube.com/embed/EsExXeKFiKg" 
+                      title="The Triple Challenge" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen
+                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
+                    ></iframe>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Content Card */}
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed mb-8">
+                  As artificial intelligence accelerates, it's causing a serious decline in human cognition seen in three cascading challenges. The first step in addressing a challenge is acknowledging it exists. It's now on the radar screen and may no longer be ignored.
+                </p>
+                
+                {/* Triple Challenge Cards */}
+                <div className="grid md:grid-cols-3 gap-6 mt-8">
+                  <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg border border-red-200">
+                    <div className="text-center mb-4">
+                      <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-white font-bold text-xl">1</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-red-800">Metacognitive Laziness</h3>
+                    </div>
+                    <p className="text-sm text-red-700 text-center">
+                      Outsourcing thinking and sense-making to AI systems, weakening our ability to think critically
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg border border-orange-200">
+                    <div className="text-center mb-4">
+                      <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-white font-bold text-xl">2</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-orange-800">Imagination Deficit</h3>
+                    </div>
+                    <p className="text-sm text-orange-700 text-center">
+                      Diminishing the generative core of human potential through AI dependency
+                    </p>
+                  </div>
+                  
+                  <div className="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-lg border border-yellow-200">
+                    <div className="text-center mb-4">
+                      <div className="w-12 h-12 bg-yellow-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span className="text-white font-bold text-xl">3</span>
+                      </div>
+                      <h3 className="text-lg font-semibold text-yellow-800">Psychological Debt</h3>
+                    </div>
+                    <p className="text-sm text-yellow-700 text-center">
+                      Accumulating fatigue, disconnection, and loss of purpose from AI over-reliance
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mt-8">
+                  <p className="text-lg text-purple-800 font-medium text-center">
+                    These challenges cascade together, creating an urgent need for intentional development of human cognitive capabilities.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-2-1')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Next: Imaginal Agility Solution
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'ia-2-2':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              I4C Self-Assessment
+            </h1>
+            <p className="text-lg text-gray-700 mb-6">
+              Complete the I4C assessment to understand your current capabilities.
+            </p>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800">
+                <strong>Coming Soon:</strong> The I4C assessment component is currently being developed.
+              </p>
+            </div>
+            {onNext && (
+              <Button 
+                onClick={() => onNext('ia-2-3')} 
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Next: Review Radar Map
+              </Button>
+            )}
+          </div>
+        );
+
+      case 'ia-2-3':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Review Radar Map
+            </h1>
+            <p className="text-lg text-gray-700 mb-6">
+              View and analyze your I4C assessment results on the radar map.
+            </p>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800">
+                <strong>Coming Soon:</strong> This content is currently being developed and will be available in the next update.
+              </p>
+            </div>
+            {onNext && (
+              <Button 
+                onClick={() => onNext('ia-3-1')} 
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Next: Ladder Overview
+              </Button>
+            )}
+          </div>
+        );
+
+      case 'ia-3-2':
+      case 'ia-3-3':
+      case 'ia-3-4':
+      case 'ia-3-5':
+      case 'ia-3-6':
+      case 'ia-4-2':
+      case 'ia-4-3':
+      case 'ia-4-4':
+      case 'ia-4-5':
+      case 'ia-4-6':
+      case 'ia-5-2':
+      case 'ia-5-3':
+      case 'ia-5-4':
+      case 'ia-5-5':
+      case 'ia-6-2':
+      case 'ia-7-1':
+      case 'ia-7-2':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Step {stepId.toUpperCase().replace(/-/g, '.')}
+            </h1>
+            <p className="text-lg text-gray-700 mb-6">
+              This step is part of the comprehensive Imaginal Agility workshop experience.
+            </p>
+            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+              <p className="text-yellow-800">
+                <strong>Coming Soon:</strong> This content is currently being developed and will be available in the next update.
+              </p>
+            </div>
+            {onNext && (
+              <Button 
+                onClick={() => {
+                  // Simple progression logic for placeholder steps
+                  const allSteps = [
+                    'ia-1-1', 'ia-1-2', 'ia-2-1', 'ia-2-2', 'ia-2-3',
+                    'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+                    'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+                    'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+                    'ia-6-1', 'ia-6-2', 'ia-7-1', 'ia-7-2'
+                  ];
+                  const currentIndex = allSteps.indexOf(stepId);
+                  const nextStep = allSteps[currentIndex + 1];
+                  if (nextStep) {
+                    onNext(nextStep);
+                  }
+                }} 
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                Next Step
+              </Button>
+            )}
           </div>
         );
 

@@ -57,7 +57,20 @@ const useUserAssessments = () => {
 const validateStepCompletionSimplified = (stepId: string, userAssessments: any): boolean => {
   console.log(`🔍 SIMPLIFIED VALIDATION: Step ${stepId}`);
 
-  // IA Assessment step - require completion
+  // IA Assessment steps - require completion
+  if (stepId === 'ia-2-2') {
+    const isValid = !!userAssessments?.iaI4CAssessment;
+    console.log(`📋 IA I4C assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+
+  if (stepId === 'ia-5-1') {
+    const isValid = !!userAssessments?.iaHaiQAssessment;
+    console.log(`📋 IA HaiQ assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
+    return isValid;
+  }
+
+  // Legacy IA assessment validation (for backward compatibility)
   if (stepId === 'ia-4-1') {
     const isValid = !!userAssessments?.iaCoreCapabilities;
     console.log(`📋 IA Core Capabilities assessment: ${isValid ? 'COMPLETE' : 'REQUIRED'}`);
@@ -97,9 +110,24 @@ const validateStepCompletionSimplified = (stepId: string, userAssessments: any):
 
 // SIMPLIFIED: Linear progression with resource branches
 const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): string[] => {
-  // IA progression sequence
+  // IA progression sequence - NEW 26-step structure
   if (appType === 'ia') {
-    const iaSequence = ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-4-2', 'ia-5-1', 'ia-6-1', 'ia-7-1', 'ia-8-1'];
+    const iaSequence = [
+      // Welcome & Orientation
+      'ia-1-1', 'ia-1-2',
+      // The I4C Model
+      'ia-2-1', 'ia-2-2', 'ia-2-3',
+      // Ladder of Imagination (Basics)
+      'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
+      // Advanced Ladder of Imagination
+      'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
+      // Outcomes & Benefits
+      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
+      // Quarterly Tune-Up
+      'ia-6-1', 'ia-6-2',
+      // More Info
+      'ia-7-1', 'ia-7-2'
+    ];
     const unlocked = ['ia-1-1']; // First step always unlocked
 
     // Linear progression through IA sequence

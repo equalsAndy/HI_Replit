@@ -247,7 +247,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
               {user?.name ? getUserInitials(user.name) : <User className="h-3 w-3" />}
             </AvatarFallback>
           </Avatar>
-          <span className="hidden sm:inline">{user?.name || 'Profile'}</span>
+          <span className="hidden sm:inline">{user?.name || '...'}</span>
         </Button>
       </DialogTrigger>
       

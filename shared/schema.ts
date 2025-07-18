@@ -127,6 +127,9 @@ export const videos = pgTable('videos', {
   stepId: varchar('step_id', { length: 20 }), // For navigation step identifiers like "1-1", "2-3"
   autoplay: boolean('autoplay').default(false).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
+  // Video management enhancements
+  contentMode: varchar('content_mode', { length: 20 }).default('both').notNull(), // 'student', 'professional', 'both'
+  requiredWatchPercentage: integer('required_watch_percentage').default(75).notNull(), // Percentage required to unlock next step
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

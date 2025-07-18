@@ -162,13 +162,13 @@ export function LoginForm() {
       {showTestInfo && (
         <div className="mb-6 p-4 bg-blue-50 rounded-lg">
           <h3 className="font-medium text-blue-800">Test Environment</h3>
-          <p className="mt-2 text-blue-700">All test accounts use the password <strong>password123</strong></p>
+          <p className="mt-2 text-blue-700">Admin login: <strong>admin / Heliotrope@2025</strong></p>
           <p className="mt-2 text-blue-700 italic">You can use either username or email to login</p>
           <Alert className="mt-2 bg-amber-50 border-amber-200">
             <InfoIcon className="h-4 w-4 text-amber-600" />
-            <AlertTitle className="text-amber-700">Important Note</AlertTitle>
+            <AlertTitle className="text-amber-700">Production Access</AlertTitle>
             <AlertDescription className="text-amber-700">
-              Make sure to use <strong>password123</strong> (not just "password") for all test accounts.
+              For production admin access, use the credentials provided by your administrator.
             </AlertDescription>
           </Alert>
           <ul className="mt-4 space-y-1 text-blue-700">

@@ -76,19 +76,23 @@ router.put('/me', requireAuth, async (req, res) => {
  * Login route
  */
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  // Support both 'username' and 'identifier' in request body
+  const { username, identifier, password } = req.body;
+  const loginUsername = username || identifier;
 
-  if (!username || !password) {
+  if (!loginUsername || !password) {
     return res.status(400).json({
       success: false,
-      error: 'Username and password are required'
+      error: 'Username/identifier and password are required'
     });
   }
 
   try {
-    const result = await userManagementService.authenticateUser(username, password);
+    console.log('🔑 Login attempt:', { loginUsername });
+    const result = await userManagementService.authenticateUser(loginUsername, password);
 
     if (!result.success) {
+      console.log('❌ Login failed:', result.error);
       return res.status(401).json(result);
     }
 
