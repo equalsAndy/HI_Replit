@@ -73,10 +73,26 @@ aws lightsail create-container-service-deployment \
 ## 🔧 TROUBLESHOOTING GUIDE
 
 ### **"Took too long" Deployment Failures**
-1. **Check container logs**: `aws lightsail get-container-log --service-name hi-replit-v2 --container-name allstarteams-app --region us-west-2`
+1. **Check container logs**: 
+   - Staging: `aws lightsail get-container-log --service-name hi-app-staging --container-name allstarteams-app --region us-west-2`
+   - Production: `aws lightsail get-container-log --service-name heliotrope-app-v2 --container-name allstarteams-app --region us-west-2`
 2. **If no application logs**: Container isn't starting (Docker image issue)
 3. **If "Session userId: undefined"**: Database connection problem
 4. **Test locally first**: `docker run -p 8080:8080 -e NODE_ENV=staging [IMAGE]`
+
+### **✅ PROVEN SOLUTION: Working Base + Code Layering**
+Instead of building from scratch, use the layered approach:
+
+1. **Use working base image**: `environment-badge-test` (proven stable)
+2. **Layer new code on top**: Replaces only `/app/dist`, `/app/shared`, and `/app/package.json`
+3. **Automated script**: Use `./deploy-latest-code.sh` for reliable deployments
+4. **Better image naming**: Use descriptive tags like `staging-v1.0.0.1401-20250718`
+
+**Why this works:**
+- Avoids Tailwind/Vite configuration conflicts
+- Preserves working PM2 and container setup
+- Eliminates "took too long" failures
+- Maintains deployment reliability
 
 ### **Database Connection Issues**
 1. **Check database contents**: `psql [DATABASE_URL] -c "\dt"`

@@ -128,20 +128,25 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
   const derivedProfile: ProfileData = useMemo(() => {
     // Use userProfileData if available, then fallback to props
     if (userProfileData) {
-      return {
+      const profileFromFetch = {
         name: userProfileData.name || 'Your Name',
         title: userProfileData.title || userProfileData.jobTitle || '',
         organization: userProfileData.organization || '',
         avatarUrl: userProfileData.profilePicture || undefined
       };
+      console.log('🎯 StarCard Profile from userProfileData:', profileFromFetch);
+      return profileFromFetch;
     }
 
-    return profile || {
+    const profileFromProps = profile || {
       name: userName || 'Your Name',
       title: userTitle || '',
       organization: userOrg || '',
       avatarUrl: undefined
     };
+    
+    console.log('🎯 StarCard Profile from props:', profileFromProps);
+    return profileFromProps;
   }, [profile, userName, userTitle, userOrg, userProfileData]);
 
   const derivedQuadrantData: QuadrantData = useMemo(() => {

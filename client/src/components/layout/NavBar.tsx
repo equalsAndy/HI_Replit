@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
 
-// Environment badge helper - improved detection
+// Environment badge helper - improved detection with version numbers
 const getEnvironmentBadge = () => {
   // Check multiple sources for environment detection
   const viteMode = import.meta.env.MODE;
@@ -25,14 +25,18 @@ const getEnvironmentBadge = () => {
   const isDev = import.meta.env.DEV;
   const isProd = import.meta.env.PROD;
   
+  // Get version - use static build number, not dynamic timestamp
+  const version = import.meta.env.VITE_APP_VERSION || "1.0.0";
+  const buildNumber = import.meta.env.VITE_BUILD_NUMBER || "dev";
+  
   // Development detection
   if (isDev || viteMode === 'development' || window.location.hostname === 'localhost' || window.location.port === '8080') {
-    return <Badge variant="destructive" className="ml-2">DEV</Badge>;
+    return <Badge variant="destructive" className="ml-2 text-xs">DEV v{version}.{buildNumber}</Badge>;
   }
   
   // Staging detection
   if (viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com')) {
-    return <Badge variant="secondary" className="ml-2">STAGING</Badge>;
+    return <Badge variant="secondary" className="ml-2 text-xs">STAGING v{version}.{buildNumber}</Badge>;
   }
   
   return null;

@@ -6,3 +6,5 @@ vite.config.ts.*
 *.tar.gzcreate-admin-backup.ts
 dev_schema.sql
 .env
+.env.local
+.env.*.local

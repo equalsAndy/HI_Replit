@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import StarCard from './StarCard';
-import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
+import { useStarCardData } from '../../hooks/useStarCardData';
 
 interface StarCardWithFetchProps {
   userId?: number;
@@ -26,72 +26,38 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   flowAttributes,
   downloadable = false
 }) => {
-  // Track if we've already made a direct fetch to prevent loops
-  const hasFetchedRef = useRef(false);
+  const queryClient = useQueryClient();
 
-  // Use React Query with fresh data from database
-  const { data: starCardData, isLoading } = useQuery<any>({
-    queryKey: ['/api/workshop-data/starcard'],
-    enabled: true, // Enable query to fetch fresh data
-    staleTime: 0, // Always fetch fresh data from database
-    gcTime: 0, // Don't cache the data
-    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
+  console.log('🔄 StarCardWithFetch: Component rendered with userId:', userId);
+
+  // Use the shared hook to prevent multiple simultaneous fetches
+  const { data: starCardData, isLoading, refetch } = useStarCardData();
+
+  console.log('🔄 StarCardWithFetch: StarCard data state:', { starCardData, isLoading });
+
+  // Fetch user profile data for name, title, and organization
+  const { data: userProfile, isLoading: profileLoading } = useQuery({
+    queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me', {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.json();
+    },
+    staleTime: 2 * 60 * 1000, // Cache for 2 minutes
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
-
-  // For direct API fallback
-  const [directData, setDirectData] = useState<any>(null);
-  const [isDirectLoading, setIsDirectLoading] = useState(false);
-
-  // Direct API fetch as fallback if React Query fails
-  useEffect(() => {
-    // Only fetch if we don't have React Query data and haven't already fetched
-    if (!starCardData && !hasFetchedRef.current) {
-      hasFetchedRef.current = true;
-      setIsDirectLoading(true);
-      
-      fetch('/api/workshop-data/starcard', { 
-        credentials: 'include',
-        cache: 'no-cache'
-      })
-        .then(res => res.json())
-        .then(data => {
-          setDirectData(data);
-        })
-        .catch(err => {
-          console.error("Error fetching star card data:", err);
-          hasFetchedRef.current = false;
-        })
-        .finally(() => {
-          setIsDirectLoading(false);
-        });
-    }
-  }, [starCardData]);
-
-  // Log data sources (minimal)
-  // console.log("StarCard data sources:", { reactQuery: starCardData, directFetch: directData, fallback: fallbackData });
-
-  // Check for data in direct API response with success property
-  const hasDirectApiData = directData && 
-                         directData.success === true &&
-                         (Number(directData.thinking) > 0 ||
-                          Number(directData.acting) > 0 ||
-                          Number(directData.feeling) > 0 ||
-                          Number(directData.planning) > 0);
 
   // Check for data in React Query response
   const hasReactQueryData = starCardData && 
+                          starCardData.success !== false && // Make sure it's not an error response
                           (Number(starCardData.thinking) > 0 || 
-                           Number(starCardData.acting) > 0 || 
-                           Number(starCardData.feeling) > 0 || 
+                           Number(starCardData.acting) > 0 ||
+                           Number(starCardData.feeling) > 0 ||
                            Number(starCardData.planning) > 0);
-
-  // Check for data in direct fetch JSON format
-  const hasDirectJsonData = directData && 
-                          !directData.success &&
-                          (Number(directData.thinking) > 0 || 
-                           Number(directData.acting) > 0 || 
-                           Number(directData.feeling) > 0 || 
-                           Number(directData.planning) > 0);
 
   // Check fallback data
   const hasFallbackData = fallbackData &&
@@ -103,26 +69,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
   // Create the final data object
   let finalData: any = null;
 
-  // Use the best available data source with priority order
-  if (hasDirectApiData) {
-    // API success response format
-    finalData = {
-      thinking: Number(directData.thinking),
-      acting: Number(directData.acting),
-      feeling: Number(directData.feeling),
-      planning: Number(directData.planning),
-      imageUrl: directData.imageUrl || null
-    };
-  } else if (hasDirectJsonData) {
-    // Direct JSON format
-    finalData = {
-      thinking: Number(directData.thinking),
-      acting: Number(directData.acting),
-      feeling: Number(directData.feeling),
-      planning: Number(directData.planning),
-      imageUrl: directData.imageUrl || null
-    };
-  } else if (hasReactQueryData) {
+  if (hasReactQueryData) {
     // React Query format
     finalData = {
       thinking: Number(starCardData.thinking),
@@ -142,33 +89,50 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     };
   }
 
-  if (isLoading || isDirectLoading) {
+  if (isLoading || profileLoading) {
     return <div className="p-8 text-center">Loading your Star Card...</div>;
   }
 
-  // In case we still don't have data
+  // In case we still don't have data, show empty state
   if (!finalData) {
-    // Create hardcoded test data as absolute last resort
-    const testData = {
-      thinking: 27,
-      acting: 27,
-      feeling: 23,
-      planning: 23,
-      imageUrl: null,
-      state: 'complete'
-    };
-    finalData = testData;
+    return (
+      <div className="p-8 text-center">
+        <p className="text-gray-600 mb-4">No Star Card data available</p>
+        <button 
+          onClick={() => refetch()}
+          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          Refresh
+        </button>
+      </div>
+    );
   }
 
   // Log final data (minimal)
   // console.log("StarCard final data for rendering:", finalData);
 
-  // Create a profile object for the star card
+  // Create a profile object for the star card using actual user data
+  const user = userProfile?.user || userProfile;
+  
+  // Debug logging for profile data
+  console.log('🎯 StarCardWithFetch Profile Debug:', {
+    userProfile,
+    extractedUser: user,
+    name: user?.name,
+    username: user?.username,
+    profilePicture: user?.profilePicture ? 'Present (base64)' : 'Missing',
+    title: user?.title,
+    organization: user?.organization
+  });
+  
   const profile = {
-    name: '',
-    title: '',
-    organization: ''
+    name: user?.name || user?.username || '',
+    title: user?.title || '',
+    organization: user?.organization || '',
+    avatarUrl: user?.profilePicture || null
   };
+  
+  console.log('🎯 StarCardWithFetch Final Profile:', profile);
 
   return (
     <StarCard
@@ -177,7 +141,7 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
       acting={finalData.acting}
       feeling={finalData.feeling}
       planning={finalData.planning}
-      imageUrl={finalData.imageUrl}
+      imageUrl={finalData.imageUrl || profile.avatarUrl}
       state={finalData.state} // Important: pass the state to force quadrant display
       flowAttributes={flowAttributes}
       downloadable={downloadable}

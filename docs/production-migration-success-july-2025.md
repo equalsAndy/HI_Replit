@@ -5,8 +5,8 @@
 **Status**: ✅ **PRODUCTION DEPLOYED AND OPERATIONAL**
 
 ### **Infrastructure Overview**
-- **Production**: `hi-replit-production` (AWS Lightsail) - Ready for DNS cutover
-- **Staging**: `hi-replit-v2` (AWS Lightsail) - app2.heliotropeimaginal.com  
+- **Production**: `hi-replit-v2` (AWS Lightsail) - app2.heliotropeimaginal.com
+- **Staging**: `heliotrope-app-v2` (AWS Lightsail) - heliotrope-app-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com  
 - **Development**: Local VS Code + GitHub Copilot Premium
 - **Database**: AWS RDS PostgreSQL (shared development/staging, separate from production users)
 
@@ -21,10 +21,13 @@
 2. **Environment Variables**: Full database connection and session management
 3. **Container Configuration**: Small instance with proper health checks
 4. **Image Management**: Working staging image deployed to production
+5. **Reliable Deployment**: Layered approach using `./deploy-latest-code.sh`
+6. **Image Naming**: Descriptive tags like `staging-v1.0.0.1401-20250718` and `production-v1.0.0.1401-20250718`
+7. **Dual Environment**: Staging (`hi-app-staging`) and Production (`heliotrope-app-v2`) deployment capability
 
 ### **Current URLs**
 - **User-facing (Replit)**: app.heliotropeimaginal.com
-- **Production (AWS)**: hi-replit-production.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
+- **Production (AWS)**: heliotrope-app-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
 - **Staging (AWS)**: app2.heliotropeimaginal.com
 
 ### **DNS Cutover Strategy**
