@@ -86,13 +86,14 @@ const TestUserPage: React.FC = () => {
     }
   });
 
-  // Redirect non-test users
+  // Redirect non-test users accessing /testuser specifically (except admins who can access for testing)
   React.useEffect(() => {
-    if (userResponse && !userResponse.user?.isTestUser) {
+    // Only redirect if we're on the /testuser route and user is not a test user AND not an admin
+    if (userResponse && !userResponse.user?.isTestUser && userResponse.user?.role !== 'admin' && window.location.pathname === '/testuser') {
       toast({
         variant: 'destructive',
         title: 'Access Denied',
-        description: 'This page is only available to test users.',
+        description: 'This page is only available to test users and administrators.',
       });
       setLocation('/dashboard');
     }
@@ -307,8 +308,18 @@ const TestUserPage: React.FC = () => {
       <main className="container mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Test User Page</h1>
-          <p className="text-muted-foreground">Access your workshops and manage your testing progress</p>
+          <h1 className="text-3xl font-bold mb-2">
+            {userResponse.user?.isTestUser ? 'Test User Dashboard' : 
+             userResponse.user?.role === 'admin' ? 'Admin Test View' : 'Workshop Dashboard'}
+          </h1>
+          <p className="text-muted-foreground">
+            {userResponse.user?.isTestUser 
+              ? 'Access your workshops and manage your testing progress'
+              : userResponse.user?.role === 'admin'
+                ? 'Administrative view of the test user interface'
+                : 'Access your workshops and track your progress'
+            }
+          </p>
         </div>
 
         {/* Profile Information Section */}

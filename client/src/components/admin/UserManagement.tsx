@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -190,6 +190,57 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       return data.users || [];
     },
   });
+
+  // Sorting and filtering state
+  const [sortField, setSortField] = useState<string>('id');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [roleFilter, setRoleFilter] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Handle sorting
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  // Filter and sort users
+  const filteredAndSortedUsers = React.useMemo(() => {
+    let filtered = users.filter((user: User) => {
+      const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+      const matchesSearch = !searchTerm || 
+        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (user.organization && user.organization.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesRole && matchesSearch;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a: User, b: User) => {
+      let aValue: any = a[sortField as keyof User];
+      let bValue: any = b[sortField as keyof User];
+
+      // Handle special cases
+      if (sortField === 'name' || sortField === 'username') {
+        aValue = aValue?.toLowerCase() || '';
+        bValue = bValue?.toLowerCase() || '';
+      } else if (sortField === 'id') {
+        aValue = Number(aValue) || 0;
+        bValue = Number(bValue) || 0;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [users, sortField, sortDirection, roleFilter, searchTerm]);
 
   // Form for creating new users
   const createForm = useForm<CreateUserFormValues>({
@@ -658,6 +709,33 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
               </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Filter Controls */}
+              {!isLoadingUsers && users.length > 0 && (
+                <div className="mb-6 flex flex-col sm:flex-row gap-4 items-center">
+                  <Input
+                    placeholder="Search by name, username, email, or organization..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="facilitator">Facilitator</SelectItem>
+                      <SelectItem value="participant">Participant</SelectItem>
+                      <SelectItem value="student">Student</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="text-sm text-muted-foreground">
+                    {filteredAndSortedUsers.length} of {users.length} users
+                  </div>
+                </div>
+              )}
+
               {isLoadingUsers ? (
                 <div className="flex justify-center py-10">
                   <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -666,16 +744,47 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <div className="text-center py-10 text-muted-foreground">
                   <p>No users found. Create a new user to get started.</p>
                 </div>
+              ) : filteredAndSortedUsers.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">
+                  <p>No users match your filters. Try adjusting your search or role filter.</p>
+                </div>
               ) : (
                 <div className="overflow-x-auto">
                   <div className="min-w-[1200px]">
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="w-[50px]">ID</TableHead>
+                          <TableHead 
+                            className="w-[50px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('id')}
+                          >
+                            <div className="flex items-center gap-1">
+                              ID {sortField === 'id' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="min-w-[160px]">User</TableHead>
-                          <TableHead className="w-[90px]">Username</TableHead>
-                          <TableHead className="w-[70px]">Role</TableHead>
+                          <TableHead 
+                            className="w-[90px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('username')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Username {sortField === 'username' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
+                          <TableHead 
+                            className="w-[70px] cursor-pointer hover:bg-muted/50"
+                            onClick={() => handleSort('role')}
+                          >
+                            <div className="flex items-center gap-1">
+                              Role {sortField === 'role' && (
+                                sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                              )}
+                            </div>
+                          </TableHead>
                           <TableHead className="w-[50px]">Test</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
@@ -683,7 +792,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                         </TableRow>
                       </TableHeader>
                     <TableBody>
-                      {users.map((user: User) => (
+                      {filteredAndSortedUsers.map((user: User) => (
                         <TableRow key={user.id} className={user.isDeleted ? 'bg-gray-50 opacity-70' : ''}>
                           <TableCell className="w-[50px]">
                             <span className="font-mono text-xs text-muted-foreground">#{user.id}</span>

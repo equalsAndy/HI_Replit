@@ -76,7 +76,9 @@ const App: React.FC = () => {
                   <Switch>
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
-
+                    
+                    {/* User dashboard routes */}
+                    <Route path="/dashboard" component={TestUserPage} />
                     <Route path="/testuser" component={TestUserPage} />
 
                     {/* Authentication routes */}

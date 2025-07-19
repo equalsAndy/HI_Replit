@@ -1,14 +1,8 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserManagement as FullUserManagement } from '../../components/admin/UserManagement';
-
-// Simple Toast implementation
-const useToast = () => {
-  const toast = (options: { title: string; description?: string; variant?: 'destructive' }) => {
-    alert(`${options.title}\n${options.description || ''}`);
-  };
-  return { toast };
-};
+import { useToast } from '../../hooks/use-toast';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
 
 // Simple navigation hook
 const useLocation = () => {
@@ -33,52 +27,23 @@ const apiRequest = async (url: string, options: any = {}) => {
 
 // Enhanced Video Management Component
 const SimpleVideoManagement: React.FC = () => {
-  const [searchTerm, setSearchTerm] = React.useState('');
-  const [workshopFilter, setWorkshopFilter] = React.useState<'all' | 'allstarteams' | 'imaginal-agility' | 'general'>('all');
-  const [sortField, setSortField] = React.useState<string>('sort_order');
+  const { toast } = useToast();
+  const [videos, setVideos] = React.useState<any[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [selectedVideo, setSelectedVideo] = React.useState<any>(null);
+  const [editableId, setEditableId] = React.useState('');
+  const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
+  const [autoplayEnabled, setAutoplayEnabled] = React.useState(false);
+  const [watchPercentage, setWatchPercentage] = React.useState(75);
+
+  // Sorting and filtering state
+  const [sortField, setSortField] = React.useState<string>('title');
   const [sortDirection, setSortDirection] = React.useState<'asc' | 'desc'>('asc');
+  const [workshopFilter, setWorkshopFilter] = React.useState<string>('all');
+  const [searchTerm, setSearchTerm] = React.useState('');
 
-  const { data: videosResponse, isLoading, refetch } = useQuery({
-    queryKey: ['/api/admin/videos'],
-    queryFn: () => apiRequest('/api/admin/videos'),
-  });
-
-  const updateVideoMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => 
-      apiRequest(`/api/admin/videos/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }),
-    onSuccess: () => refetch(),
-  });
-
-  // Handle both response formats: direct array OR {videos: [...]}
-  const videoData = Array.isArray(videosResponse) ? videosResponse : (videosResponse?.videos || []);
-
-  // Filter and sort videos
-  const filteredAndSortedVideos = React.useMemo(() => {
-    let filtered = videoData.filter((video: any) => {
-      const matchesSearch = video.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           video.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesWorkshop = workshopFilter === 'all' || video.workshop_type === workshopFilter;
-      return matchesSearch && matchesWorkshop;
-    });
-
-    return filtered.sort((a: any, b: any) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
-      
-      if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-      if (typeof bValue === 'string') bValue = bValue.toLowerCase();
-      
-      if (sortDirection === 'asc') {
-        return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-      } else {
-        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-      }
-    });
-  }, [videoData, searchTerm, workshopFilter, sortField, sortDirection]);
-
+  // Handle sorting
   const handleSort = (field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -88,247 +53,688 @@ const SimpleVideoManagement: React.FC = () => {
     }
   };
 
-  const getWorkshopBadge = (type: string) => {
-    const badges = {
-      'allstarteams': { text: 'AST', color: '#f59e0b', bg: '#fef3c7' },
-      'imaginal-agility': { text: 'IA', color: '#8b5cf6', bg: '#f3e8ff' },
-      'general': { text: 'GEN', color: '#6b7280', bg: '#f3f4f6' }
-    };
-    const badge = badges[type as keyof typeof badges] || badges.general;
+  // Filter and sort videos
+  const filteredAndSortedVideos = React.useMemo(() => {
+    let filtered = videos.filter(video => {
+      const matchesWorkshop = workshopFilter === 'all' || video.workshop_type === workshopFilter;
+      const matchesSearch = !searchTerm || 
+        video.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (video.step_id && video.step_id.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (video.editableId && video.editableId.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesWorkshop && matchesSearch;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue = a[sortField];
+      let bValue = b[sortField];
+
+      // Handle special cases
+      if (sortField === 'title') {
+        aValue = aValue?.toLowerCase() || '';
+        bValue = bValue?.toLowerCase() || '';
+      } else if (sortField === 'step_id') {
+        aValue = aValue || 'zzz'; // Put empty step_ids at the end
+        bValue = bValue || 'zzz';
+      } else if (sortField === 'workshop_type') {
+        aValue = aValue || '';
+        bValue = bValue || '';
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return filtered;
+  }, [videos, sortField, sortDirection, workshopFilter, searchTerm]);
+
+  // Extract YouTube video ID from URL
+  const extractYouTubeId = (url: string): string => {
+    const embedRegex = /youtube\.com\/embed\/([^?&/]+)/;
+    const embedMatch = url.match(embedRegex);
+    if (embedMatch && embedMatch[1]) return embedMatch[1];
     
-    return (
-      <span style={{
-        padding: '2px 8px',
-        borderRadius: '12px',
-        fontSize: '12px',
-        fontWeight: '600',
-        color: badge.color,
-        backgroundColor: badge.bg
-      }}>
-        {badge.text}
-      </span>
-    );
+    const watchRegex = /youtube\.com\/watch\?v=([^&]+)/;
+    const watchMatch = url.match(watchRegex);
+    if (watchMatch && watchMatch[1]) return watchMatch[1];
+    
+    const shortRegex = /youtu\.be\/([^?&/]+)/;
+    const shortMatch = url.match(shortRegex);
+    if (shortMatch && shortMatch[1]) return shortMatch[1];
+    
+    return url;
   };
 
-  const styles = {
-    container: {
-      padding: '20px',
-      fontFamily: 'system-ui, -apple-system, sans-serif'
-    },
-    header: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      marginBottom: '20px',
-      paddingBottom: '15px',
-      borderBottom: '2px solid #e5e7eb'
-    },
-    title: {
-      fontSize: '24px',
-      fontWeight: 'bold',
-      margin: 0,
-      color: '#1f2937'
-    },
-    controls: {
-      display: 'flex',
-      gap: '15px',
-      marginBottom: '20px',
-      flexWrap: 'wrap' as const,
-      alignItems: 'center'
-    },
-    searchInput: {
-      padding: '8px 12px',
-      border: '1px solid #d1d5db',
-      borderRadius: '6px',
-      fontSize: '14px',
-      minWidth: '200px'
-    },
-    select: {
-      padding: '8px 12px',
-      border: '1px solid #d1d5db',
-      borderRadius: '6px',
-      fontSize: '14px',
-      backgroundColor: 'white'
-    },
-    table: {
-      width: '100%',
-      borderCollapse: 'collapse' as const,
-      border: '1px solid #e5e7eb',
-      borderRadius: '8px',
-      overflow: 'hidden',
-      backgroundColor: 'white'
-    },
-    th: {
-      padding: '12px',
-      textAlign: 'left' as const,
-      backgroundColor: '#f9fafb',
-      borderBottom: '1px solid #e5e7eb',
-      fontWeight: '600',
-      cursor: 'pointer',
-      fontSize: '14px'
-    },
-    td: {
-      padding: '12px',
-      borderBottom: '1px solid #f3f4f6',
-      fontSize: '14px'
-    },
-    editableInput: {
-      padding: '4px 8px',
-      border: '1px solid #d1d5db',
-      borderRadius: '4px',
-      fontSize: '13px',
-      width: '80px'
+  // Generate embed URL from video ID
+  const generateEmbedUrl = (videoId: string, autoplay: boolean = false): string => {
+    const autoplayParam = autoplay ? '&autoplay=1' : '';
+    return `https://www.youtube.com/embed/${videoId}?enablejsapi=1&rel=0${autoplayParam}`;
+  };
+
+  // Fetch videos
+  React.useEffect(() => {
+    const fetchVideos = async () => {
+      setIsLoading(true);
+      try {
+        console.log('🔄 Fetching videos from /api/admin/videos...');
+        const response = await apiRequest('/api/admin/videos');
+        console.log('📦 Video API Response:', response);
+        
+        // Handle different response formats
+        let videoData: any[] = [];
+        if (Array.isArray(response)) {
+          videoData = response;
+        } else if (response && response.videos && Array.isArray(response.videos)) {
+          videoData = response.videos;
+        } else if (response && response.success && response.data && Array.isArray(response.data)) {
+          videoData = response.data;
+        } else {
+          console.warn('⚠️ Unexpected response format:', response);
+          videoData = [];
+        }
+        
+        console.log('✅ Processed video data:', videoData);
+        setVideos(videoData);
+      } catch (error) {
+        console.error('❌ Error fetching videos:', error);
+        toast({ 
+          title: 'Error', 
+          description: 'Failed to load videos', 
+          variant: 'destructive' 
+        });
+        setVideos([]); // Set empty array on error
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchVideos();
+  }, []); // Remove toast dependency to prevent infinite loop
+
+  // Update video
+  const updateVideo = async () => {
+    if (!selectedVideo || !editableId.trim()) {
+      toast({ 
+        title: 'Error', 
+        description: 'Please enter a valid video ID', 
+        variant: 'destructive' 
+      });
+      return;
     }
+
+    try {
+      const newUrl = generateEmbedUrl(editableId, autoplayEnabled);
+      
+      const response = await apiRequest(`/api/admin/videos/${selectedVideo.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          editableId: editableId,
+          url: newUrl,
+          autoplay: autoplayEnabled,
+          requiredWatchPercentage: watchPercentage
+        }),
+      });
+
+      // Handle different response formats
+      let success = false;
+      let videoData = null;
+      
+      if (response && response.success !== false) {
+        // Check if it's wrapped in a success object or direct video data
+        if (response.success === true) {
+          success = true;
+          videoData = response.video || response.data;
+        } else if (response.id) {
+          // Direct video object response
+          success = true;
+          videoData = response;
+        }
+      }
+
+      if (!success) {
+        throw new Error(response?.error || response?.message || 'Update failed');
+      }
+
+      // Update local state
+      setVideos(prev => prev.map(video => 
+        video.id === selectedVideo.id 
+          ? { 
+              ...video, 
+              editableId: editableId, 
+              url: newUrl, 
+              autoplay: autoplayEnabled, 
+              requiredWatchPercentage: watchPercentage 
+            }
+          : video
+      ));
+
+      setIsEditDialogOpen(false);
+      toast({ 
+        title: 'Success', 
+        description: 'Video updated successfully' 
+      });
+    } catch (error) {
+      console.error('Error updating video:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to update video', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  // Handle edit click
+  const handleEditClick = (video: any) => {
+    setSelectedVideo(video);
+    setEditableId(video.editableId || extractYouTubeId(video.url));
+    setAutoplayEnabled(video.autoplay || false);
+    setWatchPercentage(video.requiredWatchPercentage || 75);
+    setPreviewUrl(video.url);
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle preview URL update when editing
+  const handlePreviewIdChange = (newId: string) => {
+    setEditableId(newId);
+    if (newId.trim()) {
+      const newPreviewUrl = generateEmbedUrl(newId, autoplayEnabled);
+      setPreviewUrl(newPreviewUrl);
+    }
+  };
+
+  // Delete video
+  const deleteVideo = async (videoId: number) => {
+    const video = videos.find(v => v.id === videoId);
+    if (!window.confirm(`Are you sure you want to delete "${video?.title}"?`)) return;
+
+    try {
+      const response = await apiRequest(`/api/admin/videos/${videoId}`, { method: 'DELETE' });
+      
+      // Handle different response formats
+      let success = false;
+      if (response && response.success !== false) {
+        // Check if it's a success response or simple message response
+        if (response.success === true || response.message) {
+          success = true;
+        }
+      }
+
+      if (!success) {
+        throw new Error(response?.error || response?.message || 'Delete failed');
+      }
+
+      setVideos(prev => prev.filter(video => video.id !== videoId));
+      toast({ 
+        title: 'Success', 
+        description: 'Video deleted successfully' 
+      });
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete video', 
+        variant: 'destructive' 
+      });
+    }
+  };
+
+  // Generate embed code for display
+  const generateEmbedCode = (url: string): string => {
+    return `<iframe 
+  src="${url}?enablejsapi=1&autoplay=${autoplayEnabled ? '1' : '0'}&rel=0"
+  title="${selectedVideo?.title || 'Video'}"
+  className="w-full h-full"
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+  allowFullScreen>
+</iframe>`;
   };
 
   if (isLoading) {
     return (
-      <div style={styles.container}>
-        <div style={{ textAlign: 'center', padding: '50px' }}>
-          Loading video management...
-        </div>
+      <div style={{ textAlign: 'center', padding: '50px' }}>
+        <div style={{ fontSize: '16px', marginBottom: '10px' }}>Loading videos...</div>
+        <div style={{ fontSize: '14px', color: '#6b7280' }}>Fetching video data from server</div>
       </div>
     );
   }
+
+  const styles = {
+    container: { padding: '20px' },
+    header: { marginBottom: '20px' },
+    title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' },
+    subtitle: { color: '#6b7280', fontSize: '14px' },
+    table: { width: '100%', borderCollapse: 'collapse' as const, border: '1px solid #e5e7eb' },
+    th: { 
+      padding: '12px', 
+      backgroundColor: '#f9fafb', 
+      borderBottom: '1px solid #e5e7eb',
+      textAlign: 'left' as const,
+      fontWeight: '600'
+    },
+    td: { padding: '12px', borderBottom: '1px solid #f3f4f6' },
+    button: {
+      padding: '8px',
+      border: '1px solid #d1d5db',
+      borderRadius: '4px',
+      backgroundColor: 'white',
+      cursor: 'pointer',
+      fontSize: '12px',
+      marginRight: '4px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: '32px',
+      height: '32px'
+    },
+    editButton: {
+      padding: '8px',
+      border: '1px solid #3b82f6',
+      borderRadius: '4px',
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      cursor: 'pointer',
+      fontSize: '12px',
+      marginRight: '4px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: '32px',
+      height: '32px'
+    },
+    deleteButton: {
+      padding: '8px',
+      border: '1px solid #dc2626',
+      borderRadius: '4px',
+      backgroundColor: '#dc2626',
+      color: 'white',
+      cursor: 'pointer',
+      fontSize: '12px',
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minWidth: '32px',
+      height: '32px'
+    },
+    modal: {
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    },
+    modalContent: {
+      backgroundColor: 'white',
+      borderRadius: '8px',
+      padding: '24px',
+      maxWidth: '800px',
+      width: '90%',
+      maxHeight: '90vh',
+      overflow: 'auto'
+    },
+    modalHeader: { marginBottom: '20px' },
+    modalTitle: { fontSize: '20px', fontWeight: 'bold', marginBottom: '8px' },
+    modalSubtitle: { color: '#6b7280', fontSize: '14px' },
+    formGroup: { marginBottom: '16px' },
+    label: { display: 'block', fontSize: '14px', fontWeight: '500', marginBottom: '4px' },
+    input: {
+      width: '100%',
+      padding: '8px 12px',
+      border: '1px solid #d1d5db',
+      borderRadius: '4px',
+      fontSize: '14px'
+    },
+    textarea: {
+      width: '100%',
+      padding: '8px 12px',
+      border: '1px solid #d1d5db',
+      borderRadius: '4px',
+      fontSize: '12px',
+      fontFamily: 'monospace',
+      backgroundColor: '#f9fafb',
+      resize: 'vertical' as const,
+      minHeight: '120px'
+    },
+    preview: {
+      width: '100%',
+      aspectRatio: '16/9',
+      backgroundColor: '#f3f4f6',
+      borderRadius: '8px',
+      overflow: 'hidden'
+    },
+    checkbox: { marginRight: '8px' },
+    range: { width: '100%', marginTop: '8px' },
+    modalFooter: { 
+      marginTop: '24px', 
+      display: 'flex', 
+      justifyContent: 'flex-end', 
+      gap: '12px' 
+    },
+    badge: {
+      padding: '2px 8px',
+      borderRadius: '12px',
+      fontSize: '12px',
+      fontWeight: '500'
+    }
+  };
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
         <h2 style={styles.title}>Video Management</h2>
-        <div style={{ fontSize: '14px', color: '#6b7280' }}>
-          {filteredAndSortedVideos.length} of {videoData.length} videos
-        </div>
+        <p style={styles.subtitle}>Manage videos for all workshops. Add, edit, and view videos used throughout the platform.</p>
       </div>
 
-      <div style={styles.controls}>
+      {/* Filter Controls */}
+      <div style={{ 
+        marginBottom: '20px', 
+        display: 'flex', 
+        gap: '12px', 
+        alignItems: 'center',
+        flexWrap: 'wrap' as const
+      }}>
         <input
-          style={styles.searchInput}
           type="text"
-          placeholder="Search videos..."
+          placeholder="Search by title, step ID, or video ID..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            fontSize: '14px',
+            minWidth: '200px',
+            flex: '1'
+          }}
         />
-        
         <select
-          style={styles.select}
           value={workshopFilter}
-          onChange={(e) => setWorkshopFilter(e.target.value as any)}
+          onChange={(e) => setWorkshopFilter(e.target.value)}
+          style={{
+            padding: '8px 12px',
+            border: '1px solid #d1d5db',
+            borderRadius: '6px',
+            fontSize: '14px',
+            backgroundColor: 'white'
+          }}
         >
           <option value="all">All Workshops</option>
           <option value="allstarteams">AllStarTeams</option>
           <option value="imaginal-agility">Imaginal Agility</option>
           <option value="general">General</option>
         </select>
+        <span style={{ fontSize: '14px', color: '#6b7280' }}>
+          {filteredAndSortedVideos.length} of {videos.length} videos
+        </span>
       </div>
 
       <table style={styles.table}>
         <thead>
           <tr>
-            <th style={styles.th} onClick={() => handleSort('title')}>
-              Title {sortField === 'title' && (sortDirection === 'asc' ? '↑' : '↓')}
+            <th 
+              style={{ ...styles.th, cursor: 'pointer', userSelect: 'none' as const }}
+              onClick={() => handleSort('title')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Title 
+                {sortField === 'title' && (
+                  sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                )}
+              </div>
             </th>
-            <th style={styles.th} onClick={() => handleSort('workshop_type')}>
-              Workshop {sortField === 'workshop_type' && (sortDirection === 'asc' ? '↑' : '↓')}
+            <th 
+              style={{ ...styles.th, cursor: 'pointer', userSelect: 'none' as const }}
+              onClick={() => handleSort('workshop_type')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Workshop 
+                {sortField === 'workshop_type' && (
+                  sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                )}
+              </div>
             </th>
-            <th style={styles.th} onClick={() => handleSort('step_id')}>
-              Step {sortField === 'step_id' && (sortDirection === 'asc' ? '↑' : '↓')}
+            <th 
+              style={{ ...styles.th, cursor: 'pointer', userSelect: 'none' as const }}
+              onClick={() => handleSort('step_id')}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                Step ID 
+                {sortField === 'step_id' && (
+                  sortDirection === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />
+                )}
+              </div>
             </th>
-            <th style={styles.th} onClick={() => handleSort('sort_order')}>
-              Order {sortField === 'sort_order' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </th>
-            <th style={styles.th}>YouTube ID</th>
-            <th style={styles.th} onClick={() => handleSort('required_watch_percentage')}>
-              Watch % {sortField === 'required_watch_percentage' && (sortDirection === 'asc' ? '↑' : '↓')}
-            </th>
-            <th style={styles.th}>Mode</th>
+            <th style={styles.th}>Video ID</th>
+            <th style={styles.th}>Autoplay</th>
+            <th style={styles.th}>Actions</th>
           </tr>
         </thead>
         <tbody>
-          {filteredAndSortedVideos.map((video: any) => (
+          {filteredAndSortedVideos.map((video) => (
             <tr key={video.id}>
+              <td style={styles.td}>{video.title}</td>
               <td style={styles.td}>
-                <div style={{ fontWeight: '500' }}>{video.title}</div>
-                {video.description && (
-                  <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
-                    {video.description.substring(0, 80)}...
-                  </div>
-                )}
+                <span style={{
+                  ...styles.badge,
+                  backgroundColor: video.workshop_type === 'allstarteams' ? '#dbeafe' : 
+                                  video.workshop_type === 'imaginal-agility' ? '#f3e8ff' : '#f3f4f6',
+                  color: video.workshop_type === 'allstarteams' ? '#1d4ed8' : 
+                         video.workshop_type === 'imaginal-agility' ? '#7c3aed' : '#374151'
+                }}>
+                  {video.workshop_type}
+                </span>
               </td>
+              <td style={styles.td}>{video.step_id || '–'}</td>
               <td style={styles.td}>
-                {getWorkshopBadge(video.workshop_type)}
+                <code style={{ fontSize: '12px', backgroundColor: '#f3f4f6', padding: '2px 4px', borderRadius: '3px' }}>
+                  {video.editableId || extractYouTubeId(video.url)}
+                </code>
               </td>
               <td style={styles.td}>
                 <span style={{
-                  padding: '2px 6px',
-                  backgroundColor: '#f3f4f6',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  fontFamily: 'monospace'
+                  ...styles.badge,
+                  backgroundColor: video.autoplay ? '#dcfce7' : '#f3f4f6',
+                  color: video.autoplay ? '#166534' : '#374151'
                 }}>
-                  {video.step_id || 'N/A'}
+                  {video.autoplay ? 'Yes' : 'No'}
                 </span>
               </td>
-              <td style={styles.td}>{video.sort_order}</td>
               <td style={styles.td}>
-                <input
-                  style={styles.editableInput}
-                  type="text"
-                  value={video.editable_id || ''}
-                  onChange={(e) => {
-                    updateVideoMutation.mutate({
-                      id: video.id,
-                      data: { editable_id: e.target.value }
-                    });
-                  }}
-                  placeholder="YouTube ID"
-                />
-              </td>
-              <td style={styles.td}>
-                <input
-                  style={styles.editableInput}
-                  type="number"
-                  value={video.required_watch_percentage || 1}
-                  onChange={(e) => {
-                    updateVideoMutation.mutate({
-                      id: video.id,
-                      data: { required_watch_percentage: parseInt(e.target.value) || 1 }
-                    });
-                  }}
-                  min="1"
-                  max="100"
-                />%
-              </td>
-              <td style={styles.td}>
-                <select
-                  style={{ ...styles.select, width: '80px', padding: '4px 8px' }}
-                  value={video.content_mode || 'both'}
-                  onChange={(e) => {
-                    updateVideoMutation.mutate({
-                      id: video.id,
-                      data: { content_mode: e.target.value }
-                    });
-                  }}
+                <button 
+                  style={styles.button}
+                  onClick={() => window.open(video.url, '_blank')}
+                  title="Preview video"
                 >
-                  <option value="both">Both</option>
-                  <option value="student">Student</option>
-                  <option value="professional">Pro</option>
-                </select>
+                  <Eye size={14} />
+                </button>
+                <button 
+                  style={styles.editButton}
+                  onClick={() => handleEditClick(video)}
+                  title="Edit video"
+                >
+                  <Edit3 size={14} />
+                </button>
+                <button 
+                  style={styles.deleteButton}
+                  onClick={() => deleteVideo(video.id)}
+                  title="Delete video"
+                >
+                  <Trash2 size={14} />
+                </button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
 
-      {filteredAndSortedVideos.length === 0 && (
+      {/* No videos message */}
+      {filteredAndSortedVideos.length === 0 && !isLoading && (
         <div style={{
           textAlign: 'center',
           padding: '40px',
           color: '#6b7280',
           backgroundColor: '#f9fafb',
           borderRadius: '8px',
-          marginTop: '20px'
+          marginTop: '20px',
+          border: '1px solid #e5e7eb'
         }}>
-          No videos found matching your criteria
+          <div style={{ fontSize: '18px', marginBottom: '8px' }}>
+            {videos.length === 0 ? 'No videos found' : 'No videos match your filters'}
+          </div>
+          <div style={{ fontSize: '14px' }}>
+            {videos.length === 0 
+              ? 'No videos are currently configured in the system.'
+              : 'Try adjusting your search term or workshop filter.'
+            }
+          </div>
+        </div>
+      )}
+
+      {/* Edit Video Modal */}
+      {isEditDialogOpen && selectedVideo && (
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3 style={styles.modalTitle}>Edit Video</h3>
+              <p style={styles.modalSubtitle}>
+                Update the video ID for <strong>{selectedVideo.title}</strong> 
+                {selectedVideo.step_id && ` (Step: ${selectedVideo.step_id})`}. The preview will update in real-time.
+              </p>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Video ID</label>
+              <input 
+                style={styles.input}
+                value={editableId}
+                onChange={(e) => handlePreviewIdChange(e.target.value)}
+                placeholder="Enter YouTube video ID (the part after v= or /embed/)"
+              />
+              <small style={{ color: '#6b7280', fontSize: '12px' }}>
+                Enter the YouTube video ID (the part after v= or /embed/)
+              </small>
+            </div>
+
+            {/* Live Video Preview */}
+            {previewUrl && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Live Preview</label>
+                <div style={styles.preview}>
+                  <iframe
+                    src={previewUrl}
+                    title="Video Preview"
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Autoplay Control */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                <input 
+                  type="checkbox"
+                  style={styles.checkbox}
+                  checked={autoplayEnabled}
+                  onChange={(e) => {
+                    setAutoplayEnabled(e.target.checked);
+                    if (editableId.trim()) {
+                      const newPreviewUrl = generateEmbedUrl(editableId, e.target.checked);
+                      setPreviewUrl(newPreviewUrl);
+                    }
+                  }}
+                />
+                Enable Autoplay
+              </label>
+            </div>
+
+            {/* Watch Percentage Control */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                Required Watch Percentage: {watchPercentage}%
+              </label>
+              <input 
+                type="number"
+                style={{
+                  ...styles.range,
+                  border: '1px solid #d1d5db',
+                  borderRadius: '4px',
+                  padding: '8px 12px',
+                  fontSize: '14px',
+                  width: '80px'
+                }}
+                min="1"
+                max="100"
+                value={watchPercentage}
+                onChange={(e) => {
+                  const value = Math.max(1, Math.min(100, Number(e.target.value) || 1));
+                  setWatchPercentage(value);
+                }}
+                onBlur={(e) => {
+                  // Ensure value is within bounds when user finishes editing
+                  const value = Math.max(1, Math.min(100, Number(e.target.value) || 1));
+                  setWatchPercentage(value);
+                }}
+              />
+              <small style={{ color: '#6b7280', fontSize: '12px' }}>
+                How much of the video must be watched to trigger the next button active (1-100%)
+              </small>
+            </div>
+
+            {/* Embed Code Display */}
+            {previewUrl && (
+              <div style={styles.formGroup}>
+                <label style={styles.label}>Embed Code (Read-only)</label>
+                <textarea
+                  style={styles.textarea}
+                  value={generateEmbedCode(previewUrl)}
+                  readOnly
+                />
+                <small style={{ color: '#6b7280', fontSize: '12px' }}>
+                  This is the exact embed code that will be used in content views
+                  {autoplayEnabled && " (includes autoplay parameter)"}
+                </small>
+              </div>
+            )}
+
+            {/* Current URL Info */}
+            <div style={styles.formGroup}>
+              <label style={styles.label}>Current URL</label>
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#6b7280', 
+                backgroundColor: '#f9fafb', 
+                padding: '8px', 
+                borderRadius: '4px',
+                fontFamily: 'monospace',
+                wordBreak: 'break-all'
+              }}>
+                {selectedVideo.url}
+              </div>
+            </div>
+
+            <div style={styles.modalFooter}>
+              <button 
+                style={styles.button}
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                style={styles.editButton}
+                onClick={updateVideo}
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -377,6 +783,7 @@ const InviteManagement: React.FC = () => {
     email: '',
     role: 'participant',
     name: '',
+    isTestUser: false,
   });
   const [isSendingInvite, setIsSendingInvite] = React.useState(false);
   const { toast } = useToast();
@@ -391,7 +798,11 @@ const InviteManagement: React.FC = () => {
       }
     } catch (error) {
       console.error('Error fetching invites:', error);
-      toast({ title: 'Error', description: 'Failed to load invites' });
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to load invites',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
@@ -404,7 +815,11 @@ const InviteManagement: React.FC = () => {
   const handleCreateInvite = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newInvite.email) {
-      toast({ title: 'Error', description: 'Please enter an email address' });
+      toast({ 
+        title: 'Error', 
+        description: 'Please enter an email address',
+        variant: 'destructive'
+      });
       return;
     }
 
@@ -416,15 +831,26 @@ const InviteManagement: React.FC = () => {
       });
 
       if (response.success) {
-        toast({ title: 'Success', description: `Invite created for ${newInvite.email}` });
-        setNewInvite({ email: '', role: 'participant', name: '' });
+        toast({ 
+          title: 'Success', 
+          description: `Invite created for ${newInvite.email}` 
+        });
+        setNewInvite({ email: '', role: 'participant', name: '', isTestUser: false });
         fetchInvites();
       } else {
-        toast({ title: 'Error', description: response.error || 'Failed to create invite' });
+        toast({ 
+          title: 'Error', 
+          description: response.error || 'Failed to create invite',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error creating invite:', error);
-      toast({ title: 'Error', description: 'Failed to create invite' });
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to create invite',
+        variant: 'destructive'
+      });
     } finally {
       setIsSendingInvite(false);
     }
@@ -439,23 +865,41 @@ const InviteManagement: React.FC = () => {
       });
 
       if (response.success) {
-        toast({ title: 'Success', description: 'Invite deleted successfully' });
+        toast({ 
+          title: 'Success', 
+          description: 'Invite deleted successfully' 
+        });
         fetchInvites();
       } else {
-        toast({ title: 'Error', description: response.error || 'Failed to delete invite' });
+        toast({ 
+          title: 'Error', 
+          description: response.error || 'Failed to delete invite',
+          variant: 'destructive'
+        });
       }
     } catch (error) {
       console.error('Error deleting invite:', error);
-      toast({ title: 'Error', description: 'Failed to delete invite' });
+      toast({ 
+        title: 'Error', 
+        description: 'Failed to delete invite',
+        variant: 'destructive'
+      });
     }
   };
 
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast({ title: 'Copied!', description: 'Invite code copied to clipboard' });
+      toast({ 
+        title: 'Copied!', 
+        description: 'Invite code copied to clipboard' 
+      });
     } catch (error) {
-      toast({ title: 'Copy failed', description: 'Failed to copy invite code' });
+      toast({ 
+        title: 'Copy failed', 
+        description: 'Failed to copy invite code',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -671,6 +1115,21 @@ const InviteManagement: React.FC = () => {
                       <option value="admin">Admin</option>
                     </select>
                   </div>
+                  <div style={styles.formGroup}>
+                    <label style={{ ...styles.label, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <input
+                        type="checkbox"
+                        checked={newInvite.isTestUser}
+                        onChange={(e) => setNewInvite({ ...newInvite, isTestUser: e.target.checked })}
+                        disabled={isSendingInvite}
+                        style={{ margin: 0 }}
+                      />
+                      Test User
+                    </label>
+                    <small style={{ color: '#6b7280', fontSize: '12px', marginTop: '4px' }}>
+                      Mark this user as a test account for development/testing purposes
+                    </small>
+                  </div>
                 </div>
 
                 <button
@@ -785,6 +1244,8 @@ export default function AdminDashboard() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = React.useState('users');
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
+  const [astLogoError, setAstLogoError] = React.useState(false);
+  const [iaLogoError, setIaLogoError] = React.useState(false);
 
   // Fetch current user to check permissions
   const { data: userProfile, isLoading: isLoadingUser, error } = useQuery<any>({
@@ -844,10 +1305,15 @@ export default function AdminDashboard() {
     try {
       await apiRequest('/api/auth/logout', { method: 'POST' });
       queryClient.clear();
-      toast({ title: 'Logged out successfully' });
+      toast({ 
+        title: 'Logged out successfully' 
+      });
       navigate('/');
     } catch (error) {
-      toast({ title: 'Logout failed', variant: 'destructive' });
+      toast({ 
+        title: 'Logout failed', 
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -1027,21 +1493,54 @@ export default function AdminDashboard() {
               Student
             </button>
           </div>
-          {/* Subtle indicator showing current interface */}
-          <div style={{ 
-            fontSize: '12px', 
-            color: '#2563eb', 
-            marginTop: '8px',
-            fontWeight: 'bold',
-            padding: '4px 8px',
-            backgroundColor: '#f1f5f9',
-            borderRadius: '4px',
-            textAlign: 'center'
-          }}>
-            🔄 Active: {contentAccess} interface
-          </div>
-          <a href="/allstarteams" style={styles.button}>⭐ AllStarTeams</a>
-          <a href="/imaginal-agility" style={styles.button}>🧠 Imaginal Agility</a>
+          <a href="/allstarteams" style={{...styles.button, display: 'flex', alignItems: 'center', gap: '8px'}}>
+            {!astLogoError ? (
+              <img 
+                src="/all-star-teams-logo-square.png" 
+                alt="AllStarTeams" 
+                style={{width: '20px', height: '20px'}} 
+                onError={() => setAstLogoError(true)}
+              />
+            ) : (
+              <span style={{
+                width: '20px', 
+                height: '20px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: '10px', 
+                fontWeight: 'bold',
+                backgroundColor: '#f59e0b',
+                color: 'white',
+                borderRadius: '3px'
+              }}>AST</span>
+            )}
+            AllStarTeams
+          </a>
+          <a href="/imaginal-agility" style={{...styles.button, display: 'flex', alignItems: 'center', gap: '8px'}}>
+            {!iaLogoError ? (
+              <img 
+                src="/IA_sq.png" 
+                alt="Imaginal Agility" 
+                style={{width: '20px', height: '20px'}} 
+                onError={() => setIaLogoError(true)}
+              />
+            ) : (
+              <span style={{
+                width: '20px', 
+                height: '20px', 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center', 
+                fontSize: '10px', 
+                fontWeight: 'bold',
+                backgroundColor: '#8b5cf6',
+                color: 'white',
+                borderRadius: '3px'
+              }}>IA</span>
+            )}
+            Imaginal Agility
+          </a>
           <button style={styles.logoutButton} onClick={handleLogout}>
             Logout
           </button>
