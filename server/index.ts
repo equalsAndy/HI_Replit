@@ -8,6 +8,7 @@ import reportRoutes from './routes/report-routes.js';
 import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
 import coachingRoutes from './routes/coaching-routes.js';
+import coachingChatRoutes from './routes/coaching-chat-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import path from 'path';
@@ -187,6 +188,7 @@ async function initializeApp() {
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
+      app.use('/api/coaching/chat', coachingChatRoutes);
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {

@@ -468,6 +468,60 @@ export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
 export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
 
+// AST AI Coaching Chatbot Tables
+export const coachingConversations = pgTable('coaching_conversations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  teamId: integer('team_id').references(() => teams.id, { onDelete: 'set null' }),
+  personaType: varchar('persona_type', { length: 50 }).notNull(), // 'workshop_assistant', 'talia_coach', 'team_advisor'
+  workshopStep: varchar('workshop_step', { length: 100 }),
+  title: varchar('title', { length: 255 }),
+  contextData: jsonb('context_data'), // Store workshop context, team context, etc.
+  isActive: boolean('is_active').default(true).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const coachingMessages = pgTable('coaching_messages', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  conversationId: uuid('conversation_id').references(() => coachingConversations.id, { onDelete: 'cascade' }).notNull(),
+  senderType: varchar('sender_type', { length: 20 }).notNull(), // 'user' or 'ai'
+  messageContent: text('message_content').notNull(),
+  bedrockRequestId: varchar('bedrock_request_id', { length: 255 }), // Track AWS Bedrock requests
+  attachments: jsonb('attachments'), // File attachments, images, etc.
+  messageMetadata: jsonb('message_metadata'), // Additional context, tokens used, etc.
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
+export const userCoachingPreferences = pgTable('user_coaching_preferences', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  preferredPersona: varchar('preferred_persona', { length: 50 }).default('workshop_assistant'),
+  coachingStyle: varchar('coaching_style', { length: 50 }).default('supportive'), // 'supportive', 'direct', 'exploratory'
+  workshopProgress: jsonb('workshop_progress'), // Track progress through AST workshops
+  notificationSettings: jsonb('notification_settings'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+export const coachingPrompts = pgTable('coaching_prompts', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  promptKey: varchar('prompt_key', { length: 100 }).notNull().unique(),
+  personaType: varchar('persona_type', { length: 50 }).notNull(),
+  systemInstructions: text('system_instructions').notNull(),
+  contextTemplate: text('context_template'), // Template for injecting dynamic context
+  isActive: boolean('is_active').default(true).notNull(),
+  version: integer('version').default(1).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Create insert schemas for chatbot tables
+export const insertCoachingConversationSchema = createInsertSchema(coachingConversations);
+export const insertCoachingMessageSchema = createInsertSchema(coachingMessages);
+export const insertUserCoachingPreferencesSchema = createInsertSchema(userCoachingPreferences);
+export const insertCoachingPromptSchema = createInsertSchema(coachingPrompts);
+
 // Type definitions for new coaching tables
 export type CoachKnowledgeBase = typeof coachKnowledgeBase.$inferSelect;
 export type InsertCoachKnowledgeBase = z.infer<typeof insertCoachKnowledgeBaseSchema>;
@@ -479,3 +533,13 @@ export type ConnectionSuggestion = typeof connectionSuggestions.$inferSelect;
 export type InsertConnectionSuggestion = z.infer<typeof insertConnectionSuggestionsSchema>;
 export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
 export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingsSchema>;
+
+// Type definitions for chatbot tables
+export type CoachingConversation = typeof coachingConversations.$inferSelect;
+export type InsertCoachingConversation = z.infer<typeof insertCoachingConversationSchema>;
+export type CoachingMessage = typeof coachingMessages.$inferSelect;
+export type InsertCoachingMessage = z.infer<typeof insertCoachingMessageSchema>;
+export type UserCoachingPreferences = typeof userCoachingPreferences.$inferSelect;
+export type InsertUserCoachingPreferences = z.infer<typeof insertUserCoachingPreferencesSchema>;
+export type CoachingPrompt = typeof coachingPrompts.$inferSelect;
+export type InsertCoachingPrompt = z.infer<typeof insertCoachingPromptSchema>;

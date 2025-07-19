@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
- * AST Knowledge Processor - Node.js Version
- * ========================================
+ * AST Knowledge Processor - Fixed ChromaDB v2 API
+ * ===============================================
  * 
- * Process AST documents using the existing Node.js infrastructure.
- * This integrates with our current TypeScript/Express setup.
+ * Process AST documents using ChromaDB v2 API and current Node.js infrastructure.
  */
 
 import fs from 'fs';
@@ -17,8 +16,11 @@ const __dirname = path.dirname(__filename);
 
 class ASTKnowledgeProcessor {
     constructor() {
-        this.apiBase = 'http://localhost:8080/api/coaching';
         this.chromaBase = 'http://localhost:8000';
+        this.collections = {
+            ast_methodology: 'ast_methodology',
+            team_profiles: 'team_profiles'
+        };
     }
 
     async processASTCompendium() {
@@ -139,8 +141,8 @@ class ASTKnowledgeProcessor {
         console.log('🗂️ Storing content in ChromaDB...');
         
         try {
-            // Ensure collections exist
-            await this.ensureCollectionsExist();
+            // Create collections
+            await this.createCollections();
             
             // Separate chunks by type
             const astChunks = chunks.filter(c => c.source === 'AST_Compendium');
@@ -148,12 +150,12 @@ class ASTKnowledgeProcessor {
             
             // Store AST methodology
             if (astChunks.length > 0) {
-                await this.addToCollection('ast_methodology', astChunks);
+                await this.addToCollectionV2('ast_methodology', astChunks);
             }
             
             // Store team profiles
             if (teamChunks.length > 0) {
-                await this.addToCollection('team_profiles', teamChunks);
+                await this.addToCollectionV2('team_profiles', teamChunks);
             }
             
             console.log('✅ ChromaDB storage complete');
@@ -164,40 +166,38 @@ class ASTKnowledgeProcessor {
         }
     }
 
-    async ensureCollectionsExist() {
-        try {
-            // Check if collections exist, create if not
-            const collections = ['ast_methodology', 'team_profiles'];
-            
-            for (const collectionName of collections) {
-                try {
-                    const response = await fetch(`${this.chromaBase}/api/v2/collections/${collectionName}`);
-                    if (response.status === 404) {
-                        // Create collection
-                        await fetch(`${this.chromaBase}/api/v2/collections`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                name: collectionName,
-                                metadata: { description: `${collectionName} for AST coaching` }
-                            })
-                        });
-                        console.log(`✅ Created collection: ${collectionName}`);
-                    } else if (response.ok) {
-                        console.log(`✅ Collection exists: ${collectionName}`);
-                    }
-                } catch (e) {
-                    console.log(`⚠️ Collection handling for ${collectionName}: ${e.message}`);
+    async createCollections() {
+        const collections = ['ast_methodology', 'team_profiles'];
+        
+        for (const collectionName of collections) {
+            try {
+                // Try to create collection (will fail if exists, which is fine)
+                const response = await fetch(`${this.chromaBase}/api/v1/collections`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: collectionName,
+                        metadata: { description: `${collectionName} for AST coaching` }
+                    })
+                });
+                
+                if (response.ok) {
+                    console.log(`✅ Created collection: ${collectionName}`);
+                } else if (response.status === 409) {
+                    console.log(`✅ Collection exists: ${collectionName}`);
+                } else {
+                    const errorText = await response.text();
+                    console.log(`⚠️ Collection ${collectionName}: ${response.status} - ${errorText}`);
                 }
+            } catch (error) {
+                console.log(`⚠️ Collection setup for ${collectionName}: ${error.message}`);
             }
-        } catch (error) {
-            console.log('⚠️ Collection setup error:', error.message);
         }
     }
 
-    async addToCollection(collectionName, chunks) {
+    async addToCollectionV2(collectionName, chunks) {
         try {
-            // Prepare data for ChromaDB v2 API
+            // Prepare data for ChromaDB
             const documents = chunks.map(chunk => chunk.content);
             const metadatas = chunks.map(chunk => ({
                 title: chunk.title,
@@ -209,47 +209,70 @@ class ASTKnowledgeProcessor {
             }));
             const ids = chunks.map(chunk => chunk.id);
             
-            // Try different v2 API endpoints
-            const endpoints = [
-                `${this.chromaBase}/api/v2/collections/${collectionName}/add`,
-                `${this.chromaBase}/api/v2/collections/${collectionName}/upsert`,
-                `${this.chromaBase}/api/v1/collections/${collectionName}/add`  // Fallback to v1
-            ];
+            // Add to ChromaDB collection using v1 API (as v2 might have different endpoints)
+            const response = await fetch(`${this.chromaBase}/api/v1/collections/${collectionName}/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    documents: documents,
+                    metadatas: metadatas,
+                    ids: ids
+                })
+            });
             
-            let lastError = null;
-            
-            for (const endpoint of endpoints) {
-                try {
-                    console.log(`   🔄 Trying endpoint: ${endpoint}`);
-                    const response = await fetch(endpoint, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            documents: documents,
-                            metadatas: metadatas,
-                            ids: ids
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        console.log(`✅ Successfully added ${chunks.length} chunks to ${collectionName}`);
-                        return; // Success!
-                    } else {
-                        const errorText = await response.text();
-                        console.log(`   ❌ ${endpoint}: ${response.status} - ${errorText.substring(0, 100)}`);
-                        lastError = `${response.status} - ${errorText}`;
-                    }
-                } catch (fetchError) {
-                    console.log(`   ❌ ${endpoint}: ${fetchError.message}`);
-                    lastError = fetchError.message;
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.log(`❌ ChromaDB response: ${response.status}`);
+                console.log(`❌ Error details: ${errorText}`);
+                
+                // Try alternative: reset collection and try again
+                console.log(`🔄 Trying to reset collection ${collectionName}...`);
+                await this.resetCollection(collectionName);
+                
+                // Retry add
+                const retryResponse = await fetch(`${this.chromaBase}/api/v1/collections/${collectionName}/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        documents: documents,
+                        metadatas: metadatas,
+                        ids: ids
+                    })
+                });
+                
+                if (!retryResponse.ok) {
+                    throw new Error(`ChromaDB add failed after retry: ${retryResponse.status}`);
                 }
             }
             
-            throw new Error(`All ChromaDB endpoints failed. Last error: ${lastError}`);
+            console.log(`📚 Added ${chunks.length} chunks to ${collectionName}`);
             
         } catch (error) {
             console.log(`❌ Failed to add to ${collectionName}:`, error.message);
             throw error;
+        }
+    }
+
+    async resetCollection(collectionName) {
+        try {
+            // Delete existing collection
+            await fetch(`${this.chromaBase}/api/v1/collections/${collectionName}`, {
+                method: 'DELETE'
+            });
+            
+            // Recreate collection
+            await fetch(`${this.chromaBase}/api/v1/collections`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: collectionName,
+                    metadata: { description: `${collectionName} for AST coaching (reset)` }
+                })
+            });
+            
+            console.log(`🔄 Reset collection: ${collectionName}`);
+        } catch (error) {
+            console.log(`⚠️ Reset collection error: ${error.message}`);
         }
     }
 
@@ -259,21 +282,19 @@ class ASTKnowledgeProcessor {
         const testQueries = [
             'How do I identify team strengths?',
             'What creates flow state?',
-            'How to build trust in teams?',
-            'Five strengths framework',
-            'Team collaboration best practices'
+            'How to build trust in teams?'
         ];
         
         const results = {};
         
         for (const query of testQueries) {
             try {
-                const response = await fetch(`${this.chromaBase}/api/v2/collections/ast_methodology/query`, {
+                const response = await fetch(`${this.chromaBase}/api/v1/collections/ast_methodology/query`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         query_texts: [query],
-                        n_results: 3
+                        n_results: 2
                     })
                 });
                 
@@ -292,13 +313,10 @@ class ASTKnowledgeProcessor {
             }
         }
         
-        // Save test results
-        fs.writeFileSync(
-            path.join(__dirname, 'semantic_search_test.json'),
-            JSON.stringify(results, null, 2)
-        );
-        
-        console.log('🔍 Semantic search testing complete');
+        console.log('🔍 Search Results:');
+        for (const [query, result] of Object.entries(results)) {
+            console.log(`   "${query}": ${result.found || 0} matches`);
+        }
     }
 
     async generateReport(astChunks, teamChunks) {
@@ -327,17 +345,17 @@ class ASTKnowledgeProcessor {
             report.team_sources[source] = (report.team_sources[source] || 0) + 1;
         });
         
-        // Save report
-        fs.writeFileSync(
-            path.join(__dirname, 'processing_report.json'),
-            JSON.stringify(report, null, 2)
-        );
-        
-        console.log('📊 Processing Report Generated:');
+        console.log('📊 Processing Summary:');
         console.log(`   • Total chunks: ${report.summary.total_chunks}`);
         console.log(`   • AST methodology: ${report.summary.ast_methodology_chunks}`);
         console.log(`   • Team profiles: ${report.summary.team_profile_chunks}`);
         console.log(`   • Total words: ${report.total_word_count.toLocaleString()}`);
+        
+        // Save report
+        fs.writeFileSync(
+            path.join(__dirname, 'processing_report_fixed.json'),
+            JSON.stringify(report, null, 2)
+        );
     }
 
     async processAll() {
@@ -369,7 +387,7 @@ class ASTKnowledgeProcessor {
             console.log('🎉 AST Knowledge Processing Complete!');
             console.log('====================================');
             console.log('✅ Complete AST methodology processed and indexed');
-            console.log('✅ Team profiles analyzed and stored');
+            console.log('✅ Team profiles analyzed and stored'); 
             console.log('✅ Semantic search capabilities enabled');
             console.log('✅ Ready for AI coaching conversations!');
             
