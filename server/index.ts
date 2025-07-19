@@ -7,6 +7,7 @@ import { router } from './routes.js';
 import reportRoutes from './routes/report-routes.js';
 import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
+import coachingRoutes from './routes/coaching-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import path from 'path';
@@ -185,6 +186,7 @@ async function initializeApp() {
       app.use('/api/reports', reportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
+      app.use('/api/coaching', coachingRoutes);
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {
@@ -262,6 +264,133 @@ async function initializeApp() {
           res.status(500).json({
             success: false,
             error: 'Failed to check user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Create coaching tables endpoint
+      app.post('/create-coaching-tables', async (req, res) => {
+        try {
+          console.log('🚀 Creating coaching system tables...');
+          
+          const createTableQueries = [
+            `CREATE TABLE IF NOT EXISTS coach_knowledge_base (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              category VARCHAR(100) NOT NULL,
+              content_type VARCHAR(100) NOT NULL,
+              title VARCHAR(255) NOT NULL,
+              content TEXT NOT NULL,
+              tags JSONB,
+              metadata JSONB,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS user_profiles_extended (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              company VARCHAR(255),
+              department VARCHAR(255),
+              role VARCHAR(255),
+              ast_profile_summary JSONB,
+              expertise_areas JSONB,
+              project_experience JSONB,
+              collaboration_preferences JSONB,
+              availability_status VARCHAR(50) DEFAULT 'available',
+              connection_opt_in BOOLEAN DEFAULT true,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS coaching_sessions (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              conversation JSONB NOT NULL,
+              session_summary TEXT,
+              context_used JSONB,
+              session_type VARCHAR(50) DEFAULT 'general',
+              session_length VARCHAR(50),
+              user_satisfaction VARCHAR(20),
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS connection_suggestions (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              requestor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              suggested_collaborator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              reason_type VARCHAR(100) NOT NULL,
+              reason_explanation TEXT NOT NULL,
+              context TEXT,
+              status VARCHAR(50) DEFAULT 'suggested',
+              response_at TIMESTAMP,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS vector_embeddings (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              source_table VARCHAR(100) NOT NULL,
+              source_id VARCHAR(255) NOT NULL,
+              vector_id VARCHAR(255) NOT NULL,
+              embedding_type VARCHAR(100) NOT NULL,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`
+          ];
+
+          const indexQueries = [
+            'CREATE INDEX IF NOT EXISTS idx_coach_knowledge_base_category ON coach_knowledge_base(category)',
+            'CREATE INDEX IF NOT EXISTS idx_user_profiles_extended_user_id ON user_profiles_extended(user_id)',
+            'CREATE INDEX IF NOT EXISTS idx_coaching_sessions_user_id ON coaching_sessions(user_id)',
+            'CREATE INDEX IF NOT EXISTS idx_connection_suggestions_requestor ON connection_suggestions(requestor_id)',
+            'CREATE INDEX IF NOT EXISTS idx_vector_embeddings_source ON vector_embeddings(source_table, source_id)'
+          ];
+
+          const results = [];
+          
+          // Create tables
+          for (const query of createTableQueries) {
+            try {
+              await db.execute(query);
+              results.push('✅ Table created successfully');
+            } catch (error) {
+              if (error instanceof Error && error.message.includes('already exists')) {
+                results.push('⚠️ Table already exists');
+              } else {
+                throw error;
+              }
+            }
+          }
+
+          // Create indexes
+          for (const query of indexQueries) {
+            try {
+              await db.execute(query);
+              results.push('✅ Index created successfully');
+            } catch (error) {
+              if (error instanceof Error && error.message.includes('already exists')) {
+                results.push('⚠️ Index already exists');
+              } else {
+                console.warn('Index creation warning:', error instanceof Error ? error.message : String(error));
+                results.push('⚠️ Index creation warning');
+              }
+            }
+          }
+
+          console.log('✅ Coaching tables creation completed');
+          res.json({
+            success: true,
+            message: 'Coaching system tables created successfully',
+            results: results,
+            tables: ['coach_knowledge_base', 'user_profiles_extended', 'coaching_sessions', 'connection_suggestions', 'vector_embeddings']
+          });
+          
+        } catch (error) {
+          console.error('❌ Error creating coaching tables:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to create coaching tables',
             details: error instanceof Error ? error.message : String(error)
           });
         }

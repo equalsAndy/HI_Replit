@@ -1,0 +1,49 @@
+{
+  "timestamp": "2025-07-19T17:12:48.992Z",
+  "summary": {
+    "total_chunks_processed": 11,
+    "ast_methodology_sections": 1,
+    "team_profiles": 10,
+    "total_word_count": 12788
+  },
+  "ast_content_breakdown": {
+    "team_dynamics": 1
+  },
+  "team_department_breakdown": {
+    "other": 2,
+    "engineering": 7,
+    "product": 1
+  },
+  "key_concepts_found": [
+    "imagination",
+    "thinking",
+    "planning",
+    "acting",
+    "feeling",
+    "flow state",
+    "heliotropic effect",
+    "strengths profusion",
+    "future self-continuity",
+    "self-awareness",
+    "telos",
+    "entelechy",
+    "star card",
+    "constellation mapping",
+    "appreciative inquiry",
+    "positive psychology",
+    "visual thinking",
+    "team synergy",
+    "collaboration",
+    "communication",
+    "strengths",
+    "flow",
+    "engagement",
+    "hybrid",
+    "leadership",
+    "dynamics",
+    "innovation",
+    "remote work",
+    "trust"
+  ],
+  "processing_method": "API_integration"
+}

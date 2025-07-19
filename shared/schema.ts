@@ -364,12 +364,118 @@ export const flowAttributes = pgTable('flow_attributes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
+// Coach knowledge base for storing AST methodology, conversation patterns, etc.
+export const coachKnowledgeBase = pgTable('coach_knowledge_base', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  category: varchar('category', { length: 100 }).notNull(), // 'methodology', 'coaching_patterns', 'team_dynamics'
+  contentType: varchar('content_type', { length: 100 }).notNull(), // 'training_prompt', 'example_response', 'guidelines'
+  title: varchar('title', { length: 255 }).notNull(),
+  content: text('content').notNull(),
+  tags: jsonb('tags'), // for categorization and search
+  metadata: jsonb('metadata'), // additional context, source info, etc.
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Extended user profiles for team connections and collaboration
+export const userProfilesExtended = pgTable('user_profiles_extended', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Company/Team Info
+  company: varchar('company', { length: 255 }),
+  department: varchar('department', { length: 255 }),
+  role: varchar('role', { length: 255 }),
+  
+  // AST Profile Summary (derived from workshop data)
+  astProfileSummary: jsonb('ast_profile_summary'), // processed Star Card + flow data
+  
+  // Expertise and Experience
+  expertiseAreas: jsonb('expertise_areas'), // array of skills/domains
+  projectExperience: jsonb('project_experience'), // past projects and roles
+  collaborationPreferences: jsonb('collaboration_preferences'), // work style preferences
+  
+  // Team Connection Data
+  availabilityStatus: varchar('availability_status', { length: 50 }).default('available'),
+  connectionOptIn: boolean('connection_opt_in').default(true),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Coaching conversation sessions
+export const coachingSessions = pgTable('coaching_sessions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Conversation Data
+  conversation: jsonb('conversation').notNull(), // full message history
+  sessionSummary: text('session_summary'), // AI-generated summary of key topics
+  contextUsed: jsonb('context_used'), // what knowledge base content was referenced
+  
+  // Session Metadata
+  sessionType: varchar('session_type', { length: 50 }).default('general'),
+  sessionLength: varchar('session_length', { length: 50 }),
+  userSatisfaction: varchar('user_satisfaction', { length: 20 }),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Team connection suggestions and tracking
+export const connectionSuggestions = pgTable('connection_suggestions', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  requestorId: integer('requestor_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  suggestedCollaboratorId: integer('suggested_collaborator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Connection Logic
+  reasonType: varchar('reason_type', { length: 100 }).notNull(),
+  reasonExplanation: text('reason_explanation').notNull(),
+  context: text('context'),
+  
+  // Status Tracking
+  status: varchar('status', { length: 50 }).default('suggested'),
+  responseAt: timestamp('response_at'),
+  
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+});
+
+// Vector embeddings references (for linking to external vector DB)
+export const vectorEmbeddings = pgTable('vector_embeddings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  sourceTable: varchar('source_table', { length: 100 }).notNull(),
+  sourceId: varchar('source_id', { length: 255 }).notNull(),
+  vectorId: varchar('vector_id', { length: 255 }).notNull(),
+  embeddingType: varchar('embedding_type', { length: 100 }).notNull(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+});
+
 // Create insert schemas for star cards and flow attributes
 export const insertStarCardSchema = createInsertSchema(starCards);
 export const insertFlowAttributesSchema = createInsertSchema(flowAttributes);
+
+// Create insert schemas for new coaching tables
+export const insertCoachKnowledgeBaseSchema = createInsertSchema(coachKnowledgeBase);
+export const insertUserProfilesExtendedSchema = createInsertSchema(userProfilesExtended);
+export const insertCoachingSessionsSchema = createInsertSchema(coachingSessions);
+export const insertConnectionSuggestionsSchema = createInsertSchema(connectionSuggestions);
+export const insertVectorEmbeddingsSchema = createInsertSchema(vectorEmbeddings);
 
 // Type definitions for star cards and flow attributes
 export type StarCard = typeof starCards.$inferSelect;
 export type InsertStarCard = z.infer<typeof insertStarCardSchema>;
 export type FlowAttributesRecord = typeof flowAttributes.$inferSelect;
 export type InsertFlowAttributes = z.infer<typeof insertFlowAttributesSchema>;
+
+// Type definitions for new coaching tables
+export type CoachKnowledgeBase = typeof coachKnowledgeBase.$inferSelect;
+export type InsertCoachKnowledgeBase = z.infer<typeof insertCoachKnowledgeBaseSchema>;
+export type UserProfileExtended = typeof userProfilesExtended.$inferSelect;
+export type InsertUserProfileExtended = z.infer<typeof insertUserProfilesExtendedSchema>;
+export type CoachingSession = typeof coachingSessions.$inferSelect;
+export type InsertCoachingSession = z.infer<typeof insertCoachingSessionsSchema>;
+export type ConnectionSuggestion = typeof connectionSuggestions.$inferSelect;
+export type InsertConnectionSuggestion = z.infer<typeof insertConnectionSuggestionsSchema>;
+export type VectorEmbedding = typeof vectorEmbeddings.$inferSelect;
+export type InsertVectorEmbedding = z.infer<typeof insertVectorEmbeddingsSchema>;
