@@ -25,3 +25,34 @@ public/version.json
 *.log
 debug-*.ts
 debug-*.js
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*.old
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Package installers
+*.pkg
+*.dmg
+*.msi
+*.exe
+
+# ChromaDB data
+chromadb_data/
+.chroma/
+
+# Python cache (if any Python scripts are added)
+__pycache__/
+*.pyc
+*.pyo
