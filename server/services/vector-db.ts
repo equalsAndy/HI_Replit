@@ -7,11 +7,18 @@ export class VectorDBService {
   private embeddingFunction: DefaultEmbeddingFunction;
   
   constructor() {
-            // Initialize ChromaDB client with default settings (connects to localhost:8000)
-        this.client = new ChromaClient();
+    // Initialize ChromaDB client with URL from environment
+    const chromaUrl = process.env.CHROMA_URL || 'http://localhost:8000';
+    console.log('🔗 Connecting to ChromaDB at:', chromaUrl);
+    
+    this.client = new ChromaClient({
+      path: chromaUrl
+    });
     
     // Initialize embedding function
     this.embeddingFunction = new DefaultEmbeddingFunction();
+    
+    console.log('✅ VectorDBService initialized');
   }
 
   // Initialize collections for coaching system
@@ -31,10 +38,10 @@ export class VectorDBService {
         embeddingFunction: this.embeddingFunction
       });
 
-      console.log('Vector database collections initialized');
+      console.log('✅ Vector database collections initialized');
       return true;
     } catch (error) {
-      console.error('Failed to initialize vector collections:', error);
+      console.error('❌ Failed to initialize vector collections:', error);
       return false;
     }
   }
@@ -149,10 +156,10 @@ export class VectorDBService {
   async testConnection() {
     try {
       const version = await this.client.version();
-      console.log('ChromaDB connection successful, version:', version);
+      console.log('✅ ChromaDB connection successful, version:', version);
       return true;
     } catch (error) {
-      console.error('ChromaDB connection failed:', error);
+      console.error('❌ ChromaDB connection failed:', error);
       return false;
     }
   }
