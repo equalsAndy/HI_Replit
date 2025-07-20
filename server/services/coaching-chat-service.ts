@@ -9,9 +9,10 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres, { Sql } from 'postgres';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { randomUUID } from 'crypto';
+import * as schema from '../../shared/schema.js';
 
 const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
+const db = drizzle(client, { schema });
 
 // Types
 interface ConversationContext {
@@ -38,10 +39,57 @@ interface CoachingMetadata {
 }
 
 // Initialize Bedrock client
-const bedrockClient = new BedrockRuntimeClient({
-    region: process.env.AWS_REGION || 'us-west-2',
-    // AWS credentials will be loaded from environment or AWS credentials file
-});
+const getBedrockClientConfig = () => {
+    const config: any = {
+        region: process.env.AWS_REGION || 'us-west-2'
+    };
+
+    // If bearer token is provided, try to parse it as BedrockAPIKey
+    if (process.env.AWS_BEARER_TOKEN_BEDROCK) {
+        try {
+            // Decode the base64 token
+            const decoded = Buffer.from(process.env.AWS_BEARER_TOKEN_BEDROCK, 'base64').toString('utf-8');
+            
+            // Check if it's a BedrockAPIKey format
+            if (decoded.startsWith('BedrockAPIKey-')) {
+                const [identifier, secret] = decoded.split(':');
+                
+                // Extract the key parts from the identifier
+                const keyParts = identifier.replace('BedrockAPIKey-', '').split('-');
+                const accessKeyId = keyParts.slice(0, -1).join('-'); // Everything except the last part
+                const accountId = keyParts[keyParts.length - 1]; // Last part should be account ID
+                
+                config.credentials = {
+                    accessKeyId: accessKeyId || 'bedrock-api-key',
+                    secretAccessKey: secret,
+                    // No session token for API keys
+                };
+                
+                console.log('Using Bedrock API Key authentication');
+            } else {
+                console.log('Bearer token format not recognized, using as session token');
+                config.credentials = {
+                    accessKeyId: 'temporary-key',
+                    secretAccessKey: 'temporary-secret',
+                    sessionToken: process.env.AWS_BEARER_TOKEN_BEDROCK
+                };
+            }
+        } catch (error) {
+            console.error('Error parsing bearer token:', error);
+            // Fall back to using as session token
+            config.credentials = {
+                accessKeyId: 'temporary-key',
+                secretAccessKey: 'temporary-secret',
+                sessionToken: process.env.AWS_BEARER_TOKEN_BEDROCK
+            };
+        }
+    }
+    // Otherwise, AWS SDK will automatically load credentials from environment or credentials file
+
+    return config;
+};
+
+const bedrockClient = new BedrockRuntimeClient(getBedrockClientConfig());
 
 /**
  * Coaching personas with different interaction styles
@@ -68,14 +116,24 @@ Always connect insights back to the user's dominant strength and how it affects 
         description: 'Guides users through AST workshop steps with clear instructions',
         systemPrompt: `You are a helpful workshop assistant guiding users through the AllStarTeams strengths discovery workshop.
 
+IMPORTANT: The AllStarTeams framework focuses on 5 core strengths:
+- IMAGINATION: Creative thinking, innovation, visioning
+- THINKING: Analysis, logic, problem-solving, research
+- PLANNING: Organization, strategy, project management
+- ACTING: Implementation, execution, getting things done
+- FEELING: Emotional intelligence, relationships, empathy
+
 Your role is to:
 - Provide clear, step-by-step guidance for each workshop stage
-- Help users understand assessment questions and activities
+- Help users understand their personal Star Card assessment results
+- Connect their dominant strength to practical applications
+- Explain how their strength profile affects team dynamics
 - Troubleshoot technical issues with the workshop platform
-- Keep users motivated and on track
-- Explain AST concepts in accessible terms
+- Keep users motivated and on track with personalized insights
 
-Be encouraging, practical, and focused on helping users complete their workshop successfully.`,
+ALWAYS reference the user's specific Star Card scores when providing guidance. Make connections between their dominant strength and the current workshop activity.
+
+Be encouraging, practical, and focused on helping users complete their workshop successfully while gaining deep insights into their unique strengths.`,
         maxTokens: 1500
     },
     
@@ -157,6 +215,23 @@ function interpolatePrompt(template: string, variables: Record<string, any>) {
     return result;
 }
 
+async function searchKnowledgeBase(query: string, limit: number = 5) {
+    try {
+        const searchResults = await db.select({
+            title: schema.coachKnowledgeBase.title,
+            content: schema.coachKnowledgeBase.content,
+            source: schema.coachKnowledgeBase.source,
+        }).from(schema.coachKnowledgeBase)
+            .where(sql`search_vector @@ to_tsquery('english', ${query.split(' ').join(' & ')})`)
+            .limit(limit);
+        
+        return searchResults;
+    } catch (error) {
+        console.error('Error searching knowledge base:', error);
+        return [];
+    }
+}
+
 /**
  * Generate coaching response using AWS Bedrock Claude
  */
@@ -176,6 +251,71 @@ async function generateCoachingResponse(
         const history = conversationContext.history || [];
         const userProfile = conversationContext.userProfile || {};
         
+        // Debug: Log the userProfile to see what context we're receiving
+        console.log('🔍 DEBUG: userProfile received:', JSON.stringify(userProfile, null, 2));
+        console.log('🔍 DEBUG: reflectionQuestion:', userProfile.reflectionQuestion);
+        console.log('🔍 DEBUG: workshopStep:', workshopStep);
+        
+        // Get user's Star Card data for personalized coaching
+        let userContext = '';
+        if (conversationContext.userProfile?.userId) {
+            const userId = conversationContext.userProfile.userId;
+            
+            // Fetch user's Star Card assessment
+            const starCardResult = await db.execute(sql`
+                SELECT results FROM assessment_results 
+                WHERE user_id = ${userId} AND assessment_type = 'starCard'
+                ORDER BY created_at DESC LIMIT 1
+            `);
+            
+            if (starCardResult.length > 0) {
+                const starData = JSON.parse(starCardResult[0].results as string) as Record<string, number>;
+                const strengthOrder = Object.entries(starData)
+                    .sort(([,a], [,b]) => b - a)
+                    .map(([strength, score]) => `${strength}: ${score}`);
+                
+                const dominantStrengthEntry = Object.entries(starData)
+                    .reduce((max, current) => current[1] > max[1] ? current : max);
+                const dominantStrength = dominantStrengthEntry[0];
+                const dominantScore = dominantStrengthEntry[1];
+                
+                userContext = `
+IMPORTANT USER CONTEXT:
+- User's Star Card Results: ${strengthOrder.join(', ')}
+- Dominant Strength: ${dominantStrength} (${dominantScore})
+- Current Workshop Step: ${workshopStep || 'General coaching'}
+${userProfile.reflectionQuestion ? `- Current Reflection Question: "${userProfile.reflectionQuestion}"` : ''}
+- Assessment Type: AllStarTeams Five Strengths (Imagination, Thinking, Planning, Acting, Feeling)
+
+Reference their specific strength scores when providing coaching. Their ${dominantStrength} strength should be acknowledged as their primary talent.${userProfile.reflectionQuestion ? ` Help them specifically with their current reflection question: "${userProfile.reflectionQuestion}"` : ''}`;
+            } else {
+                // No Star Card data found, but still provide basic context
+                userContext = `
+IMPORTANT USER CONTEXT:
+- Current Workshop Step: ${workshopStep || 'General coaching'}
+${userProfile.reflectionQuestion ? `- Current Reflection Question: "${userProfile.reflectionQuestion}"` : ''}
+- Assessment Type: AllStarTeams Five Strengths (Imagination, Thinking, Planning, Acting, Feeling)
+
+${userProfile.reflectionQuestion ? `Help them specifically with their current reflection question: "${userProfile.reflectionQuestion}"` : 'Provide general coaching support for this workshop step.'}`;
+            }
+        } else {
+            // No user ID, provide minimal context
+            userContext = `
+IMPORTANT USER CONTEXT:
+- Current Workshop Step: ${workshopStep || 'General coaching'}
+${userProfile.reflectionQuestion ? `- Current Reflection Question: "${userProfile.reflectionQuestion}"` : ''}
+
+${userProfile.reflectionQuestion ? `Help them specifically with their current reflection question: "${userProfile.reflectionQuestion}"` : 'Provide general coaching support.'}`;
+        }
+        
+        // Search knowledge base for relevant context
+        const knowledgeResults = await searchKnowledgeBase(userMessage);
+        let knowledgeContext = '';
+        if (knowledgeResults.length > 0) {
+            knowledgeContext = 'Here is some relevant information from my knowledge base that might help:\n\n' +
+                knowledgeResults.map(r => `Title: ${r.title}\nContent: ${r.content}`).join('\n\n');
+        }
+
         // Get any relevant coaching prompts
         let contextualPrompt = '';
         if (workshopStep) {
@@ -193,7 +333,7 @@ async function generateCoachingResponse(
         const messages = [
             {
                 role: 'user',
-                content: contextualPrompt + '\n\nUser message: ' + userMessage
+                content: userContext + '\n\n' + contextualPrompt + '\n\n' + knowledgeContext + '\n\nUser message: ' + userMessage
             }
         ];
 
@@ -266,13 +406,16 @@ In the meantime, I'd suggest reviewing the AST framework materials in your dashb
  */
 async function saveCoachingMessage(conversationId: string, senderType: string, content: string, metadata: CoachingMetadata = {}) {
     try {
+        // Truncate model field to fit VARCHAR(100) constraint
+        const truncatedModel = metadata.model ? metadata.model.substring(0, 100) : null;
+        
         const result = await db.execute(sql`
             INSERT INTO coaching_messages (
                 conversation_id, sender_type, message_content, message_metadata,
                 bedrock_request_id, bedrock_model, response_time_ms
             ) VALUES (
                 ${conversationId}, ${senderType}, ${content}, ${JSON.stringify(metadata)},
-                ${metadata.requestId || null}, ${metadata.model || null}, ${metadata.responseTime || null}
+                ${metadata.requestId || null}, ${truncatedModel}, ${metadata.responseTime || null}
             )
             RETURNING id, created_at
         `);

@@ -7,11 +7,8 @@ export class VectorDBService {
   private embeddingFunction: DefaultEmbeddingFunction;
   
   constructor() {
-    // Initialize ChromaDB client
-    this.client = new ChromaClient({
-      host: process.env.CHROMA_HOST || 'localhost',
-      port: parseInt(process.env.CHROMA_PORT || '8000')
-    });
+            // Initialize ChromaDB client with default settings (connects to localhost:8000)
+        this.client = new ChromaClient();
     
     // Initialize embedding function
     this.embeddingFunction = new DefaultEmbeddingFunction();

@@ -364,17 +364,22 @@ export const flowAttributes = pgTable('flow_attributes', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Coach knowledge base for storing AST methodology, conversation patterns, etc.
+// Knowledge Base for the Coach
 export const coachKnowledgeBase = pgTable('coach_knowledge_base', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  category: varchar('category', { length: 100 }).notNull(), // 'methodology', 'coaching_patterns', 'team_dynamics'
-  contentType: varchar('content_type', { length: 100 }).notNull(), // 'training_prompt', 'example_response', 'guidelines'
-  title: varchar('title', { length: 255 }).notNull(),
-  content: text('content').notNull(),
-  tags: jsonb('tags'), // for categorization and search
-  metadata: jsonb('metadata'), // additional context, source info, etc.
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    title: varchar('title', { length: 255 }).notNull(),
+    content: text('content').notNull(),
+    source: varchar('source', { length: 255 }),
+    category: varchar('category', { length: 100 }),
+    metadata: jsonb('metadata'), // For storing section_title, key_concepts, etc.
+    searchVector: text('search_vector'), // This will be a tsvector type in the DB
+    createdAt: timestamp('created_at').defaultNow(),
+    updatedAt: timestamp('updated_at').defaultNow(),
+}, (table) => {
+    return {
+        categoryIndex: index('knowledge_category_idx').on(table.category),
+        // A GIN index for full-text search will be created manually in a migration
+    };
 });
 
 // Extended user profiles for team connections and collaboration

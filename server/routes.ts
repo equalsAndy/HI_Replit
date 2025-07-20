@@ -28,6 +28,7 @@ router.use('/invites', inviteRoutes);
 router.use('/admin/invites', fixedInviteRoutes);
 router.use('/admin', adminRouter);
 router.use('/facilitator', facilitatorRouter);
+router.use('/coaching/chat', coachingChatRoutes);
 router.use('/user', userRoutes);
 router.use('/coaching/chat', coachingChatRoutes);
 router.use('/test-users/reset', resetRouter);

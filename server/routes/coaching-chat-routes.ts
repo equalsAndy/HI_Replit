@@ -1,114 +1,136 @@
-/**
- * AST Coaching Chat API Routes
- * ============================
- * Handles AI coaching conversations with different personas
- */
-
-import express from 'express';
-import { 
-    generateCoachingResponse, 
-    getConversationHistory, 
-    saveCoachingMessage, 
-    getOrCreateConversation,
-    COACHING_PERSONAS 
+import { Router } from 'express';
+import {
+  generateCoachingResponse,
+  getOrCreateConversation,
+  saveCoachingMessage,
+  getConversationHistory
 } from '../services/coaching-chat-service.js';
 
-const router = express.Router();
+const router = Router();
 
 /**
- * Start or continue a coaching conversation
+ * Create or get a coaching conversation
  * POST /api/coaching/chat/conversation
  */
 router.post('/conversation', async (req, res) => {
-    try {
-        const { userId, personaType, workshopStep } = req.body;
+  try {
+    const { persona, workshopStep } = req.body;
+    
+    // Check authentication using the same pattern as other routes
+    const userId = (req.session as any)?.userId;
+    const cookieUserId = req.cookies?.userId ? parseInt(req.cookies.userId) : null;
+    const finalUserId = userId || cookieUserId;
 
-        if (!userId) {
-            return res.status(400).json({ error: 'User ID is required' });
-        }
+    console.log('Coaching conversation auth check:', { 
+      userId, 
+      cookieUserId, 
+      finalUserId,
+      hasSession: !!req.session,
+      sessionKeys: Object.keys(req.session || {}),
+      fullSession: req.session
+    });
 
-        if (!personaType || !COACHING_PERSONAS[personaType as keyof typeof COACHING_PERSONAS]) {
-            return res.status(400).json({ 
-                error: 'Valid persona type is required', 
-                availablePersonas: Object.keys(COACHING_PERSONAS) 
-            });
-        }
-
-        const conversation = await getOrCreateConversation(userId, personaType, workshopStep);
-        
-        res.json({
-            success: true,
-            conversation: {
-                id: conversation.id,
-                title: conversation.conversation_title,
-                personaType,
-                workshopStep
-            }
-        });
-
-    } catch (error) {
-        console.error('Error creating conversation:', error);
-        res.status(500).json({ error: 'Failed to create conversation' });
+    if (!finalUserId) {
+      console.log('No user ID found in session or cookies');
+      return res.status(401).json({ error: 'User not authenticated' });
     }
+
+    console.log(`Creating conversation for user ${finalUserId}, persona: ${persona}, workshopStep: ${workshopStep}`);
+    
+    const conversation = await getOrCreateConversation(finalUserId, persona, workshopStep);
+    
+    console.log('Conversation created successfully:', conversation.id);
+    
+    res.json({ 
+      conversationId: conversation.id,
+      title: conversation.conversation_title
+    });
+
+  } catch (error) {
+    console.error('Error creating conversation:', error);
+    res.status(500).json({ 
+      error: 'Failed to create conversation',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
 /**
- * Send a message to the coaching AI
+ * Send a message in a coaching conversation
  * POST /api/coaching/chat/message
  */
 router.post('/message', async (req, res) => {
-    try {
-        const { conversationId, message, personaType, workshopStep, userProfile } = req.body;
+  try {
+    const { conversationId, message, persona, context } = req.body;
+    
+    // Debug: Log what context we received
+    console.log('🔍 DEBUG: Backend received context:', {
+      conversationId,
+      persona,
+      context,
+      fullBody: req.body
+    });
+    
+    // Check authentication using the same pattern as other routes
+    const sessionUserId = (req.session as any)?.userId;
+    const cookieUserId = req.cookies?.userId ? parseInt(req.cookies.userId) : null;
+    const userId = sessionUserId || cookieUserId;
 
-        if (!conversationId || !message || !personaType) {
-            return res.status(400).json({ 
-                error: 'Conversation ID, message, and persona type are required' 
-            });
-        }
-
-        // Save user message first
-        await saveCoachingMessage(conversationId, 'user', message);
-
-        // Get conversation history for context
-        const history = await getConversationHistory(conversationId, 8);
-
-        // Generate AI response
-        const conversationContext = {
-            history: history as any,
-            userProfile: userProfile || {}
-        };
-
-        const aiResponse = await generateCoachingResponse(
-            personaType,
-            message,
-            conversationContext,
-            workshopStep
-        );
-
-        // Save AI response
-        await saveCoachingMessage(
-            conversationId, 
-            'assistant', 
-            aiResponse.content, 
-            aiResponse.metadata as any
-        );
-
-        res.json({
-            success: true,
-            response: {
-                content: aiResponse.content,
-                metadata: aiResponse.metadata,
-                conversationId
-            }
-        });
-
-    } catch (error) {
-        console.error('Error processing message:', error);
-        res.status(500).json({ 
-            error: 'Failed to process message',
-            details: error instanceof Error ? error.message : 'Unknown error'
-        });
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
     }
+
+    // Get conversation history
+    const history = await getConversationHistory(conversationId);
+
+    // Save user message
+    await saveCoachingMessage(conversationId, 'user', message);
+
+    // Debug: Log the context being passed
+    console.log('🔍 DEBUG: Context received in route:', JSON.stringify(context, null, 2));
+
+    // Generate AI response
+    const response = await generateCoachingResponse(
+      persona,
+      message,
+      {
+        userProfile: {
+          userId: userId,
+          workshop_progress: context?.stepNumber ? `Step ${context.stepNumber}` : undefined,
+          ...context
+        }
+      },
+      context?.workshopStep
+    );
+
+    // Debug: Log what we're passing to generateCoachingResponse
+    console.log('🔍 DEBUG: Calling generateCoachingResponse with:', {
+      persona,
+      message,
+      userProfile: {
+        userId: userId,
+        workshop_progress: context?.stepNumber ? `Step ${context.stepNumber}` : undefined,
+        ...context
+      },
+      workshopStep: context?.workshopStep
+    });
+
+    // Save AI response
+    const { workshopStep, ...restMetadata } = response.metadata;
+    await saveCoachingMessage(conversationId, 'assistant', response.content, {
+      ...restMetadata,
+      workshopStep: workshopStep || undefined
+    });
+
+    res.json({ 
+      response: response.content,
+      metadata: response.metadata
+    });
+
+  } catch (error) {
+    console.error('Error processing message:', error);
+    res.status(500).json({ error: 'Failed to process message' });
+  }
 });
 
 /**
@@ -116,76 +138,25 @@ router.post('/message', async (req, res) => {
  * GET /api/coaching/chat/history/:conversationId
  */
 router.get('/history/:conversationId', async (req, res) => {
-    try {
-        const { conversationId } = req.params;
-        const limit = parseInt(req.query.limit as string) || 50;
+  try {
+    const { conversationId } = req.params;
+    
+    // Check authentication using both session and cookies
+    const sessionUserId = (req.session as any)?.userId;
+    const cookieUserId = req.cookies?.userId ? parseInt(req.cookies.userId) : null;
+    const userId = sessionUserId || cookieUserId;
 
-        const history = await getConversationHistory(conversationId, limit);
-
-        res.json({
-            success: true,
-            history,
-            conversationId
-        });
-
-    } catch (error) {
-        console.error('Error fetching history:', error);
-        res.status(500).json({ error: 'Failed to fetch conversation history' });
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
     }
-});
 
-/**
- * Get available coaching personas
- * GET /api/coaching/chat/personas
- */
-router.get('/personas', async (req, res) => {
-    try {
-        const personas = Object.entries(COACHING_PERSONAS).map(([key, persona]) => ({
-            id: key,
-            name: persona.name,
-            description: persona.description
-        }));
+    const history = await getConversationHistory(conversationId);
+    res.json({ history });
 
-        res.json({
-            success: true,
-            personas
-        });
-
-    } catch (error) {
-        console.error('Error fetching personas:', error);
-        res.status(500).json({ error: 'Failed to fetch personas' });
-    }
-});
-
-/**
- * Test coaching AI connectivity
- * GET /api/coaching/chat/test
- */
-router.get('/test', async (req, res) => {
-    try {
-        // Test with fallback response (no AWS credentials needed)
-        const testResponse = await generateCoachingResponse(
-            'talia_coach',
-            'Hello, this is a connectivity test.',
-            {},
-            null
-        );
-
-        res.json({
-            success: true,
-            test: 'Coaching AI connectivity test',
-            response: testResponse.content,
-            metadata: testResponse.metadata,
-            awsConfigured: !testResponse.metadata.fallback
-        });
-
-    } catch (error) {
-        console.error('Error testing coaching AI:', error);
-        res.status(500).json({ 
-            error: 'Coaching AI test failed',
-            details: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
+  } catch (error) {
+    console.error('Error fetching history:', error);
+    res.status(500).json({ error: 'Failed to fetch conversation history' });
+  }
 });
 
 export default router;
