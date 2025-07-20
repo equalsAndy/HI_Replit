@@ -13,8 +13,8 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Configuration
-CONTAINER_NAME="chroma-coaching"
-IMAGE_NAME="chromadb/chroma:0.5.7"
+CONTAINER_NAME="chromadb"
+IMAGE_NAME="chromadb/chroma:latest"
 DOCKER_COMPOSE_FILE="docker-compose.yml"
 
 # Function to print colored output
