@@ -16,6 +16,11 @@ interface VideoPlayerProps {
   onProgress?: (percentage: number) => void;
   onUnlockNext?: (stepId: string) => void; // New callback for unlocking next step
   startTime?: number; // Start time in seconds for resume functionality
+  /**
+   * If true (default), hides the VideoPlayer entirely when no video is available for the given step/section.
+   * If false, shows the fallback UI ("Video not available" message).
+   */
+  hideWhenUnavailable?: boolean;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -31,27 +36,33 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   customParams = {},
   onProgress,
   onUnlockNext,
-  startTime = 0
+  startTime = 0,
+  hideWhenUnavailable = true
 }) => {
+  // All hooks must be called unconditionally and in the same order
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [processedUrl, setProcessedUrl] = useState<string>('');
   const [videoLoaded, setVideoLoaded] = useState(false);
   const [progressSimulated, setProgressSimulated] = useState(false);
   const [currentProgress, setCurrentProgress] = useState(0);
-  
-  // Try to get video by stepId first, then by section
+
+  // Always call hooks before any conditional return
   const { data: videoByStepId, isLoading: isLoadingStepId } = useVideoByStepId(
     workshopType, 
     stepId || ''
   );
-  
   const { data: videoBySection, isLoading: isLoadingSection } = useVideoBySection(
     workshopType, 
     section || ''
   );
-
   const isLoading = isLoadingStepId || isLoadingSection;
   const video = videoByStepId || videoBySection;
+  const noVideoAvailable = !forceUrl && !video?.url && !fallbackUrl;
+
+  // Now safe to return conditionally
+  if (!isLoading && hideWhenUnavailable && noVideoAvailable) {
+    return null;
+  }
 
   // Debug logging for video selection
   console.log(`🎬 VideoPlayer Debug - Step: ${stepId}, Workshop: ${workshopType}`);
@@ -152,6 +163,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   const videoTitle = video?.title || title || 'Workshop Video';
 
   if (!processedUrl) {
+    if (hideWhenUnavailable) {
+      return null;
+    }
     return (
       <div className={`video-responsive-container ${className}`}>
         <div className={`video-aspect-wrapper ${aspectClass}`}>

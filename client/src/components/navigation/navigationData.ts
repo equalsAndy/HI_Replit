@@ -53,15 +53,9 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       { 
         id: 'ia-2-2', 
-        title: 'I4C Self-Assessment', 
+        title: 'Self-Assessment', 
         type: 'assessment',
         contentKey: 'ia-2-2'
-      },
-      { 
-        id: 'ia-2-3', 
-        title: 'Review Radar Map', 
-        type: 'viewing',
-        contentKey: 'ia-2-3'
       }
     ]
   },
@@ -78,25 +72,25 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
       },
       { 
         id: 'ia-3-2', 
-        title: 'Autoflow Practice', 
+        title: 'Autoflow', 
         type: 'interactive',
         contentKey: 'ia-3-2'
       },
       { 
         id: 'ia-3-3', 
-        title: 'Visualization Exercise', 
+        title: 'Visualizing Your Potential', 
         type: 'interactive',
         contentKey: 'ia-3-3'
       },
       { 
         id: 'ia-3-4', 
-        title: 'Higher Purpose Reflection', 
+        title: 'From Insight to Intention', 
         type: 'reflection',
         contentKey: 'ia-3-4'
       },
       { 
         id: 'ia-3-5', 
-        title: 'Inspiration Moments', 
+        title: 'Inspiration', 
         type: 'reflection',
         contentKey: 'ia-3-5'
       },
