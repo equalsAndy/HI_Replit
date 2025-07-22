@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import AllStarTeamsContent from '@/components/content/allstarteams/AllStarTeamsContent';
+import CoachingModalProvider from '@/components/modals/CoachingModalProvider';
 import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 // import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { Button } from '@/components/ui/button';
@@ -705,55 +706,51 @@ export default function AllStarTeams() {
   });
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Navigation */}
-      <NavBar />
+    <CoachingModalProvider>
+      <div className="flex flex-col h-screen bg-gray-50">
+        {/* Navigation */}
+        <NavBar />
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Assessment Modal */}
-        <AssessmentModal 
-          isOpen={isAssessmentModalOpen} 
-          onClose={() => setIsAssessmentModalOpen(false)}
-          onComplete={handleAssessmentComplete}
-        />
+        {/* Main Content */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Assessment Modal */}
+          <AssessmentModal 
+            isOpen={isAssessmentModalOpen} 
+            onClose={() => setIsAssessmentModalOpen(false)}
+            onComplete={handleAssessmentComplete}
+          />
 
-        {/* Left Navigation Drawer */}
-        <UserHomeNavigation
-          drawerOpen={drawerOpen}
-          toggleDrawer={toggleDrawer}
-          navigationSections={updatedNavigationSections}
-          completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
-          handleStepClick={handleStepClick}
-          starCard={starCardData}
-          flowAttributesData={flowAttributesData}
-          currentContent={currentContent}
-          isImaginalAgility={currentApp === 'imaginal-agility'}
-        />
-        {/* Debug logging for props */}
-        {console.log('🎯 Navigation Props Debug:', {
-          currentApp,
-          isImaginalAgility: currentApp === 'imaginal-agility',
-          location
-        })}
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto p-6">
-          {/* Anchor for scroll-to-top navigation */}
-          <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
-          <AllStarTeamsContent
-            currentContent={currentContent}
-            markStepCompleted={markNavStepCompleted}
-            setCurrentContent={setCurrentContent}
+          {/* Left Navigation Drawer */}
+          <UserHomeNavigation
+            drawerOpen={drawerOpen}
+            toggleDrawer={toggleDrawer}
+            navigationSections={updatedNavigationSections}
+            completedSteps={completedSteps}
+            isStepAccessible={isStepAccessible}
+            handleStepClick={handleStepClick}
             starCard={starCardData}
-            user={userProfile}
             flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            currentContent={currentContent}
             isImaginalAgility={currentApp === 'imaginal-agility'}
           />
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto p-6">
+            {/* Anchor for scroll-to-top navigation */}
+            <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
+            <AllStarTeamsContent
+              currentContent={currentContent}
+              markStepCompleted={markNavStepCompleted}
+              setCurrentContent={setCurrentContent}
+              starCard={starCardData}
+              user={userProfile}
+              flowAttributesData={flowAttributesData}
+              setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+              isImaginalAgility={currentApp === 'imaginal-agility'}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </CoachingModalProvider>
   );
 }

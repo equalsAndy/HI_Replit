@@ -200,208 +200,21 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
               </div>
             </div>
             
-            <div className="flex justify-end mt-8">
-              <Button 
-                onClick={() => onNext && onNext('ia-2-2')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-              >
-                Next: I4C Self-Assessment
-              </Button>
-            </div>
-          </div>
-        );
+            {/* removed orphaned/duplicate code from previous ia-2-2 implementation */}
+      case 'ia-2-2':
+        return <ImaginalAgilityAssessmentContent onOpenAssessment={onOpenAssessment} onNext={onNext} />;
 
-      case 'ia-3-1':
+      case 'ia-4-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              The Imaginal Agility Solution
+              5Cs Assessment moved to earlier step
             </h1>
-            
-            {/* Video Section */}
-            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-              <div className="flex justify-center mb-4">
-                <div className="w-full max-w-2xl">
-                  <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                    <iframe 
-                      src="https://www.youtube.com/embed/l3XVwPGE6UY" 
-                      title="Imaginal Agility Solution" 
-                      frameBorder="0" 
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                      allowFullScreen
-                      className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Content Card */}
-            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-                <p className="text-lg leading-relaxed mb-8">
-                  Imagination is a primal human power — not content with what we know, but impelled to ask: 'What if?' Let's explore what this means, and how to harness it — individually and as a team.
-                </p>
-                
-                {/* Five Core Capabilities */}
-                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8">
-                  <h3 className="text-lg sm:text-xl font-semibold text-purple-800 mb-6 text-center">
-                    The Five Core Capabilities for Imaginal Agility
-                  </h3>
-                  
-                  {/* Responsive layout: Mobile (1 col), Medium (2-1-2), Large+ (5 cols) */}
-                  <div className="max-w-6xl mx-auto">
-                    {/* Medium screens: 2-1-2 layout */}
-                    <div className="hidden md:grid lg:hidden grid-cols-2 gap-6 justify-items-center">
-                      {/* First row: 2 items */}
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Imagination_1749499596783.png" 
-                          alt="Imagination" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Curiosity_1749499596783.png" 
-                          alt="Curiosity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      
-                      {/* Second row: 2 items */}
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Creativity_1749499596783.png" 
-                          alt="Creativity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/courage_1749499596782.png" 
-                          alt="Courage" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      
-                      {/* Third row: 1 centered item */}
-                      <div className="col-span-2 flex justify-center">
-                        <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                          <img 
-                            src="/assets/empathy_1749499596783.png" 
-                            alt="Empathy" 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Mobile: Single column */}
-                    <div className="grid md:hidden grid-cols-1 gap-6 justify-items-center">
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Imagination_1749499596783.png" 
-                          alt="Imagination" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Curiosity_1749499596783.png" 
-                          alt="Curiosity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Creativity_1749499596783.png" 
-                          alt="Creativity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/courage_1749499596782.png" 
-                          alt="Courage" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-40 h-40 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/empathy_1749499596783.png" 
-                          alt="Empathy" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    </div>
-                    
-                    {/* Large screens and up: 5 columns - Moderately sized graphics */}
-                    <div className="hidden lg:grid grid-cols-5 gap-8 justify-items-center">
-                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Imagination_1749499596783.png" 
-                          alt="Imagination" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Curiosity_1749499596783.png" 
-                          alt="Curiosity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/Creativity_1749499596783.png" 
-                          alt="Creativity" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/courage_1749499596782.png" 
-                          alt="Courage" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                      <div className="w-44 h-44 xl:w-52 xl:h-52 flex items-center justify-center flex-shrink-0">
-                        <img 
-                          src="/assets/empathy_1749499596783.png" 
-                          alt="Empathy" 
-                          className="w-full h-full object-contain"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl p-6">
-                  <p className="text-lg text-purple-800 font-medium text-center mb-4">
-                    These five capabilities work together to create Imaginal Agility — your ability to navigate complexity with creative confidence.
-                  </p>
-                  
-                  <p className="text-base text-gray-700 text-center">
-                    In the next step, you'll assess your current strengths across these capabilities and create a personalized development map for moving forward.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex justify-end mt-8">
-              <Button 
-                onClick={() => onNext && onNext('ia-4-1')}
-                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-              >
-                Next: Self-Assessment
-              </Button>
-            </div>
+            <p className="text-lg text-gray-700">
+              The 5Cs assessment and radar chart are now part of the earlier workshop step.
+            </p>
           </div>
         );
-
-      case 'ia-4-1':
-        return <ImaginalAgilityAssessmentContent onOpenAssessment={onOpenAssessment} onNext={onNext} />;
 
       case 'ia-5-1':
         // Assessment Results with data fetching
@@ -907,30 +720,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({
           </div>
         );
 
-      case 'ia-2-3':
-        return (
-          <div className="max-w-4xl mx-auto p-6">
-            <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Review Radar Map
-            </h1>
-            <p className="text-lg text-gray-700 mb-6">
-              View and analyze your I4C assessment results on the radar map.
-            </p>
-            <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-              <p className="text-yellow-800">
-                <strong>Coming Soon:</strong> This content is currently being developed and will be available in the next update.
-              </p>
-            </div>
-            {onNext && (
-              <Button 
-                onClick={() => onNext('ia-3-1')} 
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                Next: Ladder Overview
-              </Button>
-            )}
-          </div>
-        );
+      // ia-2-3 removed
 
       case 'ia-3-2':
       case 'ia-3-3':

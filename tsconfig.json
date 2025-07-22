@@ -18,10 +18,6 @@
     "sourceMap": false,
     "removeComments": true,
     "experimentalDecorators": true,
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["client/src/*"]
-    },
     "emitDecoratorMetadata": true,
     "baseUrl": ".",
     "paths": {

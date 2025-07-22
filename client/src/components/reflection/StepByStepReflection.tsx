@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
-import CoachingModal from '../coaching/CoachingModal';
+import { useCoachingModal } from '@/hooks/useCoachingModal';
+import { StrengthData } from '@/types/coaching';
 
 // Simple debounce utility
 const debounce = (func: Function, wait: number) => {
@@ -50,9 +51,23 @@ export default function StepByStepReflection({
   // State for managing reflection steps
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
-  const [showCoaching, setShowCoaching] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
   const isTestUser = true; // useTestUser();
+  
+  // Talia coaching modal
+  const { openModal } = useCoachingModal();
+  
+  // Helper function to open Talia coaching for current step strength
+  const openTaliaCoaching = () => {
+    if (currentStep <= 4) {
+      const currentStrengthData = sortedQuadrants[currentStep - 1];
+      const strengthData: StrengthData = {
+        name: currentStrengthData.label.charAt(0) + currentStrengthData.label.slice(1).toLowerCase(),
+        description: `Your ${currentStrengthData.label.toLowerCase()} strength represents ${currentStrengthData.score}% of your profile.`
+      };
+      openModal(strengthData);
+    }
+  };
   
   // Workshop status for testing
   // const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
@@ -618,7 +633,7 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowCoaching(true)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
@@ -720,7 +735,7 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowCoaching(true)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
@@ -777,7 +792,7 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowCoaching(true)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
@@ -1007,7 +1022,7 @@ export default function StepByStepReflection({
 
               <div className="mt-3">
                 <button 
-                  onClick={() => setShowCoaching(true)}
+                  onClick={() => openTaliaCoaching()}
                   className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
                 >
                   <MessageCircle className="h-3 w-3 mr-1" />
@@ -1055,18 +1070,6 @@ export default function StepByStepReflection({
           </div>
         </div>
       </div>
-
-      {/* Coaching Modal */}
-      <CoachingModal
-        isOpen={showCoaching}
-        onClose={() => setShowCoaching(false)}
-        currentStep={currentStep}
-        currentStrength={currentStep <= 4 ? sortedQuadrants[currentStep-1].label.toLowerCase() : undefined}
-        reflectionQuestion={getCurrentReflectionQuestion()}
-        initialReflection={getCurrentReflectionText()}
-        onSaveReflection={handleSaveReflection}
-        examples={getCurrentExamples()}
-      />
     </>
   );
 }
