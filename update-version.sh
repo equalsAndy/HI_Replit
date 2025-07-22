@@ -18,7 +18,20 @@ VITE_BUILD_NUMBER=$BUILD_NUMBER
 VITE_ENVIRONMENT=$ENVIRONMENT
 EOF
 
-# Update public/version.json
+# Create client/public directory if it doesn't exist
+mkdir -p client/public
+
+# Update client/public/version.json (for Vite dev server)
+cat > client/public/version.json << EOF
+{
+  "version": "$VERSION",
+  "build": "$BUILD_NUMBER",
+  "timestamp": "$TIMESTAMP",
+  "environment": "$ENVIRONMENT"
+}
+EOF
+
+# Update public/version.json (for production builds)
 cat > public/version.json << EOF
 {
   "version": "$VERSION",

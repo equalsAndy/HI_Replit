@@ -446,9 +446,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this item corresponds to current content
-                                  getContentKeyFromStepId(section.id, step.id) === currentContent 
-                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium" : "",
+                                  // Check if this item corresponds to current content - Purple for IA, Indigo for AST
+                                  (isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent)
+                                    ? (isImaginalAgility 
+                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
+                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 
+                                    : "",
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible

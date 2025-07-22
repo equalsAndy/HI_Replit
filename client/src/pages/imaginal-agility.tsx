@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
+import UserHomeNavigationWithStarCard from '@/components/navigation/UserHomeNavigationWithStarCard';
 import ContentViews from '@/components/content/ContentViews';
 import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import { User } from '@/shared/types';
@@ -22,7 +22,6 @@ const PROGRESS_STORAGE_KEY = 'imaginal-agility-navigation-progress';
 
 export default function ImaginalAgilityHome() {
   const [location, navigate] = useLocation();
-  const [drawerOpen, setDrawerOpen] = useState(true);
   const [currentContent, setCurrentContent] = useState("ia-1-1");
   const [currentStep, setCurrentStepState] = useState("ia-1-1");
   const [isAssessmentModalOpen, setIsAssessmentModalOpen] = useState(false);
@@ -207,23 +206,6 @@ export default function ImaginalAgilityHome() {
     }
   }, [navProgress, currentStep]);
 
-  // Update navigation sections with completed steps count
-  const updatedNavigationSections = imaginalAgilityNavigationSections.map(section => {
-    const completedStepsInSection = section.steps.filter(step => 
-      completedSteps.includes(step.id)
-    ).length;
-
-    return {
-      ...section,
-      completedSteps: completedStepsInSection
-    };
-  });
-
-  // Toggle drawer open/closed
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
   // Mark a step as completed (using navigation progress)
   const markStepCompleted = (stepId: string) => {
     markNavStepCompleted(stepId);
@@ -299,13 +281,13 @@ export default function ImaginalAgilityHome() {
       {/* Main Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Left Navigation Drawer */}
-        <UserHomeNavigation
-          drawerOpen={drawerOpen}
-          toggleDrawer={toggleDrawer}
-          navigationSections={updatedNavigationSections}
+        <UserHomeNavigationWithStarCard
+          drawerOpen={true}
+          toggleDrawer={() => {}}
+          navigationSections={imaginalAgilityNavigationSections}
           completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
-          handleStepClick={handleStepClick}
+          isStepAccessible={(sectionId, stepId) => isStepAccessible(sectionId, stepId)}
+          handleStepClick={(sectionId, stepId) => handleStepClick(sectionId, stepId)}
           currentContent={currentContent}
           isImaginalAgility={true}
         />

@@ -13,6 +13,12 @@ import IA_3_3_Content from './steps/IA_3_3_Content';
 import IA_3_4_Content from './steps/IA_3_4_Content';
 import IA_3_5_Content from './steps/IA_3_5_Content';
 import IA_3_6_Content from './steps/IA_3_6_Content';
+import IA_4_1_Content from './steps/IA_4_1_Content';
+import IA_4_2_Content from './steps/IA_4_2_Content';
+import IA_4_3_Content from './steps/IA_4_3_Content';
+import IA_4_4_Content from './steps/IA_4_4_Content';
+import IA_4_5_Content from './steps/IA_4_5_Content';
+import IA_4_6_Content from './steps/IA_4_6_Content';
 
 
 // Component for ia-4-1 Assessment step
@@ -343,6 +349,35 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return <IA_3_5_Content onNext={onNext} />;
       case 'ia-3-6':
         return <IA_3_6_Content onNext={onNext} />;
+      case 'ia-4-1':
+        return <IA_4_1_Content onNext={onNext} />;
+      case 'ia-4-2':
+        return <IA_4_2_Content onNext={onNext} />;
+      case 'ia-4-3':
+        return <IA_4_3_Content onNext={onNext} />;
+      case 'ia-4-4':
+        return <IA_4_4_Content onNext={onNext} />;
+      case 'ia-4-5':
+        return <IA_4_5_Content onNext={onNext} />;
+      case 'ia-4-6':
+        return <IA_4_6_Content onNext={onNext} />;
+      case 'ia-5-1':
+        return <AssessmentResultsContent onNext={onNext} />;
+      case 'ia-6-1':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Quarterly Tune-up Orientation
+            </h1>
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed">
+                  Content for ia-6-1 step.
+                </p>
+              </div>
+            </div>
+          </div>
+        );
       default:
         return null;
     }

@@ -17,26 +17,75 @@ import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
 
-// Environment badge helper - improved detection with version numbers
-const getEnvironmentBadge = () => {
-  // Check multiple sources for environment detection
+// Environment badge helper - displays dynamic version from build process
+const EnvironmentBadge = () => {
+  const [versionInfo, setVersionInfo] = useState({
+    version: import.meta.env.VITE_APP_VERSION || 'N/A',
+    build: import.meta.env.VITE_BUILD_NUMBER || '',
+    environment: import.meta.env.VITE_ENVIRONMENT || 'development'
+  });
+
+  // Debug environment variables
+  useEffect(() => {
+    console.log('Environment Variables Debug:', {
+      VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION,
+      VITE_BUILD_NUMBER: import.meta.env.VITE_BUILD_NUMBER,
+      VITE_ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT,
+      MODE: import.meta.env.MODE,
+      DEV: import.meta.env.DEV
+    });
+  }, []);
+
+  // Fetch version info from public/version.json as fallback
+  useEffect(() => {
+    const fetchVersionInfo = async () => {
+      try {
+        const response = await fetch('/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Version.json data:', data);
+          setVersionInfo({
+            version: data.version || 'N/A',
+            build: data.build || '',
+            environment: data.environment || versionInfo.environment
+          });
+        }
+      } catch (error) {
+        console.warn('Could not fetch version.json, using environment variables');
+        console.error('Fetch error:', error);
+      }
+    };
+
+    // Always try to fetch version.json for the most up-to-date version
+    fetchVersionInfo();
+  }, []);
+
+  // Check environment detection
   const viteMode = import.meta.env.MODE;
-  const nodeEnv = import.meta.env.VITE_NODE_ENV;
   const isDev = import.meta.env.DEV;
-  const isProd = import.meta.env.PROD;
-  
-  // Get version - use static build number, not dynamic timestamp
-  const version = import.meta.env.VITE_APP_VERSION || "1.0.0";
-  const buildNumber = import.meta.env.VITE_BUILD_NUMBER || "dev";
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
+  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com');
   
   // Development detection
-  if (isDev || viteMode === 'development' || window.location.hostname === 'localhost' || window.location.port === '8080') {
-    return <Badge variant="destructive" className="ml-2 text-xs">DEV v{version}.{buildNumber}</Badge>;
+  if (isDev || viteMode === 'development' || isLocalhost) {
+    const displayVersion = versionInfo.version === 'N/A' 
+      ? 'DEV version N/A' 
+      : `DEV v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
+    
+    return (
+      <Badge variant="destructive" className="ml-2 text-xs">
+        {displayVersion}
+      </Badge>
+    );
   }
   
   // Staging detection
-  if (viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com')) {
-    return <Badge variant="secondary" className="ml-2 text-xs">STAGING v{version}.{buildNumber}</Badge>;
+  if (isStaging) {
+    return (
+      <Badge variant="secondary" className="ml-2 text-xs">
+        STAGING v{versionInfo.version}.{versionInfo.build}
+      </Badge>
+    );
   }
   
   return null;
@@ -257,7 +306,7 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-            {getEnvironmentBadge()}
+            <EnvironmentBadge />
 
 
           </div>
