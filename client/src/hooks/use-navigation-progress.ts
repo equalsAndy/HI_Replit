@@ -192,7 +192,7 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
     
     // Default expansion state for IA
     const expansion = {
-      '1': true,  // Welcome - always expanded
+      '1': true,  // Welcome - always expanded initially
       '2': true,  // I4C Model - always expanded initially
       '3': false, // Ladder of Imagination
       '4': false, // Advanced Ladder
@@ -201,17 +201,26 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
       '7': false  // Additional Info
     };
     
-    // Workshop completion: unlock sections 5, 6, 7 permanently
+    // KAN-112: Workshop completion unlocks sections 5, 6, 7 permanently
     if (workshopCompleted) {
       expansion['5'] = true;
       expansion['6'] = true;
       expansion['7'] = true;
-      console.log(`🏆 IA Workshop completed - unlocked sections 5, 6, 7`);
+      expansion['4'] = false; // Collapse section 4 when workshop complete
+      console.log(`🏆 IA Workshop completed - unlocked sections 5, 6, 7, collapsed section 4`);
       return expansion;
     }
     
-    // Progressive expansion based on current section
-    if (currentSection >= 4) {
+    // KAN-112: Progressive expansion based on current section
+    if (currentSection >= 5) {
+      // Section 5 entry: Expand Section 5, collapse Section 3, keep Section 4
+      expansion['1'] = false;
+      expansion['2'] = false;
+      expansion['3'] = false;
+      expansion['4'] = true;
+      expansion['5'] = true;
+      console.log(`📖 IA Section 5+ entry: Collapsed 1,2,3, expanded 4,5`);
+    } else if (currentSection >= 4) {
       // Section 4 entry: Expand Section 4, collapse Sections 1 & 2, keep Section 3
       expansion['1'] = false;
       expansion['2'] = false;
@@ -291,8 +300,10 @@ const getSectionFromStepId = (stepId: string, appType: 'ast' | 'ia' = 'ast'): nu
 // Check if workshop is completed
 const isWorkshopCompleted = (completedSteps: string[], appType: 'ast' | 'ia' = 'ast'): boolean => {
   if (appType === 'ia') {
-    // IA workshop completed when user finishes section 4 (ia-4-6)
-    return completedSteps.includes('ia-4-6');
+    // KAN-112: IA workshop completed when user finishes section 4 (ia-4-6)
+    const workshopCompleted = completedSteps.includes('ia-4-6');
+    console.log(`🏆 IA Workshop completion check: ${workshopCompleted ? 'COMPLETED' : 'IN PROGRESS'} (ia-4-6: ${completedSteps.includes('ia-4-6') ? 'YES' : 'NO'})`);
+    return workshopCompleted;
   }
   
   // AST workshop completed when user finishes section 4 (4-5 is final reflection)

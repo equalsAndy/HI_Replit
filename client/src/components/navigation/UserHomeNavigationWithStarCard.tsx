@@ -66,34 +66,43 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
   
-  // Accordion state for IA navigation
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(() => {
-    if (isImaginalAgility) {
-      // Initialize with first 3 sections expanded for IA
-      return {
-        '1': true,
-        '2': true, 
-        '3': true,
-        '4': false,
-        '5': false,
-        '6': false,
-        '7': false
-      };
+  // Reset detection hooks - use single navigation progress hook instance
+  const { progress: navigationProgress } = useNavigationProgress(isImaginalAgility ? 'ia' : 'ast');
+  
+  // Use section expansion state from navigation progress for IA with manual override capability
+  const [manualExpansion, setManualExpansion] = useState<Record<string, boolean>>({});
+  
+  const baseExpandedSections = isImaginalAgility 
+    ? (navigationProgress?.sectionExpansion || {
+        '1': true, '2': true, '3': false, '4': false, '5': false, '6': false, '7': false
+      })
+    : {};
+    
+  // Combine automatic expansion with manual overrides
+  const expandedSections = isImaginalAgility ? {
+    ...baseExpandedSections,
+    ...manualExpansion  // Manual overrides take precedence
+  } : {};
+    
+  // Debug logging for section expansion
+  React.useEffect(() => {
+    if (isImaginalAgility && navigationProgress?.sectionExpansion) {
+      console.log(`📖 KAN-112 Section Expansion State:`, navigationProgress.sectionExpansion);
+      console.log(`📖 Manual Overrides:`, manualExpansion);
+      console.log(`📖 Final Expanded Sections:`, expandedSections);
     }
-    return {};
-  });
+  }, [isImaginalAgility, navigationProgress?.sectionExpansion, manualExpansion]);
 
   const toggleSection = (sectionId: string) => {
     if (isImaginalAgility) {
-      setExpandedSections(prev => ({
+      // KAN-112: Allow manual override of automatic expansion state
+      setManualExpansion(prev => ({
         ...prev,
-        [sectionId]: !prev[sectionId]
+        [sectionId]: !expandedSections[sectionId]
       }));
+      console.log(`📖 KAN-112: Manual toggle of section ${sectionId}`);
     }
   };
-
-  // Reset detection hooks
-  const { progress: navigationProgress } = useNavigationProgress();
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
 
@@ -408,7 +417,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 )}
 
                 {/* Steps List */}
-                {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] !== false) : true) && (
+                {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
                     {/* Week Label spanning entire section - centered in 50px gap */}
                     {section.weekNumber && (

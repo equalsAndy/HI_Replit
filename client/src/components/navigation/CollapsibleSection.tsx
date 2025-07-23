@@ -38,8 +38,8 @@ export function CollapsibleSection({ section, icon: Icon, children }: Collapsibl
   const [location, navigate] = useLocation();
   const { progress, isStepAccessibleByProgression } = useNavigationProgress();
   
-  // Check if this section is expanded (default open for unlocked sections)
-  const isExpanded = true; // Always show steps for better UX
+  // Check if this section is expanded based on progress state
+  const isExpanded = progress.sectionExpansion?.[section.id] ?? true;
   
   // Get section progress from props (calculated in NavigationSidebar)
   const progressDisplay = section.progressDisplay || `0/${section.totalSteps}`;
