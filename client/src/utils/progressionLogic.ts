@@ -37,7 +37,7 @@ export const IA_STEPS = [
   // The I4C Model
   'ia-2-1', // I4C Prism Overview
   'ia-2-2', // I4C Self-Assessment
-  'ia-2-3', // Review Radar Map
+  
   
   // Ladder of Imagination (Basics)
   'ia-3-1', // Ladder Overview
@@ -216,7 +216,7 @@ export const isStepCompleted = (
       return isVideoCompleted(stepId, navigationProgress, 1);
     case 'ia-2-2': // I4C Self-Assessment
       return isAssessmentCompleted('I4C', userAssessments);
-    case 'ia-2-3': // Review Radar Map
+    
       return isVideoCompleted(stepId, navigationProgress, 1);
     case 'ia-3-1': // Ladder Overview
       return isVideoCompleted(stepId, navigationProgress, 1);

@@ -1,0 +1,26 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy the entire current directory (exact dev copy)
+COPY . /app
+
+# Install dependencies
+RUN npm install
+
+# Set correct working directory for vite build (client subdirectory)
+WORKDIR /app
+
+# Build the frontend using the correct root path
+RUN cd /app && npx vite build
+
+# Build the server from current dev state  
+RUN npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+
+EXPOSE 8080
+
+# Set environment to production but using dev content
+ENV NODE_ENV=production
+
+# Run the server
+CMD ["node", "dist/index.js"]

@@ -1,11 +1,4 @@
-FROM --platform=linux/amd64 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:environment-badge-test
-
-# Remove old files (keep the structure that works)
-RUN rm -rf /app/dist
-
-# Copy the new built files
-COPY dist/ /app/dist/
-COPY shared/ /app/shared/
-COPY package.json /app/
-
-# The base image already has PM2 configured properly
+FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:auth-fix-full
+COPY dist /app/client/dist
+COPY shared /app/shared
+COPY package.json /app/package.json

@@ -1,6 +1,6 @@
 {
-  "version": "2025.07.22",
-  "build": "1540",
-  "timestamp": "2025-07-22T22:40:45.000Z",
-  "environment": "development"
+  "version": "2.0.1",
+  "build": "content-fix",
+  "timestamp": "2025-07-22T20:30:00.000Z",
+  "environment": "production"
 }

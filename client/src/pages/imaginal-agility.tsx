@@ -163,7 +163,7 @@ export default function ImaginalAgilityHome() {
       // Welcome & Orientation
       'ia-1-1', 'ia-1-2',
       // The I4C Model
-      'ia-2-1', 'ia-2-2', 'ia-2-3',
+      'ia-2-1', 'ia-2-2', 
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
@@ -222,7 +222,7 @@ export default function ImaginalAgilityHome() {
       // Welcome & Orientation
       'ia-1-1', 'ia-1-2',
       // The I4C Model
-      'ia-2-1', 'ia-2-2', 'ia-2-3',
+      'ia-2-1', 'ia-2-2', 
       // Ladder of Imagination (Basics)
       'ia-3-1', 'ia-3-2', 'ia-3-3', 'ia-3-4', 'ia-3-5', 'ia-3-6',
       // Advanced Ladder of Imagination
