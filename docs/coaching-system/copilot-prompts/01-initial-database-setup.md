@@ -290,7 +290,7 @@ npx drizzle-kit push:pg
 ## 🛠️ Step 5: Install Vector Database Dependencies
 
 ```bash
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 ```
 
@@ -300,12 +300,12 @@ npm install -D @types/uuid
 
 ```typescript
 import { ChromaApi } from 'chromadb';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+// // import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { v4 as uuidv4 } from 'uuid';
 
 class VectorDBService {
   private client: ChromaApi;
-  private bedrockClient: BedrockRuntimeClient;
+// //   private bedrockClient: BedrockRuntimeClient;
   
   constructor() {
     this.client = new ChromaApi({
@@ -313,7 +313,7 @@ class VectorDBService {
       port: parseInt(process.env.CHROMA_PORT || '8000'),
     });
     
-    this.bedrockClient = new BedrockRuntimeClient({
+// //     this.bedrockClient = new BedrockRuntimeClient({
       region: process.env.AWS_REGION || 'us-west-2',
     });
   }
@@ -330,7 +330,7 @@ class VectorDBService {
         }),
       });
 
-      const response = await this.bedrockClient.send(command);
+// //       const response = await this.bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
       return responseBody.embedding;
     } catch (error) {

@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { VectorDBService } from '../services/vector-db.js';
+// import { VectorDBService } from '../services/vector-db.js'; // Temporarily disabled
 
 const router = Router();
-const vectorDB = new VectorDBService();
+// const vectorDB = new VectorDBService(); // Temporarily disabled
 
 // Initialize vector database (call once on startup)
 router.post('/vector/init', async (req, res) => {

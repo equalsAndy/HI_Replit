@@ -118,11 +118,11 @@ curl http://localhost:8000/api/v1/heartbeat
 ### **Collection Initialization**
 ```typescript
 import { ChromaApi } from 'chromadb';
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+// // import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 
 class VectorDBService {
   private client: ChromaApi;
-  private bedrockClient: BedrockRuntimeClient;
+// //   private bedrockClient: BedrockRuntimeClient;
 
   constructor() {
     this.client = new ChromaApi({
@@ -130,7 +130,7 @@ class VectorDBService {
       port: parseInt(process.env.CHROMA_PORT || '8000'),
     });
     
-    this.bedrockClient = new BedrockRuntimeClient({
+// //     this.bedrockClient = new BedrockRuntimeClient({
       region: process.env.AWS_REGION || 'us-west-2',
     });
   }
@@ -171,7 +171,7 @@ async createEmbedding(text: string): Promise<number[]> {
       }),
     });
 
-    const response = await this.bedrockClient.send(command);
+// //     const response = await this.bedrockClient.send(command);
     const responseBody = JSON.parse(new TextDecoder().decode(response.body));
     return responseBody.embedding;
   } catch (error) {

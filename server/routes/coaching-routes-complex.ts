@@ -8,7 +8,7 @@ import {
   connectionSuggestions,
   vectorEmbeddings
 } from '../../shared/schema.js';
-import { VectorDBService } from '../services/vector-db.js';
+// import { VectorDBService } from '../services/vector-db.js'; // Temporarily disabled
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 

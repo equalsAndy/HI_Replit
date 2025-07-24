@@ -24,7 +24,7 @@ cd HI_Replit
 npm install
 
 # Install AI Coaching System dependencies
-npm install chromadb @chroma-core/default-embed uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb @chroma-core/default-embed uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 
 # Set up environment variables

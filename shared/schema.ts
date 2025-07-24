@@ -492,7 +492,7 @@ export const coachingMessages = pgTable('coaching_messages', {
   conversationId: uuid('conversation_id').references(() => coachingConversations.id, { onDelete: 'cascade' }).notNull(),
   senderType: varchar('sender_type', { length: 20 }).notNull(), // 'user' or 'ai'
   messageContent: text('message_content').notNull(),
-  bedrockRequestId: varchar('bedrock_request_id', { length: 255 }), // Track AWS Bedrock requests
+// //   bedrockRequestId: varchar('bedrock_request_id', { length: 255 }), // Track AWS Bedrock requests
   attachments: jsonb('attachments'), // File attachments, images, etc.
   messageMetadata: jsonb('message_metadata'), // Additional context, tokens used, etc.
   createdAt: timestamp('created_at').defaultNow().notNull(),

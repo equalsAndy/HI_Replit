@@ -7,7 +7,7 @@
  * - Semantic search across knowledge base
  * 
  * TODO: Install dependencies when npm issues are resolved:
- * npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // //  * npm install chromadb uuid @aws-sdk/client-bedrock-runtime
  * npm install -D @types/uuid
  */
 
@@ -31,9 +31,9 @@ class VectorDBService {
     try {
       // TODO: Uncomment when dependencies are installed
       // this.client = new ChromaApi({ ... });
-      // this.bedrockClient = new BedrockRuntimeClient({ ... });
+// //       // this.bedrockClient = new BedrockRuntimeClient({ ... });
       console.log('⚠️ Vector DB Service initialized in placeholder mode');
-      console.log('📦 Install dependencies: npm install chromadb uuid @aws-sdk/client-bedrock-runtime');
+// // //       console.log('📦 Install dependencies: npm install chromadb uuid @aws-sdk/client-bedrock-runtime');
     } catch (error) {
       console.log('⚠️ Vector DB dependencies not installed - running in placeholder mode');
     }
@@ -57,7 +57,7 @@ class VectorDBService {
         body: JSON.stringify({ inputText: text }),
       });
 
-      const response = await this.bedrockClient.send(command);
+// // //       const response = await this.bedrockClient.send(command);
       const responseBody = JSON.parse(new TextDecoder().decode(response.body));
       return responseBody.embedding;
       */

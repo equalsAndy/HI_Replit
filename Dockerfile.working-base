@@ -1,0 +1,13 @@
+FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:dev-content-20250722-2312
+
+# Copy the updated content layers with correct paths
+COPY dist ./client/dist
+COPY shared ./shared  
+COPY server ./server
+
+# Ensure proper working directory
+WORKDIR /app
+
+# Use the same proven configuration as v76
+EXPOSE 8080
+CMD ["npm", "start"]

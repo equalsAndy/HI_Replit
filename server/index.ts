@@ -400,19 +400,21 @@ async function initializeApp() {
 
       // Static file serving for both production and development
       if (process.env.NODE_ENV === 'production') {
-        // Production: serve from dist/public
-        console.log('📁 Production: serving static files from dist/public...');
-        app.use(express.static(path.join(__dirname, '../dist/public')));
+        // Production: serve from public (container path)
+        const staticPath = path.join(__dirname, 'public');
+        console.log('📁 Production: serving static files from:', staticPath);
+        app.use(express.static(staticPath));
         
         // Catch-all handler for client-side routing (exclude API routes)
         app.get(/^(?!\/api).*/, (req, res) => {
-          res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+          res.sendFile(path.join(__dirname, 'public/index.html'));
         });
         console.log('✅ Production static file serving ready');
       } else {
-        // Development: serve from dist/public (same as production)
-        console.log('📁 Development: serving static files from dist/public...');
-        app.use(express.static(path.join(__dirname, '../dist/public')));
+        // Development: serve from dist/public (local path)
+        const devStaticPath = path.join(__dirname, '../dist/public');
+        console.log('📁 Development: serving static files from:', devStaticPath);
+        app.use(express.static(devStaticPath));
         
         app.get(/^(?!\/api).*/, (req, res) => {
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));

@@ -6,7 +6,7 @@ Fix npm dependency issues and install required packages for the AI coaching syst
 ## 📋 Current Situation
 - ✅ Database schema and API routes are successfully implemented
 - ❌ npm install failing with ENOTEMPTY errors (corrupted node_modules)
-- ❌ Missing dependencies: chromadb, @aws-sdk/client-bedrock-runtime, uuid
+// // - ❌ Missing dependencies: chromadb, @aws-sdk/client-bedrock-runtime, uuid
 - ❌ Vector database (ChromaDB) not yet started
 
 ## 🛠️ Implementation Steps
@@ -21,7 +21,7 @@ npm cache clean --force
 npm install
 
 # Add required coaching system dependencies
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 ```
 
@@ -29,11 +29,11 @@ npm install -D @types/uuid
 ```bash
 # Check that new packages are installed
 npm list chromadb
-npm list @aws-sdk/client-bedrock-runtime
+// // npm list @aws-sdk/client-bedrock-runtime
 npm list uuid
 
 # Verify package.json was updated
-grep -A 5 -B 5 "chromadb\|@aws-sdk/client-bedrock-runtime" package.json
+// // grep -A 5 -B 5 "chromadb\|@aws-sdk/client-bedrock-runtime" package.json
 ```
 
 ### Step 3: Update Environment Variables
@@ -78,7 +78,7 @@ constructor() {
     port: parseInt(process.env.CHROMA_PORT || '8000'),
   });
   
-  this.bedrockClient = new BedrockRuntimeClient({
+// //   this.bedrockClient = new BedrockRuntimeClient({
     region: process.env.AWS_REGION || 'us-west-2',
     // Add credentials if needed for development
   });
@@ -153,7 +153,7 @@ After completion, verify:
 
 1. **✅ Dependencies Installed**
    - `npm list chromadb` shows installed version
-   - `npm list @aws-sdk/client-bedrock-runtime` shows installed version
+// //    - `npm list @aws-sdk/client-bedrock-runtime` shows installed version
    - No npm errors when running `npm install`
 
 2. **✅ ChromaDB Running**

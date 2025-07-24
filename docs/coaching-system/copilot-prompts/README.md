@@ -30,7 +30,7 @@ This directory contains all Copilot prompts used to implement the AI coaching sy
 
 **What This Will Accomplish**:
 - 🔧 Clean npm cache and reinstall dependencies
-- 📦 Install chromadb, @aws-sdk/client-bedrock-runtime, uuid
+// // - 📦 Install chromadb, @aws-sdk/client-bedrock-runtime, uuid
 - 🐳 Start ChromaDB container on port 8000
 - 🔧 Initialize vector database collections
 - ✅ Verify complete system functionality
@@ -64,7 +64,7 @@ docker stop chroma-coaching
 docker rm chroma-coaching
 
 # Remove added dependencies
-npm uninstall chromadb @aws-sdk/client-bedrock-runtime uuid @types/uuid
+// // npm uninstall chromadb @aws-sdk/client-bedrock-runtime uuid @types/uuid
 
 # Clean npm cache
 npm cache clean --force

@@ -26,7 +26,7 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
     
     def __init__(self):
         super().__init__()
-        self.bedrock_client = None
+// //         self.bedrock_client = None
         self.embedding_model = "amazon.titan-embed-text-v2:0"
         self.batch_size = 25
         self.max_retries = 3
@@ -37,8 +37,8 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
         
         try:
             # Initialize AWS Bedrock client
-            self.bedrock_client = boto3.client(
-                service_name='bedrock-runtime',
+// //             self.bedrock_client = boto3.client(
+// //                 service_name='bedrock-runtime',
                 region_name=os.getenv('AWS_BEDROCK_REGION', 'us-east-1'),
                 aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'),
                 aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
@@ -52,19 +52,19 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
             
     async def create_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Create embeddings using AWS Bedrock Titan or fallback."""
-        if self.bedrock_client:
-            return await self._create_bedrock_embeddings(texts)
+// //         if self.bedrock_client:
+// //             return await self._create_bedrock_embeddings(texts)
         else:
             return await self._create_default_embeddings(texts)
             
-    async def _create_bedrock_embeddings(self, texts: List[str]) -> List[List[float]]:
+// //     async def _create_bedrock_embeddings(self, texts: List[str]) -> List[List[float]]:
         """Create embeddings using AWS Bedrock Titan."""
         embeddings = []
         
         # Process in batches
         for i in range(0, len(texts), self.batch_size):
             batch = texts[i:i + self.batch_size]
-            batch_embeddings = await self._process_bedrock_batch(batch)
+// //             batch_embeddings = await self._process_bedrock_batch(batch)
             embeddings.extend(batch_embeddings)
             
             # Rate limiting
@@ -72,7 +72,7 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
             
         return embeddings
         
-    async def _process_bedrock_batch(self, texts: List[str]) -> List[List[float]]:
+// //     async def _process_bedrock_batch(self, texts: List[str]) -> List[List[float]]:
         """Process a batch of texts with Bedrock."""
         embeddings = []
         
@@ -87,7 +87,7 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
                     })
                     
                     # Call Bedrock
-                    response = self.bedrock_client.invoke_model(
+// //                     response = self.bedrock_client.invoke_model(
                         body=body,
                         modelId=self.embedding_model,
                         accept='application/json',
@@ -361,7 +361,7 @@ class EnhancedASTProcessor(ASTKnowledgeProcessor):
         enhancement_report = {
             "timestamp": datetime.now().isoformat(),
             "enhancements": {
-                "bedrock_integration": self.bedrock_client is not None,
+// //                 "bedrock_integration": self.bedrock_client is not None,
                 "embedding_model": self.embedding_model,
                 "batch_size": self.batch_size,
                 "semantic_search_tested": True,

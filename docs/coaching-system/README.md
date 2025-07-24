@@ -152,7 +152,7 @@ S3 Buckets:
 
 ### **Required Dependencies**
 ```bash
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 ```
 

@@ -1,4 +1,4 @@
-i want build a coach/mentor chatbot using amazon bedrock and whatever tools i need accessing data from our development database so individual users's data informs the coach and learns about them.
+// // i want build a coach/mentor chatbot using amazon bedrock and whatever tools i need accessing data from our development database so individual users's data informs the coach and learns about them.
 
 Edit
 Before we begin, please run:
@@ -129,7 +129,7 @@ mkdir -p coaching-system/knowledge-base/{methodology,coaching-patterns,data-inte
 touch coaching-system/knowledge-base/methodology/ast-framework.md
 touch coaching-system/knowledge-base/coaching-patterns/conversation-templates.md
 touch coaching-system/knowledge-base/data-interpretation/star-card-coaching.md
-touch coaching-system/api/bedrock-integration.js
+// // touch coaching-system/api/bedrock-integration.js
 touch coaching-system/frontend/chat-interface.tsx
 Then let's start with the most critical file - the AST methodology training:
 
@@ -829,13 +829,13 @@ Pinecone with Bedrock embeddings
 Recommended: Bedrock Knowledge Bases
 typescript
 // Instead of OpenAI embeddings, use Bedrock
-import { BedrockEmbeddings } from '@aws-sdk/client-bedrock-runtime';
+// // import { BedrockEmbeddings } from '@aws-sdk/client-bedrock-runtime';
 
 class VectorDBService {
-  private bedrockEmbeddings: BedrockEmbeddings;
+// //   private bedrockEmbeddings: BedrockEmbeddings;
   
   constructor() {
-    this.bedrockEmbeddings = new BedrockEmbeddings({
+// //     this.bedrockEmbeddings = new BedrockEmbeddings({
       region: process.env.AWS_REGION,
       model: 'amazon.titan-embed-text-v1', // AWS embedding model
     });
@@ -1535,7 +1535,7 @@ npx drizzle-kit introspect:pg
 curl -X GET http://localhost:8080/api/coaching/knowledge-base
 
 # Check if dependencies were installed
-npm list chromadb @aws-sdk/client-bedrock-runtime
+// // npm list chromadb @aws-sdk/client-bedrock-runtime
 🚀 Next Step: Load Test Data
 Now that the backend is set up, let's load your AST documents and Lion Software profiles.
 
@@ -1580,7 +1580,7 @@ npx drizzle-kit introspect:pg
 # Check if new API routes are connected
 curl -X GET http://localhost:8080/api/coaching/knowledge-base
 # Check if dependencies were installed
-npm list chromadb @aws-sdk/client-bedrock-runtime
+// // npm list chromadb @aws-sdk/client-bedrock-runtime
 zsh: command not found: #
 This command is deprecated, please use updated 'introspect' command (see https://orm.drizzle.team/kit-docs/upgrade-21#how-to-migrate-to-0210)
 zsh: command not found: #
@@ -1600,7 +1600,7 @@ Authentication - API requires login to test
 🔧 Next Steps to Fix:
 1. Install Missing Dependencies
 bash
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 2. Check Database Migration Status
 bash
@@ -1626,7 +1626,7 @@ curl http://localhost:8000/api/v1/heartbeat
 🎯 Run These Commands:
 bash
 # Install dependencies
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime @types/uuid
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime @types/uuid
 
 # Check database schema
 npx drizzle-kit introspect
@@ -1683,7 +1683,7 @@ Perfect! Copilot did an excellent job building the foundation. Now let's get the
 🔧 Install Missing Dependencies
 bash
 # Install the vector database and AWS dependencies
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 🐳 Start Vector Database
 bash
@@ -1729,7 +1729,7 @@ Once dependencies are installed and vector DB is running, we can start testing c
 
 
 bradtopliff@MacBook-Pro-4 HI_Replit % # Install the vector database and AWS dependencies
-npm install chromadb uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 zsh: command not found: #
 npm error code ENOTEMPTY

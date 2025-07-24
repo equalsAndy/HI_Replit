@@ -16,7 +16,7 @@ The VectorDBService provides intelligent semantic search capabilities for:
 
 ### Dependencies
 ```bash
-npm install chromadb @chroma-core/default-embed uuid @aws-sdk/client-bedrock-runtime
+// // npm install chromadb @chroma-core/default-embed uuid @aws-sdk/client-bedrock-runtime
 npm install -D @types/uuid
 ```
 

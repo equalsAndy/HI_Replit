@@ -9,7 +9,7 @@
       "version": "1.0.0",
       "license": "MIT",
       "dependencies": {
-        "@aws-sdk/client-bedrock-runtime": "^3.848.0",
+// //         "@aws-sdk/client-bedrock-runtime": "^3.848.0",
         "@chroma-core/default-embed": "^0.1.8",
         "@dnd-kit/core": "^6.3.1",
         "@dnd-kit/sortable": "^10.0.0",
@@ -301,9 +301,9 @@
         "node": ">=14.0.0"
       }
     },
-    "node_modules/@aws-sdk/client-bedrock-runtime": {
+// //     "node_modules/@aws-sdk/client-bedrock-runtime": {
       "version": "3.848.0",
-      "resolved": "https://registry.npmjs.org/@aws-sdk/client-bedrock-runtime/-/client-bedrock-runtime-3.848.0.tgz",
+// //       "resolved": "https://registry.npmjs.org/@aws-sdk/client-bedrock-runtime/-/client-bedrock-runtime-3.848.0.tgz",
       "integrity": "sha512-oWXy0eLanklzZLz6TQwcxxnwqYFjdDCHnKkdMWLOHSPgPJVZxqGfr1KD72XHwg9386+vxInZ0VYIggs0cut/Hw==",
       "license": "Apache-2.0",
       "dependencies": {
@@ -361,13 +361,13 @@
         "node": ">=18.0.0"
       }
     },
-    "node_modules/@aws-sdk/client-bedrock-runtime/node_modules/@types/uuid": {
+// //     "node_modules/@aws-sdk/client-bedrock-runtime/node_modules/@types/uuid": {
       "version": "9.0.8",
       "resolved": "https://registry.npmjs.org/@types/uuid/-/uuid-9.0.8.tgz",
       "integrity": "sha512-jg+97EGIcY9AGHJJRaaPVgetKDsrTgbRjQ5Msgjh/DQKEFl0DtyRr/VCOyD1T2R1MNeWPK/u7JoGhlDZnKBAfA==",
       "license": "MIT"
     },
-    "node_modules/@aws-sdk/client-bedrock-runtime/node_modules/uuid": {
+// //     "node_modules/@aws-sdk/client-bedrock-runtime/node_modules/uuid": {
       "version": "9.0.1",
       "resolved": "https://registry.npmjs.org/uuid/-/uuid-9.0.1.tgz",
       "integrity": "sha512-b+1eJOlsR9K8HJpow9Ok3fiWOWSIcIzXodvv0rQjVoOVNpWMpxf1wZNpt4y9h10odCNrqnYp1OBzRktckBe3sA==",

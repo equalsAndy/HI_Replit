@@ -4,7 +4,7 @@
  * Handles AI-powered coaching conversations using Claude via AWS Bedrock
  */
 
-import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
+// // // import { BedrockRuntimeClient, InvokeModelCommand } from '@aws-sdk/client-bedrock-runtime';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres, { Sql } from 'postgres';
 import { eq, desc, and, sql } from 'drizzle-orm';
@@ -60,7 +60,7 @@ const getBedrockClientConfig = () => {
                 const accountId = keyParts[keyParts.length - 1]; // Last part should be account ID
                 
                 config.credentials = {
-                    accessKeyId: accessKeyId || 'bedrock-api-key',
+// //                     accessKeyId: accessKeyId || 'bedrock-api-key',
                     secretAccessKey: secret,
                     // No session token for API keys
                 };
@@ -89,7 +89,7 @@ const getBedrockClientConfig = () => {
     return config;
 };
 
-const bedrockClient = new BedrockRuntimeClient(getBedrockClientConfig());
+// // // const bedrockClient = new BedrockRuntimeClient(getBedrockClientConfig());
 
 /**
  * Coaching personas with different interaction styles
@@ -348,7 +348,7 @@ ${userProfile.reflectionQuestion ? `Help them specifically with their current re
 
         // Prepare Bedrock request
         const requestBody = {
-            anthropic_version: "bedrock-2023-05-31",
+// //             anthropic_version: "bedrock-2023-05-31",
             max_tokens: persona.maxTokens,
             system: persona.systemPrompt,
             messages: messages,
@@ -364,7 +364,7 @@ ${userProfile.reflectionQuestion ? `Help them specifically with their current re
         });
 
         const startTime = Date.now();
-        const response = await bedrockClient.send(command);
+// //         const response = await bedrockClient.send(command);
         const responseTime = Date.now() - startTime;
 
         const responseBody = JSON.parse(new TextDecoder().decode(response.body));
@@ -412,7 +412,7 @@ async function saveCoachingMessage(conversationId: string, senderType: string, c
         const result = await db.execute(sql`
             INSERT INTO coaching_messages (
                 conversation_id, sender_type, message_content, message_metadata,
-                bedrock_request_id, bedrock_model, response_time_ms
+// //                 bedrock_request_id, bedrock_model, response_time_ms
             ) VALUES (
                 ${conversationId}, ${senderType}, ${content}, ${JSON.stringify(metadata)},
                 ${metadata.requestId || null}, ${truncatedModel}, ${metadata.responseTime || null}

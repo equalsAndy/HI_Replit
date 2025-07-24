@@ -1,59 +1,59 @@
 import { Router } from 'express';
-import {
-  generateCoachingResponse,
-  getOrCreateConversation,
-  saveCoachingMessage,
-  getConversationHistory
-} from '../services/coaching-chat-service.js';
+// import {
+//   generateCoachingResponse,
+//   getOrCreateConversation,
+//   saveCoachingMessage,
+//   getConversationHistory
+// } from '../services/coaching-chat-service.js';
 
 const router = Router();
 
-/**
- * Create or get a coaching conversation
- * POST /api/coaching/chat/conversation
- */
-router.post('/conversation', async (req, res) => {
-  try {
-    const { persona, workshopStep } = req.body;
-    
-    // Check authentication using the same pattern as other routes
-    const userId = (req.session as any)?.userId;
-    const cookieUserId = req.cookies?.userId ? parseInt(req.cookies.userId) : null;
-    const finalUserId = userId || cookieUserId;
-
-    console.log('Coaching conversation auth check:', { 
-      userId, 
-      cookieUserId, 
-      finalUserId,
-      hasSession: !!req.session,
-      sessionKeys: Object.keys(req.session || {}),
-      fullSession: req.session
-    });
-
-    if (!finalUserId) {
-      console.log('No user ID found in session or cookies');
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    console.log(`Creating conversation for user ${finalUserId}, persona: ${persona}, workshopStep: ${workshopStep}`);
-    
-    const conversation = await getOrCreateConversation(finalUserId, persona, workshopStep);
-    
-    console.log('Conversation created successfully:', conversation.id);
-    
-    res.json({ 
-      conversationId: conversation.id,
-      title: conversation.conversation_title
-    });
-
-  } catch (error) {
-    console.error('Error creating conversation:', error);
-    res.status(500).json({ 
-      error: 'Failed to create conversation',
-      details: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
-});
+// /**
+//  * Create or get a coaching conversation
+//  * POST /api/coaching/chat/conversation
+//  */
+// router.post('/conversation', async (req, res) => {
+//   try {
+//     const { persona, workshopStep } = req.body;
+//     
+//     // Check authentication using the same pattern as other routes
+//     const userId = (req.session as any)?.userId;
+//     const cookieUserId = req.cookies?.userId ? parseInt(req.cookies.userId) : null;
+//     const finalUserId = userId || cookieUserId;
+//
+//     console.log('Coaching conversation auth check:', { 
+//       userId, 
+//       cookieUserId, 
+//       finalUserId,
+//       hasSession: !!req.session,
+//       sessionKeys: Object.keys(req.session || {}),
+//       fullSession: req.session
+//     });
+//
+//     if (!finalUserId) {
+//       console.log('No user ID found in session or cookies');
+//       return res.status(401).json({ error: 'User not authenticated' });
+//     }
+//
+//     console.log(`Creating conversation for user ${finalUserId}, persona: ${persona}, workshopStep: ${workshopStep}`);
+//     
+//     const conversation = await getOrCreateConversation(finalUserId, persona, workshopStep);
+//     
+//     console.log('Conversation created successfully:', conversation.id);
+//     
+//     res.json({ 
+//       conversationId: conversation.id,
+//       title: conversation.conversation_title
+//     });
+//
+//   } catch (error) {
+//     console.error('Error creating conversation:', error);
+//     res.status(500).json({ 
+//       error: 'Failed to create conversation',
+//       details: error instanceof Error ? error.message : 'Unknown error'
+//     });
+//   }
+// });
 
 /**
  * Send a message in a coaching conversation

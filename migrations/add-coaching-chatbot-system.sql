@@ -29,8 +29,8 @@ CREATE TABLE IF NOT EXISTS coaching_messages (
     sender_type VARCHAR(20) NOT NULL, -- 'user', 'ai_coach'
     message_content TEXT NOT NULL,
     message_metadata JSONB DEFAULT '{}', -- response_type, confidence_score, prompt_used, etc.
-    bedrock_request_id TEXT, -- AWS Bedrock request tracking
-    bedrock_model VARCHAR(100), -- Model used for response
+// // // //     bedrock_request_id TEXT, -- AWS Bedrock request tracking
+// // // //     bedrock_model VARCHAR(100), -- Model used for response
     response_time_ms INTEGER, -- Performance tracking
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

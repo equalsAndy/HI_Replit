@@ -176,7 +176,7 @@ class VectorDBService {
     "chromadb": "^3.0.9",
     "@chroma-core/default-embed": "^1.0.0",
     "uuid": "^11.1.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.848.0"
+// //     "@aws-sdk/client-bedrock-runtime": "^3.848.0"
   },
   "devDependencies": {
     "@types/uuid": "^10.0.0"

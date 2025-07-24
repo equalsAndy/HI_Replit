@@ -64,8 +64,8 @@ CREATE TABLE IF NOT EXISTS coaching_messages (
     sender_type VARCHAR(20) NOT NULL,
     message_content TEXT NOT NULL,
     message_metadata JSONB DEFAULT '{}',
-    bedrock_request_id TEXT,
-    bedrock_model VARCHAR(100),
+//     bedrock_request_id TEXT,
+//     bedrock_model VARCHAR(100),
     response_time_ms INTEGER,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

@@ -97,7 +97,7 @@ graph TD
 
 5. **Claude API Interaction**
    ```typescript
-   const response = await bedrockClient.send(new InvokeModelCommand({
+// //    const response = await bedrockClient.send(new InvokeModelCommand({
      modelId: 'anthropic.claude-3-sonnet-20240229-v1:0',
      contentType: 'application/json',
      accept: 'application/json',

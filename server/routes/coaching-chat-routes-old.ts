@@ -6,13 +6,13 @@
 
 import express from 'express';
 import { authenticateUser } from '../middleware/auth.js';
-import { 
-    generateCoachingResponse, 
-    getConversationHistory, 
-    saveCoachingMessage, 
-    getOrCreateConversation,
-    COACHING_PERSONAS 
-} from '../services/coaching-chat-service.js';
+// import { 
+//     generateCoachingResponse, 
+//     getConversationHistory, 
+//     saveCoachingMessage, 
+//     getOrCreateConversation,
+//     COACHING_PERSONAS 
+// } from '../services/coaching-chat-service.js';
 
 const router = express.Router();
 
