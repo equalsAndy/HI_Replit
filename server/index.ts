@@ -9,8 +9,11 @@ import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
 import coachingRoutes from './routes/coaching-routes.js';
 import coachingChatRoutes from './routes/coaching-chat-routes.js';
+import featureFlagRoutes from './routes/feature-flag-routes.js';
+import jiraRoutes from './routes/jira-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
+import { validateFlagsOnStartup } from './middleware/validateFlags.js';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
@@ -116,6 +119,10 @@ async function initializeApp() {
       console.log('📊 Initializing database connection...');
       await initializeDatabase();
       console.log('✅ Database connection successful');
+      
+      // Feature flag validation
+      console.log('🚩 Validating feature flag configuration...');
+      validateFlagsOnStartup();
 
       // Test database connection
       const dbReady = await testDatabaseConnection();
@@ -189,6 +196,8 @@ async function initializeApp() {
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
       app.use('/api/coaching/chat', coachingChatRoutes);
+      app.use('/api/feature-flags', featureFlagRoutes);
+      app.use('/api/jira', jiraRoutes);
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {
