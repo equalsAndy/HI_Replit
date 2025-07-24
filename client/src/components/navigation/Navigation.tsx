@@ -34,9 +34,9 @@ export function Navigation({ children, currentStepId }: NavigationProps) {
     }
   }>({
     queryKey: ['/api/auth/me'],
-    staleTime: 0, // Force fresh data every time
-    refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnMount: false, // Don't refetch on every mount
+    refetchOnWindowFocus: false, // Don't refetch on window focus
   });
 
   // ALWAYS LOG THIS TO SEE IF COMPONENT IS RUNNING

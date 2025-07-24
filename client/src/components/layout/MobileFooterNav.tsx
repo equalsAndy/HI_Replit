@@ -14,7 +14,12 @@ export function MobileFooterNav() {
     title?: string;
     organization?: string;
     role?: string;
-  }>({ queryKey: ['/api/auth/me'] });
+  }>({ 
+  queryKey: ["/api/auth/me"],
+  staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+  refetchOnWindowFocus: false,
+  retry: 1
+});
 
   // Function to reset user data
   const handleResetUserData = async () => {

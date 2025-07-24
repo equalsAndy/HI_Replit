@@ -117,14 +117,18 @@ export default function Foundations() {
   const { data: starCard } = useQuery<StarCardType>({
     queryKey: ['/api/starcard'],
     enabled: !!user,
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Get flow attributes data
   const { data: flowAttributes } = useQuery<{ attributes: any[] }>({
     queryKey: ['/api/flow-attributes'],
     enabled: !!user,
-    staleTime: Infinity,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Check if a tab should be disabled

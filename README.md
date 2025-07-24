@@ -8,6 +8,12 @@ This project uses:
 - **Database**: SQLite with Drizzle ORM
 - **Authentication**: Session-based with invite codes
 
+## Deployment
+
+- **Staging**: `./deploy-latest-code.sh` - Reliable layered deployment to app2.heliotropeimaginal.com
+- **Production**: Ready for DNS cutover to AWS infrastructure
+- **Documentation**: See `docs/deployment-best-practices.md` for full deployment strategy
+
 ## Navigation Progress Implementation Constraints
 
 ### CRITICAL CONSTRAINTS

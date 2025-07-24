@@ -1,0 +1,4 @@
+FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:production-2025.07.22.1856-20250722-v2
+COPY dist /app/client/dist
+COPY shared /app/shared
+COPY server /app/server

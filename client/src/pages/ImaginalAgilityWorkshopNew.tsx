@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { Button } from '@/components/ui/button';
-import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
+import ImaginalAgilityNavigation from '@/components/navigation/ImaginalAgilityNavigation';
+import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 import ImaginalAgilityContent from '@/components/content/imaginal-agility/ImaginalAgilityContent';
 import ImaginalAgilityAssessmentComplete from '@/components/assessment/ImaginalAgilityAssessmentComplete';
 
@@ -32,86 +33,12 @@ export default function ImaginalAgilityWorkshopNew() {
     retry: false
   });
 
-  // Imaginal Agility navigation structure matching the image provided
-  const iaNavigationSections = [
-    {
-      id: "1",
-      title: "Introduction to Imaginal Agility",
-      steps: [
-        { id: "ia-1-1", title: "Introduction to Imaginal Agility", type: "content" }
-      ]
-    },
-    {
-      id: "2", 
-      title: "The Triple Challenge",
-      steps: [
-        { id: "ia-2-1", title: "The Triple Challenge", type: "content" }
-      ]
-    },
-    {
-      id: "3",
-      title: "The Imaginal Agility Solution", 
-      steps: [
-        { id: "ia-3-1", title: "The Imaginal Agility Solution", type: "content" }
-      ]
-    },
-    {
-      id: "4",
-      title: "Your 5 Capabilities (5Cs)",
-      steps: [
-        { id: "ia-4-1", title: "Your 5 Capabilities (5Cs)", type: "content" }
-      ]
-    },
-    {
-      id: "5",
-      title: "Take the Imagination Assessment",
-      steps: [
-        { id: "ia-5-1", title: "Take the Imagination Assessment", type: "assessment" }
-      ]
-    },
-    {
-      id: "6",
-      title: "Review your Results",
-      steps: [
-        { id: "ia-6-1", title: "Review your Results", type: "content" }
-      ]
-    },
-    {
-      id: "7",
-      title: "Apply your Learning",
-      steps: [
-        { id: "ia-7-1", title: "Apply your Learning", type: "content" }
-      ]
-    },
-    {
-      id: "8", 
-      title: "Next Steps",
-      steps: [
-        { id: "ia-8-1", title: "Next Steps", type: "content" }
-      ]
-    }
-  ];
-
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
-
-  // Step accessibility check for IA
-  const isStepAccessible = (stepId: string) => {
-    return isStepUnlocked(stepId);
-  };
-
-  // Handle step clicks - match the UserHomeNavigationWithStarCard interface
-  const handleStepClick = (sectionId: string, stepId: string) => {
-    if (isStepAccessible(stepId)) {
+  // Handle step clicks for IA navigation
+  const handleStepClick = (stepId: string) => {
+    if (isStepUnlocked(stepId)) {
       setCurrentContent(stepId);
       setCurrentStep(stepId);
     }
-  };
-
-  // Step accessibility function to match interface
-  const isStepAccessibleFunc = (sectionId: string, stepId: string) => {
-    return isStepUnlocked(stepId);
   };
 
   // Handle assessment completion
@@ -165,29 +92,27 @@ export default function ImaginalAgilityWorkshopNew() {
           onComplete={handleAssessmentComplete}
         />
 
-        {/* Left Navigation Drawer - Same as AST but with IA sections */}
-        <UserHomeNavigation
-          drawerOpen={drawerOpen}
-          toggleDrawer={toggleDrawer}
-          navigationSections={iaNavigationSections}
-          completedSteps={completedSteps}
-          isStepAccessible={isStepAccessibleFunc}
-          handleStepClick={handleStepClick}
-          starCard={null}
-          flowAttributesData={null}
-          currentContent={currentContent}
-          isImaginalAgility={true}
-        />
+        {/* Left Navigation - IA Specific */}
+        <div className={`${drawerOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-purple-600`}>
+          <ImaginalAgilityNavigation
+            currentStepId={currentContent}
+            completedSteps={completedSteps}
+            onStepClick={handleStepClick}
+            isStepUnlocked={isStepUnlocked}
+          />
+        </div>
 
         {/* Content Area - Same layout as AST */}
         <div className="flex-1 overflow-auto p-6">
           <ImaginalAgilityContent
-            currentContent={currentContent}
-            markStepCompleted={markNavStepCompleted}
-            setCurrentContent={setCurrentContent}
+            stepId={currentContent}
+            onNext={(nextStepId) => {
+              markNavStepCompleted(currentContent);
+              setCurrentContent(nextStepId);
+              setCurrentStep(nextStepId);
+            }}
+            onOpenAssessment={() => setIsAssessmentModalOpen(true)}
             user={user}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
-            isImaginalAgility={true}
           />
         </div>
       </div>

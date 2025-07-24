@@ -7,7 +7,8 @@ import type { User } from "@shared/schema";
 export default function AppHeader() {
   const { data: user } = useQuery<User>({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false
   });
 
   const showDevBadge = (process.env.NODE_ENV === 'development') || (typeof window !== 'undefined' && window.location.hostname.includes('localhost'));

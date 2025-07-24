@@ -3,9 +3,7 @@ import react from "@vitejs/plugin-react";
 import path from "path";
 import { fileURLToPath } from "url";
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
 export default defineConfig({
   plugins: [
     react(),
@@ -22,7 +20,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
       },

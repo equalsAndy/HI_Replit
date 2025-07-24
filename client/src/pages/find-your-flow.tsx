@@ -461,13 +461,17 @@ export default function FindYourFlow() {
   // Get star card data
   const { data: starCard, isLoading: starCardLoading } = useQuery<StarCardType>({
     queryKey: ['/api/workshop-data/starcard'],
-    staleTime: 30000,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Get flow attributes data
   const { data: flowAttributesData, isLoading: flowAttributesLoading } = useQuery<FlowAttributes>({
     queryKey: ['/api/flow-attributes'],
-    staleTime: 30000,
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
   
   // Flow attributes save mutation

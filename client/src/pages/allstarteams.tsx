@@ -4,6 +4,7 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { AssessmentModal } from '@/components/assessment/AssessmentModal';
 import UserHomeNavigation from '@/components/navigation/UserHomeNavigationWithStarCard';
 import AllStarTeamsContent from '@/components/content/allstarteams/AllStarTeamsContent';
+import CoachingModalProvider from '@/components/modals/CoachingModalProvider';
 import { navigationSections, imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 // import { StarCard, User, FlowAttributesResponse } from '@/shared/types';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,9 @@ import { useApplication } from '@/hooks/use-application';
 import { NavBar } from '@/components/layout/NavBar';
 import { TestUserBanner } from '@/components/test-users/TestUserBanner';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useTestUser } from '@/hooks/useTestUser';
+import { forceAssessmentCacheDump } from '../utils/forceRefresh';
+import { useStarCardData } from '../hooks/useStarCardData';
 
 export default function AllStarTeams() {
   const [location, navigate] = useLocation();
@@ -80,12 +84,24 @@ export default function AllStarTeams() {
   // Get user role for navigation customization (using existing user query below)
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: 30000,
+    staleTime: 0, // Force fresh data for interface switching
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   const userRole = (userData as any)?.user?.role || (userData as any)?.role;
   // Check contentAccess preference first (for admin/facilitator toggles), then fall back to user role
   const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
+
+  // Debug logging for interface switching
+  console.log('🎯 AllStarTeams Interface Debug:', {
+    userData: userData,
+    userDataUser: (userData as any)?.user,
+    contentAccess: (userData as any)?.user?.contentAccess,
+    userRole: (userData as any)?.user?.role,
+    isStudentContent: isStudentContent,
+    timestamp: new Date().toISOString()
+  });
 
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
@@ -210,8 +226,12 @@ export default function AllStarTeams() {
     };
 
     checkUserAndRefresh();
-    const interval = setInterval(checkUserAndRefresh, 1500);
-    return () => clearInterval(interval);
+    // Only check user on initial mount, not every 1.5 seconds
+    checkUserAndRefresh();
+    
+    // Removed aggressive polling to prevent auth loop
+    // const interval = setInterval(checkUserAndRefresh, 1500);
+    // return () => clearInterval(interval);
   }, []);
 
   // Navigation progress is now loaded from database via useNavigationProgress hook
@@ -251,15 +271,112 @@ export default function AllStarTeams() {
 
   const { data: userProfile, isLoading: userProfileLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: 30000,
+    staleTime: 0, // Force fresh data for interface switching
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
-  // Fetch star card data separately to debug the issue
-  const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useQuery({
-    queryKey: ['/api/user/star-card-data'],
-    enabled: !!(userProfile as any)?.id,
-    staleTime: 10000,
-  });
+    // Use the shared StarCard hook to prevent multiple simultaneous fetches
+  const { data: starCardData, isLoading: starCardLoading, error: starCardError } = useStarCardData();
+
+  // Clear workshop progress when user changes OR when any user has progress: 0
+  React.useEffect(() => {
+    // Extract actual user data from the response wrapper
+    const actualUser = (userProfile as any)?.user || (userProfile as any);
+    
+    // Clear all local storage data when user changes
+    sessionStorage.removeItem('workshopProgress');
+    sessionStorage.removeItem('currentSection');
+    sessionStorage.removeItem('currentSubSection');
+    sessionStorage.removeItem('currentStepIndex');
+    sessionStorage.removeItem('currentContent');
+    sessionStorage.removeItem('workshopAssessmentData');
+    sessionStorage.removeItem('adminAssessmentData');
+    
+    // New: Clear the participant results as well
+    sessionStorage.removeItem('participantAssessmentData');
+    
+    // Clear any navigation flags
+    sessionStorage.removeItem('navigateToStarCardPreview');
+    sessionStorage.removeItem('navigateToAssessmentComplete');
+    sessionStorage.removeItem('navigateToVideos');
+    sessionStorage.removeItem('navigateToDownloads');
+    sessionStorage.removeItem('navigateToDiscernment');
+    sessionStorage.removeItem('navigateToWorkshop');
+    sessionStorage.removeItem('navigateToAdmin');
+    sessionStorage.removeItem('navigateToLogin');
+    sessionStorage.removeItem('navigateToRegister');
+    sessionStorage.removeItem('navigateToForgotPassword');
+    sessionStorage.removeItem('navigateToResetPassword');
+    sessionStorage.removeItem('navigateToProfile');
+    sessionStorage.removeItem('navigateToSettings');
+    sessionStorage.removeItem('navigateToHelp');
+    sessionStorage.removeItem('navigateToAbout');
+    sessionStorage.removeItem('navigateToContact');
+    sessionStorage.removeItem('navigateToPrivacy');
+    sessionStorage.removeItem('navigateToTerms');
+    sessionStorage.removeItem('navigateToSupport');
+    sessionStorage.removeItem('navigateToFeedback');
+    sessionStorage.removeItem('navigateToChangePassword');
+    sessionStorage.removeItem('navigateToDeleteAccount');
+    sessionStorage.removeItem('navigateToLogout');
+    sessionStorage.removeItem('navigateToHome');
+    sessionStorage.removeItem('navigateToAllStarTeams');
+    
+    // Clear all localStorage data when user changes
+    localStorage.removeItem('workshopProgress');
+    localStorage.removeItem('currentSection');
+    localStorage.removeItem('currentSubSection');
+    localStorage.removeItem('currentStepIndex');
+    localStorage.removeItem('currentContent');
+    localStorage.removeItem('workshopAssessmentData');
+    localStorage.removeItem('adminAssessmentData');
+    
+    // New: Clear the participant results as well
+    localStorage.removeItem('participantAssessmentData');
+    
+    // Clear any navigation flags
+    localStorage.removeItem('navigateToStarCardPreview');
+    localStorage.removeItem('navigateToAssessmentComplete');
+    localStorage.removeItem('navigateToVideos');
+    localStorage.removeItem('navigateToDownloads');
+    localStorage.removeItem('navigateToDiscernment');
+    localStorage.removeItem('navigateToWorkshop');
+    localStorage.removeItem('navigateToAdmin');
+    localStorage.removeItem('navigateToLogin');
+    localStorage.removeItem('navigateToRegister');
+    localStorage.removeItem('navigateToForgotPassword');
+    localStorage.removeItem('navigateToResetPassword');
+    localStorage.removeItem('navigateToProfile');
+    localStorage.removeItem('navigateToSettings');
+    localStorage.removeItem('navigateToHelp');
+    localStorage.removeItem('navigateToAbout');
+    localStorage.removeItem('navigateToContact');
+    localStorage.removeItem('navigateToPrivacy');
+    localStorage.removeItem('navigateToTerms');
+    localStorage.removeItem('navigateToSupport');
+    localStorage.removeItem('navigateToFeedback');
+    localStorage.removeItem('navigateToChangePassword');
+    localStorage.removeItem('navigateToDeleteAccount');
+    localStorage.removeItem('navigateToLogout');
+    localStorage.removeItem('navigateToHome');
+    localStorage.removeItem('navigateToAllStarTeams');
+    
+    console.log('🧹 Cleared all workshop data for user:', actualUser);
+  }, [userProfile]);
+
+  // Log what we're receiving
+  React.useEffect(() => {
+    if (userProfile) {
+      console.log('AllStarTeams - User data:', userProfile);
+    }
+    if (starCardData) {
+      console.log('AllStarTeams - Star card data:', starCardData);
+    }
+    if (starCardError) {
+      console.log('AllStarTeams - Star card error:', starCardError);
+    }
+  }, [userProfile, starCardData, starCardError]);
 
   // Clear workshop progress when user changes OR when any user has progress: 0
   React.useEffect(() => {
@@ -344,17 +461,12 @@ export default function AllStarTeams() {
     }
   }, [userProfile, starCardData, starCardError]);
 
-  // Fetch star card data with better error handling and logging
-  const { data: starCard, isLoading: starCardLoading1 } = useQuery({ 
-    queryKey: ['/api/workshop-data/starcard'],
-    refetchOnWindowFocus: false,
-    refetchInterval: 30000, // Refresh every 30 seconds to ensure data consistency
-  });
-
   // Fetch flow attributes data
   const { data: flowAttributesData, isLoading: flowLoading } = useQuery({
     queryKey: ['/api/workshop-data/flow-attributes'],
-    refetchOnWindowFocus: false
+    staleTime: 0, // Always fetch fresh data from database
+    gcTime: 0, // Don't cache the data
+    refetchOnWindowFocus: true, // Refetch when user returns to browser tab
   });
 
   // Reset user progress mutation
@@ -395,25 +507,8 @@ export default function AllStarTeams() {
       }
     },
     onSuccess: () => {
-      // Navigation progress will be reset through the hook
-
-      // Clear all possible localStorage keys for maximum compatibility
-      // No localStorage keys needed in simplified mode
-      localStorage.removeItem('allstarteams-navigation-progress');
-      localStorage.removeItem('imaginal-agility-navigation-progress');
-      localStorage.removeItem('allstar_navigation_progress');
-
-      // Refresh data from server and clear all cached assessment data
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/starcard'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-
-      // Clear any cached flow assessment data
-      queryClient.removeQueries({ queryKey: ['/api/workshop-data/flow-attributes'] });
-      queryClient.removeQueries({ queryKey: ['/api/workshop-data/starcard'] });
-
-      // Reset functionality disabled to prevent auto-reset loops
+      // Use comprehensive cache dump utility
+      forceAssessmentCacheDump(queryClient);
 
       toast({
         title: "Progress Reset",
@@ -560,24 +655,22 @@ export default function AllStarTeams() {
 
   // Data check for debugging
   const hasData = React.useMemo(() => {
-    const hasStarCardData = starCard && (
-      ((starCard as any).thinking && (starCard as any).thinking > 0) || 
-      ((starCard as any).feeling && (starCard as any).feeling > 0) || 
-      ((starCard as any).acting && (starCard as any).acting > 0) || 
-      ((starCard as any).planning && (starCard as any).planning > 0)
-    );
-
-    const hasFlowData = flowAttributesData && 
+    const hasStarCardData = starCardData && (
+      ((starCardData as any).thinking && (starCardData as any).thinking > 0) ||
+      ((starCardData as any).feeling && (starCardData as any).feeling > 0) ||
+      ((starCardData as any).acting && (starCardData as any).acting > 0) ||
+      ((starCardData as any).planning && (starCardData as any).planning > 0)
+    );    const hasFlowData = flowAttributesData && 
                         (flowAttributesData as any).attributes && 
                         Array.isArray((flowAttributesData as any).attributes) && 
                         (flowAttributesData as any).attributes.length > 0;
 
     const starCardData1 = {
-      thinking: (starCard as any)?.thinking || 0,
-      acting: (starCard as any)?.acting || 0,
-      feeling: (starCard as any)?.feeling || 0,
-      planning: (starCard as any)?.planning || 0,
-      imageUrl: !!(starCard as any)?.imageUrl
+      thinking: (starCardData as any)?.thinking || 0,
+      acting: (starCardData as any)?.acting || 0,
+      feeling: (starCardData as any)?.feeling || 0,
+      planning: (starCardData as any)?.planning || 0,
+      imageUrl: !!(starCardData as any)?.imageUrl
     };
 
     const flowAttributes = {
@@ -590,7 +683,7 @@ export default function AllStarTeams() {
     console.log("Has data condition:", { hasData: !!hasStarCardData, hasFlowData, starCardData1, flowAttributes });
 
     return hasStarCardData;
-  }, [starCard, flowAttributesData]);
+  }, [starCardData, flowAttributesData]);
 
   // Function to toggle the drawer
   const toggleDrawer = () => setDrawerOpen(!drawerOpen);
@@ -613,55 +706,51 @@ export default function AllStarTeams() {
   });
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Navigation */}
-      <NavBar />
+    <CoachingModalProvider>
+      <div className="flex flex-col h-screen bg-gray-50">
+        {/* Navigation */}
+        <NavBar />
 
-      {/* Main Content */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Assessment Modal */}
-        <AssessmentModal 
-          isOpen={isAssessmentModalOpen} 
-          onClose={() => setIsAssessmentModalOpen(false)}
-          onComplete={handleAssessmentComplete}
-        />
+        {/* Main Content */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Assessment Modal */}
+          <AssessmentModal 
+            isOpen={isAssessmentModalOpen} 
+            onClose={() => setIsAssessmentModalOpen(false)}
+            onComplete={handleAssessmentComplete}
+          />
 
-        {/* Left Navigation Drawer */}
-        <UserHomeNavigation
-          drawerOpen={drawerOpen}
-          toggleDrawer={toggleDrawer}
-          navigationSections={updatedNavigationSections}
-          completedSteps={completedSteps}
-          isStepAccessible={isStepAccessible}
-          handleStepClick={handleStepClick}
-          starCard={starCard}
-          flowAttributesData={flowAttributesData}
-          currentContent={currentContent}
-          isImaginalAgility={currentApp === 'imaginal-agility'}
-        />
-        {/* Debug logging for props */}
-        {console.log('🎯 Navigation Props Debug:', {
-          currentApp,
-          isImaginalAgility: currentApp === 'imaginal-agility',
-          location
-        })}
-
-        {/* Content Area */}
-        <div className="flex-1 overflow-auto p-6">
-          {/* Anchor for scroll-to-top navigation */}
-          <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
-          <AllStarTeamsContent
-            currentContent={currentContent}
-            markStepCompleted={markNavStepCompleted}
-            setCurrentContent={setCurrentContent}
-            starCard={starCard}
-            user={userProfile}
+          {/* Left Navigation Drawer */}
+          <UserHomeNavigation
+            drawerOpen={drawerOpen}
+            toggleDrawer={toggleDrawer}
+            navigationSections={updatedNavigationSections}
+            completedSteps={completedSteps}
+            isStepAccessible={isStepAccessible}
+            handleStepClick={handleStepClick}
+            starCard={starCardData}
             flowAttributesData={flowAttributesData}
-            setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+            currentContent={currentContent}
             isImaginalAgility={currentApp === 'imaginal-agility'}
           />
+
+          {/* Content Area */}
+          <div className="flex-1 overflow-auto p-6">
+            {/* Anchor for scroll-to-top navigation */}
+            <div id="content-top" className="h-0 w-0 invisible" aria-hidden="true"></div>
+            <AllStarTeamsContent
+              currentContent={currentContent}
+              markStepCompleted={markNavStepCompleted}
+              setCurrentContent={setCurrentContent}
+              starCard={starCardData}
+              user={userProfile}
+              flowAttributesData={flowAttributesData}
+              setIsAssessmentModalOpen={setIsAssessmentModalOpen}
+              isImaginalAgility={currentApp === 'imaginal-agility'}
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </CoachingModalProvider>
   );
 }

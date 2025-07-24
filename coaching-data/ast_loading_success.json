@@ -1,0 +1,16 @@
+{
+  "timestamp": "2025-07-19T22:59:25.433Z",
+  "summary": {
+    "total_chunks": 33,
+    "ast_methodology_chunks": 1,
+    "team_profile_chunks": 32,
+    "database_records": 33
+  },
+  "content_types": {
+    "team_dynamics": 8,
+    "methodology": 16,
+    "flow_theory": 2,
+    "strengths_framework": 7
+  },
+  "total_word_count": 8639
+}

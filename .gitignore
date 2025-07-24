@@ -3,6 +3,56 @@ dist
 .DS_Store
 server/public
 vite.config.ts.*
-*.tar.gzcreate-admin-backup.ts
+*.tar.gz
+create-admin-backup.ts
 dev_schema.sql
 .env
+.env.local
+.env.*.local
+
+# Test files and temporary development files
+test-*.ts
+test-*.mjs
+test-*.js
+**/test-*.json
+**/pg_search_test.json
+**/process_ast_simple.*
+
+# Version and build artifacts (these are managed by versioning system)
+public/version.json
+
+# Development logs and debugging
+*.log
+debug-*.ts
+debug-*.js
+
+# Backup files
+*.backup
+*.bak
+*.tmp
+*.old
+
+# System files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Package installers
+*.pkg
+*.dmg
+*.msi
+*.exe
+
+# ChromaDB data
+chromadb_data/
+.chroma/
+
+# Python cache (if any Python scripts are added)
+__pycache__/
+*.pyc
+*.pyo

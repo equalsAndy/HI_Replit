@@ -24,34 +24,51 @@ router.put('/me', requireAuth, async (req, res) => {
       email,
       organization,
       jobTitle,
-      profilePicture
+      profilePicture,
+      contentAccess
     } = req.body;
-
-    // Validate required fields
-    if (!name || !email) {
-      return res.status(400).json({
-        success: false,
-        error: 'Name and email are required'
-      });
-    }
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+
+    // Validate required fields for profile updates (if updating profile fields, name and email are required)
+    const isProfileUpdate = name !== undefined || email !== undefined || organization !== undefined || jobTitle !== undefined || profilePicture !== undefined;
+    if (isProfileUpdate && (!name || !email)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Name and email are required for profile updates'
+      });
+    }
+
+    // Validate email format if email is provided
+    if (email && !emailRegex.test(email)) {
       return res.status(400).json({
         success: false,
         error: 'Invalid email format'
       });
     }
 
+    // Validate contentAccess if provided
+    if (contentAccess && !['student', 'professional'].includes(contentAccess)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content access must be either "student" or "professional"'
+      });
+    }
+
     // Update the user profile
-    const result = await userManagementService.updateUser(userId, {
-      name,
-      email,
-      organization,
-      jobTitle,
-      profilePicture
-    });
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (organization !== undefined) updateData.organization = organization;
+    if (jobTitle !== undefined) updateData.jobTitle = jobTitle;
+    if (profilePicture !== undefined) updateData.profilePicture = profilePicture;
+    if (contentAccess !== undefined) {
+      updateData.contentAccess = contentAccess;
+      console.log(`🔧 Content Access Update: User ${userId} switching to ${contentAccess}`);
+    }
+
+    const result = await userManagementService.updateUser(userId, updateData);
 
     if (!result.success) {
       return res.status(400).json(result);
@@ -76,19 +93,23 @@ router.put('/me', requireAuth, async (req, res) => {
  * Login route
  */
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  // Support both 'username' and 'identifier' in request body
+  const { username, identifier, password } = req.body;
+  const loginUsername = username || identifier;
 
-  if (!username || !password) {
+  if (!loginUsername || !password) {
     return res.status(400).json({
       success: false,
-      error: 'Username and password are required'
+      error: 'Username/identifier and password are required'
     });
   }
 
   try {
-    const result = await userManagementService.authenticateUser(username, password);
+    console.log('🔑 Login attempt:', { loginUsername });
+    const result = await userManagementService.authenticateUser(loginUsername, password);
 
     if (!result.success) {
+      console.log('❌ Login failed:', result.error);
       return res.status(401).json(result);
     }
 

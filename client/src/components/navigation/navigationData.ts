@@ -4,65 +4,231 @@ import {
   Download, Calendar, Brain, Play
 } from 'lucide-react';
 
-// Imaginal Agility navigation - Single collapsible menu with all steps
-export const imaginalAgilityNavigationSections = [
+// Type definitions for Imaginal Agility navigation
+export interface IANavigationStep {
+  id: string;
+  title: string;
+  type: string;
+  contentKey: string;
+}
+
+export interface IANavigationSection {
+  id: string;
+  title: string;
+  expanded: boolean;
+  steps: IANavigationStep[];
+}
+
+// Imaginal Agility navigation - 7-section hierarchical menu with 26 steps
+export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '1',
-    title: 'IMAGINAL AGILITY WORKSHOP',
+    title: 'WELCOME',
+    expanded: true, // Default expanded
     steps: [
       { 
         id: 'ia-1-1', 
-        title: 'Introduction to Imaginal Agility', 
+        title: 'Orientation', 
         type: 'video',
         contentKey: 'ia-1-1'
       },
       { 
+        id: 'ia-1-2', 
+        title: 'AI\'s 4X Mental Challenge', 
+        type: 'video',
+        contentKey: 'ia-1-2'
+      }
+    ]
+  },
+  {
+    id: '2',
+    title: 'THE I4C MODEL',
+    expanded: true, // Default expanded
+    steps: [
+      { 
         id: 'ia-2-1', 
-        title: 'The Triple Challenge', 
+        title: 'I4C Prism Overview', 
         type: 'video',
         contentKey: 'ia-2-1'
       },
       { 
+        id: 'ia-2-2', 
+        title: 'Self-Assessment', 
+        type: 'assessment',
+        contentKey: 'ia-2-2'
+      }
+    ]
+  },
+  {
+    id: '3',
+    title: 'LADDER OF IMAGINATION',
+    expanded: true, // Default expanded
+    steps: [
+      { 
         id: 'ia-3-1', 
-        title: 'The Imaginal Agility Solution', 
+        title: 'Ladder Overview', 
         type: 'video',
         contentKey: 'ia-3-1'
       },
       { 
+        id: 'ia-3-2', 
+        title: 'Autoflow', 
+        type: 'interactive',
+        contentKey: 'ia-3-2'
+      },
+      { 
+        id: 'ia-3-3', 
+        title: 'Visualizing Your Potential', 
+        type: 'interactive',
+        contentKey: 'ia-3-3'
+      },
+      { 
+        id: 'ia-3-4', 
+        title: 'From Insight to Intention', 
+        type: 'reflection',
+        contentKey: 'ia-3-4'
+      },
+      { 
+        id: 'ia-3-5', 
+        title: 'Inspiration', 
+        type: 'reflection',
+        contentKey: 'ia-3-5'
+      },
+      { 
+        id: 'ia-3-6', 
+        title: 'The Unimaginable', 
+        type: 'video',
+        contentKey: 'ia-3-6'
+      }
+    ]
+  },
+  {
+    id: '4',
+    title: 'ADVANCED LADDER OF IMAGINATION',
+    expanded: false, // Default collapsed
+    steps: [
+      { 
         id: 'ia-4-1', 
-        title: 'Self-Assessment', 
-        type: 'assessment',
+        title: 'Advanced Ladder Overview', 
+        type: 'video',
         contentKey: 'ia-4-1'
       },
       { 
+        id: 'ia-4-2', 
+        title: 'Autoflow Mindful Prompts', 
+        type: 'interactive',
+        contentKey: 'ia-4-2'
+      },
+      { 
+        id: 'ia-4-3', 
+        title: 'Visualization Stretch', 
+        type: 'interactive',
+        contentKey: 'ia-4-3'
+      },
+      { 
+        id: 'ia-4-4', 
+        title: 'Higher Purpose Uplift', 
+        type: 'reflection',
+        contentKey: 'ia-4-4'
+      },
+      { 
+        id: 'ia-4-5', 
+        title: 'Inspiration Support', 
+        type: 'reflection',
+        contentKey: 'ia-4-5'
+      },
+      { 
+        id: 'ia-4-6', 
+        title: 'Nothing is Unimaginable', 
+        type: 'video',
+        contentKey: 'ia-4-6'
+      }
+    ]
+  },
+  {
+    id: '5',
+    title: 'OUTCOMES & BENEFITS',
+    expanded: false, // Default collapsed
+    steps: [
+      { 
         id: 'ia-5-1', 
-        title: 'Assessment Results', 
-        type: 'viewing',
+        title: 'HaiQ', 
+        type: 'assessment',
         contentKey: 'ia-5-1'
       },
       { 
-        id: 'ia-6-1', 
-        title: 'Teamwork Preparation', 
+        id: 'ia-5-2', 
+        title: 'ROI 2.0', 
+        type: 'viewing',
+        contentKey: 'ia-5-2'
+      },
+      { 
+        id: 'ia-5-3', 
+        title: 'Course Completion Badge', 
+        type: 'achievement',
+        contentKey: 'ia-5-3'
+      },
+      { 
+        id: 'ia-5-4', 
+        title: 'Imaginal Agility Compendium', 
+        type: 'download',
+        contentKey: 'ia-5-4'
+      },
+      { 
+        id: 'ia-5-5', 
+        title: 'Community of Practice', 
         type: 'collaboration',
+        contentKey: 'ia-5-5'
+      }
+    ]
+  },
+  {
+    id: '6',
+    title: 'QUARTERLY TUNE-UP',
+    expanded: false, // Default collapsed
+    steps: [
+      { 
+        id: 'ia-6-1', 
+        title: 'Orientation', 
+        type: 'video',
         contentKey: 'ia-6-1'
       },
       { 
-        id: 'ia-8-1', 
-        title: 'Neuroscience', 
+        id: 'ia-6-2', 
+        title: 'Practices', 
+        type: 'interactive',
+        contentKey: 'ia-6-2'
+      }
+    ]
+  },
+  {
+    id: '7',
+    title: 'ADDITIONAL INFO',
+    expanded: false, // Default collapsed
+    steps: [
+      { 
+        id: 'ia-7-1', 
+        title: 'The Neuroscience of Imagination', 
         type: 'video',
-        contentKey: 'ia-8-1'
+        contentKey: 'ia-7-1'
+      },
+      { 
+        id: 'ia-7-2', 
+        title: 'About Heliotrope Imaginal', 
+        type: 'video',
+        contentKey: 'ia-7-2'
       }
     ]
   }
 ];
 
-// AllStarTeams navigation sections (corrected structure)
+// All Star Teams navigation sections
 export const allStarTeamsNavigationSections = [
   {
     id: '1',
-    title: '', // No title for introduction section
+    title: 'STAR',
     steps: [
-      { id: '1-1', title: 'Introduction', type: 'video' }
+      { id: '1-1', title: 'Introduction to Star Cards', type: 'video' }
     ]
   },
   {

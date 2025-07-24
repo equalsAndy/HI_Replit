@@ -16,6 +16,80 @@ import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
+
+// Environment badge helper - displays dynamic version from build process
+const EnvironmentBadge = () => {
+  const [versionInfo, setVersionInfo] = useState({
+    version: import.meta.env.VITE_APP_VERSION || 'N/A',
+    build: import.meta.env.VITE_BUILD_NUMBER || '',
+    environment: import.meta.env.VITE_ENVIRONMENT || 'development'
+  });
+
+  // Debug environment variables
+  useEffect(() => {
+    console.log('Environment Variables Debug:', {
+      VITE_APP_VERSION: import.meta.env.VITE_APP_VERSION,
+      VITE_BUILD_NUMBER: import.meta.env.VITE_BUILD_NUMBER,
+      VITE_ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT,
+      MODE: import.meta.env.MODE,
+      DEV: import.meta.env.DEV
+    });
+  }, []);
+
+  // Fetch version info from public/version.json as fallback
+  useEffect(() => {
+    const fetchVersionInfo = async () => {
+      try {
+        const response = await fetch('/version.json');
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Version.json data:', data);
+          setVersionInfo({
+            version: data.version || 'N/A',
+            build: data.build || '',
+            environment: data.environment || versionInfo.environment
+          });
+        }
+      } catch (error) {
+        console.warn('Could not fetch version.json, using environment variables');
+        console.error('Fetch error:', error);
+      }
+    };
+
+    // Always try to fetch version.json for the most up-to-date version
+    fetchVersionInfo();
+  }, []);
+
+  // Check environment detection
+  const viteMode = import.meta.env.MODE;
+  const isDev = import.meta.env.DEV;
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
+  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com');
+  
+  // Development detection
+  if (isDev || viteMode === 'development' || isLocalhost) {
+    const displayVersion = versionInfo.version === 'N/A' 
+      ? 'DEV version N/A' 
+      : `DEV v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
+    
+    return (
+      <Badge variant="destructive" className="ml-2 text-xs">
+        {displayVersion}
+      </Badge>
+    );
+  }
+  
+  // Staging detection
+  if (isStaging) {
+    return (
+      <Badge variant="secondary" className="ml-2 text-xs">
+        STAGING v{versionInfo.version}.{versionInfo.build}
+      </Badge>
+    );
+  }
+  
+  return null;
+};
 import {
   Dialog,
   DialogContent,
@@ -24,7 +98,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { isFeatureEnabled, getEnvironmentBadge } from '../../utils/featureFlags';
 
 export function NavBar() {
   const { isDemoMode, toggleDemoMode, canUseDemoMode } = useDemoMode();
@@ -75,19 +148,20 @@ export function NavBar() {
       console.log('NavBar: Profile data received:', data);
       return data;
     },
-    // Force fresh data fetch
-    refetchOnWindowFocus: true,
-    staleTime: 0, // Always fetch fresh data
-    retry: 2
+    // Optimized refetch settings to prevent auth loop
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes cache to prevent excessive refetching
+    retry: 1
   });
 
   // Extract user data from the response
-  const user = data?.user;
+  const user = data?.user || data; // Handle both wrapped and direct user data
   const isTestUser = user?.isTestUser || false;
 
   useEffect(() => {
     // Log user data for debugging
     console.log("NavBar - API response:", data);
+    console.log("NavBar - User extracted:", user);
     console.log("NavBar - User extracted:", user);
     if (user) {
       console.log("User data in NavBar:", user);
@@ -232,20 +306,7 @@ export function NavBar() {
                 className="h-8 w-auto" 
               />
             </a>
-            {/* Environment badge using feature flag system */}
-            {isFeatureEnabled('showEnvironmentBadge') && getEnvironmentBadge() && (
-              <span
-                className={`ml-4 text-xs rounded-full px-2 py-1 font-semibold ${
-                  getEnvironmentBadge() === 'DEV'
-                    ? 'bg-orange-100 text-orange-800'
-                    : getEnvironmentBadge() === 'STAGING'
-                    ? 'bg-blue-100 text-blue-800'
-                    : ''
-                }`}
-              >
-                {getEnvironmentBadge()}
-              </span>
-            )}
+            <EnvironmentBadge />
           </div>
         </div>
 

@@ -20,8 +20,8 @@ export const useAssessmentWithReset = (assessmentType: string, endpoint: string)
       const result = await response.json();
       return result.success ? (result.navigationProgress ? JSON.parse(result.navigationProgress) : null) : null;
     },
-    refetchInterval: 30000,
-    refetchIntervalInBackground: true
+    refetchInterval: false, // Disable automatic refetching to prevent auth loop
+    refetchIntervalInBackground: false
   });
 
   // Query for assessment data

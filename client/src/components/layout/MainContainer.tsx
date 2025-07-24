@@ -36,7 +36,8 @@ export default function MainContainer({
   // Get user profile
   const { data: user } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false
   });
   
   // If using modern navigation, use the new Navigation component

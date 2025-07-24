@@ -17,16 +17,10 @@ fi
 
 echo "✅ Frontend build complete"
 
-# Build the backend (TypeScript to JavaScript)
-echo "🔧 Building backend..."
-npx tsc --build tsconfig.json --verbose
+# Skip TypeScript compilation since we use tsx in production
+echo "🔧 Skipping backend compilation (using tsx runtime)..."
 
-if [ $? -ne 0 ]; then
-    echo "❌ Backend build failed"
-    exit 1
-fi
-
-echo "✅ Backend build complete"
+echo "✅ Backend ready for tsx runtime"
 
 # Verify all required files exist
 REQUIRED_FILES=(

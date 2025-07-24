@@ -5,7 +5,13 @@ import tailwindcssAspectRatio from "@tailwindcss/aspect-ratio";
 
 export default {
   darkMode: ["class"],
-  content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
+  content: [
+    "./index.html", 
+    "./src/**/*.{js,jsx,ts,tsx}",
+    // Also include the original paths for local development
+    "./client/index.html",
+    "./client/src/**/*.{js,jsx,ts,tsx}"
+  ],
   theme: {
     extend: {
       borderRadius: {
@@ -82,16 +88,25 @@ export default {
             height: "0",
           },
         },
+        "breathe": {
+          "0%, 100%": {
+            transform: "scale(1)",
+          },
+          "50%": {
+            transform: "scale(1.05)",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "breathe": "breathe 4s ease-in-out infinite",
       },
     },
   },
   plugins: [
     tailwindcssAnimate,
     tailwindcssTypography,
-    tailwindcssAspectRatio
+    tailwindcssAspectRatio,
   ],
 } satisfies Config;

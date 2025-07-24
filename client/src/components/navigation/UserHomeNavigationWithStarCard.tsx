@@ -65,9 +65,44 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 }) => {
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Reset detection hooks - use single navigation progress hook instance
+  const { progress: navigationProgress } = useNavigationProgress(isImaginalAgility ? 'ia' : 'ast');
+  
+  // Use section expansion state from navigation progress for IA with manual override capability
+  const [manualExpansion, setManualExpansion] = useState<Record<string, boolean>>({});
+  
+  const baseExpandedSections = isImaginalAgility 
+    ? (navigationProgress?.sectionExpansion || {
+        '1': true, '2': true, '3': false, '4': false, '5': false, '6': false, '7': false
+      })
+    : {};
+    
+  // Combine automatic expansion with manual overrides
+  const expandedSections = isImaginalAgility ? {
+    ...baseExpandedSections,
+    ...manualExpansion  // Manual overrides take precedence
+  } : {};
+    
+  // Debug logging for section expansion
+  React.useEffect(() => {
+    if (isImaginalAgility && navigationProgress?.sectionExpansion) {
+      console.log(`📖 KAN-112 Section Expansion State:`, navigationProgress.sectionExpansion);
+      console.log(`📖 Manual Overrides:`, manualExpansion);
+      console.log(`📖 Final Expanded Sections:`, expandedSections);
+    }
+  }, [isImaginalAgility, navigationProgress?.sectionExpansion, manualExpansion]);
 
-  // Reset detection hooks
-  const { progress: navigationProgress } = useNavigationProgress();
+  const toggleSection = (sectionId: string) => {
+    if (isImaginalAgility) {
+      // KAN-112: Allow manual override of automatic expansion state
+      setManualExpansion(prev => ({
+        ...prev,
+        [sectionId]: !expandedSections[sectionId]
+      }));
+      console.log(`📖 KAN-112: Manual toggle of section ${sectionId}`);
+    }
+  };
   const { assessmentData: starCardData, isReset: isStarCardReset } = useAssessmentWithReset('starcard', '/api/workshop-data/starcard');
   const { assessmentData: flowData, isReset: isFlowReset } = useAssessmentWithReset('flow-attributes', '/api/workshop-data/flow-attributes');
 
@@ -339,20 +374,42 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
           <nav className="space-y-6">
             {navigationSections.map((section) => (
               <div key={section.id} className="space-y-2">
-                {/* Section Header - Clean without Week Label */}
-                {/* Hide section title for Introduction (section 1) */}
-                {section.id !== '1' && (
+                {/* Section Header - Accordion for IA, regular for AST */}
+                {(isImaginalAgility || section.id !== '1') && (
                   <div className="flex items-start space-x-2">
                     {drawerOpen && (
                       <>
-                        <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
-
-                        {/* Dynamic progress indicator based on completed steps */}
-                        {/* Exclude sections that are resource/info sections (MORE INFORMATION, etc.) */}
-                        {!section.title?.includes('MORE INFORMATION') && section.title !== 'NEXT STEPS' && section.title !== '' && (
-                          <span className="ml-auto text-xs text-gray-500">
-                            {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
-                          </span>
+                        {isImaginalAgility ? (
+                          // Accordion header for IA
+                          <button
+                            onClick={() => toggleSection(section.id)}
+                            className="w-full flex items-center justify-between text-left p-2 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <h3 className="text-sm font-bold text-gray-800 uppercase tracking-wide">{section.title}</h3>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-xs text-gray-500">
+                                  {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
+                                </span>
+                                {expandedSections[section.id] ? (
+                                  <ChevronLeft className="w-4 h-4 text-gray-600 transform rotate-90" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-gray-600" />
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        ) : (
+                          // Regular header for AST
+                          <>
+                            <h3 className="text-sm font-bold text-gray-800 flex-1">{section.title}</h3>
+                            {/* Dynamic progress indicator based on completed steps */}
+                            {!section.title?.includes('MORE INFORMATION') && section.title !== 'NEXT STEPS' && section.title !== '' && (
+                              <span className="ml-auto text-xs text-gray-500">
+                                {getSectionProgressLocal(section.id, effectiveCompletedSteps).display}
+                              </span>
+                            )}
+                          </>
                         )}
                       </>
                     )}
@@ -360,7 +417,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                 )}
 
                 {/* Steps List */}
-                {drawerOpen && (
+                {drawerOpen && (isImaginalAgility ? (expandedSections[section.id] === true) : true) && (
                   <div className="relative">
                     {/* Week Label spanning entire section - centered in 50px gap */}
                     {section.weekNumber && (
@@ -398,9 +455,12 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                               <li 
                                 className={cn(
                                   "rounded-md p-2 flex items-center text-sm transition",
-                                  // Check if this item corresponds to current content
-                                  getContentKeyFromStepId(section.id, step.id) === currentContent 
-                                    ? "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium" : "",
+                                  // Check if this item corresponds to current content - Purple for IA, Indigo for AST
+                                  (isImaginalAgility ? step.id === currentContent : getContentKeyFromStepId(section.id, step.id) === currentContent)
+                                    ? (isImaginalAgility 
+                                        ? "bg-purple-100 text-purple-700 border-l-2 border-purple-600 font-medium" 
+                                        : "bg-indigo-100 text-indigo-700 border-l-2 border-indigo-600 font-medium") 
+                                    : "",
                                   isCompleted 
                                     ? "text-green-700 bg-green-50" 
                                     : isAccessible

@@ -1,8 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export const useTestUser = () => {
-  const { data: userData } = useQuery<{
+  const queryClient = useQueryClient();
+  
+  // Force invalidation every time this hook is called
+  queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+  
+  const { data: userData, isLoading, error } = useQuery<{
     success: boolean;
     user: {
       id: number;
@@ -16,11 +20,27 @@ export const useTestUser = () => {
     }
   }>({
     queryKey: ['/api/auth/me'],
-    refetchOnWindowFocus: false,
-    staleTime: 60 * 1000, // 1 minute
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
+    gcTime: 0,
+    retry: 1,
   });
   
   const user = userData?.user;
+  const isTestUser = user?.isTestUser === true;
+  
+  // Debug logging - this should appear in browser console
+  console.log('🔍 useTestUser Debug:', {
+    userData: userData,
+    user: user,
+    isTestUser: isTestUser,
+    rawIsTestUser: user?.isTestUser,
+    isLoading: isLoading,
+    error: error,
+    timestamp: new Date().toISOString()
+  });
+  
   // SECURE: Only database field, no username patterns
-  return user?.isTestUser === true;
+  return isTestUser;
 };

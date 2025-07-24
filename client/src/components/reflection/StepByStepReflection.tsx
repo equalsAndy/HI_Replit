@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Textarea } from "@/components/ui/textarea";
-import { ChevronDown, ChevronUp, FileText } from "lucide-react";
-import { debounce } from '@/lib/utils';
-import { useTestUser } from '@/hooks/useTestUser';
-import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
+import { useCoachingModal } from '@/hooks/useCoachingModal';
+import { StrengthData } from '@/types/coaching';
+
+// Simple debounce utility
+const debounce = (func: Function, wait: number) => {
+  let timeout: NodeJS.Timeout;
+  return function executedFunction(...args: any[]) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
 
 // Define quadrant colors
 const QUADRANT_COLORS = {
@@ -42,11 +52,26 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
-  const isTestUser = useTestUser();
+  const isTestUser = true; // useTestUser();
+  
+  // Talia coaching modal
+  const { openModal } = useCoachingModal();
+  
+  // Helper function to open Talia coaching for current step strength
+  const openTaliaCoaching = () => {
+    if (currentStep <= 4) {
+      const currentStrengthData = sortedQuadrants[currentStep - 1];
+      const strengthData: StrengthData = {
+        name: currentStrengthData.label.charAt(0) + currentStrengthData.label.slice(1).toLowerCase(),
+        description: `Your ${currentStrengthData.label.toLowerCase()} strength represents ${currentStrengthData.score}% of your profile.`
+      };
+      openModal(strengthData);
+    }
+  };
   
   // Workshop status for testing
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
-  const workshopLocked = isWorkshopLocked();
+  // const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const workshopLocked = false; // isWorkshopLocked('ast');
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
@@ -414,6 +439,41 @@ export default function StepByStepReflection({
     }
   };
 
+  // Get the current reflection question for the coaching modal
+  const getCurrentReflectionQuestion = () => {
+    if (currentStep <= 4 && sortedQuadrants[currentStep - 1]) {
+      return getStrengthPrompt(sortedQuadrants[currentStep - 1].label).question;
+    } else if (currentStep === 5) {
+      return "What do you value most in team environments?";
+    } else if (currentStep === 6) {
+      return "What is your unique contribution to teams?";
+    }
+    return undefined;
+  };
+
+  // Get examples for the current step
+  const getCurrentExamples = () => {
+    if (currentStep <= 4 && sortedQuadrants[currentStep - 1]) {
+      return getStrengthPrompt(sortedQuadrants[currentStep - 1].label).examples;
+    } else if (currentStep === 5) {
+      return [
+        "I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change.",
+        "I value team environments where open communication is prioritized and every member's contributions are recognized. I work best when there's a culture of constructive feedback."
+      ];
+    } else if (currentStep === 6) {
+      return [
+        "I bring value through my combination of planning and empathy. I create structured processes while ensuring everyone feels heard and supported throughout implementation.",
+        "My unique contribution comes from balancing analytical thinking with relationship building. This helps me develop solutions that are both technically sound and people-focused."
+      ];
+    }
+    return [];
+  };
+
+  // Handle saving reflection from modal
+  const handleSaveReflection = (reflectionText: string) => {
+    handleReflectionChange(currentStep, reflectionText);
+  };
+
   // Save reflections to database
   const saveReflections = async () => {
     try {
@@ -465,7 +525,7 @@ export default function StepByStepReflection({
     
     // For unlocked workshops, require minimum content
     const currentText = getCurrentReflectionText();
-    return currentText && typeof currentText === 'string' && currentText.trim().length >= 10;
+    return !!(currentText && typeof currentText === 'string' && currentText.trim().length >= 10);
   };
 
   // Next/previous step handlers
@@ -573,23 +633,12 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowExamples(!showExamples)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
-                {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                {showExamples ? "Hide example responses" : "Show example responses"}
+                <MessageCircle className="h-3 w-3 mr-1" />
+                I'm not sure what to write
               </button>
-
-              {showExamples && (
-                <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
-                  <div className="text-sm text-gray-700">
-                    {prompt.examples.map((example, index) => (
-                      <p key={index} className={`${index < prompt.examples.length - 1 ? 'mb-2' : ''} italic`}>{`"${example}"`}</p>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -624,7 +673,7 @@ export default function StepByStepReflection({
                   ? "Write 2-3 sentences about your ideal team environment"
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
-              <Textarea 
+              <textarea 
                 id={`strength-${step}-reflection`}
                 value={step === 1 ? reflections.strength1 : 
                      step === 2 ? reflections.strength2 : 
@@ -638,7 +687,7 @@ export default function StepByStepReflection({
                   : step === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
-                className={`min-h-[140px] w-full ${
+                className={`min-h-[140px] w-full p-3 border rounded-md focus:ring-2 focus:border-transparent resize-vertical ${
                   step <= 4
                     ? sortedQuadrants[step-1].label === 'THINKING'
                       ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
@@ -686,22 +735,12 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowExamples(!showExamples)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
-                {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                {showExamples ? "Hide example responses" : "Show example responses"}
+                <MessageCircle className="h-3 w-3 mr-1" />
+                I'm not sure what to write
               </button>
-
-              {showExamples && (
-                <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
-                  <div className="text-sm text-gray-700">
-                    <p className="mb-2 italic">"I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change. Teams that value both planning ahead and decisive action help me contribute my best work."</p>
-                    <p className="italic">"I value team environments where open communication is prioritized and every member's contributions are recognized. I work best when there's a culture of constructive feedback paired with respect for different working styles and perspectives."</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -712,12 +751,12 @@ export default function StepByStepReflection({
             <p className="text-gray-700 mb-3 text-sm italic">
               Write 2-3 sentences about the team environment where you perform best
             </p>
-            <Textarea 
+            <textarea 
               id="team-values-reflection"
               value={reflections.teamValues}
               onChange={(e) => handleReflectionChange(5, e.target.value)}
               placeholder="Describe the team environment where you perform at your best..."
-              className="min-h-[140px] w-full border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md bg-white"
+              className="min-h-[140px] w-full p-3 border border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-2 rounded-md bg-white resize-vertical"
             />
           </div>
         </div>
@@ -753,21 +792,12 @@ export default function StepByStepReflection({
 
             <div className="mb-2">
               <button 
-                onClick={() => setShowExamples(!showExamples)}
+                onClick={() => openTaliaCoaching()}
                 className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
               >
-                {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                {showExamples ? "Hide example responses" : "Show example responses"}
+                <MessageCircle className="h-3 w-3 mr-1" />
+                I'm not sure what to write
               </button>
-
-              {showExamples && (
-                <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
-                  <div className="text-sm text-gray-700">
-                    <p className="italic">"I bring value through my combination of action orientation and empathy. I drive projects forward decisively while ensuring team members feel heard and supported. This helps us maintain both momentum and morale, especially during high-pressure situations."</p>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
@@ -778,12 +808,12 @@ export default function StepByStepReflection({
             <p className="text-gray-700 mb-3 text-sm italic">
               Write 2-3 sentences about your unique contribution to the team
             </p>
-            <Textarea 
+            <textarea 
               id="unique-contribution-reflection"
               value={reflections.uniqueContribution}
               onChange={(e) => handleReflectionChange(6, e.target.value)}
               placeholder="Describe your unique contribution to the team..."
-              className="min-h-[140px] w-full border-green-300 focus:border-green-500 focus:ring-green-500 rounded-md bg-white"
+              className="min-h-[140px] w-full p-3 border border-green-300 focus:border-green-500 focus:ring-green-500 focus:ring-2 rounded-md bg-white resize-vertical"
             />
           </div>
         </div>
@@ -962,7 +992,7 @@ export default function StepByStepReflection({
                   ? "Write 2-3 sentences about your ideal team environment"
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
-              <Textarea 
+              <textarea 
                 id={`strength-${currentStep}-reflection`}
                 value={getCurrentReflectionText()}
                 onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
@@ -973,7 +1003,7 @@ export default function StepByStepReflection({
                   : currentStep === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
-                className={`min-h-[140px] w-full ${
+                className={`min-h-[140px] w-full p-3 border rounded-md focus:ring-2 focus:border-transparent resize-vertical ${
                   workshopLocked || workshopLocked
                     ? 'opacity-60 cursor-not-allowed bg-gray-100'
                     : currentStep <= 4
@@ -992,60 +1022,12 @@ export default function StepByStepReflection({
 
               <div className="mt-3">
                 <button 
-                  onClick={() => setShowExamples(!showExamples)}
+                  onClick={() => openTaliaCoaching()}
                   className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
                 >
-                  {showExamples ? <ChevronUp className="h-3 w-3 mr-1" /> : <ChevronDown className="h-3 w-3 mr-1" />}
-                  {showExamples ? "Hide example responses" : "Show example responses"}
+                  <MessageCircle className="h-3 w-3 mr-1" />
+                  I'm not sure what to write
                 </button>
-
-                {showExamples && (
-                  <div className="bg-white p-3 rounded-lg border border-gray-200 mt-2">
-                    <p className="text-xs text-gray-500 mb-2 font-medium">EXAMPLE RESPONSES:</p>
-                    <div className="text-sm text-gray-700">
-                        {currentStep <= 4 && (
-                          <>
-                            {sortedQuadrants[currentStep-1].label === 'ACTING' && (
-                              <>
-                                <p className="mb-2 italic">"I use my action-oriented approach when projects stall. Recently, our team was stuck in analysis paralysis, and I stepped in to create momentum by identifying the three most important next steps and delegating tasks."</p>
-                                <p className="italic">"My decisive nature helps in crisis situations. During a recent system outage, I quickly prioritized recovery actions while others were still discussing options, which minimized downtime for our customers."</p>
-                              </>
-                            )}
-                            {sortedQuadrants[currentStep-1].label === 'THINKING' && (
-                              <>
-                                <p className="mb-2 italic">"I apply my analytical skills when solving complex problems. Recently, I developed a systematic approach to evaluate our team's workflow bottlenecks, which led to a 30% improvement in efficiency."</p>
-                                <p className="italic">"My strategic thinking helps in planning phases. When our team needed to reimagine our product roadmap, I created a framework that helped us identify new opportunities and potential risks."</p>
-                              </>
-                            )}
-                            {sortedQuadrants[currentStep-1].label === 'FEELING' && (
-                              <>
-                                <p className="mb-2 italic">"I use my empathetic approach to build strong team relationships. Recently, I noticed a colleague struggling with a project and created a supportive environment where they felt comfortable asking for help."</p>
-                                <p className="italic">"My relationship-building skills help during team conflicts. When two team members had different views on project direction, I facilitated a conversation that helped them find common ground."</p>
-                              </>
-                            )}
-                            {sortedQuadrants[currentStep-1].label === 'PLANNING' && (
-                              <>
-                                <p className="mb-2 italic">"I use my organizational skills to keep projects on track. Recently, I created a detailed project timeline that helped everyone understand their responsibilities and deadlines."</p>
-                                <p className="italic">"My structured approach helps with complex initiatives. When our team started a new project, I developed a clear framework for tracking progress and managing dependencies."</p>
-                              </>
-                            )}
-                          </>
-                        )}
-                        {currentStep === 5 && (
-                          <>
-                            <p className="mb-2 italic">"I thrive in team environments that balance structure with flexibility. I appreciate when teams establish clear expectations and deadlines, but also create space for adaptability when circumstances change."</p>
-                            <p className="italic">"I value team environments where open communication is prioritized and every member's contributions are recognized. I work best when there's a culture of constructive feedback."</p>
-                          </>
-                        )}
-                        {currentStep === 6 && (
-                          <>
-                            <p className="mb-2 italic">"I bring value through my combination of planning and empathy. I create structured processes while ensuring everyone feels heard and supported throughout implementation."</p>
-                            <p className="italic">"My unique contribution comes from balancing analytical thinking with relationship building. This helps me develop solutions that are both technically sound and people-focused."</p>
-                          </>
-                        )}
-                      </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -1054,39 +1036,36 @@ export default function StepByStepReflection({
         {/* Navigation controls */}
         <div className="p-6 border-t border-gray-200">
           <div className="flex justify-between mt-2">
-            <Button 
+            <button
               onClick={handlePrevious}
               disabled={currentStep === 1}
-              variant="outline"
+              className="px-4 py-2 border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
-            </Button>
+            </button>
 
             <div className="flex items-center gap-3">
               {isTestUser && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
+                <button
                   onClick={fillWithDemoData}
                   disabled={workshopLocked || workshopLocked}
-                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
                 >
-                  <FileText className="w-4 h-4 mr-2" />
+                  <FileText className="w-4 h-4" />
                   Add Demo Data
-                </Button>
+                </button>
               )}
-              <Button 
-              onClick={handleNext}
-              disabled={!isCurrentReflectionValid()}
-              variant="default"
-              className={`${
-              isCurrentReflectionValid()
-              ? "bg-indigo-600 hover:bg-indigo-700" 
-              : "bg-gray-400 cursor-not-allowed"
-              }`}
+              <button
+                onClick={handleNext}
+                disabled={!isCurrentReflectionValid()}
+                className={`px-4 py-2 rounded-md text-white font-medium ${
+                  isCurrentReflectionValid()
+                    ? "bg-indigo-600 hover:bg-indigo-700" 
+                    : "bg-gray-400 cursor-not-allowed"
+                }`}
               >
-              {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
-              </Button>
+                {currentStep === totalSteps ? "Next: Intro to Flow" : "Next"}
+              </button>
             </div>
           </div>
         </div>

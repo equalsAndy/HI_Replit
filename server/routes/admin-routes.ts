@@ -211,6 +211,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       contentAccess: z.enum(['student', 'professional', 'both']).optional(),
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
+      isTestUser: z.boolean().optional(),
       password: z.string().optional(),
       resetPassword: z.boolean().optional(),
       setCustomPassword: z.boolean().optional(),

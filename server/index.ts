@@ -7,8 +7,13 @@ import { router } from './routes.js';
 import reportRoutes from './routes/report-routes.js';
 import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
+import coachingRoutes from './routes/coaching-routes.js';
+import coachingChatRoutes from './routes/coaching-chat-routes.js';
+import featureFlagRoutes from './routes/feature-flag-routes.js';
+import jiraRoutes from './routes/jira-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
+import { validateFlagsOnStartup } from './middleware/validateFlags.js';
 import path from 'path';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
@@ -19,7 +24,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+const port = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 const server = createServer(app);
 
 // Environment variable validation
@@ -95,6 +100,8 @@ app.get('/health', async (req, res) => {
   }
 });
 
+
+
 // Lazy initialization function
 async function initializeApp() {
   if (initializationPromise) {
@@ -112,6 +119,10 @@ async function initializeApp() {
       console.log('📊 Initializing database connection...');
       await initializeDatabase();
       console.log('✅ Database connection successful');
+      
+      // Feature flag validation
+      console.log('🚩 Validating feature flag configuration...');
+      validateFlagsOnStartup();
 
       // Test database connection
       const dbReady = await testDatabaseConnection();
@@ -143,15 +154,17 @@ async function initializeApp() {
       app.use(express.urlencoded({ extended: true }));
       app.use(cookieParser());
 
-      // Add session debugging middleware
-      app.use((req, res, next) => {
-        console.log('🔍 Session Debug:', {
-          sessionID: req.sessionID,
-          hasSession: !!req.session,
-          cookies: req.headers.cookie
-        });
-        next();
-      });
+      // Add session debugging middleware - TEMPORARILY DISABLED
+      // app.use((req, res, next) => {
+      //   console.log('🔍 Session Debug:', {
+      //     url: req.url,
+      //     method: req.method,
+      //     sessionID: req.sessionID,
+      //     hasSession: !!req.session,
+      //     cookies: req.headers.cookie
+      //   });
+      //   next();
+      // });
 
       // Session middleware MUST come after body parsing but before routes
       app.use(session({
@@ -181,22 +194,236 @@ async function initializeApp() {
       app.use('/api/reports', reportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
+      app.use('/api/coaching', coachingRoutes);
+      app.use('/api/coaching/chat', coachingChatRoutes);
+      app.use('/api/feature-flags', featureFlagRoutes);
+      app.use('/api/jira', jiraRoutes);
+
+      // Temporary endpoint to fix admin user test status
+      app.post('/fix-admin-test-user', async (req, res) => {
+        try {
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          // Update admin user (ID 1) to be a test user
+          const result = await db.update(users)
+            .set({ isTestUser: true })
+            .where(eq(users.id, 1))
+            .returning({
+              id: users.id,
+              username: users.username,
+              name: users.name,
+              role: users.role,
+              isTestUser: users.isTestUser
+            });
+
+          if (result.length > 0) {
+            console.log('✅ Admin user updated to test user:', result[0]);
+            res.json({
+              success: true,
+              message: 'Admin user successfully updated to test user',
+              user: result[0]
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              message: 'Admin user not found'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error updating admin user:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to update admin user',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Debug endpoint to check user status
+      app.get('/debug-user-status', async (req, res) => {
+        try {
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          // Get admin user (ID 1) current status
+          const result = await db.select({
+            id: users.id,
+            username: users.username,
+            name: users.name,
+            role: users.role,
+            isTestUser: users.isTestUser
+          })
+          .from(users)
+          .where(eq(users.id, 1));
+
+          if (result.length > 0) {
+            console.log('🔍 Admin user current status:', result[0]);
+            res.json({
+              success: true,
+              user: result[0],
+              message: 'Current admin user status from database'
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              message: 'Admin user not found'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error checking user status:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to check user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Create coaching tables endpoint
+      app.post('/create-coaching-tables', async (req, res) => {
+        try {
+          console.log('🚀 Creating coaching system tables...');
+          
+          const createTableQueries = [
+            `CREATE TABLE IF NOT EXISTS coach_knowledge_base (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              category VARCHAR(100) NOT NULL,
+              content_type VARCHAR(100) NOT NULL,
+              title VARCHAR(255) NOT NULL,
+              content TEXT NOT NULL,
+              tags JSONB,
+              metadata JSONB,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS user_profiles_extended (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              company VARCHAR(255),
+              department VARCHAR(255),
+              role VARCHAR(255),
+              ast_profile_summary JSONB,
+              expertise_areas JSONB,
+              project_experience JSONB,
+              collaboration_preferences JSONB,
+              availability_status VARCHAR(50) DEFAULT 'available',
+              connection_opt_in BOOLEAN DEFAULT true,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS coaching_sessions (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              conversation JSONB NOT NULL,
+              session_summary TEXT,
+              context_used JSONB,
+              session_type VARCHAR(50) DEFAULT 'general',
+              session_length VARCHAR(50),
+              user_satisfaction VARCHAR(20),
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS connection_suggestions (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              requestor_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              suggested_collaborator_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              reason_type VARCHAR(100) NOT NULL,
+              reason_explanation TEXT NOT NULL,
+              context TEXT,
+              status VARCHAR(50) DEFAULT 'suggested',
+              response_at TIMESTAMP,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+              updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`,
+            
+            `CREATE TABLE IF NOT EXISTS vector_embeddings (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              source_table VARCHAR(100) NOT NULL,
+              source_id VARCHAR(255) NOT NULL,
+              vector_id VARCHAR(255) NOT NULL,
+              embedding_type VARCHAR(100) NOT NULL,
+              created_at TIMESTAMP DEFAULT NOW() NOT NULL
+            )`
+          ];
+
+          const indexQueries = [
+            'CREATE INDEX IF NOT EXISTS idx_coach_knowledge_base_category ON coach_knowledge_base(category)',
+            'CREATE INDEX IF NOT EXISTS idx_user_profiles_extended_user_id ON user_profiles_extended(user_id)',
+            'CREATE INDEX IF NOT EXISTS idx_coaching_sessions_user_id ON coaching_sessions(user_id)',
+            'CREATE INDEX IF NOT EXISTS idx_connection_suggestions_requestor ON connection_suggestions(requestor_id)',
+            'CREATE INDEX IF NOT EXISTS idx_vector_embeddings_source ON vector_embeddings(source_table, source_id)'
+          ];
+
+          const results = [];
+          
+          // Create tables
+          for (const query of createTableQueries) {
+            try {
+              await db.execute(query);
+              results.push('✅ Table created successfully');
+            } catch (error) {
+              if (error instanceof Error && error.message.includes('already exists')) {
+                results.push('⚠️ Table already exists');
+              } else {
+                throw error;
+              }
+            }
+          }
+
+          // Create indexes
+          for (const query of indexQueries) {
+            try {
+              await db.execute(query);
+              results.push('✅ Index created successfully');
+            } catch (error) {
+              if (error instanceof Error && error.message.includes('already exists')) {
+                results.push('⚠️ Index already exists');
+              } else {
+                console.warn('Index creation warning:', error instanceof Error ? error.message : String(error));
+                results.push('⚠️ Index creation warning');
+              }
+            }
+          }
+
+          console.log('✅ Coaching tables creation completed');
+          res.json({
+            success: true,
+            message: 'Coaching system tables created successfully',
+            results: results,
+            tables: ['coach_knowledge_base', 'user_profiles_extended', 'coaching_sessions', 'connection_suggestions', 'vector_embeddings']
+          });
+          
+        } catch (error) {
+          console.error('❌ Error creating coaching tables:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to create coaching tables',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
 
       // Static file serving for both production and development
       if (process.env.NODE_ENV === 'production') {
-        // Production: serve from dist/public
-        console.log('📁 Production: serving static files from dist/public...');
-        app.use(express.static(path.join(__dirname, '../dist/public')));
+        // Production: serve from public (container path)
+        const staticPath = path.join(__dirname, 'public');
+        console.log('📁 Production: serving static files from:', staticPath);
+        app.use(express.static(staticPath));
         
         // Catch-all handler for client-side routing (exclude API routes)
         app.get(/^(?!\/api).*/, (req, res) => {
-          res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+          res.sendFile(path.join(__dirname, 'public/index.html'));
         });
         console.log('✅ Production static file serving ready');
       } else {
-        // Development: serve from dist/public (same as production)
-        console.log('📁 Development: serving static files from dist/public...');
-        app.use(express.static(path.join(__dirname, '../dist/public')));
+        // Development: serve from dist/public (local path)
+        const devStaticPath = path.join(__dirname, '../dist/public');
+        console.log('📁 Development: serving static files from:', devStaticPath);
+        app.use(express.static(devStaticPath));
         
         app.get(/^(?!\/api).*/, (req, res) => {
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));

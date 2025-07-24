@@ -7,10 +7,16 @@ export function useProfile() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Get user profile
+  // Get user profile - TEMPORARILY DISABLED TO STOP AUTH LOOP
   const { data: profile, isLoading } = useQuery({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity
+    queryFn: async () => {
+      const res = await apiRequest('GET', '/api/auth/me');
+      return res.json();
+    },
+    staleTime: Infinity,
+    retry: false,
+    enabled: false // DISABLED to stop infinite auth loop
   });
 
   // Update profile

@@ -12,7 +12,7 @@ import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 
-import AdminDashboard from '@/pages/admin/dashboard';
+import AdminDashboard from '@/pages/admin/dashboard-new';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -28,8 +28,24 @@ import { useQuery } from '@tanstack/react-query';
 const AutoSyncWrapper: React.FC = () => {
   const { data: user } = useQuery<{ id: number; name: string; role: string }>({
     queryKey: ['/api/auth/me'],
+    queryFn: async () => {
+      const response = await fetch('/api/auth/me', {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Failed to fetch profile: ${response.status}`);
+      }
+      const data = await response.json();
+      return data.user; // Return just the user object
+    },
     retry: false,
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent excessive refetching
+    enabled: true
   });
 
   return user?.id ? <AutoSync userId={user.id} /> : null;
@@ -40,10 +56,7 @@ const App: React.FC = () => {
 
   // Debug current route
   React.useEffect(() => {
-    console.log('🔍 APP ROUTE DEBUG - Current location:', location);
-    console.log('🔍 APP ROUTE DEBUG - Is IA route?', location.includes('/imaginal-agility'));
-    console.log('🔍 APP ROUTE DEBUG - Is AST route?', location.includes('/allstarteams'));
-    console.log('🔍 APP ROUTE DEBUG - Route should go to:', 
+    console.log('Current route:', 
       location.includes('/imaginal-agility') ? 'imaginal-agility.tsx' : 
       location.includes('/allstarteams') ? 'allstarteams.tsx' : 
       'default routing'
@@ -63,7 +76,9 @@ const App: React.FC = () => {
                   <Switch>
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
-
+                    
+                    {/* User dashboard routes */}
+                    <Route path="/dashboard" component={TestUserPage} />
                     <Route path="/testuser" component={TestUserPage} />
 
                     {/* Authentication routes */}

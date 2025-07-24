@@ -1,6 +1,8 @@
 // Progression Logic for AllStarTeams Workshop
 // Implements completion detection and navigation progression as specified
 
+import { WorkshopType } from '../types/workshop';
+
 export interface CompletionDetectionResult {
   isComplete: boolean;
   missingRequirements?: string[];
@@ -22,6 +24,52 @@ export const SECTION_STEPS = {
   flow: ["3-1", "3-2", "3-3", "3-4"],
   potential: ["4-1", "4-2", "4-3", "4-4", "4-5"]
 };
+
+// AST step sequence
+// ...existing code...
+
+// IA step sequence
+export const IA_STEPS = [
+  // Welcome & Orientation
+  'ia-1-1', // Introduction to Imaginal Agility
+  'ia-1-2', // AI's 4X Mental Challenge
+  
+  // The I4C Model
+  'ia-2-1', // I4C Prism Overview
+  'ia-2-2', // I4C Self-Assessment
+  
+  
+  // Ladder of Imagination (Basics)
+  'ia-3-1', // Ladder Overview
+  'ia-3-2', // Autoflow Practice
+  'ia-3-3', // Visualization Exercise
+  'ia-3-4', // Higher Purpose Reflection
+  'ia-3-5', // Inspiration Moments
+  'ia-3-6', // The Unimaginable
+  
+  // Advanced Ladder of Imagination
+  'ia-4-1', // Advanced Ladder Overview
+  'ia-4-2', // Autoflow Mindful Prompts
+  'ia-4-3', // Visualization Stretch
+  'ia-4-4', // Higher Purpose Uplift
+  'ia-4-5', // Inspiration Support
+  'ia-4-6', // Nothing is Unimaginable
+  
+  // Outcomes & Benefits
+  'ia-5-1', // HaiQ
+  'ia-5-2', // ROI 2.0
+  'ia-5-3', // Course Completion Badge
+  'ia-5-4', // Imaginal Agility Compendium
+  'ia-5-5', // Community of Practice
+  
+  // Quarterly Tune-Up
+  'ia-6-1', // Orientation
+  'ia-6-2', // Practices
+  
+  // More Info
+  'ia-7-1', // The Neuroscience of Imagination
+  'ia-7-2', // About Heliotrope Imaginal
+] as const;
 
 // Assessment type validation functions
 export const assessmentValidators = {
@@ -158,6 +206,60 @@ export const isStepCompleted = (
     
     case '4-5': // Final Reflection
       return isAssessmentCompleted('finalReflection', userAssessments);
+    
+    // IA Steps
+    case 'ia-1-1': // Introduction to Imaginal Agility
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-1-2': // AI's 4X Mental Challenge
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-2-1': // I4C Prism Overview
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-2-2': // I4C Self-Assessment
+      return isAssessmentCompleted('I4C', userAssessments);
+    
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-3-1': // Ladder Overview
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-3-2': // Autoflow Practice
+      return isAssessmentCompleted('autoflow_basic', userAssessments);
+    case 'ia-3-3': // Visualization Exercise
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-3-4': // Higher Purpose Reflection
+      return isAssessmentCompleted('higher_purpose', userAssessments);
+    case 'ia-3-5': // Inspiration Moments
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-3-6': // The Unimaginable
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-4-1': // Advanced Ladder Overview
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-4-2': // Autoflow Mindful Prompts
+      return isAssessmentCompleted('autoflow_advanced', userAssessments);
+    case 'ia-4-3': // Visualization Stretch
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-4-4': // Higher Purpose Uplift
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-4-5': // Inspiration Support
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-4-6': // Nothing is Unimaginable
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-5-1': // HaiQ
+      return isAssessmentCompleted('haiq', userAssessments);
+    case 'ia-5-2': // ROI 2.0
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-5-3': // Course Completion Badge
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-5-4': // Imaginal Agility Compendium
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-5-5': // Community of Practice
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-6-1': // Orientation
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-6-2': // Practices
+      return isAssessmentCompleted('practices', userAssessments);
+    case 'ia-7-1': // The Neuroscience of Imagination
+      return isVideoCompleted(stepId, navigationProgress, 1);
+    case 'ia-7-2': // About Heliotrope Imaginal
+      return isVideoCompleted(stepId, navigationProgress, 1);
     
     default:
       return { isComplete: false, missingRequirements: ['Unknown step'] };
@@ -319,5 +421,57 @@ export const isStepAccessible = (
     }
   }
   
+  return true;
+};
+
+// Validation helper functions
+const hasI4CAssessment = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'I4C' && a.completed);
+};
+
+const hasAutoflowData = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'autoflow_basic' && a.completed);
+};
+
+const hasHigherPurposeReflection = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'higher_purpose' && a.completed);
+};
+
+const hasAdvancedAutoflowData = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'autoflow_advanced' && a.completed);
+};
+
+const hasHaiQAssessment = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'haiq' && a.completed);
+};
+
+const hasPracticesData = (assessments: any[]): boolean => {
+  return assessments.some(a => a.type === 'practices' && a.completed);
+};
+
+// IA validation function
+const validateIAStep = (stepId: string, userAssessments: any[]): boolean => {
+  switch (stepId) {
+    case 'ia-2-2': return hasI4CAssessment(userAssessments);
+    case 'ia-3-2': return hasAutoflowData(userAssessments);
+    case 'ia-3-4': return hasHigherPurposeReflection(userAssessments);
+    case 'ia-4-2': return hasAdvancedAutoflowData(userAssessments);
+    case 'ia-5-1': return hasHaiQAssessment(userAssessments);
+    case 'ia-6-2': return hasPracticesData(userAssessments);
+    default:
+      return true; // Videos and content unlock automatically
+  }
+};
+
+// Update main validation function to support both workshop types
+export const validateStepCompletion = (
+  workshopType: WorkshopType,
+  stepId: string, 
+  userAssessments: any[]
+): boolean => {
+  if (workshopType === 'IA') {
+    return validateIAStep(stepId, userAssessments);
+  }
+  // Default AST validation (assuming content-based progression)
   return true;
 };

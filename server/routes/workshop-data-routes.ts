@@ -135,7 +135,7 @@ workshopDataRouter.get('/videos/:id', async (req: Request, res: Response) => {
 });
 
 /**
- * Get star card data for the current user
+ * Get star card data for the current user - TEMPORARILY DISABLED TO STOP INFINITE LOOP
  */
 workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
   try {
@@ -206,7 +206,8 @@ workshopDataRouter.get('/starcard', async (req: Request, res: Response) => {
         acting: 0,
         feeling: 0,
         planning: 0,
-        isEmpty: true
+        isEmpty: true,
+        source: 'no_database_data'
       });
     }
   } catch (error) {

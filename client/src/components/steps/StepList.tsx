@@ -20,7 +20,8 @@ export default function StepList({ activeStep }: StepListProps) {
   // Fetch user profile with progress
   const { data: user, isLoading } = useQuery<User>({
     queryKey: ['/api/auth/me'],
-    staleTime: Infinity
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevent auth loop
+    refetchOnWindowFocus: false
   });
 
   // Fetch assessment

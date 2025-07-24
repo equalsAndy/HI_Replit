@@ -565,6 +565,8 @@ class UserManagementService {
       if (data.autoplay !== undefined) updateData.autoplay = data.autoplay;
       if (data.sortOrder !== undefined) updateData.sortOrder = data.sortOrder;
       if (data.sort_order !== undefined) updateData.sortOrder = data.sort_order;
+      if (data.requiredWatchPercentage !== undefined) updateData.requiredWatchPercentage = data.requiredWatchPercentage;
+      if (data.required_watch_percentage !== undefined) updateData.requiredWatchPercentage = data.required_watch_percentage;
       
       console.log(`Updating video ${id} with data:`, updateData);
       
@@ -596,7 +598,8 @@ class UserManagementService {
           section: updatedVideo.section,
           step_id: updatedVideo.stepId,
           autoplay: updatedVideo.autoplay,
-          sortOrder: updatedVideo.sortOrder
+          sortOrder: updatedVideo.sortOrder,
+          requiredWatchPercentage: updatedVideo.requiredWatchPercentage
         }
       };
     } catch (error) {
