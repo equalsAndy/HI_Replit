@@ -31,6 +31,21 @@ debug-*.js
 *.bak
 *.tmp
 *.old
+*" 2".*
+*" 2"
+*" 3".*
+*" 3"
+*.copy
+*.copy-only
+*.dev-copy
+*.hybrid
+*.layered
+*.layered-fixed
+*.local-test
+*.quick-fix
+*.update
+*.update2
+*.working-base
 
 # System files
 .DS_Store

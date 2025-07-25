@@ -1,8 +1,0 @@
-FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:dev-content-20250722-2312
-
-# Copy files to where server expects them (from /app working directory)  
-COPY dist ./dist
-COPY shared ./shared  
-COPY server ./server
-
-# Use base image's proven dumb-init setup

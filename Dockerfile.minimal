@@ -1,0 +1,17 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Create a minimal test server
+RUN echo 'const express = require("express"); \
+const app = express(); \
+const port = 8080; \
+app.get("/", (req, res) => res.json({status: "ok", time: new Date().toISOString()})); \
+app.get("/health", (req, res) => res.json({status: "healthy", uptime: process.uptime()})); \
+app.listen(port, "0.0.0.0", () => console.log(`Minimal server on port ${port}`));' > server.js
+
+# Install express
+RUN npm init -y && npm install express
+
+EXPOSE 8080
+CMD ["node", "server.js"]

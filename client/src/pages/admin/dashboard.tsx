@@ -4,6 +4,7 @@ import { useToast } from '@/hooks/use-toast';
 import { UserRole } from '@/shared/types';
 import { useLocation } from 'wouter';
 import { apiRequest } from '@/lib/queryClient';
+import VersionInfo from '@/components/ui/VersionInfo';
 
 // Error Boundary for catching React errors
 class AdminErrorBoundary extends React.Component<
@@ -241,12 +242,19 @@ function AdminDashboardContent() {
     return (
       <div style={styles.container}>
         <div style={styles.header}>
-          <h1 style={styles.title}>
-            {isAdmin ? 'Admin Console' : 'Facilitator Console'}
-          </h1>
-          <p style={styles.subtitle}>
-            Logged in as {currentUser.name} ({currentUser.role})
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1 style={styles.title}>
+                {isAdmin ? 'Admin Console' : 'Facilitator Console'}
+              </h1>
+              <p style={styles.subtitle}>
+                Logged in as {currentUser.name} ({currentUser.role})
+              </p>
+            </div>
+            <div style={{ textAlign: 'right' }}>
+              <VersionInfo variant="detailed" />
+            </div>
+          </div>
         </div>
 
         <div style={styles.tabsContainer}>

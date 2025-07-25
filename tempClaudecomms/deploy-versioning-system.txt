@@ -1,0 +1,47 @@
+====================================
+DEPLOY NEW SEMANTIC VERSIONING SYSTEM
+Date: 2025-07-25
+Time: 09:32 PDT
+====================================
+
+DESCRIPTION:
+Deploy staging v2.0.3 with new semantic versioning system
+- STAGING badge shows: STAGING v2.0.3.0929
+- Admin/Test dashboards show detailed version info
+- Production ready (no navbar badge, version in dashboards only)
+
+LOCAL COMMANDS STATUS:
+----------------------
+✅ COMPLETED: All local commands have been executed successfully
+   - Docker build: staging-v2.0.3 ✅
+   - Tagged for ECR: staging-v2.0.3 ✅  
+   - Pushed to ECR: digest sha256:8a2c276d410bd95bde9b724320443d8765ca807a014d73ec13a072ebc22afb31 ✅
+
+🚀 READY FOR VM DEPLOYMENT: Use the VM SSH commands below
+   
+📋 ORIGINAL COMMANDS (for reference):
+docker build --platform linux/amd64 -t staging-v2.0.3 .
+docker tag staging-v2.0.3 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3
+
+VM SSH COMMANDS:
+----------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3
+
+curl http://localhost/version.json
+
+sudo docker ps
+
+EXPECTED RESULTS:
+-----------------
+- Staging badge: "STAGING v2.0.3.0929"
+- Version.json shows: "version": "2.0.3", "environment": "staging"
+- Admin dashboard shows detailed version info
+- Test user dashboard shows detailed version info

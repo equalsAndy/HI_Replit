@@ -19,10 +19,10 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
           workshopType="imaginal-agility"
           stepId="ia-2-1"
           title="The I4C Prism Model"
+          forceUrl="https://youtu.be/ILCq73dTuzk"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"
-          fallbackUrl="https://www.youtube.com/embed/dQw4w9WgXcQ" // fallback to avoid hook mismatch
         />
       </div>
       

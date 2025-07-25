@@ -64,10 +64,10 @@ const EnvironmentBadge = () => {
   const viteMode = import.meta.env.MODE;
   const isDev = import.meta.env.DEV;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
-  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com');
+  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com') || versionInfo.environment === 'staging';
   
-  // Development detection
-  if (isDev || viteMode === 'development' || isLocalhost) {
+  // Development detection (but not if version.json says staging)
+  if ((isDev || viteMode === 'development' || isLocalhost) && versionInfo.environment !== 'staging') {
     const displayVersion = versionInfo.version === 'N/A' 
       ? 'DEV version N/A' 
       : `DEV v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
@@ -88,6 +88,7 @@ const EnvironmentBadge = () => {
     );
   }
   
+  // Production: No badge shown (version displayed in admin/test dashboards only)
   return null;
 };
 import {

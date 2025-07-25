@@ -1,0 +1,22 @@
+====================================
+FIX STAGING CONTAINER
+Date: 2025-07-25  
+Time: 09:01 PDT
+====================================
+
+PROBLEM: Old container (staging-amd64) is still running and unhealthy
+
+COMMANDS TO RUN IN VM:
+----------------------
+
+sudo docker stop 57303c457678
+
+sudo docker rm 57303c457678
+
+sudo docker ps -a
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-0852
+
+sudo docker ps
+
+curl http://localhost/version.json

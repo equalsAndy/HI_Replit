@@ -1,4 +1,0 @@
-FROM 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:auth-fix-full
-COPY dist /app/client/dist
-COPY shared /app/shared
-COPY package.json /app/package.json

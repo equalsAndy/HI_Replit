@@ -19,6 +19,7 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
           workshopType="imaginal-agility"
           stepId="ia-3-1"
           title="The Ladder of Imagination"
+          forceUrl="https://youtu.be/k4073NSNJYE"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"

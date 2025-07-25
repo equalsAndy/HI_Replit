@@ -1,0 +1,23 @@
+====================================
+FIX CONTAINER DEPLOYMENT
+Date: 2025-07-25
+Time: 09:41 PDT
+====================================
+
+PROBLEM: Old container (staging-navbar-fix) is still running and unhealthy
+Need to properly stop and replace with staging-v2.0.3
+
+COMMANDS TO RUN IN VM:
+----------------------
+
+sudo docker stop b14375e51c3e
+
+sudo docker rm b14375e51c3e
+
+sudo docker ps -a
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3
+
+sudo docker ps
+
+curl http://localhost/version.json

@@ -8,7 +8,7 @@ import reportRoutes from './routes/report-routes.js';
 import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
 import coachingRoutes from './routes/coaching-routes.js';
-import coachingChatRoutes from './routes/coaching-chat-routes.js';
+// import coachingChatRoutes from './routes/coaching-chat-routes.js';
 import featureFlagRoutes from './routes/feature-flag-routes.js';
 import jiraRoutes from './routes/jira-routes.js';
 import { initializeDatabase } from './db.js';
@@ -195,7 +195,7 @@ async function initializeApp() {
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
-      app.use('/api/coaching/chat', coachingChatRoutes);
+      // app.use('/api/coaching/chat', coachingChatRoutes);
       app.use('/api/feature-flags', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
 

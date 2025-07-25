@@ -1,0 +1,379 @@
+AWS Lightsail Deployment Guide
+🎯 Overview
+This guide covers deploying the Heliotrope Imaginal application to AWS Lightsail staging environment. The application uses a dual-environment setup with development (safe) and production (protected) branches.
+
+🚨 Critical Prerequisites
+Environment Safety
+Development Branch: Safe for all feature work, uses AWS Lightsail PostgreSQL
+
+Staging Deployment: app2.heliotropeimaginal.com (manual Lightsail deployment)
+
+Production: app.heliotropeimaginal.com (separate protected process)
+
+Git Command Format (CRITICAL)
+Always use single-line git commands to avoid quote> prompts:
+
+✅ Correct: git tag -a v1.0.0 -m "Release message"
+
+❌ Incorrect: git tag -a v1.0.0 (opens editor, causes quote> prompts)
+
+✅ Correct: git commit -m "Commit message"
+
+❌ Incorrect: git commit (opens editor)
+
+Rule: Always include -m "message" flag for commits and tags.
+
+Port Configuration - macOS Critical
+Always use port 8080 - NEVER 5000 (macOS AirPlay conflict) or 3000
+
+Docker containers: Port 8080 consistently
+
+Health checks: Verify correct port in deployment commands
+
+🔧 Pre-Deployment Verification
+1. Environment Check
+
+
+cd /Users/bradtopliff/Desktop/HI_Replit
+git checkout development  # or staging for staging deployment
+git pull origin development
+git status  # Must be clean
+2. Build Verification
+
+
+# Frontend changes require build to be reflected
+npx vite build
+# Verify build worked - check for dist/public files
+ls -la client/dist/
+3. Feature Flag Status
+
+
+# Check environment and feature flags
+curl http://localhost:8080/api/workshop-data/feature-status
+# Should return: {"environment":"development","features":{...}}
+🚀 AWS Lightsail Staging Deployment
+Critical Infrastructure Settings
+Service Configuration
+Service Name: hi-replit-v2 ⚠️ NEVER create new services
+
+Container Name: allstarteams-app (NOT hi-app)
+
+Port: 8080 (NEVER 5000 or 3000)
+
+Environment: NODE_ENV=staging
+
+Health Check Limits (CRITICAL)
+
+
+healthCheck:
+  healthyThreshold: 5
+  unhealthyThreshold: 5
+  timeoutSeconds: 60      # MAX 60 (not 90!)
+  intervalSeconds: 90     # Recommended
+  path: "/"
+Step 1: Verify Existing Infrastructure
+
+
+# ALWAYS check existing infrastructure FIRST
+aws lightsail get-container-services --region us-west-2
+# Look for service name: hi-replit-v2
+# Verify container name: allstarteams-app
+Step 2: Build and Tag Container
+
+
+# Build for staging environment
+docker build -t allstarteams-app:staging .
+# Verify port 8080 in Dockerfile
+grep "EXPOSE" Dockerfile  # Should show 8080
+# Test container locally (optional)
+docker run -p 8080:8080 --env NODE_ENV=staging allstarteams-app:staging
+Step 3: Push to Lightsail
+
+
+# Push to Lightsail container registry
+aws lightsail push-container-image \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --label allstarteams-app-staging \
+  --image allstarteams-app:staging
+Step 4: Deploy Container
+
+
+# Create deployment JSON (staging-deployment.json)
+cat > staging-deployment.json << EOF
+{
+  "containers": {
+    "allstarteams-app": {
+      "image": ":hi-replit-v2.allstarteams-app-staging.latest",
+      "environment": {
+        "NODE_ENV": "staging"
+      },
+      "ports": {
+        "8080": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "allstarteams-app",
+    "containerPort": 8080,
+    "healthCheck": {
+      "healthyThreshold": 5,
+      "unhealthyThreshold": 5,
+      "timeoutSeconds": 60,
+      "intervalSeconds": 90,
+      "path": "/"
+    }
+  }
+}
+EOF
+# Deploy the container
+aws lightsail create-container-service-deployment \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --containers file://staging-deployment.json \
+  --public-endpoint file://staging-deployment.json
+Step 5: Monitor Deployment
+
+
+# Check deployment status
+aws lightsail get-container-services \
+  --region us-west-2 \
+  --service-name hi-replit-v2
+# Watch for state: RUNNING
+# URL should be: https://hi-replit-v2.[region].cs.amazonlightsail.com
+🏷️ Production Tag-Based Deployment
+Create Production Release Tag
+
+
+cd /Users/bradtopliff/Desktop/HI_Replit
+# Ensure clean development branch
+git checkout development
+git pull origin development
+# Create production tag (single-line format)
+git tag -a v1.0.0 -m "Production release v1.0.0 - AST/IA platform"
+git push origin v1.0.0
+Build Production Container with Tag
+
+
+# Checkout production tag
+git checkout v1.0.0
+# Build production container
+docker build -t allstarteams-app:v1.0.0 .
+# Push tagged container to Lightsail
+aws lightsail push-container-image \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --label allstarteams-app-v1.0.0 \
+  --image allstarteams-app:v1.0.0
+Deploy Tagged Production Version
+
+
+# Create production deployment JSON
+cat > production-deployment.json << EOF
+{
+  "containers": {
+    "allstarteams-app": {
+      "image": ":hi-replit-v2.allstarteams-app-v1.0.0.latest",
+      "environment": {
+        "NODE_ENV": "production"
+      },
+      "ports": {
+        "8080": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "allstarteams-app",
+    "containerPort": 8080,
+    "healthCheck": {
+      "healthyThreshold": 5,
+      "unhealthyThreshold": 5,
+      "timeoutSeconds": 60,
+      "intervalSeconds": 90,
+      "path": "/"
+    }
+  }
+}
+EOF
+# Deploy production container
+aws lightsail create-container-service-deployment \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --containers file://production-deployment.json \
+  --public-endpoint file://production-deployment.json
+🔍 Verification Steps
+Health Check Verification
+
+
+# Test staging endpoint
+curl -I https://app2.heliotropeimaginal.com
+# Should return HTTP 200
+# Verify correct port and environment
+curl https://app2.heliotropeimaginal.com/api/workshop-data/feature-status
+Environment Verification
+✅ Environment should show "staging" or "production"
+
+✅ Feature flags should be appropriate for environment
+
+✅ Database connections should work
+
+✅ Workshop separation maintained
+
+🚨 Common Issues & Troubleshooting
+Git Command Issues
+Problem: quote> prompts during git operations
+
+Solution: Always use -m "message" flags
+
+Examples:
+
+git commit -m "Fix bug" (not git commit)
+
+git tag -a v1.0.1 -m "Hotfix release" (not git tag -a v1.0.1)
+
+Port Conflicts
+Problem: macOS AirPlay uses port 5000
+
+Solution: Always use port 8080 in all configurations
+
+Check: Dockerfile, docker-compose, deployment JSON
+
+Health Check Failures
+Timeout Issues: Max 60 seconds timeout, not 90
+
+Path Issues: Ensure "/" endpoint responds quickly
+
+Container Issues: Verify port 8080 exposure
+
+Build Issues
+Frontend not updating: Run npx vite build
+
+Cache problems: rm -rf client/dist then rebuild
+
+Environment variables: Verify NODE_ENV=staging or NODE_ENV=production
+
+Container Name Confusion
+Correct: allstarteams-app
+
+Incorrect: hi-app (old naming)
+
+Service: hi-replit-v2 (do not create new services)
+
+📋 Deployment Checklist
+Pre-Deployment
+
+Git status clean on development/staging branch
+
+Frontend built with npx vite build
+
+Feature flags verified
+
+Existing infrastructure confirmed
+Production Tag Deployment
+
+Production tag created with single-line git command
+
+Tag pushed to repository
+
+Container built from tagged version
+
+Production environment variables set
+
+Health check settings within limits
+Deployment
+
+Container built with correct environment
+
+Port 8080 configured correctly
+
+Health check settings within limits
+
+Container pushed to Lightsail registry
+
+Deployment JSON created with correct settings
+
+Deployment executed successfully
+Post-Deployment
+
+Service status shows RUNNING
+
+Health checks passing
+
+URL responds correctly
+
+Feature flags show correct environment
+
+Workshop functionality verified
+
+No staging artifacts visible in production
+🔄 Rollback Procedure
+If deployment fails:
+
+Check previous deployment:
+
+
+
+aws lightsail get-container-service-deployments \
+  --region us-west-2 \
+  --service-name hi-replit-v2
+Rollback to previous version:
+
+
+
+# Use previous working container image/tag
+aws lightsail create-container-service-deployment \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --containers file://previous-deployment.json
+🚀 Production vs Staging Considerations
+Key Differences
+Aspect
+
+Staging
+
+Production
+
+Environment
+
+NODE_ENV=staging
+
+NODE_ENV=production
+
+URL
+
+app2.heliotropeimaginal.com
+
+app.heliotropeimaginal.com
+
+Database
+
+AWS Lightsail PostgreSQL
+
+Neon PostgreSQL
+
+Tags
+
+Branch-based or staging tags
+
+Version tags (v1.0.0)
+
+Verification
+
+Internal testing
+
+Full QA process
+
+Production Safety
+⚠️ Production deployment requires:
+
+Staging deployment verified and tested
+
+All workshop functionality confirmed
+
+Feature flags reviewed for production readiness
+
+Version tag created and tested
+
+Database migration compatibility verified
+
+Last Updated: July 2025 | Maintained By: Development Team | Review Frequency: After each deployment

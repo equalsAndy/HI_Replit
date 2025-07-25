@@ -291,7 +291,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
                 workshopType="imaginal-agility"
                 stepId="ia-1-1"
                 title="Welcome to Imaginal Agility"
-                forceUrl="https://youtu.be/F1qGAW4OofQ"
+                forceUrl="https://youtu.be/ScQ7JqLOOVY"
                 aspectRatio="16:9"
                 autoplay={true}
                 className="w-full max-w-2xl mx-auto"
@@ -374,6 +374,118 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
                 <p className="text-lg leading-relaxed">
                   Content for ia-6-1 step.
                 </p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'ia-7-1':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Team Ladder Overview
+            </h1>
+            {/* Video Section using VideoPlayer component */}
+            <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
+              <VideoPlayer
+                workshopType="imaginal-agility"
+                stepId="ia-7-1"
+                title="Team Ladder Overview"
+                forceUrl="https://youtu.be/ScQ7JqLOOVY"
+                aspectRatio="16:9"
+                autoplay={true}
+                className="w-full max-w-2xl mx-auto"
+              />
+            </div>
+            {/* Content Card */}
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed">
+                  Team-based imagination development using the Ladder of Imagination framework.
+                </p>
+                <p className="text-lg leading-relaxed">
+                  This section introduces collaborative practices for teams to develop their collective imaginative capacity.
+                </p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-8">
+              <Button 
+                onClick={() => onNext && onNext('ia-7-2')}
+                className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+              >
+                Continue to Team Workspace
+              </Button>
+            </div>
+          </div>
+        );
+      case 'ia-7-2':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              Team Whiteboard Workspace
+            </h1>
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <p className="text-lg leading-relaxed mb-6">
+                  Access the collaborative team workspace for Imaginal Agility exercises.
+                </p>
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold text-purple-800 mb-4">
+                    NEW TEAM IMAGINAL AGILITY WHITEBOARD TEMPLATE
+                  </h3>
+                  <p className="text-purple-700 mb-4">
+                    This collaborative workspace allows your team to work together on imagination exercises and build collective creative capacity.
+                  </p>
+                  <a 
+                    href="https://app.mural.co/t/teamprelude0846/m/teamprelude0846/1752840219288/724532f9efa7cf6b7e62f338cf511f2eb9272e4a?sender=ua9824e7f46ca005336059760"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block"
+                  >
+                    <Button className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3">
+                      Access Team Workspace
+                    </Button>
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'ia-8-1':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              The Neuroscience of Imagination
+            </h1>
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-lg font-medium text-yellow-800">
+                    🚧 This section is temporarily hidden but available for future activation.
+                  </p>
+                  <p className="text-yellow-700 mt-2">
+                    Scientific foundation of imagination development and the neurological basis for imaginative capacity.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'ia-8-2':
+        return (
+          <div className="max-w-4xl mx-auto p-6">
+            <h1 className="text-3xl font-bold text-purple-700 mb-8">
+              About Heliotrope Imaginal
+            </h1>
+            <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
+              <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+                  <p className="text-lg font-medium text-yellow-800">
+                    🚧 This section is temporarily hidden but available for future activation.
+                  </p>
+                  <p className="text-yellow-700 mt-2">
+                    Organization background and methodology behind the Imaginal Agility workshop.
+                  </p>
+                </div>
               </div>
             </div>
           </div>

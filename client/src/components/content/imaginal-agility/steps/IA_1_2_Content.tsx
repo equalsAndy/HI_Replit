@@ -13,11 +13,17 @@ const IA_1_2_Content: React.FC<IA12ContentProps> = ({ onNext }) => {
         AI's 4X Mental Challenge
       </h1>
       
-      {/* Temporarily replace VideoPlayer */}
+      {/* Video Section using VideoPlayer component */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <div className="bg-gray-200 p-4 rounded text-center text-gray-700 font-semibold">
-          Video Player Placeholder
-        </div>
+        <VideoPlayer
+          workshopType="imaginal-agility"
+          stepId="ia-1-2"
+          title="AI's 4X Mental Challenge"
+          forceUrl="https://youtu.be/ceER5Wq_zfU"
+          aspectRatio="16:9"
+          autoplay={true}
+          className="w-full max-w-2xl mx-auto"
+        />
       </div>
       
       {/* Content Card */}

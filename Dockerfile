@@ -1,4 +1,3 @@
-# Simplified production build
 FROM node:18-alpine AS production
 
 # Install dumb-init for proper signal handling
@@ -7,25 +6,15 @@ RUN apk add --no-cache dumb-init
 # Create app directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files (root level in monorepo)
 COPY package*.json ./
 
-# Install ALL dependencies (needed for build)
-RUN npm ci && npm cache clean --force
+# Install only production dependencies
+RUN npm ci --only=production && npm cache clean --force
 
-# Copy all application code
-COPY . ./
-
-# Remove problematic root index.html (Vite should use client/index.html)
-RUN rm -f index.html
-
-# Build the application (Vite + ESBuild)
-WORKDIR /app/client
-# Copy Tailwind and Vite configs to client directory for build
-RUN cp ../tailwind.config.ts ./tailwind.config.ts
-RUN npx vite build
-WORKDIR /app
-RUN npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
+# Copy built application (already built locally)
+COPY dist ./dist
+COPY shared ./shared
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \
@@ -34,17 +23,16 @@ RUN addgroup -g 1001 -S nodejs && \
 
 USER nodeuser
 
-# Expose port 8080 (NOT 5000)
+# Expose port 8080 (as per deployment guide)
 EXPOSE 8080
 
 # Environment
-ENV NODE_ENV=staging
-ENV PORT=8080
+ENV NODE_ENV=production
 
-# Health check for port 8080
-HEALTHCHECK --interval=90s --timeout=60s --start-period=30s --retries=5 \
-  CMD wget --spider --no-verbose --tries=1 --timeout=60 http://localhost:8080/health || exit 1
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
-# Use dumb-init and start with tsx (development approach)
+# Use dumb-init and start built app
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "start"]

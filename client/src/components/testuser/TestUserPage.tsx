@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Settings } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
+import VersionInfo from '@/components/ui/VersionInfo';
 import WorkshopCard from './WorkshopCard';
 import TestUserTools from './TestUserTools';
 
@@ -308,18 +309,25 @@ const TestUserPage: React.FC = () => {
       <main className="container mx-auto px-6 py-8">
         {/* Page Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">
-            {userResponse.user?.isTestUser ? 'Test User Dashboard' : 
-             userResponse.user?.role === 'admin' ? 'Admin Test View' : 'Workshop Dashboard'}
-          </h1>
-          <p className="text-muted-foreground">
-            {userResponse.user?.isTestUser 
-              ? 'Access your workshops and manage your testing progress'
-              : userResponse.user?.role === 'admin'
-                ? 'Administrative view of the test user interface'
-                : 'Access your workshops and track your progress'
-            }
-          </p>
+          <div className="flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold mb-2">
+                {userResponse.user?.isTestUser ? 'Test User Dashboard' : 
+                 userResponse.user?.role === 'admin' ? 'Admin Test View' : 'Workshop Dashboard'}
+              </h1>
+              <p className="text-muted-foreground">
+                {userResponse.user?.isTestUser 
+                  ? 'Access your workshops and manage your testing progress'
+                  : userResponse.user?.role === 'admin'
+                    ? 'Administrative view of the test user interface'
+                    : 'Access your workshops and track your progress'
+                }
+              </p>
+            </div>
+            <div className="text-right">
+              <VersionInfo variant="detailed" />
+            </div>
+          </div>
         </div>
 
         {/* Profile Information Section */}
