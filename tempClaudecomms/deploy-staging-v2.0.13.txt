@@ -1,0 +1,49 @@
+STAGING DEPLOYMENT COMMANDS - v2.0.13
+Date: 2025-07-26 Time: 18:55
+Changes: Fixed duplicate admin console title and positioned version info correctly
+
+=== LOCAL BUILD AND PUSH COMMANDS ===
+
+# 1. Build staging version
+npm run build:staging
+
+# 2. Build AMD64-compatible Docker image for VM deployment
+docker build --platform linux/amd64 -t staging-amd64-v2013 .
+
+# 3. Login to ECR
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# 4. Tag and push to ECR
+docker tag staging-amd64-v2013 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1855-amd64
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1855-amd64
+
+=== STAGING VM DEPLOYMENT COMMANDS ===
+Access via Lightsail Console SSH: https://lightsail.aws.amazon.com/ → hi-staging-vm → Connect using SSH
+VM IP: 34.220.143.127
+
+# Login to ECR from VM
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# Stop and remove existing container
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+
+# Deploy new container
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1855-amd64
+
+# Verify deployment
+curl -I http://34.220.143.127
+
+=== CHANGES IN THIS BUILD ===
+- Fixed duplicate "Admin Console" title in admin dashboard
+- Positioned version info component next to Admin Console title  
+- Removed duplicate header from UserManagement component
+- Version info now shows correctly in admin console
+- Build version: v2025.07.26.1154 → STAGING v2.0.13.XXXX
+
+=== VERIFICATION STEPS ===
+1. Check http://34.220.143.127 loads correctly
+2. Verify staging badge appears in navbar
+3. Confirm admin console shows single title with version info
+4. Test user management functionality
+5. Verify no duplicate admin console text in tabs area

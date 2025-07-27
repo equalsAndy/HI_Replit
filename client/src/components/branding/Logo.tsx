@@ -33,11 +33,7 @@ export default function Logo({ type, className = '', size = 'md' }: LogoProps) {
 
   const config = logoConfig[type];
 
-  console.log('🏷️ Logo Component Debug:', {
-    type,
-    size,
-    currentUrl: window.location.pathname
-  });
+  // Debug logging removed to prevent console loops
 
   return (
     <img 

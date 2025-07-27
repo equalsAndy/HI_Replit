@@ -52,7 +52,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [showExample, setShowExample] = useState(false);
 
   const [saving, setSaving] = useState(false);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
 
   const { toast } = useToast();
@@ -278,7 +278,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
 
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -501,7 +501,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               </Button>
 
               <div className="flex gap-2">
-                {isTestUser && !completed && (
+                {shouldShowDemoButtons && !completed && (
                   <Button 
                     variant="ghost" 
                     size="sm" 

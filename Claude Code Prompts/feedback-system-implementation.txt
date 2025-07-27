@@ -1,0 +1,1391 @@
+# Feedback System Implementation - AllStarTeams Platform
+
+## Overview
+Implement a comprehensive user feedback system for the AllStarTeams (AST) and Imaginal Agility (IA) dual-workshop platform. The system should capture contextual feedback from users and provide admin management capabilities.
+
+## Core Requirements
+
+### 1. Frontend Feedback Modal
+Create an interactive feedback popup modal that:
+- Detects current workshop context (AST or IA)
+- Captures current page/section name without step IDs (e.g., "Flow Assessment", "Strengths Discovery")
+- Provides three feedback context options:
+  - "Yes, [current page name]" (contextual to current page)
+  - "No, different workshop page" (shows dropdown of all workshop pages)
+  - "No, general workshop feedback" (platform-wide feedback)
+- Includes feedback categories: Bug Report, Feature Request, Content Issue, General Feedback
+- Captures priority levels: Low, Medium, High
+- Auto-detects and displays system information: browser, OS, screen resolution, timezone
+- Includes character-limited message textarea (1000 chars)
+- Shows workshop badge in header (AST/IA)
+- Responsive design matching platform aesthetics
+
+### 2. System Data Collection
+Automatically capture:
+- Browser type and version
+- Operating system and version
+- Screen resolution and viewport size
+- User timezone
+- Current workshop (AST/IA)
+- Current page/section
+- User session information
+- Timestamp with timezone
+- Full user agent string
+
+### 3. Backend API Endpoints
+Create endpoints for:
+- `POST /api/feedback/submit` - Submit new feedback
+- `GET /api/admin/feedback` - List all feedback (admin only)
+- `PUT /api/admin/feedback/:id/status` - Update feedback status
+- `PUT /api/admin/feedback/:id/tag` - Add/update tags
+- `DELETE /api/admin/feedback/:id` - Delete feedback
+- `GET /api/admin/feedback/export` - Export to CSV
+- `POST /api/admin/feedback/:id/jira` - Create Jira ticket from feedback
+
+### 4. Database Schema
+Create feedback table with fields:
+- id (UUID)
+- user_id (if logged in)
+- workshop_type (AST/IA)
+- page_context (current page, other page, general)
+- target_page (specific page name)
+- feedback_type (bug, feature, content, general)
+- priority (low, medium, high)
+- message (text)
+- status (new, in_progress, resolved, archived)
+- tags (JSON array)
+- system_info (JSON object with browser, OS, etc.)
+- created_at
+- updated_at
+- admin_notes (text)
+- jira_ticket_id (optional)
+
+### 5. Admin Console Integration
+Extend existing admin interface with feedback management section:
+- **Feedback List View**:
+  - Filterable by status, priority, workshop, feedback type
+  - Sortable by date, priority, status
+  - Searchable by content
+  - Toggle to show/hide archived feedback
+  - Pagination for large datasets
+  - Bulk actions (tag, delete, archive)
+
+- **Individual Feedback View**:
+  - Full feedback details
+  - System information display
+  - Status management (New → In Progress → Resolved → Archived)
+  - Tag management with predefined and custom tags
+  - Admin notes section
+  - Action buttons:
+    - Mark as Done (moves to resolved)
+    - Create Jira Ticket (integrates with existing Jira setup)
+    - Delete Feedback
+    - Archive Feedback
+    - Email Follow-up (placeholder for future feature)
+
+- **Export Functionality**:
+  - CSV export with all feedback data
+  - Filtered export (only selected items)
+  - Include system info and admin notes
+
+### 6. Workshop Page Dropdown Structure
+Organize dropdown options by workshop modules:
+
+**AST Workshop:**
+- Module 1: Self-Awareness
+  - Strengths Discovery
+  - Flow Assessment  
+  - Future Self Vision
+  - Vision Board
+- Module 2: Team Practice
+  - Team Fusion
+  - Team Vision
+  - Challenge Reframing
+- Post-Workshop
+  - Growth Plan
+  - Progress Tracking
+
+**IA Workshop:**
+- Module 1: [IA specific pages]
+- Module 2: [IA specific pages]
+- Post-Workshop: [IA specific pages]
+
+### 7. Technical Implementation Details
+
+#### Frontend Modal HTML Template:
+```html
+<!-- Include the complete HTML structure from the mockup -->
+<div class="feedback-overlay" id="feedbackOverlay">
+  <div class="feedback-modal">
+    <!-- Header with workshop badge -->
+    <div class="feedback-header">
+      <div class="header-content">
+        <div class="feedback-icon">💬</div>
+        <div class="header-text">
+          <h2>Share Your Feedback <span class="workshop-badge">[AST/IA]</span></h2>
+          <p>Help us improve your [WorkshopName] workshop experience</p>
+        </div>
+      </div>
+      <button class="close-button" onclick="closeFeedback()">×</button>
+    </div>
+
+    <!-- Scrollable content area -->
+    <div class="feedback-content">
+      <!-- Page context section -->
+      <div class="page-context">
+        <div class="context-question">
+          <h3>Is your feedback about</h3>
+          <div class="page-indicator">[Current Page]</div>
+          <span>?</span>
+        </div>
+        <div class="context-options">
+          <!-- Three radio options -->
+        </div>
+        <!-- Workshop pages dropdown -->
+        <div class="page-dropdown">
+          <select class="dropdown-select">
+            <!-- Organized by modules -->
+          </select>
+        </div>
+        <!-- System info display -->
+        <div class="system-info">
+          <!-- Auto-detected system details -->
+        </div>
+      </div>
+
+      <!-- Feedback type, message, priority sections -->
+    </div>
+
+    <!-- Fixed footer -->
+    <div class="feedback-footer">
+      <div class="footer-note">Your feedback helps improve the workshop</div>
+      <div class="footer-buttons">
+        <button class="btn-secondary">Cancel</button>
+        <button class="btn-primary">Send Feedback</button>
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+#### JavaScript Functions:
+- `openFeedback()` - Show modal and detect system info
+- `selectContext(type)` - Handle page context selection
+- `selectFeedbackType(type)` - Handle feedback category
+- `submitFeedback()` - Collect data and submit to API
+- `getSystemInfo()` - Detect browser, OS, screen details
+- Auto-detect current workshop and page context
+
+#### CSS Styling:
+- Match existing platform design patterns
+- Blue gradient theme for AST (#667eea to #764ba2)
+- Purple theme for IA (when implemented)
+- Responsive design with mobile optimization
+- Smooth animations and transitions
+- Proper z-index layering
+- Scrollable content area with fixed header/footer
+
+### 8. Admin Interface Components
+
+#### Feedback Dashboard:
+```html
+<div class="feedback-dashboard">
+  <!-- Filter controls -->
+  <div class="feedback-filters">
+    <select name="status">All Status, New, In Progress, Resolved, Archived</select>
+    <select name="priority">All Priority, High, Medium, Low</select>
+    <select name="workshop">All Workshops, AST, IA</select>
+    <input type="search" placeholder="Search feedback..." />
+    <label><input type="checkbox" /> Show Archived</label>
+  </div>
+
+  <!-- Feedback list -->
+  <div class="feedback-list">
+    <!-- Individual feedback cards with actions -->
+  </div>
+</div>
+```
+
+#### HTML mockup of feedback modal
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllStarTeams Feedback System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Demo Background Page */
+        .demo-page {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            z-index: 1;
+        }
+
+        .demo-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+        }
+
+        .demo-content h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.9;
+        }
+
+        .demo-content p {
+            font-size: 1.1rem;
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+
+        .feedback-trigger {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .feedback-trigger:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Feedback Popup Overlay */
+        .feedback-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .feedback-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Feedback Modal */
+        .feedback-modal {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.25),
+                0 0 0 1px rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: scale(0.9) translateY(40px);
+            }
+            to { 
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* Header */
+        .feedback-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .feedback-icon {
+            width: 28px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .header-text h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .header-text p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .workshop-badge {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .close-button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .close-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Content */
+        .feedback-content {
+            padding: 24px;
+            flex: 1;
+            overflow-y: auto;
+            max-height: calc(90vh - 200px); /* Account for header and footer */
+        }
+
+        /* Page Context Section */
+        .page-context {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border: 1px solid #bae6fd;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+
+        .context-question {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .context-question h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #0369a1;
+            margin: 0;
+        }
+
+        .page-indicator {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .context-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .context-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .context-option:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        .context-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .context-option input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+        }
+
+        .context-option label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        /* Page Dropdown */
+        .page-dropdown {
+            margin-top: 12px;
+            display: none;
+        }
+
+        .page-dropdown.active {
+            display: block;
+        }
+
+        .dropdown-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 13px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+
+        .dropdown-select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        /* System Info Display */
+        .system-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .system-info-title {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .system-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        /* Feedback Type */
+        .feedback-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .feedback-types {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .feedback-type {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: white;
+        }
+
+        .feedback-type:hover {
+            border-color: #667eea;
+            background: #f8fafc;
+        }
+
+        .feedback-type.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .feedback-type input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            accent-color: #667eea;
+        }
+
+        .type-content {
+            flex: 1;
+        }
+
+        .type-content label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #374151;
+            cursor: pointer;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .type-description {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        /* Message Input */
+        .message-section {
+            margin-bottom: 24px;
+        }
+
+        .message-textarea {
+            width: 100%;
+            min-height: 100px;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.2s ease;
+        }
+
+        .message-textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .message-textarea::placeholder {
+            color: #9ca3af;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* Priority Level */
+        .priority-section {
+            margin-bottom: 24px;
+        }
+
+        .priority-options {
+            display: flex;
+            gap: 8px;
+            justify-content: stretch;
+        }
+
+        .priority-option {
+            flex: 1;
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        /* Rating Section */
+        .rating-section {
+            margin-bottom: 24px;
+        }
+
+        .rating-options {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .rating-option {
+            width: 48px;
+            height: 48px;
+            border: 2px solid #e2e8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 20px;
+            background: white;
+            position: relative;
+        }
+
+        .rating-option:hover {
+            border-color: #667eea;
+            transform: scale(1.05);
+        }
+
+        .rating-option.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+            transform: scale(1.1);
+        }
+
+        .rating-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: 500;
+            color: #6b7280;
+            white-space: nowrap;
+        }
+
+        .rating-option.selected .rating-label {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .priority-option.low {
+            color: #059669;
+            border-color: #d1fae5;
+            background: #f0fdf4;
+        }
+
+        .priority-option.low.selected {
+            border-color: #059669;
+            background: #ecfdf5;
+        }
+
+        .priority-option.medium {
+            color: #d97706;
+            border-color: #fed7aa;
+            background: #fffbeb;
+        }
+
+        .priority-option.medium.selected {
+            border-color: #d97706;
+            background: #fef3c7;
+        }
+
+        .priority-option.high {
+            color: #dc2626;
+            border-color: #fecaca;
+            background: #fef2f2;
+        }
+
+        .priority-option.high.selected {
+            border-color: #dc2626;
+            background: #fee2e2;
+        }
+
+        .priority-option.blocker {
+            color: #374151;
+            border-color: #d1d5db;
+            background: #f9fafb;
+        }
+
+        .priority-option.blocker.selected {
+            border-color: #111827;
+            background: #374151;
+            color: white;
+        }
+
+        /* Footer */
+        .feedback-footer {
+            padding: 20px 24px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .footer-note {
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .footer-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5a67d8;
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Success State */
+        .success-content {
+            text-align: center;
+            padding: 40px 24px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 24px;
+        }
+
+        .success-content h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .success-content p {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        /* Responsive */
+        @media (max-width: 640px) {
+            .feedback-modal {
+                margin: 16px;
+                max-height: calc(100vh - 32px);
+            }
+            
+            .feedback-content {
+                max-height: calc(100vh - 220px);
+                padding: 20px;
+            }
+            
+            .feedback-types {
+                grid-template-columns: 1fr;
+            }
+            
+            .context-options {
+                flex-direction: column;
+            }
+            
+            .priority-options {
+                gap: 6px;
+            }
+
+            .priority-option {
+                font-size: 11px;
+                padding: 6px 8px;
+            }
+
+            .rating-options {
+                gap: 6px;
+            }
+
+            .rating-option {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Demo Background Page -->
+    <div class="demo-page">
+        <div class="demo-content">
+            <h1>Flow Assessment</h1>
+            <p>Discovering your optimal performance conditions</p>
+            <button class="feedback-trigger" onclick="openFeedback()">
+                Give Feedback 💬
+            </button>
+        </div>
+    </div>
+
+    <!-- Feedback Overlay -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+        <div class="feedback-modal">
+            <!-- Header -->
+            <div class="feedback-header">
+                <div class="header-content">
+                    <div class="feedback-icon">
+                        💬
+                    </div>
+                    <div class="header-text">
+                        <h2>Share Your Feedback <span class="workshop-badge">AST</span></h2>
+                        <p>Help us improve your AllStarTeams workshop experience</p>
+                    </div>
+                </div>
+                <button class="close-button" onclick="closeFeedback()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Form Content -->
+            <div class="feedback-content" id="feedbackForm">
+                <!-- Page Context -->
+                <div class="page-context">
+                    <div class="context-question">
+                        <h3>Is your feedback about</h3>
+                        <div class="page-indicator">Flow Assessment</div>
+                        <span style="font-size: 14px; color: #0369a1;">?</span>
+                    </div>
+                    <div class="context-options">
+                        <div class="context-option selected" onclick="selectContext('current')">
+                            <input type="radio" name="pageContext" value="current" checked>
+                            <label>Yes, Flow Assessment</label>
+                        </div>
+                        <div class="context-option" onclick="selectContext('other')">
+                            <input type="radio" name="pageContext" value="other">
+                            <label>No, it's about a different workshop page</label>
+                        </div>
+                        <div class="context-option" onclick="selectContext('general')">
+                            <input type="radio" name="pageContext" value="general">
+                            <label>No, general workshop feedback</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Page Dropdown -->
+                    <div class="page-dropdown" id="pageDropdown">
+                        <select class="dropdown-select" id="otherPageSelect">
+                            <option value="">Select a workshop page...</option>
+                            <optgroup label="Module 1: Self-Awareness">
+                                <option value="strengths-discovery">Strengths Discovery</option>
+                                <option value="flow-assessment">Flow Assessment</option>
+                                <option value="future-self">Future Self Vision</option>
+                                <option value="vision-board">Vision Board</option>
+                            </optgroup>
+                            <optgroup label="Module 2: Team Practice">
+                                <option value="team-fusion">Team Fusion</option>
+                                <option value="team-vision">Team Vision</option>
+                                <option value="challenge-reframing">Challenge Reframing</option>
+                            </optgroup>
+                            <optgroup label="Post-Workshop">
+                                <option value="growth-plan">Growth Plan</option>
+                                <option value="progress-tracking">Progress Tracking</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <!-- System Info -->
+                    <div class="system-info">
+                        <div class="system-info-title">Technical Information (automatically captured)</div>
+                        <div class="system-details">
+                            <div><strong>Browser:</strong> <span id="browserInfo">Chrome 120</span></div>
+                            <div><strong>OS:</strong> <span id="osInfo">macOS 14</span></div>
+                            <div><strong>Screen:</strong> <span id="screenInfo">1920×1080</span></div>
+                            <div><strong>Workshop:</strong> <span id="workshopInfo">AllStarTeams (AST)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feedback Type -->
+                <div class="feedback-section">
+                    <div class="section-title">What type of feedback?</div>
+                    <div class="feedback-types">
+                        <div class="feedback-type selected" onclick="selectFeedbackType('bug')">
+                            <input type="radio" name="feedbackType" value="bug" checked>
+                            <div class="type-content">
+                                <label>🐛 Bug Report</label>
+                                <div class="type-description">Something isn't working</div>
+                            </div>
+                        </div>
+                        <div class="feedback-type" onclick="selectFeedbackType('feature')">
+                            <input type="radio" name="feedbackType" value="feature">
+                            <div class="type-content">
+                                <label>💡 Feature Request</label>
+                                <div class="type-description">Suggest an improvement</div>
+                            </div>
+                        </div>
+                        <div class="feedback-type" onclick="selectFeedbackType('content')">
+                            <input type="radio" name="feedbackType" value="content">
+                            <div class="type-content">
+                                <label>📝 Content Issue</label>
+                                <div class="type-description">Unclear or incorrect content</div>
+                            </div>
+                        </div>
+                        <div class="feedback-type" onclick="selectFeedbackType('general')">
+                            <input type="radio" name="feedbackType" value="general">
+                            <div class="type-content">
+                                <label>💬 General Feedback</label>
+                                <div class="type-description">Other thoughts or suggestions</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Message -->
+                <div class="feedback-section">
+                    <div class="section-title">Tell us more</div>
+                    <textarea 
+                        class="message-textarea" 
+                        placeholder="Describe your feedback in detail..."
+                        maxlength="1000"
+                        oninput="updateCharCount(this)"
+                    ></textarea>
+                    <div class="char-count">0/1000 characters</div>
+                </div>
+
+                <!-- Experience Rating -->
+                <div class="feedback-section">
+                    <div class="section-title">How would you rate your experience so far?</div>
+                    <div class="rating-options">
+                        <div class="rating-option" onclick="selectRating(1)">
+                            😞
+                            <div class="rating-label">Poor</div>
+                        </div>
+                        <div class="rating-option" onclick="selectRating(2)">
+                            😕
+                            <div class="rating-label">Fair</div>
+                        </div>
+                        <div class="rating-option selected" onclick="selectRating(3)">
+                            😐
+                            <div class="rating-label">Good</div>
+                        </div>
+                        <div class="rating-option" onclick="selectRating(4)">
+                            😊
+                            <div class="rating-label">Great</div>
+                        </div>
+                        <div class="rating-option" onclick="selectRating(5)">
+                            🤩
+                            <div class="rating-label">Excellent</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Priority -->
+                <div class="feedback-section">
+                    <div class="section-title">Priority Level</div>
+                    <div class="priority-options">
+                        <div class="priority-option low selected" onclick="selectPriority('low')">
+                            Low
+                        </div>
+                        <div class="priority-option medium" onclick="selectPriority('medium')">
+                            Medium
+                        </div>
+                        <div class="priority-option high" onclick="selectPriority('high')">
+                            High
+                        </div>
+                        <div class="priority-option blocker" onclick="selectPriority('blocker')">
+                            Blocker
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Content (Hidden by default) -->
+            <div class="success-content" id="successContent" style="display: none;">
+                <div class="success-icon">✓</div>
+                <h3>Feedback Submitted!</h3>
+                <p>Thank you for helping us improve the AllStarTeams experience. We'll review your feedback and get back to you if needed.</p>
+                <button class="btn btn-primary" onclick="closeFeedback()">Continue Workshop</button>
+            </div>
+
+            <!-- Footer -->
+            <div class="feedback-footer" id="feedbackFooter">
+                <div class="footer-note">Your feedback helps improve the workshop</div>
+                <div class="footer-buttons">
+                    <button class="btn btn-secondary" onclick="closeFeedback()">Cancel</button>
+                    <button class="btn btn-primary" onclick="submitFeedback()">Send Feedback</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Current page data (would be dynamically set)
+        const currentPageData = {
+            title: "Flow Assessment",
+            workshop: "AST",
+            workshopName: "AllStarTeams",
+            module: "Module 1",
+            url: window.location.href
+        };
+
+        // System information detection
+        function getSystemInfo() {
+            const userAgent = navigator.userAgent;
+            
+            // Detect browser
+            let browser = 'Unknown';
+            if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+                const version = userAgent.match(/Chrome\/(\d+)/);
+                browser = `Chrome ${version ? version[1] : ''}`;
+            } else if (userAgent.includes('Firefox')) {
+                const version = userAgent.match(/Firefox\/(\d+)/);
+                browser = `Firefox ${version ? version[1] : ''}`;
+            } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+                const version = userAgent.match(/Version\/(\d+)/);
+                browser = `Safari ${version ? version[1] : ''}`;
+            } else if (userAgent.includes('Edg')) {
+                const version = userAgent.match(/Edg\/(\d+)/);
+                browser = `Edge ${version ? version[1] : ''}`;
+            }
+
+            // Detect OS
+            let os = 'Unknown';
+            if (userAgent.includes('Windows NT 10.0')) os = 'Windows 10/11';
+            else if (userAgent.includes('Windows NT')) os = 'Windows';
+            else if (userAgent.includes('Mac OS X')) {
+                const version = userAgent.match(/Mac OS X (\d+_\d+)/);
+                if (version) {
+                    const versionNum = version[1].replace('_', '.');
+                    os = `macOS ${versionNum}`;
+                } else {
+                    os = 'macOS';
+                }
+            }
+            else if (userAgent.includes('Linux')) os = 'Linux';
+            else if (userAgent.includes('iPhone')) os = 'iOS';
+            else if (userAgent.includes('Android')) os = 'Android';
+
+            // Screen size
+            const screen = `${window.screen.width}×${window.screen.height}`;
+            
+            // Viewport size
+            const viewport = `${window.innerWidth}×${window.innerHeight}`;
+
+            return {
+                browser,
+                os,
+                screen,
+                viewport,
+                userAgent,
+                timestamp: new Date().toISOString(),
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+            };
+        }
+
+        function openFeedback() {
+            document.getElementById('feedbackOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Update system info display
+            updateSystemInfo();
+        }
+
+        function updateSystemInfo() {
+            const systemInfo = getSystemInfo();
+            
+            document.getElementById('browserInfo').textContent = systemInfo.browser;
+            document.getElementById('osInfo').textContent = systemInfo.os;
+            document.getElementById('screenInfo').textContent = `${systemInfo.screen} (${systemInfo.viewport} viewport)`;
+            document.getElementById('workshopInfo').textContent = `${currentPageData.workshopName} (${currentPageData.workshop})`;
+        }
+
+        function closeFeedback() {
+            document.getElementById('feedbackOverlay').classList.remove('active');
+            document.body.style.overflow = 'auto';
+            // Reset form if needed
+            resetForm();
+        }
+
+        function selectContext(type) {
+            document.querySelectorAll('.context-option').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            // Update page indicator and label based on selection
+            const pageIndicator = document.querySelector('.page-indicator');
+            const currentLabel = document.querySelector('.context-option:first-child label');
+            const pageDropdown = document.getElementById('pageDropdown');
+            
+            if (type === 'current') {
+                pageIndicator.textContent = currentPageData.title;
+                currentLabel.textContent = `Yes, ${currentPageData.title}`;
+                pageIndicator.style.display = 'inline-block';
+                pageDropdown.classList.remove('active');
+            } else if (type === 'other') {
+                pageIndicator.style.display = 'none';
+                pageDropdown.classList.add('active');
+            } else {
+                pageIndicator.style.display = 'none';
+                pageDropdown.classList.remove('active');
+            }
+        }
+
+        function selectFeedbackType(type) {
+            document.querySelectorAll('.feedback-type').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        function selectRating(rating) {
+            document.querySelectorAll('.rating-option').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.rating-option')[rating - 1].classList.add('selected');
+        }
+
+        function selectPriority(level) {
+            document.querySelectorAll('.priority-option').forEach(el => el.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+        }
+
+        function updateCharCount(textarea) {
+            const count = textarea.value.length;
+            const charCountEl = document.querySelector('.char-count');
+            charCountEl.textContent = `${count}/1000 characters`;
+            
+            if (count > 900) {
+                charCountEl.style.color = '#dc2626';
+            } else {
+                charCountEl.style.color = '#6b7280';
+            }
+        }
+
+        function submitFeedback() {
+            const systemInfo = getSystemInfo();
+            
+            // Get selected rating
+            const selectedRating = document.querySelector('.rating-option.selected');
+            const ratingIndex = Array.from(document.querySelectorAll('.rating-option')).indexOf(selectedRating) + 1;
+            
+            // Collect form data
+            const formData = {
+                pageContext: document.querySelector('input[name="pageContext"]:checked').value,
+                targetPage: document.querySelector('input[name="pageContext"]:checked').value === 'other' 
+                    ? document.getElementById('otherPageSelect').value 
+                    : (document.querySelector('input[name="pageContext"]:checked').value === 'current' ? currentPageData.title : 'general'),
+                feedbackType: document.querySelector('input[name="feedbackType"]:checked').value,
+                message: document.querySelector('.message-textarea').value,
+                experienceRating: ratingIndex,
+                priority: document.querySelector('.priority-option.selected').textContent.trim().toLowerCase(),
+                pageData: currentPageData,
+                systemInfo: systemInfo,
+                timestamp: new Date().toISOString()
+            };
+
+            console.log('Feedback submitted:', formData);
+
+            // Show success state
+            document.getElementById('feedbackForm').style.display = 'none';
+            document.getElementById('feedbackFooter').style.display = 'none';
+            document.getElementById('successContent').style.display = 'block';
+
+            // In real implementation, send to backend here
+        }
+
+        function resetForm() {
+            // Reset form to initial state
+            document.getElementById('feedbackForm').style.display = 'block';
+            document.getElementById('feedbackFooter').style.display = 'flex';
+            document.getElementById('successContent').style.display = 'none';
+            
+            // Reset selections
+            document.querySelectorAll('.context-option')[0].classList.add('selected');
+            document.querySelectorAll('.context-option').forEach((el, i) => {
+                if (i > 0) el.classList.remove('selected');
+            });
+            document.querySelectorAll('.feedback-type')[0].classList.add('selected');
+            document.querySelectorAll('.feedback-type').forEach((el, i) => {
+                if (i > 0) el.classList.remove('selected');
+            });
+            
+            // Reset rating to middle (Good - 3)
+            document.querySelectorAll('.rating-option').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.rating-option')[2].classList.add('selected');
+            
+            // Reset priority
+            document.querySelectorAll('.priority-option')[0].classList.add('selected');
+            document.querySelectorAll('.priority-option').forEach((el, i) => {
+                if (i > 0) el.classList.remove('selected');
+            });
+            
+            // Reset dropdown
+            document.getElementById('pageDropdown').classList.remove('active');
+            document.getElementById('otherPageSelect').value = '';
+            
+            // Clear textarea
+            document.querySelector('.message-textarea').value = '';
+            updateCharCount(document.querySelector('.message-textarea'));
+        }
+
+        // Close on outside click
+        document.getElementById('feedbackOverlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeFeedback();
+            }
+        });
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('feedbackOverlay').classList.contains('active')) {
+                closeFeedback();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
+#### Status Management:
+- New (default) → In Progress → Resolved → Archived
+- Color-coded status indicators
+- Bulk status updates
+- Status change logging
+
+#### Tag System:
+- Predefined tags: UI/UX, Content, Technical, Enhancement, Bug
+- Custom tag creation
+- Tag-based filtering
+- Visual tag indicators
+
+### 9. Integration Points
+
+#### Existing Systems:
+- User authentication (respect current user sessions)
+- Admin permission system (use existing admin role checks)
+- Jira integration (leverage existing Jira setup for ticket creation)
+- Database connection (use existing Drizzle ORM setup)
+
+#### Future Features (Prepare For):
+- Email follow-up system (placeholder in UI)
+- Feedback analytics dashboard
+- User notification system
+- Automated feedback categorization
+- Response templates
+
+### 10. File Structure
+```
+/client/src/components/
+  /feedback/
+    FeedbackModal.tsx
+    FeedbackTrigger.tsx
+    SystemDetection.ts
+    FeedbackTypes.ts
+
+/client/src/components/admin/
+  /feedback/
+    FeedbackDashboard.tsx
+    FeedbackList.tsx
+    FeedbackDetail.tsx
+    FeedbackFilters.tsx
+    FeedbackExport.tsx
+
+/server/routes/
+  feedback-routes.ts
+  admin-feedback-routes.ts
+
+/shared/
+  feedback-schema.ts
+  feedback-types.ts
+```
+
+### 11. Data Flow
+1. User clicks feedback trigger on any workshop page
+2. Modal opens with auto-detected context
+3. User selects feedback context and fills form
+4. System captures all technical details automatically
+5. Feedback submitted to backend with full context
+6. Admin receives notification of new feedback
+7. Admin can manage feedback through admin console
+8. Status updates and actions tracked in system
+
+### 12. Testing Requirements
+- Test feedback modal on all workshop pages
+- Verify system detection across different browsers/OS
+- Test admin console filtering and export
+- Validate Jira ticket creation
+- Test responsive design on mobile devices
+- Verify proper data validation and sanitization
+
+### 13. Security Considerations
+- Sanitize all user input
+- Rate limiting for feedback submissions
+- Admin-only access to feedback management
+- Secure file export handling
+- CSRF protection for admin actions
+
+### 14. Performance Requirements
+- Modal should load quickly (<200ms)
+- Admin dashboard should handle 1000+ feedback items
+- Export functionality should handle large datasets
+- Database queries should be optimized with proper indexing
+
+This feedback system will provide comprehensive user feedback collection with robust admin management capabilities, supporting the continuous improvement of the AllStarTeams platform while maintaining the existing design language and technical architecture.

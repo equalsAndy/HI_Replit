@@ -1,0 +1,47 @@
+# Quick fix for participant navigation loop
+
+# For now, restore Barney to participant role but add safety check
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function fixBarney() {
+  try {
+    // Reset Barney to participant role
+    await pool.query('UPDATE users SET role = \\'participant\\' WHERE id = 8');
+    
+    // Ensure Barney has simple, clean navigation state
+    await pool.query('DELETE FROM navigation_progress WHERE user_id = 8');
+    
+    // Insert minimal navigation state
+    await pool.query(\`
+      INSERT INTO navigation_progress 
+      (user_id, app_type, current_step_id, completed_steps, unlocked_steps, video_progress, created_at, updated_at)
+      VALUES 
+      (8, 'ast', '1-1', '[]', '[\"1-1\"]', '{}', NOW(), NOW()),
+      (8, 'ia', 'ia-1-1', '[]', '[\"ia-1-1\"]', '{}', NOW(), NOW())
+    \`);
+    
+    console.log('✅ Fixed Barney with minimal navigation state');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+fixBarney();
+"
+
+# Clear sessions to force fresh login
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('DELETE FROM sessions WHERE data LIKE \\'%\"userId\":8%\\'')
+  .then(() => console.log('✅ Cleared Barney sessions'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"

@@ -1,9 +1,9 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { getFeatureStatus } from '../middleware/feature-flags.js';
 import { db } from '../db.js';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import * as schema from '../../shared/schema.js';
-import { users } from '../../shared/schema.js';
+import { users, workshopStepData } from '../../shared/schema.js';
 
 // Create a router for workshop data operations
 const workshopDataRouter = Router();
@@ -39,7 +39,7 @@ const checkWorkshopLocked = async (req: Request, res: Response, next: NextFuncti
     const userId = (req.session as any).userId;
     
     // Determine workshop type from request body or params
-    const appType = req.body.appType || req.params.appType || 'ast';
+    const appType = req.body.workshopType || req.body.appType || req.params.appType || 'ast';
     
     if (!['ast', 'ia'].includes(appType)) {
       return next(); // Skip check for invalid app types
@@ -2435,7 +2435,17 @@ workshopDataRouter.get('/ia-assessment/:userId?', async (req: Request, res: Resp
     }
     
     const assessmentData = assessment[0];
-    const results = JSON.parse(assessmentData.results);
+    let results;
+    try {
+      results = typeof assessmentData.results === 'string' ? JSON.parse(assessmentData.results) : assessmentData.results;
+    } catch (error) {
+      console.error('Error parsing IA assessment results:', error);
+      // If data is corrupted, return null to trigger a re-assessment
+      return res.status(200).json({
+        success: true,
+        data: null
+      });
+    }
     
     return res.status(200).json({
       success: true,
@@ -2493,7 +2503,7 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
       await db
         .update(schema.userAssessments)
         .set({
-          results: JSON.stringify(results),
+          results: typeof results === 'string' ? results : JSON.stringify(results),
         })
         .where(eq(schema.userAssessments.id, existingAssessment[0].id));
     } else {
@@ -2501,7 +2511,7 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
       await db.insert(schema.userAssessments).values({
         userId,
         assessmentType: 'iaCoreCapabilities',
-        results: JSON.stringify(results)
+        results: typeof results === 'string' ? results : JSON.stringify(results)
       });
     }
     
@@ -2515,6 +2525,226 @@ workshopDataRouter.post('/ia-assessment', async (req: Request, res: Response) =>
     return res.status(500).json({
       success: false,
       message: 'Failed to save IA assessment'
+    });
+  }
+});
+
+/**
+ * NEW UNIFIED WORKSHOP DATA ENDPOINTS
+ * Generic save/load system for all workshop step data
+ */
+
+/**
+ * GET /api/workshop-data/step/:workshopType/:stepId
+ * Load data for a specific workshop step
+ */
+workshopDataRouter.get('/step/:workshopType/:stepId', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { workshopType, stepId } = req.params;
+    const userId = (req.session as any).userId;
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    if (!stepId || typeof stepId !== 'string') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Step ID is required' 
+      });
+    }
+    
+    // Query the database (exclude soft-deleted records)
+    const result = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, workshopType),
+        eq(workshopStepData.stepId, stepId),
+        isNull(workshopStepData.deletedAt)
+      ))
+      .limit(1);
+    
+    if (result.length === 0) {
+      return res.json({
+        success: true,
+        data: null, // No data saved yet
+        stepId,
+        workshopType
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: result[0].data,
+      stepId,
+      workshopType,
+      lastUpdated: result[0].updatedAt
+    });
+    
+  } catch (error) {
+    console.error('Error loading workshop step data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to load step data' 
+    });
+  }
+});
+
+/**
+ * POST /api/workshop-data/step
+ * Save data for a workshop step (upsert)
+ */
+workshopDataRouter.post('/step', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
+  try {
+    const { workshopType, stepId, data } = req.body;
+    const userId = (req.session as any).userId;
+    
+    console.log('🔍 POST /step - Request details:', { 
+      workshopType, 
+      stepId, 
+      userId, 
+      hasData: !!data,
+      dataKeys: data ? Object.keys(data) : [],
+      sessionExists: !!(req.session),
+      userIdType: typeof userId
+    });
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    if (!stepId || typeof stepId !== 'string') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Step ID is required' 
+      });
+    }
+    
+    if (!data || typeof data !== 'object') {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Data object is required' 
+      });
+    }
+    
+    console.log('🔍 Attempting to save workshop data:', { userId, workshopType, stepId, dataKeys: Object.keys(data) });
+
+    // Check if userId is valid
+    if (!userId || typeof userId !== 'number') {
+      console.error('❌ Invalid userId:', { userId, type: typeof userId });
+      return res.status(401).json({ 
+        success: false, 
+        error: 'Authentication required - invalid user ID' 
+      });
+    }
+
+    console.log('🔍 About to execute UPSERT with:', { 
+      userId, 
+      workshopType, 
+      stepId, 
+      hasData: !!data,
+      dataSize: JSON.stringify(data).length 
+    });
+
+    // Upsert the data (insert or update if exists)
+    const result = await db
+      .insert(workshopStepData)
+      .values({
+        userId,
+        workshopType,
+        stepId,
+        data: data,
+        updatedAt: new Date()
+      })
+      .onConflictDoUpdate({
+        target: [workshopStepData.userId, workshopStepData.workshopType, workshopStepData.stepId],
+        set: {
+          data: data,
+          updatedAt: new Date()
+        }
+      })
+      .returning();
+
+    console.log('✅ Workshop data saved successfully:', result[0]);
+    
+    res.json({
+      success: true,
+      stepId,
+      workshopType,
+      saved: true,
+      lastUpdated: result[0].updatedAt
+    });
+    
+  } catch (error) {
+    console.error('❌ Error saving workshop step data:', error);
+    console.error('❌ Error details:', {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to save step data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * GET /api/workshop-data/steps/:workshopType
+ * Load all data for a workshop (for bulk loading)
+ */
+workshopDataRouter.get('/steps/:workshopType', authenticateUser, async (req: Request, res: Response) => {
+  try {
+    const { workshopType } = req.params;
+    const userId = (req.session as any).userId;
+    
+    // Validate parameters
+    if (!['ast', 'ia'].includes(workshopType)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Invalid workshop type. Must be "ast" or "ia"' 
+      });
+    }
+    
+    // Query all steps for this workshop (exclude soft-deleted records)
+    const results = await db
+      .select()
+      .from(workshopStepData)
+      .where(and(
+        eq(workshopStepData.userId, userId),
+        eq(workshopStepData.workshopType, workshopType),
+        isNull(workshopStepData.deletedAt)
+      ))
+      .orderBy(workshopStepData.stepId);
+    
+    // Convert to key-value object for easy access
+    const stepData = results.reduce((acc, row) => {
+      acc[row.stepId] = row.data;
+      return acc;
+    }, {} as Record<string, any>);
+    
+    res.json({
+      success: true,
+      workshopType,
+      stepData,
+      totalSteps: results.length
+    });
+    
+  } catch (error) {
+    console.error('Error loading workshop steps data:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Failed to load workshop data' 
     });
   }
 });

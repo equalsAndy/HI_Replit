@@ -1,0 +1,28 @@
+# Deploy v2.1.3 - Comprehensive Workshop Cache Clearing System
+# SSH into staging VM
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+
+# Commands to run on VM:
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.1.3
+curl -I http://34.220.143.127
+
+# This deployment includes:
+# ✅ Comprehensive workshop cache clearing system
+# ✅ Universal forceWorkshopCacheDump() function
+# ✅ Enhanced useWorkshopStepData hook with clearCache()
+# ✅ Updated all reset operations (profile, admin, test users)
+# ✅ AST steps 5-2 and 5-3 disabled for non-test users
+# ✅ Fixed holistic report timing after final reflection
+# ✅ All previous emergency fixes (infinite loop, navigation, etc.)
+
+# Key Features:
+# - Clears ALL workshop step data cache entries
+# - Removes localStorage/sessionStorage workshop data
+# - Pattern matching for comprehensive cache removal
+# - Works across both AST and IA workshops
+# - Resolves widespread cache persistence issues
+
+# Documentation: docs/WORKSHOP-CACHE-CLEARING-SYSTEM.md

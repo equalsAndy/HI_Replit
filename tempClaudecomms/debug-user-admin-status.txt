@@ -1,0 +1,37 @@
+Commands to run in browser console to debug user admin status:
+
+// Check current user status
+fetch('/api/auth/me', { credentials: 'include' })
+  .then(res => res.json())
+  .then(data => {
+    console.log('=== USER DEBUG INFO ===');
+    console.log('Full response:', data);
+    console.log('User object:', data.user || data);
+    console.log('Role:', (data.user && data.user.role) || data.role);
+    console.log('Is Admin?:', (data.user && data.user.role === 'admin') || data.role === 'admin');
+    console.log('========================');
+  })
+  .catch(err => console.error('Error:', err));
+
+// Check feedback button state
+const feedbackButtons = Array.from(document.querySelectorAll('button'))
+  .filter(btn => btn.textContent && btn.textContent.toLowerCase().includes('feedback'));
+
+console.log('=== FEEDBACK BUTTON DEBUG ===');
+feedbackButtons.forEach((btn, i) => {
+  console.log(`Button ${i + 1}:`, {
+    text: btn.textContent,
+    disabled: btn.disabled,
+    opacity: window.getComputedStyle(btn).opacity,
+    cursor: window.getComputedStyle(btn).cursor,
+    className: btn.className
+  });
+});
+
+// Check current component state
+if (window.React && window.React.version) {
+  console.log('React version:', window.React.version);
+}
+
+console.log('Current URL:', window.location.href);
+console.log('Current version element:', document.querySelector('*[class*="version"]')?.textContent);

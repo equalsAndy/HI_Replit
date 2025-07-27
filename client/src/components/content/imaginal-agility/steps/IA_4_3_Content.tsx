@@ -1,30 +1,76 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA_4_3_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+// Data structure for this step
+interface IA43StepData {
+  currentFrame: string;
+  aiStretch: string;
+  stretchVision: string;
+  resistance: string;
+  stretchName: string;
+}
+
 const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
-  const [currentFrame, setCurrentFrame] = useState('');
-  const [aiStretch, setAiStretch] = useState('');
-  const [stretchVision, setStretchVision] = useState('');
-  const [resistance, setResistance] = useState('');
-  const [stretchName, setStretchName] = useState('');
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA43StepData = {
+    currentFrame: '',
+    aiStretch: '',
+    stretchVision: '',
+    resistance: '',
+    stretchName: ''
+  };
+  
+  // Use the new persistence hook
+  const { data, updateData, saving, loaded, error } = useWorkshopStepData(
+    'ia',
+    'ia-4-3',
+    initialData
+  );
 
   const handleSaveInsight = () => {
-    console.log('Saving insight:', { currentFrame, aiStretch, stretchVision, resistance, stretchName });
+    // Data is already being auto-saved via the hook
+    console.log('Insight data saved:', data);
   };
 
   const handleTryAnotherStretch = () => {
-    setCurrentFrame('');
-    setAiStretch('');
-    setStretchVision('');
-    setResistance('');
-    setStretchName('');
+    // Clear the form for another try
+    updateData({
+      currentFrame: '',
+      aiStretch: '',
+      stretchVision: '',
+      resistance: '',
+      stretchName: ''
+    });
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      currentFrame: "I see myself as a skilled professional in my current role, contributing to my team and getting work done efficiently. I'm competent but staying within familiar boundaries.",
+      aiStretch: "What if you imagined yourself not just as a professional, but as a catalyst for transformation in your entire industry? Picture yourself three roles beyond your current one - perhaps leading a team that solvers problems no one has even identified yet. What if your unique perspective could reshape how your field approaches its biggest challenges? Consider yourself as someone who bridges gaps between disciplines, creating entirely new ways of working that others will study and adopt.",
+      stretchVision: "I envision myself as an innovation architect who doesn't just work within my industry but actively reshapes it. I see myself leading cross-functional teams that tackle complex global challenges, using my unique combination of skills to create solutions that span multiple domains. I'm facilitating conversations between unlikely collaborators and designing systems that others will build upon for decades.",
+      resistance: "identity-attachment",
+      stretchName: "Boundary Transcender"
+    });
+    
+    console.log('IA 4-3 Content filled with demo visualization stretch data');
   };
 
   return (
@@ -64,8 +110,8 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Summarize your earlier visualization in one sentence..."
-                  value={currentFrame}
-                  onChange={(e) => setCurrentFrame(e.target.value)}
+                  value={data.currentFrame}
+                  onChange={(e) => updateData({ currentFrame: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -78,8 +124,8 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Paste the AI's stretching suggestion here..."
-                  value={aiStretch}
-                  onChange={(e) => setAiStretch(e.target.value)}
+                  value={data.aiStretch}
+                  onChange={(e) => updateData({ aiStretch: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -92,8 +138,8 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Describe yourself in this expanded role - how do you feel, act, and impact others?"
-                  value={stretchVision}
-                  onChange={(e) => setStretchVision(e.target.value)}
+                  value={data.stretchVision}
+                  onChange={(e) => updateData({ stretchVision: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -104,7 +150,7 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 <p className="text-gray-700 mb-3">
                   What's holding you back from stretching into this expanded role? Choose one:
                 </p>
-                <Select value={resistance} onValueChange={setResistance}>
+                <Select value={data.resistance} onValueChange={(value) => updateData({ resistance: value })}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select what's holding you back" />
                   </SelectTrigger>
@@ -126,8 +172,8 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 </p>
                 <Input
                   placeholder="Name your stretch (e.g., 'Shape the Stage', 'Bridge Builder')"
-                  value={stretchName}
-                  onChange={(e) => setStretchName(e.target.value)}
+                  value={data.stretchName}
+                  onChange={(e) => updateData({ stretchName: e.target.value })}
                   className="w-full"
                 />
               </div>
@@ -151,9 +197,9 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
             <Button 
               onClick={handleSaveInsight}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-              disabled={!currentFrame || !stretchName}
+              disabled={saving || !data.currentFrame || !data.stretchName}
             >
-              Save Insight
+              {saving ? 'Saving...' : 'Save Insight'}
             </Button>
             <Button 
               onClick={handleTryAnotherStretch}
@@ -166,12 +212,24 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
         </div>
       </div>
       
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button 
           onClick={() => onNext && onNext('ia-4-4')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          disabled={saving}
         >
-          Continue to Higher Purpose Uplift
+          {saving ? 'Saving...' : 'Continue to Higher Purpose Uplift'}
         </Button>
       </div>
     </div>

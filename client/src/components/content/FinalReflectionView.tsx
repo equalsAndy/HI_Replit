@@ -31,7 +31,7 @@ export default function FinalReflectionView({
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Application context for proper app type detection
   const { currentApp } = useApplication();
@@ -144,7 +144,7 @@ export default function FinalReflectionView({
   // Debounced auto-save function
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -379,7 +379,7 @@ export default function FinalReflectionView({
                   // Original completion flow for first-time users
                   <>
                     <div className="flex items-center justify-center gap-3">
-                      {isTestUser && (
+                      {shouldShowDemoButtons && (
                         <button
                           onClick={fillWithDemoData}
                           className="demo-button-inline"

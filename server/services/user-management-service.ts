@@ -62,6 +62,8 @@ class UserManagementService {
             jobTitle: userData.job_title,
             profilePicture: userData.profile_picture,
             isTestUser: userData.is_test_user,
+            isBetaTester: userData.is_beta_tester,
+            showDemoDataButtons: userData.show_demo_data_buttons,
             contentAccess: userData.content_access,
             astAccess: userData.ast_access,
             iaAccess: userData.ia_access,
@@ -90,19 +92,28 @@ class UserManagementService {
    */
   async authenticateUser(username: string, password: string) {
     try {
-      // Find the user by username
-      const result = await db.select()
-        .from(users)
-        .where(eq(users.username, username));
+      // TEMPORARY FIX: Use raw SQL to bypass Drizzle schema issues
+      const result = await db.execute(sql`
+        SELECT * FROM users WHERE username = ${username} LIMIT 1
+      `);
+      
+      console.log('🔍 Raw SQL result:', result);
+      console.log('🔍 Result type:', typeof result);
+      console.log('🔍 Result length:', result?.length);
+      console.log('🔍 First item:', result?.[0]);
       
       if (!result || result.length === 0) {
+        console.log('❌ No user found for username:', username);
         return {
           success: false,
           error: 'Invalid username or password'
         };
       }
       
-      const user = result[0];
+      // Handle different result formats from raw SQL
+      const user = result[0] || (result as any).rows?.[0];
+      console.log('🔍 Selected user:', user ? 'Found' : 'Not found');
+      console.log('🔍 User object keys:', user ? Object.keys(user) : 'None');
       
       // Verify the password
       const isPasswordValid = await bcrypt.compare(password, user.password);
@@ -206,6 +217,8 @@ class UserManagementService {
     title?: string | null; // For admin route compatibility
     profilePicture?: string | null;
     isTestUser?: boolean;
+    isBetaTester?: boolean;
+    showDemoDataButtons?: boolean;
     role?: 'admin' | 'facilitator' | 'participant' | 'student';
     navigationProgress?: string | null;
     contentAccess?: 'student' | 'professional' | 'both';
@@ -224,6 +237,11 @@ class UserManagementService {
       if (data.title !== undefined) updateData.jobTitle = data.title; // Map title to jobTitle
       if (data.profilePicture !== undefined) updateData.profilePicture = data.profilePicture;
       if (data.isTestUser !== undefined) updateData.isTestUser = data.isTestUser;
+      if (data.isBetaTester !== undefined) {
+        console.log(`🔍 DEBUG: Updating isBetaTester for user ${id} from ${data.isBetaTester}`);
+        updateData.isBetaTester = data.isBetaTester;
+      }
+      if (data.showDemoDataButtons !== undefined) updateData.showDemoDataButtons = data.showDemoDataButtons;
       if (data.role !== undefined) updateData.role = data.role;
       if (data.navigationProgress !== undefined) updateData.navigationProgress = data.navigationProgress;
       
@@ -250,6 +268,9 @@ class UserManagementService {
       
       updateData.updatedAt = new Date();
       
+      // Debug log the update data
+      console.log(`🔍 DEBUG: About to update user ${id} with data:`, JSON.stringify(updateData, null, 2));
+      
       // Update the user in the database
       const result = await db.update(users)
         .set(updateData)
@@ -264,6 +285,9 @@ class UserManagementService {
       }
       
       const user = result[0];
+      
+      // Debug log the returned user
+      console.log(`🔍 DEBUG: User ${id} updated successfully. isBetaTester in result:`, user.isBetaTester || user.is_beta_tester);
       
       // Return the user without the password
       const { password, ...userWithoutPassword } = user;
@@ -381,6 +405,16 @@ class UserManagementService {
       const usersWithoutPasswords = result.map(user => {
         const { password, ...userWithoutPassword } = user;
         
+        // Debug logging for beta tester fields
+        if (user.id === 8) {
+          console.log(`🔍 DEBUG: User ${user.id} raw data:`, {
+            isBetaTester: user.isBetaTester,
+            is_beta_tester: (user as any).is_beta_tester,
+            showDemoDataButtons: user.showDemoDataButtons,
+            show_demo_data_buttons: (user as any).show_demo_data_buttons
+          });
+        }
+        
         // Check for real assessment data
         const hasStarCard = starCardAssessments.some(assessment => assessment.userId === user.id);
         const hasFlowAttributes = flowAssessments.some(assessment => assessment.userId === user.id);
@@ -446,6 +480,46 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to get users'
+      };
+    }
+  }
+
+  /**
+   * Get all beta testers - TEMPORARILY DISABLED
+   */
+  async getAllBetaTesters() {
+    try {
+      const result = await db.select()
+        .from(users)
+        .where(eq(users.isBetaTester, true));
+      
+      return {
+        success: true,
+        users: result.map(user => ({
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          organization: user.organization,
+          jobTitle: user.jobTitle,
+          profilePicture: user.profilePicture,
+          isTestUser: user.isTestUser,
+          isBetaTester: user.isBetaTester,
+          showDemoDataButtons: user.showDemoDataButtons,
+          contentAccess: user.contentAccess,
+          astAccess: user.astAccess,
+          iaAccess: user.iaAccess,
+          invitedBy: user.invitedBy,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        }))
+      };
+    } catch (error) {
+      console.error('Error getting beta testers:', error);
+      return {
+        success: false,
+        error: 'Failed to get beta testers'
       };
     }
   }
@@ -627,7 +701,8 @@ class UserManagementService {
         workshopParticipation: 0,
         growthPlans: 0,
         finalReflections: 0,
-        discernmentProgress: 0
+        discernmentProgress: 0,
+        workshopStepData: 0
       };
 
       // 1. Delete ALL user assessments (includes star cards, flow data, reflections, etc.)
@@ -699,12 +774,46 @@ class UserManagementService {
         console.log(`No discernment progress found for user ${userId}`);
       }
 
+      // 8. Delete workshop step data (hybrid approach: hard delete for test users, soft delete for production)
+      let workshopStepDataDeleted = 0;
+      try {
+        console.log(`=== STARTING HYBRID WORKSHOP RESET for user ${userId} ===`);
+        
+        // Get user info to determine reset strategy
+        const userResult = await db.execute(sql`SELECT is_test_user FROM users WHERE id = ${userId}`);
+        
+        if (userResult.length > 0) {
+          const isTestUser = userResult[0].is_test_user;
+          console.log(`=== RESET STRATEGY: User ${userId} isTestUser: ${isTestUser} ===`);
+          
+          if (isTestUser) {
+            // Hard delete for test users (no recovery needed)
+            console.log(`=== ATTEMPTING HARD DELETE for test user ${userId} ===`);
+            const workshopResult = await db.execute(sql`DELETE FROM workshop_step_data WHERE user_id = ${userId}`);
+            workshopStepDataDeleted = Array.isArray(workshopResult) ? workshopResult.length : (workshopResult as any).changes || 0;
+            console.log(`=== HARD DELETE: Permanently deleted ${workshopStepDataDeleted} workshop records for test user ${userId} ===`);
+          } else {
+            // Soft delete for production users (recovery possible)
+            console.log(`=== ATTEMPTING SOFT DELETE for production user ${userId} ===`);
+            const workshopResult = await db.execute(sql`UPDATE workshop_step_data SET deleted_at = NOW(), updated_at = NOW() WHERE user_id = ${userId} AND deleted_at IS NULL`);
+            workshopStepDataDeleted = Array.isArray(workshopResult) ? workshopResult.length : (workshopResult as any).changes || 0;
+            console.log(`=== SOFT DELETE: Marked ${workshopStepDataDeleted} workshop records as deleted for production user ${userId} ===`);
+          }
+        }
+      } catch (error) {
+        console.error(`ERROR resetting workshop step data for user ${userId}:`, error);
+      }
+
+      // Add workshop step data to deleted data tracking
+      deletedData.workshopStepData = workshopStepDataDeleted;
+
       const totalRecordsDeleted = deletedData.userAssessments + 
         deletedData.navigationProgressTable + 
         deletedData.workshopParticipation + 
         deletedData.growthPlans + 
         deletedData.finalReflections + 
-        deletedData.discernmentProgress;
+        deletedData.discernmentProgress + 
+        deletedData.workshopStepData;
 
       console.log(`Completed data deletion for user ${userId}:`, deletedData);
 
@@ -894,6 +1003,40 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to get users for facilitator'
+      };
+    }
+  }
+
+  /**
+   * Update user password
+   */
+  async updateUserPassword(userId: number, hashedPassword: string) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET password = ${hashedPassword}, updated_at = NOW()
+        WHERE id = ${userId}
+        RETURNING id
+      `);
+
+      const updatedUser = (result as any)[0] || (result as any).rows?.[0];
+      
+      if (!updatedUser) {
+        return {
+          success: false,
+          error: 'User not found'
+        };
+      }
+
+      return {
+        success: true,
+        message: 'Password updated successfully'
+      };
+    } catch (error) {
+      console.error('Error updating user password:', error);
+      return {
+        success: false,
+        error: 'Failed to update password'
       };
     }
   }

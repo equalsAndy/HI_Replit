@@ -1,0 +1,84 @@
+# Test IA Persistence - Step by Step Instructions
+# Date: 2025-07-26
+
+## Fixed Issues
+✅ Fixed checkWorkshopLocked middleware - was looking for 'appType' instead of 'workshopType'
+✅ Added debug logging to useWorkshopStepData hook
+
+## Testing Steps
+
+### 1. Build and Start Server
+```bash
+npm run build
+cd server && npm run dev
+```
+
+### 2. Test in Browser
+1. Open http://localhost:8080
+2. Login as a test user (admin, stu1000, etc.)
+3. Navigate to IA workshop
+4. Go to any step with inputs (ia-3-3, ia-3-4, ia-4-4, etc.)
+5. Open browser console (F12)
+6. Enter data in form fields
+7. Watch console for debug messages:
+   - 🔍 Auto-save check
+   - 🔍 Saving workshop data  
+   - 🔍 Save response status
+   - ✅ Save successful
+
+### 3. Check Database
+After entering data, check if it persists:
+```sql
+SELECT user_id, workshop_type, step_id, data, created_at 
+FROM workshop_step_data 
+WHERE workshop_type = 'ia' 
+ORDER BY created_at DESC;
+```
+
+### 4. Test Export
+After data is saved:
+1. Login as admin
+2. Go to admin panel
+3. Export user data 
+4. Check that IA data appears in export JSON
+
+## Expected Debug Output
+
+**When typing in IA form:**
+```
+🔍 Auto-save check: {workshopType: "ia", stepId: "ia-3-4", hasContent: true, data: {...}}
+🔍 Triggering debounced save for: {workshopType: "ia", stepId: "ia-3-4"}
+🔍 Saving workshop data: {workshopType: "ia", stepId: "ia-3-4", dataToSave: {...}}
+🔍 Save response status: 200
+🔍 Save result: {success: true, data: {...}}
+✅ Save successful for: {workshopType: "ia", stepId: "ia-3-4"}
+```
+
+**If authentication fails:**
+```
+🔍 Save response status: 401
+🔍 Save failed: {success: false, message: "Authentication required"}
+```
+
+**If middleware blocks:**
+```
+🔍 Save response status: 403
+🔍 Save failed: {error: "Workshop is completed and locked for editing"}
+```
+
+## Common Issues to Check
+
+1. **User not logged in**: Need to login first
+2. **Workshop locked**: User may have completed workshop
+3. **Session expired**: Need to refresh/re-login
+4. **CORS issues**: Check if cookies are being sent
+5. **Data validation**: Check if data structure matches expected format
+
+## Files Modified
+- server/routes/workshop-data-routes.ts (fixed middleware bug)
+- client/src/hooks/useWorkshopStepData.ts (added debug logging)
+
+## Next Steps
+- Remove debug logging after testing
+- Test with multiple users and workshop types
+- Verify export functionality includes IA data

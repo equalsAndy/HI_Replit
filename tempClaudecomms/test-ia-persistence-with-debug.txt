@@ -1,0 +1,26 @@
+# IA Persistence Debug Test Commands
+# Build: 2017 - Enhanced debugging for 500 error
+
+# 1. Start server (if not running)
+cd server && npm run dev
+
+# 2. Test IA persistence and check server console
+# - Open browser to http://localhost:8080
+# - Login as any user
+# - Navigate to IA workshop (ia-3-3, ia-3-4, etc.)
+# - Type in any form field
+# - Watch server console for debug output
+
+# Expected debug output on save attempt:
+# 🔍 POST /step - Request details: {workshopType, stepId, userId, hasData, dataKeys, sessionExists, userIdType}
+# 🔍 Attempting to save workshop data: {userId, workshopType, stepId, dataKeys}
+# 🔍 About to execute UPSERT with: {userId, workshopType, stepId, hasData, dataSize}
+
+# If authentication issue, you'll see:
+# ❌ Invalid userId: {userId, type}
+
+# If database error, you'll see:
+# ❌ Error saving workshop step data: [detailed error]
+# ❌ Error details: {message, stack}
+
+# Copy all console output and paste back to Claude for analysis

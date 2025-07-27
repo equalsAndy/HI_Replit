@@ -1,7 +1,24 @@
-import React, { useState } from 'react';
+/*
+ * ARCHIVED: This navigation component had layout and styling issues.
+ * Use UserHomeNavigationWithStarCard instead for IA workshop navigation.
+ * 
+ * Issues with this component:
+ * - Dark purple theme instead of proper light theme
+ * - Progress bar at bottom that shouldn't be there
+ * - Didn't go full height down the page
+ * - Not consistent with AST navigation styling
+ * 
+ * Date archived: 2025-07-25
+ */
+
+import React, { useState, useEffect } from 'react';
 import { Check, Lock, ChevronDown, ChevronRight } from 'lucide-react';
 import { imaginalAgilityNavigationSections } from './navigationData';
+import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import Logo from '@/components/branding/Logo';
+
+// DEBUG: Simple test to ensure code is loading
+console.log('🚨 ImaginalAgilityNavigation.tsx loaded at:', new Date().toISOString());
 
 interface ImaginalAgilityNavigationProps {
   currentStepId: string;
@@ -16,19 +33,52 @@ export default function ImaginalAgilityNavigation({
   onStepClick,
   isStepUnlocked
 }: ImaginalAgilityNavigationProps) {
-  // Initialize expanded state based on default expanded property
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>(
-    imaginalAgilityNavigationSections.reduce((acc, section) => {
-      acc[section.id] = section.expanded || false;
-      return acc;
-    }, {} as Record<string, boolean>)
-  );
+  
+  // GET automatic expansion state from navigation progress
+  const { progress } = useNavigationProgress('ia');
+  const automaticExpansion = progress.sectionExpansion || {};
+  
+  // DEBUG: Log the current state
+  console.log('🔧 NAVIGATION DEBUG:', {
+    currentStepId,
+    automaticExpansion,
+    progressSectionExpansion: progress.sectionExpansion
+  });
+  
+  // TRACK manual expansion overrides
+  const [manualExpansion, setManualExpansion] = useState<Record<string, boolean>>({});
+  const [animatingSections, setAnimatingSections] = useState<Record<string, boolean>>({});
+  
+  // MERGE automatic and manual expansion states
+  const finalExpansion = {
+    ...automaticExpansion,
+    ...manualExpansion
+  };
 
+  // ANIMATE when automatic expansion changes
+  useEffect(() => {
+    Object.keys(automaticExpansion).forEach(sectionId => {
+      if (automaticExpansion[sectionId] !== finalExpansion[sectionId]) {
+        setAnimatingSections(prev => ({ ...prev, [sectionId]: true }));
+        setTimeout(() => {
+          setAnimatingSections(prev => ({ ...prev, [sectionId]: false }));
+        }, 300);
+      }
+    });
+  }, [automaticExpansion]);
+
+  // HANDLE manual toggle with animation
   const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => ({
+    setAnimatingSections(prev => ({ ...prev, [sectionId]: true }));
+    
+    setManualExpansion(prev => ({
       ...prev,
-      [sectionId]: !prev[sectionId]
+      [sectionId]: !finalExpansion[sectionId]
     }));
+    
+    setTimeout(() => {
+      setAnimatingSections(prev => ({ ...prev, [sectionId]: false }));
+    }, 300);
   };
 
   return (
@@ -47,16 +97,22 @@ export default function ImaginalAgilityNavigation({
             <h3 className="text-sm font-semibold text-purple-100 uppercase tracking-wide">
               {section.title}
             </h3>
-            {expandedSections[section.id] ? (
-              <ChevronDown className="w-4 h-4 text-purple-200" />
-            ) : (
-              <ChevronRight className="w-4 h-4 text-purple-200" />
-            )}
+            <ChevronDown 
+              className={`w-4 h-4 text-purple-200 transform transition-transform duration-300 ${
+                finalExpansion[section.id] ? 'rotate-0' : '-rotate-90'
+              }`} 
+            />
           </button>
           
-          {expandedSections[section.id] && (
-            <div className="mt-2 space-y-2 pl-2">
-              {section.steps.map((step) => {
+          {/* ANIMATED section content */}
+          <div 
+            className={`mt-2 space-y-2 pl-2 overflow-hidden transition-all duration-300 ease-in-out ${
+              finalExpansion[section.id] 
+                ? 'max-h-[500px] opacity-100' 
+                : 'max-h-0 opacity-0'
+            } ${animatingSections[section.id] ? 'transform' : ''}`}
+          >
+            {section.steps.map((step, index) => {
                 const isCompleted = completedSteps.includes(step.id);
                 const isCurrent = currentStepId === step.id;
                 // Always unlock the current step so highlight is visible
@@ -69,6 +125,7 @@ export default function ImaginalAgilityNavigation({
                     disabled={!(isUnlocked || isCurrent)}
                     className={`
                       w-full text-left p-3 rounded-lg transition-all duration-200 flex items-center justify-between
+                      transform ${finalExpansion[section.id] ? 'translate-x-0 opacity-100' : 'translate-x-2 opacity-0'}
                       ${isCurrent 
                         ? 'bg-purple-400 text-white font-semibold shadow-lg border-2 border-purple-200' 
                         : isUnlocked
@@ -76,6 +133,9 @@ export default function ImaginalAgilityNavigation({
                           : 'bg-purple-800 text-purple-400 cursor-not-allowed'
                       }
                     `}
+                    style={{ 
+                      transitionDelay: finalExpansion[section.id] ? `${index * 50}ms` : '0ms'
+                    }}
                   >
                     <div className="flex items-center space-x-3">
                       <div className={`
@@ -111,8 +171,7 @@ export default function ImaginalAgilityNavigation({
                   </button>
                 );
               })}
-            </div>
-          )}
+          </div>
         </div>
       ))}
       

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Feedback Tab</title>
+</head>
+<body>
+    <h1>Debug Feedback Tab Issue</h1>
+    <p>Open browser console and paste this script:</p>
+    <pre>
+// Debug script to check feedback tab status
+console.log("=== FEEDBACK TAB DEBUG ===");
+
+// Check if we're on the admin page
+const isAdminPage = window.location.pathname.includes('/admin');
+console.log("On admin page:", isAdminPage);
+
+// Find all buttons with feedback in the text
+const feedbackButtons = Array.from(document.querySelectorAll('button')).filter(btn => 
+    btn.textContent.toLowerCase().includes('feedback')
+);
+console.log("Feedback buttons found:", feedbackButtons.length);
+
+feedbackButtons.forEach((btn, index) => {
+    console.log(`Button ${index + 1}:`, {
+        text: btn.textContent,
+        disabled: btn.disabled,
+        style: btn.style.cssText,
+        computedStyle: {
+            opacity: window.getComputedStyle(btn).opacity,
+            cursor: window.getComputedStyle(btn).cursor,
+            pointerEvents: window.getComputedStyle(btn).pointerEvents
+        },
+        classList: Array.from(btn.classList),
+        onclick: btn.onclick !== null
+    });
+});
+
+// Check current user data
+fetch('/api/auth/me', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+        console.log("Current user:", data);
+        console.log("Is admin:", data?.role === 'admin' || data?.user?.role === 'admin');
+    })
+    .catch(err => console.log("Error fetching user:", err));
+
+// Check version
+console.log("Version info:", document.querySelector('[class*="version"]')?.textContent);
+    </pre>
+</body>
+</html>

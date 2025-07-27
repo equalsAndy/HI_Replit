@@ -2,16 +2,52 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Brain, Target, Lightbulb, Users } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import ImaginalAgilityRadarChart from '../ImaginalAgilityRadarChart';
 
 interface IA_2_2_ContentProps {
   onNext?: (stepId: string) => void;
+  onOpenAssessment?: () => void;
 }
 
-function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
-  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
+function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
+  // Check if assessment is completed
+  const { data: assessmentData } = useQuery({
+    queryKey: ['/api/workshop-data/ia-assessment'],
+    retry: false
+  });
+
+  console.log('🎯 IA_2_2_Content: Assessment data debug:', assessmentData);
+  
+  const isAssessmentCompleted = assessmentData && (assessmentData as any).data !== null;
+  console.log('🎯 IA_2_2_Content: isAssessmentCompleted:', isAssessmentCompleted);
+  
+  // Parse assessment results for radar chart
+  let resultData = null;
+  if (isAssessmentCompleted) {
+    const rawResults = (assessmentData as any).data.results;
+    console.log('🎯 IA_2_2_Content: rawResults:', rawResults);
+    if (typeof rawResults === 'string') {
+      try {
+        resultData = JSON.parse(rawResults);
+        console.log('🎯 IA_2_2_Content: parsed resultData:', resultData);
+      } catch (e) {
+        console.error('Failed to parse assessment results:', e);
+      }
+    } else if (typeof rawResults === 'object' && rawResults !== null) {
+      if (rawResults.imagination !== undefined) {
+        resultData = rawResults;
+        console.log('🎯 IA_2_2_Content: object resultData:', resultData);
+      }
+    }
+  }
+  
+  console.log('🎯 IA_2_2_Content: Final resultData:', resultData);
 
   const handleStartAssessment = () => {
-    setShowAssessmentModal(true);
+    if (onOpenAssessment) {
+      onOpenAssessment();
+    }
   };
 
   const dimensions = [
@@ -41,6 +77,98 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
     }
   ];
 
+  // If assessment is completed, show radar chart
+  if (isAssessmentCompleted && resultData) {
+    return (
+      <div className="max-w-4xl mx-auto p-6 space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4">
+          <h1 className="text-4xl font-bold text-purple-800">Your I4C Assessment Results</h1>
+          <p className="text-lg text-gray-600 max-w-3xl mx-auto">
+            Here's your personal radar chart showing your strengths across the five core capabilities.
+          </p>
+        </div>
+
+        {/* Radar Chart Display */}
+        <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <CardContent className="pt-6">
+            <div className="flex justify-center mb-8">
+              <ImaginalAgilityRadarChart data={{
+                imagination: resultData.imagination || 0,
+                curiosity: resultData.curiosity || 0,
+                empathy: resultData.empathy || 0,
+                creativity: resultData.creativity || 0,
+                courage: resultData.courage || 0
+              }} />
+            </div>
+
+            {/* Individual Capability Scores */}
+            <div className="bg-white rounded-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Your Capability Scores</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {[
+                  {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_sq.png', color: 'bg-purple-50 border-purple-200'},
+                  {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/Curiosity_sq.png', color: 'bg-blue-50 border-blue-200'},
+                  {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'bg-green-50 border-green-200'},
+                  {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/Creativity_sq.png', color: 'bg-orange-50 border-orange-200'},
+                  {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'bg-red-50 border-red-200'}
+                ].map(item => (
+                  <div key={item.capacity} className={`${item.color} p-3 rounded-lg border text-center flex flex-col items-center justify-center min-h-[120px]`}>
+                    <div className="w-12 h-12 mb-2 flex items-center justify-center">
+                      <img 
+                        src={item.icon} 
+                        alt={item.capacity} 
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                    <h4 className="font-semibold text-gray-800 mb-1 text-sm">{item.capacity}</h4>
+                    <div className="text-lg font-bold text-purple-700">{item.score.toFixed(1)}</div>
+                    <div className="text-xs text-gray-600">
+                      {item.score >= 4.0 ? 'Strength' : item.score >= 3.5 ? 'Developing' : 'Growth Area'}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Understanding Results */}
+            <div className="bg-white border border-gray-200 rounded-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">Understanding Your Results</h3>
+              <div className="text-center space-y-2">
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium text-green-700">Strengths (4.0+):</span> Your natural superpowers - leverage these capabilities
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium text-blue-700">Developing (3.5-3.9):</span> Strong foundation - ready for advanced practice
+                </p>
+                <p className="text-sm text-gray-600">
+                  <span className="font-medium text-orange-700">Growth Areas (below 3.5):</span> Opportunities for intentional development
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Action Buttons */}
+        <div className="text-center space-y-4">
+          <p className="text-gray-600">
+            Your assessment is complete! You can now proceed to the next section to start developing your imagination.
+          </p>
+          
+          <div className="flex justify-center">
+            <Button 
+              onClick={() => onNext?.('ia-3-1')}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
+            >
+              Continue to Ladder Overview
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show pre-assessment content if assessment is not completed
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       {/* Header */}
@@ -48,7 +176,7 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
         <h1 className="text-4xl font-bold text-purple-800">I4C Self-Assessment</h1>
         <p className="text-lg text-gray-600 max-w-3xl mx-auto">
           Before we dive deeper into developing your imaginal agility, let's establish your current baseline 
-          across the four core dimensions of the I4C Model.
+          across the five core capabilities.
         </p>
       </div>
 
@@ -60,8 +188,39 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-6 md:grid-cols-2">
-            {dimensions.map((dimension, index) => {
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                icon: Lightbulb,
+                label: 'Imagination',
+                description: 'Your ability to envision new possibilities and think beyond current constraints',
+                color: 'text-purple-600'
+              },
+              {
+                icon: Brain,
+                label: 'Curiosity', 
+                description: 'Your drive to explore, question, and seek new knowledge and experiences',
+                color: 'text-blue-600'
+              },
+              {
+                icon: Users,
+                label: 'Empathy',
+                description: 'Your ability to understand and connect with others emotional experiences',
+                color: 'text-green-600'
+              },
+              {
+                icon: Target,
+                label: 'Creativity',
+                description: 'Your capacity to generate novel and valuable solutions to challenges',
+                color: 'text-orange-600'
+              },
+              {
+                icon: Brain,
+                label: 'Courage',
+                description: 'Your willingness to take meaningful risks and act on your convictions',
+                color: 'text-red-600'
+              }
+            ].map((dimension, index) => {
               const IconComponent = dimension.icon;
               
               return (
@@ -87,7 +246,7 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
                 How the Assessment Works
               </h3>
               <p className="text-gray-600 max-w-2xl mx-auto">
-                You'll evaluate yourself on a scale of 1-10 across each dimension, then see your results 
+                You'll evaluate yourself on a scale of 1-5 across each capability, then see your results 
                 displayed in an interactive radar chart. This becomes your baseline for growth and development.
               </p>
             </div>
@@ -105,7 +264,7 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
-                  Development recommendations for each dimension
+                  Development recommendations for each capability
                 </li>
                 <li className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-purple-600 rounded-full"></div>
@@ -120,7 +279,7 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
       {/* Action Section */}
       <div className="text-center space-y-4">
         <p className="text-gray-600">
-          Ready to discover your current I4C profile? The assessment takes about 5-10 minutes to complete.
+          Ready to discover your current I4C profile? The assessment takes about 10-15 minutes to complete.
         </p>
         
         <Button 
@@ -131,51 +290,6 @@ function IA_2_2_Content({ onNext }: IA_2_2_ContentProps) {
           Start Assessment
         </Button>
       </div>
-
-      {/* Assessment Modal - Fixed JSX */}
-      {showAssessmentModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg max-w-md">
-            <h3 className="text-lg font-semibold mb-4">Assessment Modal</h3>
-            <p className="text-gray-600 mb-4">
-              This is where the existing assessment modal with radar chart would open.
-            </p>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => setShowAssessmentModal(false)}
-                variant="outline"
-              >
-                Close
-              </Button>
-              <Button 
-                onClick={async () => {
-                  // Mark this step as completed
-                  try {
-                    await fetch('/api/workshop-data/complete-step', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
-                      credentials: 'include',
-                      body: JSON.stringify({ 
-                        appType: 'imaginal-agility',
-                        stepId: 'ia-2-2' 
-                      })
-                    });
-                  } catch (error) {
-                    console.log('Step completion API not available, continuing anyway');
-                  }
-                  
-                  // Close modal and continue to next step
-                  setShowAssessmentModal(false);
-                  onNext?.('ia-3-1');
-                }}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                Continue to Next Step
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

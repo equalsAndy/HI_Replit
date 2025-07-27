@@ -1,0 +1,53 @@
+# Nuclear option - Complete Barney reset
+
+# 1. Reset ALL Barney's data
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function resetBarney() {
+  try {
+    await pool.query('DELETE FROM user_assessments WHERE user_id = 8');
+    await pool.query('DELETE FROM navigation_progress WHERE user_id = 8');
+    await pool.query('DELETE FROM workshop_step_data WHERE user_id = 8');
+    await pool.query('DELETE FROM sessions WHERE data LIKE \\'%\"userId\":8%\\');
+    await pool.query('UPDATE users SET navigation_progress = NULL, ast_workshop_completed = false, ia_workshop_completed = false WHERE id = 8');
+    console.log('✅ Completely reset Barney (user 8)');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+resetBarney();
+"
+
+# 2. Check if Barney has any malformed JSON data
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('SELECT * FROM users WHERE id = 8')
+  .then(result => {
+    const user = result.rows[0];
+    console.log('Barney after reset:', {
+      id: user.id,
+      username: user.username,
+      name: user.name,
+      is_test_user: user.is_test_user,
+      is_beta_tester: user.is_beta_tester,
+      navigation_progress: user.navigation_progress
+    });
+  })
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"
+
+# 3. Restart the container to clear any memory issues
+sudo docker restart staging-app
+
+# 4. Watch logs for any errors during restart
+sudo docker logs staging-app -f --tail 20

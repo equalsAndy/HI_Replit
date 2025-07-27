@@ -1,5 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { ResetService } from '../services/reset-service';
+import { workshopStepData, users } from '../../shared/schema.js';
+import { eq, isNull } from 'drizzle-orm';
 
 // Create a router for data reset operations
 const resetRouter = Router();
@@ -79,7 +81,48 @@ resetRouter.post('/user/:userId', async (req: Request, res: Response) => {
         console.log(`No workshop participation to reset for user ${userId}`);
       }
       
-      // 5. Clear navigation progress
+      // 5. Reset workshop step data (hybrid approach: hard delete for test users, soft delete for production)
+      console.log(`=== STARTING HYBRID RESET for user ${userId} ===`);
+      try {
+        console.log(`=== IMPORTS SUCCESSFUL ===`);
+        
+        // Get user info to determine reset strategy
+        const user = await db.select({ isTestUser: users.isTestUser })
+          .from(users)
+          .where(eq(users.id, userId))
+          .limit(1);
+        
+        if (user.length === 0) {
+          console.error(`User ${userId} not found for workshop data reset`);
+        } else {
+          const isTestUser = user[0].isTestUser;
+          console.log(`=== RESET STRATEGY: User ${userId} isTestUser: ${isTestUser} ===`);
+          
+          if (isTestUser) {
+            // Hard delete for test users (no recovery needed)
+            console.log(`=== ATTEMPTING HARD DELETE for test user ${userId} ===`);
+            const result = await db.delete(workshopStepData)
+              .where(eq(workshopStepData.userId, userId));
+            console.log(`=== HARD DELETE: Permanently deleted workshop data for test user ${userId} ===`);
+            console.log(`Hard deletion result:`, result);
+          } else {
+            // Soft delete for production users (recovery possible)
+            console.log(`=== ATTEMPTING SOFT DELETE for production user ${userId} ===`);
+            const result = await db.update(workshopStepData)
+              .set({ 
+                deletedAt: new Date(),
+                updatedAt: new Date()
+              })
+              .where(eq(workshopStepData.userId, userId));
+            console.log(`=== SOFT DELETE: Marked workshop data as deleted for production user ${userId} ===`);
+            console.log(`Soft deletion result:`, result);
+          }
+        }
+      } catch (err) {
+        console.error(`ERROR resetting workshop data for user ${userId}:`, err);
+      }
+      
+      // 6. Clear navigation progress from users table
       try {
         await db.execute(sql`UPDATE users SET navigation_progress = NULL, updated_at = NOW() WHERE id = ${userId}`);
         console.log(`Cleared navigation progress for user ${userId}`);

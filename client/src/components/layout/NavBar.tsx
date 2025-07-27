@@ -16,6 +16,9 @@ import { InfoIcon, User, LogOut } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import LogoutButton from "../auth/LogoutButton";
 import TestUserBanner from "../auth/TestUserBanner";
+import { FeedbackTrigger } from "../feedback/FeedbackTrigger";
+import { detectCurrentPage } from "../../utils/pageContext";
+import { useStepContextSafe } from "../../contexts/StepContext";
 
 // Environment badge helper - displays dynamic version from build process
 const EnvironmentBadge = () => {
@@ -64,10 +67,11 @@ const EnvironmentBadge = () => {
   const viteMode = import.meta.env.MODE;
   const isDev = import.meta.env.DEV;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
-  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com') || versionInfo.environment === 'staging';
+  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com') || (versionInfo.environment === 'staging' && !isLocalhost);
+  const isProduction = versionInfo.environment === 'production';
   
-  // Development detection (but not if version.json says staging)
-  if ((isDev || viteMode === 'development' || isLocalhost) && versionInfo.environment !== 'staging') {
+  // Development detection (but not if version.json says staging or production)
+  if ((isDev || viteMode === 'development' || isLocalhost) && versionInfo.environment !== 'staging' && versionInfo.environment !== 'production') {
     const displayVersion = versionInfo.version === 'N/A' 
       ? 'DEV version N/A' 
       : `DEV v${versionInfo.version}${versionInfo.build ? '.' + versionInfo.build : ''}`;
@@ -89,6 +93,11 @@ const EnvironmentBadge = () => {
   }
   
   // Production: No badge shown (version displayed in admin/test dashboards only)
+  if (isProduction) {
+    return null;
+  }
+  
+  // Default: no badge
   return null;
 };
 import {
@@ -107,6 +116,7 @@ export function NavBar() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
   const { toast } = useToast();
+  const { currentStepId } = useStepContextSafe();
 
   // Fetch the current user's profile
   const { data, isLoading: isUserLoading, refetch } = useQuery<{
@@ -126,7 +136,7 @@ export function NavBar() {
   }>({ 
     queryKey: ['/api/auth/me'],
     queryFn: async () => {
-      console.log('NavBar: Fetching user profile...');
+      // console.log('NavBar: Fetching user profile...');
 
       const response = await fetch('/api/auth/me', {
         method: 'GET',
@@ -320,6 +330,13 @@ export function NavBar() {
           {/* User Controls Menu for authenticated users */}
           {user?.id ? (
             <div className="flex items-center gap-2">
+              {/* Feedback button for logged in users */}
+              <FeedbackTrigger 
+                currentPage={detectCurrentPage(currentStepId || undefined)}
+                variant="button"
+                className="text-xs bg-white/20 hover:bg-white/30 text-white border-white/30"
+              />
+
               {/* Admin/Facilitator button - shown for admin and facilitator users */}
               {(user?.role === 'admin' || user?.role === 'facilitator') && (
                 <Button 

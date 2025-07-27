@@ -1,0 +1,12 @@
+# Run this command to add the deleted_at column to your AWS PostgreSQL database
+# Copy and paste this single line into your terminal:
+
+psql "postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require" -c "ALTER TABLE workshop_step_data ADD COLUMN deleted_at TIMESTAMP;"
+
+# Alternative if you have DATABASE_URL environment variable set:
+# psql $DATABASE_URL -c "ALTER TABLE workshop_step_data ADD COLUMN deleted_at TIMESTAMP;"
+
+# After running this, you should see output like:
+# ALTER TABLE
+
+# Then restart your server with: npm run dev

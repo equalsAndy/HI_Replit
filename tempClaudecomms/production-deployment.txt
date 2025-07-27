@@ -1,0 +1,29 @@
+====================================
+PRODUCTION DEPLOYMENT - READY TO DEPLOY
+Date: 2025-07-25
+Time: 10:00 PDT
+====================================
+
+STATUS: Production build complete with semantic versioning v2.0.3
+
+PRODUCTION FEATURES:
+- Version: v2.0.3.0725.0957
+- No navbar badge (clean production UI)
+- Version info in admin/test dashboards only
+- Semantic versioning system operational
+
+OPTIONS FOR DEPLOYMENT:
+
+OPTION 1: Use existing staging image for production
+-------------------------------------------------
+The staging-v2.0.3 image is already built and tested.
+Deploy to production container service using existing image.
+
+Command:
+aws lightsail create-container-service-deployment --region us-west-2 --service-name hi-replit-v2 --containers '{"allstarteams-app":{"image":"962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.3","ports":{"8080":"HTTP"},"environment":{"NODE_ENV":"production"}}}' --public-endpoint '{"containerName":"allstarteams-app","containerPort":8080,"healthCheck":{"healthyThreshold":5,"unhealthyThreshold":5,"timeoutSeconds":60,"intervalSeconds":90,"path":"/health","successCodes":"200-499"}}'
+
+OPTION 2: Wait for network and build dedicated production image
+--------------------------------------------------------------
+Wait for Docker Hub connectivity and build production-specific image.
+
+RECOMMENDATION: Use Option 1 (staging image is identical, just change NODE_ENV to production)

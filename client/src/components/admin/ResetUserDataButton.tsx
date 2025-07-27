@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { queryClient } from '@/lib/queryClient';
+import { forceWorkshopCacheDump } from '@/utils/forceRefresh';
 
 interface ResetUserDataButtonProps {
   userId: number;
@@ -29,12 +30,11 @@ export function ResetUserDataButton({ userId, onSuccess }: ResetUserDataButtonPr
       const result = await response.json();
 
       if (result.success) {
-        // Invalidate all relevant queries to refresh data after reset
-        queryClient.invalidateQueries({ queryKey: ['/api/starcard'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/flow-attributes'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/user'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/user/assessments'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] }); // Add admin users query
+        // Use comprehensive workshop cache dump to clear ALL workshop data
+        forceWorkshopCacheDump(queryClient);
+        
+        // Refresh admin-specific data
+        queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
         
         toast({
           title: 'Success',

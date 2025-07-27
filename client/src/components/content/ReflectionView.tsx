@@ -14,14 +14,14 @@ const ReflectionView: React.FC<ContentViewProps> = ({
   setCurrentContent,
   starCard
 }) => {
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   const { completed: workshopLocked, loading: workshopLoading, isWorkshopLocked } = useWorkshopStatus();
 
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
 
   const handleDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }

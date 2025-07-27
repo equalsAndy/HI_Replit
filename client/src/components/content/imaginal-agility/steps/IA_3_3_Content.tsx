@@ -1,9 +1,20 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from '@/components/content/VideoPlayer';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA33ContentProps {
   onNext?: (stepId: string) => void;
+}
+
+// Data structure for this step
+interface IA33StepData {
+  selectedImage: string | null;
+  uploadedImage: string | null;
+  reflection: string;
+  imageTitle: string;
 }
 
 // Example image bank (could be expanded or fetched from API)
@@ -26,12 +37,22 @@ const IMAGE_BANK = [
 ];
 
 const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [reflection, setReflection] = useState('');
-  const [imageTitle, setImageTitle] = useState('');
-  const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA33StepData = {
+    selectedImage: null,
+    uploadedImage: null,
+    reflection: '',
+    imageTitle: ''
+  };
+  
+  // Use workshop step data persistence hook
+  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-3-3', initialData);
+  
+  // Destructure data for easier access
+  const { selectedImage, uploadedImage, reflection, imageTitle } = data;
 
   // Handle image upload
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,8 +60,10 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setUploadedImage(ev.target?.result as string);
-        setSelectedImage(null); // Clear image bank selection if uploading
+        updateData({
+          uploadedImage: ev.target?.result as string,
+          selectedImage: null // Clear image bank selection if uploading
+        });
       };
       reader.readAsDataURL(file);
     }
@@ -48,17 +71,40 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
 
   // Handle image selection from bank
   const handleSelectImage = (url: string) => {
-    setSelectedImage(url);
-    setUploadedImage(null); // Clear uploaded image if selecting from bank
+    updateData({
+      selectedImage: url,
+      uploadedImage: null // Clear uploaded image if selecting from bank
+    });
   };
 
-  // Handle save (simulate async save)
+  // Handle save and navigation
   const handleSave = async () => {
-    setSaving(true);
-    // Simulate save delay
-    await new Promise((res) => setTimeout(res, 800));
-    setSaving(false);
-    if (onNext) onNext('ia-3-4');
+    try {
+      // Force immediate save of current data
+      await saveNow();
+      // Navigate to next step
+      if (onNext) onNext('ia-3-4');
+    } catch (error) {
+      console.error('Failed to save IA 3-3 data:', error);
+    }
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    // Fill with demo data
+    updateData({
+      selectedImage: '/assets/seedling.jpg',
+      uploadedImage: null,
+      reflection: "This seedling breaking through concrete represents my resilience and determination to grow despite obstacles. It shows that I have an untapped capacity for breakthrough thinking - the ability to find creative solutions even when faced with seemingly impossible barriers. This image reveals my potential to transform challenges into opportunities and to nurture new ideas even in the most constrained environments.",
+      imageTitle: "Resilient Growth"
+    });
+    
+    console.log('IA 3-3 Content filled with demo visualization data');
   };
 
   // Determine which image to preview
@@ -128,8 +174,10 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
                 variant="outline"
                 className="ml-2"
                 onClick={() => {
-                  setSelectedImage(null);
-                  setUploadedImage(null);
+                  updateData({
+                    selectedImage: null,
+                    uploadedImage: null
+                  });
                 }}
               >
                 Remove
@@ -148,7 +196,7 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
           className="w-full border border-gray-300 rounded-lg p-3 mb-4 text-gray-800 focus:ring-2 focus:ring-purple-400"
           rows={4}
           value={reflection}
-          onChange={e => setReflection(e.target.value)}
+          onChange={e => updateData({ reflection: e.target.value })}
           placeholder="Write your reflection here..."
         />
         <label className="block mb-2 text-gray-700 font-medium">
@@ -157,18 +205,29 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         <input
           className="w-full border border-gray-300 rounded-lg p-3 mb-4 text-gray-800 focus:ring-2 focus:ring-purple-400"
           value={imageTitle}
-          onChange={e => setImageTitle(e.target.value)}
+          onChange={e => updateData({ imageTitle: e.target.value })}
           placeholder="e.g. Breakthrough, Aspire, Rebirth"
         />
       </div>
       {/* Save & Next */}
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button
           onClick={handleSave}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
           disabled={saving || !previewImage || !reflection || !imageTitle}
         >
-          {saving ? 'Saving...' : 'Save & Continue'}
+          {saving ? 'Saving...' : 'Continue to From Insight to Intention'}
         </Button>
       </div>
     </div>

@@ -39,7 +39,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [showExample, setShowExample] = useState(false);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Get current question
   const question = roundingOutQuestions[currentQuestion];
@@ -81,7 +81,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
 
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -174,7 +174,7 @@ export default function RoundingOutReflection({ onComplete }: RoundingOutProps) 
           </Button>
           
           <div className="flex items-center gap-3">
-            {isTestUser && (
+            {shouldShowDemoButtons && (
               <Button 
                 variant="ghost" 
                 size="sm" 

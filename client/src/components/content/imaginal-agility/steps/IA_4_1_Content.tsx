@@ -13,17 +13,6 @@ const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
         Advanced Ladder Overview
       </h1>
       
-      {/* Video Section */}
-      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-        <VideoPlayer
-          workshopType="imaginal-agility"
-          stepId="ia-4-1"
-          title="Advanced Ladder Overview"
-          videoId="MUbEbYEiimk"
-          aspectRatio="16:9"
-          className="w-full max-w-2xl mx-auto"
-        />
-      </div>
 
       {/* Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">

@@ -1,0 +1,5 @@
+# Check what database the server is actually using
+curl http://localhost:8080/api/health
+
+# If that works, this should show database connection info
+curl http://localhost:8080/api/admin/debug/database-info

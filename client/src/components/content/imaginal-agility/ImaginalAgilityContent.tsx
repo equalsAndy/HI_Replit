@@ -19,13 +19,14 @@ import IA_4_3_Content from './steps/IA_4_3_Content';
 import IA_4_4_Content from './steps/IA_4_4_Content';
 import IA_4_5_Content from './steps/IA_4_5_Content';
 import IA_4_6_Content from './steps/IA_4_6_Content';
+import IA_5_1_Content from './steps/IA_5_1_Content';
 
 
 // Component for ia-4-1 Assessment step
 const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void; onNext?: (stepId: string) => void }> = ({ onOpenAssessment, onNext }) => {
   // Check if assessment is completed
   const { data: assessmentData } = useQuery({
-    queryKey: ['/api/assessments/imaginal_agility'],
+    queryKey: ['/api/workshop-data/ia-assessment'],
     retry: false
   });
 
@@ -106,7 +107,7 @@ interface ImaginalAgilityContentProps {
 // Assessment Results Content moved outside renderStepContent for switch/case compatibility
 const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> = ({ onNext }) => {
   const { data: assessmentData } = useQuery({
-    queryKey: ['/api/assessments/imaginal_agility'],
+    queryKey: ['/api/workshop-data/ia-assessment'],
     retry: false
   });
 
@@ -276,7 +277,7 @@ const AssessmentResultsContent: React.FC<{ onNext?: (stepId: string) => void }> 
   );
 };
 
-const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext }) => {
+const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId, onNext, onOpenAssessment }) => {
   const renderStepContent = () => {
     switch (stepId) {
       case 'ia-1-1':
@@ -336,7 +337,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-2-1':
         return <IA_2_1_Content onNext={onNext} />;
       case 'ia-2-2':
-        return <IA_2_2_Content onNext={onNext} />;
+        return <IA_2_2_Content onNext={onNext} onOpenAssessment={onOpenAssessment} />;
       case 'ia-3-1':
         return <IA_3_1_Content onNext={onNext} />;
       case 'ia-3-2':
@@ -362,7 +363,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
       case 'ia-4-6':
         return <IA_4_6_Content onNext={onNext} />;
       case 'ia-5-1':
-        return <AssessmentResultsContent onNext={onNext} />;
+        return <IA_5_1_Content onNext={onNext} />;
       case 'ia-6-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
@@ -450,6 +451,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             </div>
           </div>
         );
+      // Section 8: More Info content
       case 'ia-8-1':
         return (
           <div className="max-w-4xl mx-auto p-6">
@@ -470,6 +472,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             </div>
           </div>
         );
+
       case 'ia-8-2':
         return (
           <div className="max-w-4xl mx-auto p-6">
@@ -490,6 +493,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             </div>
           </div>
         );
+
       default:
         return null;
     }

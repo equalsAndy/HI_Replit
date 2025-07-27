@@ -90,7 +90,7 @@ const App: React.FC = () => {
                     {/* Workshop routes */}
                     <Route path="/allstarteams" component={AllStarTeamsPage} />
                     <Route path="/ast" component={AllStarTeamsPage} />
-                    <Route path="/imaginal-agility" component={ImaginalAgilityPage} />
+                    <Route path="/imaginal-agility" component={ImaginalAgilityWorkshopNew} />
                     <Route path="/ia-legacy" component={ImaginalAgilityPage} />
 
                     {/* Admin routes */}

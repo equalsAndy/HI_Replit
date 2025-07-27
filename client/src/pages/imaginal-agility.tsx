@@ -169,11 +169,8 @@ export default function ImaginalAgilityHome() {
       // Advanced Ladder of Imagination
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
       // Outcomes & Benefits
-      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
-      // Quarterly Tune-Up
-      'ia-6-1', 'ia-6-2',
-      // More Info
-      'ia-7-1', 'ia-7-2'
+      'ia-5-1'
+      // Note: ia-6-1 is always accessible, ia-7-1 unlocks after ia-4-6, others locked
     ];
 
     // Find the next step after the last completed step
@@ -217,7 +214,16 @@ export default function ImaginalAgilityHome() {
     // Always allow access to the first step
     if (stepId === 'ia-1-1') return true;
 
-    // Define the progression order for IA
+    // Special unlock rules
+    if (stepId === 'ia-6-1') return true; // Always accessible from start
+    if (stepId === 'ia-7-1') {
+      // Unlock after workshop completion (final submission on ia-4-6)
+      return completedSteps.includes('ia-4-6');
+    }
+    if (stepId === 'ia-7-2') return false; // Locked for now
+    if (stepId === 'ia-6-coming-soon') return false; // Quarterly tune-up locked
+
+    // Define the main progression order for IA
     const iaStepOrder = [
       // Welcome & Orientation
       'ia-1-1', 'ia-1-2',
@@ -228,11 +234,8 @@ export default function ImaginalAgilityHome() {
       // Advanced Ladder of Imagination
       'ia-4-1', 'ia-4-2', 'ia-4-3', 'ia-4-4', 'ia-4-5', 'ia-4-6',
       // Outcomes & Benefits
-      'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
-      // Quarterly Tune-Up
-      'ia-6-1', 'ia-6-2',
-      // More Info
-      'ia-7-1', 'ia-7-2'
+      'ia-5-1'
+      // Note: Section 6 and 7 handled by special rules above
     ];
 
     const currentStepIndex = iaStepOrder.indexOf(stepId);
@@ -291,15 +294,6 @@ export default function ImaginalAgilityHome() {
           currentContent={currentContent}
           isImaginalAgility={true}
         />
-        {/* Debug logging for IA page props */}
-        {(() => {
-          console.log('🎯 IA Navigation Props Debug:', {
-            isImaginalAgility: true,
-            currentContent,
-            location: window.location.pathname
-          });
-          return null;
-        })()}
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6">
@@ -335,7 +329,7 @@ export default function ImaginalAgilityHome() {
                   }
                 });
 
-                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1'); // Mark assessment step as completed
                 setCurrentContent("ia-5-1"); // Navigate to Assessment Results
@@ -350,7 +344,7 @@ export default function ImaginalAgilityHome() {
                   title: "Assessment Saved Locally",
                   description: "Your results are saved but couldn't sync to the server.",
                 });
-                queryClient.invalidateQueries({ queryKey: ['/api/assessments/imaginal_agility'] });
+                queryClient.invalidateQueries({ queryKey: ['/api/workshop-data/ia-assessment'] });
                 setIsAssessmentModalOpen(false);
                 markStepCompleted('ia-4-1');
                 setCurrentContent("ia-5-1");

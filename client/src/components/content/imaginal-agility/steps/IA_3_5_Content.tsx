@@ -32,7 +32,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
           onClick={() => onNext && onNext('ia-3-6')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
         >
-          Continue to Next Step
+          Continue to The Unimaginable
         </Button>
       </div>
     </div>

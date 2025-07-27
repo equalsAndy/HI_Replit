@@ -1,0 +1,8 @@
+# Check if IA data is persisting to database
+# Run this to verify IA workshop data is actually being saved
+
+psql -d heliotrope_dev -c "SELECT * FROM workshop_step_data WHERE workshop_type = 'ia' ORDER BY created_at DESC;"
+
+# If you see data rows, persistence is working
+# If no rows returned, the API save is still failing
+# If error about table not existing, database setup incomplete

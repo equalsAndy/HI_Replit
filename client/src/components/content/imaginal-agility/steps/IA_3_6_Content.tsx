@@ -1,19 +1,57 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { VideoPlayer } from '@/components/content/VideoPlayer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA36ContentProps {
   onNext?: (stepId: string) => void;
 }
 
+// Data structure for this step
+interface IA36StepData {
+  selectedMystery: string;
+  visionText: string;
+  reflectionText: string;
+}
+
 const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
-  const [selectedMystery, setSelectedMystery] = useState('');
-  const [visionText, setVisionText] = useState('');
-  const [reflectionText, setReflectionText] = useState('');
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA36StepData = {
+    selectedMystery: '',
+    visionText: '',
+    reflectionText: ''
+  };
+  
+  // Use the new persistence hook
+  const { data, updateData, saving, loaded, error } = useWorkshopStepData(
+    'ia',
+    'ia-3-6',
+    initialData
+  );
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      selectedMystery: 'Time Travel',
+      visionText: 'Imagine if time isn\'t linear but exists as infinite parallel streams, like rivers flowing in all directions. What if consciousness could navigate between these streams, not by machines but through focused intention and emotional resonance? Perhaps the "past" and "future" are simply different frequencies we can tune into, like radio stations. What if every decision creates a new time stream, and what we call déjà vu is actually our consciousness briefly accessing memories from parallel versions of ourselves?',
+      reflectionText: 'This exercise pushed me beyond logical constraints into pure imaginative territory. I surprised myself by how vivid the imagery became once I stopped trying to make it scientifically plausible. My sense of what\'s possible has expanded - not just about time travel, but about the power of imagination itself to create entirely new frameworks for understanding reality.'
+    });
+    
+    console.log('IA 3-6 Content filled with demo data');
+  };
 
   const mysteries = {
     universal: [
@@ -105,7 +143,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           {/* Universal Level */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <h3 className="font-semibold text-blue-800 mb-3">UNIVERSAL (Everyone - Existentially)</h3>
-            <RadioGroup value={selectedMystery} onValueChange={setSelectedMystery}>
+            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
               {mysteries.universal.map((mystery) => (
                 <div key={mystery} className="flex items-center space-x-2">
                   <RadioGroupItem value={mystery} id={mystery} />
@@ -118,7 +156,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           {/* Popular Culture Level */}
           <div className="bg-green-50 p-4 rounded-lg border border-green-200">
             <h3 className="font-semibold text-green-800 mb-3">POPULAR CULTURE (Global Audiences)</h3>
-            <RadioGroup value={selectedMystery} onValueChange={setSelectedMystery}>
+            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
               {mysteries.popular.map((mystery) => (
                 <div key={mystery} className="flex items-center space-x-2">
                   <RadioGroupItem value={mystery} id={mystery} />
@@ -131,7 +169,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           {/* Academic Level */}
           <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
             <h3 className="font-semibold text-purple-800 mb-3">ACADEMIC (Specialists)</h3>
-            <RadioGroup value={selectedMystery} onValueChange={setSelectedMystery}>
+            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
               {mysteries.academic.map((mystery) => (
                 <div key={mystery} className="flex items-center space-x-2">
                   <RadioGroupItem value={mystery} id={mystery} />
@@ -141,17 +179,17 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             </RadioGroup>
           </div>
 
-          {selectedMystery && (
+          {data.selectedMystery && (
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <h4 className="font-medium text-yellow-800 mb-2">Your Selected Mystery:</h4>
-              <p className="text-yellow-700">"{selectedMystery}"</p>
+              <p className="text-yellow-700">"{data.selectedMystery}"</p>
             </div>
           )}
         </CardContent>
       </Card>
 
       {/* The Leap Exercise */}
-      {selectedMystery && (
+      {data.selectedMystery && (
         <Card className="mb-8">
           <CardHeader className="bg-red-50">
             <CardTitle className="text-red-800">The Leap: Imagine the Unimaginable</CardTitle>
@@ -179,8 +217,8 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
               <h4 className="font-medium text-gray-800">Your Images / Your Story</h4>
               <Textarea
                 placeholder="Express your vision through words, sketches, or narrative form. Don't worry about coherence—follow the thread of wonder."
-                value={visionText}
-                onChange={(e) => setVisionText(e.target.value)}
+                value={data.visionText}
+                onChange={(e) => updateData({ visionText: e.target.value })}
                 className="min-h-[150px]"
               />
             </div>
@@ -189,7 +227,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       )}
 
       {/* Post-Leap Reflection */}
-      {visionText.trim() && (
+      {data.visionText.trim() && (
         <Card className="mb-8">
           <CardHeader className="bg-green-50">
             <CardTitle className="text-green-800">Post-Leap Reflection</CardTitle>
@@ -203,8 +241,8 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             </ul>
             <Textarea
               placeholder="Share your reflections here..."
-              value={reflectionText}
-              onChange={(e) => setReflectionText(e.target.value)}
+              value={data.reflectionText}
+              onChange={(e) => updateData({ reflectionText: e.target.value })}
               className="min-h-[100px]"
             />
           </CardContent>
@@ -212,7 +250,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       )}
 
       {/* I4C Connection */}
-      {reflectionText.trim() && (
+      {data.reflectionText.trim() && (
         <Card className="mb-8 border-purple-200">
           <CardHeader className="bg-purple-50">
             <CardTitle className="text-purple-800">Reconnecting to Your I4C</CardTitle>
@@ -239,12 +277,23 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
 
       <div className="flex justify-between mt-8">
         <div className="flex gap-4">
-          {visionText.trim() && reflectionText.trim() && (
+          {shouldShowDemoButtons && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Add Demo Data
+            </Button>
+          )}
+          {data.visionText.trim() && data.reflectionText.trim() && (
             <>
               <Button variant="outline" className="border-green-300 text-green-700">
                 Save My Vision
               </Button>
-              <Button variant="outline" className="border-purple-300 text-purple-700">
+              <Button variant="outline" className="border-purple-300 text-purple-700" onClick={() => updateData({ selectedMystery: '', visionText: '', reflectionText: '' })}>
                 Choose Another Mystery
               </Button>
             </>
@@ -253,9 +302,9 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         <Button 
           onClick={() => onNext && onNext('ia-4-1')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-          disabled={!visionText.trim() || !reflectionText.trim()}
+          disabled={saving || !data.visionText.trim() || !data.reflectionText.trim()}
         >
-          Complete the Ladder
+          {saving ? 'Saving...' : 'Complete the Ladder'}
         </Button>
       </div>
     </div>

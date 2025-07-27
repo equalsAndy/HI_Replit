@@ -1,0 +1,18 @@
+# Test Database Connectivity
+# The database hostname is not resolving from your local network
+
+# Test if AWS Lightsail database is reachable
+ping ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com
+
+# Test if port 5432 is accessible 
+nc -z ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com 5432
+
+# Check DNS resolution
+nslookup ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com
+
+# If connectivity fails, we need to either:
+# 1. Use a different database URL that's accessible
+# 2. Set up local PostgreSQL for development
+# 3. Use a VPN to access AWS resources
+
+# Run these commands and report back which ones work/fail

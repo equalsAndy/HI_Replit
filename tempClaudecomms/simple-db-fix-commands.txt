@@ -1,0 +1,20 @@
+STEP 1: Open a new terminal window
+
+STEP 2: Copy and paste this command (all on one line):
+cd /Users/bradtopliff/Desktop/HI_Replit/server && source .env.development && psql "$DATABASE_URL" < /Users/bradtopliff/Desktop/HI_Replit/tempClaudecomms/fix-workshop-step-data-table.sql
+
+STEP 3: Press Enter to run it
+
+You should see output like:
+CREATE TABLE
+CREATE INDEX
+CREATE INDEX
+
+If you see errors about "table already exists", that's okay - it means the table was already created.
+
+Alternative if the above doesn't work:
+1. First run: cd /Users/bradtopliff/Desktop/HI_Replit/server
+2. Then run: source .env.development
+3. Then run: echo $DATABASE_URL (to check if it loaded)
+4. Finally run: psql "$DATABASE_URL" < ../tempClaudecomms/fix-workshop-step-data-table.sql
+EOF < /dev/null

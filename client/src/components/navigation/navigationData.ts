@@ -19,7 +19,7 @@ export interface IANavigationSection {
   steps: IANavigationStep[];
 }
 
-// Imaginal Agility navigation - 7-section hierarchical menu with 26 steps
+// Imaginal Agility navigation - 8-section hierarchical menu with 28 steps
 export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '1',
@@ -152,34 +152,35 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     steps: [
       { 
         id: 'ia-5-1', 
-        title: 'HaiQ', 
-        type: 'assessment',
+        title: 'Overview', 
+        type: 'video',
         contentKey: 'ia-5-1'
-      },
-      { 
-        id: 'ia-5-2', 
-        title: 'ROI 2.0', 
-        type: 'viewing',
-        contentKey: 'ia-5-2'
-      },
-      { 
-        id: 'ia-5-3', 
-        title: 'Course Completion Badge', 
-        type: 'achievement',
-        contentKey: 'ia-5-3'
-      },
-      { 
-        id: 'ia-5-4', 
-        title: 'Imaginal Agility Compendium', 
-        type: 'download',
-        contentKey: 'ia-5-4'
-      },
-      { 
-        id: 'ia-5-5', 
-        title: 'Community of Practice', 
-        type: 'collaboration',
-        contentKey: 'ia-5-5'
       }
+      // Other steps temporarily hidden
+      // { 
+      //   id: 'ia-5-2', 
+      //   title: 'ROI 2.0', 
+      //   type: 'viewing',
+      //   contentKey: 'ia-5-2'
+      // },
+      // { 
+      //   id: 'ia-5-3', 
+      //   title: 'Course Completion Badge', 
+      //   type: 'achievement',
+      //   contentKey: 'ia-5-3'
+      // },
+      // { 
+      //   id: 'ia-5-4', 
+      //   title: 'Imaginal Agility Compendium', 
+      //   type: 'download',
+      //   contentKey: 'ia-5-4'
+      // },
+      // { 
+      //   id: 'ia-5-5', 
+      //   title: 'Community of Practice', 
+      //   type: 'collaboration',
+      //   contentKey: 'ia-5-5'
+      // }
     ]
   },
   {
@@ -189,37 +190,64 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
     steps: [
       { 
         id: 'ia-6-1', 
-        title: 'Orientation', 
+        title: 'Teamwork Preparation', 
         type: 'video',
         contentKey: 'ia-6-1'
       },
       { 
-        id: 'ia-6-2', 
-        title: 'Practices', 
-        type: 'interactive',
-        contentKey: 'ia-6-2'
+        id: 'ia-6-coming-soon', 
+        title: 'Coming Soon', 
+        type: 'coming-soon',
+        contentKey: 'ia-6-coming-soon'
       }
+      // ia-6-2 remains hidden for now
+      // { 
+      //   id: 'ia-6-2', 
+      //   title: 'Practices', 
+      //   type: 'interactive',
+      //   contentKey: 'ia-6-2'
+      // }
     ]
   },
   {
     id: '7',
-    title: 'ADDITIONAL INFO',
+    title: 'TEAM LADDER OF IMAGINATION',
     expanded: false, // Default collapsed
     steps: [
       { 
         id: 'ia-7-1', 
-        title: 'The Neuroscience of Imagination', 
+        title: 'Team Ladder Overview', 
         type: 'video',
         contentKey: 'ia-7-1'
       },
       { 
         id: 'ia-7-2', 
-        title: 'About Heliotrope Imaginal', 
-        type: 'video',
+        title: 'Whiteboard Link', 
+        type: 'interactive',
         contentKey: 'ia-7-2'
       }
     ]
-  }
+  },
+  // TEMPORARILY HIDDEN - Section 8 will be enabled later
+  // {
+  //   id: '8',
+  //   title: 'MORE INFO',
+  //   expanded: false, // Default collapsed
+  //   steps: [
+  //     { 
+  //       id: 'ia-8-1', 
+  //       title: 'The Neuroscience of Imagination', 
+  //       type: 'video',
+  //       contentKey: 'ia-8-1'
+  //     },
+  //     { 
+  //       id: 'ia-8-2', 
+  //       title: 'About Heliotrope Imaginal', 
+  //       type: 'video',
+  //       contentKey: 'ia-8-2'
+  //     }
+  //   ]
+  // }
 ];
 
 // All Star Teams navigation sections

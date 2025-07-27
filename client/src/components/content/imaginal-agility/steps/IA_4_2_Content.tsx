@@ -1,32 +1,75 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA_4_2_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+// Data structure for this step
+interface IA42StepData {
+  challenge: string;
+  aiResponse: string;
+  shift: string;
+  tag: string;
+  newPerspective: string;
+}
+
 const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
-  const [challenge, setChallenge] = useState('');
-  const [aiResponse, setAiResponse] = useState('');
-  const [shift, setShift] = useState('');
-  const [tag, setTag] = useState('');
-  const [newPerspective, setNewPerspective] = useState('');
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA42StepData = {
+    challenge: '',
+    aiResponse: '',
+    shift: '',
+    tag: '',
+    newPerspective: ''
+  };
+  
+  // Use the new persistence hook
+  const { data, updateData, saving, loaded, error } = useWorkshopStepData(
+    'ia',
+    'ia-4-2',
+    initialData
+  );
 
   const handleSaveReframe = () => {
-    // Save the reframe data
-    console.log('Saving reframe:', { challenge, aiResponse, shift, tag, newPerspective });
-    // Here you would typically save to your backend
+    // Data is already being auto-saved via the hook
+    console.log('Reframe data saved:', data);
   };
 
   const handleTryAnother = () => {
     // Clear the form for another try
-    setChallenge('');
-    setAiResponse('');
-    setShift('');
-    setTag('');
-    setNewPerspective('');
+    updateData({
+      challenge: '',
+      aiResponse: '',
+      shift: '',
+      tag: '',
+      newPerspective: ''
+    });
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      challenge: "I keep putting off starting my creative side project because I'm overwhelmed by where to begin and worried it won't be good enough.",
+      aiResponse: "This challenge reveals three hidden assumptions: 1) You believe perfection is required before starting, 2) You assume you must have everything figured out at the beginning, and 3) You're treating this as a performance rather than an exploration. What if this project's purpose isn't to be 'good enough' but to be a playground for your creativity? Consider starting with just 15 minutes of play, not work.",
+      shift: "I can reframe this from 'creating something perfect' to 'exploring my creative curiosity.' Instead of worrying about the outcome, I can focus on the joy of discovery and experimentation.",
+      tag: "reframe",
+      newPerspective: "My creative project is not a test to pass but a conversation with my imagination. Each small step teaches me something new about what I want to create and who I'm becoming as a creative person."
+    });
+    
+    console.log('IA 4-2 Content filled with demo meta-awareness data');
   };
 
   return (
@@ -65,8 +108,8 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Describe your work challenge and the reactive thought pattern..."
-                  value={challenge}
-                  onChange={(e) => setChallenge(e.target.value)}
+                  value={data.challenge}
+                  onChange={(e) => updateData({ challenge: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -80,8 +123,8 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Paste the AI's response here..."
-                  value={aiResponse}
-                  onChange={(e) => setAiResponse(e.target.value)}
+                  value={data.aiResponse}
+                  onChange={(e) => updateData({ aiResponse: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -94,8 +137,8 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Describe the shift you noticed..."
-                  value={shift}
-                  onChange={(e) => setShift(e.target.value)}
+                  value={data.shift}
+                  onChange={(e) => updateData({ shift: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -107,7 +150,7 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                   Select a tag that best captures the shift:<br/>
                   <span className="text-sm text-gray-600">💡 Tagging builds your Meta-Awareness Timeline.</span>
                 </p>
-                <Select value={tag} onValueChange={setTag}>
+                <Select value={data.tag} onValueChange={(value) => updateData({ tag: value })}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a tag that captures the shift" />
                   </SelectTrigger>
@@ -132,8 +175,8 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Describe your new perspective or next step..."
-                  value={newPerspective}
-                  onChange={(e) => setNewPerspective(e.target.value)}
+                  value={data.newPerspective}
+                  onChange={(e) => updateData({ newPerspective: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -156,9 +199,9 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
             <Button 
               onClick={handleSaveReframe}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-              disabled={!challenge || !tag}
+              disabled={saving || !data.challenge || !data.tag}
             >
-              Save Reframe
+              {saving ? 'Saving...' : 'Save Reframe'}
             </Button>
             <Button 
               onClick={handleTryAnother}
@@ -171,12 +214,24 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
         </div>
       </div>
       
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button 
           onClick={() => onNext && onNext('ia-4-3')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          disabled={saving}
         >
-          Continue to Visualization Stretch
+          {saving ? 'Saving...' : 'Continue to Visualization Stretch'}
         </Button>
       </div>
     </div>
