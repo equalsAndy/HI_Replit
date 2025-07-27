@@ -1,28 +1,65 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA34ContentProps {
   onNext?: (stepId: string) => void;
 }
 
-const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
-  const [whyReflection, setWhyReflection] = useState('');
-  const [howReflection, setHowReflection] = useState('');
-  const [whatReflection, setWhatReflection] = useState('');
-  const [nextStep, setNextStep] = useState('');
-  const [saving, setSaving] = useState(false);
+// Data structure for this step
+interface IA34StepData {
+  whyReflection: string;
+  howReflection: string;
+  whatReflection: string;
+  nextStep: string;
+}
 
-  // Handle save (simulate async save)
+const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA34StepData = {
+    whyReflection: '',
+    howReflection: '',
+    whatReflection: '',
+    nextStep: ''
+  };
+  
+  // Use workshop step data persistence hook
+  const {
+    data,
+    updateData,
+    saving,
+    loaded,
+    error
+  } = useWorkshopStepData('ia', 'ia-3-4', initialData);
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      whyReflection: "I want to develop my imagination because I believe it's the key to solving complex problems in my work and creating meaningful innovations. In a world increasingly dominated by AI, my unique human capacity for imaginative thinking gives me purpose and keeps me engaged with challenges that matter.",
+      howReflection: "I'll practice daily visualization exercises, engage in creative brainstorming sessions with my team, and regularly challenge myself to think beyond conventional solutions. I'll also seek out diverse perspectives and experiences that stretch my thinking patterns and expand my creative capacity.",
+      whatReflection: "I envision myself as someone who consistently generates breakthrough ideas, helps others see new possibilities, and creates value through imaginative solutions. I want to be known as a creative problem-solver who brings fresh perspectives to every challenge and inspires others to think differently.",
+      nextStep: "I'll start by dedicating 15 minutes each morning to imagination exercises, join a creative thinking group in my organization, and commit to proposing at least one innovative solution each month for the challenges I encounter in my work."
+    });
+    
+    console.log('IA 3-4 Content filled with demo data');
+  };
+
+  // Handle save and navigation
   const handleSave = async () => {
-    setSaving(true);
-    // Simulate save delay
-    await new Promise((res) => setTimeout(res, 800));
-    setSaving(false);
     if (onNext) onNext('ia-3-5');
   };
 
   // Check if form is complete
-  const isFormComplete = whyReflection.trim() && howReflection.trim() && whatReflection.trim();
+  const isFormComplete = data.whyReflection.trim() && data.howReflection.trim() && data.whatReflection.trim() && data.nextStep.trim();
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -64,8 +101,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
-            value={whyReflection}
-            onChange={e => setWhyReflection(e.target.value)}
+            value={data.whyReflection}
+            onChange={e => updateData({ whyReflection: e.target.value })}
             placeholder="Reflect on what you care about deeply..."
           />
         </div>
@@ -82,8 +119,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
-            value={howReflection}
-            onChange={e => setHowReflection(e.target.value)}
+            value={data.howReflection}
+            onChange={e => updateData({ howReflection: e.target.value })}
             placeholder="Describe your approach and methods..."
           />
         </div>
@@ -100,8 +137,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
           <textarea
             className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
             rows={3}
-            value={whatReflection}
-            onChange={e => setWhatReflection(e.target.value)}
+            value={data.whatReflection}
+            onChange={e => updateData({ whatReflection: e.target.value })}
             placeholder="Outline your first step and alignment..."
           />
         </div>
@@ -116,8 +153,8 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         <textarea
           className="w-full border border-gray-300 rounded-lg p-4 text-gray-800 focus:ring-2 focus:ring-purple-400 focus:border-transparent"
           rows={2}
-          value={nextStep}
-          onChange={e => setNextStep(e.target.value)}
+          value={data.nextStep}
+          onChange={e => updateData({ nextStep: e.target.value })}
           placeholder="What's one concrete step you can take this week?"
         />
       </div>
@@ -131,13 +168,24 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
       </div>
 
       {/* Save & Next */}
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button
           onClick={handleSave}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
           disabled={saving || !isFormComplete}
         >
-          {saving ? 'Saving...' : 'Save & Continue'}
+          {saving ? 'Saving...' : 'Continue to Inspiration'}
         </Button>
       </div>
     </div>

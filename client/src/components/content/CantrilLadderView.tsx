@@ -31,7 +31,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     quarterlyProgress: '',
     quarterlyActions: ''
   });
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Workshop status for testing
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
@@ -175,7 +175,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
   // Function to populate with meaningful demo data
   const fillWithDemoData = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -388,7 +388,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
-          {isTestUser && (
+          {shouldShowDemoButtons && (
             <Button 
               variant="outline" 
               size="sm"

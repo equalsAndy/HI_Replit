@@ -212,6 +212,8 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       astAccess: z.boolean().optional(),
       iaAccess: z.boolean().optional(),
       isTestUser: z.boolean().optional(),
+      isBetaTester: z.boolean().optional(),
+      showDemoDataButtons: z.boolean().optional(),
       password: z.string().optional(),
       resetPassword: z.boolean().optional(),
       setCustomPassword: z.boolean().optional(),
@@ -244,6 +246,9 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     delete processedUpdateData.resetPassword;
     delete processedUpdateData.setCustomPassword;
     delete processedUpdateData.newPassword;
+
+    // Debug log the data being sent to service
+    console.log(`🔍 DEBUG: About to update user ${id} with data:`, JSON.stringify(processedUpdateData, null, 2));
 
     // Update user via user management service
     const updateResult = await userManagementService.updateUser(id, processedUpdateData);
@@ -395,6 +400,25 @@ router.get('/test-users', requireAuth, isAdmin, async (req: Request, res: Respon
 });
 
 
+
+/**
+ * Get all beta testers (admin only)
+ */
+router.get('/beta-testers', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const result = await userManagementService.getAllBetaTesters();
+    if (!result.success) {
+      return res.status(500).json({ message: result.error || 'Failed to retrieve beta testers' });
+    }
+    res.json({
+      message: 'Beta testers retrieved successfully',
+      users: result.users
+    });
+  } catch (error) {
+    console.error('Error getting beta testers:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 /**
  * Video Management Routes

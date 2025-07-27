@@ -1,0 +1,21 @@
+## Updated Staging Deployment - July 26, 2025
+## Time: 10:32 AM  
+## Changes: Fixed navbar badge logic and version display
+## New Version: v2.0.11.0726.1031
+
+# VM Commands (run on staging VM one by one):
+
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1031 unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1031
+
+curl -I http://34.220.143.127
+
+## Expected Results:
+# ✅ Staging site should show: "STAGING v2.0.11.0726.1031" badge in navbar
+# ✅ Local dev should show: "DEV v2025.07.26.1031" badge in navbar
+# ✅ Version info should appear in admin console and test user console

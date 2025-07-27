@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard } from 'lucide-react';
+import { Camera, Upload, User, LogOut, Edit3, RefreshCw, AlertTriangle, LayoutDashboard, Key, Lock } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -32,6 +32,14 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  
+  // Password change state
+  const [showPasswordChange, setShowPasswordChange] = useState(false);
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
 
   // Update form data when user prop changes
   React.useEffect(() => {
@@ -118,6 +126,46 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
     },
   });
 
+  // Password change mutation
+  const changePasswordMutation = useMutation({
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+      const response = await fetch('/api/auth/change-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to change password');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Password changed successfully',
+        description: 'Your password has been updated.',
+      });
+      setShowPasswordChange(false);
+      setPasswordData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Password change failed',
+        description: error.message || 'Failed to change password. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Data reset mutation for test users
   const resetDataMutation = useMutation({
     mutationFn: async () => {
@@ -153,6 +201,48 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
       ...prev,
       [field]: value
     }));
+  };
+
+  const handlePasswordInputChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handlePasswordChange = () => {
+    // Validation
+    if (!passwordData.currentPassword.trim()) {
+      toast({
+        title: 'Current password required',
+        description: 'Please enter your current password.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 6) {
+      toast({
+        title: 'Password too short',
+        description: 'New password must be at least 6 characters.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      toast({
+        title: 'Passwords do not match',
+        description: 'Please make sure your new passwords match.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    changePasswordMutation.mutate({
+      currentPassword: passwordData.currentPassword,
+      newPassword: passwordData.newPassword
+    });
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -251,7 +341,7 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
         </Button>
       </DialogTrigger>
       
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{isEditing ? 'Edit Profile' : 'Profile'}</DialogTitle>
         </DialogHeader>
@@ -387,6 +477,97 @@ export default function ProfileEditor({ user, onLogout }: ProfileEditorProps) {
               </>
             )}
           </div>
+
+          {/* Password Change Section */}
+          {!isEditing && (
+            <div className="border-t pt-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Key className="h-4 w-4 text-muted-foreground" />
+                  <Label className="text-sm font-medium">Password</Label>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPasswordChange(!showPasswordChange)}
+                  className="flex items-center gap-2"
+                >
+                  <Lock className="h-4 w-4" />
+                  {showPasswordChange ? 'Cancel' : 'Change Password'}
+                </Button>
+              </div>
+
+              {showPasswordChange && (
+                <div className="space-y-3 bg-muted/50 p-4 rounded-lg">
+                  <div>
+                    <Label htmlFor="currentPassword" className="text-sm">Current Password</Label>
+                    <Input
+                      id="currentPassword"
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => handlePasswordInputChange('currentPassword', e.target.value)}
+                      placeholder="Enter your current password"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="newPassword" className="text-sm">New Password</Label>
+                    <Input
+                      id="newPassword"
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => handlePasswordInputChange('newPassword', e.target.value)}
+                      placeholder="Enter new password (min 6 characters)"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Password must be at least 6 characters
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="confirmPassword" className="text-sm">Confirm New Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      value={passwordData.confirmPassword}
+                      onChange={(e) => handlePasswordInputChange('confirmPassword', e.target.value)}
+                      placeholder="Confirm new password"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      onClick={handlePasswordChange}
+                      disabled={changePasswordMutation.isPending}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      {changePasswordMutation.isPending ? 'Changing...' : 'Update Password'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowPasswordChange(false);
+                        setPasswordData({
+                          currentPassword: '',
+                          newPassword: '',
+                          confirmPassword: ''
+                        });
+                      }}
+                      className="flex-1"
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    If you don't know your current password, contact an admin or facilitator for assistance.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex flex-col gap-2">

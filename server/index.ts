@@ -11,10 +11,12 @@ import coachingRoutes from './routes/coaching-routes.js';
 // import coachingChatRoutes from './routes/coaching-chat-routes.js';
 import featureFlagRoutes from './routes/feature-flag-routes.js';
 import jiraRoutes from './routes/jira-routes.js';
+import feedbackRoutes from './routes/feedback-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
 import path from 'path';
+import fs from 'fs';
 import multer from 'multer';
 import { fileURLToPath } from 'url';
 // Vite import removed for production builds
@@ -66,8 +68,39 @@ let initializationPromise: Promise<void> | null = null;
 // Enhanced health endpoint with session testing
 app.get('/health', async (req, res) => {
   try {
+    // Read version info for health response
+    let versionInfo = {
+      version: 'unknown',
+      build: 'unknown',
+      environment: 'unknown',
+      buildTimestamp: 'unknown'
+    };
+    
+    try {
+      const versionPath = path.join(__dirname, '../public/version.json');
+      const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+      versionInfo = {
+        version: versionData.version || 'unknown',
+        build: versionData.build || 'unknown',
+        environment: versionData.environment || 'unknown',
+        buildTimestamp: versionData.timestamp || 'unknown'
+      };
+      
+      // Add version headers to health endpoint response
+      res.setHeader('X-App-Version', versionInfo.version);
+      res.setHeader('X-App-Build', versionInfo.build);
+      res.setHeader('X-App-Environment', versionInfo.environment);
+      res.setHeader('X-App-Timestamp', versionInfo.buildTimestamp);
+    } catch (err) {
+      // Keep default unknown values and set fallback headers
+      res.setHeader('X-App-Version', 'unknown');
+      res.setHeader('X-App-Build', 'unknown');
+      res.setHeader('X-App-Environment', 'unknown');
+    }
+
     const health = {
       status: 'ok',
+      ...versionInfo,
       initialized: isInitialized,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
@@ -92,8 +125,31 @@ app.get('/health', async (req, res) => {
 
     res.status(200).json(health);
   } catch (error: any) {
+    // Include version info even in error responses
+    let versionInfo = { version: 'unknown', build: 'unknown', environment: 'unknown' };
+    try {
+      const versionPath = path.join(__dirname, '../public/version.json');
+      const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+      versionInfo = {
+        version: versionData.version || 'unknown',
+        build: versionData.build || 'unknown',
+        environment: versionData.environment || 'unknown'
+      };
+      
+      // Add version headers to error response too
+      res.setHeader('X-App-Version', versionInfo.version);
+      res.setHeader('X-App-Build', versionInfo.build);
+      res.setHeader('X-App-Environment', versionInfo.environment);
+    } catch (err) {
+      // Keep default values and set fallback headers
+      res.setHeader('X-App-Version', 'unknown');
+      res.setHeader('X-App-Build', 'unknown');
+      res.setHeader('X-App-Environment', 'unknown');
+    }
+
     res.status(500).json({ 
-      status: 'unhealthy', 
+      status: 'unhealthy',
+      ...versionInfo,
       error: (error as Error).message,
       timestamp: new Date().toISOString()
     });
@@ -154,6 +210,24 @@ async function initializeApp() {
       app.use(express.urlencoded({ extended: true }));
       app.use(cookieParser());
 
+      // Add version headers middleware for curl -I and all responses
+      app.use((req, res, next) => {
+        try {
+          const versionPath = path.join(__dirname, '../public/version.json');
+          const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+          
+          res.setHeader('X-App-Version', versionData.version || 'unknown');
+          res.setHeader('X-App-Build', versionData.build || 'unknown');
+          res.setHeader('X-App-Environment', versionData.environment || 'unknown');
+          res.setHeader('X-App-Timestamp', versionData.timestamp || 'unknown');
+        } catch (err) {
+          res.setHeader('X-App-Version', 'unknown');
+          res.setHeader('X-App-Build', 'unknown');
+          res.setHeader('X-App-Environment', 'unknown');
+        }
+        next();
+      });
+
       // Add session debugging middleware - TEMPORARILY DISABLED
       // app.use((req, res, next) => {
       //   console.log('🔍 Session Debug:', {
@@ -198,6 +272,7 @@ async function initializeApp() {
       // app.use('/api/coaching/chat', coachingChatRoutes);
       app.use('/api/feature-flags', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
+      app.use('/api/feedback', feedbackRoutes);
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {

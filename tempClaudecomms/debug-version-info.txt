@@ -1,0 +1,36 @@
+====================================
+DEBUG VERSION INFO COMPONENT
+Date: 2025-07-25
+Time: 10:36 PDT
+====================================
+
+ISSUE: VersionInfo component not showing in admin dashboard
+
+DEBUG VERSION DEPLOYED: staging-v2.0.6-debug
+This version has console.log statements to debug why VersionInfo isn't showing
+
+DEPLOY COMMAND:
+---------------
+
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.6-debug
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.6-debug
+
+DEBUG STEPS:
+------------
+1. Deploy debug version
+2. Go to admin dashboard in staging
+3. Open browser console (F12)
+4. Look for VersionInfo debug messages:
+   - "🔍 VersionInfo: Fetching version data..."
+   - "🔍 VersionInfo: Received data: ..."
+   - "🔍 VersionInfo: Rendering detailed variant with: ..."
+
+This will help identify if:
+- Component is loading
+- Data is being fetched
+- Component is rendering but not visible

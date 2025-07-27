@@ -31,6 +31,8 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { formatDistanceToNow } from 'date-fns';
+import { WorkshopDataView } from './WorkshopDataView';
+import VersionInfo from '@/components/ui/VersionInfo';
 
 // Types
 interface User {
@@ -43,6 +45,8 @@ interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant' | 'student';
   isTestUser: boolean;
+  isBetaTester: boolean;
+  showDemoDataButtons: boolean;
   // Access control fields
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
@@ -71,8 +75,10 @@ const createUserSchema = z.object({
   organization: z.string().max(30, 'Organization cannot exceed 30 characters').optional(),
   jobTitle: z.string().max(30, 'Job title cannot exceed 30 characters').optional(),
   role: z.enum(['admin', 'facilitator', 'participant', 'student']),
-  generatePassword: z.boolean().default(true),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
   isTestUser: z.boolean().default(false),
+  isBetaTester: z.boolean().default(false),
+  showDemoDataButtons: z.boolean().default(true),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -89,16 +95,17 @@ const editUserSchema = z.object({
   astAccess: z.boolean(),
   iaAccess: z.boolean(),
   isTestUser: z.boolean(),
-  resetPassword: z.boolean().default(false),
+  isBetaTester: z.boolean().default(false),
+  showDemoDataButtons: z.boolean().default(true),
+  changePassword: z.boolean().default(false),
   newPassword: z.string().optional(),
-  setCustomPassword: z.boolean().default(false),
 }).refine((data) => {
-  if (data.setCustomPassword && (!data.newPassword || data.newPassword.length < 6)) {
+  if (data.changePassword && (!data.newPassword || data.newPassword.length < 6)) {
     return false;
   }
   return true;
 }, {
-  message: "Password must be at least 6 characters when setting custom password",
+  message: "Password must be at least 6 characters",
   path: ["newPassword"],
 });
 
@@ -187,8 +194,42 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
         method: 'GET',
       });
       console.log('User data response:', data);
+      // Debug logging for user 8 (Barney)
+      const barney = data.users?.find((u: any) => u.id === 8);
+      if (barney) {
+        console.log('🔍 DEBUG: User 8 (Barney) data from API:', {
+          id: barney.id,
+          name: barney.name,
+          isBetaTester: barney.isBetaTester,
+          isTestUser: barney.isTestUser,
+          showDemoDataButtons: barney.showDemoDataButtons
+        });
+      }
       return data.users || [];
     },
+  });
+
+  // Query for fetching beta testers
+  const { data: betaTesters = [], isLoading: isLoadingBetaTesters, refetch: refetchBetaTesters } = useQuery({
+    queryKey: ['/api/admin/beta-testers'],
+    queryFn: async () => {
+      const data = await apiRequest('/api/admin/beta-testers', {
+        method: 'GET',
+      });
+      return data.users || [];
+    },
+  });
+
+  // Query for fetching beta tester ticket counts
+  const { data: betaTesterCounts = [], isLoading: isLoadingCounts } = useQuery({
+    queryKey: ['/api/feedback/beta-tester-counts'],
+    queryFn: async () => {
+      const data = await apiRequest('/api/feedback/beta-tester-counts', {
+        method: 'GET',
+      });
+      return data.betaTesters || [];
+    },
+    enabled: betaTesters.length > 0, // Only fetch if we have beta testers
   });
 
   // Sorting and filtering state
@@ -252,8 +293,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       organization: '',
       jobTitle: '',
       role: 'participant',
-      generatePassword: true,
+      password: '',
       isTestUser: false,
+      isBetaTester: false,
+      showDemoDataButtons: true,
     },
   });
 
@@ -270,9 +313,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       astAccess: true,
       iaAccess: true,
       isTestUser: false,
-      resetPassword: false,
+      isBetaTester: false,
+      showDemoDataButtons: true,
+      changePassword: false,
       newPassword: '',
-      setCustomPassword: false,
     },
   });
 
@@ -357,6 +401,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -417,6 +462,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       console.error('❌ Update failed:', error);
@@ -453,6 +499,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -482,6 +529,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
       
       // FORCE CACHE DUMP: Clear all assessment-related cached data
       // This ensures that when the user navigates back to workshop pages,
@@ -512,6 +560,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       // Refresh users list
       queryClient.invalidateQueries({ queryKey: ['/api/admin/users'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/beta-testers'] });
     },
     onError: (error: any) => {
       toast({
@@ -623,9 +672,10 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       astAccess: user.astAccess !== undefined ? user.astAccess : true,
       iaAccess: user.iaAccess !== undefined ? user.iaAccess : true,
       isTestUser: user.isTestUser || false,
-      resetPassword: false,
+      isBetaTester: user.isBetaTester || false,
+      showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : true,
+      changePassword: false,
       newPassword: '',
-      setCustomPassword: false,
     });
 
     setEditDialogOpen(true);
@@ -674,6 +724,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       .substring(0, 2);
   };
 
+  // Get ticket count for a beta tester
+  const getTicketCount = (userId: number) => {
+    const userCount = betaTesterCounts.find((u: any) => u.userId === userId);
+    return userCount ? userCount.ticketCount : 0;
+  };
+
   return (
     <div className="space-y-6">
       {/* Role-aware UI Banner */}
@@ -694,8 +750,9 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       )}
 
       <Tabs defaultValue="existing" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="existing">Manage Users</TabsTrigger>
+          <TabsTrigger value="beta-testers">Beta Testers</TabsTrigger>
           <TabsTrigger value="create">Create New User</TabsTrigger>
         </TabsList>
 
@@ -786,6 +843,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                             </div>
                           </TableHead>
                           <TableHead className="w-[50px]">Test</TableHead>
+                          <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
                           <TableHead className="min-w-[160px] sticky right-0 bg-white border-l">Actions</TableHead>
@@ -829,6 +887,22 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Test User</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ) : (
+                              <div className="w-3 h-3 bg-gray-200 rounded-full mx-auto"></div>
+                            )}
+                          </TableCell>
+                          <TableCell className="w-[50px]">
+                            {user.isBetaTester ? (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger>
+                                    <div className="w-3 h-3 bg-purple-500 rounded-full mx-auto"></div>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Beta Tester</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -1242,21 +1316,21 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
                     <FormField
                       control={createForm.control}
-                      name="generatePassword"
+                      name="password"
                       render={({ field }) => (
-                        <FormItem className="flex flex-row items-end space-x-3 space-y-0 rounded-md border p-3">
+                        <FormItem>
+                          <FormLabel>Password</FormLabel>
                           <FormControl>
-                            <Switch
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
+                            <Input 
+                              {...field} 
+                              type="password" 
+                              placeholder="Enter password (minimum 6 characters)"
                             />
                           </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Generate temporary password</FormLabel>
-                            <FormDescription>
-                              System will generate a secure random password
-                            </FormDescription>
-                          </div>
+                          <FormDescription>
+                            Set a password for this user (minimum 6 characters)
+                          </FormDescription>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -1308,6 +1382,84 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
             </CardFooter>
           </Card>
         </TabsContent>
+
+        {/* Tab for beta testers */}
+        <TabsContent value="beta-testers" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Beta Testers</CardTitle>
+              <CardDescription>
+                Users marked as beta testers who don't see demo data buttons unless they're also test users.
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              {isLoadingBetaTesters ? (
+                <div className="flex justify-center p-8">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : betaTesters.length === 0 ? (
+                <div className="text-center p-8 text-muted-foreground">
+                  <p>No beta testers found.</p>
+                  <p className="text-sm mt-2">Mark users as beta testers in the user edit modal to see them here.</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid gap-4">
+                    {betaTesters.map((user: User) => (
+                      <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-10 w-10">
+                            <AvatarImage src={user.profilePicture || undefined} />
+                            <AvatarFallback>
+                              {user.name?.split(' ').map(n => n[0]).join('').toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="flex items-center space-x-2">
+                              <p className="font-medium">{user.name}</p>
+                              <Badge variant="outline" className="text-xs">
+                                {user.role}
+                              </Badge>
+                              {user.isTestUser && (
+                                <Badge variant="secondary" className="text-xs bg-orange-100 text-orange-800">
+                                  Test User
+                                </Badge>
+                              )}
+                              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                                Beta Tester
+                              </Badge>
+                              {!isLoadingCounts && (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-300">
+                                  {getTicketCount(user.id)} ticket{getTicketCount(user.id) !== 1 ? 's' : ''}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              <p>{user.email}</p>
+                              {user.organization && <p>{user.organization}</p>}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditUser(user)}
+                          >
+                            <PencilIcon className="h-4 w-4 mr-1" />
+                            Edit
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
       </Tabs>
 
       {/* Edit User Dialog */}
@@ -1453,6 +1605,60 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                         </FormItem>
                       )}
                     />
+
+                    <FormField
+                      control={editForm.control}
+                      name="isBetaTester"
+                      render={({ field }) => (
+                        <FormItem>
+                          <div className="flex items-center space-x-3 rounded-md border p-3">
+                            <FormControl>
+                              <Switch 
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                                aria-label="Toggle beta tester status"
+                                className="data-[state=checked]:bg-purple-500"
+                              />
+                            </FormControl>
+                            <div className="space-y-1 leading-none">
+                              <FormLabel className="text-sm font-medium">Beta Tester</FormLabel>
+                              <FormDescription className="text-xs text-muted-foreground">
+                                Mark as beta tester (won't see demo data buttons unless also Test User)
+                              </FormDescription>
+                            </div>
+                          </div>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    {editForm.watch('isTestUser') && (
+                      <FormField
+                        control={editForm.control}
+                        name="showDemoDataButtons"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center space-x-3 rounded-md border p-3">
+                              <FormControl>
+                                <Switch 
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  aria-label="Toggle demo data buttons visibility"
+                                  className="data-[state=checked]:bg-blue-500"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
+                                <FormDescription className="text-xs text-muted-foreground">
+                                  Controls if Test User can see demo data buttons
+                                </FormDescription>
+                              </div>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
                   </div>
                 </div>
 
@@ -1622,7 +1828,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                     <div className="space-y-4">
                       <FormField
                         control={editForm.control}
-                        name="resetPassword"
+                        name="changePassword"
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
                             <FormControl>
@@ -1630,52 +1836,23 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 checked={field.value}
                                 onCheckedChange={(checked) => {
                                   field.onChange(checked);
-                                  if (checked) {
-                                    editForm.setValue('setCustomPassword', false);
+                                  if (!checked) {
                                     editForm.setValue('newPassword', '');
                                   }
                                 }}
                               />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>Reset password</FormLabel>
+                              <FormLabel>Change password</FormLabel>
                               <FormDescription>
-                                Generate a new temporary password for this user
+                                Set a new password for this user
                               </FormDescription>
                             </div>
                           </FormItem>
                         )}
                       />
 
-                      <FormField
-                        control={editForm.control}
-                        name="setCustomPassword"
-                        render={({ field }) => (
-                          <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-3">
-                            <FormControl>
-                              <Switch
-                                checked={field.value}
-                                onCheckedChange={(checked) => {
-                                  field.onChange(checked);
-                                  if (checked) {
-                                    editForm.setValue('resetPassword', false);
-                                  } else {
-                                    editForm.setValue('newPassword', '');
-                                  }
-                                }}
-                              />
-                            </FormControl>
-                            <div className="space-y-1 leading-none">
-                              <FormLabel>Set custom password</FormLabel>
-                              <FormDescription>
-                                Manually set a specific password for this user
-                              </FormDescription>
-                            </div>
-                          </FormItem>
-                        )}
-                      />
-
-                      {editForm.watch('setCustomPassword') && (
+                      {editForm.watch('changePassword') && (
                         <FormField
                           control={editForm.control}
                           name="newPassword"
@@ -1683,13 +1860,14 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                             <FormItem>
                               <FormLabel>New Password</FormLabel>
                               <FormControl>
-                                <PasswordInput
+                                <Input
                                   {...field}
-                                  placeholder="Enter new password"
+                                  type="password"
+                                  placeholder="Enter new password (minimum 6 characters)"
                                 />
                               </FormControl>
                               <FormDescription>
-                                Enter a custom password for this user
+                                Enter a new password for this user (minimum 6 characters)
                               </FormDescription>
                               <FormMessage />
                             </FormItem>
@@ -1833,15 +2011,12 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
 
       {/* Data Viewing Modal */}
       <Dialog open={dataViewOpen} onOpenChange={setDataViewOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>User Data - {selectedUser?.name}</DialogTitle>
-            <DialogDescription>
-              Quick review of all data associated with this user account
-            </DialogDescription>
+        <DialogContent className="max-w-4xl max-h-[85vh]">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="text-lg">Export Data - {selectedUser?.name}</DialogTitle>
           </DialogHeader>
 
-          <div className="h-[60vh] w-full border rounded-md p-4 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {userData === null ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
@@ -1852,122 +2027,27 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                 <p>{userData.error}</p>
               </div>
             ) : (
-              <div className="space-y-6">
-                {/* User Profile */}
-                {userData?.profile && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">User Profile</h3>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div><strong>Name:</strong> {userData.profile.name}</div>
-                      <div><strong>Email:</strong> {userData.profile.email}</div>
-                      <div><strong>Username:</strong> {userData.profile.username}</div>
-                      <div><strong>Role:</strong> {userData.profile.role}</div>
-                      <div><strong>Organization:</strong> {userData.profile.organization || 'N/A'}</div>
-                      <div><strong>Job Title:</strong> {userData.profile.jobTitle || 'N/A'}</div>
-                      <div><strong>Test User:</strong> {userData.profile.isTestUser ? 'Yes' : 'No'}</div>
-                      <div><strong>Created:</strong> {new Date(userData.profile.createdAt).toLocaleDateString()}</div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Navigation Progress */}
-                {userData?.navigationProgress && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Navigation Progress</h3>
-                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(userData.navigationProgress, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* Assessment Data */}
-                {userData?.assessments && userData.assessments.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Assessment Data ({userData.assessments.length} records)</h3>
-                    {userData.assessments.map((assessment: any, index: number) => (
-                      <div key={index} className="bg-blue-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(assessment.createdAt).toLocaleString()}
-                        </div>
-                        <pre className="text-xs overflow-x-auto">
-                          {JSON.stringify(assessment, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Star Cards */}
-                {userData?.starCards && userData.starCards.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Star Cards ({userData.starCards.length} records)</h3>
-                    {userData.starCards.map((starCard: any, index: number) => (
-                      <div key={index} className="bg-yellow-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(starCard.createdAt).toLocaleString()}
-                        </div>
-                        <div className="grid grid-cols-4 gap-2 text-sm mb-2">
-                          <div><strong>Thinking:</strong> {starCard.thinking}</div>
-                          <div><strong>Acting:</strong> {starCard.acting}</div>
-                          <div><strong>Feeling:</strong> {starCard.feeling}</div>
-                          <div><strong>Planning:</strong> {starCard.planning}</div>
-                        </div>
-                        {starCard.imageUrl && (
-                          <div className="text-sm"><strong>Has Image:</strong> Yes</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Flow Attributes */}
-                {userData?.flowAttributes && userData.flowAttributes.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Flow Attributes ({userData.flowAttributes.length} records)</h3>
-                    {userData.flowAttributes.map((flow: any, index: number) => (
-                      <div key={index} className="bg-purple-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Created:</strong> {new Date(flow.createdAt).toLocaleString()}
-                        </div>
-                        <pre className="text-xs overflow-x-auto">
-                          {JSON.stringify(flow, null, 2)}
-                        </pre>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Reflections */}
-                {userData?.reflections && userData.reflections.length > 0 && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Reflections ({userData.reflections.length} records)</h3>
-                    {userData.reflections.map((reflection: any, index: number) => (
-                      <div key={index} className="bg-green-50 p-3 rounded">
-                        <div className="text-sm mb-2">
-                          <strong>Step:</strong> {reflection.stepId} | <strong>Created:</strong> {new Date(reflection.createdAt).toLocaleString()}
-                        </div>
-                        <div className="text-sm">
-                          <strong>Content:</strong> {reflection.content}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Raw Data Fallback */}
-                {userData && !userData.profile && !userData.error && (
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg border-b pb-2">Raw Data</h3>
-                    <pre className="bg-gray-50 p-3 rounded text-xs overflow-x-auto">
-                      {JSON.stringify(userData, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {/* No Data Message */}
-                {userData && Object.keys(userData).length === 0 && (
-                  <div className="text-center text-gray-500 p-8">
-                    <p>No data found for this user</p>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-1">
+                  <span className="text-sm font-medium text-gray-700">JSON Export Data</span>
+                  {selectedUser && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => exportUserDataMutation.mutate(selectedUser.id)}
+                    >
+                      <Download className="h-4 w-4 mr-1" />
+                      Export
+                    </Button>
+                  )}
+                </div>
+                {userData ? (
+                  <pre className="bg-gray-50 p-3 rounded text-xs overflow-auto h-[60vh] font-mono border">
+                    {JSON.stringify(userData, null, 2)}
+                  </pre>
+                ) : (
+                  <div className="text-center text-gray-500 py-8">
+                    <p>No data found</p>
                   </div>
                 )}
               </div>
@@ -1983,4 +2063,4 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       </Dialog>
     </div>
   );
-}
+};

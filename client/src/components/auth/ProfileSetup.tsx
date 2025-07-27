@@ -240,10 +240,13 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) =
                     <FormControl>
                       <PasswordInput
                         {...field}
-                        placeholder="••••••••"
+                        placeholder="Create a secure password"
                         disabled={isSubmitting}
                       />
                     </FormControl>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Password must be at least 8 characters with uppercase, lowercase, and number
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -257,7 +260,7 @@ const ProfileSetup: React.FC<ProfileSetupProps> = ({ inviteData, onComplete }) =
                     <FormControl>
                       <PasswordInput
                         {...field}
-                        placeholder="••••••••"
+                        placeholder="Confirm your password"
                         disabled={isSubmitting}
                       />
                     </FormControl>

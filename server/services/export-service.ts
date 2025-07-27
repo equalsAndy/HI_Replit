@@ -1,6 +1,6 @@
 import { db } from '../db.js';
-import { users, userAssessments, workshopParticipation, navigationProgress } from '../../shared/schema.js';
-import { eq, and } from 'drizzle-orm';
+import { users, userAssessments, workshopParticipation, navigationProgress, workshopStepData } from '../../shared/schema.js';
+import { eq, and, isNull } from 'drizzle-orm';
 
 export interface ExportData {
   userInfo: {
@@ -18,6 +18,10 @@ export interface ExportData {
   };
   navigationProgress: any;
   assessments: Record<string, any>;
+  workshopStepData: {
+    ast: Record<string, any>;
+    ia: Record<string, any>;
+  };
   workshopParticipation: any[];
   exportMetadata: {
     exportedAt: string;
@@ -25,6 +29,7 @@ export interface ExportData {
     dataVersion: string;
     workshopSteps: string;
     totalAssessments: number;
+    totalWorkshopSteps: number;
   };
 }
 
@@ -70,6 +75,33 @@ export class ExportService {
           eq(navigationProgress.appType, 'ia')
         ));
 
+      // Get workshop step data for both AST and IA workshops (exclude soft-deleted)
+      const allWorkshopSteps = await db.select()
+        .from(workshopStepData)
+        .where(and(
+          eq(workshopStepData.userId, userId),
+          isNull(workshopStepData.deletedAt)
+        ));
+
+      // Organize workshop step data by workshop type
+      const astStepData: Record<string, any> = {};
+      const iaStepData: Record<string, any> = {};
+      
+      allWorkshopSteps.forEach(step => {
+        const stepData = {
+          data: step.data,
+          version: step.version,
+          createdAt: step.createdAt.toISOString(),
+          updatedAt: step.updatedAt.toISOString()
+        };
+        
+        if (step.workshopType === 'ast') {
+          astStepData[step.stepId] = stepData;
+        } else if (step.workshopType === 'ia') {
+          iaStepData[step.stepId] = stepData;
+        }
+      });
+
       // Build navigation progress object
       let navProgress: any = null;
       if (astProgressRecords.length > 0 || iaProgressRecords.length > 0) {
@@ -108,13 +140,17 @@ export class ExportService {
           role: user.role,
           organization: user.organization,
           jobTitle: user.jobTitle,
-          profilePicture: user.profilePicture,
+          profilePicture: null, // Temporarily removed for testing
           isTestUser: user.isTestUser,
           createdAt: user.createdAt.toISOString(),
           updatedAt: user.updatedAt.toISOString()
         },
         navigationProgress: navProgress,
         assessments: {},
+        workshopStepData: {
+          ast: astStepData,
+          ia: iaStepData
+        },
         workshopParticipation: participation.map(p => ({
           workshopId: p.workshopId,
           progress: p.progress,
@@ -126,9 +162,10 @@ export class ExportService {
         exportMetadata: {
           exportedAt: new Date().toISOString(),
           exportedBy: exportedBy,
-          dataVersion: '2.0',
-          workshopSteps: '2-1 through 4-5',
-          totalAssessments: assessments.length
+          dataVersion: '2.1',
+          workshopSteps: 'AST: 2-1 through 4-5, IA: ia-1-1 through ia-4-6',
+          totalAssessments: assessments.length,
+          totalWorkshopSteps: allWorkshopSteps.length
         }
       };
 
@@ -265,6 +302,17 @@ export class ExportService {
         .from(navigationProgress)
         .where(eq(navigationProgress.userId, userId));
 
+      // Check for workshop step data (exclude soft-deleted)
+      const workshopSteps = await db.select()
+        .from(workshopStepData)
+        .where(and(
+          eq(workshopStepData.userId, userId),
+          isNull(workshopStepData.deletedAt)
+        ));
+
+      const astSteps = workshopSteps.filter(s => s.workshopType === 'ast');
+      const iaSteps = workshopSteps.filter(s => s.workshopType === 'ia');
+
       return {
         userId,
         username: userResult[0].username,
@@ -272,6 +320,15 @@ export class ExportService {
         assessmentTypes: assessments.map(a => a.assessmentType),
         hasNavigationProgress: navProgressRecords.length > 0,
         navigationProgressTypes: navProgressRecords.map(r => r.appType),
+        workshopStepCounts: {
+          ast: astSteps.length,
+          ia: iaSteps.length,
+          total: workshopSteps.length
+        },
+        workshopStepIds: {
+          ast: astSteps.map(s => s.stepId),
+          ia: iaSteps.map(s => s.stepId)
+        },
         dataIntegrity: 'valid',
         lastUpdate: assessments.length > 0 ? 
           Math.max(...assessments.map(a => new Date(a.createdAt).getTime())) : null

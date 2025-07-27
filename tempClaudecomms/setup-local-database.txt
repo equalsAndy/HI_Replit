@@ -1,0 +1,25 @@
+# Setup Local PostgreSQL Database for Development
+# PostgreSQL 17 is running locally - let's use it instead of AWS
+
+# 1. Create local development database
+psql -c "CREATE DATABASE heliotrope_dev;"
+
+# 2. Create local user (optional - can use your existing user)
+psql -c "CREATE USER heliotrope_user WITH PASSWORD 'dev_password';"
+psql -c "GRANT ALL PRIVILEGES ON DATABASE heliotrope_dev TO heliotrope_user;"
+
+# 3. Test connection
+psql -d heliotrope_dev -c "SELECT version();"
+
+# 4. Update environment to use local database
+# Create server/.env.development with local database URL
+mkdir -p server
+echo 'NODE_ENV=development' > server/.env.development
+echo 'DATABASE_URL=postgresql://bradtopliff@localhost:5432/heliotrope_dev' >> server/.env.development
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> server/.env.development
+echo 'PORT=8080' >> server/.env.development
+
+# 5. Check if there are any migration files to run
+ls migrations/ || ls server/migrations/
+
+# Run these commands in order, let me know which ones succeed/fail

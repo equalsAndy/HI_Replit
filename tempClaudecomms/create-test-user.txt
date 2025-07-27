@@ -1,0 +1,28 @@
+# Create a new test user as workaround
+
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+
+async function createTestUser() {
+  try {
+    const hashedPassword = await bcrypt.hash('P@ssw0rd', 12);
+    const result = await pool.query(`
+      INSERT INTO users (username, password, name, email, role, is_test_user, is_beta_tester, content_access, ast_access, ia_access, created_at, updated_at)
+      VALUES ('testuser', $1, 'Test User', 'test@example.com', 'participant', true, true, 'professional', true, true, NOW(), NOW())
+      RETURNING id, username, name
+    `, [hashedPassword]);
+    
+    console.log('✅ Created test user:', result.rows[0]);
+    console.log('Login: testuser / P@ssw0rd');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+createTestUser();
+"

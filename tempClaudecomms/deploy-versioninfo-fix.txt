@@ -1,0 +1,47 @@
+====================================
+DEPLOY VERSIONINFO FIX TO STAGING
+Date: 2025-07-25
+Time: 10:48 PDT
+====================================
+
+VERSION: staging-v2.0.9
+PURPOSE: Fix VersionInfo component not showing in admin dashboard
+
+ISSUE IDENTIFIED:
+- VersionInfo component was using Tailwind CSS classes
+- Admin dashboard uses inline styles instead of Tailwind
+- This caused the component to not render properly
+
+FIX APPLIED:
+- Updated VersionInfo component detailed variant to use inline styles
+- Replaced Tailwind classes with equivalent inline styles
+- Added proper styling for admin dashboard compatibility
+
+COMMANDS TO DEPLOY:
+--------------------
+
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+docker build -t hi-replit-app:staging-v2.0.9 .
+
+docker tag hi-replit-app:staging-v2.0.9 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9
+
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9
+
+# SSH to VM and deploy:
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.0.9
+
+VERIFICATION:
+-------------
+1. Visit admin dashboard in staging
+2. Check for version info in top-right corner
+3. Look for debug messages: "🔍 VersionInfo: Rendering detailed variant"
+4. Verify version shows: v2.0.9.0725.1048
+
+This should fix the VersionInfo component not appearing in admin dashboard.

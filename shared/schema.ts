@@ -69,6 +69,8 @@ export const users: any = pgTable('users', {
   jobTitle: text('job_title'),
   profilePicture: text('profile_picture'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
+  isBetaTester: boolean('is_beta_tester').default(false).notNull(),
+  showDemoDataButtons: boolean('show_demo_data_buttons').default(true).notNull(), // For test users to toggle demo data buttons
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
   contentAccess: varchar('content_access', { length: 20 }).notNull().default('professional'), // student, professional, both
@@ -318,11 +320,32 @@ export const navigationProgress = pgTable('navigation_progress', {
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
 
-// Create insert schema for navigation progress
-export const insertNavigationProgressSchema = createInsertSchema(navigationProgress);
+// Workshop step data table for storing all workshop input data
+export const workshopStepData = pgTable('workshop_step_data', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  workshopType: varchar('workshop_type', { length: 10 }).notNull(), // 'ast' or 'ia'
+  stepId: varchar('step_id', { length: 20 }).notNull(), // e.g., 'ia-3-4', '2-1'
+  data: jsonb('data').notNull(), // Flexible JSON storage for any step data
+  version: integer('version').default(1).notNull(), // For future versioning support
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'), // NULL = active, timestamp = soft deleted
+}, (table) => ({
+  // Unique constraint ensures one record per user/workshop/step
+  userWorkshopStepIdx: unique('workshop_step_data_user_workshop_step_unique').on(table.userId, table.workshopType, table.stepId),
+  // Index for fast lookups
+  userWorkshopIdx: index('idx_workshop_step_data_user_workshop').on(table.userId, table.workshopType),
+}));
 
-// Type definitions for navigation progress
+// Create insert schemas
+export const insertNavigationProgressSchema = createInsertSchema(navigationProgress);
+export const insertWorkshopStepDataSchema = createInsertSchema(workshopStepData);
+
+// Type definitions
 export type NavigationProgress = typeof navigationProgress.$inferSelect;
+export type WorkshopStepData = typeof workshopStepData.$inferSelect;
+export type InsertWorkshopStepData = typeof workshopStepData.$inferInsert;
 export type InsertNavigationProgress = z.infer<typeof insertNavigationProgressSchema>;
 
 // Final reflections table for storing user insights
@@ -548,3 +571,42 @@ export type UserCoachingPreferences = typeof userCoachingPreferences.$inferSelec
 export type InsertUserCoachingPreferences = z.infer<typeof insertUserCoachingPreferencesSchema>;
 export type CoachingPrompt = typeof coachingPrompts.$inferSelect;
 export type InsertCoachingPrompt = z.infer<typeof insertCoachingPromptSchema>;
+
+// Feedback System Tables
+export const feedback = pgTable('feedback', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: integer('user_id').references(() => users.id, { onDelete: 'set null' }), // Allow anonymous feedback
+  workshopType: varchar('workshop_type', { length: 20 }).notNull(), // 'ast' or 'ia'
+  pageContext: varchar('page_context', { length: 20 }).notNull(), // 'current', 'other', 'general'
+  targetPage: varchar('target_page', { length: 100 }), // Specific page name or null for general
+  feedbackType: varchar('feedback_type', { length: 20 }).notNull(), // 'bug', 'feature', 'content', 'general'
+  priority: varchar('priority', { length: 10 }).notNull().default('low'), // 'low', 'medium', 'high', 'blocker'
+  message: text('message').notNull(),
+  experienceRating: integer('experience_rating'), // 1-5 rating
+  status: varchar('status', { length: 20 }).notNull().default('new'), // 'new', 'in_progress', 'resolved', 'archived'
+  tags: jsonb('tags').default('[]'), // Array of tags
+  systemInfo: jsonb('system_info').notNull(), // Browser, OS, screen size, etc.
+  adminNotes: text('admin_notes'), // Admin notes and comments
+  jiraTicketId: varchar('jira_ticket_id', { length: 50 }), // Reference to created Jira ticket
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('idx_feedback_user_id').on(table.userId),
+  workshopTypeIdx: index('idx_feedback_workshop_type').on(table.workshopType),
+  statusIdx: index('idx_feedback_status').on(table.status),
+  createdAtIdx: index('idx_feedback_created_at').on(table.createdAt),
+}));
+
+// Create insert schema for feedback
+export const insertFeedbackSchema = createInsertSchema(feedback).extend({
+  workshopType: z.enum(['ast', 'ia']),
+  pageContext: z.enum(['current', 'other', 'general']),
+  feedbackType: z.enum(['bug', 'feature', 'content', 'general']),
+  priority: z.enum(['low', 'medium', 'high', 'blocker']).default('low'),
+  status: z.enum(['new', 'in_progress', 'resolved', 'archived']).default('new'),
+  experienceRating: z.number().min(1).max(5).optional(),
+});
+
+// Type definitions for feedback
+export type Feedback = typeof feedback.$inferSelect;
+export type InsertFeedback = z.infer<typeof insertFeedbackSchema>;

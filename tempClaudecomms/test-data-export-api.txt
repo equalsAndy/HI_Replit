@@ -1,0 +1,8 @@
+# Test data export API to see if IA data is included
+# First find a user ID that has IA data, then test export
+
+# Get user IDs that have IA data
+psql -d heliotrope_dev -c "SELECT DISTINCT user_id FROM workshop_step_data WHERE workshop_type = 'ia';"
+
+# Test export API for that user (replace USER_ID with actual ID)
+curl -H "Cookie: $(cat ~/.curl_cookies)" "http://localhost:8080/api/admin/users/USER_ID/export" | jq '.workshopStepData'

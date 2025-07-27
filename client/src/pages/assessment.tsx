@@ -42,7 +42,7 @@ export default function Assessment() {
   const [location, navigate] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
 
   // Get current user data to determine content access preference
   const { data: userData } = useQuery<{
@@ -625,7 +625,7 @@ export default function Assessment() {
           </div>
 
           {/* Auto-complete button (visible only to test users) */}
-          {isTestUser && (
+          {shouldShowDemoButtons && (
             <Button 
               onClick={() => {
                 // Fill answers with random data

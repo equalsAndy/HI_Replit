@@ -40,6 +40,11 @@ export const featureFlags: Record<string, FeatureFlag> = {
     enabled: true,
     environment: 'development',
     description: 'Development debugging panel and tools'
+  },
+  feedbackSystem: {
+    enabled: true,
+    environment: 'staging',
+    description: 'User feedback collection and management system'
   }
 };
 

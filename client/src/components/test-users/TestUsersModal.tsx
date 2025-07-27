@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { forceWorkshopCacheDump } from '@/utils/forceRefresh';
 
 interface TestUsersModalProps {
   open: boolean;
@@ -45,8 +46,8 @@ export function TestUsersModal({
       localStorage.removeItem('allstarteams-navigation-progress');
       localStorage.removeItem('imaginal-agility-navigation-progress');
       
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries();
+      // Use comprehensive workshop cache dump to clear ALL workshop data
+      forceWorkshopCacheDump(queryClient);
       
       toast({
         title: "Progress Reset",
@@ -117,8 +118,8 @@ export function TestUsersModal({
       // Don't remove local storage progress
       // localStorage.removeItem(PROGRESS_STORAGE_KEY);
       
-      // Invalidate all queries to refresh data
-      queryClient.invalidateQueries();
+      // Use comprehensive workshop cache dump to clear ALL workshop data
+      forceWorkshopCacheDump(queryClient);
       
       toast({
         title: "User data cleared",
@@ -148,8 +149,8 @@ export function TestUsersModal({
       localStorage.removeItem(PROGRESS_STORAGE_KEY);
       localStorage.removeItem('imaginal-agility-navigation-progress');
       
-      // Invalidate all queries to refresh data
-      queryClient.invalidateQueries();
+      // Use comprehensive workshop cache dump to clear ALL workshop data
+      forceWorkshopCacheDump(queryClient);
       
       toast({
         title: "Complete reset",
@@ -186,8 +187,8 @@ export function TestUsersModal({
       return res.json();
     },
     onSuccess: () => {
-      // Invalidate all queries to ensure data is refreshed everywhere
-      queryClient.invalidateQueries();
+      // Use comprehensive workshop cache dump to clear ALL workshop data
+      forceWorkshopCacheDump(queryClient);
       
       toast({
         title: "Flow data cleared",

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
 import { useCoachingModal } from '@/hooks/useCoachingModal';
+import { useTestUser } from '@/hooks/useTestUser';
 import { StrengthData } from '@/types/coaching';
 
 // Simple debounce utility
@@ -52,7 +53,7 @@ export default function StepByStepReflection({
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
-  const isTestUser = true; // useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Talia coaching modal
   const { openModal } = useCoachingModal();
@@ -226,7 +227,7 @@ export default function StepByStepReflection({
 
   // Function to populate reflections with meaningful AST demo data
   const fillWithDemoData = async () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -631,14 +632,10 @@ export default function StepByStepReflection({
               ))}
             </ul>
 
-            <div className="mb-2">
-              <button 
-                onClick={() => openTaliaCoaching()}
-                className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                I'm not sure what to write
-              </button>
+            {/* Example suggestions instead of coaching link */}
+            <div className="mb-2 text-xs text-gray-600">
+              <p className="font-medium mb-1">Example:</p>
+              <p className="italic">{prompt.examples[0]}</p>
             </div>
           </div>
 
@@ -733,14 +730,10 @@ export default function StepByStepReflection({
               <li>How do you prefer to receive feedback?</li>
             </ul>
 
-            <div className="mb-2">
-              <button 
-                onClick={() => openTaliaCoaching()}
-                className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                I'm not sure what to write
-              </button>
+            {/* Example suggestions for team values */}
+            <div className="mb-2 text-xs text-gray-600">
+              <p className="font-medium mb-1">Example:</p>
+              <p className="italic">I thrive in environments with clear structure but room for flexibility. I value teams where everyone's input is heard and we maintain open, honest communication about both successes and challenges.</p>
             </div>
           </div>
 
@@ -790,14 +783,10 @@ export default function StepByStepReflection({
               How do these work together to create a unique perspective or approach?
             </p>
 
-            <div className="mb-2">
-              <button 
-                onClick={() => openTaliaCoaching()}
-                className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                I'm not sure what to write
-              </button>
+            {/* Example suggestions for unique contribution */}
+            <div className="mb-2 text-xs text-gray-600">
+              <p className="font-medium mb-1">Example:</p>
+              <p className="italic">My unique contribution comes from combining strong analytical thinking with a people-focused approach. This allows me to solve complex problems while ensuring solutions work well for everyone involved.</p>
             </div>
           </div>
 
@@ -1018,16 +1007,14 @@ export default function StepByStepReflection({
                 } rounded-md bg-white`}
               />
 
-
-
-              <div className="mt-3">
-                <button 
-                  onClick={() => openTaliaCoaching()}
-                  className="flex items-center text-xs font-medium text-indigo-600 hover:text-indigo-800 transition-colors"
-                >
-                  <MessageCircle className="h-3 w-3 mr-1" />
-                  I'm not sure what to write
-                </button>
+              {/* Show example based on current step */}
+              <div className="mt-3 text-xs text-gray-600">
+                <p className="font-medium mb-1">Example:</p>
+                <p className="italic">
+                  {currentStep <= 4 ? getCurrentExamples()[0] :
+                   currentStep === 5 ? "I thrive in environments with clear structure but room for flexibility. I value teams where everyone's input is heard and we maintain open, honest communication." :
+                   "My unique contribution comes from combining my analytical thinking with relationship-building skills to create solutions that are both effective and people-focused."}
+                </p>
               </div>
             </div>
           </div>
@@ -1045,7 +1032,7 @@ export default function StepByStepReflection({
             </button>
 
             <div className="flex items-center gap-3">
-              {isTestUser && (
+              {shouldShowDemoButtons && (
                 <button
                   onClick={fillWithDemoData}
                   disabled={workshopLocked || workshopLocked}

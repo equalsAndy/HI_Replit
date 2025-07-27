@@ -36,6 +36,7 @@ import {
 
 import { useAssessmentWithReset } from '@/hooks/use-assessment-with-reset';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useTestUser } from '@/hooks/useTestUser';
 import { getSectionProgress, SECTION_STEPS } from '@/utils/progressionLogic';
 
 interface UserHomeNavigationProps {
@@ -65,6 +66,9 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 }) => {
   // State to track if we're on mobile or not
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Test user check for restricted features
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Reset detection hooks - use single navigation progress hook instance
   const { progress: navigationProgress } = useNavigationProgress(isImaginalAgility ? 'ia' : 'ast');
@@ -483,12 +487,17 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 <div className="mr-2 flex-shrink-0">
                                   {isCompleted ? (
                                     <CheckCircle className="h-4 w-4 text-green-600 bg-white rounded-full" />
-                                  ) : !isAccessible ? (
+                                  ) : !isAccessible && !(isImaginalAgility && step.id === currentContent) ? (
                                     <Lock className="h-4 w-4 text-gray-400" />
                                   ) : null}
                                 </div>
 
-                                <span className="flex-1">{step.title}</span>
+                                <span className="flex-1">
+                                  {(step.id === '5-2' || step.id === '5-3') && !shouldShowDemoButtons 
+                                    ? `${step.title} (Coming Soon)`
+                                    : step.title
+                                  }
+                                </span>
 
                                 {/* Content type icons on the right side - 25% lighter */}
                                 <div className="ml-2 flex-shrink-0 opacity-75">

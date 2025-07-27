@@ -3,18 +3,42 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA_4_4_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+// Data structure for this step
+interface IA44StepData {
+  higherPurpose: string;
+  selectedChallenge: string;
+  aiPerspectives: string;
+  contribution: string;
+  bridgeName: string;
+  scaledContribution: string;
+}
+
 const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
-  const [higherPurpose, setHigherPurpose] = useState('');
-  const [selectedChallenge, setSelectedChallenge] = useState('');
-  const [aiPerspectives, setAiPerspectives] = useState('');
-  const [contribution, setContribution] = useState('');
-  const [bridgeName, setBridgeName] = useState('');
-  const [scaledContribution, setScaledContribution] = useState('');
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA44StepData = {
+    higherPurpose: '',
+    selectedChallenge: '',
+    aiPerspectives: '',
+    contribution: '',
+    bridgeName: '',
+    scaledContribution: ''
+  };
+  
+  // Use workshop step data persistence hook
+  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-4-4', initialData);
+  
+  // Destructure data for easier access
+  const { higherPurpose, selectedChallenge, aiPerspectives, contribution, bridgeName, scaledContribution } = data;
 
   const globalChallenges = [
     "Climate Change and Environmental Degradation",
@@ -24,23 +48,42 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
     "Human Rights in Conflict and Crisis"
   ];
 
-  const handleSaveInsight = () => {
-    console.log('Saving insight:', { 
-      higherPurpose, 
-      selectedChallenge, 
-      aiPerspectives, 
-      contribution, 
-      bridgeName,
-      scaledContribution 
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      higherPurpose: "To harness the power of human creativity and technology to solve complex challenges that improve lives and create a more equitable, sustainable world for future generations.",
+      selectedChallenge: "Climate Change and Environmental Degradation",
+      aiPerspectives: "AI could help by analyzing massive climate datasets to identify patterns and solutions, optimizing renewable energy systems, predicting environmental changes, and automating sustainable practices. However, human imagination is needed to envision innovative approaches, build social movements, create compelling narratives that motivate action, and design solutions that consider complex human and cultural factors that AI might miss.",
+      contribution: "I can contribute by developing creative communication strategies that make climate science accessible and actionable, building bridges between technical solutions and community needs, and using my unique perspective to identify overlooked opportunities for sustainable innovation in my field.",
+      bridgeName: "The Climate Imagination Bridge",
+      scaledContribution: "I envision creating a global network of 'Climate Imagination Hubs' where communities combine local knowledge with AI-powered insights to develop culturally-appropriate sustainability solutions, scaling from neighborhood projects to regional transformation initiatives."
     });
+    
+    console.log('IA 4-4 Content filled with demo data');
+  };
+
+  const handleSaveInsight = async () => {
+    try {
+      await saveNow();
+      console.log('Insight saved successfully');
+    } catch (error) {
+      console.error('Failed to save insight:', error);
+    }
   };
 
   const handleTryAnotherChallenge = () => {
-    setSelectedChallenge('');
-    setAiPerspectives('');
-    setContribution('');
-    setBridgeName('');
-    setScaledContribution('');
+    updateData({
+      selectedChallenge: '',
+      aiPerspectives: '',
+      contribution: '',
+      bridgeName: '',
+      scaledContribution: ''
+    });
   };
 
   return (
@@ -85,7 +128,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                 <Textarea
                   placeholder="Describe your higher purpose or core intention..."
                   value={higherPurpose}
-                  onChange={(e) => setHigherPurpose(e.target.value)}
+                  onChange={(e) => updateData({ higherPurpose: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -97,7 +140,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                   Pick one of the major issues below—or write your own. These are some of the most urgent and interconnected 
                   challenges facing our planet:
                 </p>
-                <Select value={selectedChallenge} onValueChange={setSelectedChallenge}>
+                <Select value={selectedChallenge} onValueChange={(value) => updateData({ selectedChallenge: value })}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a global challenge" />
                   </SelectTrigger>
@@ -126,7 +169,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                 <Textarea
                   placeholder="Paste the AI's three perspectives here..."
                   value={aiPerspectives}
-                  onChange={(e) => setAiPerspectives(e.target.value)}
+                  onChange={(e) => updateData({ aiPerspectives: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -141,7 +184,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                 <Textarea
                   placeholder="Describe a small but meaningful contribution you could make..."
                   value={contribution}
-                  onChange={(e) => setContribution(e.target.value)}
+                  onChange={(e) => updateData({ contribution: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -155,7 +198,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                 <Input
                   placeholder="Name your bridge contribution..."
                   value={bridgeName}
-                  onChange={(e) => setBridgeName(e.target.value)}
+                  onChange={(e) => updateData({ bridgeName: e.target.value })}
                   className="w-full"
                 />
               </div>
@@ -170,7 +213,7 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                 <Textarea
                   placeholder="Describe how your contribution could scale globally..."
                   value={scaledContribution}
-                  onChange={(e) => setScaledContribution(e.target.value)}
+                  onChange={(e) => updateData({ scaledContribution: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -197,7 +240,18 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
         </div>
       </div>
       
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button 
           onClick={() => onNext && onNext('ia-4-5')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"

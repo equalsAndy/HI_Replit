@@ -132,7 +132,7 @@ export default function FindYourFlow() {
   const [completedTabs, setCompletedTabs] = useState<string[]>([]);
   const { toast } = useToast();
   const [selectedAttributes, setSelectedAttributes] = useState<RankedAttribute[]>([]);
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // We'll get these values from the later declarations to avoid duplication
   
@@ -891,7 +891,7 @@ export default function FindYourFlow() {
                       </p>
                       
                       {/* Auto-complete button (visible only to test users) */}
-                      {isTestUser && (
+                      {shouldShowDemoButtons && (
                         <Button 
                           onClick={autoCompleteFlowAttributes}
                           variant="outline"

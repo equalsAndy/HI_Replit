@@ -61,8 +61,11 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   const { data: videos, ...query } = useVideosByWorkshop(workshopType);
   const userAccess = useCurrentUserAccess();
   
-  console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}" for access mode "${userAccess}"`);
-  console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId, contentMode: v.contentMode })));
+  // Reduced debug logging - only in dev mode
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎥 useVideoByStepId: Looking for stepId "${stepId}" in workshop "${workshopType}" for access mode "${userAccess}"`);
+    console.log(`🎥 Available videos:`, videos?.map(v => ({ stepId: v.stepId, title: v.title, editableId: v.editableId, contentMode: v.contentMode })));
+  }
   
   // Filter videos by stepId and user's content access mode
   const applicableVideos = videos?.filter(v => 
@@ -74,7 +77,9 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
   const video = applicableVideos?.find(v => v.contentMode === userAccess) 
                || applicableVideos?.find(v => v.contentMode === 'both');
   
-  console.log(`🎥 Found video for step ${stepId}:`, video ? { title: video.title, editableId: video.editableId, url: video.url, contentMode: video.contentMode } : 'No video found');
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎥 Found video for step ${stepId}:`, video ? { title: video.title, editableId: video.editableId, url: video.url, contentMode: video.contentMode } : 'No video found');
+  }
   
   return {
     ...query,
@@ -86,6 +91,9 @@ export function useVideoByStepId(workshopType: string, stepId: string) {
 export function useVideoByStep(stepId: string) {
   // Determine workshop type based on step ID pattern
   const workshopType = stepId.includes('-') ? 'allstarteams' : 'imaginal-agility';
-  console.log(`🎥 useVideoByStep: stepId "${stepId}" -> workshopType "${workshopType}"`);
+  // Debug logging disabled by default - set VITE_DEBUG_VIDEOS=true to enable
+  if (import.meta.env.DEV && import.meta.env.VITE_DEBUG_VIDEOS === 'true') {
+    console.log(`🎥 useVideoByStep: stepId "${stepId}" -> workshopType "${workshopType}"`);  
+  }
   return useVideoByStepId(workshopType, stepId);
 }

@@ -5,16 +5,39 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA32ContentProps {
   onNext?: (stepId: string) => void;
 }
 
+// Data structure for this step
+interface IA32StepData {
+  savedMoments: Array<{text: string, tag: string}>;
+  currentMomentText: string;
+  currentSelectedTag: string;
+}
+
 const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
   const [currentStep, setCurrentStep] = useState(1);
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA32StepData = {
+    savedMoments: [],
+    currentMomentText: '',
+    currentSelectedTag: ''
+  };
+  
+  // Use workshop step data persistence hook
+  const { data, updateData, saving, loaded, error } = useWorkshopStepData('ia', 'ia-3-2', initialData);
+  
+  // Local state for current input (not persisted until saved)
   const [momentText, setMomentText] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
-  const [savedMoments, setSavedMoments] = useState<Array<{text: string, tag: string}>>([]);
+  const savedMoments = data.savedMoments;
 
   const tags = [
     'Surprise',
@@ -29,7 +52,8 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
 
   const saveMoment = () => {
     if (momentText.trim() && selectedTag) {
-      setSavedMoments([...savedMoments, { text: momentText.trim(), tag: selectedTag }]);
+      const newMoments = [...savedMoments, { text: momentText.trim(), tag: selectedTag }];
+      updateData({ savedMoments: newMoments });
       setMomentText('');
       setSelectedTag('');
       setCurrentStep(1); // Reset to beginning for another moment
@@ -40,6 +64,25 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
     setMomentText('');
     setSelectedTag('');
     setCurrentStep(1);
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoMoments = [
+      { text: "A golden light shimmering through autumn leaves, creating dancing shadows on the forest floor", tag: "Beauty" },
+      { text: "The smell of my grandmother's kitchen and the sound of her humming while baking", tag: "Memory" },
+      { text: "A butterfly emerging from its chrysalis, wings still wet and trembling", tag: "Surprise" },
+      { text: "The vast expanse of the ocean horizon, making me wonder what lies beyond", tag: "Curiosity" }
+    ];
+    
+    updateData({ savedMoments: demoMoments });
+    setCurrentStep(5); // Go to final step to show completed state
+    console.log('IA 3-2 Content filled with demo Autoflow moments');
   };
 
   return (
@@ -227,7 +270,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         </Card>
       )}
       
-      <div className="flex justify-between mt-8">
+      <div className="flex justify-between items-center mt-8">
         <div>
           {savedMoments.length > 0 && (
             <p className="text-sm text-green-600 flex items-center">
@@ -235,12 +278,25 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
             </p>
           )}
         </div>
-        <Button 
-          onClick={() => onNext && onNext('ia-3-3')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
-        >
-          Next: Visualizing Your Potential
-        </Button>
+        <div className="flex items-center gap-3">
+          {shouldShowDemoButtons && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Add Demo Data
+            </Button>
+          )}
+          <Button 
+            onClick={() => onNext && onNext('ia-3-3')}
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          >
+            Continue to Visualizing Your Potential
+          </Button>
+        </div>
       </div>
     </div>
   );

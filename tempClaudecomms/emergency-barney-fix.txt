@@ -1,0 +1,32 @@
+# Emergency fix - Make Barney identical to admin in ALL aspects
+
+# 1. Make Barney have admin role temporarily to bypass participant logic
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('UPDATE users SET role = \\'admin\\' WHERE id = 8')
+  .then(() => console.log('✅ Made Barney admin role'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"
+
+# 2. Clear all sessions to force fresh login
+sudo docker exec staging-app node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: 'postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require'
+});
+pool.query('DELETE FROM sessions')
+  .then(() => console.log('✅ Cleared all sessions'))
+  .catch(err => console.error('Error:', err))
+  .finally(() => pool.end());
+"
+
+# 3. Restart container to clear any cached state
+sudo docker restart staging-app
+
+# 4. Wait for restart and check logs
+sleep 10
+sudo docker logs staging-app --tail 20

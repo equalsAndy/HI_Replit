@@ -54,7 +54,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   // Reset detection hooks
   const { progress: navigationProgress } = useNavigationProgress();
   const { assessmentData: flowAssessmentData, isReset: isFlowReset } = useAssessmentWithReset('flow-assessment', '/api/workshop-data/flow-assessment');
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // State for tracking answers - initialize with saved answers if available in localStorage
   const [answers, setAnswers] = useState<Record<number, number>>(() => {
@@ -166,7 +166,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
   
   // Demo answers feature
   const fillDemoAnswers = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -931,7 +931,7 @@ export default function FlowAssessment({ isCompleted = false, onTabChange, exist
           </div>
           
           <div className="flex items-center gap-3">
-            {isTestUser && (
+            {shouldShowDemoButtons && (
               <Button 
                 variant="outline" 
                 onClick={fillDemoAnswers}

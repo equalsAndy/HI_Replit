@@ -37,7 +37,7 @@ interface AssessmentModalProps {
 
 export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'ast' }: AssessmentModalProps) {
   const { toast } = useToast();
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
 
   // Get current user data to determine content access preference
   const { data: userData } = useQuery<{
@@ -479,7 +479,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
   // Auto-complete with demo answers for questions and submit to server
   // For demo mode, only fill the first 22 questions, then stop
   const handleDemoAnswers = async () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -943,7 +943,7 @@ export function AssessmentModal({ isOpen, onClose, onComplete, workshopType = 'a
           </div>
 
           <div className="flex items-center gap-3">
-            {isTestUser && (
+            {shouldShowDemoButtons && (
               <Button
                 variant="outline"
                 onClick={handleDemoAnswers}

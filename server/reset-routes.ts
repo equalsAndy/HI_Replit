@@ -155,6 +155,40 @@ resetRouter.post('/user/:userId', requireTestUser, async (req: Request, res: Res
       console.error(`Error deleting flow attribute assessments for user ${userId}:`, error);
     }
     
+    // Step 2.5: Delete IA assessment data
+    try {
+      // Check if IA assessment exists
+      const iaAssessments = await db
+        .select()
+        .from(schema.userAssessments)
+        .where(
+          and(
+            eq(schema.userAssessments.userId, userId),
+            eq(schema.userAssessments.assessmentType, 'iaCoreCapabilities')
+          )
+        );
+      
+      if (iaAssessments && iaAssessments.length > 0) {
+        console.log(`Found ${iaAssessments.length} IA assessments for user ${userId}, deleting them`);
+        
+        // Delete the IA assessments
+        await db
+          .delete(schema.userAssessments)
+          .where(
+            and(
+              eq(schema.userAssessments.userId, userId),
+              eq(schema.userAssessments.assessmentType, 'iaCoreCapabilities')
+            )
+          );
+        
+        console.log(`Successfully deleted IA assessments for user ${userId}`);
+      } else {
+        console.log(`No IA assessments found for user ${userId}`);
+      }
+    } catch (error) {
+      console.error(`Error deleting IA assessments for user ${userId}:`, error);
+    }
+    
     // Step 3: Reset user progress and navigation to initial state
     try {
       // Reset navigation progress to initial state instead of null
@@ -172,12 +206,21 @@ resetRouter.post('/user/:userId', requireTestUser, async (req: Request, res: Res
       await db.execute(sql`
         UPDATE users 
         SET navigation_progress = ${JSON.stringify(initialProgress)}, 
+            "workshopStepData" = NULL,
             updated_at = NOW() 
         WHERE id = ${userId}
       `);
       
       deletedData.userProgress = true;
-      console.log(`Reset navigation progress to initial state for user ${userId}`);
+      console.log(`Reset navigation progress to initial state and cleared workshop step data for user ${userId}`);
+      
+      // Also clear navigationProgress table entries for both AST and IA
+      try {
+        await db.execute(sql`DELETE FROM navigationProgress WHERE user_id = ${userId}`);
+        console.log(`Deleted navigationProgress table entries for user ${userId}`);
+      } catch (err) {
+        console.log(`No navigationProgress entries found for user ${userId} or table does not exist`);
+      }
       
       // If workshop participation data exists, delete that too
       try {

@@ -26,6 +26,7 @@ export default function AllStarTeams() {
   const [currentContent, setCurrentContent] = useState("welcome");
   const { toast } = useToast();
   const { currentApp, setCurrentApp } = useApplication();
+  const { shouldShowDemoButtons } = useTestUser();
   const {
     progress: navProgress,
     updateVideoProgress,
@@ -538,6 +539,18 @@ export default function AllStarTeams() {
   const isStepAccessible = (sectionId: string, stepId: string) => {
     // Use navigation progress unlocked steps instead of completed steps
     const unlockedSteps = navProgress?.unlockedSteps || [];
+    const completedSteps = navProgress?.completedSteps || [];
+
+    // Special logic for steps 5-2 and 5-3: only available to test users AND after final reflection completion
+    if (stepId === '5-2' || stepId === '5-3') {
+      const finalReflectionCompleted = completedSteps.includes('4-5');
+      const isTestUser = shouldShowDemoButtons;
+      
+      console.log(`🔓 Step ${stepId} accessibility check: isTestUser=${isTestUser}, finalReflectionCompleted=${finalReflectionCompleted}`);
+      
+      // Only available to test users who have completed final reflection
+      return isTestUser && finalReflectionCompleted;
+    }
 
     // Check if step is in unlocked steps
     const isUnlocked = unlockedSteps.includes(stepId);
@@ -563,7 +576,9 @@ export default function AllStarTeams() {
   };
 
   // Define a structure to map stepIds to navigation sequence for automatic progress
-  const navigationSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
+  // Dynamic function to handle navigation based on user type
+  const getNavigationSequence = () => {
+    const baseSequence: Record<string, { prev: string | null; next: string | null; contentKey: string }> = {
     // Section 1
     '1-1': { prev: null, next: '2-1', contentKey: 'welcome' },
 
@@ -594,7 +609,18 @@ export default function AllStarTeams() {
 
     // Section 6
     '6-1': { prev: '5-4', next: null, contentKey: 'workshop-resources' },
+    };
+
+    // For non-test users, modify navigation to skip 5-2 and 5-3
+    if (!shouldShowDemoButtons) {
+      baseSequence['5-1'] = { prev: '4-5', next: '5-4', contentKey: 'download-star-card' };
+      baseSequence['5-4'] = { prev: '5-1', next: '6-1', contentKey: 'team-workshop-prep' };
+    }
+
+    return baseSequence;
   };
+
+  const navigationSequence = getNavigationSequence();
 
   // Helper function to find step ID from content key
   const findStepIdFromContentKey = (contentKey: string): string | null => {

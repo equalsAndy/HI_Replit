@@ -25,7 +25,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
   
   // Validation state
@@ -153,7 +153,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
   // Function to populate with meaningful demo data including images
   const fillWithDemoData = async () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -431,7 +431,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
-          {isTestUser && !completed && (
+          {shouldShowDemoButtons && !completed && (
             <Button 
               variant="outline" 
               size="sm"

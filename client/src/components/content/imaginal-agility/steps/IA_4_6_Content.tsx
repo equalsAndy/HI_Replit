@@ -1,29 +1,74 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA_4_6_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+// Data structure for this step
+interface IA46StepData {
+  vision: string;
+  wordCount: number;
+}
+
 const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
-  const [vision, setVision] = useState('');
-  const [wordCount, setWordCount] = useState(0);
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA46StepData = {
+    vision: '',
+    wordCount: 0
+  };
+  
+  // Use workshop step data persistence hook
+  const { data, updateData, saving, loaded, error, saveNow } = useWorkshopStepData('ia', 'ia-4-6', initialData);
+  
+  // Destructure data for easier access
+  const { vision, wordCount } = data;
 
   const handleVisionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
     const words = text.trim().split(/\s+/).filter(word => word.length > 0);
-    setVision(text);
-    setWordCount(words.length);
+    updateData({
+      vision: text,
+      wordCount: words.length
+    });
   };
 
-  const handleSaveVision = () => {
-    console.log('Saving vision:', { vision, wordCount });
+  const handleSaveVision = async () => {
+    try {
+      await saveNow();
+      console.log('Vision saved successfully');
+    } catch (error) {
+      console.error('Failed to save vision:', error);
+    }
   };
 
   const handleDownloadJourney = () => {
     // This would trigger a download of the user's complete ladder journey
     console.log('Downloading ladder journey...');
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    const demoVision = "A world where imagination is recognized as humanity's greatest strategic asset, where every organization has dedicated spaces for creative thinking, and where the marriage of human imagination and artificial intelligence creates solutions to our most complex global challenges.";
+    const words = demoVision.trim().split(/\s+/).filter(word => word.length > 0);
+    
+    updateData({
+      vision: demoVision,
+      wordCount: words.length
+    });
+    
+    console.log('IA 4-6 Content filled with demo final vision data');
   };
 
   const isOverLimit = wordCount > 50;
@@ -145,7 +190,18 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
         </div>
       </div>
       
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button 
           onClick={() => onNext && onNext('ia-5-1')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"

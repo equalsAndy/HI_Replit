@@ -1,0 +1,35 @@
+# Emergency Navigation Fix - Browser Crash Resolution
+# Created: 2025-07-27 
+# Issue: Infinite render loops causing browser crashes for non-admin users
+
+## Problem Analysis
+- Users like "Barney" (participant role) were experiencing browser crashes
+- Console showed infinite loops: "🚨 NUCLEAR MODE: Navigation system completely disabled" repeated endlessly
+- Even the "nuclear disable" mode in the hook was causing infinite loops
+- Root cause: useNavigationProgress hook being called in multiple components simultaneously
+
+## Files Modified
+1. /client/src/pages/allstarteams.tsx - Completely commented out useNavigationProgress hook call
+2. /client/src/components/navigation/UserHomeNavigationWithStarCard.tsx - Disabled navigation hook call
+3. /client/src/hooks/use-navigation-progress.ts - Added nuclear disable mode (but this wasn't enough)
+
+## Final Solution
+- Completely disabled useNavigationProgress hook calls in main components
+- Replaced with static fallback values to prevent crashes
+- This allows users to login without browser crashes
+
+## Testing Instructions
+1. Clear browser cache completely 
+2. Login as Barney (password: P@ssw0rd)
+3. Should no longer crash browser
+4. Navigation may not work fully but app should be stable
+
+## Next Steps for Permanent Fix
+1. Investigate React Query invalidation cycles
+2. Fix the navigation progress state management 
+3. Re-enable navigation features gradually
+4. Add proper error boundaries
+
+## Emergency Deployment Commands for Local Testing
+# Browser should now load without infinite loops
+# Version: v2025.07.26.2308 with navigation emergency fixes

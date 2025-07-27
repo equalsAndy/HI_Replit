@@ -1,0 +1,16 @@
+## VM Docker Troubleshooting Commands - July 26, 2025
+## Issue: sudo docker run can't access ECR despite docker login success
+## Time: 10:23 AM
+
+# Option 1: Try pulling image manually first, then run with sudo -E
+docker images
+docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+sudo -E docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+
+# Option 2: Login with sudo to make credentials available to sudo commands
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1007
+
+# Verification after successful deployment
+curl -I http://34.220.143.127
+# Should show STAGING v2.0.10.0726.1007 badge in navbar

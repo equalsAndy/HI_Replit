@@ -1,0 +1,32 @@
+## Beta Tester Feature Deployment - July 26, 2025
+## Time: 11:19 AM
+## Changes: Fixed beta tester persistence + added Beta column to user table
+## New Version: v2.0.12.0726.1119
+
+# Local Commands (run these first):
+
+docker build --platform linux/amd64 -t staging-beta-fix .
+
+docker tag staging-beta-fix 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1119
+
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1119
+
+# VM Commands (run on staging VM):
+
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+sudo docker stop staging-app || true
+
+sudo docker rm staging-app || true
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-20250726-1119
+
+curl -I http://34.220.143.127
+
+## Expected Results:
+# ✅ Staging badge: "STAGING v2.0.12.0726.1119" 
+# ✅ Beta tester toggles persist after page reload
+# ✅ New "Beta" column shows purple dots for beta testers
+# ✅ Beta tester functionality fully restored

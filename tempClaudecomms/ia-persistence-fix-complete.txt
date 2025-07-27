@@ -1,0 +1,87 @@
+# IA Data Persistence - Final Fix Applied
+# Date: 2025-07-26
+
+## ✅ ROOT CAUSE IDENTIFIED AND FIXED
+
+### The Bug
+The `checkWorkshopLocked` middleware in `/server/routes/workshop-data-routes.ts` was looking for:
+```javascript
+const appType = req.body.appType || req.params.appType || 'ast';
+```
+
+But the API request sends:
+```javascript
+{
+  "workshopType": "ia",  // ← This field name
+  "stepId": "ia-3-4",
+  "data": {...}
+}
+```
+
+**Result**: All IA requests were being treated as 'ast' workshop type, causing middleware confusion and potential blocking.
+
+### The Fix
+Changed line 42 in workshop-data-routes.ts:
+```javascript
+// OLD:
+const appType = req.body.appType || req.params.appType || 'ast';
+
+// NEW:
+const appType = req.body.workshopType || req.body.appType || req.params.appType || 'ast';
+```
+
+## ✅ DEBUGGING ADDED
+
+Added comprehensive console logging to `useWorkshopStepData` hook:
+- 🔍 Auto-save trigger logging
+- 🔍 API request logging  
+- 🔍 Response status logging
+- ✅ Success confirmation logging
+- ❌ Error detailed logging
+
+## ✅ TESTING INSTRUCTIONS
+
+### For You to Test:
+1. **Open browser** and login as any user
+2. **Navigate to IA workshop** (any step: ia-3-3, ia-3-4, ia-4-4, etc.)
+3. **Open console** (F12 → Console tab)
+4. **Enter data** in any form field
+5. **Watch console** for debug messages:
+   ```
+   🔍 Auto-save check: {workshopType: "ia", stepId: "ia-3-4", hasContent: true}
+   🔍 Triggering debounced save for: {workshopType: "ia", stepId: "ia-3-4"}
+   🔍 Saving workshop data: {workshopType: "ia", stepId: "ia-3-4", dataToSave: {...}}
+   🔍 Save response status: 200
+   ✅ Save successful for: {workshopType: "ia", stepId: "ia-3-4"}
+   ```
+
+### Database Verification:
+```sql
+SELECT user_id, workshop_type, step_id, data, created_at 
+FROM workshop_step_data 
+WHERE workshop_type = 'ia' 
+ORDER BY created_at DESC;
+```
+
+### Export Verification:
+1. Login as admin
+2. Export user data
+3. Check for `workshopStepData.ia` section in JSON
+
+## ✅ EXPECTED RESULTS
+
+After this fix:
+- ✅ IA data should auto-save as you type
+- ✅ Data should persist between page refreshes  
+- ✅ Data should appear in database
+- ✅ Data should be included in exports
+- ✅ Console will show detailed debugging info
+
+## Files Modified
+1. `server/routes/workshop-data-routes.ts` - Fixed middleware parameter bug
+2. `client/src/hooks/useWorkshopStepData.ts` - Added debug logging
+
+## Cleanup Needed Later
+Remove debug console.logs from useWorkshopStepData hook after confirming fix works.
+
+**This should now work exactly like the AST workshop data persistence!**

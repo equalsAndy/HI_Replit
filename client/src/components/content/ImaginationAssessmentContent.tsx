@@ -20,7 +20,7 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
   const [isDemoMode, setIsDemoMode] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const isTestUser = useTestUser();
+  const { shouldShowDemoButtons } = useTestUser();
 
   // Demo answers for testing
   const demoAnswers = {
@@ -273,7 +273,7 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
   };
 
   const fillDemoAnswers = () => {
-    if (!isTestUser) {
+    if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
       return;
     }
@@ -538,7 +538,7 @@ const ImaginationAssessmentContent = ({ navigate, markStepCompleted, setCurrentC
               <span>• Courage</span>
             </div>
           </div>
-          {isTestUser && (
+          {shouldShowDemoButtons && (
             <button
               onClick={fillDemoAnswers}
               className="ml-4 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg border border-gray-300 hover:bg-gray-200 transition-colors text-sm font-medium"

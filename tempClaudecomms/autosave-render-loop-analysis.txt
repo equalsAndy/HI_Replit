@@ -1,0 +1,112 @@
+# Autosave + Video Logging Render Loop Analysis
+# Date: 2025-07-26
+
+## 🔄 THE PERFECT STORM IDENTIFIED
+
+You are absolutely right! The excessive video logging was a symptom of a deeper problem with autosave causing render loops.
+
+### Root Cause Chain:
+1. **User types in IA form** → triggers data change
+2. **useWorkshopStepData autosave effect** → triggers on data change  
+3. **Autosave attempts POST request** → gets 500 error
+4. **500 error triggers state update** → causes component re-render
+5. **Re-render triggers video hooks** → logs video debug messages
+6. **Debounced save fails** → doesn't reset properly, stays in loop
+7. **Loop continues on every keystroke** → excessive logging
+
+### The Broken Autosave Cycle:
+
+```javascript
+// Every keystroke:
+useEffect(() => {
+  if (hasContent) {
+    debouncedSave(data); // ← This fails with 500 error
+  }
+}, [data, enableAutoSave, loaded, debouncedSave]); // ← debouncedSave recreated
+```
+
+**Problem 1**: `debouncedSave` depends on `saveData` which depends on callback dependencies
+**Problem 2**: Failed saves don't prevent the effect from re-triggering
+**Problem 3**: State updates from failed saves cause new renders → new debounced saves
+
+### Why It's Worse for IA vs AST:
+- **AST autosave works** → saves succeed, stops triggering
+- **IA autosave fails** → 500 errors cause continuous re-renders
+- **Video hooks run on every render** → logging explosion
+
+## 🔍 Evidence in the Code:
+
+### Dependency Chain Issue:
+```javascript
+// saveData recreated when dependencies change
+const saveData = useCallback(async (dataToSave: T) => {
+  // ... save logic
+}, [workshopType, stepId, onSaveSuccess, onSaveError]);
+
+// debouncedSave recreated when saveData changes  
+const debouncedSave = useMemo(
+  () => debounce(saveData, debounceMs),
+  [saveData, debounceMs] // ← saveData changes, debouncedSave recreates
+);
+
+// Effect runs when debouncedSave changes
+useEffect(() => {
+  if (hasContent) {
+    debouncedSave(data); // ← New debounced function on every change
+  }
+}, [data, enableAutoSave, loaded, debouncedSave]); // ← Always re-runs
+```
+
+### Failed Save State Loop:
+```javascript
+// In saveData function:
+setSaving(true);   // ← Triggers render
+setError(null);    // ← Triggers render  
+
+// On 500 error:
+setError(error.message); // ← Triggers render
+setSaving(false);        // ← Triggers render
+
+// Each render → new debouncedSave → new useEffect trigger
+```
+
+## 🛠️ The Fixes Needed:
+
+### 1. Fix the 500 Error (Primary)
+- Solve the IA data persistence 500 error
+- This stops the failed save → render loop
+
+### 2. Optimize Autosave Dependencies (Secondary)
+- Stabilize debouncedSave to prevent unnecessary re-creation
+- Add error state handling to prevent re-trigger on failures
+
+### 3. Add Save State Guards (Tertiary)
+- Don't attempt saves while previous save is in progress
+- Don't re-trigger autosave immediately after failures
+
+## 🎯 Why Video Logging Fix Was Still Good:
+1. **Reduced noise** during development
+2. **Identified the real problem** - render loops from autosave
+3. **Preserved debugging capability** for when we need it
+4. **Made console usable** for debugging the 500 error
+
+## 📊 Performance Impact:
+```
+Without IA data persistence working:
+- Every keystroke → failed autosave → render → video hooks → logs
+- Multiply by number of video hooks called per render
+- Result: 4-8 console messages per keystroke
+
+With IA data persistence working:
+- Every keystroke → successful autosave → minimal re-renders
+- Debounced saves work properly → less frequent triggers
+- Result: Clean console, working autosave
+```
+
+## 🔗 Connection to KAN-134:
+The video management system works fine - it was just caught in the crossfire of the autosave render loop. Once IA persistence is fixed:
+- Video tracking features can be safely developed
+- Debug logging can be re-enabled cleanly
+- Performance will be normal
+
+**This confirms that fixing the IA 500 error is the key to solving both issues!** 🎯

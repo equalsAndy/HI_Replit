@@ -1,30 +1,68 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { FileText } from 'lucide-react';
+import { useTestUser } from '@/hooks/useTestUser';
+import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
 interface IA_4_5_ContentProps {
   onNext?: (nextStepId: string) => void;
 }
 
+// Data structure for this step
+interface IA45StepData {
+  interludePatterns: string;
+  musePrompt: string;
+  museConversation: string;
+  museName: string;
+}
+
 const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
-  const [interludePatterns, setInterludePatterns] = useState('');
-  const [musePrompt, setMusePrompt] = useState('');
-  const [museConversation, setMuseConversation] = useState('');
-  const [museName, setMuseName] = useState('');
+  const { shouldShowDemoButtons } = useTestUser();
+  
+  // Initialize with empty data structure
+  const initialData: IA45StepData = {
+    interludePatterns: '',
+    musePrompt: '',
+    museConversation: '',
+    museName: ''
+  };
+  
+  // Use the new persistence hook
+  const { data, updateData, saving, loaded, error } = useWorkshopStepData(
+    'ia',
+    'ia-4-5',
+    initialData
+  );
 
   const handleSaveInsight = () => {
-    console.log('Saving insight:', { 
-      interludePatterns, 
-      musePrompt, 
-      museConversation, 
-      museName 
-    });
+    // Data is already being auto-saved via the hook
+    console.log('Insight data saved:', data);
   };
 
   const handleTryAnotherVisit = () => {
-    setMusePrompt('');
-    setMuseConversation('');
-    setMuseName('');
+    updateData({
+      musePrompt: '',
+      museConversation: '',
+      museName: ''
+    });
+  };
+
+  // Demo data function for test users
+  const fillWithDemoData = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    updateData({
+      interludePatterns: "I notice that my most creative insights come during transitions - walking between meetings, the quiet moments before sleep, or when I'm doing routine tasks like washing dishes. There's a pattern of creative sparks emerging when my analytical mind is occupied but not overwhelmed, creating space for intuitive connections to surface.",
+      musePrompt: "What would it look like if I approached my work as a collaboration with creativity itself, rather than trying to force innovative solutions through pure effort?",
+      museConversation: "Creativity whispers: 'Stop trying to control me and start dancing with me. Your best ideas come when you create spaciousness, not pressure. Trust the process of not-knowing, let questions breathe, and remain curious about what wants to emerge. I work through you when you stop trying to work so hard. Play more, trust more, and I'll show you possibilities you never could have planned.'",
+      museName: "The Creative Flow"
+    });
+    
+    console.log('IA 4-5 Content filled with demo inspiration support data');
   };
 
   return (
@@ -68,8 +106,8 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Describe the patterns you noticed in your inspiration moments..."
-                  value={interludePatterns}
-                  onChange={(e) => setInterludePatterns(e.target.value)}
+                  value={data.interludePatterns}
+                  onChange={(e) => updateData({ interludePatterns: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -92,8 +130,8 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
                 </div>
                 <Textarea
                   placeholder="Paste the AI's description of your Muse here..."
-                  value={musePrompt}
-                  onChange={(e) => setMusePrompt(e.target.value)}
+                  value={data.musePrompt}
+                  onChange={(e) => updateData({ musePrompt: e.target.value })}
                   className="w-full h-24"
                 />
               </div>
@@ -111,8 +149,8 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
                 </ul>
                 <Textarea
                   placeholder="Record your conversation with the Muse - questions, responses, images, emotions..."
-                  value={museConversation}
-                  onChange={(e) => setMuseConversation(e.target.value)}
+                  value={data.museConversation}
+                  onChange={(e) => updateData({ museConversation: e.target.value })}
                   className="w-full h-32"
                 />
               </div>
@@ -125,8 +163,8 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
                 </p>
                 <Textarea
                   placeholder="Name your Muse or describe its essence..."
-                  value={museName}
-                  onChange={(e) => setMuseName(e.target.value)}
+                  value={data.museName}
+                  onChange={(e) => updateData({ museName: e.target.value })}
                   className="w-full h-20"
                 />
               </div>
@@ -147,9 +185,9 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
             <Button 
               onClick={handleSaveInsight}
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-2"
-              disabled={!interludePatterns || !museName}
+              disabled={saving || !data.interludePatterns || !data.museName}
             >
-              Save Insight
+              {saving ? 'Saving...' : 'Save Insight'}
             </Button>
             <Button 
               onClick={handleTryAnotherVisit}
@@ -162,12 +200,24 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
         </div>
       </div>
       
-      <div className="flex justify-end mt-8">
+      <div className="flex justify-end items-center gap-3 mt-8">
+        {shouldShowDemoButtons && (
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={fillWithDemoData}
+            className="text-purple-600 hover:text-purple-800 hover:bg-purple-50"
+          >
+            <FileText className="w-4 h-4 mr-2" />
+            Add Demo Data
+          </Button>
+        )}
         <Button 
           onClick={() => onNext && onNext('ia-4-6')}
           className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+          disabled={saving}
         >
-          Continue to Final Vision
+          {saving ? 'Saving...' : 'Continue to Nothing is Unimaginable'}
         </Button>
       </div>
     </div>

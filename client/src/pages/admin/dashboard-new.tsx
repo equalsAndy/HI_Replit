@@ -1,8 +1,12 @@
 import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserManagement as FullUserManagement } from '../../components/admin/UserManagement';
+import FeedbackManagement from '../../components/admin/FeedbackManagement';
 import { useToast } from '../../hooks/use-toast';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import VersionInfo from '../../components/ui/VersionInfo';
+import { FeedbackTrigger } from '../../components/feedback/FeedbackTrigger';
+import { detectCurrentPage } from '../../utils/pageContext';
 
 // Simple navigation hook
 const useLocation = () => {
@@ -1428,6 +1432,11 @@ export default function AdminDashboard() {
 
   const hasManagementAccess = currentUser.role === 'admin' || currentUser.role === 'facilitator';
   const isAdmin = currentUser.role === 'admin';
+  
+  console.log('🔍 Admin Check Debug:');
+  console.log('currentUser.role:', currentUser.role);
+  console.log('hasManagementAccess:', hasManagementAccess);
+  console.log('isAdmin:', isAdmin);
 
   if (!hasManagementAccess) {
     return (
@@ -1444,12 +1453,27 @@ export default function AdminDashboard() {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <h1 style={styles.title}>
-            {isAdmin ? 'Admin Console' : 'Facilitator Console'}
-          </h1>
-          <p style={styles.subtitle}>
-            Logged in as {currentUser.name} ({currentUser.role}) • {currentUser.email}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+            <h1 style={styles.title}>
+              {isAdmin ? 'Admin Console' : 'Facilitator Console'}
+            </h1>
+            <VersionInfo variant="detailed" />
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <p style={styles.subtitle}>
+              Logged in as {currentUser.name} ({currentUser.role}) • {currentUser.email}
+            </p>
+            <FeedbackTrigger 
+              currentPage={{
+                title: 'Admin Console',
+                workshop: 'ast',
+                workshopName: 'Management Dashboard',
+                url: window.location.pathname
+              }}
+              variant="text"
+              className="text-blue-600 hover:text-blue-800 text-xs"
+            />
+          </div>
         </div>
         <div style={styles.headerActions}>
           <div style={{
@@ -1549,14 +1573,14 @@ export default function AdminDashboard() {
 
       <div style={styles.tabsContainer}>
         <div style={styles.tabsList}>
-          {['users', 'cohorts', 'invites', 'videos'].map((tab) => (
+          {['users', 'invites', 'videos', 'feedback'].map((tab) => (
             <button
               key={tab}
               style={{
                 ...styles.tab,
                 ...(activeTab === tab ? styles.activeTab : {}),
                 ...(tab === 'videos' && !isAdmin ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
-                ...(tab === 'cohorts' ? { opacity: 0.5, cursor: 'not-allowed' } : {})
+                ...(tab === 'cohorts' ? { opacity: 0.5, cursor: 'not-allowed' } : {}),
               }}
               onClick={() => {
                 if (tab === 'videos' && !isAdmin) return;
@@ -1566,18 +1590,18 @@ export default function AdminDashboard() {
               disabled={(tab === 'videos' && !isAdmin) || tab === 'cohorts'}
             >
               {tab === 'users' && 'User Management'}
-              {tab === 'cohorts' && 'Cohort Management (Disabled)'}
               {tab === 'invites' && 'Invite Management'}
               {tab === 'videos' && `Video Management ${!isAdmin ? '(Admin Only)' : ''}`}
+              {tab === 'feedback' && 'Feedback Management'}
             </button>
           ))}
         </div>
 
         <div style={styles.tabContent}>
           {activeTab === 'users' && <UserManagement />}
-          {activeTab === 'cohorts' && <CohortManagement />}
           {activeTab === 'invites' && <InviteManagement />}
           {activeTab === 'videos' && isAdmin && <SimpleVideoManagement />}
+          {activeTab === 'feedback' && <FeedbackManagement />}
         </div>
       </div>
     </div>

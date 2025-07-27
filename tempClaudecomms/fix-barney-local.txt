@@ -1,0 +1,38 @@
+# Fix Barney's data in local development
+
+# Run this in terminal to fix Barney's user data
+node -e "
+const { Pool } = require('pg');
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+async function fixBarney() {
+  try {
+    // Make Barney's data structure identical to a working user
+    await pool.query(\`
+      UPDATE users SET 
+        role = 'participant',
+        content_access = 'professional',
+        ia_access = true,
+        navigation_progress = NULL,
+        is_test_user = true,
+        is_beta_tester = true,
+        show_demo_data_buttons = true
+      WHERE username = 'barney'
+    \`);
+    
+    // Clear any problematic navigation data
+    await pool.query('DELETE FROM navigation_progress WHERE user_id = 8');
+    await pool.query('DELETE FROM user_assessments WHERE user_id = 8');
+    await pool.query('DELETE FROM workshop_step_data WHERE user_id = 8');
+    
+    console.log('✅ Fixed Barney in local dev');
+  } catch (err) {
+    console.error('Error:', err);
+  } finally {
+    pool.end();
+  }
+}
+fixBarney();
+"

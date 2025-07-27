@@ -2,6 +2,7 @@ import express from 'express';
 import { userManagementService } from '../services/user-management-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { validateInviteCode } from '../utils/invite-code.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -258,6 +259,83 @@ router.post('/check-username', async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to check username availability'
+    });
+  }
+});
+
+/**
+ * Change user password
+ */
+router.post('/change-password', requireAuth, async (req, res) => {
+  try {
+    const userId = (req.session as any).userId;
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required'
+      });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+
+    // Validate inputs
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'New password must be at least 6 characters'
+      });
+    }
+
+    // Get current user to verify current password
+    const userResult = await userManagementService.getUserById(userId);
+    if (!userResult.success) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const user = userResult.user;
+
+    // Verify current password
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isCurrentPasswordValid) {
+      return res.status(400).json({
+        success: false,
+        error: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const saltRounds = 10;
+    const hashedNewPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    // Update password in database
+    const updateResult = await userManagementService.updateUserPassword(userId, hashedNewPassword);
+    if (!updateResult.success) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update password'
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Password updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to change password. Please try again later.'
     });
   }
 });
