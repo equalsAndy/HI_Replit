@@ -28,7 +28,10 @@ This is a dual-workshop platform hosting **AST (AllStarTeams)** and **IA (Imagin
 │   └── package.json
 ├── shared/                   # Shared TypeScript types & schemas
 ├── docker-compose.yml        # Local development environment
-└── docs/                    # Project documentation
+├── docs/                    # Project documentation
+├── JiraTickets/             # Jira ticket templates for issue tracking
+├── tempClaudecomms/         # Temporary command files for SSH operations
+└── Claude Code prompts/     # Custom prompts and instructions for Claude Code
 ```
 
 ## 🔧 Development Environment
@@ -50,11 +53,8 @@ git pull origin development
 npm install
 
 # Start development environment
-# Terminal 1: Server
-cd server && npm run dev
-
-# Terminal 2: Client  
-cd client && npm run dev
+# Single command from root (runs both server and client)
+npm run dev
 
 # Application runs on: http://localhost:8080
 ```
@@ -342,6 +342,11 @@ When providing SSH commands:
   - Include timestamp and clear description in the file
   - Keep each command on a single line for easy copy/paste
 
+### **SSH Access to Staging VM**
+```bash
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+```
+
 ### **Production Deployment (Tag-Based)**
 ```bash
 # CAREFUL: Production is protected
@@ -440,8 +445,74 @@ npm run build:production
 - ⚠️ **Test staging before production deployment**
 - ⚠️ **Use existing service `hi-replit-v2`** (don't create new services)
 - ⚠️ **Build with `--platform linux/amd64`** for VM/container compatibility on Apple Silicon
+- ⚠️ **ECR image tags must include architecture suffix** (e.g., `-amd64`) for VM deployments
 - ⚠️ **Include `NODE_TLS_REJECT_UNAUTHORIZED=0`** in environment for database SSL issues
 - ⚠️ **Use version-manager.sh** for proper semantic versioning
+
+## 🤖 Claude Code Integration & Capabilities
+
+### **What Claude Code CAN Do**
+- ✅ **Local Development**: Read, write, edit files in the project directory
+- ✅ **Build & Package**: Run npm scripts, Docker builds, version management
+- ✅ **Code Analysis**: Search, debug, analyze codebase issues
+- ✅ **Command Preparation**: Create deployment scripts in `/tempClaudecomms/`
+- ✅ **Jira Ticket Creation**: Write detailed tickets in `/JiraTickets/` folder
+- ✅ **AWS ECR Operations**: Login, build, tag, and push Docker images
+- ✅ **Git Operations**: Commits, branching, tagging (with proper `-m` flags)
+- ✅ **Documentation**: Update CLAUDE.md, create technical documentation
+- ✅ **Issue Troubleshooting**: Analyze logs, console output, error messages
+- ✅ **Custom Prompts**: Read and execute specialized prompts from `/Claude Code prompts/`
+
+### **What Claude Code CANNOT Do**
+- ❌ **SSH Access**: Cannot directly SSH into servers or VMs
+- ❌ **Remote Execution**: Cannot run commands on staging/production servers
+- ❌ **Direct Jira Access**: Cannot create tickets directly in Jira system
+- ❌ **Server Management**: Cannot restart services, check server status directly
+- ❌ **Database Access**: Cannot directly query or modify databases
+- ❌ **Live Debugging**: Cannot interact with running applications in real-time
+
+### **Command Handoff Process**
+1. **Claude Prepares Commands**: Creates files in `/tempClaudecomms/` with exact commands
+2. **User Executes**: Copy/paste commands to appropriate environment (local/SSH/etc.)
+3. **Results Feedback**: User shares output/errors back to Claude for analysis
+4. **Iterative Resolution**: Claude analyzes results and prepares next steps
+
+**Example Flow:**
+```bash
+# Claude creates: /tempClaudecomms/deploy-staging.txt
+# User runs on VM: ssh ubuntu@staging-server
+# User executes: commands from deploy-staging.txt
+# User reports: "deployment successful" or shares error output
+# Claude analyzes and prepares next steps
+```
+
+### **Custom Prompt Management**
+The `/Claude Code prompts/` folder contains specialized prompts and instructions for specific tasks:
+
+**Usage Process:**
+1. **Request Prompt**: User asks Claude to read specific prompt from the folder
+2. **Execute Instructions**: Claude reads and follows the prompt's instructions
+3. **Complete Task**: Claude performs the specialized task as directed
+4. **Archive When Done**: When prompt is no longer needed, append `-archive` to filename
+
+**Naming Convention:**
+- Active prompts: `task-description.md` or `feature-name.txt`
+- Archived prompts: `task-description-archive.md` or `feature-name-archive.txt`
+
+**Example:**
+```bash
+# Active prompt
+/Claude Code prompts/database-migration-helper.md
+
+# After completion, rename to
+/Claude Code prompts/database-migration-helper-archive.md
+```
+
+This system allows for:
+- Reusable specialized instructions
+- Complex multi-step task automation  
+- Historical tracking of completed processes
+- Clean organization of active vs. completed prompts
 
 ## 📊 Project Management Integration
 
@@ -450,6 +521,43 @@ npm run build:production
 - **KAN**: Development tasks and bugs  
 - **AWB**: Assets and brand materials
 - **CR**: Research and experiments
+
+### **Jira Ticket Management Process**
+When Claude Code identifies issues that require Jira tickets:
+
+1. **Ticket Creation**: Claude writes ticket details in `/JiraTickets/` folder using this format:
+   - Filename: `[PROJECT]-[brief-description].md` (e.g., `KAN-excessive-debug-logging.md`)
+   - Contains: Issue type, project, priority, summary, description, acceptance criteria, technical notes
+   
+2. **Manual Creation**: User copies ticket details from the markdown file and creates the actual Jira ticket
+   
+3. **File Organization**: Keep completed tickets in `/JiraTickets/` for reference and tracking
+
+**Example Ticket Structure:**
+```markdown
+# [PROJECT] - [Title]
+**Issue Type:** Bug/Story/Task
+**Project:** KAN/SA/AWB/CR
+**Priority:** High/Medium/Low
+**Reporter:** Claude Code
+**Date Created:** YYYY-MM-DD
+
+## Summary
+Brief one-line description
+
+## Description
+Detailed description with impact
+
+## Acceptance Criteria
+1. Specific measurable criteria
+2. Technical requirements
+3. Performance targets
+
+## Technical Notes
+- Implementation details
+- Files involved
+- Architecture considerations
+```
 
 ### **Confluence Documentation**
 - **SAHI Space**: Product and technical documentation
