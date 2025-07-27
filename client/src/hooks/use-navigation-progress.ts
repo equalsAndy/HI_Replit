@@ -194,8 +194,8 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
     const expansion = {
       '1': true,  // Welcome - always expanded initially
       '2': true,  // I4C Model - always expanded initially
-      '3': false, // Ladder of Imagination
-      '4': false, // Advanced Ladder
+      '3': true,  // Ladder of Imagination - expanded initially
+      '4': true,  // Advanced Ladder - expanded initially
       '5': false, // Outcomes & Benefits
       '6': false, // Quarterly Tune-up
       '7': false  // Additional Info
@@ -430,7 +430,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
     unlockedSteps: appType === 'ia' ? ['ia-1-1'] : ['1-1'],
     videoProgress: {},
     sectionExpansion: appType === 'ia' ? 
-      { '1': true, '2': true, '3': false, '4': false, '5': false, '6': false, '7': false } :
+      { '1': true, '2': true, '3': true, '4': true, '5': false, '6': false, '7': false } :
       { '1': true, '2': true, '3': false, '4': false, '5': false, '6': false },
     workshopCompleted: false
   });
