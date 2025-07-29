@@ -1,0 +1,33 @@
+# ===================================================================
+# STAGING VM DEPLOYMENT COMMANDS v2.1.7
+# ===================================================================
+# Date: 2025-07-27 11:45
+# Fix: IA Navigation - Remove lock icons from current steps
+# Image: staging-v2.1.7-20250727-1145
+# 
+# SSH to staging VM: ssh -i keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+# Then run these commands:
+# ===================================================================
+
+# 1. Create environment file (line by line to avoid truncation)
+echo 'NODE_ENV=staging' > staging.env
+echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
+echo 'ENVIRONMENT=staging' >> staging.env
+
+# 2. Stop and remove existing container
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+
+# 3. Deploy new container
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.1.7-20250727-1145
+
+# 4. Verify deployment
+curl -I http://34.220.143.127
+curl http://34.220.143.127/api/health
+
+echo "=== DEPLOYMENT COMPLETE ==="
+echo "Version: STAGING v2.1.7"
+echo "Fix: IA navigation current steps no longer show lock icons"
+echo "Test URL: http://34.220.143.127"

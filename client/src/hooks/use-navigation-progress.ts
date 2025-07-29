@@ -170,12 +170,18 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
   // BRANCH 2: 4-5 completion unlocks all remaining resources
   if (completedSteps.includes('4-5')) {
     const resources = ['5-2', '5-3', '5-4', '6-1'];
+    console.log(`🎯 HOLISTIC REPORT DEBUG: Step 4-5 is completed, unlocking resources:`, resources);
     resources.forEach(stepId => {
       if (!unlocked.includes(stepId)) {
         unlocked.push(stepId);
         console.log(`🏆 COMPLETION: Step 4-5 completed → unlocked ${stepId} (final resource)`);
+        if (stepId === '5-2') {
+          console.log(`🎯 HOLISTIC REPORT DEBUG: Successfully unlocked holistic report (5-2)!`);
+        }
       }
     });
+  } else {
+    console.log(`🎯 HOLISTIC REPORT DEBUG: Step 4-5 NOT completed. Current completed steps:`, completedSteps);
   }
 
   console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);

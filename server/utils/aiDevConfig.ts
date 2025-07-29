@@ -6,7 +6,7 @@ export const aiDevConfig = {
   claude: {
     enabled: process.env.ENVIRONMENT === 'development',
     apiKey: process.env.CLAUDE_API_KEY,
-    model: 'claude-3-sonnet-20240229',
+    model: 'claude-3-5-sonnet-20241022',
     maxTokens: 4000,
     temperature: 0.7,
     timeout: 30000

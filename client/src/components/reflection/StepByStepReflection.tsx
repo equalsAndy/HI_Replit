@@ -3,6 +3,8 @@ import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
 import { useCoachingModal } from '@/hooks/useCoachingModal';
 import { useTestUser } from '@/hooks/useTestUser';
 import { StrengthData } from '@/types/coaching';
+import ReflectionCoachingButton from '@/components/coaching/ReflectionCoachingButton';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 // Simple debounce utility
 const debounce = (func: Function, wait: number) => {
@@ -49,11 +51,13 @@ export default function StepByStepReflection({
   setCurrentContent,
   markStepCompleted
 }: StepByStepReflectionProps) {
+  
   // State for managing reflection steps
   const [currentStep, setCurrentStep] = useState(1);
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
-  const { shouldShowDemoButtons } = useTestUser();
+  const { shouldShowDemoButtons, isTestUser, user } = useTestUser();
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Talia coaching modal
   const { openModal } = useCoachingModal();
@@ -290,11 +294,39 @@ export default function StepByStepReflection({
 
   // Sort quadrants by score to determine strength order (highest first)
   const sortedQuadrants = [
-    { key: 'planning', label: 'PLANNING', color: QUADRANT_COLORS.planning, score: starCard?.planning || 0 },
-    { key: 'acting', label: 'ACTING', color: QUADRANT_COLORS.acting, score: starCard?.acting || 0 },
-    { key: 'feeling', label: 'FEELING', color: QUADRANT_COLORS.feeling, score: starCard?.feeling || 0 },
-    { key: 'thinking', label: 'THINKING', color: QUADRANT_COLORS.thinking, score: starCard?.thinking || 0 }
+    { key: 'planning', label: 'PLANNING', color: QUADRANT_COLORS.planning, score: starCard?.planning || 0, value: starCard?.planning || 0 },
+    { key: 'acting', label: 'ACTING', color: QUADRANT_COLORS.acting, score: starCard?.acting || 0, value: starCard?.acting || 0 },
+    { key: 'feeling', label: 'FEELING', color: QUADRANT_COLORS.feeling, score: starCard?.feeling || 0, value: starCard?.feeling || 0 },
+    { key: 'thinking', label: 'THINKING', color: QUADRANT_COLORS.thinking, score: starCard?.thinking || 0, value: starCard?.thinking || 0 }
   ].sort((a, b) => b.score - a.score);
+
+  // Update floating AI context when step or strength changes
+  useEffect(() => {
+    if (sortedQuadrants && sortedQuadrants.length > 0 && currentStep <= 4) {
+      const currentStrength = sortedQuadrants[currentStep - 1];
+      setFloatingAIStep(`2-4`); // Always step 2-4 for strength reflection
+      updateContext({
+        stepName: `Strength Reflection`,
+        strengthLabel: currentStrength?.label,
+        questionText: getStrengthPrompt(currentStrength?.label)?.question,
+        aiEnabled: true
+      });
+    } else if (currentStep === 5) {
+      updateContext({
+        stepName: `Team Values`,
+        strengthLabel: undefined,
+        questionText: "What do you value most in team environments?",
+        aiEnabled: true
+      });
+    } else if (currentStep === 6) {
+      updateContext({
+        stepName: `Unique Contribution`,
+        strengthLabel: undefined,
+        questionText: "What is your unique contribution to teams?",
+        aiEnabled: true
+      });
+    }
+  }, [currentStep, sortedQuadrants, updateContext, setFloatingAIStep]);
 
   // Get current top strength
   const topStrength = sortedQuadrants[0];
@@ -632,7 +664,13 @@ export default function StepByStepReflection({
               ))}
             </ul>
 
-            {/* Example suggestions instead of coaching link */}
+            {!shouldShowDemoButtons && (
+              <div className="text-xs text-gray-500 italic">
+                Coaching only available for test users
+              </div>
+            )}
+
+            {/* Example suggestions */}
             <div className="mb-2 text-xs text-gray-600">
               <p className="font-medium mb-1">Example:</p>
               <p className="italic">{prompt.examples[0]}</p>
@@ -810,6 +848,15 @@ export default function StepByStepReflection({
     );
   };
 
+  // Check if we have starCard data
+  if (!initialStarCard) {
+    return (
+      <div className="mb-4 p-4 bg-red-100 border border-red-300 rounded text-red-700">
+        <p>Unable to load strength data. Please try refreshing the page.</p>
+      </div>
+    );
+  }
+
   return (
     <>
       {/* Progress indicator */}
@@ -981,6 +1028,29 @@ export default function StepByStepReflection({
                   ? "Write 2-3 sentences about your ideal team environment"
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
+              
+              {/* Coaching Button - Bottom Section */}
+              {currentStep <= 4 && (shouldShowDemoButtons || true) && (
+                <ReflectionCoachingButton 
+                  reflectionContext={{
+                    question: getStrengthPrompt(sortedQuadrants[currentStep-1].label).question,
+                    type: 'strength',
+                    currentStep: currentStep,
+                    strengthLabel: sortedQuadrants[currentStep-1]?.label,
+                    strengthScore: sortedQuadrants[currentStep-1]?.value,
+                    strengthColor: sortedQuadrants[currentStep-1]?.color,
+                    allStrengths: sortedQuadrants.map(q => ({
+                      label: q.label,
+                      score: q.value,
+                      color: q.color
+                    }))
+                  }}
+                  onSaveReflection={(reflectionText) => {
+                    handleReflectionChange(currentStep, reflectionText);
+                  }}
+                />
+              )}
+              
               <textarea 
                 id={`strength-${currentStep}-reflection`}
                 value={getCurrentReflectionText()}

@@ -89,14 +89,32 @@ const TestUserPage: React.FC = () => {
 
   // Redirect non-test users accessing /testuser specifically (except admins who can access for testing)
   React.useEffect(() => {
-    // Only redirect if we're on the /testuser route and user is not a test user AND not an admin
-    if (userResponse && !userResponse.user?.isTestUser && userResponse.user?.role !== 'admin' && window.location.pathname === '/testuser') {
-      toast({
-        variant: 'destructive',
-        title: 'Access Denied',
-        description: 'This page is only available to test users and administrators.',
+    if (userResponse) {
+      // Debug logging
+      console.log('🔍 TestUser Access Check:', {
+        user: userResponse.user,
+        isTestUser: userResponse.user?.isTestUser,
+        role: userResponse.user?.role,
+        pathname: window.location.pathname
       });
-      setLocation('/dashboard');
+      
+      // Allow access if user is a test user OR an admin (regardless of test user flag)
+      const hasAccess = userResponse?.user?.isTestUser || userResponse?.user?.role === 'admin';
+      
+      console.log('🔍 Access granted:', hasAccess);
+      
+      // Only redirect if we're on the /testuser route and user doesn't have access
+      if (!hasAccess && window.location.pathname === '/testuser') {
+        console.log('❌ Access denied, redirecting to dashboard');
+        toast({
+          variant: 'destructive',
+          title: 'Access Denied',
+          description: 'This page is only available to test users and administrators.',
+        });
+        setLocation('/dashboard');
+      } else if (hasAccess && window.location.pathname === '/testuser') {
+        console.log('✅ Access granted, staying on test user page');
+      }
     }
   }, [userResponse, setLocation, toast]);
 

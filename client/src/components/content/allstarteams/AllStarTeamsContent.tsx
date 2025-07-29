@@ -19,7 +19,7 @@ import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
 import DownloadStarCardView from './DownloadStarCardView';
-import HolisticReportView from './HolisticReportView';
+import HolisticReportView from '../HolisticReportView';
 import GrowthPlanView from './GrowthPlanView';
 import QuarterlyReportView from './QuarterlyReportView';
 import TeamWorkshopPrepView from './TeamWorkshopPrepView';

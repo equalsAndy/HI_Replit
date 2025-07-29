@@ -29,6 +29,8 @@ interface CoachingChatbotProps {
   className?: string;
 }
 
+type SizePreset = 'compact' | 'comfortable' | 'spacious' | 'fullscreen';
+
 export const CoachingChatbot: React.FC<CoachingChatbotProps> = ({
   userId,
   workshopStep,
@@ -43,9 +45,11 @@ export const CoachingChatbot: React.FC<CoachingChatbotProps> = ({
   const [currentPersona, setCurrentPersona] = useState(defaultPersona);
   const [personas, setPersonas] = useState<Persona[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [sizePreset, setSizePreset] = useState<SizePreset>('comfortable');
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const chatWindowRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -181,6 +185,29 @@ export const CoachingChatbot: React.FC<CoachingChatbotProps> = ({
     }
   };
 
+  const handleSizeChange = (size: SizePreset) => {
+    setSizePreset(size);
+    if (chatWindowRef.current) {
+      // Remove all size classes
+      chatWindowRef.current.classList.remove('compact', 'comfortable', 'spacious', 'fullscreen');
+      // Add the new size class
+      chatWindowRef.current.classList.add(size);
+    }
+  };
+
+  // Load saved size preference on mount
+  useEffect(() => {
+    const savedSize = localStorage.getItem('coaching-chat-size') as SizePreset;
+    if (savedSize && ['compact', 'comfortable', 'spacious', 'fullscreen'].includes(savedSize)) {
+      setSizePreset(savedSize);
+    }
+  }, []);
+
+  // Save size preference
+  useEffect(() => {
+    localStorage.setItem('coaching-chat-size', sizePreset);
+  }, [sizePreset]);
+
   const currentPersonaData = personas.find(p => p.id === currentPersona);
 
   return (
@@ -197,7 +224,30 @@ export const CoachingChatbot: React.FC<CoachingChatbotProps> = ({
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="chat-window">
+        <div ref={chatWindowRef} className={`chat-window ${sizePreset}`}>
+          {/* Size Controls */}
+          <div className="size-controls">
+            <button
+              className={`size-btn compact ${sizePreset === 'compact' ? 'active' : ''}`}
+              onClick={() => handleSizeChange('compact')}
+              title="Compact size"
+            />
+            <button
+              className={`size-btn comfortable ${sizePreset === 'comfortable' ? 'active' : ''}`}
+              onClick={() => handleSizeChange('comfortable')}
+              title="Comfortable size"
+            />
+            <button
+              className={`size-btn spacious ${sizePreset === 'spacious' ? 'active' : ''}`}
+              onClick={() => handleSizeChange('spacious')}
+              title="Spacious size"
+            />
+            <button
+              className={`size-btn fullscreen ${sizePreset === 'fullscreen' ? 'active' : ''}`}
+              onClick={() => handleSizeChange('fullscreen')}
+              title="Fullscreen size"
+            />
+          </div>
           {/* Header */}
           <div className="chat-header">
             <div className="persona-info">
@@ -287,6 +337,9 @@ export const CoachingChatbot: React.FC<CoachingChatbotProps> = ({
               <Send size={18} />
             </button>
           </div>
+          
+          {/* Resize Handle */}
+          <div className="resize-handle" title="Drag to resize" />
         </div>
       )}
     </div>

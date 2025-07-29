@@ -1,0 +1,24 @@
+{
+  "containers": {
+    "allstarteams-app": {
+      "image": ":hi-replit-v2.allstarteams-app-v2.1.7.latest",
+      "environment": {
+        "NODE_ENV": "production"
+      },
+      "ports": {
+        "8080": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "allstarteams-app",
+    "containerPort": 8080,
+    "healthCheck": {
+      "healthyThreshold": 5,
+      "unhealthyThreshold": 5,
+      "timeoutSeconds": 60,
+      "intervalSeconds": 90,
+      "path": "/"
+    }
+  }
+}

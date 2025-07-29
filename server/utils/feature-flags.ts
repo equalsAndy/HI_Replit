@@ -14,7 +14,7 @@ export const featureFlags: Record<string, FeatureFlag> = {
     description: 'Lock workshop inputs after completion'
   },
   holisticReports: {
-    enabled: false, 
+    enabled: process.env.FEATURE_HOLISTIC_REPORTS === 'true', 
     environment: 'development',
     description: 'Claude API-powered personalized reports',
     aiRelated: true

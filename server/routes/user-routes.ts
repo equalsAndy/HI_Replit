@@ -1,6 +1,7 @@
 import express from 'express';
 import multer from 'multer';
 import { userManagementService } from '../services/user-management-service.js';
+import { convertUserToPhotoReference, sanitizeUserForNetwork } from '../utils/user-photo-utils.js';
 import { NavigationSyncService } from '../services/navigation-sync-service.js';
 import { requireAuth } from '../middleware/auth.js';
 import { isAdmin } from '../middleware/roles.js';
@@ -71,18 +72,23 @@ router.get('/me', async (req, res) => {
 
     console.log(`Raw user data from service:`, result.user);
 
+    // Convert user data to use photo references instead of base64 data
+    const userWithPhotoRef = convertUserToPhotoReference(result.user);
+    
     // Return simplified user info for /me endpoint
     const userInfo = {
-      id: result.user?.id,
-      name: result.user?.name,
-      email: result.user?.email,
-      role: result.user?.role,
-      username: result.user?.username,
-      organization: result.user?.organization,
-      jobTitle: result.user?.jobTitle
+      id: userWithPhotoRef.id,
+      name: userWithPhotoRef.name,
+      email: userWithPhotoRef.email,
+      role: userWithPhotoRef.role,
+      username: userWithPhotoRef.username,
+      organization: userWithPhotoRef.organization,
+      jobTitle: userWithPhotoRef.jobTitle,
+      profilePictureUrl: userWithPhotoRef.profilePictureUrl,
+      hasProfilePicture: userWithPhotoRef.hasProfilePicture
     };
 
-    console.log(`Final user info being returned:`, userInfo);
+    console.log(`Final user info being returned:`, sanitizeUserForNetwork(userInfo));
 
     // Return user data directly (not wrapped in success object for /me endpoint)
     res.json(userInfo);
@@ -139,18 +145,20 @@ router.get('/profile', async (req, res) => {
       });
     }
 
-    console.log(`Raw user data from service:`, result.user);
+    console.log(`Raw user data from service:`, sanitizeUserForNetwork(result.user));
+
+    // Convert user data to use photo references instead of base64 data
+    const userWithPhotoRef = convertUserToPhotoReference(result.user);
 
     // Return the user profile with additional fields
     const userProfile = {
-      ...result.user,
+      ...userWithPhotoRef,
       // Add any additional user data from other services if needed
       progress: 0,  // Default progress value
-      title: result.user?.jobTitle || '',  // Map jobTitle to title for backward compatibility
-      isTestUser: result.user?.isTestUser || false, // Ensure isTestUser field is included
+      title: userWithPhotoRef.jobTitle || '',  // Map jobTitle to title for backward compatibility
     };
 
-    console.log(`Final user profile being returned:`, userProfile);
+    console.log(`Final user profile being returned:`, sanitizeUserForNetwork(userProfile));
 
     // Return user data wrapped in success object for NavBar compatibility
     res.json({

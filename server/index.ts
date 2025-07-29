@@ -4,7 +4,7 @@ import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import cookieParser from 'cookie-parser';
 import { router } from './routes.js';
-import reportRoutes from './routes/report-routes.js';
+import holisticReportRoutes from './routes/holistic-report-routes.js';
 import adminUploadRoutes from './routes/admin-upload-routes.js';
 import discernmentRoutes from './routes/discernment-routes.js';
 import coachingRoutes from './routes/coaching-routes.js';
@@ -12,6 +12,10 @@ import coachingRoutes from './routes/coaching-routes.js';
 import featureFlagRoutes from './routes/feature-flag-routes.js';
 import jiraRoutes from './routes/jira-routes.js';
 import feedbackRoutes from './routes/feedback-routes.js';
+import trainingDocumentsRoutes from './routes/training-documents-routes.js';
+import trainingRoutes from './routes/training-routes.js';
+import aiManagementRoutes from './routes/ai-management-routes.js';
+import personaManagementRoutes from './routes/persona-management-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -265,7 +269,7 @@ async function initializeApp() {
 
       // Routes come AFTER session middleware
       app.use('/api', router);
-      app.use('/api/reports', reportRoutes);
+      app.use('/api/reports/holistic', holisticReportRoutes);
       app.use('/api/admin', upload.single('file'), adminUploadRoutes);
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
@@ -273,6 +277,78 @@ async function initializeApp() {
       app.use('/api/feature-flags', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
+      app.use('/api/training/documents', trainingDocumentsRoutes);
+      app.use('/api/training', trainingRoutes);
+      app.use('/api/admin/ai', aiManagementRoutes);
+      app.use('/api/admin/ai', personaManagementRoutes);
+
+      // Changelog endpoint for test users (markdown)
+      app.get('/changelog', async (req, res) => {
+        try {
+          const changelogPath = path.join(__dirname, '..', 'CHANGELOG-TEST-USERS.md');
+          if (fs.existsSync(changelogPath)) {
+            const changelog = fs.readFileSync(changelogPath, 'utf-8');
+            res.setHeader('Content-Type', 'text/markdown');
+            res.send(changelog);
+          } else {
+            res.status(404).send('Changelog not found');
+          }
+        } catch (error) {
+          console.error('Error serving changelog:', error);
+          res.status(500).send('Error loading changelog');
+        }
+      });
+
+      // Changelog endpoint for test users (HTML formatted)
+      app.get('/changelog-html', async (req, res) => {
+        try {
+          const changelogPath = path.join(__dirname, '..', 'CHANGELOG-TEST-USERS.md');
+          if (fs.existsSync(changelogPath)) {
+            const markdown = fs.readFileSync(changelogPath, 'utf-8');
+            const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AllStarTeams & Imaginal Agility - Changelog</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        h1 { color: #2563eb; border-bottom: 2px solid #2563eb; }
+        h2 { color: #1d4ed8; margin-top: 2em; }
+        h3 { color: #1e40af; }
+        h4 { color: #3730a3; }
+        code { background: #f3f4f6; padding: 2px 4px; border-radius: 3px; }
+        blockquote { background: #f9fafb; border-left: 4px solid #60a5fa; padding: 10px 20px; margin: 20px 0; }
+        .version { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; border-radius: 8px; margin: 20px 0; }
+        .emoji { font-size: 1.2em; }
+        ul { padding-left: 20px; }
+        li { margin: 5px 0; }
+        hr { border: none; border-top: 1px solid #e5e7eb; margin: 2em 0; }
+    </style>
+</head>
+<body>
+    <pre style="white-space: pre-wrap; font-family: inherit;">${markdown.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+    <footer style="margin-top: 3em; padding-top: 2em; border-top: 1px solid #e5e7eb; text-align: center; color: #6b7280;">
+        <p><strong>🔗 Quick Links:</strong></p>
+        <p>
+            <a href="/admin" style="color: #2563eb; text-decoration: none;">Admin Dashboard</a> | 
+            <a href="/changelog" style="color: #2563eb; text-decoration: none;">Raw Markdown</a> | 
+            <a href="/" style="color: #2563eb; text-decoration: none;">Back to Platform</a>
+        </p>
+    </footer>
+</body>
+</html>`;
+            res.setHeader('Content-Type', 'text/html');
+            res.send(html);
+          } else {
+            res.status(404).send('<h1>Changelog not found</h1>');
+          }
+        } catch (error) {
+          console.error('Error serving changelog HTML:', error);
+          res.status(500).send('<h1>Error loading changelog</h1>');
+        }
+      });
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {
@@ -350,6 +426,84 @@ async function initializeApp() {
           res.status(500).json({
             success: false,
             error: 'Failed to check user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Create holistic reports table endpoint
+      app.post('/create-holistic-reports-table', async (req, res) => {
+        try {
+          console.log('🚀 Creating holistic reports table...');
+          
+          const createTableQuery = `
+            -- Create holistic_reports table for storing generated PDF reports
+            CREATE TABLE IF NOT EXISTS holistic_reports (
+              id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+              user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+              report_type VARCHAR(20) NOT NULL CHECK (report_type IN ('standard', 'personal')),
+              report_data JSONB NOT NULL,
+              pdf_file_path VARCHAR(500),
+              pdf_file_name VARCHAR(255),
+              pdf_file_size INTEGER,
+              generation_status VARCHAR(20) DEFAULT 'pending' CHECK (generation_status IN ('pending', 'generating', 'completed', 'failed')),
+              generated_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              error_message TEXT,
+              generated_by_user_id INTEGER REFERENCES users(id),
+              star_card_image_path VARCHAR(500),
+              CONSTRAINT unique_user_report_type UNIQUE (user_id, report_type)
+            )
+          `;
+          
+          const indexQueries = [
+            'CREATE INDEX IF NOT EXISTS idx_holistic_reports_user_id ON holistic_reports(user_id)',
+            'CREATE INDEX IF NOT EXISTS idx_holistic_reports_status ON holistic_reports(generation_status)',
+            'CREATE INDEX IF NOT EXISTS idx_holistic_reports_type ON holistic_reports(report_type)',
+            'CREATE INDEX IF NOT EXISTS idx_holistic_reports_generated_at ON holistic_reports(generated_at)'
+          ];
+
+          const results = [];
+          
+          // Create table
+          try {
+            await db.execute(createTableQuery);
+            results.push('✅ holistic_reports table created successfully');
+          } catch (error) {
+            if (error instanceof Error && error.message.includes('already exists')) {
+              results.push('⚠️ holistic_reports table already exists');
+            } else {
+              throw error;
+            }
+          }
+
+          // Create indexes
+          for (const query of indexQueries) {
+            try {
+              await db.execute(query);
+              results.push('✅ Index created successfully');
+            } catch (error) {
+              if (error instanceof Error && error.message.includes('already exists')) {
+                results.push('⚠️ Index already exists');
+              } else {
+                console.warn('Index creation warning:', error instanceof Error ? error.message : String(error));
+                results.push('⚠️ Index creation warning');
+              }
+            }
+          }
+
+          console.log('✅ Holistic reports table creation completed');
+          res.json({
+            success: true,
+            message: 'Holistic reports table created successfully',
+            results: results
+          });
+          
+        } catch (error) {
+          console.error('❌ Error creating holistic reports table:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to create holistic reports table',
             details: error instanceof Error ? error.message : String(error)
           });
         }
@@ -573,13 +727,60 @@ async function startServer() {
 startServer();
 
 // Graceful shutdown
-const shutdown = () => {
-  console.log('🛑 Shutting down gracefully...');
-  server.close(() => {
-    console.log('✅ Server closed successfully');
+const shutdown = async (signal: string) => {
+  console.log(`🛑 Received ${signal}. Shutting down gracefully...`);
+  
+  // Set a timeout to force exit if graceful shutdown takes too long
+  const forceExitTimeout = setTimeout(() => {
+    console.log('⚠️  Graceful shutdown timed out, forcing exit...');
+    process.exit(1);
+  }, 10000); // 10 second timeout
+  
+  try {
+    // Close the HTTP server
+    console.log('🔒 Closing HTTP server...');
+    await new Promise<void>((resolve, reject) => {
+      server.close((err) => {
+        if (err) {
+          console.error('❌ Error closing server:', err);
+          reject(err);
+        } else {
+          console.log('✅ HTTP server closed');
+          resolve();
+        }
+      });
+    });
+
+    // Close database connections
+    console.log('🗄️  Closing database connections...');
+    if (db && typeof db.end === 'function') {
+      await db.end();
+      console.log('✅ Database connections closed');
+    }
+
+    clearTimeout(forceExitTimeout);
+    console.log('✅ Graceful shutdown completed');
     process.exit(0);
-  });
+    
+  } catch (error) {
+    console.error('❌ Error during graceful shutdown:', error);
+    clearTimeout(forceExitTimeout);
+    process.exit(1);
+  }
 };
 
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+// Handle different shutdown signals
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+// Handle uncaught exceptions
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  shutdown('uncaughtException');
+});
+
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown('unhandledRejection');
+});

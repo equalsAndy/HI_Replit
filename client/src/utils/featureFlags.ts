@@ -21,6 +21,11 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
     enabled: true,
     environment: 'all',
     description: 'Enhanced video management features'
+  },
+  reflectionModal: {
+    enabled: true, // Re-enabled until chat popup is ready
+    environment: 'all',
+    description: 'Original modal-based Reflection Talia interface'
   }
 };
 
@@ -28,29 +33,11 @@ export function isFeatureEnabled(featureName: string): boolean {
   const flag = clientFeatureFlags[featureName];
   if (!flag) return false;
   
-  // For development environment detection, check version.json
-  let currentEnv = 'production';
-  try {
-    // Check if we can fetch version info to determine environment
-    const versionPath = '/version.json';
-    fetch(versionPath)
-      .then(res => res.json())
-      .then(data => {
-        if (data.environment === 'development') {
-          currentEnv = 'development';
-        }
-      })
-      .catch(() => {
-        // Fallback to checking build environment
-        currentEnv = import.meta.env.NODE_ENV || 'production';
-      });
-  } catch {
-    currentEnv = import.meta.env.NODE_ENV || 'production';
-  }
+  // Use import.meta.env for environment detection to avoid fetch loops
+  const currentEnv = import.meta.env.NODE_ENV || 'production';
   
   // For feedback system, enable in development and staging
   if (featureName === 'feedbackSystem') {
-    // Check version.json synchronously by making a direct check
     const isDev = window.location.hostname === 'localhost' || 
                   window.location.hostname === '127.0.0.1' ||
                   window.location.port === '8080';

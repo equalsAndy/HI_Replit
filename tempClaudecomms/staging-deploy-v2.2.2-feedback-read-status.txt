@@ -1,0 +1,91 @@
+STAGING DEPLOYMENT - v2.2.2 - Feedback Read Status Feature
+============================================================
+Created: 2025-07-29
+Features: Coaching chat improvements, feedback read status, Reflection Talia training updates
+
+DOCKER BUILD AND PUSH COMMANDS:
+--------------------------------
+
+# 1. Build AMD64-compatible Docker image
+docker build --platform linux/amd64 -t staging-amd64 .
+
+# 2. ECR Login
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# 3. Tag and push to ECR
+docker tag staging-amd64 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.2.2-$(date +%Y%m%d-%H%M)
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.2.2-$(date +%Y%m%d-%H%M)
+
+VM DEPLOYMENT COMMANDS (SSH to staging VM):
+===========================================
+SSH Access: ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+VM IP: 34.220.143.127
+
+# Create environment file (run each line separately)
+echo 'NODE_ENV=staging' > staging.env
+echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
+echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
+echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
+echo 'ENVIRONMENT=staging' >> staging.env
+echo 'FEATURE_HOLISTIC_REPORTS=true' >> staging.env
+echo 'CLAUDE_API_KEY=your_claude_api_key_here' >> staging.env
+
+# Deploy container (replace [TAG] with actual timestamp)
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker pull 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.2.2-[TAG]
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-v2.2.2-[TAG]
+
+# Verify deployment
+curl -I http://34.220.143.127
+sudo docker logs staging-app --tail 20
+
+FEATURES DEPLOYED:
+==================
+
+1. COACHING CHAT BOX IMPROVEMENTS:
+   - Increased default size from 380x500px to responsive 450x600px
+   - Added 4 size preset buttons (compact, comfortable, spacious, fullscreen)
+   - User-resizable with drag handles and localStorage preferences
+   - Better mobile responsiveness
+
+2. FEEDBACK SYSTEM ENHANCEMENT:
+   - Removed 1000 character limit from feedback text box
+   - Added "mark as read" status for admin feedback processing
+   - New API endpoints:
+     * PATCH /api/feedback/:id/mark-read
+     * PATCH /api/feedback/bulk/mark-read
+   - Updated status validation to include 'read' status
+
+3. REFLECTION TALIA TRAINING UPDATES:
+   - Fixed conversation context loss issues
+   - Made responses much more brief (2-3 sentences max)
+   - Added specific guidance for "I don't know how to answer this"
+   - Updated persona to use job context and be more conversational
+   - Training document uploaded to database with ID: d359217d-2020-44e2-8f42-25cfe01e3a2b
+
+TESTING CHECKLIST AFTER DEPLOYMENT:
+===================================
+□ Application loads at http://34.220.143.127
+□ Coaching chat box opens and is properly sized
+□ Size preset buttons work (compact, comfortable, spacious, fullscreen)
+□ Chat box is resizable with drag handles
+□ Feedback modal opens without character limit
+□ Admin can mark feedback as "read" (single and bulk)
+□ Reflection Talia maintains conversation context
+□ Reflection Talia gives brief, helpful responses
+
+ROLLBACK PLAN:
+==============
+If issues occur, rollback to previous version:
+sudo docker stop staging-app
+sudo docker rm staging-app
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped [PREVIOUS_IMAGE_TAG]
+
+NOTES:
+======
+- Version: STAGING v2.2.2.0728.2229
+- Coaching chat box improvements are primarily frontend (CSS/React)
+- Feedback read status requires database schema support (already updated)
+- Reflection Talia improvements use existing training document system
+- No database migrations required for this deployment

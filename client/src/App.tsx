@@ -20,6 +20,7 @@ import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
 import AutoSync from '@/components/AutoSync';
+import { FloatingAIProvider } from '@/components/ai/FloatingAIProvider';
 import { useQuery } from '@tanstack/react-query';
 
 // No need for a custom history hook, we'll use the default wouter behavior
@@ -70,9 +71,10 @@ const App: React.FC = () => {
         <QueryClientProvider client={queryClient}>
           <ApplicationProvider>
             <DemoModeProvider>
-              <div className="min-h-screen bg-background">
-                <AutoSyncWrapper />
-                <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
+              <FloatingAIProvider>
+                <div className="min-h-screen bg-background">
+                  <AutoSyncWrapper />
+                  <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                   <Switch>
                     {/* Main routes */}
                     <Route path="/" component={LandingPage} />
@@ -104,9 +106,10 @@ const App: React.FC = () => {
                     {/* Fallback route */}
                     <Route component={NotFoundPage} />
                   </Switch>
-                </Suspense>
-                <Toaster />
-              </div>
+                  </Suspense>
+                  <Toaster />
+                </div>
+              </FloatingAIProvider>
             </DemoModeProvider>
           </ApplicationProvider>
         </QueryClientProvider>

@@ -2,6 +2,7 @@ import { db } from '../db.js';
 import { users } from '../../shared/schema.js';
 import { eq, sql } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
+import { convertUserToPhotoReference, processProfilePicture, sanitizeUserForNetwork } from '../utils/user-photo-utils.js';
 
 class UserManagementService {
   /**
