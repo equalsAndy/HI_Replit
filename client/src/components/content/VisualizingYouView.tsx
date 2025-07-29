@@ -11,6 +11,7 @@ import { useTestUser } from '@/hooks/useTestUser';
 import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { safeConsoleLog, filterPhotoDataFromObject } from '@shared/photo-data-filter';
 
 const VisualizingYouView: React.FC<ContentViewProps> = ({
   navigate,
@@ -35,15 +36,15 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     const loadExistingData = async () => {
       try {
-        console.log('VisualizingYouView: Loading existing image data...');
+        safeConsoleLog('VisualizingYouView: Loading existing image data...');
         const response = await fetch('/api/workshop-data/visualizing-potential', {
           credentials: 'include'
         });
         const result = await response.json();
-        console.log('VisualizingYouView: API response:', result);
+        safeConsoleLog('VisualizingYouView: API response:', filterPhotoDataFromObject(result));
         
         if (result.success && result.data) {
-          console.log('VisualizingYouView: Setting existing data:', result.data);
+          safeConsoleLog('VisualizingYouView: Setting existing data:', filterPhotoDataFromObject(result.data));
           if (result.data.selectedImages) {
             setSelectedImages(result.data.selectedImages);
           }
@@ -112,10 +113,10 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
     setIsSaving(true);
     try {
-      console.log('VisualizingYouView: Saving images and meaning...', {
+      safeConsoleLog('VisualizingYouView: Saving images and meaning...', filterPhotoDataFromObject({
         selectedImages,
         imageMeaning
-      });
+      }));
 
       const response = await fetch('/api/workshop-data/visualizing-potential', {
         method: 'POST',
