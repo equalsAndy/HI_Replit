@@ -3,12 +3,25 @@
 # Update version script
 # Usage: ./update-version.sh [version] [environment]
 
-VERSION=${1:-$(date +%Y.%m.%d)}
 ENVIRONMENT=${2:-development}
 BUILD_NUMBER=$(date +%H%M)
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%S.000Z")
 
+# For development, check if we have a set version, otherwise use date
+if [ "$ENVIRONMENT" = "development" ] && [ -f "dev-version.txt" ] && [ -z "$1" ]; then
+    VERSION=$(cat dev-version.txt)
+    echo "Using stored development version: $VERSION"
+else
+    VERSION=${1:-$(date +%Y.%m.%d)}
+fi
+
 echo "Updating version to $VERSION build $BUILD_NUMBER for $ENVIRONMENT"
+
+# Store the version for development if manually set
+if [ "$ENVIRONMENT" = "development" ] && [ -n "$1" ]; then
+    echo "$VERSION" > dev-version.txt
+    echo "Stored development version: $VERSION"
+fi
 
 # Update .env.local
 cat > .env.local << EOF
