@@ -2,8 +2,10 @@ import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserManagement as FullUserManagement } from '../../components/admin/UserManagement';
 import FeedbackManagement from '../../components/admin/FeedbackManagement';
+import AIManagement from '../../components/admin/AIManagement';
+import TrainingDocumentsManagement from '../../components/admin/TrainingDocumentsManagement';
 import { useToast } from '../../hooks/use-toast';
-import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown } from 'lucide-react';
+import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen } from 'lucide-react';
 import VersionInfo from '../../components/ui/VersionInfo';
 import { FeedbackTrigger } from '../../components/feedback/FeedbackTrigger';
 import { detectCurrentPage } from '../../utils/pageContext';
@@ -1247,6 +1249,7 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = React.useState('users');
+  const [aiSubTab, setAiSubTab] = React.useState('dashboard'); // 'dashboard' or 'training'
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
   const [astLogoError, setAstLogoError] = React.useState(false);
   const [iaLogoError, setIaLogoError] = React.useState(false);
@@ -1573,7 +1576,7 @@ export default function AdminDashboard() {
 
       <div style={styles.tabsContainer}>
         <div style={styles.tabsList}>
-          {['users', 'invites', 'videos', 'feedback'].map((tab) => (
+          {['users', 'invites', 'videos', 'ai', 'feedback'].map((tab) => (
             <button
               key={tab}
               style={{
@@ -1592,6 +1595,7 @@ export default function AdminDashboard() {
               {tab === 'users' && 'User Management'}
               {tab === 'invites' && 'Invite Management'}
               {tab === 'videos' && `Video Management ${!isAdmin ? '(Admin Only)' : ''}`}
+              {tab === 'ai' && 'AI Management'}
               {tab === 'feedback' && 'Feedback Management'}
             </button>
           ))}
@@ -1601,6 +1605,42 @@ export default function AdminDashboard() {
           {activeTab === 'users' && <UserManagement />}
           {activeTab === 'invites' && <InviteManagement />}
           {activeTab === 'videos' && isAdmin && <SimpleVideoManagement />}
+          {activeTab === 'ai' && (
+            <div>
+              {/* AI Sub-tabs */}
+              <div style={{...styles.tabsList, marginBottom: '20px', borderBottom: '1px solid #e2e8f0'}}>
+                {['dashboard', 'training'].map((subTab) => (
+                  <button
+                    key={subTab}
+                    style={{
+                      ...styles.tab,
+                      ...(aiSubTab === subTab ? styles.activeTab : {}),
+                      fontSize: '14px',
+                      padding: '8px 16px'
+                    }}
+                    onClick={() => setAiSubTab(subTab)}
+                  >
+                    {subTab === 'dashboard' && (
+                      <>
+                        <Bot style={{marginRight: '8px', width: '16px', height: '16px', display: 'inline'}} />
+                        AI Dashboard
+                      </>
+                    )}
+                    {subTab === 'training' && (
+                      <>
+                        <BookOpen style={{marginRight: '8px', width: '16px', height: '16px', display: 'inline'}} />
+                        Training Docs
+                      </>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              {/* AI Sub-tab Content */}
+              {aiSubTab === 'dashboard' && <AIManagement />}
+              {aiSubTab === 'training' && <TrainingDocumentsManagement />}
+            </div>
+          )}
           {activeTab === 'feedback' && <FeedbackManagement />}
         </div>
       </div>

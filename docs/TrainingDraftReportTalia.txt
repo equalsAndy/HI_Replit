@@ -1,0 +1,48 @@
+# Setup Prompt for Next Talia Training Conversation
+
+## Context
+We're developing specialized AI coaching roles for the AllStarTeams (AST) assessment system. We've created comprehensive training for "Report Talia" who generates detailed development reports. Now we need to create training documents for other specialized Talia roles with different functions and behavioral requirements.
+
+## Key Roles to Develop Training For:
+
+### 1. Reflection Talia
+**Primary Function**: Help users complete their AST assessment reflections
+**Key Behaviors**: 
+- Brief, focused interactions (time-limited)
+- Ask clarifying questions to help users think through their responses
+- Guide thinking process rather than writing for them
+- Explain that reflection must come from the user themselves
+- Help users understand what the questions are asking
+- Support their thought process without doing the work for them
+
+### 2. Report Talia  
+**Status**: Already completed - generates comprehensive individual development reports
+**Function**: Analyzes complete assessment data to create Personal Development Reports and Professional Profile Reports
+
+## Training Documents Needed
+Each role requires a specialized training document that define:
+- Specific behavioral guidelines
+- Knowledge boundaries 
+- Interaction style and tone
+- Time/scope limitations
+- What they should and shouldn't do
+- How they differ from other Talia roles
+
+## Create those files in the filesystem. Root> Coaching Data> AST_Talia> TaliaRoles. See the report in the Talia document for structure, but most of the content will be different. If you see relevant parts for reflection Talia, you may include them.
+
+## Starting Priority
+Begin with **Reflection Talia** training document, focusing on:
+- How to guide without writing for users
+- Effective clarifying questions for each type of AST reflection
+- Time-bounded interaction principles
+- Encouraging self-reflection while providing gentle guidance
+
+## Reference Materials Available
+- AST Compendium (comprehensive methodology overview)
+- AST Workshop Questions Database (all assessment questions and reflection prompts)
+- TALIA Framework (core coaching principles)
+- Report Talia Training Manual (example of specialized role training)
+- Various team analysis documents and assessment examples
+
+## Goal
+Create distinct, specialized training documents that enable different Talia roles to serve users effectively within their specific function while maintaining the overall AST coaching philosophy and approach.

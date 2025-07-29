@@ -583,7 +583,7 @@ export const feedback = pgTable('feedback', {
   priority: varchar('priority', { length: 10 }).notNull().default('low'), // 'low', 'medium', 'high', 'blocker'
   message: text('message').notNull(),
   experienceRating: integer('experience_rating'), // 1-5 rating
-  status: varchar('status', { length: 20 }).notNull().default('new'), // 'new', 'in_progress', 'resolved', 'archived'
+  status: varchar('status', { length: 20 }).notNull().default('new'), // 'new', 'read', 'in_progress', 'resolved', 'archived'
   tags: jsonb('tags').default('[]'), // Array of tags
   systemInfo: jsonb('system_info').notNull(), // Browser, OS, screen size, etc.
   adminNotes: text('admin_notes'), // Admin notes and comments

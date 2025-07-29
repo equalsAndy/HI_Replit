@@ -243,6 +243,43 @@ router.get('/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Mark feedback as read
+router.patch('/:id/mark-read', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const updatedFeedback = await db
+      .update(feedback)
+      .set({
+        status: 'read',
+        updatedAt: new Date()
+      })
+      .where(eq(feedback.id, id))
+      .returning();
+
+    if (updatedFeedback.length === 0) {
+      return res.status(404).json({ error: 'Feedback not found' });
+    }
+
+    console.log('Feedback marked as read:', {
+      id,
+      previousStatus: 'various',
+      newStatus: 'read',
+      markedAt: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      message: 'Feedback marked as read',
+      feedback: updatedFeedback[0]
+    });
+
+  } catch (error) {
+    console.error('Error marking feedback as read:', error);
+    res.status(500).json({ error: 'Failed to mark feedback as read' });
+  }
+});
+
 // Update feedback status and admin notes
 router.patch('/:id', requireAdmin, async (req, res) => {
   try {
@@ -250,7 +287,7 @@ router.patch('/:id', requireAdmin, async (req, res) => {
     const { status, adminNotes, jiraTicketId, tags } = req.body;
 
     // Validate status if provided
-    const validStatuses = ['new', 'in_progress', 'resolved', 'archived'];
+    const validStatuses = ['new', 'read', 'in_progress', 'resolved', 'archived'];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }
@@ -293,6 +330,43 @@ router.patch('/:id', requireAdmin, async (req, res) => {
   }
 });
 
+// Bulk mark feedback as read
+router.patch('/bulk/mark-read', requireAdmin, async (req, res) => {
+  try {
+    const { feedbackIds } = req.body;
+
+    if (!feedbackIds || !Array.isArray(feedbackIds) || feedbackIds.length === 0) {
+      return res.status(400).json({ error: 'feedbackIds array is required' });
+    }
+
+    const updatedFeedback = await db
+      .update(feedback)
+      .set({
+        status: 'read',
+        updatedAt: new Date()
+      })
+      .where(inArray(feedback.id, feedbackIds))
+      .returning({ id: feedback.id });
+
+    console.log('Bulk feedback marked as read:', {
+      count: updatedFeedback.length,
+      feedbackIds: feedbackIds.slice(0, 5), // Log first 5 IDs for reference
+      markedAt: new Date().toISOString()
+    });
+
+    res.json({
+      success: true,
+      message: `${updatedFeedback.length} feedback items marked as read`,
+      markedCount: updatedFeedback.length,
+      markedIds: updatedFeedback.map(f => f.id)
+    });
+
+  } catch (error) {
+    console.error('Error bulk marking feedback as read:', error);
+    res.status(500).json({ error: 'Failed to bulk mark feedback as read' });
+  }
+});
+
 // Bulk update feedback items
 router.patch('/bulk/update', requireAdmin, async (req, res) => {
   try {
@@ -303,7 +377,7 @@ router.patch('/bulk/update', requireAdmin, async (req, res) => {
     }
 
     // Validate status if provided
-    const validStatuses = ['new', 'in_progress', 'resolved', 'archived'];
+    const validStatuses = ['new', 'read', 'in_progress', 'resolved', 'archived'];
     if (status && !validStatuses.includes(status)) {
       return res.status(400).json({ error: 'Invalid status' });
     }

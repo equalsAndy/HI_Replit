@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle } from 'lucide-react';
+import './CoachingModal.css';
 
 interface CoachingModalProps {
   isOpen: boolean;
@@ -116,7 +117,7 @@ export default function CoachingModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-lg shadow-xl max-w-5xl w-full max-h-[95vh] min-h-[600px] flex flex-col overflow-hidden resize-none">
         {/* Header */}
         <div className="bg-blue-600 text-white p-4 flex items-center justify-between flex-shrink-0">
           <div>
@@ -165,7 +166,7 @@ export default function CoachingModal({
         </div>
 
         {/* Content */}
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 min-h-0">
           {activeTab === 'chat' ? (
             <div className="p-6 space-y-4">
               {/* AI Response */}
@@ -196,8 +197,8 @@ export default function CoachingModal({
                       ? `Ask me anything about: ${reflectionQuestion}`
                       : "Ask me anything about this reflection question..."
                   }
-                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[100px]"
-                  rows={3}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[120px] resize-vertical"
+                  rows={4}
                 />
               </div>
 
@@ -244,8 +245,8 @@ export default function CoachingModal({
                   value={reflectionText}
                   onChange={(e) => setReflectionText(e.target.value)}
                   placeholder="Write your reflection here..."
-                  className="w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[300px]"
-                  rows={12}
+                  className="w-full p-4 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-h-[400px] resize-vertical"
+                  rows={15}
                 />
               </div>
             </div>

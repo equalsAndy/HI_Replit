@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import VideoPlayer from './VideoPlayer';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 interface ContentViewProps {
   navigate: (path: string) => void;
@@ -17,6 +18,18 @@ const IntroStrengthsView: React.FC<ContentViewProps> = ({
   const [hasReachedMinimum, setHasReachedMinimum] = useState(true); // Simplified: always true
   const stepId = "2-1";
   const { updateVideoProgress, progress, canProceedToNext } = useNavigationProgress();
+  const { updateContext, setCurrentStep } = useFloatingAI();
+
+  // Update floating AI context for this step
+  useEffect(() => {
+    setCurrentStep(stepId);
+    updateContext({
+      stepName: 'Intro to Star Strengths',
+      aiEnabled: false, // AI disabled for video content
+      questionText: undefined,
+      strengthLabel: undefined
+    });
+  }, [stepId, updateContext, setCurrentStep]);
 
   // Simplified mode: Next button always active for video steps
   useEffect(() => {

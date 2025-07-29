@@ -1,0 +1,12 @@
+{
+  "containerName": "allstarteams-app",
+  "containerPort": 8080,
+  "healthCheck": {
+    "healthyThreshold": 5,
+    "unhealthyThreshold": 5,
+    "timeoutSeconds": 60,
+    "intervalSeconds": 90,
+    "path": "/health",
+    "successCodes": "200-499"
+  }
+}

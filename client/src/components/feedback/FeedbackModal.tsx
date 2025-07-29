@@ -406,11 +406,10 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                   placeholder="Describe your feedback in detail..."
-                  maxLength={1000}
-                  className="w-full min-h-[100px] p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-vertical bg-white text-gray-900 placeholder-gray-500"
+                  className="w-full min-h-[120px] p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none resize-vertical bg-white text-gray-900 placeholder-gray-500"
                 />
                 <div className="text-right text-xs text-gray-500 mt-1">
-                  {formData.message?.length || 0}/1000 characters
+                  {formData.message?.length || 0} characters
                 </div>
               </div>
 

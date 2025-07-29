@@ -1,0 +1,29 @@
+Flow Attributes Mapped to Strengths
+THINKING (Green) - rgb(1, 162, 82)
+
+Analytical, Strategic, Thoughtful, Clever, Innovative, Investigative
+Abstract, Analytic, Astute, Big Picture, Curious, Focused
+Insightful, Logical, Rational, Reflective, Sensible
+
+FEELING (Blue) - rgb(22, 126, 253)
+
+Empathetic, Friendly, Supportive, Compassionate, Intuitive, Empathic
+Accepting, Authentic, Calm, Caring, Connected, Considerate, Diplomatic
+Emotional, Generous, Gentle, Grateful, Harmonious, Helpful, Kind
+Open, Sociable, Vulnerable, Passionate, Creative, Receptive
+Collaborative, Encouraging, Expressive, Inspiring, Objective, Positive
+
+PLANNING (Yellow) - rgb(255, 203, 47)
+
+Organized, Meticulous, Reliable, Consistent, Practical, Careful
+Controlled, Dependable, Detailed, Detail-Oriented, Diligent, Methodical
+Orderly, Precise, Punctual, Responsible, Thorough, Trustworthy
+Immersed, Industrious, Straightforward, Tidy, Systematic
+
+ACTING (Red) - rgb(241, 64, 64)
+
+Energetic, Bold, Decisive, Proactive, Persistent, Physical, Confident
+Adaptable, Adventurous, Adventuresome, Assertive, Brave, Capable
+Challenging, Courageous, Dynamic, Fearless, Resolute, Resourceful
+Strong, Competitive, Effortless, Engaged, Funny, Persuasive
+Open-Minded, Optimistic, Resilient, Spontaneous, Vigorous

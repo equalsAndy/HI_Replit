@@ -169,22 +169,6 @@ export default function Landing() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 px-8 py-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-indigo-500 font-semibold mb-1">Self-Discovery</div>
-                      <p className="text-sm text-gray-500">Identify your natural talents</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-indigo-500 font-semibold mb-1">Team Dynamics</div>
-                      <p className="text-sm text-gray-500">Understand how strengths combine</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-indigo-500 font-semibold mb-1">Growth Insights</div>
-                      <p className="text-sm text-gray-500">Develop action strategies</p>
-                    </div>
-                  </div>
-                </div>
               </div>
 
               {/* Imaginal Agility Card - Button disabled for production test */}
@@ -214,22 +198,6 @@ export default function Landing() {
                   </div>
                 </div>
 
-                <div className="bg-gray-50 px-8 py-4">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="text-center">
-                      <div className="text-purple-500 font-semibold mb-1">5Cs Assessment</div>
-                      <p className="text-sm text-gray-500">Map your capabilities</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-purple-500 font-semibold mb-1">AI Insights</div>
-                      <p className="text-sm text-gray-500">Personalized feedback</p>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-purple-500 font-semibold mb-1">Team Workshops</div>
-                      <p className="text-sm text-gray-500">Collaborative exercises</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

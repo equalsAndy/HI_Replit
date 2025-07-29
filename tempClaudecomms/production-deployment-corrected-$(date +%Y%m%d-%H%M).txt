@@ -1,0 +1,32 @@
+# Production Deployment v2.1.7 CORRECTED with AMD64
+# Date: $(date)
+
+## ✅ ISSUE RESOLVED:
+- Initial deployment used wrong architecture
+- Rebuilt and tagged with AMD64 compatibility: v2.1.7-amd64
+- New deployment version 92 initiated with correct image
+
+## 🚀 Current Status:
+- Service state: DEPLOYING
+- Current active: Version 90 (staging)  
+- Next deployment: Version 92 (v2.1.7-amd64) - ACTIVATING
+
+## 🔍 Deployment Details:
+- Image: 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:v2.1.7-amd64
+- Platform: linux/amd64 (✅ CORRECT)
+- Environment: production
+- Version 92 initiated at: 2025-07-28T08:20:38-07:00
+
+## 📊 Monitor Progress:
+aws lightsail get-container-services --region us-west-2 --service-name hi-replit-v2 | jq '.containerServices[0] | {state: .state, currentVersion: .currentDeployment.version, nextVersion: .nextDeployment.version}'
+
+## 🎯 Expected Result:
+Once version 92 completes activation:
+- Current version will be 92
+- Image will be v2.1.7-amd64 
+- Service state will be RUNNING
+- Production will have proper AMD64 compatibility
+
+## ✅ Production URLs (after deployment):
+- https://app2.heliotropeimaginal.com/
+- https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/

@@ -1,0 +1,62 @@
+# Production Deployment v2.1.7
+# Date: $(date)
+# 
+# IMPORTANT: This is a PRODUCTION deployment. Ensure all steps are executed carefully.
+
+# Step 1: Login to AWS ECR
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+
+# Step 2: Tag image for ECR
+docker tag allstarteams-app:v2.1.7 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:v2.1.7
+
+# Step 3: Push image to ECR
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:v2.1.7
+
+# Step 4: Create production deployment JSON
+cat > production-deployment.json << 'EOF'
+{
+  "containers": {
+    "allstarteams-app": {
+      "image": ":hi-replit-v2.allstarteams-app-v2.1.7.latest",
+      "environment": {
+        "NODE_ENV": "production"
+      },
+      "ports": {
+        "8080": "HTTP"
+      }
+    }
+  },
+  "publicEndpoint": {
+    "containerName": "allstarteams-app",
+    "containerPort": 8080,
+    "healthCheck": {
+      "healthyThreshold": 5,
+      "unhealthyThreshold": 5,
+      "timeoutSeconds": 60,
+      "intervalSeconds": 90,
+      "path": "/"
+    }
+  }
+}
+EOF
+
+# Step 5: Deploy to AWS Lightsail production
+aws lightsail create-container-service-deployment \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --containers file://production-deployment.json \
+  --public-endpoint file://production-deployment.json
+
+# Step 6: Monitor deployment status
+aws lightsail get-container-services \
+  --region us-west-2 \
+  --service-name hi-replit-v2
+
+# Step 7: Verify production deployment
+curl -I https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
+
+# Step 8: Test health endpoint
+curl https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/health
+
+echo "✅ Production deployment v2.1.7 completed!"
+echo "🌐 Production URL: https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/"
