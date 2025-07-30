@@ -131,6 +131,18 @@ npm run db:seed        # Seed test data
 npm run db:reset       # Reset database
 ```
 
+### **Admin Access**
+```bash
+# Admin credentials for development/staging
+Username: admin
+Password: Heliotrope@2025
+
+# Admin endpoints
+/admin                   # Admin dashboard
+/api/reports/holistic/admin/reset  # Reset all holistic reports (DELETE)
+/api/reports/holistic/admin/list   # List all reports (GET)
+```
+
 ## 🚩 Feature Flag System
 
 ### **Server Flags** (`server/src/utils/featureFlags.ts`)
