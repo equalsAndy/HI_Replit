@@ -24,14 +24,34 @@ interface ASTUserData {
     futureLevel: number;
     currentFactors: string;
     futureImprovements: string;
+    specificChanges: string;
+    quarterlyProgress: string;
+    quarterlyActions: string;
   };
   futureVision: string;
   quarterlyGoals: string;
+  flowAttributes: Array<{name: string; score: number}>;
+  flowInsights: {
+    triggers: string;
+    blockers: string;
+    conditions: string;
+    improvements: string;
+  };
+  visionProgression: {
+    twentyYear: string;
+    tenYear: string;
+    fiveYear: string;
+    flowOptimized: string;
+  };
 }
 
 interface ASTReportResult {
   personalReport: string;
   professionalProfile: string;
+  starCardData?: {
+    filePath: string;
+    photoData: string;
+  };
   metadata: {
     generatedAt: string;
     userStrengthsSignature: string;
@@ -53,7 +73,30 @@ class ASTReportService {
       const strengthsSignature = this.analyzeStrengthsConstellation(userData.starStrengths);
       const flowCategory = this.categorizeFlowScore(userData.flowScore);
 
-      // Step 2: Gather relevant training context
+      // Step 2: Download user's StarCard from UI system and save to filesystem
+      let starCardData = null;
+      try {
+        const { starCardGeneratorService } = await import('./starcard-generator-service.js');
+        const starCardImageBase64 = await starCardGeneratorService.downloadStarCardFromUI(userData.userId, {
+          thinking: userData.starStrengths.thinking,
+          acting: userData.starStrengths.acting,
+          feeling: userData.starStrengths.feeling,
+          planning: userData.starStrengths.planning,
+          userName: userData.userName,
+          flowScore: userData.flowScore,
+          flowCategory: flowCategory
+        });
+        
+        starCardData = {
+          filePath: `starcard-${userData.userId}.png`,
+          photoData: starCardImageBase64
+        };
+        console.log(`📊 Downloaded StarCard for user ${userData.userName}`);
+      } catch (error) {
+        console.warn(`⚠️ Could not generate StarCard for user ${userData.userName}:`, error);
+      }
+
+      // Step 3: Gather relevant training context
       const contextQueries = [
         `${strengthsSignature.dominantPattern} strengths constellation`,
         `flow ${flowCategory.toLowerCase()} optimization`,
@@ -69,15 +112,16 @@ class ASTReportService {
         documentTypes: ['coaching_guide', 'report_template']
       });
 
-      // Step 3: Generate personal development report
+      // Step 4: Generate personal development report
       const personalReport = await this.generatePersonalReport(userData, strengthsSignature, flowCategory, trainingContext);
 
-      // Step 4: Generate professional profile report
+      // Step 5: Generate professional profile report
       const professionalProfile = await this.generateProfessionalProfile(userData, strengthsSignature, flowCategory, trainingContext);
 
       return {
         personalReport,
         professionalProfile,
+        starCardData,
         metadata: {
           generatedAt: new Date().toISOString(),
           userStrengthsSignature: strengthsSignature.name,
@@ -178,55 +222,85 @@ class ASTReportService {
     context: any
   ): Promise<string> {
     
-    const prompt = `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology. Generate a comprehensive Personal Development Report following the EXACT structure, length, and depth shown in the sample reports in your training materials.
+    const prompt = `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology. Generate a comprehensive Personal Development Report following the EXACT structure, tone, and depth shown in the Olivia Wang and Daniel Chen sample reports in your training materials.
 
-CRITICAL: Follow the sample report template structure with these sections:
-- Executive Summary (their unique signature overview)
-- Part I: Strengths Signature Deep Dive (detailed constellation analysis)
-- Part II: Optimizing Flow State (flow profile and enhancement strategies)
-- Part III: Bridging to Future Self (5, 10, 20-year vision integration)
-- Part IV: Development Pathway (specific growth strategies)
-- Part V: Signature in Action (daily practices)
-- Part VI: Unique Value Proposition (career positioning)
-- Conclusion: Embracing Your Signature
+CRITICAL REQUIREMENTS - Match the sample reports exactly:
 
-USER DATA:
+STRUCTURE TO FOLLOW (based on sample reports):
+1. Title: "Personal Development Report: [First Name Last Name]" with subtitle "*This is your private, personalized development report...*"
+2. Your Unique Strengths Profile (detailed constellation analysis with creative archetype name)
+3. Flow State Analysis (specific flow score interpretation and optimization)
+4. Professional Development Pathway with detailed subsections:
+   - Immediate Development Focus (Next 6 Months)
+   - Medium-Term Development (6-18 Months)  
+   - Long-Term Vision (2-5 Years)
+5. Well-Being and Life Integration with current level analysis
+6. Quarterly Progress Framework
+7. Key Takeaways section
+
+STYLE REQUIREMENTS:
+- Use their exact name (${userData.userName}) throughout
+- Quote their specific reflections directly in quotation marks
+- Create a unique "Strengths Signature" name like "The Dynamic Organizer" or similar
+- Reference their exact percentages: ${signature.percentages}
+- Include their flow score: ${userData.flowScore} (${flowCategory})
+- Maintain Talia's warm, encouraging, deeply personal coaching voice
+- Write 2,500-3,000 words with substantial depth in each section
+
+USER CONSTELLATION DATA:
 Name: ${userData.userName}
-Strengths: ${signature.percentages}
-Constellation: ${signature.name} (${signature.pattern})
+Strengths Distribution: ${signature.percentages}
+Constellation Archetype: ${signature.name} (${signature.pattern})
 Flow Score: ${userData.flowScore} (${flowCategory})
 Current Well-being: ${userData.cantrilLadder.currentLevel}/10
 Future Well-being Goal: ${userData.cantrilLadder.futureLevel}/10
 
-REFLECTIONS:
+THEIR ACTUAL REFLECTIONS (quote these directly):
 ${Object.entries(userData.stepReflections).map(([step, reflection]) => 
-  `${step}: ${reflection}`).join('\n')}
+  `${step}: "${reflection}"`).join('\n')}
 
-FUTURE VISION: ${userData.futureVision}
+FUTURE VISION: "${userData.futureVision}"
 
-WELL-BEING FACTORS:
-Current: ${userData.cantrilLadder.currentFactors}
-Future Improvements: ${userData.cantrilLadder.futureImprovements}
+COMPREHENSIVE WELL-BEING ANALYSIS:
+Current Level ${userData.cantrilLadder.currentLevel} Factors: ${userData.cantrilLadder.currentFactors}
+Future Level ${userData.cantrilLadder.futureLevel} Improvements: ${userData.cantrilLadder.futureImprovements}
+Specific Changes Planned: ${userData.cantrilLadder.specificChanges}
+Quarterly Progress Indicators: ${userData.cantrilLadder.quarterlyProgress}
+Quarterly Action Plan: ${userData.cantrilLadder.quarterlyActions}
 
-TRAINING CONTEXT (including sample reports):
+FLOW STATE INSIGHTS:
+Flow Triggers: ${userData.flowInsights.triggers}
+Flow Blockers: ${userData.flowInsights.blockers}
+Optimal Conditions: ${userData.flowInsights.conditions}
+Flow Improvements: ${userData.flowInsights.improvements}
+Top Flow Attributes: ${userData.flowAttributes.map(attr => `${attr.name} (${attr.score}%)`).join(', ')}
+
+COMPREHENSIVE VISION PROGRESSION:
+20-Year Vision: "${userData.visionProgression.twentyYear}"
+10-Year Milestone: "${userData.visionProgression.tenYear}"
+5-Year Foundation: "${userData.visionProgression.fiveYear}"
+Flow-Optimized Life: "${userData.visionProgression.flowOptimized}"
+
+TRAINING CONTEXT AND SAMPLE REPORTS:
 ${context.context}
 
-REQUIREMENTS:
-- Follow the sample report structure EXACTLY as shown in training materials
-- Quote their specific workshop responses directly (like sample reports do)
-- Create detailed constellation analysis with natural energy flow explanation
-- Include specific development timelines (3 months, 6-18 months, 2-5 years)
-- Reference their actual role/profession and specific examples
-- Maintain Talia's warm, insightful, action-oriented coaching voice
-- Write 2,500-3,000 words matching sample report depth
+ESSENTIAL QUALITY STANDARDS:
+- Reference their exact assessment percentages throughout
+- Quote their specific workshop reflections in quotation marks
+- Create detailed constellation analysis explaining how their unique percentage combination creates their natural patterns
+- Include specific development timelines with concrete actions
+- Address their well-being journey from current to future level
+- Maintain the depth and personal insight quality of the sample reports
+- Use their actual profession/role context when giving recommendations
+- Create actionable quarterly development framework
 
-This is a PRIVATE personal development report with comprehensive insights for ${userData.userName}'s exclusive use.`;
+This is a CONFIDENTIAL personal development report for ${userData.userName}'s private use only.`;
 
     const response = await generateClaudeCoachingResponse({
       userMessage: prompt,
       personaType: 'talia',
       userName: userData.userName,
-      userId: userData.userId,
+      userId: parseInt(userData.userId),
       contextData: context.context,
       sessionId: `ast-personal-${userData.userId}-${Date.now()}`,
       maxTokens: 4000  // Increased for comprehensive AST reports
@@ -245,42 +319,53 @@ This is a PRIVATE personal development report with comprehensive insights for ${
     context: any
   ): Promise<string> {
     
-    const prompt = `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology. Generate a Professional Profile Report following the EXACT structure and approach shown in the professional profile samples in your training materials.
+    const prompt = `You are Talia, an expert AI life coach specializing in the AllStarTeams (AST) methodology. Generate a Professional Profile Report following the EXACT structure, tone, and approach shown in the professional profile samples in your training materials.
 
-CRITICAL: Follow the sample professional profile template structure:
-- Executive Summary (working style and team value overview)
-- Core Strengths Profile (how each strength manifests professionally)
-- Flow State and Optimal Performance Conditions (work environment preferences)
-- Collaboration Guidelines (how others can work effectively with them)
-- Team Integration Strategies (role preferences and communication style)
-- Professional Development Recommendations (career-focused growth areas)
+CRITICAL REQUIREMENTS - Match the sample professional profiles exactly:
 
-USER DATA:
+STRUCTURE TO FOLLOW (based on sample professional profiles):
+1. Title: "Professional Profile Report - [Full Name]" with subtitle "*Generated by Talia, AllStarTeams Development Coach*"
+2. Professional Overview (working style and team value overview with exact percentages)
+3. Core Strengths Profile (how each strength manifests professionally with specific examples)
+4. Collaboration Guidelines (specific communication preferences and optimal meeting dynamics)
+5. Performance Optimization (flow state triggers, environmental preferences, productivity recommendations)
+6. Team Integration Strategies (natural leadership style, development trajectory, optimal team contributions)
+
+STYLE REQUIREMENTS:
+- Reference their exact strength percentages: ${signature.percentages}
+- Include their flow score: ${userData.flowScore} (${flowCategory}) 
+- Quote relevant work-related reflections appropriately
+- Create specific, actionable collaboration guidelines
+- Maintain Talia's professional but warm coaching voice
+- Write 1,800-2,200 words with substantial depth
+- Focus on how colleagues can work effectively with them
+
+USER PROFESSIONAL DATA:
 Name: ${userData.userName}
-Strengths: ${signature.percentages}
-Constellation: ${signature.name} (${signature.pattern})
+Strengths Distribution: ${signature.percentages}
+Constellation Archetype: ${signature.name} (${signature.pattern})
 Flow Score: ${userData.flowScore} (${flowCategory})
 
-WORK-RELATED REFLECTIONS:
+THEIR WORK-RELATED REFLECTIONS (reference appropriately):
 ${Object.entries(userData.stepReflections)
-  .filter(([step]) => !step.includes('personal') && !step.includes('future'))
-  .map(([step, reflection]) => `${step}: ${reflection}`).join('\n')}
+  .map(([step, reflection]) => `${step}: "${reflection}"`).join('\n')}
 
-TRAINING CONTEXT (including sample professional profiles):
+TRAINING CONTEXT AND SAMPLE PROFESSIONAL PROFILES:
 ${context.context}
 
-REQUIREMENTS:
-- Follow the sample professional profile structure EXACTLY as shown in training materials
-- Reference their specific work-related reflections and examples
-- Create actionable collaboration guidelines for teammates
-- Include specific work environment recommendations
-- Focus on professional strengths application and team dynamics
-- Maintain Talia's professional coaching voice (warmer than pure corporate, but professional)
-- Write 1,800-2,200 words matching sample profile depth
+PROFESSIONAL PROFILE QUALITY STANDARDS:
+- Reference their exact assessment percentages throughout
+- Include specific collaboration guidelines for teammates
+- Provide actionable work environment recommendations
+- Focus on how their strengths manifest in team settings
+- Include their natural leadership style and team contributions
+- Create specific performance optimization strategies
+- Maintain professional boundary - exclude personal/private elements
+- Use their actual profession/role context for relevant examples
 
-PRIVACY GUIDELINES - EXCLUDE:
-- Personal future aspirations not ready to share professionally
-- Private stress triggers or vulnerabilities
+PRIVACY BOUNDARIES - EXCLUDE:
+- Personal future aspirations not ready for professional sharing
+- Private stress triggers or vulnerabilities  
 - Personal life reflections and family goals
 - Deeply personal reflection content
 
@@ -290,7 +375,7 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
       userMessage: prompt,
       personaType: 'talia',
       userName: userData.userName,
-      userId: userData.userId,
+      userId: parseInt(userData.userId),
       contextData: context.context,
       sessionId: `ast-professional-${userData.userId}-${Date.now()}`,
       maxTokens: 4000  // Increased for comprehensive AST reports
@@ -352,6 +437,15 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
         LIMIT 1
       `, [userId]);
 
+      // Get Cantril Ladder Reflection (detailed well-being responses)
+      const cantrilReflectionResult = await pool.query(`
+        SELECT results 
+        FROM user_assessments 
+        WHERE user_id = $1 AND assessment_type = 'cantrilLadderReflection'
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [userId]);
+
       // Get Future Self Reflection
       const futureResult = await pool.query(`
         SELECT results 
@@ -361,21 +455,58 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
         LIMIT 1
       `, [userId]);
 
+      // Get Rounding Out Reflection (flow insights)
+      const roundingOutResult = await pool.query(`
+        SELECT results 
+        FROM user_assessments 
+        WHERE user_id = $1 AND assessment_type = 'roundingOutReflection'
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [userId]);
+
+      // Get Flow Attributes
+      const flowAttributesResult = await pool.query(`
+        SELECT results 
+        FROM user_assessments 
+        WHERE user_id = $1 AND assessment_type = 'flowAttributes'
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [userId]);
+
       // Process the data
       const strengthsData = strengthsResult.rows[0] ? JSON.parse(strengthsResult.rows[0].results) : {};
       const flowData = flowResult.rows[0] ? JSON.parse(flowResult.rows[0].results) : {};
       const reflectionsData = reflectionsResult.rows[0] ? JSON.parse(reflectionsResult.rows[0].results) : {};
       const cantrilData = cantrilResult.rows[0] ? JSON.parse(cantrilResult.rows[0].results) : {};
+      const cantrilReflectionData = cantrilReflectionResult.rows[0] ? JSON.parse(cantrilReflectionResult.rows[0].results) : {};
       const futureData = futureResult.rows[0] ? JSON.parse(futureResult.rows[0].results) : {};
+      const roundingOutData = roundingOutResult.rows[0] ? JSON.parse(roundingOutResult.rows[0].results) : {};
+      const flowAttributesData = flowAttributesResult.rows[0] ? JSON.parse(flowAttributesResult.rows[0].results) : {};
 
-      // Create step reflections mapping
+      // Create comprehensive step reflections mapping with ALL user content
       const stepReflections: Record<string, string> = {};
-      if (reflectionsData.strength1) stepReflections['2-4-1'] = reflectionsData.strength1;
-      if (reflectionsData.strength2) stepReflections['2-4-2'] = reflectionsData.strength2;
-      if (reflectionsData.strength3) stepReflections['2-4-3'] = reflectionsData.strength3;
-      if (reflectionsData.strength4) stepReflections['2-4-4'] = reflectionsData.strength4;
+      
+      // Individual strength applications (detailed examples)
+      if (reflectionsData.reflections?.strength1) stepReflections['2-4-1'] = reflectionsData.reflections.strength1;
+      if (reflectionsData.reflections?.strength2) stepReflections['2-4-2'] = reflectionsData.reflections.strength2;
+      if (reflectionsData.reflections?.strength3) stepReflections['2-4-3'] = reflectionsData.reflections.strength3;
+      if (reflectionsData.reflections?.strength4) stepReflections['2-4-4'] = reflectionsData.reflections.strength4;
+      
+      // Team collaboration insights
+      if (reflectionsData.reflections?.teamValues) stepReflections['team-values'] = reflectionsData.reflections.teamValues;
+      if (reflectionsData.reflections?.uniqueContribution) stepReflections['unique-contribution'] = reflectionsData.reflections.uniqueContribution;
+      
+      // Future vision and flow optimization
       if (futureData.twentyYearVision) stepReflections['4-4'] = futureData.twentyYearVision;
+      if (futureData.tenYearMilestone) stepReflections['4-4-10yr'] = futureData.tenYearMilestone;
+      if (futureData.fiveYearFoundation) stepReflections['4-4-5yr'] = futureData.fiveYearFoundation;
       if (futureData.flowOptimizedLife) stepReflections['4-5'] = futureData.flowOptimizedLife;
+      
+      // Flow insights and optimization
+      if (roundingOutData.values) stepReflections['flow-triggers'] = roundingOutData.values;
+      if (roundingOutData.strengths) stepReflections['flow-blockers'] = roundingOutData.strengths;
+      if (roundingOutData.passions) stepReflections['flow-conditions'] = roundingOutData.passions;
+      if (roundingOutData.growthAreas) stepReflections['flow-improvements'] = roundingOutData.growthAreas;
 
       return {
         userId: user.id.toString(),
@@ -391,11 +522,30 @@ This is a PROFESSIONAL profile report suitable for sharing with colleagues and t
         cantrilLadder: {
           currentLevel: cantrilData.wellBeingLevel || 7,
           futureLevel: cantrilData.futureWellBeingLevel || 8,
-          currentFactors: 'Meaningful work, good relationships, learning opportunities',
-          futureImprovements: 'Enhanced leadership impact, deeper expertise, better work-life integration'
+          // Use actual user's detailed responses instead of generic text
+          currentFactors: cantrilReflectionData.currentFactors || 'Building on current strengths and meaningful work',
+          futureImprovements: cantrilReflectionData.futureImprovements || 'Developing leadership capabilities and work-life integration',
+          specificChanges: cantrilReflectionData.specificChanges || '',
+          quarterlyProgress: cantrilReflectionData.quarterlyProgress || '',
+          quarterlyActions: cantrilReflectionData.quarterlyActions || ''
         },
         futureVision: futureData.twentyYearVision || '',
-        quarterlyGoals: 'Develop leadership skills, build expertise, expand impact'
+        // Use actual user's quarterly actions instead of generic text
+        quarterlyGoals: cantrilReflectionData.quarterlyActions || 'Focus on leadership development and skill building',
+        // Additional rich data for Talia
+        flowAttributes: flowAttributesData.attributes || [],
+        flowInsights: {
+          triggers: roundingOutData.values || '',
+          blockers: roundingOutData.strengths || '',
+          conditions: roundingOutData.passions || '',
+          improvements: roundingOutData.growthAreas || ''
+        },
+        visionProgression: {
+          twentyYear: futureData.twentyYearVision || '',
+          tenYear: futureData.tenYearMilestone || '',
+          fiveYear: futureData.fiveYearFoundation || '',
+          flowOptimized: futureData.flowOptimizedLife || ''
+        }
       };
 
     } catch (error) {

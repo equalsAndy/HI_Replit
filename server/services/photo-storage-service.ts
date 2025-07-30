@@ -278,6 +278,64 @@ export class PhotoStorageService {
     const baseUrl = '/api/photos';
     return thumbnail ? `${baseUrl}/${photoId}/thumbnail` : `${baseUrl}/${photoId}`;
   }
+
+  /**
+   * Get user's StarCard image for reports
+   * This searches for the most recent StarCard image uploaded by the user
+   */
+  async getUserStarCard(userId: string): Promise<{ filePath: string; photoData: string } | null> {
+    try {
+      // Look for the most recent photo uploaded by this user
+      // In a real implementation, we might have a specific table for StarCards
+      const result = await query(`
+        SELECT photo_data, photo_hash, mime_type
+        FROM photo_storage 
+        WHERE uploaded_by = $1 
+        AND is_thumbnail = false
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [parseInt(userId)]);
+
+      if (result.rows.length === 0) {
+        return null;
+      }
+
+      const photo = result.rows[0];
+      
+      // Create a temporary file path for the StarCard
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      const crypto = await import('crypto');
+      
+      const storageDir = path.join(process.cwd(), 'storage', 'star-cards');
+      await fs.mkdir(storageDir, { recursive: true });
+      
+      // Generate filename based on photo hash
+      const extension = photo.mime_type.split('/')[1] || 'png';
+      const filename = `user-${userId}-starcard-${photo.photo_hash.substring(0, 8)}.${extension}`;
+      const filePath = path.join(storageDir, filename);
+      
+      // Write the photo data to file if it doesn't exist
+      try {
+        await fs.access(filePath);
+      } catch {
+        // Extract base64 data and write to file
+        const base64Data = photo.photo_data.includes(',') 
+          ? photo.photo_data.split(',')[1] 
+          : photo.photo_data;
+        const buffer = Buffer.from(base64Data, 'base64');
+        await fs.writeFile(filePath, buffer);
+      }
+
+      return {
+        filePath: filePath,
+        photoData: photo.photo_data
+      };
+    } catch (error) {
+      console.error('Error getting user StarCard:', error);
+      return null;
+    }
+  }
 }
 
 export const photoStorageService = new PhotoStorageService();

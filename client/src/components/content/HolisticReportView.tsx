@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw } from 'lucide-react';
+import { Download, FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { PDFViewer } from '@/components/ui/pdf-viewer';
 
 interface HolisticReportViewProps {
   navigate: (path: string) => void;
@@ -15,6 +16,7 @@ interface ReportStatus {
   status: 'not_generated' | 'pending' | 'generating' | 'completed' | 'failed';
   pdfUrl?: string;
   downloadUrl?: string;
+  htmlUrl?: string;
   errorMessage?: string;
   generatedAt?: string;
 }
@@ -32,6 +34,17 @@ export default function HolisticReportView({
   setCurrentContent
 }: HolisticReportViewProps) {
   const [selectedReportType, setSelectedReportType] = useState<'standard' | 'personal' | null>(null);
+  const [pdfViewer, setPdfViewer] = useState<{
+    isOpen: boolean;
+    pdfUrl: string;
+    title: string;
+    downloadUrl?: string;
+  }>({
+    isOpen: false,
+    pdfUrl: '',
+    title: '',
+    downloadUrl: undefined
+  });
   const queryClient = useQueryClient();
 
   // Fetch status for both report types
@@ -88,7 +101,13 @@ export default function HolisticReportView({
   const handleViewReport = (reportType: 'standard' | 'personal') => {
     const status = reportType === 'standard' ? standardStatus : personalStatus;
     if (status?.pdfUrl) {
-      window.open(status.pdfUrl, '_blank');
+      const title = reportType === 'standard' ? 'Professional Development Report' : 'Personal Development Report';
+      setPdfViewer({
+        isOpen: true,
+        pdfUrl: status.pdfUrl,
+        title,
+        downloadUrl: status.downloadUrl
+      });
     }
   };
 
@@ -96,6 +115,13 @@ export default function HolisticReportView({
     const status = reportType === 'standard' ? standardStatus : personalStatus;
     if (status?.downloadUrl) {
       window.open(status.downloadUrl, '_blank');
+    }
+  };
+
+  const handleViewHtmlReport = (reportType: 'standard' | 'personal') => {
+    const status = reportType === 'standard' ? standardStatus : personalStatus;
+    if (status?.htmlUrl) {
+      window.open(status.htmlUrl, '_blank');
     }
   };
 
@@ -174,7 +200,12 @@ export default function HolisticReportView({
                   </div>
                   {status?.generatedAt && (
                     <p className="text-green-700 text-sm mt-1">
-                      Generated on {new Date(status.generatedAt).toLocaleDateString()}
+                      Generated on {new Date(status.generatedAt).toLocaleDateString()} at {new Date(status.generatedAt).toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit', 
+                        hour12: true,
+                        timeZoneName: 'short'
+                      })}
                     </p>
                   )}
                 </div>
@@ -210,12 +241,12 @@ export default function HolisticReportView({
                 {isCompleted && (
                   <>
                     <Button
-                      onClick={() => handleViewReport(reportType)}
+                      onClick={() => handleViewHtmlReport(reportType)}
                       variant="outline"
-                      className="border-blue-200 hover:bg-blue-50"
+                      className="border-purple-200 hover:bg-purple-50 text-purple-700"
                     >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View PDF
+                      <Monitor className="h-4 w-4 mr-2" />
+                      View HTML
                     </Button>
                     <Button
                       onClick={() => handleDownloadReport(reportType)}
@@ -223,7 +254,16 @@ export default function HolisticReportView({
                       className="border-green-200 hover:bg-green-50"
                     >
                       <Download className="h-4 w-4 mr-2" />
-                      Download
+                      Download PDF
+                    </Button>
+                    <Button
+                      onClick={() => handleGenerateReport(reportType)}
+                      variant="outline"
+                      className="border-blue-200 hover:bg-blue-50 text-blue-700"
+                      disabled={isGenerating || generateReportMutation.isPending}
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Regenerate
                     </Button>
                   </>
                 )}
@@ -235,24 +275,20 @@ export default function HolisticReportView({
     );
   };
 
+  const closePdfViewer = () => {
+    setPdfViewer({
+      isOpen: false,
+      pdfUrl: '',
+      title: '',
+      downloadUrl: undefined
+    });
+  };
+
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      {/* TEST MESSAGE - CLAUDE IS WORKING ON THE CORRECT FILE */}
-      <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg">
-        <h2 className="text-xl font-bold text-yellow-800 mb-2">🔧 TEST MESSAGE FROM CLAUDE CODE</h2>
-        <p className="text-yellow-700">
-          This test message confirms Claude is working on the correct holistic report file. 
-          If you can see this message, we are in the right place!
-        </p>
-        <div className="mt-2 text-sm text-yellow-600">
-          <p><strong>File:</strong> /client/src/components/content/HolisticReportView.tsx</p>
-          <p><strong>Standard Status:</strong> {JSON.stringify(standardStatus)}</p>
-          <p><strong>Personal Status:</strong> {JSON.stringify(personalStatus)}</p>
-        </div>
-      </div>
-      
+    <>
+      <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Development Reports</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Star Report</h1>
         <p className="text-lg text-gray-700">
           Congratulations on completing your AllStarTeams workshop! Your personalized development reports 
           are now available, synthesizing your journey into actionable insights for continued growth.
@@ -281,9 +317,9 @@ export default function HolisticReportView({
               </p>
             </div>
           </div>
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
-            <p className="text-yellow-800 text-sm font-medium">
-              📝 Important: You can only generate each report type once. Choose wisely!
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
+            <p className="text-blue-800 text-sm font-medium">
+              💡 Tip: Generate reports when you're ready to review your complete workshop insights. You can regenerate reports as needed during testing.
             </p>
           </div>
         </CardContent>
@@ -332,5 +368,16 @@ export default function HolisticReportView({
         </Card>
       )}
     </div>
+
+      {/* PDF Viewer Modal */}
+      {pdfViewer.isOpen && (
+        <PDFViewer
+          pdfUrl={pdfViewer.pdfUrl}
+          title={pdfViewer.title}
+          downloadUrl={pdfViewer.downloadUrl}
+          onClose={closePdfViewer}
+        />
+      )}
+    </>
   );
 }
