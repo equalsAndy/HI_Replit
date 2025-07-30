@@ -71,3 +71,11 @@ chromadb_data/
 __pycache__/
 *.pyc
 *.pyo
+
+# Temporary development files and notes
+Commands.rtf
+auth-system-fixes.md
+beta-tester-test.md
+tempClaudecomms/
+test-*.html
+src/

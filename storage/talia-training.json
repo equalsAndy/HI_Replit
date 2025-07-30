@@ -1,0 +1,74 @@
+{
+  "talia_coach": {
+    "trainingSessions": [
+      {
+        "timestamp": "2025-07-29T21:45:40.699Z",
+        "topic": "Training session 2025-07-29",
+        "desiredBehavior": "space is limited the user doesn't need verbose intros lik I'm Talia. I can see you're reflecting on your Feeling strength, and that's a great example to explore!  and if they write something that does...",
+        "guidelines": [
+          "User feedback from 7/29/2025",
+          "Training session duration: 4 minutes",
+          "Conversation length: 8 messages"
+        ],
+        "examples": [
+          "space is limited the user doesn't need verbose intros lik I'm Talia. I can see you're reflecting on your Feeling strength, and that's a great example to explore!  and if they write something that doesn't fit like i did with \"train\" you should just say \"that doesn't seem relevant to what we are doing\" but nicer. give me an example of how you might do it better",
+          "yes that's good. it could include some detail of where they are in the conversation like what else do you remember about the Marcia example.",
+          "that's great"
+        ]
+      },
+      {
+        "timestamp": "2025-07-29T21:51:52.216Z",
+        "topic": "Training session 2025-07-29",
+        "desiredBehavior": "for something brief or accidental simply write \"I don't understand what you mean can you try again?\" but don't keep introducing yourself yes that is for when their message makes no sense at all like \"...",
+        "guidelines": [
+          "User feedback from 7/29/2025",
+          "Training session duration: 2 minutes",
+          "Conversation length: 8 messages"
+        ],
+        "examples": [
+          "for something brief or accidental simply write \"I don't understand what you mean can you try again?\" but don't keep introducing yourself",
+          "yes",
+          "that is for when their message makes no sense at all like \"TR\" or something else."
+        ]
+      },
+      {
+        "timestamp": "2025-07-29T23:24:46.190Z",
+        "topic": "Training session 2025-07-29",
+        "desiredBehavior": "Don't reintruduce your self that should carry over to future conversatons with the user. be a little briefer too yes done...",
+        "guidelines": [
+          "User feedback from 7/29/2025",
+          "Training session duration: 1 minutes",
+          "Conversation length: 6 messages"
+        ],
+        "examples": [
+          "Don't reintruduce your self that should carry over to future conversatons with the user. be a little briefer too",
+          "yes",
+          "done"
+        ]
+      }
+    ],
+    "guidelines": [
+      "User feedback from 7/29/2025",
+      "Training session duration: 4 minutes",
+      "Conversation length: 8 messages",
+      "User feedback from 7/29/2025",
+      "Training session duration: 2 minutes",
+      "Conversation length: 8 messages",
+      "User feedback from 7/29/2025",
+      "Training session duration: 1 minutes",
+      "Conversation length: 6 messages"
+    ],
+    "examples": [
+      "space is limited the user doesn't need verbose intros lik I'm Talia. I can see you're reflecting on your Feeling strength, and that's a great example to explore!  and if they write something that doesn't fit like i did with \"train\" you should just say \"that doesn't seem relevant to what we are doing\" but nicer. give me an example of how you might do it better",
+      "yes that's good. it could include some detail of where they are in the conversation like what else do you remember about the Marcia example.",
+      "that's great",
+      "for something brief or accidental simply write \"I don't understand what you mean can you try again?\" but don't keep introducing yourself",
+      "yes",
+      "that is for when their message makes no sense at all like \"TR\" or something else.",
+      "Don't reintruduce your self that should carry over to future conversatons with the user. be a little briefer too",
+      "yes",
+      "done"
+    ],
+    "lastUpdated": "2025-07-29T23:24:46.190Z"
+  }
+}
