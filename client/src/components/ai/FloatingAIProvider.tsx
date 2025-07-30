@@ -6,6 +6,24 @@ interface AIContext {
   strengthLabel?: string;
   questionText?: string;
   aiEnabled?: boolean;
+  workshopContext?: {
+    currentStep: string;
+    stepName: string;
+    previousSteps: string[];
+    currentTask: string;
+    questionContext?: {
+      questionNumber: number;
+      totalQuestions: number;
+      currentQuestion: string;
+      hint?: string;
+      allQuestions: string[];
+      currentSection?: string;
+      wellBeingLevels?: {
+        current: number;
+        future: number;
+      };
+    };
+  };
 }
 
 interface FloatingAIContextType {

@@ -203,7 +203,7 @@ export default function StepByStepReflection({
         
         const result = await response.json();
         if (result.success) {
-          console.log('Step-by-step reflections auto-saved successfully');
+          // console.log('Step-by-step reflections auto-saved successfully');
         }
       } catch (error) {
         console.error('Auto-save failed:', error);
@@ -216,15 +216,15 @@ export default function StepByStepReflection({
   useEffect(() => {
     // Don't auto-save if workshop is locked
     if (workshopLocked) {
-      console.log('🔒 Workshop locked - skipping auto-save');
+      // console.log('🔒 Workshop locked - skipping auto-save');
       return;
     }
     
     const hasContent = Object.values(reflections).some(value => value && typeof value === 'string' && value.trim().length > 0);
-    console.log('Reflection save check:', { reflections, hasContent, workshopLocked });
+    // console.log('Reflection save check:', { reflections, hasContent, workshopLocked });
     
     if (hasContent) {
-      console.log('Triggering auto-save for reflections:', reflections);
+      // console.log('Triggering auto-save for reflections:', reflections);
       debouncedSave(reflections);
     }
   }, [reflections, debouncedSave, workshopLocked]);
@@ -1029,8 +1029,8 @@ export default function StepByStepReflection({
                   : "Write 2-3 sentences about your unique contribution"}
               </p>
               
-              {/* Coaching Button - Bottom Section */}
-              {currentStep <= 4 && (shouldShowDemoButtons || true) && (
+              {/* Coaching Button - Bottom Section - DISABLED FOR NOW */}
+              {false && currentStep <= 4 && (shouldShowDemoButtons || true) && (
                 <ReflectionCoachingButton 
                   reflectionContext={{
                     question: getStrengthPrompt(sortedQuadrants[currentStep-1].label).question,

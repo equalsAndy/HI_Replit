@@ -276,17 +276,18 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   useEffect(() => {
     // Don't auto-save if workshop is locked
     if (testWorkshopLocked) {
+      // console.log('🔒 Workshop locked - skipping auto-save');
       return;
     }
     
     if (Object.values(formData).some(value => value && typeof value === 'string' && value.trim().length > 0)) {
-      // console.log('Cantril Ladder reflections auto-saving...'); // Reduced logging
+      console.log('Cantril Ladder reflections changed, triggering save:', formData);
       debouncedSave(formData);
     }
   }, [formData, debouncedSave, testWorkshopLocked]);
 
   // Handle text input changes
-  const handleInputChange = (field: keyof CantrilFormData, value: string) => {
+  const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -314,60 +315,16 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
     };
     
     setFormData(demoData);
-    // Jump to the last question
-    setCurrentQuestion(cantrilQuestions.length - 1);
   };
-
-  // Handle next step with validation
-  const handleNextStep = async () => {
-    // Validate that at least one field is filled (minimum 10 characters)
-    const validation = validateAtLeastOneField(formData, 10);
-    
-    if (!validation.isValid) {
-      const errorMessage = validation.errors[0]?.message || 'Please complete at least one field to continue';
-      setValidationError(errorMessage);
-      return;
-    }
-    
-    // Clear any validation error
-    setValidationError('');
-    
-    try {
-      // Mark step as completed (this unlocks the next step)
-      markStepCompleted('4-2');
-      
-      // Navigate to step 4-3 (Visualizing You) 
-      setCurrentContent('visualizing-you');
-    } catch (error) {
-      console.error('Error completing step:', error);
-    }
-  };
-
   return (
     <>
-      <h1 className="text-3xl font-bold text-gray-900 mb-6">
-        Cantril Ladder Well-being Reflection
-      </h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-6">Cantril Ladder Well-being Reflections</h1>
 
-      {/* Progress indicator */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <span>Question {currentQuestion + 1} of {cantrilQuestions.length}</span>
-          <span>{currentQuestionData.title}</span>
-        </div>
-        <div className="w-full bg-gray-200 rounded-full h-2">
-          <div 
-            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-            style={{ width: `${((currentQuestion + 1) / cantrilQuestions.length) * 100}%` }}
-          />
-        </div>
-      </div>
-
-      {/* Top row: Ladder and Well-being Levels side by side */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* SVG Ladder */}
-        <div className="flex justify-center">
-          <div className="w-full">
+      {/* Content below title - same layout as WellBeingView */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8" id="ladder-section">
+        {/* SVG Ladder - same sizing as WellBeingView */}
+        <div className="lg:col-span-5 xl:col-span-6 2xl:col-span-7 flex justify-center">
+          <div className="w-full xl:w-11/12 2xl:w-full">
             <WellBeingLadderSvg 
               currentValue={wellBeingLevel}
               futureValue={futureWellBeingLevel}
@@ -375,124 +332,172 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           </div>
         </div>
 
-        {/* Well-being levels display */}
-        <div className="flex items-center">
-          <div className="bg-blue-50 p-6 rounded-lg border border-blue-200 w-full">
-            <h3 className="text-lg font-medium text-blue-800 mb-4">Your Well-being Levels</h3>
+        {/* Reflections section - positioned like sliders section in WellBeingView */}
+        <div className="lg:col-span-7 xl:col-span-6 2xl:col-span-5 space-y-6">
+          {/* READ-ONLY display of wellbeing levels set in step 4-1 */}
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <h3 className="text-md font-medium text-blue-800 mb-4">Your Well-being Levels</h3>
+            
             <div className="space-y-4">
-              <div className="bg-white p-4 rounded border">
-                <div className="text-sm text-gray-700">Current Level:</div>
+              <div className="bg-white p-3 rounded border">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Current Well-being Level:
+                </label>
                 <div className="text-2xl font-bold text-blue-600">Level {wellBeingLevel}</div>
               </div>
-              <div className={`${futureWellBeingLevel < wellBeingLevel ? 'bg-red-50 border-red-200' : 'bg-white'} p-4 rounded border`}>
-                <div className="text-sm text-gray-700">Future Level (1 year):</div>
+              
+              <div className={`${futureWellBeingLevel < wellBeingLevel ? 'bg-red-50 border-red-200' : 'bg-white'} p-3 rounded border`}>
+                <label className={`block text-sm font-medium mb-1 ${futureWellBeingLevel < wellBeingLevel ? 'text-red-700' : 'text-gray-700'}`}>
+                  Future Well-being Level (1 year):
+                </label>
                 <div className={`text-2xl font-bold ${futureWellBeingLevel < wellBeingLevel ? 'text-red-600' : 'text-green-600'}`}>
                   Level {futureWellBeingLevel}
                 </div>
+                {futureWellBeingLevel < wellBeingLevel && (
+                  <div className="bg-red-100 border border-red-300 p-3 rounded-lg mt-2">
+                    <p className="text-sm text-red-700 font-medium flex items-center">
+                      ⚠ Are you sure you want a lower future well-being level?
+                    </p>
+                    <p className="text-xs text-red-600 mt-1">
+                      Consider setting a higher goal to work toward improvement.{' '}
+                      <button
+                        onClick={() => {
+                          const ladderSection = document.getElementById('ladder-section');
+                          if (ladderSection) {
+                            ladderSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                          }
+                        }}
+                        className="text-blue-600 underline hover:text-blue-800 font-normal"
+                      >
+                        Go back to ladder
+                      </button>
+                    </p>
+                  </div>
+                )}
               </div>
+              
+              <p className="text-sm text-blue-600 italic">
+                These values were set in the previous step. You may update your choices there.
+              </p>
             </div>
-            <p className="text-xs text-blue-600 italic mt-3">
-              Set in the previous step
+          </div>
+
+          <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+            <h3 className="text-md font-medium text-blue-800 mb-2">What factors shape your current rating?</h3>
+            <p className="text-gray-700 text-sm mb-2">
+              What are the main elements contributing to your current well-being?
             </p>
+            <textarea 
+              value={formData.currentFactors}
+              onChange={(e) => handleInputChange('currentFactors', e.target.value)}
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
+              placeholder="Consider your work, relationships, health, finances, and personal growth..."
+            />
+          </div>
+
+          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100">
+            <h3 className="text-md font-medium text-indigo-800 mb-2">What improvements do you envision?</h3>
+            <p className="text-indigo-600 text-sm mb-2">
+              What achievements or changes would make your life better in one year?
+            </p>
+            <textarea 
+              value={formData.futureImprovements}
+              onChange={(e) => handleInputChange('futureImprovements', e.target.value)}
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
+              placeholder="Describe specific improvements you hope to see in your life..."
+            />
+
+            {/* Specific Changes section moved under improvements */}
+            <div className="mt-6">
+              <h4 className="font-medium text-indigo-700 mb-2">What will be different?</h4>
+              <p className="text-indigo-600 text-sm mb-2">
+                How will your experience be noticeably different in tangible ways?
+              </p>
+              <textarea 
+                value={formData.specificChanges}
+                onChange={(e) => handleInputChange('specificChanges', e.target.value)}
+                disabled={testWorkshopLocked}
+                readOnly={testWorkshopLocked}
+                className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                  testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                }`}
+                placeholder="Describe concrete changes you'll experience..."
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom row: Current question section spanning full width */}
-      <div className="mb-8">
-        <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
-              {currentQuestionData.question}
-            </h2>
-            <p className="text-gray-600 text-sm">
-              {currentQuestionData.description}
+      <div className="bg-purple-50 p-6 rounded-lg border border-purple-100 mb-8">
+        <h3 className="text-lg font-semibold text-purple-800 mb-4">QUARTERLY MILESTONES</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 className="font-medium text-purple-900 mb-2">What progress would you expect in 3 months?</h4>
+            <p className="text-sm text-purple-600 mb-2">
+              Name one specific indicator that you're moving up the ladder.
             </p>
-          </div>
-
-          <div className="mb-6">
-            <textarea
-              value={currentValue}
-              onChange={(e) => handleInputChange(currentQuestionData.key, e.target.value)}
+            <textarea 
+              value={formData.quarterlyProgress}
+              onChange={(e) => handleInputChange('quarterlyProgress', e.target.value)}
               disabled={testWorkshopLocked}
               readOnly={testWorkshopLocked}
-              className={`w-full h-40 p-4 border border-gray-300 rounded-md resize-none ${
-                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
               }`}
-              placeholder={currentQuestionData.placeholder}
+              placeholder="Describe a measurable sign of progress..."
             />
-            <div className="flex justify-between text-xs text-gray-500 mt-1">
-              <span>Your task: Write 2-3 sentences about this reflection</span>
-              <span>{currentValue.length} characters</span>
-            </div>
           </div>
-
-          {/* Navigation buttons */}
-          <div className="flex justify-between items-center">
-            <Button
-              variant="outline"
-              onClick={prevQuestion}
-              disabled={currentQuestion === 0 || testWorkshopLocked}
-              className="flex items-center gap-2"
-            >
-              <ChevronRight className="h-4 w-4 rotate-180" />
-              Previous
-            </Button>
-
-            <div className="flex items-center gap-2">
-              {shouldShowDemoButtons && (
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={fillWithDemoData}
-                  disabled={testWorkshopLocked}
-                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                >
-                  <FileText className="w-4 h-4 mr-1" />
-                  Demo
-                </Button>
-              )}
-
-              {currentQuestion < cantrilQuestions.length - 1 ? (
-                <Button
-                  onClick={nextQuestion}
-                  disabled={testWorkshopLocked}
-                  className="flex items-center gap-2"
-                >
-                  Next Question
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleNextStep}
-                  disabled={testWorkshopLocked}
-                  className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
-                >
-                  Next: Visualizing You
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+          <div>
+            <h4 className="font-medium text-purple-900 mb-2">What actions will you commit to this quarter?</h4>
+            <p className="text-sm text-purple-600 mb-2">
+              Name 1-2 concrete steps you'll take before your first quarterly check-in.
+            </p>
+            <textarea 
+              value={formData.quarterlyActions}
+              onChange={(e) => handleInputChange('quarterlyActions', e.target.value)}
+              disabled={testWorkshopLocked}
+              readOnly={testWorkshopLocked}
+              className={`min-h-[120px] w-full p-2 border border-gray-300 rounded-md ${
+                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+              }`}
+              placeholder="Describe specific actions you'll take..."
+            />
           </div>
         </div>
+      </div>
 
-        {/* Question context info */}
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-          <h4 className="font-medium text-gray-700 mb-2">
-            All Reflection Questions:
-          </h4>
-          <ol className="text-sm text-gray-600 space-y-1">
-            {cantrilQuestions.map((q, index) => (
-              <li 
-                key={q.id} 
-                className={`${index === currentQuestion ? 'font-medium text-blue-600' : ''} ${
-                  formData[q.key].trim().length > 0 ? 'text-green-600' : ''
-                }`}
-              >
-                {index + 1}. {q.question} {formData[q.key].trim().length > 0 ? '✓' : ''}
-              </li>
-            ))}
-          </ol>
+      <div className="bg-amber-50 p-6 rounded-lg border border-amber-100 mb-8">
+        <h3 className="text-amber-800 font-medium mb-3">Interpreting Your Position on the Ladder</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+            <h4 className="font-medium text-amber-800 mb-2">Steps 0-4: Struggling</h4>
+            <p className="text-sm text-amber-700">
+              People in this range typically report high levels of worry, sadness, stress, and pain.
+              Daily challenges may feel overwhelming, and hope for the future may be limited.
+            </p>
+          </div>
+          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+            <h4 className="font-medium text-amber-800 mb-2">Steps 5-6: Getting By</h4>
+            <p className="text-sm text-amber-700">
+              This middle range represents moderate satisfaction with life. You likely have some 
+              important needs met but still face significant challenges or unfulfilled aspirations.
+            </p>
+          </div>
+          <div className="bg-white bg-opacity-60 p-4 rounded-md border border-amber-100">
+            <h4 className="font-medium text-amber-800 mb-2">Steps 7-10: Thriving</h4>
+            <p className="text-sm text-amber-700">
+              People in this range report high life satisfaction, with most basic needs met. 
+              They typically experience a sense of purpose, strong social connections, and optimism.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -506,6 +511,56 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
           />
         </div>
       )}
+
+      <div className="flex justify-end">
+        <div className="flex items-center gap-3">
+          {shouldShowDemoButtons && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fillWithDemoData}
+              disabled={testWorkshopLocked}
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+            >
+              <FileText className="w-4 h-4 mr-2" />
+              Add Demo Data
+            </Button>
+          )}
+          <Button 
+            onClick={() => {
+              // If workshop is locked, allow navigation for viewing
+              if (testWorkshopLocked) {
+                markStepCompleted('4-2');
+                setCurrentContent("visualizing-you");
+                return;
+              }
+              
+              // For unlocked workshops, validate at least one reflection field is completed
+              const reflectionFields = {
+                currentFactors: formData.currentFactors,
+                futureImprovements: formData.futureImprovements,
+                specificChanges: formData.specificChanges,
+                quarterlyProgress: formData.quarterlyProgress,
+                quarterlyActions: formData.quarterlyActions
+              };
+              
+              const validation = validateAtLeastOneField(reflectionFields, 10);
+              if (!validation.isValid) {
+                setValidationError('Please complete the reflections to continue.');
+                return;
+              }
+              
+              // Clear validation and proceed
+              setValidationError('');
+              markStepCompleted('4-2');
+              setCurrentContent("visualizing-you");
+            }}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          >
+            Next: Visualizing You <ChevronRight className="ml-2 h-4 w-4" />
+          </Button>
+        </div>
+      </div>
     </>
   );
 };

@@ -9,7 +9,13 @@ export const unsplashApi = createApi({
 // Export function to search Unsplash
 export const searchUnsplash = async (query: string, perPage: number = 20) => {
   try {
-    console.log('Searching Unsplash with key:', import.meta.env.VITE_UNSPLASH_ACCESS_KEY ? 'Key exists' : 'No key found');
+    console.log('🖼️ Searching Unsplash for:', query);
+    console.log('🔑 API Key status:', import.meta.env.VITE_UNSPLASH_ACCESS_KEY ? 'Key exists' : 'No key found');
+    
+    if (!import.meta.env.VITE_UNSPLASH_ACCESS_KEY) {
+      console.error('❌ VITE_UNSPLASH_ACCESS_KEY not found in environment variables');
+      throw new Error('Unsplash API key not configured. Please add VITE_UNSPLASH_ACCESS_KEY to your environment variables.');
+    }
     
     const result = await unsplashApi.search.getPhotos({
       query,
@@ -17,14 +23,25 @@ export const searchUnsplash = async (query: string, perPage: number = 20) => {
     });
     
     if (result.errors) {
-      console.error('Unsplash API returned errors:', result.errors);
-      throw new Error(result.errors.join(', '));
+      console.error('❌ Unsplash API returned errors:', result.errors);
+      throw new Error(`Unsplash API error: ${result.errors.join(', ')}`);
     }
     
-    console.log('Unsplash search results:', result.response?.results?.length || 0, 'images found');
-    return result.response?.results || [];
+    const images = result.response?.results || [];
+    console.log('✅ Unsplash search results:', images.length, 'images found for query:', query);
+    return images;
   } catch (error) {
-    console.error('Error searching Unsplash:', error);
+    console.error('❌ Error searching Unsplash:', error);
+    
+    // Provide helpful error messages
+    if (error.message?.includes('401')) {
+      throw new Error('Unsplash API authentication failed. Please check your API key.');
+    } else if (error.message?.includes('429')) {
+      throw new Error('Unsplash API rate limit exceeded. Please try again later.');
+    } else if (error.message?.includes('network')) {
+      throw new Error('Network error. Please check your internet connection.');
+    }
+    
     throw error;
   }
 };

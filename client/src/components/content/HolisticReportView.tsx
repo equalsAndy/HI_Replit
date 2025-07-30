@@ -237,6 +237,20 @@ export default function HolisticReportView({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {/* TEST MESSAGE - CLAUDE IS WORKING ON THE CORRECT FILE */}
+      <div className="mb-6 p-4 bg-yellow-100 border-2 border-yellow-400 rounded-lg">
+        <h2 className="text-xl font-bold text-yellow-800 mb-2">🔧 TEST MESSAGE FROM CLAUDE CODE</h2>
+        <p className="text-yellow-700">
+          This test message confirms Claude is working on the correct holistic report file. 
+          If you can see this message, we are in the right place!
+        </p>
+        <div className="mt-2 text-sm text-yellow-600">
+          <p><strong>File:</strong> /client/src/components/content/HolisticReportView.tsx</p>
+          <p><strong>Standard Status:</strong> {JSON.stringify(standardStatus)}</p>
+          <p><strong>Personal Status:</strong> {JSON.stringify(personalStatus)}</p>
+        </div>
+      </div>
+      
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Development Reports</h1>
         <p className="text-lg text-gray-700">

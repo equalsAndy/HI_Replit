@@ -50,13 +50,14 @@ export default function AllStarTeams() {
                       currentContent?.includes('imaginal');
 
     const currentAppType = isIARoute ? 'imaginal-agility' : 'allstarteams';
-    console.log('🔍 Route Detection Debug:');
-    console.log('  - Current location:', location);
-    console.log('  - Current content:', currentContent);
-    console.log('  - location.includes("/imaginal-agility"):', location.includes('/imaginal-agility'));
-    console.log('  - isIARoute check result:', isIARoute);
-    console.log('  - Setting currentAppType to:', currentAppType);
-    console.log('  - Previous currentApp was:', currentApp);
+    // Route Detection Debug (disabled to reduce console spam)
+    // console.log('🔍 Route Detection Debug:');
+    // console.log('  - Current location:', location);
+    // console.log('  - Current content:', currentContent);
+    // console.log('  - location.includes("/imaginal-agility"):', location.includes('/imaginal-agility'));
+    // console.log('  - isIARoute check result:', isIARoute);
+    // console.log('  - Setting currentAppType to:', currentAppType);
+    // console.log('  - Previous currentApp was:', currentApp);
 
     // Only update if the app type actually changed
     if (currentApp !== currentAppType) {
@@ -94,15 +95,15 @@ export default function AllStarTeams() {
   // Check contentAccess preference first (for admin/facilitator toggles), then fall back to user role
   const isStudentContent = userData?.user?.contentAccess === 'student' || userData?.user?.role === 'student';
 
-  // Debug logging for interface switching
-  console.log('🎯 AllStarTeams Interface Debug:', {
-    userData: userData,
-    userDataUser: (userData as any)?.user,
-    contentAccess: (userData as any)?.user?.contentAccess,
-    userRole: (userData as any)?.user?.role,
-    isStudentContent: isStudentContent,
-    timestamp: new Date().toISOString()
-  });
+  // Debug logging for interface switching (disabled to reduce console spam)
+  // console.log('🎯 AllStarTeams Interface Debug:', {
+  //   userData: userData,
+  //   userDataUser: (userData as any)?.user,
+  //   contentAccess: (userData as any)?.user?.contentAccess,
+  //   userRole: (userData as any)?.user?.role,
+  //   isStudentContent: isStudentContent,
+  //   timestamp: new Date().toISOString()
+  // });
 
   // Function to get role-based navigation sections
   const getRoleBasedNavigationSections = () => {
@@ -554,7 +555,10 @@ export default function AllStarTeams() {
 
     // Check if step is in unlocked steps
     const isUnlocked = unlockedSteps.includes(stepId);
-    console.log(`🔓 Step accessibility check: ${stepId} - unlocked: ${isUnlocked}, available steps: ${unlockedSteps.join(', ')}`);
+    // Only log if step is locked and we're trying to access it (reduce console spam)
+    if (!isUnlocked && process.env.NODE_ENV === 'development') {
+      console.log(`🔓 Step ${stepId} locked - available: ${unlockedSteps.join(', ')}`);
+    }
 
     return isUnlocked;
   };

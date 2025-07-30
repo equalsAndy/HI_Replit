@@ -1,9 +1,11 @@
 import { useMutation } from '@tanstack/react-query';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useSessionManager } from '@/hooks/use-session-manager';
 
 export function useLogout() {
   const { toast } = useToast();
+  const { storeSessionMessage } = useSessionManager();
 
   const logout = useMutation({
     mutationFn: async () => {
@@ -31,12 +33,16 @@ export function useLogout() {
       document.body.appendChild(overlay);
       
       try {
+        // Store logout message for auth page
+        storeSessionMessage('logged-out');
+        
         // Use fetch directly for better control (avoid redirects during the request)
         await fetch('/api/auth/logout', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
+          body: JSON.stringify({ reason: 'manual' }),
           credentials: 'include'
         });
         

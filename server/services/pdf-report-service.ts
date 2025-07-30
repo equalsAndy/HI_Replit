@@ -206,109 +206,27 @@ export class PDFReportService implements PDFGenerationService {
                 <div class="score">${data.strengths.planning}%</div>
             </div>
         </div>
-        
-        <div class="insights">
-            <h3>Key Insights</h3>
-            <ul>
-                ${data.strengths.strengthInsights.map(insight => `<li>${insight}</li>`).join('')}
-            </ul>
-        </div>
     </div>
 
-    <!-- Flow State Analysis -->
+    <!-- AI-Generated Professional Report -->
+    ${data.professionalProfile ? `
     <div class="section">
-        <h2 class="section-title">Flow State Analysis</h2>
-        <div class="flow-attributes">
-            <h3>Your Flow Attributes</h3>
-            <div class="attributes-grid">
-                ${data.flow.attributes.map(attr => `
-                    <div class="attribute-card">
-                        <h4>${attr.name}</h4>
-                        ${attr.description ? `<p>${attr.description}</p>` : ''}
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div class="insights">
-            <h3>Flow Insights</h3>
-            <ul>
-                ${data.flow.flowInsights.map(insight => `<li>${insight}</li>`).join('')}
-            </ul>
-        </div>
-
-        <div class="work-style">
-            <h3>Preferred Work Style</h3>
-            <ul>
-                ${data.flow.preferredWorkStyle.map(style => `<li>${style}</li>`).join('')}
-            </ul>
+        <h2 class="section-title">${isPersonalReport ? 'Personal Development Insights' : 'Professional Development Analysis'}</h2>
+        <div class="ai-generated-content">
+            ${this.formatAIContent(data.professionalProfile)}
         </div>
     </div>
+    ` : ''}
 
-    <!-- Future Vision -->
-    <div class="section">
-        <h2 class="section-title">Future Vision & Goals</h2>
-        
-        <div class="vision-item">
-            <h3>Current State</h3>
-            <p>${data.vision.currentState}</p>
-        </div>
-        
-        <div class="vision-item">
-            <h3>Future Vision</h3>
-            <p>${data.vision.futureVision}</p>
-        </div>
-        
-        <div class="two-column">
-            <div class="column">
-                <h3>Potential Obstacles</h3>
-                <ul>
-                    ${data.vision.obstacles.map(obstacle => `<li>${obstacle}</li>`).join('')}
-                </ul>
-            </div>
-            <div class="column">
-                <h3>Key Strengths</h3>
-                <ul>
-                    ${data.vision.strengths.map(strength => `<li>${strength}</li>`).join('')}
-                </ul>
-            </div>
-        </div>
-        
-        <div class="action-steps">
-            <h3>Action Steps</h3>
-            <ol>
-                ${data.vision.actionSteps.map(step => `<li>${step}</li>`).join('')}
-            </ol>
+    <!-- AI-Generated Personal Report (Personal Reports Only) -->
+    ${isPersonalReport && data.personalReport ? `
+    <div class="section personal-section">
+        <h2 class="section-title">Personal Reflection & Development Guidance</h2>
+        <div class="ai-generated-content">
+            ${this.formatAIContent(data.personalReport)}
         </div>
     </div>
-
-    <!-- Development Plan -->
-    <div class="section">
-        <h2 class="section-title">Development Plan</h2>
-        
-        <div class="development-areas">
-            <h3>Key Development Areas</h3>
-            <div class="areas-grid">
-                ${data.growth.developmentAreas.map(area => `
-                    <div class="area-card">${area}</div>
-                `).join('')}
-            </div>
-        </div>
-        
-        <div class="recommendations">
-            <h3>Recommended Actions</h3>
-            <ul>
-                ${data.growth.recommendedActions.map(action => `<li>${action}</li>`).join('')}
-            </ul>
-        </div>
-        
-        <div class="collaboration-tips">
-            <h3>Team Collaboration Tips</h3>
-            <ul>
-                ${data.growth.teamCollaborationTips.map(tip => `<li>${tip}</li>`).join('')}
-            </ul>
-        </div>
-    </div>
+    ` : ''}
 
     ${isPersonalReport && data.personalReflections ? this.generatePersonalReflectionsSection(data.personalReflections) : ''}
 
@@ -319,6 +237,44 @@ export class PDFReportService implements PDFGenerationService {
     </div>
 </body>
 </html>`;
+  }
+
+  private formatAIContent(content: string): string {
+    // Convert the AI-generated content to HTML
+    // Handle basic formatting like line breaks and paragraphs
+    const paragraphs = content.split('\n\n');
+    return paragraphs
+      .filter(p => p.trim().length > 0)
+      .map(paragraph => {
+        const trimmed = paragraph.trim();
+        
+        // Handle headers (lines starting with #)
+        if (trimmed.startsWith('# ')) {
+          return `<h3 class="ai-header">${trimmed.substring(2)}</h3>`;
+        }
+        if (trimmed.startsWith('## ')) {
+          return `<h4 class="ai-subheader">${trimmed.substring(3)}</h4>`;
+        }
+        
+        // Handle bullet points
+        if (trimmed.includes('\n- ') || trimmed.startsWith('- ')) {
+          const items = trimmed.split('\n- ').map(item => item.startsWith('- ') ? item.substring(2) : item);
+          return `<ul class="ai-list">${items.map(item => `<li>${item.trim()}</li>`).join('')}</ul>`;
+        }
+        
+        // Handle numbered lists
+        if (/^\d+\./.test(trimmed)) {
+          const items = trimmed.split(/\n\d+\./).map((item, index) => {
+            if (index === 0) return item.replace(/^\d+\./, '').trim();
+            return item.trim();
+          }).filter(item => item.length > 0);
+          return `<ol class="ai-numbered-list">${items.map(item => `<li>${item}</li>`).join('')}</ol>`;
+        }
+        
+        // Regular paragraphs
+        return `<p class="ai-paragraph">${trimmed}</p>`;
+      })
+      .join('');
   }
 
   private generatePersonalReflectionsSection(reflections: any): string {
@@ -657,6 +613,62 @@ export class PDFReportService implements PDFGenerationService {
             margin: 5px 0;
         }
         
+        /* AI-Generated Content Styles */
+        .ai-generated-content {
+            background: #fdfdfd;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 20px 0;
+        }
+        
+        .ai-paragraph {
+            margin: 15px 0;
+            line-height: 1.7;
+            text-align: justify;
+        }
+        
+        .ai-header {
+            color: #2563eb;
+            font-size: 1.4rem;
+            margin: 25px 0 15px 0;
+            font-weight: 600;
+        }
+        
+        .ai-subheader {
+            color: #374151;
+            font-size: 1.2rem;
+            margin: 20px 0 12px 0;
+            font-weight: 600;
+        }
+        
+        .ai-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .ai-list li {
+            margin: 8px 0;
+            padding: 5px 0;
+            line-height: 1.6;
+        }
+        
+        .ai-numbered-list {
+            margin: 15px 0;
+            padding-left: 20px;
+        }
+        
+        .ai-numbered-list li {
+            margin: 10px 0;
+            padding: 5px 0;
+            line-height: 1.6;
+        }
+        
+        .personal-section .ai-generated-content {
+            background: #fefbf3;
+            border: 2px solid #f59e0b;
+        }
+        
         @media print {
             .section {
                 page-break-inside: avoid;
@@ -664,6 +676,10 @@ export class PDFReportService implements PDFGenerationService {
             
             .header {
                 page-break-after: avoid;
+            }
+            
+            .ai-generated-content {
+                page-break-inside: avoid;
             }
         }
     `;

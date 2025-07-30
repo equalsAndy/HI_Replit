@@ -9,6 +9,79 @@ import { users, workshopStepData } from '../../shared/schema.js';
 const workshopDataRouter = Router();
 
 /**
+ * Generate and store StarCard PNG in photo service after workshop completion
+ */
+async function generateAndStoreStarCard(userId: number): Promise<void> {
+  try {
+    console.log(`🎨 Generating StarCard PNG for user ${userId}...`);
+
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    
+    // Get user's assessment data for StarCard generation
+    const assessments = await db
+      .select()
+      .from(schema.userAssessments)
+      .where(eq(schema.userAssessments.userId, userId));
+    
+    // Find the starCard assessment
+    const starCardAssessment = assessments.find(a => a.assessmentType === 'starCard');
+    if (!starCardAssessment) {
+      throw new Error('No StarCard assessment found for user');
+    }
+    
+    const starCardData = JSON.parse(starCardAssessment.results);
+    console.log(`📊 Found StarCard data for user ${userId}:`, starCardData);
+    
+    // For now, we'll create a placeholder until StarCard image generation is built
+    // In future: Use actual StarCard component rendering to PNG
+    const starCardImageBuffer = await createStarCardImagePlaceholder(userId, starCardData);
+    
+    // Store in photo service database
+    await photoStorageService.storeStarCard({
+      userId: userId.toString(),
+      imageBuffer: starCardImageBuffer,
+      workshopStep: 'completion',
+      imageType: 'star_card_final',
+      metadata: {
+        generated: 'auto_workshop_completion',
+        starCardData: starCardData
+      }
+    });
+    
+    console.log(`✅ StarCard PNG generated and stored for user ${userId}`);
+    
+  } catch (error) {
+    console.error(`❌ Failed to generate StarCard for user ${userId}:`, error);
+    throw error;
+  }
+}
+
+/**
+ * Create a placeholder StarCard image (until proper generation is built)
+ */
+async function createStarCardImagePlaceholder(userId: number, starCardData: any): Promise<Buffer> {
+  // For now, create a simple text-based placeholder
+  // In future: Use actual StarCard component with headless browser rendering
+  
+  const placeholderText = `StarCard for User ${userId}\nThinking: ${starCardData.thinking}%\nActing: ${starCardData.acting}%\nFeeling: ${starCardData.feeling}%\nPlanning: ${starCardData.planning}%`;
+  
+  // Create a minimal image buffer (1x1 pixel PNG as placeholder)
+  // In production, this would be replaced with actual StarCard rendering
+  const placeholderBuffer = Buffer.from([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+    0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+    0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0x0F, 0x00, 0x00,
+    0x01, 0x00, 0x01, 0x5C, 0xC2, 0x5E, 0x5D, 0x00, 0x00, 0x00, 0x00, 0x49,
+    0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+  ]);
+  
+  console.log(`📝 Created placeholder StarCard image (${placeholderBuffer.length} bytes)`);
+  return placeholderBuffer;
+}
+
+/**
  * Authentication middleware for workshop data endpoints
  */
 const authenticateUser = (req: Request, res: Response, next: NextFunction) => {
@@ -338,10 +411,10 @@ workshopDataRouter.get('/assessment/questions', async (req: Request, res: Respon
 });
 
 // Start assessment
-workshopDataRouter.post('/assessment/start', async (req: Request, res: Response) => {
+workshopDataRouter.post('/assessment/start', authenticateUser, async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (set by authenticateUser middleware)
+    const userId = (req.session as any).userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -388,10 +461,10 @@ workshopDataRouter.post('/assessment/start', async (req: Request, res: Response)
 });
 
 // Save answer
-workshopDataRouter.post('/assessment/answer', async (req: Request, res: Response) => {
+workshopDataRouter.post('/assessment/answer', authenticateUser, async (req: Request, res: Response) => {
   try {
-    // Get user ID from cookie
-    const userId = req.cookies.userId ? parseInt(req.cookies.userId) : null;
+    // Get user ID from session (set by authenticateUser middleware)
+    const userId = (req.session as any).userId;
     
     if (!userId) {
       return res.status(401).json({
@@ -2832,18 +2905,52 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
     
     // Mark workshop as completed
     const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+    const completedAt = new Date();
     
     await db.update(users)
       .set({ 
         [completionField]: true,
-        [timestampField]: new Date()
+        [timestampField]: completedAt
       })
       .where(eq(users.id, userId));
+
+    // For AST workshop completion, auto-generate StarCard and unlock holistic reports
+    if (appType === 'ast') {
+      try {
+        console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard and unlocking reports...`);
+        
+        // Auto-generate StarCard PNG and store in photo service
+        await generateAndStoreStarCard(userId);
+        
+        // Update navigation progress to unlock holistic reports (step 5-2)
+        const updatedProgress = {
+          ...progress,
+          ast: {
+            ...progress.ast,
+            holisticReportsUnlocked: true,
+            completedSteps: [...(progress.ast?.completedSteps || []), '5-2'].filter((step, index, arr) => arr.indexOf(step) === index)
+          }
+        };
+        
+        await db.update(users)
+          .set({ 
+            navigationProgress: JSON.stringify(updatedProgress)
+          })
+          .where(eq(users.id, userId));
+          
+        console.log(`✅ StarCard generated and holistic reports unlocked for user ${userId}`);
+        
+      } catch (starCardError) {
+        console.error(`⚠️ Failed to generate StarCard for user ${userId}:`, starCardError);
+        // Don't fail the workshop completion, just log the error
+      }
+    }
     
     res.json({ 
       success: true, 
       message: `${appType.toUpperCase()} workshop completed successfully`,
-      completedAt: new Date().toISOString()
+      completedAt: completedAt.toISOString(),
+      holisticReportsUnlocked: appType === 'ast' ? true : false
     });
   } catch (error) {
     console.error('Error completing workshop:', error);

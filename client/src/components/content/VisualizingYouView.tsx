@@ -67,11 +67,26 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
     setIsSearching(true);
     try {
+      console.log('🔍 Starting image search for:', searchQuery);
       // Use the actual Unsplash API
       const results = await searchUnsplash(searchQuery, 20);
+      console.log('📸 Search completed successfully, found:', results.length, 'images');
       setSearchResults(results);
+      
+      if (results.length === 0) {
+        toast({
+          title: "No images found",
+          description: `No results found for "${searchQuery}". Try different search terms.`,
+          variant: "default"
+        });
+      }
     } catch (error) {
-      console.error('Search error:', error);
+      console.error('❌ Search error:', error);
+      toast({
+        title: "Search failed",
+        description: error.message || "Unable to search for images. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSearching(false);
     }
@@ -152,7 +167,64 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     }
   };
 
-  // Function to populate with meaningful demo data including images
+  // Function to add fallback demo images when API isn't working
+  const addFallbackDemoImages = () => {
+    if (!shouldShowDemoButtons) {
+      console.warn('Demo functionality only available to test users');
+      return;
+    }
+    
+    // Static demo images with proper Unsplash attribution
+    const fallbackImages = [
+      {
+        id: 'demo-leadership',
+        url: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=500&q=80',
+        source: 'unsplash',
+        searchTerm: 'leadership team',
+        credit: {
+          photographer: 'Annie Spratt',
+          photographerUrl: 'https://unsplash.com/@anniespratt',
+          sourceUrl: 'https://unsplash.com/photos/QckxruozjRg'
+        }
+      },
+      {
+        id: 'demo-growth',
+        url: 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=500&q=80',
+        source: 'unsplash',
+        searchTerm: 'professional growth',
+        credit: {
+          photographer: 'Markus Winkler',
+          photographerUrl: 'https://unsplash.com/@markuswinkler',
+          sourceUrl: 'https://unsplash.com/photos/f57lx37DCM4'
+        }
+      },
+      {
+        id: 'demo-success',
+        url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500&q=80',
+        source: 'unsplash',
+        searchTerm: 'business success',
+        credit: {
+          photographer: 'Ben White',
+          photographerUrl: 'https://unsplash.com/@benwhitephotography',
+          sourceUrl: 'https://unsplash.com/photos/4K2lIP0zc_k'
+        }
+      }
+    ];
+    
+    setSelectedImages(fallbackImages);
+    
+    const demoMeaning = "These images represent my vision of becoming a confident leader who creates positive change in my organization. The collaboration image reflects my strength in bringing people together and fostering teamwork. The growth images symbolize my commitment to continuous learning and helping others develop their potential. The success images represent achieving meaningful goals while maintaining balance and well-being. Together, they show my future self as someone who uses their analytical and planning strengths to create structured approaches to complex challenges while staying connected to the human side of leadership.";
+    
+    setImageMeaning(demoMeaning);
+    
+    toast({
+      title: "Demo images added!",
+      description: "Fallback demo images have been added to help you complete this step.",
+      duration: 3000
+    });
+  };
+
+  // Function to populate with meaningful demo data including images (API version)
   const fillWithDemoData = async () => {
     if (!shouldShowDemoButtons) {
       console.warn('Demo functionality only available to test users');
@@ -163,7 +235,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
     
     setImageMeaning(demoMeaning);
     
-    // Add demo images from Unsplash
+    // Try to add demo images from Unsplash API first
     try {
       const searchTerms = ['leadership team', 'professional growth', 'business success'];
       const demoImages = [];
@@ -193,9 +265,13 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
       
       if (demoImages.length > 0) {
         setSelectedImages(demoImages);
+      } else {
+        // Fallback to static images if API fails
+        addFallbackDemoImages();
       }
     } catch (error) {
-      console.log('Demo images could not be loaded, text demo data still applied');
+      console.log('Demo images could not be loaded via API, using fallback images');
+      addFallbackDemoImages();
     }
   };
 
@@ -387,6 +463,10 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                       src={image.urls.regular} 
                       alt={`Search result for ${searchQuery}`}
                       className="w-full h-32 object-cover"
+                      onError={(e) => {
+                        console.log('Image failed to load:', image.urls.regular);
+                        e.currentTarget.style.display = 'none';
+                      }}
                     />
                     <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 flex items-center justify-center transition-all">
                       <div className="bg-white rounded-full p-1 transform scale-0 group-hover:scale-100 transition-transform">
@@ -398,6 +478,26 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
               </div>
             </div>
           )}
+
+          {/* API status message */}
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-800">
+              <strong>Image Search:</strong> Powered by Unsplash API. If search isn't working, try the "Add Demo Images" button or describe your vision in the text area below.
+            </p>
+            <div className="mt-2 flex items-center gap-2">
+              {shouldShowDemoButtons && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={addFallbackDemoImages}
+                  disabled={completed}
+                  className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                >
+                  Add Demo Images
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

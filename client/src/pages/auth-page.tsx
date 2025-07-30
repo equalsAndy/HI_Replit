@@ -10,7 +10,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'wouter';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle, X } from 'lucide-react';
+import { queryClient } from '@/lib/queryClient';
+import HiLogo from '@/assets/HI_Logo_horizontal.png';
+import AllStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
+import ImaginalAgilityLogo from '@/assets/imaginal_agility_logo_nobkgrd.png';
+import { useSessionMessage, useSessionManager } from '@/hooks/use-session-manager';
 
 // Define the login form schema
 const loginFormSchema = z.object({
@@ -25,6 +30,8 @@ const AuthPage: React.FC = () => {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
+  const { message: sessionMessage, clearMessage } = useSessionMessage();
+  const { redirectToReturnUrl } = useSessionManager();
 
   // Parse URL parameters to get the app selection
   useEffect(() => {
@@ -87,22 +94,33 @@ const AuthPage: React.FC = () => {
         description: `Welcome back, ${result.user.name}!`,
       });
       
-      // Redirect based on user role and selected app
-      if (result.user.role === 'admin') {
-        setLocation('/admin');
-      } else if (selectedApp) {
-        // Redirect to the selected workshop
-        if (selectedApp === 'ast') {
-          setLocation('/allstarteams');
-        } else if (selectedApp === 'imaginal-agility') {
-          setLocation('/imaginal-agility');
+      // Force refresh of user data to prevent session manager confusion
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      
+      // Small delay to ensure user data is updated before redirect
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Try to redirect to original destination first
+      const didRedirectToReturn = redirectToReturnUrl();
+      
+      if (!didRedirectToReturn) {
+        // Redirect based on user role and selected app
+        if (result.user.role === 'admin') {
+          setLocation('/admin');
+        } else if (selectedApp) {
+          // Redirect to the selected workshop
+          if (selectedApp === 'ast') {
+            setLocation('/allstarteams');
+          } else if (selectedApp === 'imaginal-agility') {
+            setLocation('/imaginal-agility');
+          } else {
+            // Default to dashboard if app is unknown
+            setLocation('/dashboard');
+          }
         } else {
-          // Default to dashboard if app is unknown
+          // No app selected, go to dashboard
           setLocation('/dashboard');
         }
-      } else {
-        // No app selected, go to dashboard
-        setLocation('/dashboard');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -126,19 +144,80 @@ const AuthPage: React.FC = () => {
     return 'Heliotrope Imaginal Workshops';
   };
 
+  // Get session message display text
+  const getSessionMessageText = (message: string) => {
+    switch (message) {
+      case 'logged-out':
+        return 'You have been logged out';
+      case 'session-expired':
+        return 'Your session has expired';
+      case 'session-timeout':
+        return 'Session timed out due to inactivity';
+      case 'login-required':
+        return 'Please log in to continue';
+      case 'server-restart':
+        return 'Please log in again';
+      case 'permission-denied':
+        return 'Access denied - please log in';
+      default:
+        return 'Please log in to continue';
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="container mx-auto py-6">
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col items-center space-y-4">
+          {/* Main HI Logo */}
           <Link href="/">
-            <Button variant="ghost" className="font-semibold text-lg">
-              {getAppTitle()}
-            </Button>
+            <img 
+              src={HiLogo} 
+              alt="Heliotrope Imaginal"
+              className="h-12 w-auto"
+            />
           </Link>
+          
+          {/* Workshop Logos */}
+          <div className="flex items-center space-x-8">
+            <img 
+              src={AllStarTeamsLogo} 
+              alt="AllStarTeams" 
+              className="h-10 w-auto opacity-80"
+            />
+            <img 
+              src={ImaginalAgilityLogo} 
+              alt="Imaginal Agility" 
+              className="h-10 w-auto opacity-80"
+            />
+          </div>
         </div>
       </header>
       
       <div className="flex-1 flex items-center justify-center p-4">
+        {/* Session Message Banner */}
+        {sessionMessage && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 w-full max-w-md">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-md">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <AlertCircle className="h-5 w-5 text-blue-600" />
+                  <span className="text-blue-800 font-medium">
+                    {getSessionMessageText(sessionMessage)}
+                  </span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearMessage}
+                  className="h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+        
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle className="text-2xl text-center">Log In</CardTitle>

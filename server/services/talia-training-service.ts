@@ -127,21 +127,67 @@ export class TaliaTrainingService {
    * Generate a response in training mode
    */
   private async generateTrainingResponse(session: TrainingSession, userMessage: string): Promise<string> {
-    // This is a simplified training conversation
-    // In a full implementation, this would use Claude API with special training prompts
-    
-    const responses = [
-      "I understand you want to help me improve my coaching. Can you tell me more specifically what behavior or response style you'd like me to adjust?",
-      "That's helpful feedback. Can you give me an example of how you'd like me to respond in that situation?",
-      "I see what you mean. Are there any specific phrases or approaches you'd like me to use more often?",
-      "Thank you for that clarification. Is there anything else about my coaching style you'd like to discuss?",
-      "I appreciate this training. Would you like to give me any specific examples of responses that would be more helpful?",
-      "That makes sense. Are there any topics or situations where you'd like me to be more or less detailed in my responses?"
-    ];
+    try {
+      // Use Claude API for intelligent training responses
+      const { generateClaudeCoachingResponse } = await import('./claude-api-service.js');
+      
+      // Build context from conversation history
+      const conversationHistory = session.conversationHistory
+        .filter(msg => msg.role !== 'system')
+        .map(msg => `${msg.role}: ${msg.content}`)
+        .join('\n');
+      
+      // Special training prompt for Talia
+      const trainingPrompt = `You are Talia in TRAINING MODE. Your job is to:
 
-    // Simple response selection based on conversation length
-    const responseIndex = Math.min(session.conversationHistory.length - 1, responses.length - 1);
-    return responses[responseIndex];
+1. LISTEN CAREFULLY to the feedback being given
+2. SUMMARIZE what you heard when asked
+3. ASK CLARIFYING QUESTIONS to understand exactly what behavior changes are wanted
+4. BE CONVERSATIONAL and engaged, not robotic
+5. ACKNOWLEDGE specific feedback with understanding
+
+Current conversation:
+${conversationHistory}
+
+Latest user message: "${userMessage}"
+
+If the user asks "what was my feedback?" or similar, SUMMARIZE the specific feedback they gave you.
+If they're giving you new feedback, ACKNOWLEDGE it specifically and ask clarifying questions.
+Be authentic and show you're actually listening and processing their input.
+
+Respond as Talia in training mode:`;
+
+      const response = await generateClaudeCoachingResponse({
+        userMessage: trainingPrompt,
+        personaType: 'training_mode',
+        userName: 'trainer',
+        contextData: { trainingMode: true },
+        userId: session.userId,
+        sessionId: session.id,
+        maxTokens: 300
+      });
+
+      return response;
+      
+    } catch (error) {
+      console.error('❌ Error generating training response:', error);
+      
+      // Fallback: Try to be more intelligent than canned responses
+      if (userMessage.toLowerCase().includes('feedback') && (userMessage.includes('what') || userMessage.includes('my'))) {
+        // User is asking what their feedback was - summarize from history
+        const userMessages = session.conversationHistory
+          .filter(msg => msg.role === 'user' && !msg.content.toLowerCase().includes('feedback'))
+          .map(msg => msg.content);
+        
+        if (userMessages.length > 0) {
+          const lastFeedback = userMessages[userMessages.length - 1];
+          return `Your feedback was: "${lastFeedback}". Let me make sure I understand this correctly - is there anything else you'd like to clarify about this?`;
+        }
+      }
+      
+      // Basic fallback responses that are more engaging
+      return `I want to make sure I understand your feedback correctly. Can you help me be more specific about what you'd like me to change?`;
+    }
   }
 
   /**

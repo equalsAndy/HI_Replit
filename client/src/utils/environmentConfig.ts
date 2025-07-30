@@ -75,7 +75,7 @@ export const AI_SUB_TABS: AdminTabConfig[] = [
   },
   {
     id: 'training-docs',
-    name: 'Training Docs',
+    name: 'Training',
     component: 'TrainingDocumentsManagement',
     environments: ['development', 'staging'],
     requiresAdmin: true,

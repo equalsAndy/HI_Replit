@@ -74,6 +74,11 @@ export interface HolisticReportData {
   reportType: ReportType;
   generatedAt: Date;
   workshopVersion: string;
+  // AI-generated content fields
+  personalReport?: string; // AI-generated personal development content
+  professionalProfile?: string; // AI-generated professional development content
+  generatedBy?: string; // AI persona that generated the content
+  assessmentData?: any; // Raw assessment data used for generation
 }
 
 // Database record structure

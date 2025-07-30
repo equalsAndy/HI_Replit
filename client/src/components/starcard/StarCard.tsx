@@ -145,7 +145,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
       avatarUrl: undefined
     };
     
-    console.log('🎯 StarCard Profile from props:', profileFromProps);
+    // console.log('🎯 StarCard Profile from props:', profileFromProps);
     return profileFromProps;
   }, [profile, userName, userTitle, userOrg, userProfileData]);
 

@@ -16,6 +16,7 @@ import trainingDocumentsRoutes from './routes/training-documents-routes.js';
 import trainingRoutes from './routes/training-routes.js';
 import aiManagementRoutes from './routes/ai-management-routes.js';
 import personaManagementRoutes from './routes/persona-management-routes.js';
+import betaTesterRoutes from './routes/beta-tester-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -277,10 +278,11 @@ async function initializeApp() {
       app.use('/api/feature-flags', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
-      app.use('/api/training/documents', trainingDocumentsRoutes);
+      app.use('/api/training-docs', trainingDocumentsRoutes);
       app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
       app.use('/api/admin/ai', personaManagementRoutes);
+      app.use('/api/beta-tester', betaTesterRoutes);
 
       // Changelog endpoint for test users (markdown)
       app.get('/changelog', async (req, res) => {

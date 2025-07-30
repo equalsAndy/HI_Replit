@@ -8,6 +8,7 @@ import { debounce } from 'lodash';
 import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 // Define ContentViewProps interface
 interface ContentViewProps {
@@ -85,6 +86,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -119,6 +121,54 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     
     loadExistingData();
   }, []);
+
+  // Set up FloatingAI context for step 4-4 Future Self Journey
+  useEffect(() => {
+    setFloatingAIStep('4-4');
+    
+    updateContext({
+      stepName: 'Future Self Journey',
+      strengthLabel: undefined,
+      questionText: undefined,
+      aiEnabled: true,
+      workshopContext: {
+        currentStep: '4-4',
+        stepName: 'Future Self Journey - Time Travel Reflection',
+        previousSteps: [
+          'Completed strengths assessment and discovered your Star Card',
+          'Explored individual strengths in detail through reflection',
+          'Learned about Flow states and completed Flow assessment',
+          'Set your current and future well-being levels on the Cantril Ladder',
+          'Completed Cantril Ladder reflection questions about well-being factors',
+          'Selected and analyzed images that represent your future potential'
+        ],
+        currentTask: 'Creating a comprehensive vision of your future self through backwards or forwards thinking',
+        questionContext: {
+          totalReflections: 4,
+          reflections: [
+            {
+              name: '20-Year Vision',
+              description: 'The masterpiece of your life - your ultimate vision'
+            },
+            {
+              name: '10-Year Milestone', 
+              description: 'The level of mastery or influence needed to be on track'
+            },
+            {
+              name: '5-Year Foundation',
+              description: 'The capacities or conditions that need to be developing now'
+            },
+            {
+              name: 'Flow-Optimized Life',
+              description: 'How your life would look designed to support flow states'
+            }
+          ],
+          currentDirection: formData.direction,
+          exerciseContext: 'This exercise helps you imagine who you want to become and how to shape a life that supports that becoming. Use your Flow Assessment insights to guide your vision.'
+        }
+      }
+    });
+  }, [updateContext, setFloatingAIStep, formData.direction]);
 
   // Removed auto-save functionality - data will only save when user clicks "Next" button
 
