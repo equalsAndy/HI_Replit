@@ -91,10 +91,10 @@ const WellBeingView: React.FC<ContentViewProps> = ({
             futureWellBeingLevel,
           }),
         });
-        console.log("Auto-saved wellbeing data:", {
-          wellBeingLevel,
-          futureWellBeingLevel,
-        });
+        // console.log("Auto-saved wellbeing data:", {
+        //   wellBeingLevel,
+        //   futureWellBeingLevel,
+        // });
         queryClient.invalidateQueries({ queryKey: ["/api/visualization"] });
       } catch (error) {
         console.error("Error auto-saving well-being data:", error);

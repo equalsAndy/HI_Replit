@@ -184,7 +184,7 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
     console.log(`🎯 HOLISTIC REPORT DEBUG: Step 4-5 NOT completed. Current completed steps:`, completedSteps);
   }
 
-  console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
+  // console.log('🔓 SIMPLIFIED MODE: Unlocked steps:', unlocked);
   return unlocked;
 };
 
@@ -448,7 +448,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   useEffect(() => {
     const loadProgress = async () => {
       try {
-        console.log(`🔄 SIMPLIFIED MODE: Loading ${appType} progress from navigationProgress table...`);
+        // console.log(`🔄 SIMPLIFIED MODE: Loading ${appType} progress from navigationProgress table...`);
         const response = await fetch(`/api/workshop-data/navigation-progress/${appType}`, {
           credentials: 'include'
         });
@@ -497,7 +497,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
               setTimeout(() => syncToDatabase(updatedProgress), 1000);
             }
 
-            console.log(`✅ SIMPLIFIED MODE: ${appType.toUpperCase()} progress loaded from navigationProgress table`);
+            // console.log(`✅ SIMPLIFIED MODE: ${appType.toUpperCase()} progress loaded from navigationProgress table`);
           } else {
             console.log(`ℹ️ SIMPLIFIED MODE: No ${appType} progress found in database, using defaults`);
           }
@@ -516,7 +516,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
   // Simplified database sync with debouncing
   const syncToDatabase = async (progressData: NavigationProgress) => {
     try {
-      console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
+      // console.log('🔄 SIMPLIFIED MODE: Syncing to database...', progressData);
       
       // Use the workshop-data navigation progress endpoint with correct parameters
       const response = await fetch('/api/workshop-data/navigation-progress', {
@@ -535,7 +535,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
       });
 
       if (response.ok) {
-        console.log('✅ SIMPLIFIED MODE: Progress synced to database');
+        // console.log('✅ SIMPLIFIED MODE: Progress synced to database');
       } else {
         const error = await response.text();
         console.error('❌ SIMPLIFIED MODE: Failed to sync progress to database:', error);

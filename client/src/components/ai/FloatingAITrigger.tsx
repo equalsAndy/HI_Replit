@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, HelpCircle, Send } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 
@@ -34,10 +34,14 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [aiCoachingEnabled, setAICoachingEnabled] = useState(true);
   const [checkingAIStatus, setCheckingAIStatus] = useState(true);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [modalSize, setModalSize] = useState({ width: 450, height: 550 });
+  const [isResizing, setIsResizing] = useState(false);
   const { shouldShowDemoButtons, isTestUser } = useTestUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const resizeRef = useRef<HTMLDivElement>(null);
 
-  // Check AI coaching status from admin console
+  // Check AI coaching status from admin console and step-specific reflection area status
   useEffect(() => {
     const checkAIStatus = async () => {
       try {
@@ -59,45 +63,186 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     return () => clearInterval(interval);
   }, []);
 
+  // Check if the current step should have AI enabled based on reflection area configuration
+  const [stepReflectionEnabled, setStepReflectionEnabled] = useState<boolean>(false);
+  const [checkingStepStatus, setCheckingStepStatus] = useState(true);
+
+  useEffect(() => {
+    const checkStepReflectionStatus = async () => {
+      if (!currentStep || !workshopType) {
+        setStepReflectionEnabled(false);
+        setCheckingStepStatus(false);
+        return;
+      }
+
+      try {
+        // Map current step to reflection area ID format
+        const stepId = `step_${currentStep.replace('-', '_')}`;
+        const response = await fetch(`/api/admin/ai/reflection-areas/${stepId}/status`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          setStepReflectionEnabled(data.area?.enabled || false);
+          console.log(`🔍 Step ${currentStep} reflection area status:`, data.area?.enabled);
+        } else {
+          // If area not found, default to disabled for safety
+          setStepReflectionEnabled(false);
+          console.log(`⚠️ No reflection area config found for step ${currentStep}, defaulting to disabled`);
+        }
+      } catch (error) {
+        console.error('Failed to check step reflection status:', error);
+        setStepReflectionEnabled(false);
+      } finally {
+        setCheckingStepStatus(false);
+      }
+    };
+
+    checkStepReflectionStatus();
+  }, [currentStep, workshopType]);
+
   // Check if reflection modal is enabled
   const reflectionModalEnabled = isFeatureEnabled('reflectionModal');
 
   // Determine if user has access to AI features (test users only)
   const hasAIAccess = shouldShowDemoButtons && reflectionModalEnabled;
   
+  // Show button to test users even if disabled (for better UX feedback)
+  const shouldShowButton = hasAIAccess;
+  
   // Determine if AI is available for this specific context
-  // Only enable on step 2-4 strength reflections for test users, and if admin has enabled AI coaching
-  const isAIAvailable = hasAIAccess && aiEnabled && aiCoachingEnabled;
+  // Must have: user access, AI coaching enabled by admin, step reflection area enabled, and context aiEnabled
+  const isAIAvailable = hasAIAccess && aiEnabled && aiCoachingEnabled && stepReflectionEnabled && !checkingStepStatus;
 
-  // Initialize with welcome message when AI is available
+  // Track previous context to detect step changes
+  const [previousContext, setPreviousContext] = useState<string>('');
+
+  // Initialize with welcome message when AI is available or context changes
   useEffect(() => {
-    if (isAIAvailable && messages.length === 0) {
+    if (isAIAvailable) {
+      const currentContextKey = `${context?.stepName || ''}-${context?.strengthLabel || ''}-${context?.questionText || ''}`;
+      
+      // Check if user moved to a completely different reflection step
+      const hasStepChanged = previousContext && previousContext !== currentContextKey && 
+        (context?.stepName !== previousContext.split('-')[0] || 
+         context?.strengthLabel !== previousContext.split('-')[1]);
+
+      if (hasStepChanged) {
+        console.log('🔄 Step change detected, clearing conversation UI but preserving user learning');
+        
+        // Trigger conversation analysis for user learning before clearing
+        if (messages.length > 1) { // Only if there was actual conversation
+          try {
+            fetch('/api/coaching/conversation-end', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({
+                messages: messages,
+                context: {
+                  stepName: previousContext.split('-')[0],
+                  strengthLabel: previousContext.split('-')[1],
+                  questionText: previousContext.split('-')[2]
+                }
+              })
+            }).catch(error => console.warn('⚠️ Failed to analyze conversation for learning:', error));
+          } catch (error) {
+            console.warn('⚠️ Error triggering conversation analysis:', error);
+          }
+        }
+        
+        // Clear the conversation UI for new reflection
+        setMessages([]);
+      }
+
       const welcomeMessage: ChatMessage = {
         id: 'welcome-' + Date.now(),
         role: 'assistant',
         content: getWelcomeMessage(),
         timestamp: new Date()
       };
-      setMessages([welcomeMessage]);
+      
+      // Always update the first message to be the current welcome message
+      if (messages.length === 0) {
+        setMessages([welcomeMessage]);
+      } else if (!hasStepChanged) {
+        // Only replace welcome message if we didn't just clear the conversation
+        if (messages[0]?.content?.startsWith("Hi! I'm Talia")) {
+          setMessages([welcomeMessage, ...messages.slice(1)]);
+        }
+      } else {
+        // New step, start fresh with welcome message
+        setMessages([welcomeMessage]);
+      }
+
+      setPreviousContext(currentContextKey);
     }
-  }, [isAIAvailable, context?.stepName, context?.strengthLabel]);
+  }, [isAIAvailable, context?.stepName, context?.strengthLabel, context?.questionText, previousContext]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Only show to test users (but may be disabled based on context)
-  if (!shouldShowDemoButtons) {
-    // Only log once per user session to avoid spam
-    if (!sessionStorage.getItem('ai-trigger-not-test-user-logged')) {
-      console.log('🤖 FloatingAITrigger: Not rendering - not a test user');
-      sessionStorage.setItem('ai-trigger-not-test-user-logged', 'true');
+  // Handle resize functionality
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizing(true);
+    
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = modalSize.width;
+    const startHeight = modalSize.height;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(300, Math.min(1000, startWidth - (e.clientX - startX)));
+      const newHeight = Math.max(300, Math.min(window.innerHeight - 100, startHeight - (e.clientY - startY)));
+      
+      setModalSize({ width: newWidth, height: newHeight });
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  }, [modalSize]);
+
+  // Handle maximize/minimize
+  const handleMaximize = () => {
+    if (isMaximized) {
+      setModalSize({ width: 450, height: 550 });
+      setIsMaximized(false);
+    } else {
+      setModalSize({ 
+        width: Math.min(800, window.innerWidth - 100), 
+        height: Math.min(window.innerHeight - 150, 800) 
+      });
+      setIsMaximized(true);
     }
+  };
+
+  // Debug all conditions for AI Talia visibility (temporarily disabled to prevent loops)
+  // console.log('🤖 AI Talia Debug:', {
+  //   shouldShowDemoButtons,
+  //   isTestUser,
+  //   reflectionModalEnabled,
+  //   aiEnabled,
+  //   aiCoachingEnabled,
+  //   checkingAIStatus,
+  //   hasAIAccess,
+  //   isAIAvailable,
+  //   currentStep,
+  //   context
+  // });
+
+  // Only show to test users (but may be disabled based on context)
+  if (!shouldShowButton) {
+    console.log('🤖 FloatingAITrigger: Not rendering - not a test user');
     return null;
   }
-
-  // Temporary: Removed debug logging to fix React error #310
 
   const handleTriggerClick = () => {
     if (isAIAvailable) {
@@ -241,22 +386,21 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
 
   // Get context-aware welcome message
   const getWelcomeMessage = () => {
-    if (context?.strengthLabel && context?.questionText) {
-      return `Hi! I'm here to help you reflect on your ${context.strengthLabel} strength. 
+    // Debug: Log the context to see what we're working with (only when context changes)
+    // console.log('🔍 Talia Welcome Context:', context);
+    
+    if (context?.questionText) {
+      return `Hi! I'm Talia, here to help with your current reflection: "${context.questionText}"
 
-Current reflection: "${context.questionText}"
-
-What thoughts or insights are coming up for you?`;
+Your task is to write 2-3 sentences about this. What specific situation comes to mind when you think about this question?`;
     }
     if (context?.strengthLabel) {
-      return `Hi! I'm here to help you reflect on your ${context.strengthLabel} strength. What insights are you discovering?`;
+      return `Hi! I'm Talia, here to help with your ${context.strengthLabel} strength reflection. Your task is to write 2-3 sentences. Can you think of a specific example where you used this strength?`;
     }
-    if (context?.questionText) {
-      return `I can help you think through this reflection: "${context.questionText}"
-
-What would you like to explore?`;
+    if (context?.stepName) {
+      return `Hi! I'm Talia, here to help with your ${context.stepName} reflection. Your task is to write 2-3 sentences. How can I help you think through this reflection?`;
     }
-    return `Hi! I'm Talia, your AI coach. I'm here to help you with your workshop reflections. How can I assist you today?`;
+    return `Hi! I'm Talia, here to help with your reflection. Your task is to write 2-3 sentences. How can I help you think through this?`;
   };
 
   // Get disabled message based on context (only show if user has access but feature is disabled for this context)
@@ -265,7 +409,7 @@ What would you like to explore?`;
       return "Talia is disabled by admin";
     }
     if (!aiEnabled) {
-      return "Talia isn't available for this area";
+      return "Talia isn't available in this area";
     }
     if (!reflectionModalEnabled) {
       return "AI coaching is disabled";
@@ -296,7 +440,7 @@ What would you like to explore?`;
               flex items-center justify-center relative border-2
               ${isAIAvailable 
                 ? 'border-purple-400 cursor-pointer hover:border-purple-500 opacity-100' 
-                : 'border-gray-300 cursor-not-allowed grayscale opacity-40'
+                : 'border-gray-300 cursor-not-allowed grayscale opacity-20 hover:opacity-30'
               }
               ${isExpanded ? 'ring-2 ring-purple-400' : ''}
               overflow-hidden bg-white
@@ -347,8 +491,30 @@ What would you like to explore?`;
 
       {/* Expanded Chat Popup */}
       {isExpanded && isAIAvailable && (
-        <div className="fixed bottom-24 right-6 z-50 animate-in slide-in-from-bottom-4 duration-300">
-          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 w-96 h-[32rem] flex flex-col overflow-hidden">
+        <div 
+          className={`fixed bottom-24 right-6 z-50 animate-in slide-in-from-bottom-4 duration-300 ${isResizing ? 'select-none' : ''}`}
+          style={{
+            width: `${modalSize.width}px`,
+            height: `${modalSize.height}px`,
+            cursor: isResizing ? 'nw-resize' : 'default'
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-2xl border border-gray-200 w-full h-full flex flex-col overflow-hidden relative group">
+            {/* Resize Handle */}
+            <div
+              ref={resizeRef}
+              className="absolute -left-1 -top-1 w-5 h-5 cursor-nw-resize opacity-30 group-hover:opacity-100 transition-opacity duration-200 bg-blue-500 rounded-tl-lg flex items-center justify-center hover:bg-blue-600"
+              onMouseDown={handleMouseDown}
+              title="Drag to resize chat window"
+            >
+              <div className="w-1 h-1 bg-white rounded-full"></div>
+            </div>
+            
+            {/* Bottom-right resize indicator */}
+            <div className="absolute bottom-1 right-1 w-3 h-3 opacity-20 group-hover:opacity-60 transition-opacity duration-200 pointer-events-none">
+              <div className="w-full h-full border-r-2 border-b-2 border-gray-400"></div>
+              <div className="absolute -top-1 -left-1 w-full h-full border-r-2 border-b-2 border-gray-400"></div>
+            </div>
             {/* Header */}
             <div className="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -369,12 +535,21 @@ What would you like to explore?`;
                   <p className="text-xs opacity-90">{getContextDescription()}</p>
                 </div>
               </div>
-              <button
-                onClick={() => setIsExpanded(false)}
-                className="w-6 h-6 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleMaximize}
+                  className="w-6 h-6 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-colors"
+                  title={isMaximized ? "Minimize" : "Maximize"}
+                >
+                  {isMaximized ? <Minimize2 className="w-3 h-3" /> : <Maximize2 className="w-3 h-3" />}
+                </button>
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="w-6 h-6 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Chat Messages Area */}
@@ -396,10 +571,10 @@ What would you like to explore?`;
                         />
                       </div>
                     )}
-                    <div className={`rounded-lg p-3 shadow-sm border max-w-64 ${
+                    <div className={`rounded-lg p-3 shadow-sm border ${
                       message.role === 'user'
-                        ? 'bg-purple-500 text-white rounded-tr-none ml-auto'
-                        : 'bg-white text-gray-800 rounded-tl-none'
+                        ? 'bg-purple-500 text-white rounded-tr-none ml-auto max-w-[75%]'
+                        : 'bg-white text-gray-800 rounded-tl-none max-w-[80%]'
                     }`}>
                       <p className="text-sm whitespace-pre-wrap">{message.content}</p>
                       <span className={`text-xs mt-1 block ${
@@ -430,7 +605,7 @@ What would you like to explore?`;
                         }}
                       />
                     </div>
-                    <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-sm border max-w-64">
+                    <div className="bg-white rounded-lg rounded-tl-none p-3 shadow-sm border max-w-[80%]">
                       <div className="flex items-center space-x-1">
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                         <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>

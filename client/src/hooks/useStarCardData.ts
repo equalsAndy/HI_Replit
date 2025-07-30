@@ -5,7 +5,7 @@ export function useStarCardData() {
   return useQuery({
     queryKey: ['starcard-data'], // Simplified, unique key
     queryFn: async () => {
-      console.log('🔄 useStarCardData: Making API request to /api/workshop-data/starcard');
+      // console.log('🔄 useStarCardData: Making API request to /api/workshop-data/starcard');
       const response = await fetch('/api/workshop-data/starcard', {
         credentials: 'include'
       });
@@ -13,7 +13,7 @@ export function useStarCardData() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log('🔄 useStarCardData: Received data:', data);
+      // console.log('🔄 useStarCardData: Received data:', data);
       return data;
     },
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes - longer to prevent loops

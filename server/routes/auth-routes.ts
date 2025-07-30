@@ -163,6 +163,8 @@ router.post('/login', async (req, res) => {
  * Logout route
  */
 router.post('/logout', (req, res) => {
+  const { reason } = req.body;
+  
   req.session.destroy((err: unknown) => {
     if (err) {
       return res.status(500).json({
@@ -174,7 +176,8 @@ router.post('/logout', (req, res) => {
 
     res.json({
       success: true,
-      message: 'Logged out successfully'
+      message: 'Logged out successfully',
+      reason: reason || 'manual'
     });
   });
 });
@@ -196,6 +199,40 @@ router.get('/me', requireAuth, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to get user'
+    });
+  }
+});
+
+/**
+ * Check session validity - lightweight endpoint for session checks
+ */
+router.get('/session-status', async (req, res) => {
+  try {
+    const sessionUserId = (req.session as any)?.userId;
+    const cookieUserId = req.cookies?.userId;
+    const userId = sessionUserId || (cookieUserId ? parseInt(cookieUserId) : null);
+
+    if (!userId) {
+      return res.status(401).json({
+        success: false,
+        valid: false,
+        message: 'No active session'
+      });
+    }
+
+    // Basic validation - just check if session exists and has valid user ID
+    res.json({
+      success: true,
+      valid: true,
+      userId: userId,
+      sessionId: req.sessionID
+    });
+  } catch (error) {
+    console.error('Error checking session status:', error);
+    res.status(500).json({
+      success: false,
+      valid: false,
+      message: 'Session validation failed'
     });
   }
 });

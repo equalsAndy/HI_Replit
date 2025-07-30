@@ -113,14 +113,14 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   // Use the actual completed steps without reset override
   const effectiveCompletedSteps = completedSteps;
   
-  // Debug logging for completed steps
-  console.log(`📊 UserHomeNavigation Debug:`, {
-    completedSteps,
-    effectiveCompletedSteps,
-    completedStepsType: typeof completedSteps,
-    isArray: Array.isArray(completedSteps),
-    length: completedSteps?.length
-  });
+  // Debug logging for completed steps (disabled to reduce console spam)
+  // console.log(`📊 UserHomeNavigation Debug:`, {
+  //   completedSteps,
+  //   effectiveCompletedSteps,
+  //   completedStepsType: typeof completedSteps,
+  //   isArray: Array.isArray(completedSteps),
+  //   length: completedSteps?.length
+  // });
 
   // Calculate section progress based on completed steps - Updated for dynamic navigation structure
   const getSectionProgressLocal = (sectionId: string, completedSteps: string[]) => {
@@ -206,7 +206,8 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
   const isStepCompleted = (stepId: string) => {
     const safeCompletedSteps = Array.isArray(completedSteps) ? completedSteps : [];
     const isCompleted = safeCompletedSteps.includes(stepId);
-    console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', safeCompletedSteps);
+    // Only log in development and when step state changes to reduce spam
+    // console.log(`🔍 Step ${stepId} completion check:`, isCompleted, 'completedSteps:', safeCompletedSteps);
     return isCompleted;
   };
 

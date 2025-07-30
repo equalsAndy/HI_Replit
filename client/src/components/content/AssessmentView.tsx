@@ -5,6 +5,7 @@ import { ChevronRight, ClipboardCheck, CheckCircle, ArrowRight } from 'lucide-re
 import { AssessmentPieChart } from '@/components/assessment/AssessmentPieChart';
 import { useNavigationProgress } from '@/hooks/use-navigation-progress';
 import { useStarCardData } from '@/hooks/useStarCardData';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 interface AssessmentViewProps {
   navigate: (to: string) => void;
@@ -21,66 +22,82 @@ interface StarCard {
   planning?: number;
 }
 
-const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = ({
+const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = React.memo(({
   navigate,
   markStepCompleted,
   setCurrentContent,
   setIsAssessmentModalOpen,
   starCard
 }) => {
-  console.log('🔄 AssessmentView: Component rendered');
+  // console.log('🔄 AssessmentView: Component rendered');
 
   // Use the shared StarCard data hook instead of custom fetching
   const { data: starCardData, isLoading: isLoadingAssessment, refetch } = useStarCardData();
 
-  console.log('🔄 AssessmentView: StarCard data from hook:', { starCardData, isLoadingAssessment });
+  // console.log('🔄 AssessmentView: StarCard data from hook:', { starCardData, isLoadingAssessment });
 
   // REMOVED: All the custom refreshAssessmentData logic that was causing infinite loops
 
-  // Listen for assessment completion events
-  React.useEffect(() => {
-    const handleAssessmentComplete = () => {
-      console.log("Assessment completion event detected, refetching data...");
-      setTimeout(() => refetch(), 500); // Small delay to ensure data is saved
-    };
-
-    window.addEventListener('assessmentCompleted', handleAssessmentComplete);
-    return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
+  // Listen for assessment completion events - stabilize with useCallback
+  const handleAssessmentComplete = React.useCallback(() => {
+    // console.log("Assessment completion event detected, refetching data...");
+    setTimeout(() => refetch(), 500); // Small delay to ensure data is saved
   }, [refetch]);
 
-  // Use the starCardData directly to determine completion status
-  const hasValidAssessmentData = starCardData && starCardData.success !== false && (
-    Number(starCardData.thinking) > 0 || 
-    Number(starCardData.acting) > 0 || 
-    Number(starCardData.feeling) > 0 || 
-    Number(starCardData.planning) > 0
-  );
+  React.useEffect(() => {
+    window.addEventListener('assessmentCompleted', handleAssessmentComplete);
+    return () => window.removeEventListener('assessmentCompleted', handleAssessmentComplete);
+  }, [handleAssessmentComplete]);
+
+  // Use the starCardData directly to determine completion status - memoized to prevent loops
+  const hasValidAssessmentData = React.useMemo(() => {
+    return starCardData && starCardData.success !== false && (
+      Number(starCardData.thinking) > 0 || 
+      Number(starCardData.acting) > 0 || 
+      Number(starCardData.feeling) > 0 || 
+      Number(starCardData.planning) > 0
+    );
+  }, [starCardData]);
 
   // Use the fresh API data to determine completion status
   const isAssessmentComplete = hasValidAssessmentData;
 
-  // Debug log to check assessment completion status                              
-  console.log("Assessment completion check:", {
-    hasStarCard: !!starCard,
-    hasStarCardData: !!starCardData,
-    hasValidAssessmentData,
-    isComplete: isAssessmentComplete
-  });
+  // Debug log to check assessment completion status (disabled to prevent spam)                              
+  // console.log("Assessment completion check:", {
+  //   hasStarCard: !!starCard,
+  //   hasStarCardData: !!starCardData,
+  //   hasValidAssessmentData,
+  //   isComplete: isAssessmentComplete
+  // });
 
   // Use the navigation hook for reliable navigation
   const { setCurrentStep, handleNextButtonClick, progress } = useNavigationProgress();
   
   // Get current step from progress state
   const currentStepId = progress.currentStepId || '1-1';
+
+  // Use FloatingAI context to properly set step and disable AI for assessment step
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
+
+  // Set FloatingAI context for step 1-1 (assessment) with AI disabled
+  React.useEffect(() => {
+    setFloatingAIStep('1-1');
+    updateContext({
+      stepName: 'Initial Assessment',
+      strengthLabel: undefined,
+      questionText: 'Complete your strengths assessment to discover your top strengths.',
+      aiEnabled: false // Explicitly disable AI for assessment step
+    });
+  }, []); // Empty dependency array - only run once on mount
   
   const continueToNextStep = async () => {
-    console.log(`🎯 AssessmentView: Assessment complete, advancing from step ${currentStepId}`);
-    console.log(`🎯 AssessmentView: Current step is 2-2, should navigate to 2-3`);
+    // console.log(`🎯 AssessmentView: Assessment complete, advancing from step ${currentStepId}`);
+    // console.log(`🎯 AssessmentView: Current step is 2-2, should navigate to 2-3`);
     
     // Use the navigation hook's handleNextButtonClick for proper navigation
     const result = await handleNextButtonClick(currentStepId);
     if (result.success) {
-      console.log("✅ Successfully navigated to next step:", result.nextStepId);
+      // console.log("✅ Successfully navigated to next step:", result.nextStepId);
       // Also manually set the current step to ensure navigation
       if (result.nextStepId) {
         setCurrentStep(result.nextStepId);
@@ -238,20 +255,20 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
             <div className="flex justify-end">
               <Button 
                 onClick={async () => {
-                  console.log("🔥 NAVIGATION BUTTON CLICKED!");
-                  console.log("🔥 Current step ID:", currentStepId);
+                  // console.log("🔥 NAVIGATION BUTTON CLICKED!");
+                  // console.log("🔥 Current step ID:", currentStepId);
                   
                   try {
                     // Mark step 2-2 as completed first
-                    console.log("📝 Marking step 2-2 as completed...");
+                    // console.log("📝 Marking step 2-2 as completed...");
                     await markStepCompleted('2-2');
-                    console.log("✅ Step 2-2 marked as completed");
+                    // console.log("✅ Step 2-2 marked as completed");
                     
                     // Wait a moment for the state to update
                     setTimeout(() => {
-                      console.log("🎯 Setting content to star-card-preview");
+                      // console.log("🎯 Setting content to star-card-preview");
                       setCurrentContent('star-card-preview');
-                      console.log("✅ Navigation complete");
+                      // console.log("✅ Navigation complete");
                     }, 100);
                   } catch (error) {
                     console.error("❌ Error in navigation:", error);
@@ -270,6 +287,6 @@ const AssessmentView: React.FC<AssessmentViewProps & { starCard?: StarCard }> = 
       )}
     </>
   );
-};
+});
 
 export default AssessmentView;

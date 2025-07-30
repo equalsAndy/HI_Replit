@@ -88,8 +88,8 @@ router.post('/test-generate', async (req, res) => {
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Generate star card image (if not exists)
-    const starCardImagePath = await generateStarCardImage(userId);
+    // Get star card image from photo service
+    const starCardImagePath = await getStarCardImagePath(userId);
     reportData.starCardImagePath = starCardImagePath;
 
     // Generate PDF
@@ -218,8 +218,8 @@ router.post('/generate', requireAuth, async (req, res) => {
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Generate star card image (if not exists)
-    const starCardImagePath = await generateStarCardImage(userId);
+    // Get star card image from photo service
+    const starCardImagePath = await getStarCardImagePath(userId);
     reportData.starCardImagePath = starCardImagePath;
 
     // Generate PDF
@@ -516,6 +516,11 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     
     console.log(`📊 Found assessment data types:`, Object.keys(reportContext.assessments));
     
+    // Get user learning from Reflection Talia interactions for personalization
+    const { userLearningService } = await import('../services/user-learning-service.js');
+    const reflectionTaliaLearning = await userLearningService.getUserCoachingContext(userId.toString());
+    console.log(`🧠 Retrieved Reflection Talia learning data for personalization:`, reflectionTaliaLearning ? 'Found' : 'None');
+    
     // Generate personal development report using Talia
     console.log(`🤖 Generating personal report using Star Report Talia...`);
     const personalPrompt = await taliaPersonaService.generateReportPrompt(
@@ -529,7 +534,10 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       personaType: 'talia', // This triggers Star Report Talia mode
       userName: reportContext.user.name,
       userId: userId,
-      contextData: reportContext,
+      contextData: {
+        ...reportContext,
+        userPersonalization: reflectionTaliaLearning // Include Reflection Talia's learning
+      },
       maxTokens: 4000,
       sessionId: `holistic-report-${userId}-${Date.now()}`
     });
@@ -549,7 +557,10 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       personaType: 'talia', // This triggers Star Report Talia mode
       userName: reportContext.user.name,
       userId: userId,
-      contextData: reportContext,
+      contextData: {
+        ...reportContext,
+        userPersonalization: reflectionTaliaLearning // Include Reflection Talia's learning
+      },
       maxTokens: 3000,
       sessionId: `professional-profile-${userId}-${Date.now()}`
     });
@@ -620,27 +631,56 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
 }
 
 /**
- * Helper function to generate star card image for report
+ * Helper function to get star card image path from photo service
  */
-async function generateStarCardImage(userId: number): Promise<string> {
-  const imagesDir = path.join(process.cwd(), 'storage', 'star-cards');
-  await fs.mkdir(imagesDir, { recursive: true });
-  
-  const imagePath = path.join(imagesDir, `user-${userId}-star-card.png`);
-  
-  // Check if image already exists
+async function getStarCardImagePath(userId: number): Promise<string> {
   try {
-    await fs.access(imagePath);
-    console.log('✅ Using existing star card image:', imagePath);
-    return imagePath;
-  } catch {
-    // Image doesn't exist, we'll use a placeholder for now
-    // In a real implementation, this would trigger star card generation
-    console.log('⚠️ Star card image not found, using placeholder');
+    console.log(`🖼️ Getting StarCard image for user ${userId} from photo service...`);
     
-    // Create a simple placeholder image file path
-    // The PDF service will handle missing images gracefully
+    // Import photo storage service
+    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    
+    // Get StarCard from photo service
+    const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+    
+    if (starCardImage && starCardImage.filePath) {
+      console.log('✅ Found StarCard in photo service:', starCardImage.filePath);
+      return starCardImage.filePath;
+    }
+    
+    console.log('⚠️ No StarCard found in photo service, creating fallback...');
+    
+    // Fallback: create a temporary placeholder
+    const imagesDir = path.join(process.cwd(), 'storage', 'star-cards');
+    await fs.mkdir(imagesDir, { recursive: true });
+    
+    const imagePath = path.join(imagesDir, `user-${userId}-star-card-fallback.png`);
+    
+    // Create minimal placeholder PNG if doesn't exist
+    try {
+      await fs.access(imagePath);
+    } catch {
+      const placeholderBuffer = Buffer.from([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
+        0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
+        0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53, 0xDE, 0x00, 0x00, 0x00,
+        0x0C, 0x49, 0x44, 0x41, 0x54, 0x08, 0xD7, 0x63, 0xF8, 0x0F, 0x00, 0x00,
+        0x01, 0x00, 0x01, 0x5C, 0xC2, 0x5E, 0x5D, 0x00, 0x00, 0x00, 0x00, 0x49,
+        0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82
+      ]);
+      await fs.writeFile(imagePath, placeholderBuffer);
+      console.log('📝 Created fallback StarCard placeholder');
+    }
+    
     return imagePath;
+    
+  } catch (error) {
+    console.error(`❌ Error getting StarCard image for user ${userId}:`, error);
+    
+    // Final fallback: return a basic placeholder path
+    const imagesDir = path.join(process.cwd(), 'storage', 'star-cards');
+    await fs.mkdir(imagesDir, { recursive: true });
+    return path.join(imagesDir, `user-${userId}-star-card-error.png`);
   }
 }
 

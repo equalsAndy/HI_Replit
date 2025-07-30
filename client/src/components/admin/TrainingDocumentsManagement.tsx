@@ -96,7 +96,7 @@ const TrainingDocumentsManagement: React.FC = () => {
       if (selectedType && selectedType !== 'all') params.set('document_type', selectedType);
       if (selectedCategory && selectedCategory !== 'all') params.set('category', selectedCategory);
       
-      const response = await fetch(`/api/training/documents?${params}`, {
+      const response = await fetch(`/api/training-docs/documents?${params}`, {
         credentials: 'include'
       });
       
@@ -116,7 +116,7 @@ const TrainingDocumentsManagement: React.FC = () => {
   } = useQuery({
     queryKey: ['document-types'],
     queryFn: async () => {
-      const response = await fetch('/api/training/document-types', {
+      const response = await fetch('/api/training-docs/document-types', {
         credentials: 'include'
       });
       
@@ -135,7 +135,7 @@ const TrainingDocumentsManagement: React.FC = () => {
   } = useQuery({
     queryKey: ['training-stats'],
     queryFn: async () => {
-      const response = await fetch('/api/training/stats', {
+      const response = await fetch('/api/training-docs/stats', {
         credentials: 'include'
       });
       
@@ -156,7 +156,7 @@ const TrainingDocumentsManagement: React.FC = () => {
   // Document upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await fetch('/api/training/documents', {
+      const response = await fetch('/api/training-docs/documents', {
         method: 'POST',
         body: formData,
         credentials: 'include'

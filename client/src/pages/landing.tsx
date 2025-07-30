@@ -1,13 +1,16 @@
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Play } from "lucide-react";
 import HiLogo from '@/assets/HI_Logo_horizontal.png';
 import AllStarTeamsLogo from '../assets/all-star-teams-logo-250px.png';
 import ImaginalAgilityLogo from '../assets/imaginal_agility_logo_nobkgrd.png';
+import { VideoModal } from '@/components/ui/video-modal';
 
 export default function Landing() {
   const [, navigate] = useLocation();
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
   
   // Check if user is already authenticated
   const { data: userData, isLoading } = useQuery({
@@ -130,18 +133,43 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-12 max-w-6xl">
           <div className="text-center mb-12">
             <h2 className="text-4xl md:text-6xl font-bold text-gray-800 mb-6">
-              Choose Your Learning Experience
+              Welcome to the Heliotrope Imaginal Workshops
             </h2>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              Select one of our transformative learning programs to begin your journey
+            <p className="text-xl text-gray-600 mb-8 max-w-4xl mx-auto">
+              Transformative learning experiences grounded in research-backed psychology and neuroscience, drawing from thousands of years of human wisdom.
             </p>
+          </div>
+
+          {/* Login and Invite Buttons - Moved Above Cards */}
+          <div className="flex justify-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                size="lg"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-md text-lg font-semibold"
+                onClick={() => {
+                  window.location.href = '/auth';
+                }}
+              >
+                Login
+              </Button>
+              <Button 
+                size="lg"
+                variant="outline"
+                className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-md text-lg font-semibold"
+                onClick={() => {
+                  window.location.href = '/invite-code';
+                }}
+              >
+                I have an invite code
+              </Button>
+            </div>
           </div>
 
           <div className="flex justify-center mb-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* AllStarTeams Card */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
-                <div className="p-8">
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow h-full">
+                <div className="p-8 h-full flex flex-col">
                   <div className="flex justify-center mb-6">
                     <img 
                       src={AllStarTeamsLogo} 
@@ -149,31 +177,28 @@ export default function Landing() {
                       className="h-16 w-auto"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">AllStarTeams</h3>
-                  <p className="text-gray-600 mb-6 text-center">
-                    Discover your star potential and understand your unique strengths to 
-                    leverage them for personal growth and team success.
-                  </p>
-                  <div className="flex justify-center">
-                    <Button 
-                      className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-md"
-                      onClick={() => {
-                        // Store the selection in sessionStorage
-                        sessionStorage.setItem('selectedApp', 'ast');
-                        // Use window.location for more reliable navigation with query params
-                        window.location.href = '/auth?app=ast';
-                      }}
-                    >
-                      Start AllStarTeams
-                    </Button>
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">AllStarTeams</h3>
+                    <p className="text-lg font-semibold text-indigo-600 mb-4">Individual & Team Workshop</p>
+                  </div>
+                  
+                  <div className="text-gray-700 leading-relaxed space-y-4">
+                    <p>
+                      <strong>Discover your core strengths</strong> through the Five Strengths model: Imagining, Thinking, Planning, Acting, and Feeling.
+                    </p>
+                    <p>
+                      <strong>Master flow states</strong> - the optimal conditions where you perform at your peak and experience deep engagement.
+                    </p>
+                    <p>
+                      <strong>Build exceptional teams</strong> by mapping collective strengths and creating shared flow experiences for collaborative excellence.
+                    </p>
                   </div>
                 </div>
-
               </div>
 
-              {/* Imaginal Agility Card - Button disabled for production test */}
-              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow">
-                <div className="p-8">
+              {/* Imaginal Agility Card */}
+              <div className="bg-white rounded-lg shadow-lg overflow-hidden border border-gray-200 hover:shadow-xl transition-shadow h-full">
+                <div className="p-8 h-full flex flex-col">
                   <div className="flex justify-center mb-6">
                     <img 
                       src={ImaginalAgilityLogo} 
@@ -181,23 +206,23 @@ export default function Landing() {
                       className="h-16 w-auto"
                     />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-800 mb-4 text-center">Imaginal Agility</h3>
-                  <p className="text-gray-600 mb-6 text-center">
-                    Cultivate your imaginal agility and learn how the 5Cs (Curiosity, Empathy, 
-                    Creativity, and Courage) can transform your approach to challenges.
-                  </p>
-                  <div className="flex flex-col items-center">
-                    <Button 
-                      className="bg-purple-300 text-white px-6 py-2 rounded-md cursor-not-allowed"
-                      disabled={true}
-                      // No onClick handler
-                    >
-                      Start Imaginal Agility
-                    </Button>
-                    <span className="mt-2 text-xs text-purple-700 font-semibold">Coming Soon</span>
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Imaginal Agility</h3>
+                    <p className="text-lg font-semibold text-purple-600 mb-4">Individual & Team Workshop</p>
+                  </div>
+                  
+                  <div className="text-gray-700 leading-relaxed space-y-4">
+                    <p>
+                      <strong>Develop your imagination</strong> as the central force that amplifies the 4Cs: Curiosity, Caring, Creativity, and Courage.
+                    </p>
+                    <p>
+                      <strong>Master Human-AI collaboration</strong> using the I4C framework to understand your unique human capabilities and work optimally with AI.
+                    </p>
+                    <p>
+                      <strong>Lead with imagination</strong> by applying imaginative leadership principles in team settings and AI integration strategies.
+                    </p>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>
@@ -206,23 +231,18 @@ export default function Landing() {
           <div className="mb-16">
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-gray-800 mb-4">See what our workshops are all about!</h3>
-              <p className="text-gray-600 max-w-3xl mx-auto">
+              <p className="text-gray-600 max-w-3xl mx-auto mb-6">
                 Experience the transformative power of our workshops and discover how they can help unlock your team's full potential.
               </p>
-            </div>
-
-            <div className="max-w-4xl mx-auto">
-              {/* Updated YouTube embed with new video ID */}
-              <div style={{padding:'56.25% 0 0 0', position:'relative'}} className="rounded-lg shadow-lg overflow-hidden">
-                <iframe 
-                  src="https://www.youtube.com/embed/LkoL6MErRkg?enablejsapi=1" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                  style={{position:'absolute', top:0, left:0, width:'100%', height:'100%'}} 
-                  title="Workshop Overview Video"
-                ></iframe>
-              </div>
+              
+              <Button
+                size="lg"
+                onClick={() => setIsVideoModalOpen(true)}
+                className="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-md text-lg font-semibold inline-flex items-center gap-2"
+              >
+                <Play className="h-5 w-5" />
+                Watch Workshop Overview
+              </Button>
             </div>
           </div>
 
@@ -241,6 +261,14 @@ export default function Landing() {
           <p>&copy; 2025 Heliotrope Imaginal. All rights reserved.</p>
         </div>
       </footer>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={isVideoModalOpen}
+        onClose={() => setIsVideoModalOpen(false)}
+        videoId="LkoL6MErRkg"
+        title="Workshop Overview Video"
+      />
     </div>
   );
 }

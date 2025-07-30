@@ -104,6 +104,123 @@ router.post('/submit', requireAuth, async (req, res) => {
   }
 });
 
+// Get feedback counts for beta testers (MUST come before /:id route)
+router.get('/beta-tester-counts', requireAdmin, async (req, res) => {
+  try {
+    // Get all users who are beta testers OR test users (since admins are both)
+    const betaTesters = await db
+      .select({ id: users.id, username: users.username, name: users.name })
+      .from(users)
+      .where(eq(users.isBetaTester, true));
+
+    if (betaTesters.length === 0) {
+      return res.json({
+        success: true,
+        betaTesters: [],
+        message: 'No beta testers found'
+      });
+    }
+
+    // Get feedback counts for each beta tester - only if there are beta testers
+    const feedbackCounts = await db
+      .select({
+        userId: feedback.userId,
+        count: count()
+      })
+      .from(feedback)
+      .where(inArray(feedback.userId, betaTesters.map(u => u.id)))
+      .groupBy(feedback.userId);
+
+    // Create a map of userId to count
+    const countMap: Record<number, number> = {};
+    feedbackCounts.forEach(item => {
+      if (item.userId) {
+        countMap[item.userId] = item.count;
+      }
+    });
+
+    // Create response with user info and counts
+    const result = betaTesters.map(user => ({
+      userId: user.id,
+      username: user.username,
+      name: user.name,
+      ticketCount: countMap[user.id] || 0
+    }));
+
+    res.json({
+      success: true,
+      betaTesters: result,
+      totalBetaTesters: betaTesters.length,
+      totalTickets: feedbackCounts.reduce((sum, item) => sum + item.count, 0)
+    });
+
+  } catch (error) {
+    console.error('Error fetching beta tester ticket counts:', error);
+    res.status(500).json({ error: 'Failed to fetch beta tester ticket counts' });
+  }
+});
+
+// Get feedback statistics for admin dashboard (MUST come before /:id route)
+router.get('/stats/overview', requireAdmin, async (req, res) => {
+  try {
+    // Get overall stats
+    const totalFeedback = await db.select().from(feedback);
+    
+    // Count by status
+    const statusCounts = totalFeedback.reduce((acc, item) => {
+      acc[item.status] = (acc[item.status] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Count by workshop type
+    const workshopCounts = totalFeedback.reduce((acc, item) => {
+      acc[item.workshopType] = (acc[item.workshopType] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Count by feedback type
+    const typeCounts = totalFeedback.reduce((acc, item) => {
+      acc[item.feedbackType] = (acc[item.feedbackType] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Count by priority
+    const priorityCounts = totalFeedback.reduce((acc, item) => {
+      acc[item.priority] = (acc[item.priority] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Average experience rating
+    const ratingsSum = totalFeedback
+      .filter(item => item.experienceRating)
+      .reduce((sum, item) => sum + (item.experienceRating || 0), 0);
+    const ratingsCount = totalFeedback.filter(item => item.experienceRating).length;
+    const averageRating = ratingsCount > 0 ? (ratingsSum / ratingsCount).toFixed(1) : null;
+
+    // Recent feedback (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recentFeedback = totalFeedback.filter(item => 
+      new Date(item.createdAt) >= sevenDaysAgo
+    );
+
+    res.json({
+      total: totalFeedback.length,
+      statusCounts,
+      workshopCounts,
+      typeCounts,
+      priorityCounts,
+      averageRating,
+      recentCount: recentFeedback.length,
+      lastUpdated: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error fetching feedback stats:', error);
+    res.status(500).json({ error: 'Failed to fetch feedback statistics' });
+  }
+});
+
 // Get feedback list for admin (with filtering and pagination)
 router.get('/list', requireAdmin, async (req, res) => {
   try {
@@ -414,67 +531,6 @@ router.patch('/bulk/update', requireAdmin, async (req, res) => {
   }
 });
 
-// Get feedback statistics for admin dashboard
-router.get('/stats/overview', requireAdmin, async (req, res) => {
-  try {
-    // Get overall stats
-    const totalFeedback = await db.select().from(feedback);
-    
-    // Count by status
-    const statusCounts = totalFeedback.reduce((acc, item) => {
-      acc[item.status] = (acc[item.status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Count by workshop type
-    const workshopCounts = totalFeedback.reduce((acc, item) => {
-      acc[item.workshopType] = (acc[item.workshopType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Count by feedback type
-    const typeCounts = totalFeedback.reduce((acc, item) => {
-      acc[item.feedbackType] = (acc[item.feedbackType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Count by priority
-    const priorityCounts = totalFeedback.reduce((acc, item) => {
-      acc[item.priority] = (acc[item.priority] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-
-    // Average experience rating
-    const ratingsSum = totalFeedback
-      .filter(item => item.experienceRating)
-      .reduce((sum, item) => sum + (item.experienceRating || 0), 0);
-    const ratingsCount = totalFeedback.filter(item => item.experienceRating).length;
-    const averageRating = ratingsCount > 0 ? (ratingsSum / ratingsCount).toFixed(1) : null;
-
-    // Recent feedback (last 7 days)
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    const recentFeedback = totalFeedback.filter(item => 
-      new Date(item.createdAt) >= sevenDaysAgo
-    );
-
-    res.json({
-      total: totalFeedback.length,
-      statusCounts,
-      workshopCounts,
-      typeCounts,
-      priorityCounts,
-      averageRating,
-      recentCount: recentFeedback.length,
-      lastUpdated: new Date().toISOString()
-    });
-
-  } catch (error) {
-    console.error('Error fetching feedback stats:', error);
-    res.status(500).json({ error: 'Failed to fetch feedback statistics' });
-  }
-});
-
 // Delete feedback item permanently
 router.delete('/:id', requireAdmin, async (req, res) => {
   try {
@@ -664,54 +720,6 @@ router.post('/export/csv', requireAdmin, async (req, res) => {
   } catch (error) {
     console.error('Error exporting feedback to CSV:', error);
     res.status(500).json({ error: 'Failed to export feedback' });
-  }
-});
-
-// Get feedback counts for beta testers
-router.get('/beta-tester-counts', requireAdmin, async (req, res) => {
-  try {
-    // Get all users who are beta testers
-    const betaTesters = await db
-      .select({ id: users.id, username: users.username, name: users.name })
-      .from(users)
-      .where(eq(users.isBetaTester, true));
-
-    // Get feedback counts for each beta tester
-    const feedbackCounts = await db
-      .select({
-        userId: feedback.userId,
-        count: count()
-      })
-      .from(feedback)
-      .where(inArray(feedback.userId, betaTesters.map(u => u.id)))
-      .groupBy(feedback.userId);
-
-    // Create a map of userId to count
-    const countMap: Record<number, number> = {};
-    feedbackCounts.forEach(item => {
-      if (item.userId) {
-        countMap[item.userId] = item.count;
-      }
-    });
-
-    // Create response with user info and counts
-    const result = betaTesters.map(user => ({
-      userId: user.id,
-      username: user.username,
-      name: user.name,
-      ticketCount: countMap[user.id] || 0
-    }));
-
-    res.json({
-      success: true,
-      betaTesters: result,
-      totalBetaTesters: betaTesters.length,
-      totalTickets: feedbackCounts.reduce((sum, item) => sum + item.count, 0)
-    });
-
-  } catch (error) {
-    console.error('Error fetching beta tester ticket counts:', error);
-    res.status(500).json({ error: 'Failed to fetch beta tester ticket counts' });
   }
 });
 

@@ -35,7 +35,9 @@ interface TaliaPersona {
   description: string;
   dataAccess: string[];
   trainingDocuments: string[];
+  trainingDocumentNames?: string[];
   requiredDocuments?: string[];
+  requiredDocumentNames?: string[];
   tokenLimit: number;
   enabled: boolean;
   environments: string[];
@@ -144,7 +146,7 @@ export default function PersonaManagement() {
 
   // Fetch available training documents
   const { data: documentsData, isLoading: documentsLoading } = useQuery<{success: boolean; documents: TrainingDocument[]}>({
-    queryKey: ['/api/training/documents'],
+    queryKey: ['/api/training-docs/documents'],
     refetchInterval: 60000,
   });
 
@@ -385,7 +387,7 @@ export default function PersonaManagement() {
     setIsSubmittingTraining(true);
     
     try {
-      const response = await fetch('/api/training/add-text', {
+      const response = await fetch('/api/training-docs/add-text', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -598,7 +600,7 @@ export default function PersonaManagement() {
                 </div>
 
                 {/* Required Documents */}
-                {currentPersona.requiredDocuments && currentPersona.requiredDocuments.length > 0 && (
+                {currentPersona.requiredDocumentNames && currentPersona.requiredDocumentNames.length > 0 && (
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
                       <BookOpen className="h-5 w-5 text-red-600" />
@@ -608,11 +610,11 @@ export default function PersonaManagement() {
                       </Badge>
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
-                      {(currentPersona?.requiredDocuments || []).map((docId) => (
-                        <div key={docId} className="p-3 border rounded-lg bg-red-50 border-red-200">
+                      {(currentPersona?.requiredDocumentNames || []).map((docName, index) => (
+                        <div key={currentPersona.requiredDocuments?.[index] || docName} className="p-3 border rounded-lg bg-red-50 border-red-200">
                           <div className="flex items-center justify-between">
                             <div>
-                              <h4 className="font-medium text-red-900">{docId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</h4>
+                              <h4 className="font-medium text-red-900">{docName}</h4>
                               <p className="text-sm text-red-700">Required for this persona role</p>
                             </div>
                             <CheckCircle className="h-5 w-5 text-red-600" />

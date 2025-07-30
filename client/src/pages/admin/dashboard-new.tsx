@@ -1629,7 +1629,7 @@ export default function AdminDashboard() {
                     {subTab === 'training' && (
                       <>
                         <BookOpen style={{marginRight: '8px', width: '16px', height: '16px', display: 'inline'}} />
-                        Training Docs
+                        Training
                       </>
                     )}
                   </button>

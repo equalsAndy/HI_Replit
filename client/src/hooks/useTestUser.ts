@@ -46,15 +46,24 @@ export const useTestUser = () => {
     retry: 1,
   });
   
-  // Fix: The API returns the user data directly at the top level
-  const user = userData;
+  // Fix: The API returns {success: true, user: {...}}, extract the user object
+  const user = userData?.user || userData;
   const isTestUser = user?.isTestUser === true;
   const isAdmin = user?.role === 'admin';
   
   // Admin users automatically get test user privileges  
   const hasTestAccess = isTestUser || isAdmin;
   
-  // Temporary: Removed debug logging to fix React error #310
+  // Debug test user access (single log to verify fix)
+  if (user && !sessionStorage.getItem('user-role-logged')) {
+    console.log('✅ Test User Fix Verified:', {
+      user: { id: user.id, username: user.username, role: user.role, isTestUser: user.isTestUser },
+      isTestUser,
+      isAdmin,
+      hasTestAccess
+    });
+    sessionStorage.setItem('user-role-logged', 'true');
+  }
   
   // SECURE: Only database field and admin role, no username patterns
   return {

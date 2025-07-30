@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useTestUser } from '@/hooks/useTestUser';
 import { debounce } from '@/lib/utils';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
 
 // Reflection Questions
 interface RoundingOutQuestion {
@@ -54,6 +55,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const [saving, setSaving] = useState(false);
   const { shouldShowDemoButtons } = useTestUser();
   const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
 
   const { toast } = useToast();
 
@@ -100,6 +102,36 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
     loadExistingData();
   }, []);
 
+  // Set up FloatingAI context for step 3-3 with current question context
+  useEffect(() => {
+    setFloatingAIStep('3-3');
+    
+    const currentQuestionData = roundingOutQuestions[currentQuestion];
+    updateContext({
+      stepName: 'Flow Reflection',
+      strengthLabel: undefined,
+      questionText: currentQuestionData?.text,
+      aiEnabled: true,
+      workshopContext: {
+        currentStep: '3-3',
+        stepName: 'Flow Reflection - Rounding Out Your Understanding',
+        previousSteps: [
+          'Completed strengths assessment and discovered your Star Card',
+          'Explored individual strengths in detail through reflection',
+          'Learned about Flow states and completed Flow assessment'
+        ],
+        currentTask: `Reflecting on Flow question ${currentQuestion + 1} of ${roundingOutQuestions.length}`,
+        questionContext: {
+          questionNumber: currentQuestion + 1,
+          totalQuestions: roundingOutQuestions.length,
+          currentQuestion: currentQuestionData?.text,
+          hint: currentQuestionData?.hint,
+          allQuestions: roundingOutQuestions.map(q => q.text)
+        }
+      }
+    });
+  }, [currentQuestion, updateContext, setFloatingAIStep]);
+
   // Debounced save function
   const debouncedSave = useCallback(
     debounce(async (answersToSave) => {
@@ -113,7 +145,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
         
         const result = await response.json();
         if (result.success) {
-          console.log('Auto-saved successfully');
+          // console.log('Auto-saved successfully');
         }
       } catch (error) {
         console.error('Auto-save failed:', error);

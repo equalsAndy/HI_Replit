@@ -91,12 +91,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       const processed = processVideoUrl(rawUrl, params);
       setProcessedUrl(processed.embedUrl);
       
-      // Debug logging for video selection
-      if (forceUrl) {
-        console.log(`🎬 VideoPlayer: Using forceUrl: ${forceUrl}`);
-      } else {
-        console.log(`🎬 VideoPlayer: Using ${video?.url ? 'database' : 'fallback'} URL: ${rawUrl}`);
-      }
+      // Debug logging for video selection (disabled to reduce console spam)
+      // if (forceUrl) {
+      //   console.log(`🎬 VideoPlayer: Using forceUrl: ${forceUrl}`);
+      // } else {
+      //   console.log(`🎬 VideoPlayer: Using ${video?.url ? 'database' : 'fallback'} URL: ${rawUrl}`);
+      // }
     }
   }, [forceUrl, video?.url, fallbackUrl, autoplay, customParams]);
 
