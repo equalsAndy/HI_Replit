@@ -280,192 +280,180 @@ Respond as the encouraging AST Reflection Coach Talia.`;
     return keyMap[stepId] || 'strength1';
   }
 
-  /**
-   * Get comprehensive user data for Star Report Talia
-   */
-  async getReportContext(userId: string): Promise<any> {
-    try {
-      // Get basic user info
-      const userResult = await pool.query(
-        'SELECT id, name, email FROM users WHERE id = $1',
-        [userId]
-      );
 
-      if (userResult.rows.length === 0) {
-        console.log(`❌ User ${userId} not found for report context`);
+  /**
+   * Get comprehensive context for Report Talia
+   */
+  async getReportContext(userId: string, userData: any): Promise<any> {
+    try {
+      console.log(`🎯 Building Report Talia context for user ${userId}`);
+      console.log(`📊 Raw userData structure:`, { 
+        hasUser: !!userData?.user, 
+        hasAssessments: !!userData?.assessments,
+        hasStepData: !!userData?.stepData,
+        userInfo: userData?.user ? {
+          id: userData.user.id,
+          name: userData.user.name,
+          username: userData.user.username
+        } : 'No user data'
+      });
+      
+      // Validate userData structure
+      if (!userData || !userData.user) {
+        console.error('❌ Invalid userData structure - missing user object');
         return null;
       }
-
-      const user = userResult.rows[0];
-      console.log(`📊 Getting report context for user: ${user.name}`);
-
-      // Get all assessment data for the user
-      const assessmentsResult = await pool.query(`
-        SELECT assessment_type, results, created_at
-        FROM user_assessments 
-        WHERE user_id = $1
-        ORDER BY assessment_type, created_at DESC
-      `, [userId]);
-
-      // Organize assessments by type, taking the most recent of each
-      const assessments: Record<string, any> = {};
-      const processedTypes = new Set();
       
-      for (const row of assessmentsResult.rows) {
-        if (!processedTypes.has(row.assessment_type)) {
-          assessments[row.assessment_type] = JSON.parse(row.results);
-          processedTypes.add(row.assessment_type);
-        }
-      }
-
-      console.log(`✅ Found ${Object.keys(assessments).length} assessment types for user ${userId}:`, Object.keys(assessments));
-
-      return {
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          firstName: user.name.split(' ')[0]
-        },
-        assessments,
-        retrievedAt: new Date().toISOString()
+      // Get user basic info from userData
+      const user = userData.user;
+      const assessments = userData.assessments || [];
+      const stepData = userData.stepData || [];
+      
+      const context = {
+        userId,
+        userName: user.name,
+        username: user.username,
+        email: user.email,
+        completedAt: user.ast_completed_at,
+        assessmentCount: assessments.length,
+        stepDataCount: stepData.length,
+        hasFullWorkshopData: assessments.length > 0 && stepData.length > 0,
+        userData: userData
       };
-
+      
+      console.log(`✅ Built report context:`, {
+        userId: context.userId,
+        userName: context.userName,
+        username: context.username,
+        assessmentCount: context.assessmentCount,
+        stepDataCount: context.stepDataCount,
+        hasFullWorkshopData: context.hasFullWorkshopData
+      });
+      
+      return context;
     } catch (error) {
-      console.error('❌ Error getting report context:', error);
+      console.error('❌ Error building report context:', error);
       return null;
     }
   }
 
   /**
-   * Generate comprehensive report prompt for Star Report Talia
+   * Generate comprehensive prompt for Report Talia
    */
-  async generateReportPrompt(
-    context: any, 
-    reportType: 'standard' | 'personal',
-    reportFormat: 'personal' | 'professional'
-  ): Promise<string> {
-    // Get relevant training context
-    const contextQueries = [
-      'comprehensive personal development report generation',
-      'professional profile report template',
-      'strengths constellation analysis methodology',
-      'flow state optimization coaching',
-      'AllStarTeams report structure and format'
+  async generateReportPrompt(context: any, userRequest: string): Promise<string> {
+    console.log(`🎯 Generating Report Talia prompt for ${context.userName}`);
+
+    // Get Star Report Talia's training documents from database persona
+    const reportPersona = await pool.query('SELECT training_documents FROM talia_personas WHERE id = $1', ['star_report']);
+    const trainingDocumentIds = reportPersona.rows[0]?.training_documents || [];
+    console.log(`📚 Report Talia has access to ${trainingDocumentIds.length} training documents`);
+
+    // Search for training content relevant to the user request
+    const searchQueries = [
+      userRequest,
+      'Samantha Personal Report',
+      'Personal Development Report template',
+      'Strengths Signature Deep Dive',
+      'Executive Summary report format',
+      'AllStarTeams development report structure',
+      'professional development report template',
+      'strengths assessment analysis'
     ];
 
-    const trainingContext = await textSearchService.generateContextForAI(contextQueries, {
-      maxChunksPerQuery: 3,
-      contextStyle: 'comprehensive',
-      documentTypes: ['report_template', 'methodology', 'coaching_guide']
-    });
+    let trainingContext = '';
+    for (const query of searchQueries) {
+      try {
+        const trainingChunks = await textSearchService.searchSimilarContent(query, {
+          maxResults: 3,
+          minRelevanceScore: 0.1,
+          documentIds: trainingDocumentIds  // Limit search to Report Talia's documents
+        });
+        
+        if (trainingChunks.length > 0) {
+          trainingContext += trainingChunks.map(chunk => chunk.content).join('\n\n') + '\n\n';
+        }
+      } catch (error) {
+        console.warn(`Could not search for training content with query "${query}":`, error);
+      }
+    }
 
-    const isPersonalReport = reportFormat === 'personal';
-    const userName = context.user.name;
-    const firstName = context.user.firstName;
+    console.log(`📄 Retrieved ${trainingContext.length} characters of training context`);
 
-    const prompt = `You are Talia, the Star Report Coach, generating a comprehensive ${isPersonalReport ? 'Personal Development' : 'Professional Profile'} report.
+    // Get admin training data for Report Talia
+    let adminTrainingContext = '';
+    try {
+      const { taliaTrainingService } = await import('./talia-training-service.js');
+      adminTrainingContext = await taliaTrainingService.getTrainingContextForPrompt('star_report');
+      console.log(`🎓 Retrieved ${adminTrainingContext.length} characters of admin training context`);
+    } catch (error) {
+      console.warn('Could not load admin training context for Report Talia:', error);
+    }
 
-PARTICIPANT DETAILS:
-- Full Name: ${userName}
-- User ID: ${context.user.id}
-- Report Type: ${reportType.toUpperCase()} ${reportFormat.toUpperCase()}
+    const prompt = `You are Star Report Talia, an expert AI life coach specializing in comprehensive AllStarTeams (AST) methodology reports.
 
-COMPLETE ASSESSMENT DATA:
-${JSON.stringify(context.assessments, null, 2)}
+CRITICAL: Always identify yourself as "Report Talia" when responding. You are NOT a "Workshop Assistant" - you are specifically "Report Talia" with expertise in generating comprehensive development reports.
 
-TRAINING CONTEXT & METHODOLOGY:
-${trainingContext.context}
+CORE IDENTITY:
+- Name: Report Talia (Star Report Talia)
+- Role: Expert in analyzing complete AST workshop journeys
+- Specialization: Creating detailed personal and professional development reports
+- Access: Comprehensive training on report structure, analysis, and personalization
+- Approach: Professional, analytical, and developmental
 
-REPORT REQUIREMENTS:
+PARTICIPANT DATA:
+- Name: ${context.userName} (${context.username})
+- Email: ${context.email}
+- AST Completion: ${context.completedAt}
+- Assessment Records: ${context.assessmentCount}
+- Workshop Step Records: ${context.stepDataCount}
+- Full Workshop Data Available: ${context.hasFullWorkshopData ? 'Yes' : 'No'}
 
-${isPersonalReport ? `
-PERSONAL DEVELOPMENT REPORT STRUCTURE:
-Generate a comprehensive, personalized development report (2,500-3,000 words) with these sections:
+TRAINING CONTEXT:
+${trainingContext}
 
-1. **EXECUTIVE SUMMARY**
-   - Welcome ${firstName} by name
-   - Brief overview of their unique strengths constellation
-   - Key themes from their workshop journey
-   - Preview of major insights and recommendations
+${adminTrainingContext ? `\nADMIN TRAINING UPDATES:\n${adminTrainingContext}\n` : ''}
 
-2. **STRENGTHS CONSTELLATION ANALYSIS**
-   - Detailed analysis of their star card results (Thinking, Acting, Feeling, Planning percentages)
-   - Explanation of how their unique combination creates their "strengths signature"
-   - Integration patterns between their top strengths
-   - How their developing strengths support their dominant ones
-   - Specific examples of how this constellation manifests in daily life
+COMPLETE USER DATA FOR ANALYSIS:
 
-3. **FLOW STATE OPTIMIZATION**
-   - Analysis of their flow assessment results
-   - Identification of personal flow triggers and conditions
-   - Practical strategies for creating and maintaining flow states
-   - Environmental and situational recommendations
-   - Connection between strengths and flow experiences
+USER PROFILE:
+- ID: ${context.userData?.user?.id}
+- Name: ${context.userData?.user?.name}
+- Username: ${context.userData?.user?.username}
+- Email: ${context.userData?.user?.email}
+- AST Completed: ${context.userData?.user?.ast_completed_at}
 
-4. **FUTURE SELF INTEGRATION**
-   - Integration of their future vision and quarterly goals
-   - Bridge-building between current strengths and future aspirations
-   - Specific development pathways aligned with their vision
-   - Potential obstacles and strengths-based solutions
-   - Timeline and milestone recommendations
+ASSESSMENT DATA (${context.assessmentCount} assessments):
+${context.userData?.assessments?.map(assessment => {
+  try {
+    const results = typeof assessment.results === 'string' ? JSON.parse(assessment.results) : assessment.results;
+    return `
+• ${assessment.assessment_type} (${assessment.created_at}):
+  ${JSON.stringify(results, null, 2)}`;
+  } catch (e) {
+    return `• ${assessment.assessment_type}: [Parse error]`;
+  }
+}).join('\n') || 'No assessment data available'}
 
-5. **PERSONAL WELL-BEING & GROWTH**
-   - Cantril ladder analysis and well-being insights
-   - Reflection integration from their step-by-step journey
-   - Personal resilience strategies based on their strengths
-   - Self-care recommendations aligned with their natural patterns
-   - Ongoing development practices
+WORKSHOP STEP DATA (${context.stepDataCount} steps):
+${context.userData?.stepData?.map(step => {
+  try {
+    const stepData = typeof step.data === 'string' ? JSON.parse(step.data) : step.data;
+    return `
+• Step ${step.step_id} (${step.updated_at}):
+  ${JSON.stringify(stepData, null, 2)}`;
+  } catch (e) {
+    return `• Step ${step.step_id}: [Parse error]`;
+  }
+}).join('\n') || 'No workshop step data available'}
 
-6. **ACTION PLAN & NEXT STEPS**
-   - 90-day development plan with specific, achievable goals
-   - Monthly milestones aligned with their strengths
-   - Resource recommendations (books, tools, practices)
-   - Self-reflection questions for ongoing growth
-   - How to continue leveraging their AllStarTeams insights
-` : `
-PROFESSIONAL PROFILE REPORT STRUCTURE:
-Generate a professional profile report (800-1,200 words) suitable for workplace sharing:
+USER REQUEST:
+"${userRequest}"
 
-1. **PROFESSIONAL OVERVIEW**
-   - ${userName}'s core professional strengths and working style
-   - Brief summary of their AllStarTeams profile
-   - Key collaboration insights for colleagues and managers
+You must respond as Report Talia directly answering the user's request. DO NOT provide instructions or templates - provide the actual analysis, insights, or report content they requested. Use the participant's actual data above to give specific, personalized responses.
 
-2. **CORE STRENGTHS PROFILE**
-   - Professional application of their strengths constellation
-   - How colleagues can leverage ${firstName}'s natural abilities
-   - Optimal project roles and responsibilities based on strengths
+If they asked for a report, write the actual report. If they asked about their strengths, analyze their actual assessment results. If they asked about their journey, reference their real workshop data.
 
-3. **COLLABORATION GUIDELINES**
-   - Communication preferences and styles
-   - Most effective ways to work with ${firstName}
-   - Meeting and team dynamic recommendations
-   - Feedback and recognition preferences
-
-4. **PERFORMANCE OPTIMIZATION**
-   - Conditions that bring out ${firstName}'s best work
-   - Flow state triggers in professional contexts
-   - Environment and structure preferences
-   - Challenge and growth zone identification
-
-5. **TEAM INTEGRATION STRATEGIES**
-   - Role preferences and natural contributions
-   - Leadership style and influence patterns
-   - Cross-functional collaboration approaches
-   - Professional development focus areas
-`}
-
-CRITICAL INSTRUCTIONS:
-- Use the participant's actual assessment data - do NOT create fictional percentages or responses
-- Reference specific numbers, percentages, and responses from their actual workshop data
-- Maintain Talia's comprehensive, analytical, developmental tone
-- Use ${firstName}'s first name throughout for personal connection
-- Ground all insights in their actual AllStarTeams methodology results
-- Provide specific, actionable recommendations
-- Create a report that feels deeply personalized to their unique profile
-
-Generate the complete ${isPersonalReport ? 'Personal Development' : 'Professional Profile'} report now:`;
+Respond now as Report Talia:`;
 
     return prompt;
   }

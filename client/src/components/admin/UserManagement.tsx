@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown } from 'lucide-react';
+import { Loader2, Check, X, UserPlus, KeyRound, Trash2, Mail, PencilIcon, UndoIcon, Download, Database, UserX, EyeIcon, ChevronUp, ChevronDown, FileImage } from 'lucide-react';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -641,6 +641,70 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
     },
   });
 
+  // StarCard download mutation
+  const downloadStarCardMutation = useMutation({
+    mutationFn: async (userId: number) => {
+      setLoadingUsers(prev => new Set(prev).add(userId));
+
+      const response = await fetch(`/api/starcard/admin/download/${userId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'No StarCard found for this user');
+        }
+        throw new Error('Failed to download StarCard');
+      }
+
+      // Get the filename from the Content-Disposition header
+      const contentDisposition = response.headers.get('Content-Disposition');
+      const filename = contentDisposition
+        ? contentDisposition.split('filename=')[1]?.replace(/"/g, '')
+        : `user-${userId}-starcard.png`;
+
+      // Get the image data
+      const blob = await response.blob();
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      return userId;
+    },
+    onSuccess: (userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'StarCard downloaded',
+        description: `StarCard PNG for ${users.find(user => user.id === userId)?.username} has been downloaded.`,
+      });
+    },
+    onError: (error: any, userId) => {
+      setLoadingUsers(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(userId);
+        return newSet;
+      });
+      toast({
+        title: 'StarCard download failed',
+        description: error.message || 'Failed to download StarCard. Please try again.',
+        variant: 'destructive',
+      });
+    },
+  });
+
   // Handler for creating a new user
   const onCreateSubmit = (values: CreateUserFormValues) => {
     createUserMutation.mutate(values);
@@ -846,7 +910,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                           <TableHead className="w-[50px]">Beta</TableHead>
                           <TableHead className="w-[120px]">AST Step</TableHead>
                           <TableHead className="w-[120px]">IA Step</TableHead>
-                          <TableHead className="min-w-[160px] sticky right-0 bg-white border-l">Actions</TableHead>
+                          <TableHead className="min-w-[240px] sticky right-0 bg-white border-l">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                     <TableBody>
@@ -1056,7 +1120,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                               );
                             })()}
                           </TableCell>
-                          <TableCell className="min-w-[200px] sticky right-0 bg-white border-l">
+                          <TableCell className="min-w-[240px] sticky right-0 bg-white border-l">
                             <TooltipProvider>
                               <div className="flex items-center gap-1 justify-start">
                                 {!user.isDeleted && (
@@ -1111,6 +1175,27 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                       </TooltipTrigger>
                                       <TooltipContent>
                                         <p>Download all user data as JSON file</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="h-8 w-8 p-0 text-purple-600 hover:text-purple-800 hover:bg-purple-50 border-purple-200"
+                                          onClick={() => downloadStarCardMutation.mutate(user.id)}
+                                          disabled={loadingUsers.has(user.id)}
+                                        >
+                                          {loadingUsers.has(user.id) && downloadStarCardMutation.isPending ? (
+                                            <Loader2 className="h-3 w-3 animate-spin" />
+                                          ) : (
+                                            <FileImage className="h-3 w-3" />
+                                          )}
+                                        </Button>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Download user's StarCard PNG (if available)</p>
                                       </TooltipContent>
                                     </Tooltip>
 

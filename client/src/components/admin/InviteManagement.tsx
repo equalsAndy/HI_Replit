@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2, UserPlus, Mail, RefreshCw, Check, Copy, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -71,6 +72,8 @@ interface Invite {
   organization_name?: string;
   cohort_id?: number;
   organization_id?: string;
+  is_beta_tester?: boolean;
+  isBetaTester?: boolean;
   [key: string]: any; // Allow additional properties for flexibility
 }
 
@@ -104,6 +107,7 @@ export const InviteManagement: React.FC = () => {
     name: '',
     cohortId: '',
     organizationId: '',
+    isBetaTester: false,
   });
   const { toast } = useToast();
 
@@ -253,6 +257,7 @@ export const InviteManagement: React.FC = () => {
           name: '',
           cohortId: '',
           organizationId: '',
+          isBetaTester: false,
         });
         fetchInvites();
       } else {
@@ -419,6 +424,26 @@ export const InviteManagement: React.FC = () => {
                 </div>
               </div>
               
+              {/* Beta Tester Checkbox - only show for admins */}
+              {userRole === 'admin' && (
+                <div className="flex items-center space-x-2 pt-4 border-t">
+                  <Checkbox
+                    id="betaTester"
+                    checked={newInvite.isBetaTester}
+                    onCheckedChange={(checked) => 
+                      setNewInvite({ ...newInvite, isBetaTester: !!checked })
+                    }
+                    disabled={isSendingInvite}
+                  />
+                  <Label htmlFor="betaTester" className="text-sm font-medium">
+                    Beta Tester
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Mark this user as a beta tester with enhanced access and features
+                  </p>
+                </div>
+              )}
+              
               {/* Cohort and Organization Assignment Section for Facilitators */}
               {userRole === 'facilitator' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 pt-4 border-t">
@@ -517,6 +542,7 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Email</TableHead>
                       <TableHead>Invite Code</TableHead>
                       <TableHead>Role</TableHead>
+                      <TableHead>Beta Tester</TableHead>
                       <TableHead>Organization</TableHead>
                       <TableHead>Cohort</TableHead>
                       {userRole === 'admin' && <TableHead>Created By</TableHead>}
@@ -558,6 +584,15 @@ export const InviteManagement: React.FC = () => {
                           <Badge className={getRoleBadgeColor(invite.role)}>
                             {invite.role.charAt(0).toUpperCase() + invite.role.slice(1)}
                           </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {invite.is_beta_tester || invite.isBetaTester ? (
+                            <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200">
+                              Beta Tester
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
                         </TableCell>
                         <TableCell>
                           {invite.organization_name ? (

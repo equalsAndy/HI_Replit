@@ -554,4 +554,292 @@ router.post('/beta-testers/:userId', requireAdmin, async (req, res) => {
   }
 });
 
+/**
+ * Get users who have completed AST workshop for Report Talia
+ * GET /api/admin/ai/report-talia/completed-users
+ */
+router.get('/report-talia/completed-users', requireAdmin, async (_req, res) => {
+  try {
+    console.log('🔧 Fetching AST completed users for Report Talia');
+
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.username,
+        u.name,
+        u.email,
+        u.ast_completed_at,
+        u.created_at
+      FROM users u
+      WHERE u.ast_workshop_completed = true
+      ORDER BY u.ast_completed_at DESC NULLS LAST, u.name ASC
+    `);
+
+    console.log(`📊 Found ${result.rows.length} users who completed AST workshop`);
+    console.log('📋 Users:', result.rows);
+
+    res.json({
+      success: true,
+      users: result.rows,
+      count: result.rows.length,
+      message: `Found ${result.rows.length} users who completed AST workshop`
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching AST completed users:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch AST completed users'
+    });
+  }
+});
+
+/**
+ * Update user AST completion status (Admin only)
+ * POST /api/admin/ai/report-talia/update-completion
+ */
+router.post('/report-talia/update-completion', requireAdmin, async (req, res) => {
+  const { userId, completed } = req.body;
+  const adminUserId = (req.session as any)?.userId;
+
+  try {
+    console.log(`🔧 Admin ${adminUserId} updating AST completion for user ${userId}: ${completed}`);
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    const updateQuery = completed 
+      ? 'UPDATE users SET ast_workshop_completed = true, ast_completed_at = NOW() WHERE id = $1'
+      : 'UPDATE users SET ast_workshop_completed = false, ast_completed_at = NULL WHERE id = $1';
+
+    const result = await pool.query(updateQuery, [userId]);
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    console.log(`✅ Updated AST completion status for user ${userId}: ${completed}`);
+
+    res.json({
+      success: true,
+      message: `User ${userId} AST completion status updated to: ${completed}`,
+      userId: userId,
+      completed: completed
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating AST completion status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update AST completion status'
+    });
+  }
+});
+
+/**
+ * Generate markdown report for a specific user using Report Talia
+ * POST /api/admin/ai/report-talia/generate-report
+ */
+router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
+  const { userId } = req.body;
+  const adminUserId = (req.session as any)?.userId;
+
+  try {
+    console.log(`🔧 Generating Report Talia MD report for user ${userId}`);
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        error: 'User ID is required'
+      });
+    }
+
+    // Check if user has completed AST workshop
+    const userResult = await pool.query(
+      'SELECT id, username, name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
+      [userId]
+    );
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    const user = userResult.rows[0];
+    if (!user.ast_workshop_completed) {
+      return res.status(400).json({
+        success: false,
+        error: 'User has not completed AST workshop'
+      });
+    }
+
+    // Get user's workshop data (assessments, step data, etc.)
+    const assessmentResult = await pool.query(
+      'SELECT * FROM user_assessments WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
+
+    const stepDataResult = await pool.query(
+      'SELECT * FROM workshop_step_data WHERE user_id = $1 ORDER BY step_id, created_at DESC',
+      [userId]
+    );
+
+    // Import Claude API service for report generation
+    const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
+
+    // Prepare user data for Report Talia
+    const userData = {
+      user: user,
+      assessments: assessmentResult.rows,
+      stepData: stepDataResult.rows,
+      completedAt: user.ast_completed_at
+    };
+
+    // Generate report using Star Report Talia persona with proper configuration
+    const reportPrompt = `You are Report Talia generating a comprehensive Personal Development Report following the EXACT format and structure of the Samantha Personal Report template in your training documents.
+
+CRITICAL INSTRUCTIONS:
+1. This is a PERSONAL DEVELOPMENT REPORT (not professional/business focused)
+2. Use the EXACT structure from the Samantha Personal Report template
+3. Write in SECOND PERSON ("You possess...", "Your signature...") not third person
+4. Use the SAME intimate, personal tone as the Samantha template
+5. Follow the SAME section structure: "Part I", "Part II", etc.
+6. This is a complete standalone markdown document (no conversational elements)
+
+REQUIRED TEMPLATE STRUCTURE (follow exactly):
+# Your Personal Development Report
+## Understanding Your Unique Strengths Signature
+
+**${user.name} | [Role] | AllStarTeams Workshop Results**
+
+## Executive Summary
+[Personal, intimate analysis using "You possess..." tone]
+
+## Part I: Your Strengths Signature Deep Dive
+### The Architecture of Your Natural Talents
+### How Your Energy Flows
+### Your Unique Operating System
+### Understanding Your Supporting Strengths
+
+## Part II: Optimizing Your Flow State
+### Your Current Flow Profile
+### Flow Optimization Strategy for Your Signature
+
+## Part III: Bridging to Your Future Self
+### The Evolution of Your Signature
+### Bridging Strategies: Present to Future
+
+## Part IV: Your Development Pathway
+### Core Development Areas
+### Personal Well-being and Integration
+
+## Part V: Your Signature in Action
+### Daily Practices That Honor Your Signature
+### Handling Challenges and Stress
+
+## Part VI: Your Unique Value Proposition
+### What You Bring That Others Don't
+### Recognition and Career Positioning
+
+## Conclusion: Embracing Your Signature
+
+TONE: Personal, intimate, coaching-focused (like the Samantha template)
+LENGTH: 3000+ words with deep psychological analysis
+PERSPECTIVE: Second person ("You", "Your") throughout
+
+USER DATA:
+- Name: ${user.name} (${user.username})
+- Completed AST: ${user.ast_completed_at}
+- Assessment Records: ${assessmentResult.rows.length}
+- Workshop Data: ${stepDataResult.rows.length}
+
+Generate the complete Personal Development Report following the Samantha template structure and tone exactly:`;
+
+    console.log('🔧 About to call generateClaudeCoachingResponse with params:', {
+      userMessage: reportPrompt.substring(0, 100) + '...',
+      personaType: 'star_report',
+      userName: user.name,
+      contextData: {
+        reportContext: 'md_generation',
+        selectedUserId: userId,
+        selectedUserName: user.name,
+        adminMode: true
+      }
+    });
+
+    const reportContent = await generateClaudeCoachingResponse({
+      userMessage: reportPrompt,
+      personaType: 'star_report',
+      userName: user.name,
+      contextData: {
+        reportContext: 'md_generation',
+        selectedUserId: userId,
+        selectedUserName: user.name,
+        adminMode: true,
+        userData: userData
+      },
+      userId: userId,
+      sessionId: `report-gen-${Date.now()}`,
+      maxTokens: 25000
+    });
+
+    if (!reportContent || reportContent.trim() === '') {
+      throw new Error('Report generation failed: Empty response from Claude API');
+    }
+
+    // Save report to storage
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `report-talia-${user.username}-${timestamp}.md`;
+
+    // Create storage directory if it doesn't exist
+    const fs = await import('fs');
+    const path = await import('path');
+    const storageDir = path.join(process.cwd(), 'storage', 'reports');
+    
+    if (!fs.existsSync(storageDir)) {
+      fs.mkdirSync(storageDir, { recursive: true });
+    }
+
+    const filePath = path.join(storageDir, filename);
+    fs.writeFileSync(filePath, reportContent, 'utf8');
+
+    console.log(`✅ Report Talia MD report generated and saved: ${filename}`);
+    console.log(`🗃️ Report generated by admin ${adminUserId} for user ${userId}`);
+
+    res.json({
+      success: true,
+      report: {
+        filename: filename,
+        filePath: filePath,
+        content: reportContent,
+        generatedAt: new Date().toISOString(),
+        generatedBy: adminUserId,
+        targetUser: {
+          id: user.id,
+          name: user.name,
+          username: user.username
+        }
+      },
+      message: `Report successfully generated for ${user.name}`
+    });
+
+  } catch (error) {
+    console.error('❌ Error generating Report Talia MD report:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to generate Report Talia MD report',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

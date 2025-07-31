@@ -23,6 +23,7 @@ import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
 import AutoSync from '@/components/AutoSync';
 import { FloatingAIProvider } from '@/components/ai/FloatingAIProvider';
+import { ReportTaliaProvider } from '@/contexts/ReportTaliaContext';
 import { useQuery } from '@tanstack/react-query';
 import { ProtectedRoute } from '@/components/core/ProtectedRoute';
 import { SessionManagerProvider } from '@/components/core/SessionManagerProvider';
@@ -56,7 +57,8 @@ const App: React.FC = () => {
         <QueryClientProvider client={queryClient}>
           <ApplicationProvider>
             <DemoModeProvider>
-              <FloatingAIProvider>
+              <ReportTaliaProvider>
+                <FloatingAIProvider>
                 <SessionManagerProvider>
                   <div className="min-h-screen bg-background">
                     <AutoSyncWrapper />
@@ -130,7 +132,8 @@ const App: React.FC = () => {
                   <Toaster />
                 </div>
                 </SessionManagerProvider>
-              </FloatingAIProvider>
+                </FloatingAIProvider>
+              </ReportTaliaProvider>
             </DemoModeProvider>
           </ApplicationProvider>
         </QueryClientProvider>

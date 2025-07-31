@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useReportTaliaContext } from '../../contexts/ReportTaliaContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/Card';
 import { Badge } from '../ui/badge';
@@ -25,7 +26,10 @@ import {
   ChevronDown,
   ChevronRight,
   Check,
-  X
+  X,
+  Download,
+  FileText,
+  MessageCircle
 } from 'lucide-react';
 
 interface TaliaPersona {
@@ -64,6 +68,159 @@ interface TrainingDocument {
   title: string;
   document_type: string;
   category: string;
+}
+
+interface CompletedUser {
+  id: number;
+  username: string;
+  name: string;
+  email: string;
+  ast_completed_at: string;
+  created_at: string;
+}
+
+// Report Talia Features Component
+function ReportTaliaFeatures(): JSX.Element {
+  const { 
+    selectedUserId, 
+    setSelectedUserId, 
+    completedUsers, 
+    setCompletedUsers,
+    setIsAdminContext 
+  } = useReportTaliaContext();
+  
+  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [generatedReport, setGeneratedReport] = useState<any>(null);
+
+  // Set admin context on mount
+  useEffect(() => {
+    setIsAdminContext(true);
+    return () => setIsAdminContext(false); // Clean up on unmount
+  }, [setIsAdminContext]);
+
+  // Fetch completed users on component mount
+  useEffect(() => {
+    const fetchCompletedUsers = async () => {
+      try {
+        console.log('🔧 Fetching completed users...');
+        const response = await fetch('/api/admin/ai/report-talia/completed-users', {
+          credentials: 'include'
+        });
+        
+        console.log('🔧 Response status:', response.status);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔧 Received data:', data);
+          setCompletedUsers(data.users || []);
+        } else {
+          console.error('🔧 Response not ok:', response.status, await response.text());
+        }
+      } catch (error) {
+        console.error('🔧 Error fetching completed users:', error);
+      }
+    };
+
+    fetchCompletedUsers();
+  }, []);
+
+  const handleGenerateReport = async () => {
+    if (!selectedUserId) return;
+    
+    setIsGeneratingReport(true);
+    try {
+      const response = await fetch('/api/admin/ai/report-talia/generate-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ userId: selectedUserId })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setGeneratedReport(data.report);
+      } else {
+        const error = await response.json();
+        console.error('Report generation failed:', error);
+      }
+    } catch (error) {
+      console.error('Error generating report:', error);
+    } finally {
+      setIsGeneratingReport(false);
+    }
+  };
+
+
+  return (
+    <div>
+      <h3 className="text-lg font-medium text-gray-900 mb-3 flex items-center gap-2">
+        <FileText className="h-5 w-5" />
+        Report Talia Features
+      </h3>
+      
+      <div className="space-y-4">
+        {/* User Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Select AST Completed User
+          </label>
+          <Select onValueChange={(value) => setSelectedUserId(parseInt(value))}>
+            <SelectTrigger>
+              <SelectValue placeholder="Choose a user who has completed AST..." />
+            </SelectTrigger>
+            <SelectContent>
+              {completedUsers.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  {user.name} ({user.username}) - Completed {new Date(user.ast_completed_at).toLocaleDateString()}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-gray-500 mt-1">
+            {completedUsers.length} users have completed the AST workshop
+          </p>
+        </div>
+
+        {/* Generate Report */}
+        <div className="flex gap-2">
+          <Button
+            onClick={handleGenerateReport}
+            disabled={!selectedUserId || isGeneratingReport}
+            className="flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            {isGeneratingReport ? 'Generating...' : 'Generate MD Report'}
+          </Button>
+        </div>
+
+        {/* Info about chat functionality */}
+        {selectedUserId && (
+          <div className="text-sm text-gray-600 bg-blue-50 p-3 rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="h-4 w-4 text-blue-600" />
+              <span><strong>Chat with Report Talia:</strong> Use the floating Talia button at the bottom-right of your screen to chat about {completedUsers.find(u => u.id === selectedUserId)?.name}'s development.</span>
+            </div>
+          </div>
+        )}
+
+        {/* Generated Report Display */}
+        {generatedReport && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Report Generated:</strong> {generatedReport.filename}
+              <br />
+              <span className="text-xs text-gray-600">
+                Saved to: {generatedReport.filePath}
+              </span>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Use the floating Talia button at bottom-right for chat */}
+      </div>
+    </div>
+  );
 }
 
 export default function PersonaManagement() {
@@ -819,6 +976,13 @@ export default function PersonaManagement() {
                     </div>
                   </div>
                 )}
+
+                {/* Report Talia Features (for report personas only) */}
+                {(() => {
+                  console.log('🔍 Current selected persona:', selectedPersona);
+                  console.log('🔍 Checking if should show ReportTaliaFeatures:', selectedPersona === 'star_report');
+                  return selectedPersona === 'star_report' ? <ReportTaliaFeatures /> : null;
+                })()}
 
                 {/* Data Access */}
                 <div>

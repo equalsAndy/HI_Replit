@@ -11,7 +11,7 @@ const router = express.Router();
  */
 router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
   try {
-    const { email, role, name, expiresAt, cohortId, organizationId } = req.body;
+    const { email, role, name, expiresAt, cohortId, organizationId, isBetaTester } = req.body;
     const userRole = (req.session as any).userRole;
     const userId = (req.session as any).userId;
     
@@ -48,6 +48,7 @@ router.post('/', requireAuth, isFacilitatorOrAdmin, async (req, res) => {
       createdBy: userId,
       cohortId: cohortId || null,
       organizationId: organizationId || null,
+      isBetaTester: isBetaTester || false,
       expiresAt: expiresAt ? new Date(expiresAt) : undefined
     });
     

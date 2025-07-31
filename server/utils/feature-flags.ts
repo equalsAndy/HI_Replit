@@ -10,26 +10,25 @@ export interface FeatureFlag {
 export const featureFlags: Record<string, FeatureFlag> = {
   workshopLocking: {
     enabled: true,
-    environment: 'staging',
+    environment: 'all',
     description: 'Lock workshop inputs after completion'
   },
   holisticReports: {
-    enabled: process.env.FEATURE_HOLISTIC_REPORTS === 'true', 
-    environment: 'development',
+    enabled: process.env.FEATURE_HOLISTIC_REPORTS !== 'false', 
+    environment: 'all',
     description: 'Claude API-powered personalized reports',
     aiRelated: true
   },
   facilitatorConsole: {
     enabled: true,
-    environment: 'staging', 
+    environment: 'all', 
     description: 'Facilitator cohort management system'
   },
   aiCoaching: {
-    enabled: false,
-    environment: 'development',
+    enabled: true,
+    environment: 'all',
     description: 'AI-powered coaching chatbot system',
-    aiRelated: true,
-    dependencies: ['holisticReports']
+    aiRelated: true
   },
   videoManagement: {
     enabled: true,
@@ -37,13 +36,13 @@ export const featureFlags: Record<string, FeatureFlag> = {
     description: 'Enhanced video management and progress tracking'
   },
   debugPanel: {
-    enabled: true,
+    enabled: process.env.FEATURE_DEBUG_PANEL === 'true',
     environment: 'development',
     description: 'Development debugging panel and tools'
   },
   feedbackSystem: {
     enabled: true,
-    environment: 'staging',
+    environment: 'all',
     description: 'User feedback collection and management system'
   }
 };

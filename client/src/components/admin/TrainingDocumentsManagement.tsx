@@ -76,6 +76,8 @@ const TrainingDocumentsManagement: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<TrainingDocument | null>(null);
+  const [editingDocument, setEditingDocument] = useState<TrainingDocument | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<TrainingDocument | null>(null);
   
   const queryClient = useQueryClient();
 
@@ -176,6 +178,51 @@ const TrainingDocumentsManagement: React.FC = () => {
     },
   });
 
+  // Document delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (documentId: string) => {
+      const response = await fetch(`/api/training-docs/documents/${documentId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to delete document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['training-stats'] });
+    },
+  });
+
+  // Document update mutation
+  const updateMutation = useMutation({
+    mutationFn: async ({ documentId, updates }: { documentId: string; updates: any }) => {
+      const response = await fetch(`/api/training-docs/documents/${documentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-documents'] });
+      queryClient.invalidateQueries({ queryKey: ['training-stats'] });
+      setEditingDocument(null);
+    },
+  });
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 B';
     const k = 1024;
@@ -207,6 +254,21 @@ const TrainingDocumentsManagement: React.FC = () => {
       default:
         return <AlertCircle className="h-4 w-4 text-gray-500" />;
     }
+  };
+
+  const handleDeleteDocument = (document: TrainingDocument) => {
+    setShowDeleteConfirm(document);
+  };
+
+  const confirmDelete = () => {
+    if (showDeleteConfirm) {
+      deleteMutation.mutate(showDeleteConfirm.id);
+      setShowDeleteConfirm(null);
+    }
+  };
+
+  const handleEditDocument = (document: TrainingDocument) => {
+    setEditingDocument(document);
   };
 
   if (documentsLoading || typesLoading || statsLoading) {
@@ -458,13 +520,25 @@ const TrainingDocumentsManagement: React.FC = () => {
                         variant="outline" 
                         size="sm"
                         onClick={() => setSelectedDocument(doc)}
+                        title="View document"
                       >
                         <Eye className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditDocument(doc)}
+                        title="Edit document"
+                      >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700"
+                        onClick={() => handleDeleteDocument(doc)}
+                        title="Delete document"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -546,6 +620,45 @@ const TrainingDocumentsManagement: React.FC = () => {
           document={selectedDocument}
           onClose={() => setSelectedDocument(null)}
         />
+      )}
+
+      {/* Edit Document Dialog */}
+      {editingDocument && (
+        <EditDocumentDialog 
+          document={editingDocument}
+          documentTypes={documentTypes}
+          categories={categories}
+          onClose={() => setEditingDocument(null)}
+          onUpdate={(updates) => updateMutation.mutate({ documentId: editingDocument.id, updates })}
+          isUpdating={updateMutation.isPending}
+          error={updateMutation.error?.message}
+        />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {showDeleteConfirm && (
+        <Dialog open={true} onOpenChange={() => setShowDeleteConfirm(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Document</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{showDeleteConfirm.title}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 pt-4">
+              <Button variant="outline" onClick={() => setShowDeleteConfirm(null)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={confirmDelete}
+                disabled={deleteMutation.isPending}
+              >
+                {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
@@ -662,11 +775,16 @@ const UploadDocumentDialog: React.FC<UploadDocumentDialogProps> = ({
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Category</label>
+              <label className="block text-sm font-medium mb-2">
+                Category
+                <span className="text-xs text-gray-500 font-normal ml-2">
+                  (Optional - helps organize documents, e.g., "AST Workshop", "Report Generation", "Strengths Analysis")
+                </span>
+              </label>
               <Input
                 value={formData.category}
                 onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                placeholder="Document category"
+                placeholder="e.g., AST Workshop, Report Generation, Strengths Analysis"
                 list="categories"
               />
               <datalist id="categories">
@@ -734,6 +852,155 @@ const UploadDocumentDialog: React.FC<UploadDocumentDialogProps> = ({
                   Upload Document
                 </>
               )}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+// Edit Document Dialog Component
+interface EditDocumentDialogProps {
+  document: TrainingDocument;
+  documentTypes: DocumentType[];
+  categories: string[];
+  onClose: () => void;
+  onUpdate: (updates: any) => void;
+  isUpdating: boolean;
+  error?: string;
+}
+
+const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
+  document,
+  documentTypes,
+  categories,
+  onClose,
+  onUpdate,  
+  isUpdating,
+  error
+}) => {
+  const [formData, setFormData] = useState({
+    title: document.title,
+    document_type: document.document_type,
+    category: document.category || '',
+    tags: document.tags?.join(', ') || '',
+    version: document.version,
+    status: document.status
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onUpdate(formData);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Document</DialogTitle>
+          <DialogDescription>
+            Update the document details
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <Alert className="border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Title</label>
+              <Input
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Document title"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Document Type</label>
+              <Select 
+                value={formData.document_type} 
+                onValueChange={(value) => setFormData(prev => ({ ...prev, document_type: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {documentTypes.map((type) => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Category</label>
+              <Input
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                placeholder="Document category"
+                list="edit-categories"
+              />
+              <datalist id="edit-categories">
+                {categories.map((category) => (
+                  <option key={category} value={category} />
+                ))}
+              </datalist>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Version</label>
+              <Input
+                value={formData.version}
+                onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
+                placeholder="1.0"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Status</label>
+            <Select 
+              value={formData.status} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="draft">Draft</SelectItem>
+                <SelectItem value="archived">Archived</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-2">Tags (comma-separated)</label>
+            <Input
+              value={formData.tags}
+              onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+              placeholder="coaching, strengths, development"
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isUpdating}>
+              {isUpdating ? 'Updating...' : 'Update Document'}
             </Button>
           </div>
         </form>

@@ -14,7 +14,7 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
   },
   feedbackSystem: {
     enabled: true, // Always enabled - will check environment in isFeatureEnabled
-    environment: 'staging', 
+    environment: 'all', 
     description: 'User feedback collection and management system'
   },
   videoManagement: {
@@ -36,14 +36,9 @@ export function isFeatureEnabled(featureName: string): boolean {
   // Use import.meta.env for environment detection to avoid fetch loops
   const currentEnv = import.meta.env.NODE_ENV || 'production';
   
-  // For feedback system, enable in development and staging
+  // For feedback system, enable in all environments
   if (featureName === 'feedbackSystem') {
-    const isDev = window.location.hostname === 'localhost' || 
-                  window.location.hostname === '127.0.0.1' ||
-                  window.location.port === '8080';
-    const isStaging = window.location.hostname === '34.220.143.127' ||
-                      window.location.hostname.includes('staging');
-    return isDev || isStaging;
+    return true;
   }
   
   // Check if feature is enabled for current environment

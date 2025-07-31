@@ -70,5 +70,35 @@
       "done"
     ],
     "lastUpdated": "2025-07-29T23:24:46.190Z"
+  },
+  "star_report": {
+    "trainingSessions": [
+      {
+        "timestamp": "2025-07-31T05:44:58.446Z",
+        "topic": "Training session 2025-07-31",
+        "desiredBehavior": "avoid language in the reports that says some sort of archetype. we don't tell people what they are. we can draw connections between things but strengths are fluid especiallywhen the percentages are cl...",
+        "guidelines": [
+          "User feedback from 7/30/2025",
+          "Training session duration: 4 minutes",
+          "Conversation length: 10 messages"
+        ],
+        "examples": [
+          "avoid language in the reports that says some sort of archetype. we don't tell people what they are. we can draw connections between things but strengths are fluid especiallywhen the percentages are close",
+          "You possess a rare and powerful signature that we call \"Strategic Architect\"",
+          "i don't know what Your Strategic and Architectural thinking strengths work together to help you means Strategic and architectural thinking aren't strengths are theuy? please point out where i am missing something"
+        ]
+      }
+    ],
+    "guidelines": [
+      "User feedback from 7/30/2025",
+      "Training session duration: 4 minutes",
+      "Conversation length: 10 messages"
+    ],
+    "examples": [
+      "avoid language in the reports that says some sort of archetype. we don't tell people what they are. we can draw connections between things but strengths are fluid especiallywhen the percentages are close",
+      "You possess a rare and powerful signature that we call \"Strategic Architect\"",
+      "i don't know what Your Strategic and Architectural thinking strengths work together to help you means Strategic and architectural thinking aren't strengths are theuy? please point out where i am missing something"
+    ],
+    "lastUpdated": "2025-07-31T05:44:58.446Z"
   }
 }

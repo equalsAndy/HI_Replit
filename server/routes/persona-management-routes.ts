@@ -71,73 +71,133 @@ function enhancePersonasWithDocumentNames(personas) {
 // PERSONA MANAGEMENT API
 // ===================================================================
 
-// In-memory storage for persona configurations (persists during session)
-export let CURRENT_PERSONAS = [
-  {
-    id: 'ast_reflection',
-    name: 'Reflection Talia',
-    role: 'Step-by-step reflection coaching',
-    description: 'Helps users think through their strength reflections during workshop steps',
-    dataAccess: ['basic_user_info', 'current_step_progress', 'current_strengths_focus', 'job_title_context'],
-    trainingDocuments: ['d359217d-2020-44e2-8f42-25cfe01e3a2b'], // Reflection Talia Training Doc
-    requiredDocuments: ['d359217d-2020-44e2-8f42-25cfe01e3a2b'],
-    tokenLimit: 800,
-    enabled: true, // Set to false to disable AI coaching for testing
-    environments: ['development', 'staging'],
-    behavior: {
-      tone: 'encouraging, conversational, coach-like',
-      nameUsage: 'first',
-      maxResponseLength: 400,
-      helpStyle: 'guide'
-    }
-  },
-  {
-    id: 'star_report',
-    name: 'Star Report Talia',
-    role: 'Comprehensive report generation',
-    description: 'Creates detailed personal and professional development reports',
-    dataAccess: ['full_assessment_data', 'all_reflections', 'complete_journey', 'professional_context'],
-    trainingDocuments: [
-      "0a6f331e-bb58-469c-8aa0-3b5db2074f1b",
-      "8053a205-701b-4a10-8dd8-39d92b18566d",
-      "3577e1e1-2fad-45d9-8ad1-12698bc327e3",
-      "158fcf64-75e9-4f46-8331-7de774ca89a6",
-      "1ffd5369-e17a-41bb-b54c-2f38630d7ff4",
-      "6e98d248-db4c-4bdc-99e0-a90e25b7032c",
-      "5cd8779c-4a3f-4e8a-91a7-378323ce8493",
-      "ddb2e849-0ff1-4766-9675-288575b95806",
-      "7a1ccb9d-31f7-4d9b-88f4-d63f3e9b50bb",
-      "a2eb129f-faa9-418b-96fb-0beda55a4eb5",
-      "30bf8cb3-3411-490f-a024-c11e20728691",
-      "74faa6cb-91a3-41e8-a99d-96c1d4036e13",
-      "f2cf6ca4-8954-42dd-978e-42b1c4ce6fe2",
-      "24454ad2-0655-4e5e-b048-3496e1c85bce",
-      "37ffd442-c115-4291-b1e9-38993089e285",
-      "2fe879b8-6e00-40a1-a83a-2499da4803e3",
-      "d359217d-2020-44e2-8f42-25cfe01e3a2b",
-      "7f16c08e-45c4-4847-9992-ec1445ea7605",
-      "55a07f54-4fc3-4297-b5eb-5a41517ea7f7",
-      "fed2182e-4387-4d0d-a269-7e7534df7020",
-      "0535a97a-4353-4cf3-822a-36b97f12c7c0",
-      "a89f9f77-ecd4-4365-9adf-75fac4154528",
-      "0dcfa7e0-a08d-45be-a299-4ca33efef3f1",
-      "9f73a4ee-7a69-490c-a530-59597825b58f",
-      "8498619b-8e07-4f62-8bce-c075e17adc1b",
-      "d74c99c0-12c5-4d15-9a34-d11a6394fb75",
-      "0c360d21-7da8-4299-8443-6b27e43ebfdb"
-    ],
-    requiredDocuments: ['report_talia_training_doc', 'talia_roles_overview'],
-    tokenLimit: 4000,
-    enabled: true,
-    environments: ['development', 'staging', 'production'],
-    behavior: {
-      tone: 'comprehensive, analytical, developmental',
-      nameUsage: 'full',
-      maxResponseLength: 15000,
-      helpStyle: 'analyze'
-    }
+// Load persona configurations from database
+export let CURRENT_PERSONAS: any[] = [];
+
+/**
+ * Load persona configurations from database
+ */
+export async function loadPersonasFromDatabase() {
+  try {
+    console.log('🔧 Loading persona configurations from database...');
+    
+    const result = await pool.query(`
+      SELECT 
+        id,
+        name,
+        role,
+        description,
+        data_access,
+        training_documents,
+        token_limit,
+        behavior_tone,
+        behavior_name_usage,
+        behavior_max_response_length,
+        behavior_help_style,
+        enabled,
+        environments,
+        created_at,
+        updated_at
+      FROM talia_personas 
+      ORDER BY id
+    `);
+    
+    CURRENT_PERSONAS = result.rows.map(row => ({
+      id: row.id,
+      name: row.name,
+      role: row.role,
+      description: row.description,
+      dataAccess: row.data_access,
+      trainingDocuments: row.training_documents,
+      requiredDocuments: row.training_documents, // Same as training documents for now
+      tokenLimit: row.token_limit,
+      enabled: row.enabled,
+      environments: row.environments,
+      behavior: {
+        tone: row.behavior_tone,
+        nameUsage: row.behavior_name_usage,
+        maxResponseLength: row.behavior_max_response_length,
+        helpStyle: row.behavior_help_style
+      },
+      createdAt: row.created_at,
+      updatedAt: row.updated_at
+    }));
+    
+    console.log(`✅ Loaded ${CURRENT_PERSONAS.length} personas from database`);
+    return CURRENT_PERSONAS;
+  } catch (error) {
+    console.error('❌ Error loading personas from database:', error);
+    // Fall back to hardcoded personas if database fails
+    CURRENT_PERSONAS = [
+      {
+        id: 'ast_reflection',
+        name: 'Reflection Talia',
+        role: 'Step-by-step reflection coaching',
+        description: 'Helps users think through their strength reflections during workshop steps',
+        dataAccess: ['basic_user_info', 'current_step_progress', 'current_strengths_focus', 'job_title_context'],
+        trainingDocuments: ['d359217d-2020-44e2-8f42-25cfe01e3a2b'], // Reflection Talia Training Doc
+        requiredDocuments: ['d359217d-2020-44e2-8f42-25cfe01e3a2b'],
+        tokenLimit: 800,
+        enabled: true, // Set to false to disable AI coaching for testing
+        environments: ['development', 'staging', 'production'],
+        behavior: {
+          tone: 'encouraging, conversational, coach-like',
+          nameUsage: 'first',
+          maxResponseLength: 400,
+          helpStyle: 'guide'
+        }
+      },
+      {
+        id: 'star_report',
+        name: 'Star Report Talia',
+        role: 'Comprehensive report generation',
+        description: 'Creates detailed personal and professional development reports',
+        dataAccess: ['full_assessment_data', 'all_reflections', 'complete_journey', 'professional_context'],
+        trainingDocuments: [
+          "0a6f331e-bb58-469c-8aa0-3b5db2074f1b",
+          "8053a205-701b-4a10-8dd8-39d92b18566d",
+          "3577e1e1-2fad-45d9-8ad1-12698bc327e3",
+          "158fcf64-75e9-4f46-8331-7de774ca89a6",
+          "1ffd5369-e17a-41bb-b54c-2f38630d7ff4",
+          "6e98d248-db4c-4bdc-99e0-a90e25b7032c",
+          "5cd8779c-4a3f-4e8a-91a7-378323ce8493",
+          "ddb2e849-0ff1-4766-9675-288575b95806",
+          "7a1ccb9d-31f7-4d9b-88f4-d63f3e9b50bb",
+          "a2eb129f-faa9-418b-96fb-0beda55a4eb5",
+          "30bf8cb3-3411-490f-a024-c11e20728691",
+          "74faa6cb-91a3-41e8-a99d-96c1d4036e13",
+          "f2cf6ca4-8954-42dd-978e-42b1c4ce6fe2",
+          "24454ad2-0655-4e5e-b048-3496e1c85bce",
+          "37ffd442-c115-4291-b1e9-38993089e285",
+          "2fe879b8-6e00-40a1-a83a-2499da4803e3",
+          "7f16c08e-45c4-4847-9992-ec1445ea7605",
+          "55a07f54-4fc3-4297-b5eb-5a41517ea7f7",
+          "fed2182e-4387-4d0d-a269-7e7534df7020",
+          "0535a97a-4353-4cf3-822a-36b97f12c7c0",
+          "a89f9f77-ecd4-4365-9adf-75fac4154528",
+          "0dcfa7e0-a08d-45be-a299-4ca33efef3f1",
+          "9f73a4ee-7a69-490c-a530-59597825b58f",
+          "8498619b-8e07-4f62-8bce-c075e17adc1b",
+          "d74c99c0-12c5-4d15-9a34-d11a6394fb75",
+          "0c360d21-7da8-4299-8443-6b27e43ebfdb"
+        ],
+        requiredDocuments: [
+          "0a6f331e-bb58-469c-8aa0-3b5db2074f1b",
+          "8053a205-701b-4a10-8dd8-39d92b18566d"
+        ],
+        tokenLimit: 4000,
+        enabled: true,
+        environments: ['development', 'staging', 'production'],
+        behavior: {
+          tone: 'comprehensive, analytical, developmental',
+          nameUsage: 'full',
+          maxResponseLength: 15000,
+          helpStyle: 'analyze'
+        }
+      }
+    ];
   }
-];
+}
 
 // In-memory storage for reflection areas organized by actual workshop steps
 let CURRENT_REFLECTION_AREAS = [
@@ -346,10 +406,13 @@ let CURRENT_REFLECTION_AREAS = [
 // ===================================================================
 router.get('/personas', requireAdmin, async (req, res) => {
   try {
-    console.log('🔧 PERSONA GET REQUEST RECEIVED');
-    console.log('📋 Fetching persona configurations');
+    console.log('🔧 PERSONA GET REQUEST RECEIVED (loading from database)');
+    console.log('📋 Fetching persona configurations from database');
 
-    const currentEnvironment = process.env.NODE_ENV || 'development';
+    // Load fresh personas from database
+    await loadPersonasFromDatabase();
+    
+    const currentEnvironment = process.env.ENVIRONMENT || process.env.NODE_ENV || 'development';
     
     // Filter personas by current environment
     const filteredPersonas = CURRENT_PERSONAS.filter(persona => 
@@ -380,7 +443,7 @@ router.get('/personas', requireAdmin, async (req, res) => {
 
 // ===================================================================
 // PUT /api/admin/ai/personas/:personaId  
-// Update persona configuration
+// Update persona configuration and persist to database
 // ===================================================================
 router.put('/personas/:personaId', requireAdmin, async (req, res) => {
   try {
@@ -390,7 +453,7 @@ router.put('/personas/:personaId', requireAdmin, async (req, res) => {
     console.log('🔧 PERSONA UPDATE REQUEST:', personaId, updates);
     console.log('🔧 Current persona before update:', CURRENT_PERSONAS.find(p => p.id === personaId));
 
-    // Find and update the persona in memory
+    // Find the persona in memory
     const personaIndex = CURRENT_PERSONAS.findIndex(p => p.id === personaId);
     
     if (personaIndex === -1) {
@@ -400,21 +463,57 @@ router.put('/personas/:personaId', requireAdmin, async (req, res) => {
       });
     }
 
-    // Update the persona with provided fields
+    // Update the persona in memory
     CURRENT_PERSONAS[personaIndex] = {
       ...CURRENT_PERSONAS[personaIndex],
       ...updates
     };
 
-    console.log('🔧 Persona AFTER update:', CURRENT_PERSONAS[personaIndex]);
+    const updatedPersona = CURRENT_PERSONAS[personaIndex];
+
+    // Persist changes to database
+    await pool.query(`
+      UPDATE talia_personas SET
+        name = $2,
+        role = $3,
+        description = $4,
+        data_access = $5,
+        training_documents = $6,
+        token_limit = $7,
+        behavior_tone = $8,
+        behavior_name_usage = $9,
+        behavior_max_response_length = $10,
+        behavior_help_style = $11,
+        enabled = $12,
+        environments = $13,
+        updated_at = NOW()
+      WHERE id = $1
+    `, [
+      personaId,
+      updatedPersona.name,
+      updatedPersona.role,
+      updatedPersona.description,
+      updatedPersona.dataAccess,
+      updatedPersona.trainingDocuments,
+      updatedPersona.tokenLimit,
+      updatedPersona.behavior?.tone || 'encouraging, conversational',
+      updatedPersona.behavior?.nameUsage || 'first',
+      updatedPersona.behavior?.maxResponseLength || 400,
+      updatedPersona.behavior?.helpStyle || 'guide',
+      updatedPersona.enabled,
+      updatedPersona.environments
+    ]);
+
+    console.log('✅ Persona updated in database:', personaId);
+    console.log('🔧 Persona AFTER update:', updatedPersona);
     console.log('🔧 ALL PERSONAS current state:', CURRENT_PERSONAS.map(p => ({ id: p.id, enabled: p.enabled })));
 
     // Enhance the updated persona with readable document names
-    const enhancedPersona = enhancePersonasWithDocumentNames([CURRENT_PERSONAS[personaIndex]])[0];
+    const enhancedPersona = enhancePersonasWithDocumentNames([updatedPersona])[0];
 
     res.json({
       success: true,
-      message: `Persona ${personaId} updated successfully`,
+      message: `Persona ${personaId} updated successfully and persisted to database`,
       persona: enhancedPersona
     });
 

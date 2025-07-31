@@ -89,13 +89,12 @@ export const FloatingAIProvider: React.FC<FloatingAIProviderProps> = ({
 
   // Check if we should show the floating trigger on this route
   useEffect(() => {
-    // Hide on specific admin and auth pages only
-    if (currentPath.includes('/admin') || 
-        currentPath.includes('/login') ||
+    // Hide on auth pages only (admin pages should show the button for Report Talia)
+    if (currentPath.includes('/login') ||
         currentPath.includes('/register')) {
       setShouldShowTrigger(false);
     } else {
-      // Show on all other pages including workshop pages, landing, etc.
+      // Show on all other pages including workshop pages, landing, and admin pages
       setShouldShowTrigger(true);
     }
   }, [currentPath]);

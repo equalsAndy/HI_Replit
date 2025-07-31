@@ -15,6 +15,7 @@ class InviteService {
     organizationId?: string | null;
     createdBy: number;
     expiresAt?: Date;
+    isBetaTester?: boolean;
   }) {
     try {
       // Validate email format
@@ -36,8 +37,8 @@ class InviteService {
       
       // Insert the invite into the database with cohort and organization assignment
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId || null}, ${data.organizationId || null}, ${data.isBetaTester || false})
         RETURNING *
       `);
       
@@ -51,6 +52,7 @@ class InviteService {
         expires_at: data.expiresAt || null,
         cohort_id: data.cohortId || null,
         organization_id: data.organizationId || null,
+        is_beta_tester: data.isBetaTester || false,
         created_at: new Date(),
         used_at: null,
         used_by: null
@@ -83,6 +85,7 @@ class InviteService {
     expiresAt?: Date;
     cohortId?: string;
     organizationId?: string;
+    isBetaTester?: boolean;
   }) {
     try {
       // Validate email format
@@ -104,8 +107,8 @@ class InviteService {
       
       // Insert the invite into the database using raw SQL to bypass schema issues
       const result = await db.execute(sql`
-        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id)
-        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null})
+        INSERT INTO invites (invite_code, email, role, name, created_by, expires_at, cohort_id, organization_id, is_beta_tester)
+        VALUES (${inviteCode}, ${data.email.toLowerCase()}, ${data.role}, ${data.name || null}, ${data.createdBy}, ${data.expiresAt || null}, ${data.cohortId ? parseInt(data.cohortId) : null}, ${data.organizationId || null}, ${data.isBetaTester || false})
         RETURNING *
       `);
       
@@ -117,6 +120,7 @@ class InviteService {
         name: data.name || null,
         created_by: data.createdBy,
         expires_at: data.expiresAt || null,
+        is_beta_tester: data.isBetaTester || false,
         created_at: new Date(),
         used_at: null,
         used_by: null
