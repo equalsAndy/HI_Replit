@@ -404,7 +404,7 @@ echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5
 echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
 echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
 echo 'ENVIRONMENT=development' >> staging.env
-echo 'CLAUDE_API_KEY=your-claude-api-key' >> staging.env
+echo 'CLAUDE_API_KEY=your-claude-api-key-here' >> staging.env
 
 # Deploy container (NODE_ENV override no longer needed after package.json fix)
 sudo docker stop staging-app || true
