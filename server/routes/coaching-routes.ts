@@ -1,8 +1,15 @@
 import { Router } from 'express';
+import { Pool } from 'pg';
 // import { VectorDBService } from '../services/vector-db.js'; // Temporarily disabled
 
 const router = Router();
 // const vectorDB = new VectorDBService(); // Temporarily disabled
+
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
 
 // Initialize vector database (call once on startup)
 router.post('/vector/init', async (req, res) => {
@@ -106,8 +113,8 @@ router.post('/chat', async (req, res) => {
 
     // Check for TRAIN command
     if (taliaTrainingService.isTrainCommand(message)) {
-      // Allow training for both ast_reflection and talia_coach personas
-      if (persona !== 'ast_reflection' && persona !== 'talia_coach') {
+      // Allow training for reflection, coaching, and report personas
+      if (persona !== 'ast_reflection' && persona !== 'talia_coach' && persona !== 'star_report') {
         return res.json({
           response: "Training mode is only available for Talia coaching personas.",
           confidence: 1.0,
@@ -172,26 +179,143 @@ router.post('/chat', async (req, res) => {
     try {
       const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
       
-      // Get user-specific coaching context for personalization
-      const userCoachingContext = userId ? await userLearningService.getUserCoachingContext(userId.toString()) : '';
+      // Handle different context structures based on persona
+      let claudeContext;
+      let personaType;
+      let targetUserId = userId;
+      let userName = 'there';
       
-      // Build context for Claude
-      const claudeContext = {
-        stepName: context?.stepName,
-        strengthLabel: context?.strengthLabel,
-        currentStep: context?.currentStep,
-        workshopType: context?.workshopType,
-        questionText: context?.questionText,
-        workshopContext: context?.workshopContext,
-        userPersonalization: userCoachingContext
-      };
+      if (persona === 'star_report' && context?.adminMode) {
+        // Admin mode - Report Talia with selected user context
+        console.log('🔧 Admin mode detected - using Report Talia persona');
+        console.log('🔧 Admin context received:', {
+          selectedUserId: context.selectedUserId,
+          selectedUserName: context.selectedUserName,
+          adminMode: context.adminMode,
+          reportContext: context.reportContext,
+          adminUserId: userId
+        });
+        
+        personaType = 'star_report';
+        targetUserId = context.selectedUserId || userId;
+        userName = context.selectedUserName || 'the selected user';
+        
+        console.log('🎯 Target user determined:', {
+          targetUserId: targetUserId,
+          userName: userName,
+          isSelectedUser: !!context.selectedUserId,
+          fallbackToAdmin: !context.selectedUserId
+        });
+        
+        // Warn if no user is selected
+        if (!context.selectedUserId) {
+          console.warn('⚠️ No selectedUserId provided - Report Talia will use admin data instead of selected user data');
+        }
+        
+        // Get user-specific coaching context for the selected user
+        const userCoachingContext = targetUserId ? await userLearningService.getUserCoachingContext(targetUserId.toString()) : '';
+        
+        // Fetch complete user data for Report Talia from database
+        let userData = null;
+        if (targetUserId) {
+          try {
+            console.log(`🔍 Fetching user data for targetUserId: ${targetUserId} (type: ${typeof targetUserId})`);
+            
+            // Get basic user info
+            const userResult = await pool.query(
+              'SELECT id, name, username, email, ast_completed_at, created_at FROM users WHERE id = $1',
+              [targetUserId]
+            );
+            
+            console.log(`📊 User query result:`, { 
+              rowCount: userResult.rows.length,
+              firstRow: userResult.rows[0] ? {
+                id: userResult.rows[0].id,
+                name: userResult.rows[0].name,
+                username: userResult.rows[0].username
+              } : 'No rows'
+            });
+            
+            if (userResult.rows.length > 0) {
+              const user = userResult.rows[0];
+              
+              // Get assessment data
+              const assessmentsResult = await pool.query(`
+                SELECT assessment_type, results, created_at
+                FROM user_assessments 
+                WHERE user_id = $1
+                ORDER BY assessment_type, created_at DESC
+              `, [targetUserId]);
+              
+              // Get step data
+              const stepDataResult = await pool.query(`
+                SELECT step_id, data, created_at, updated_at
+                FROM workshop_step_data 
+                WHERE user_id = $1
+                ORDER BY step_id
+              `, [targetUserId]);
+              
+              userData = {
+                user: user,
+                assessments: assessmentsResult.rows,
+                stepData: stepDataResult.rows
+              };
+              
+              console.log('✅ Fetched complete user data for Report Talia:', {
+                targetUserId: targetUserId,
+                selectedUserId: context.selectedUserId,
+                userName: user.name,
+                assessmentCount: assessmentsResult.rows.length,
+                stepDataCount: stepDataResult.rows.length,
+                userDataStructure: {
+                  hasUser: !!userData.user,
+                  hasAssessments: !!userData.assessments,
+                  hasStepData: !!userData.stepData
+                }
+              });
+            } else {
+              console.warn(`⚠️ No user found with ID: ${targetUserId}`);
+            }
+          } catch (error) {
+            console.error('❌ Error fetching complete user data:', error);
+          }
+        }
+        
+        claudeContext = {
+          reportContext: context.reportContext,
+          selectedUserId: context.selectedUserId,
+          selectedUserName: context.selectedUserName,
+          adminMode: true,
+          userPersonalization: userCoachingContext,
+          userData: userData
+        };
+      } else {
+        // Regular workshop mode - Reflection Talia
+        console.log('🔧 Workshop mode detected - using Reflection Talia persona');
+        personaType = 'talia_coach';
+        
+        // Get user-specific coaching context for personalization
+        const userCoachingContext = userId ? await userLearningService.getUserCoachingContext(userId.toString()) : '';
+        
+        claudeContext = {
+          stepName: context?.stepName,
+          strengthLabel: context?.strengthLabel,
+          currentStep: context?.currentStep,
+          workshopType: context?.workshopType,
+          questionText: context?.questionText,
+          workshopContext: context?.workshopContext,
+          userPersonalization: userCoachingContext
+        };
+      }
+      
+      console.log('🤖 Claude API call with:', { personaType, targetUserId, userName, claudeContext });
       
       const response = await generateClaudeCoachingResponse({
         userMessage: message,
-        personaType: 'talia_coach',
-        userName: 'there', // Generic greeting since we don't have user name in session
+        personaType: personaType,
+        userName: userName,
         contextData: claudeContext,
-        userId: userId,
+        userId: targetUserId,
         sessionId: req.sessionID,
         maxTokens: 400
       });

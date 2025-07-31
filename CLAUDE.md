@@ -145,24 +145,85 @@ Password: Heliotrope@2025
 
 ## 🚩 Feature Flag System
 
-### **Server Flags** (`server/src/utils/featureFlags.ts`)
+### **Server Flags** (`server/utils/feature-flags.ts`)
 ```typescript
 export const featureFlags = {
-  HOLISTIC_REPORTS: process.env.FEATURE_HOLISTIC_REPORTS === 'true',
-  WORKSHOP_LOCKING: process.env.FEATURE_WORKSHOP_LOCKING === 'true',
-  AI_COACHING: process.env.FEATURE_AI_COACHING === 'true',
-  AST_WORKSHOP: process.env.FEATURE_AST_WORKSHOP !== 'false',
-  IA_WORKSHOP: process.env.FEATURE_IA_WORKSHOP === 'true',
+  workshopLocking: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Lock workshop inputs after completion'
+  },
+  holisticReports: {
+    enabled: process.env.FEATURE_HOLISTIC_REPORTS !== 'false',  // ✅ ENABLED BY DEFAULT
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Claude API-powered personalized reports',
+    aiRelated: true
+  },
+  facilitatorConsole: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Facilitator cohort management system'
+  },
+  aiCoaching: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'AI-powered coaching chatbot system',
+    aiRelated: true
+  },
+  videoManagement: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Enhanced video management and progress tracking'
+  },
+  debugPanel: {
+    enabled: process.env.FEATURE_DEBUG_PANEL === 'true',  // ⚡ DEV ONLY
+    environment: 'development',
+    description: 'Development debugging panel and tools'
+  },
+  feedbackSystem: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'User feedback collection and management system'
+  }
 };
 ```
 
 ### **Client Flags** (`client/src/utils/featureFlags.ts`)
 ```typescript
 export const clientFeatureFlags = {
-  DEBUG_PANEL: import.meta.env.VITE_FEATURE_DEBUG_PANEL === 'true',
-  AST_NAVIGATION: import.meta.env.VITE_FEATURE_AST_NAV !== 'false',
-  IA_NAVIGATION: import.meta.env.VITE_FEATURE_IA_NAV === 'true',
+  debugPanel: {
+    enabled: import.meta.env.VITE_FEATURE_DEBUG_PANEL === 'true',  // ⚡ DEV ONLY
+    environment: 'development',
+    description: 'Development debugging panel and tools'
+  },
+  feedbackSystem: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'User feedback collection and management system'
+  },
+  videoManagement: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Enhanced video management features'
+  },
+  reflectionModal: {
+    enabled: true,
+    environment: 'all',  // ✅ ENABLED FOR PRODUCTION
+    description: 'Original modal-based Reflection Talia interface'
+  }
 };
+```
+
+### **Production Environment Variables**
+```bash
+# All features enabled for production
+NODE_ENV=production
+ENVIRONMENT=production
+CLAUDE_API_KEY=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
+FEATURE_HOLISTIC_REPORTS=true
+FEATURE_DEBUG_PANEL=false  # Keep disabled in production
+DATABASE_URL=postgresql://production_connection_string
+SESSION_SECRET=production_secret_key
 ```
 
 ## 🔧 Common Development Tasks
@@ -292,9 +353,15 @@ curl http://localhost:8080/api/workshop-data/feature-status
 ### **Claude API Configuration**
 ```bash
 # Environment variables required
-CLAUDE_API_KEY=your_api_key_here
+CLAUDE_API_KEY=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
 FEATURE_AI_COACHING=true
 FEATURE_HOLISTIC_REPORTS=true
+```
+
+### **API Key Location**
+```bash
+# Claude API key stored in:
+/Users/bradtopliff/Desktop/HI_Replit/keys/HI-AST-KEY.txt
 ```
 
 ### **AI Development Guidelines**
@@ -336,9 +403,10 @@ echo 'NODE_ENV=staging' > staging.env
 echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
 echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
 echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
-echo 'ENVIRONMENT=staging' >> staging.env
+echo 'ENVIRONMENT=development' >> staging.env
+echo 'CLAUDE_API_KEY=your-claude-api-key' >> staging.env
 
-# Deploy container
+# Deploy container (NODE_ENV override no longer needed after package.json fix)
 sudo docker stop staging-app || true
 sudo docker rm staging-app || true
 sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-[TAG]

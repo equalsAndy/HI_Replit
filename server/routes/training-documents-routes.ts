@@ -27,19 +27,38 @@ const upload = multer({
     fileSize: 10 * 1024 * 1024, // 10MB limit
   },
   fileFilter: (req, file, cb) => {
-    // Allow text files, PDFs, and Word docs
+    console.log('📎 File upload attempt:', { 
+      originalname: file.originalname, 
+      mimetype: file.mimetype, 
+      size: file.size 
+    });
+
+    // Allow text files, PDFs, Word docs, and other common document types
     const allowedTypes = [
       'text/plain',
       'text/markdown',
+      'text/csv',
+      'text/html',
+      'text/xml',
       'application/pdf',
       'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/json',
+      'application/xml',
+      'text/rtf',
+      'application/rtf',
+      // Also allow files without extension or with generic types
+      'application/octet-stream'
     ];
     
     if (allowedTypes.includes(file.mimetype)) {
+      console.log('✅ File type accepted:', file.mimetype);
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only text, markdown, PDF, and Word documents are allowed.'));
+      console.error('❌ File type rejected:', file.mimetype);
+      cb(new Error(`Invalid file type "${file.mimetype}". Allowed types: ${allowedTypes.join(', ')}`));
     }
   }
 });
@@ -238,6 +257,15 @@ router.get('/documents/:id', requireAdmin, async (req, res) => {
 // ===================================================================
 router.post('/documents', requireAdmin, upload.single('file'), async (req, res) => {
   try {
+    console.log('📤 Training document upload request received');
+    console.log('📤 Request body:', req.body);
+    console.log('📤 Request file:', req.file ? { 
+      originalname: req.file.originalname, 
+      mimetype: req.file.mimetype, 
+      size: req.file.size 
+    } : 'No file');
+    console.log('📤 User:', (req as any).user?.id);
+
     const {
       title,
       document_type,
@@ -268,7 +296,17 @@ router.post('/documents', requireAdmin, upload.single('file'), async (req, res) 
       'strengths_theory',
       'flow_research',
       'team_dynamics',
-      'industry_guidance'
+      'industry_guidance',
+      // AST-specific document types
+      'ast_methodology',
+      'ast_training_material',
+      'ast_workshop_guide',
+      'ast_assessment_info',
+      'ast_strengths_analysis',
+      'ast_flow_attributes',
+      'ast_reflection_prompts',
+      'ast_report_examples',
+      'ast_coaching_scripts'
     ];
 
     if (!validTypes.includes(document_type)) {
@@ -289,15 +327,31 @@ router.post('/documents', requireAdmin, upload.single('file'), async (req, res) 
       fileType = file.mimetype;
       originalFilename = file.originalname;
 
-      // For now, handle only text files directly
-      // TODO: Add PDF and Word document parsing
-      if (file.mimetype === 'text/plain' || file.mimetype === 'text/markdown') {
+      // Handle text-based files directly
+      const textMimeTypes = [
+        'text/plain',
+        'text/markdown', 
+        'text/csv',
+        'text/html',
+        'text/xml',
+        'application/json',
+        'application/xml',
+        'text/rtf',
+        'application/rtf'
+      ];
+      
+      // Check if it's a text file by mime type OR by file extension
+      const isTextFile = textMimeTypes.includes(file.mimetype) || 
+                        file.originalname.match(/\.(txt|md|csv|html|xml|json|rtf)$/i);
+      
+      if (isTextFile) {
         documentContent = file.buffer.toString('utf-8');
+        console.log(`📄 Text file processed: ${file.originalname} (${file.mimetype}) - ${documentContent.length} characters`);
       } else {
-        return res.status(400).json({
-          success: false,
-          error: 'File parsing for this type not yet implemented. Please provide content in text format.'
-        });
+        // For binary files like PDFs, Word docs, etc., store the content as base64
+        // This allows the system to handle the files without parsing them immediately
+        documentContent = `[Binary file: ${file.originalname}]\nFile type: ${file.mimetype}\nSize: ${file.size} bytes\n\nContent stored as binary data - parsing will be implemented in future updates.`;
+        console.log(`📄 Binary file uploaded: ${file.originalname} (${file.mimetype})`);
       }
     }
 
@@ -358,9 +412,16 @@ router.post('/documents', requireAdmin, upload.single('file'), async (req, res) 
 
   } catch (error) {
     console.error('❌ Error uploading training document:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      stack: error.stack,
+      code: error.code,
+      detail: error.detail
+    });
     res.status(500).json({
       success: false,
-      error: 'Failed to upload training document'
+      error: 'Failed to upload training document',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 });
@@ -411,6 +472,52 @@ router.get('/document-types', requireAdmin, async (req, res) => {
         value: 'industry_guidance',
         label: 'Industry Guidance',
         description: 'Industry-specific advice and insights'
+      },
+      // AST-specific document types
+      {
+        value: 'ast_methodology',
+        label: 'AST Methodology',
+        description: 'AllStarTeams core methodology and principles'
+      },
+      {
+        value: 'ast_training_material',
+        label: 'AST Training Material',
+        description: 'Training content and educational materials for AST'
+      },
+      {
+        value: 'ast_workshop_guide',
+        label: 'AST Workshop Guide',
+        description: 'Step-by-step guides for conducting AST workshops'
+      },
+      {
+        value: 'ast_assessment_info',
+        label: 'AST Assessment Info',
+        description: 'Information about AST assessments and evaluation tools'
+      },
+      {
+        value: 'ast_strengths_analysis',
+        label: 'AST Strengths Analysis',
+        description: 'Guidance on analyzing and interpreting strengths results'
+      },
+      {
+        value: 'ast_flow_attributes',
+        label: 'AST Flow Attributes',
+        description: 'Information about flow state attributes and selection'
+      },
+      {
+        value: 'ast_reflection_prompts',
+        label: 'AST Reflection Prompts',
+        description: 'Reflection questions and prompts for AST participants'
+      },
+      {
+        value: 'ast_report_examples',
+        label: 'AST Report Examples',
+        description: 'Sample reports and analysis examples'
+      },
+      {
+        value: 'ast_coaching_scripts',
+        label: 'AST Coaching Scripts',
+        description: 'Scripts and conversation guides for AST coaching'
       }
     ];
 
@@ -436,6 +543,186 @@ router.get('/document-types', requireAdmin, async (req, res) => {
     res.status(500).json({
       success: false,
       error: 'Failed to fetch document types'
+    });
+  }
+});
+
+// ===================================================================
+// ENDPOINT: DELETE /api/training/documents/:id
+// Delete a training document
+// ===================================================================
+router.delete('/documents/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log('🗑️ Deleting training document:', id);
+
+    // Check if document exists
+    const documentResult = await pool.query(`
+      SELECT id, title, original_filename
+      FROM training_documents
+      WHERE id = $1
+    `, [id]);
+
+    if (documentResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Training document not found'
+      });
+    }
+
+    const document = documentResult.rows[0];
+
+    // Delete document chunks first (foreign key constraint)
+    await pool.query(`
+      DELETE FROM document_chunks
+      WHERE document_id = $1
+    `, [id]);
+
+    // Delete processing jobs
+    await pool.query(`
+      DELETE FROM document_processing_jobs
+      WHERE document_id = $1
+    `, [id]);
+
+    // Delete the document
+    await pool.query(`
+      DELETE FROM training_documents
+      WHERE id = $1
+    `, [id]);
+
+    console.log('✅ Training document deleted successfully:', document.title);
+
+    res.json({
+      success: true,
+      message: `Training document "${document.title}" deleted successfully`
+    });
+
+  } catch (error) {
+    console.error('❌ Error deleting training document:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to delete training document'
+    });
+  }
+});
+
+// ===================================================================
+// ENDPOINT: PUT /api/training/documents/:id
+// Update a training document
+// ===================================================================
+router.put('/documents/:id', requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      title,
+      document_type,
+      category,
+      tags,
+      version,
+      status
+    } = req.body;
+
+    console.log('✏️ Updating training document:', id, req.body);
+
+    // Check if document exists
+    const documentResult = await pool.query(`
+      SELECT id, title
+      FROM training_documents
+      WHERE id = $1
+    `, [id]);
+
+    if (documentResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Training document not found'
+      });
+    }
+
+    // Parse tags if provided as string
+    let parsedTags = [];
+    if (tags) {
+      if (typeof tags === 'string') {
+        parsedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags;
+      }
+    }
+
+    // Build update query dynamically
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (title !== undefined) {
+      updates.push(`title = $${paramIndex}`);
+      values.push(title);
+      paramIndex++;
+    }
+
+    if (document_type !== undefined) {
+      updates.push(`document_type = $${paramIndex}`);
+      values.push(document_type);
+      paramIndex++;
+    }
+
+    if (category !== undefined) {
+      updates.push(`category = $${paramIndex}`);
+      values.push(category);
+      paramIndex++;
+    }
+
+    if (tags !== undefined) {
+      updates.push(`tags = $${paramIndex}`);
+      values.push(parsedTags);
+      paramIndex++;
+    }
+
+    if (version !== undefined) {
+      updates.push(`version = $${paramIndex}`);
+      values.push(version);
+      paramIndex++;
+    }
+
+    if (status !== undefined) {
+      updates.push(`status = $${paramIndex}`);
+      values.push(status);
+      paramIndex++;
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: 'No valid fields to update'
+      });
+    }
+
+    updates.push(`updated_at = NOW()`);
+    values.push(id);
+
+    const updateQuery = `
+      UPDATE training_documents 
+      SET ${updates.join(', ')}
+      WHERE id = $${paramIndex}
+      RETURNING id, title, document_type, category, tags, version, status, updated_at
+    `;
+
+    const result = await pool.query(updateQuery, values);
+    const updatedDocument = result.rows[0];
+
+    console.log('✅ Training document updated successfully:', updatedDocument.title);
+
+    res.json({
+      success: true,
+      document: updatedDocument,
+      message: 'Training document updated successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating training document:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update training document'
     });
   }
 });

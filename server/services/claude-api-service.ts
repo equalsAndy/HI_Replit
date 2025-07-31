@@ -7,6 +7,7 @@
 import { aiDevConfig } from '../utils/aiDevConfig.js';
 import { aiUsageLogger } from './ai-usage-logger.js';
 import { taliaPersonaService, TALIA_PERSONAS } from './talia-personas.js';
+import { CURRENT_PERSONAS } from '../routes/persona-management-routes.js';
 
 interface ClaudeMessage {
   role: 'user' | 'assistant';
@@ -39,6 +40,22 @@ interface CoachingRequestData {
   sessionId?: string;
   maxTokens?: number;
   stepId?: string; // For AST reflection coaching
+}
+
+/**
+ * Get current persona configuration from database or fallback to hardcoded
+ */
+function getCurrentPersona(personaId: string) {
+  const dbPersona = CURRENT_PERSONAS.find(p => p.id === personaId);
+  if (dbPersona) {
+    return {
+      tokenLimit: dbPersona.tokenLimit || 800,
+      name: dbPersona.name || 'Talia',
+      behavior: dbPersona.behavior || {}
+    };
+  }
+  // Fallback to hardcoded personas
+  return TALIA_PERSONAS[personaId] || TALIA_PERSONAS.ast_reflection;
 }
 
 /**
@@ -158,35 +175,48 @@ function validateCoachingResponse(response: string, personaType: string): string
     'religion', 'spiritual', 'church'
   ];
 
-  // Check for forbidden content
+  // Check for forbidden content (but allow for Report Talia document access)
   const lowerResponse = response.toLowerCase();
   const containsForbidden = forbiddenTopics.some(topic => lowerResponse.includes(topic));
 
-  if (containsForbidden) {
+  // Don't apply forbidden content filter to Report Talia or when accessing documents
+  const isReportTaliaContext = personaType === 'star_report' || response.includes('Report Talia') || 
+                               response.includes('training') || response.includes('document');
+
+  if (containsForbidden && !isReportTaliaContext) {
     console.warn('⚠️ Response contained forbidden content, using safe fallback');
     return `I appreciate your question! However, I'm specifically designed to help with strengths-based development and teamwork. Let's focus on how your strengths can help you grow professionally. What aspect of your ${personaType === 'talia_coach' ? 'current strength' : 'workshop step'} would you like to explore?`;
   }
 
-  // Length validation - Skip truncation for Talia AST reports which should be comprehensive
-  const isASTReport = personaType === 'talia' && 
-    (response.includes('Personal Development Report') || response.includes('Professional Profile Report'));
+  // Length validation - Skip truncation for Report Talia and AST reports which should be comprehensive
+  const isASTReport = (personaType === 'talia' || personaType === 'star_report') && 
+    (response.includes('Personal Development Report') || response.includes('Professional Profile Report') || response.includes('AllStarTeams Workshop Analysis'));
   
-  if (!isASTReport && response.length > 1500) {
+  // Also skip truncation for report generation context
+  const isReportGeneration = response.includes('# Personal Development Report') || 
+    response.includes('## AllStarTeams Workshop Analysis') ||
+    response.includes('*Generated for');
+  
+  if (!isASTReport && !isReportGeneration && response.length > 1500) {
     console.warn('⚠️ Response too long, truncating');
     const truncated = response.substring(0, 1450);
     const lastSentence = truncated.lastIndexOf('.');
     if (lastSentence > 1000) {
       return truncated.substring(0, lastSentence + 1) + '\n\nWhat specific aspect would you like to explore further?';
     }
-  } else if (isASTReport) {
-    console.log(`✅ AST Report detected (${response.length} chars) - skipping length truncation`);
+  } else if (isASTReport || isReportGeneration) {
+    console.log(`✅ Report detected (${response.length} chars) - skipping length truncation`);
   }
 
-  // Check for inappropriate requests for personal information
+  // Check for inappropriate requests for personal information (but allow document access)
   const personalInfoRequests = ['tell me about yourself', 'your background', 'your experience', 'where are you from'];
   const containsPersonalRequest = personalInfoRequests.some(request => lowerResponse.includes(request));
   
-  if (containsPersonalRequest) {
+  // Don't filter if this is about documents, training, or reports
+  const isDocumentRelated = response.includes('document') || response.includes('training') || response.includes('report') || 
+                            response.includes('Report Talia') || response.includes('Samantha') || personaType === 'star_report';
+  
+  if (containsPersonalRequest && !isDocumentRelated) {
     console.warn('⚠️ Response contained personal information request, filtering');
     return response.replace(/tell me about.*?(yourself|your background|your experience)/gi, 'let\'s focus on your strengths and development');
   }
@@ -367,12 +397,52 @@ export async function generateClaudeCoachingResponse(requestData: CoachingReques
     if (personaType === 'ast_reflection' && stepId && userId) {
       console.log(`🎯 Using AST Reflection Talia for step: ${stepId}`);
       
+      const persona = getCurrentPersona('ast_reflection');
       const reflectionContext = await taliaPersonaService.getReflectionContext(userId.toString(), stepId);
       if (reflectionContext) {
         const reflectionPrompt = await taliaPersonaService.generateReflectionPrompt(reflectionContext, userMessage);
         
         const messages: ClaudeMessage[] = [{ role: 'user', content: userMessage }];
-        const response = await callClaudeAPI(reflectionPrompt, messages, TALIA_PERSONAS.ast_reflection.tokenLimit, userId, 'coaching', sessionId);
+        const response = await callClaudeAPI(reflectionPrompt, messages, persona.tokenLimit, userId, 'coaching', sessionId);
+        
+        return validateCoachingResponse(response, personaType);
+      }
+    }
+
+    // Handle Star Report Talia persona
+    if (personaType === 'star_report' && contextData?.adminMode) {
+      
+      // Check if a user is selected
+      if (!contextData?.selectedUserId) {
+        return `Hi! I'm Report Talia, your comprehensive development report expert.
+
+I notice you haven't selected a specific user yet. To provide you with detailed analysis and insights, please:
+
+1. **Select a user** from the dropdown menu above
+2. **Choose someone who has completed their AST workshop** 
+3. **Then ask me about their development journey, strengths, or request a comprehensive report**
+
+Once you've selected a user, I'll have access to their complete workshop data including:
+• Strengths assessment results
+• Flow state analysis  
+• Reflection responses
+• Future vision planning
+• Well-being insights
+
+What would you like to know about after selecting a user?`;
+      }
+      
+      console.log(`🎯 Using Star Report Talia for user: ${contextData.selectedUserName} (ID: ${contextData.selectedUserId})`);
+      
+      const persona = getCurrentPersona('star_report');
+      console.log(`🎯 Database persona config:`, { name: persona.name, tokenLimit: persona.tokenLimit });
+      
+      const reportContext = await taliaPersonaService.getReportContext(contextData.selectedUserId.toString(), contextData.userData);
+      if (reportContext) {
+        const reportPrompt = await taliaPersonaService.generateReportPrompt(reportContext, userMessage);
+        
+        const messages: ClaudeMessage[] = [{ role: 'user', content: userMessage }];
+        const response = await callClaudeAPI(reportPrompt, messages, persona.tokenLimit, userId, 'holistic_reports', sessionId);
         
         return validateCoachingResponse(response, personaType);
       }
@@ -411,8 +481,12 @@ export async function generateClaudeCoachingResponse(requestData: CoachingReques
     }
     
     // Return generic fallback for other coaching scenarios
-    const isTaliaPersona = personaType === 'talia_coach' || personaType === 'ast_reflection';
-    return `Hi! I'm ${isTaliaPersona ? 'Talia, your AI strengths coach' : 'your workshop assistant'}, and I'd love to help you with that! However, I'm having trouble connecting to my AI systems right now.
+    const persona = getCurrentPersona(personaType);
+    const personaName = personaType === 'star_report' ? 'Report Talia' : 
+                       personaType === 'ast_reflection' ? 'Reflection Talia' : 
+                       persona.name || 'Talia, your AI coach';
+    
+    return `Hi! I'm ${personaName}, and I'd love to help you with that! However, I'm having trouble connecting to my AI systems right now.
 
 Your message: "${userMessage}"
 

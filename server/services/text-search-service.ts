@@ -19,6 +19,7 @@ interface SimilarChunk {
 interface SearchOptions {
   maxResults?: number;
   documentTypes?: string[];
+  documentIds?: string[];
   minRelevanceScore?: number;
 }
 
@@ -41,8 +42,14 @@ class TextSearchService {
       let paramIndex = 3;
       
       if (options.documentTypes && options.documentTypes.length > 0) {
-        typeFilter = `AND td.document_type = ANY($${paramIndex})`;
+        typeFilter += ` AND td.document_type = ANY($${paramIndex})`;
         params.push(options.documentTypes);
+        paramIndex++;
+      }
+      
+      if (options.documentIds && options.documentIds.length > 0) {
+        typeFilter += ` AND td.id = ANY($${paramIndex})`;
+        params.push(options.documentIds);
         paramIndex++;
       }
       

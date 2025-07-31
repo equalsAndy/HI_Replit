@@ -47,6 +47,14 @@ function validateEnvironment() {
   console.log('✅ Environment variables validated');
   console.log('📊 DATABASE_URL configured:', !!process.env.DATABASE_URL);
   console.log('🔑 SESSION_SECRET configured:', !!process.env.SESSION_SECRET);
+  
+  // Environment Configuration Check
+  console.log('🔧 Environment Configuration Check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    ENVIRONMENT: process.env.ENVIRONMENT,
+    claudeEnabled: process.env.ENVIRONMENT === 'development',
+    personaEnvironment: process.env.ENVIRONMENT || process.env.NODE_ENV || 'development'
+  });
 }
 
 // Database connection test
@@ -180,6 +188,12 @@ async function initializeApp() {
       console.log('📊 Initializing database connection...');
       await initializeDatabase();
       console.log('✅ Database connection successful');
+      
+      // Load persona configurations from database
+      console.log('🤖 Loading persona configurations...');
+      const { loadPersonasFromDatabase } = await import('./routes/persona-management-routes.js');
+      await loadPersonasFromDatabase();
+      console.log('✅ Persona configurations loaded from database');
       
       // Feature flag validation
       console.log('🚩 Validating feature flag configuration...');

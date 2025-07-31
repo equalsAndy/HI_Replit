@@ -197,4 +197,319 @@ router.post('/reviewed', async (req, res) => {
   }
 });
 
+/**
+ * Find user by username
+ */
+router.get('/find-user/:username', async (req, res) => {
+  try {
+    const { username } = req.params;
+    
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const result = await pool.query(
+      'SELECT id, name, username FROM users WHERE LOWER(username) = LOWER($1)',
+      [username]
+    );
+    
+    await pool.end();
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `User with username '${username}' not found`
+      });
+    }
+    
+    const user = result.rows[0];
+    res.json({
+      success: true,
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username
+      }
+    });
+    
+  } catch (error) {
+    console.error('❌ Error finding user:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to find user',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get StarCard PNG for specific user and save to tempcomms
+ */
+router.post('/get-png/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    console.log(`🎯 Getting StarCard PNG for user ID: ${userId}`);
+    
+    // Get user info first
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const userResult = await pool.query(
+      'SELECT id, name, username FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      await pool.end();
+      return res.status(404).json({
+        success: false,
+        message: `User ${userId} not found`
+      });
+    }
+    
+    const user = userResult.rows[0];
+    console.log(`👤 Found user: ${user.name || user.username} (ID: ${user.id})`);
+    
+    // Look for the most recent StarCard photo uploaded by this user
+    const photoResult = await pool.query(`
+      SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
+      FROM photo_storage 
+      WHERE uploaded_by = $1 
+      AND is_thumbnail = false
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    if (photoResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No StarCard PNG found for user ${userId} (${user.name || user.username})`
+      });
+    }
+
+    const photo = photoResult.rows[0];
+    console.log(`📸 Found StarCard PNG:`, {
+      id: photo.id,
+      size: `${photo.file_size} bytes`,
+      dimensions: `${photo.width}x${photo.height}`,
+      type: photo.mime_type,
+      created: photo.created_at
+    });
+
+    // Save PNG to tempcomms
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    
+    const tempCommsDir = path.join(process.cwd(), 'tempClaudecomms');
+    await fs.mkdir(tempCommsDir, { recursive: true });
+
+    // Extract base64 data and write to file
+    const base64Data = photo.photo_data.includes(',') 
+      ? photo.photo_data.split(',')[1] 
+      : photo.photo_data;
+      
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Create filename
+    const extension = photo.mime_type.split('/')[1] || 'png';
+    const timestamp = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+    const username = user.username || 'unknown';
+    const filename = `user-${userId}-${username}-starcard-${timestamp}.${extension}`;
+    const filePath = path.join(tempCommsDir, filename);
+    
+    // Write file
+    await fs.writeFile(filePath, buffer);
+    
+    console.log(`✅ StarCard PNG saved to: ${filename}`);
+    
+    res.json({
+      success: true,
+      message: `StarCard PNG retrieved for ${user.name || user.username}`,
+      user: user.name || user.username,
+      username: user.username,
+      userId: userId,
+      filename: filename,
+      fileSize: photo.file_size,
+      dimensions: `${photo.width}x${photo.height}`,
+      created: photo.created_at
+    });
+
+  } catch (error) {
+    console.error('❌ Error getting StarCard PNG:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get StarCard PNG',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Admin: Download StarCard PNG for any user (if exists in database)
+ */
+router.get('/admin/download/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'User ID is required'
+      });
+    }
+
+    console.log(`🔐 Admin downloading StarCard PNG for user ID: ${userId}`);
+    
+    // Get user info first
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    const userResult = await pool.query(
+      'SELECT id, name, username FROM users WHERE id = $1',
+      [userId]
+    );
+    
+    if (userResult.rows.length === 0) {
+      await pool.end();
+      return res.status(404).json({
+        success: false,
+        message: `User ${userId} not found`
+      });
+    }
+    
+    const user = userResult.rows[0];
+    
+    // Look for the most recent StarCard photo
+    const photoResult = await pool.query(`
+      SELECT id, photo_data, photo_hash, mime_type, file_size, width, height, created_at
+      FROM photo_storage 
+      WHERE uploaded_by = $1 
+      AND is_thumbnail = false
+      ORDER BY created_at DESC 
+      LIMIT 1
+    `, [userId]);
+
+    await pool.end();
+
+    if (photoResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No StarCard PNG found in database for ${user.name || user.username} (ID: ${userId})`
+      });
+    }
+
+    const photo = photoResult.rows[0];
+    
+    // Extract base64 data
+    const base64Data = photo.photo_data.includes(',') 
+      ? photo.photo_data.split(',')[1] 
+      : photo.photo_data;
+      
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Create filename for download
+    const extension = photo.mime_type.split('/')[1] || 'png';
+    const username = user.username || 'user';
+    const filename = `${username}-starcard-${user.id}.${extension}`;
+    
+    // Set headers for file download
+    res.setHeader('Content-Type', photo.mime_type);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length);
+    
+    console.log(`✅ Admin downloading: ${filename} (${photo.file_size} bytes)`);
+    
+    // Send the image buffer
+    res.send(buffer);
+
+  } catch (error) {
+    console.error('❌ Admin download error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to download StarCard PNG',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Admin: List all users with StarCard PNGs in database
+ */
+router.get('/admin/list-available', async (req, res) => {
+  try {
+    console.log('🔐 Admin listing users with StarCard PNGs');
+    
+    const { Pool } = await import('pg');
+    const pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    
+    // Get all users who have StarCard PNGs
+    const result = await pool.query(`
+      SELECT 
+        u.id,
+        u.name,
+        u.username,
+        ps.id as photo_id,
+        ps.file_size,
+        ps.width,
+        ps.height,
+        ps.created_at,
+        ps.mime_type
+      FROM users u
+      JOIN photo_storage ps ON ps.uploaded_by = u.id
+      WHERE ps.is_thumbnail = false
+      ORDER BY ps.created_at DESC
+    `);
+    
+    await pool.end();
+    
+    const usersWithStarCards = result.rows.map(row => ({
+      userId: row.id,
+      name: row.name,
+      username: row.username,
+      starCard: {
+        photoId: row.photo_id,
+        fileSize: row.file_size,
+        dimensions: `${row.width}x${row.height}`,
+        mimeType: row.mime_type,
+        createdAt: row.created_at
+      }
+    }));
+    
+    res.json({
+      success: true,
+      message: `Found ${usersWithStarCards.length} users with StarCard PNGs`,
+      users: usersWithStarCards
+    });
+
+  } catch (error) {
+    console.error('❌ Admin list error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to list StarCard PNGs',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

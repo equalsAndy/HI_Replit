@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { isFeatureEnabled } from '@/utils/featureFlags';
+import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
 
 interface FloatingAITriggerProps {
   currentStep?: string;
@@ -40,6 +41,9 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const { shouldShowDemoButtons, isTestUser } = useTestUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  
+  // Get Report Talia context (null if not in admin area)
+  const reportTaliaContext = useReportTaliaContextSafe();
 
   // Check AI coaching status from admin console and step-specific reflection area status
   useEffect(() => {
@@ -106,12 +110,16 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   // Determine if user has access to AI features (test users only)
   const hasAIAccess = shouldShowDemoButtons && reflectionModalEnabled;
   
-  // Show button to test users even if disabled (for better UX feedback)
-  const shouldShowButton = hasAIAccess;
+  // Show button to test users or admin users in Report Talia context
+  const shouldShowButton = hasAIAccess || (reportTaliaContext?.isAdminContext);
   
   // Determine if AI is available for this specific context
-  // Must have: user access, AI coaching enabled by admin, step reflection area enabled, and context aiEnabled
-  const isAIAvailable = hasAIAccess && aiEnabled && aiCoachingEnabled && stepReflectionEnabled && !checkingStepStatus;
+  // For admin mode: just need a selected user (admin access is implicit)
+  // For workshop mode: need user access, AI coaching enabled by admin, step reflection area enabled, and context aiEnabled
+  const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+  const isAIAvailable = isAdminMode 
+    ? !!reportTaliaContext?.selectedUserId  // Admin mode: just need selected user
+    : hasAIAccess && aiEnabled && aiCoachingEnabled && stepReflectionEnabled && !checkingStepStatus;  // Workshop mode requirements
 
   // Track previous context to detect step changes
   const [previousContext, setPreviousContext] = useState<string>('');
@@ -224,7 +232,7 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     }
   };
 
-  // Debug all conditions for AI Talia visibility (temporarily disabled to prevent loops)
+  // Debug all conditions for AI Talia visibility (enable only when debugging)
   // console.log('🤖 AI Talia Debug:', {
   //   shouldShowDemoButtons,
   //   isTestUser,
@@ -233,9 +241,14 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   //   aiCoachingEnabled,
   //   checkingAIStatus,
   //   hasAIAccess,
+  //   shouldShowButton,
   //   isAIAvailable,
   //   currentStep,
-  //   context
+  //   context,
+  //   reportTaliaContext: reportTaliaContext ? {
+  //     isAdminContext: reportTaliaContext.isAdminContext,
+  //     selectedUserId: reportTaliaContext.selectedUserId
+  //   } : null
   // });
 
   // Only show to test users (but may be disabled based on context)
@@ -276,16 +289,31 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     setIsLoading(true);
 
     try {
+      // Determine persona and context based on admin mode
+      const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+      const persona = isAdminMode ? 'star_report' : 'talia_coach';
+      
+      // Build context for the request
+      const requestContext = isAdminMode ? {
+        // Admin context - Report Talia mode
+        reportContext: 'admin_chat',
+        selectedUserId: reportTaliaContext?.selectedUserId,
+        selectedUserName: reportTaliaContext?.selectedUser?.name,
+        adminMode: true
+      } : {
+        // Regular context - Workshop Talia mode
+        stepName: context?.stepName,
+        strengthLabel: context?.strengthLabel,
+        questionText: context?.questionText,
+        currentStep,
+        workshopType
+      };
+
       console.log('🤖 Sending chat message:', {
         message: userMessage.content,
-        context: {
-          stepName: context?.stepName,
-          strengthLabel: context?.strengthLabel,
-          questionText: context?.questionText,
-          currentStep,
-          workshopType
-        },
-        persona: 'talia_coach'
+        context: requestContext,
+        persona: persona,
+        isAdminMode
       });
 
       const response = await fetch('/api/coaching/chat', {
@@ -296,14 +324,8 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
         credentials: 'include', // Include cookies for session
         body: JSON.stringify({
           message: userMessage.content,
-          context: {
-            stepName: context?.stepName,
-            strengthLabel: context?.strengthLabel,
-            questionText: context?.questionText,
-            currentStep,
-            workshopType
-          },
-          persona: 'talia_coach'
+          context: requestContext,
+          persona: persona
         }),
       });
 
@@ -353,6 +375,14 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
 
   // Get context-aware header text
   const getHeaderText = () => {
+    // Check if we're in admin mode with Report Talia
+    const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+    if (isAdminMode) {
+      const userName = reportTaliaContext?.selectedUser?.name || 'Selected User';
+      return `Report Talia • ${userName}`;
+    }
+    
+    // Regular workshop mode
     if (context?.strengthLabel) {
       return `Talia • ${context.strengthLabel} Reflection`;
     }
@@ -367,6 +397,13 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
 
   // Get specific context description for current question/area
   const getContextDescription = () => {
+    // Check if we're in admin mode with Report Talia
+    const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+    if (isAdminMode) {
+      return 'Report generation and analysis chat';
+    }
+    
+    // Regular workshop mode
     if (context?.strengthLabel && context?.questionText) {
       return `Reflecting on your ${context.strengthLabel} strength`;
     }
@@ -386,9 +423,22 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
 
   // Get context-aware welcome message
   const getWelcomeMessage = () => {
-    // Debug: Log the context to see what we're working with (only when context changes)
-    // console.log('🔍 Talia Welcome Context:', context);
+    // Check if we're in admin mode with Report Talia
+    const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+    if (isAdminMode) {
+      const userName = reportTaliaContext?.selectedUser?.name || 'the selected user';
+      return `Hi! I'm Report Talia, your expert AI coach for comprehensive development reports.
+
+I have access to ${userName}'s complete AST workshop data and can help you with:
+• Analysis of their strengths and assessment results
+• Insights into their growth patterns and development areas
+• Professional development recommendations
+• Report writing and coaching guidance
+
+You can also type "TRAIN" to help me improve my coaching abilities. How can I assist you with ${userName}'s development analysis?`;
+    }
     
+    // Regular workshop mode
     if (context?.questionText) {
       return `Hi! I'm Talia, here to help with your current reflection: "${context.questionText}"
 

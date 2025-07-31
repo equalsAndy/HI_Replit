@@ -311,7 +311,6 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
       toast({
         title: "Flow attributes saved!",
-        description: "Your flow attributes have been saved and your Star Card is now complete.",
         duration: 5000
       });
 
