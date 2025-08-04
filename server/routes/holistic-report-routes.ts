@@ -1207,6 +1207,7 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 margin: 40px 0;
                 position: relative;
                 overflow: hidden;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.1);
             }
             
             .professional-conclusion::before {
@@ -1217,6 +1218,69 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 right: 0;
                 height: 4px;
                 background: linear-gradient(90deg, #1e40af, #3b82f6, #06b6d4);
+            }
+            
+            .professional-conclusion::after {
+                content: '';
+                position: absolute;
+                bottom: 0;
+                right: 0;
+                width: 80px;
+                height: 80px;
+                background: linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.1) 70%);
+                border-top-left-radius: 100%;
+            }
+            
+            /* Enhanced professional report styling */
+            .professional-highlights {
+                background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+                border: 1px solid #3b82f6;
+                border-radius: 8px;
+                padding: 20px;
+                margin: 25px 0;
+                position: relative;
+            }
+            
+            .professional-highlights::before {
+                content: "💼";
+                position: absolute;
+                top: -10px;
+                left: 20px;
+                background: white;
+                padding: 0 8px;
+                font-size: 18px;
+            }
+            
+            .professional-action-items {
+                background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+                border-left: 4px solid #22c55e;
+                border-radius: 0 8px 8px 0;
+                padding: 20px;
+                margin: 25px 0;
+            }
+            
+            .professional-signature {
+                text-align: center;
+                padding: 30px;
+                background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
+                border-top: 3px solid #2563eb;
+                margin-top: 40px;
+                border-radius: 0 0 12px 12px;
+            }
+            
+            .professional-signature h3 {
+                color: #1f2937;
+                font-size: 1.3rem;
+                margin-bottom: 15px;
+                font-weight: 600;
+            }
+            
+            .professional-signature p {
+                color: #6b7280;
+                font-style: italic;
+                line-height: 1.6;
+                max-width: 600px;
+                margin: 0 auto;
             }
             
             .footer {
@@ -1240,6 +1304,15 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 .visual-layout { grid-template-columns: 1fr; }
                 .strengths-grid { grid-template-columns: 1fr; }
                 .content-section { padding: 20px; }
+                .professional-conclusion { padding: 20px; margin: 20px 0; }
+                .professional-highlights, .professional-action-items { padding: 15px; margin: 15px 0; }
+                .professional-signature { padding: 20px; }
+                div[style*="grid-template-columns: 1fr 1fr"] { 
+                    display: block !important; 
+                }
+                div[style*="grid-template-columns: 1fr 1fr"] > div {
+                    margin-bottom: 15px !important;
+                }
             }
         </style>
     </head>
@@ -1301,9 +1374,54 @@ function generateHtmlReport(reportData: any, reportType: string): string {
             </div>
 
             ${reportData.professionalProfile ? `
-            <div class="content-section">
+            <div class="content-section ${!isPersonalReport ? 'professional-conclusion' : ''}">
                 <h2 class="section-title">${isPersonalReport ? 'Personal Development Insights' : 'Professional Development Analysis'}</h2>
+                
+                ${!isPersonalReport ? `
+                <div class="professional-highlights">
+                    <h4 style="color: #1e40af; font-size: 1.1rem; font-weight: 600; margin-bottom: 12px;">Professional Strengths Overview</h4>
+                    <p style="color: #374151; line-height: 1.6; margin: 0;">
+                        Your unique combination of ${strengthsArray[0]?.name || 'thinking'} (${strengthsArray[0]?.value || 0}%) and ${strengthsArray[1]?.name || 'acting'} (${strengthsArray[1]?.value || 0}%) creates a distinctive professional signature that drives exceptional results in collaborative environments.
+                    </p>
+                </div>
+                ` : ''}
+                
                 <div class="ai-content">${formatAIContentForHTML(reportData.professionalProfile)}</div>
+                
+                ${!isPersonalReport ? `
+                <div class="professional-action-items">
+                    <h4 style="color: #166534; font-size: 1.1rem; font-weight: 600; margin-bottom: 12px;">🎯 Strategic Application</h4>
+                    <p style="color: #374151; line-height: 1.6; margin: 0;">
+                        Focus on roles and projects that leverage your dominant ${strengthsArray[0]?.name || 'thinking'} strength while developing complementary skills in your secondary areas. 
+                        This balanced approach maximizes your professional impact and leadership potential.
+                    </p>
+                </div>
+                
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #e2e8f0;">
+                    <h3 style="color: #374151; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px;">📊 Key Professional Insights</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 3px solid #3b82f6;">
+                            <h5 style="color: #1e40af; font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0;">Collaboration Style</h5>
+                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                                ${strengthsArray[0]?.name === 'feeling' ? 'Relationship-focused with strong emotional intelligence' : 
+                                  strengthsArray[0]?.name === 'thinking' ? 'Analytical and strategic in approach' :
+                                  strengthsArray[0]?.name === 'acting' ? 'Results-oriented with high execution capability' :
+                                  'Structured and detail-oriented with excellent planning skills'}
+                            </p>
+                        </div>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 3px solid #22c55e;">
+                            <h5 style="color: #166534; font-size: 0.9rem; font-weight: 600; margin: 0 0 8px 0;">Leadership Potential</h5>
+                            <p style="color: #6b7280; font-size: 0.85rem; line-height: 1.5; margin: 0;">
+                                Your ${strengthsArray[0]?.value || 0}% ${strengthsArray[0]?.name || 'thinking'} strength positions you as a natural ${strengthsArray[0]?.name === 'feeling' ? 'people leader' : strengthsArray[0]?.name === 'thinking' ? 'strategic leader' : strengthsArray[0]?.name === 'acting' ? 'execution leader' : 'operational leader'}
+                            </p>
+                        </div>
+                    </div>
+                    <p style="color: #6b7280; font-style: italic; line-height: 1.6;">
+                        This professional analysis provides actionable insights for leveraging your unique strengths profile in collaborative and leadership contexts. 
+                        Your strengths combination creates distinctive opportunities for professional impact and team contribution.
+                    </p>
+                </div>
+                ` : ''}
             </div>
             ` : ''}
 
@@ -1311,6 +1429,21 @@ function generateHtmlReport(reportData: any, reportType: string): string {
             <div class="content-section personal-section">
                 <h2 class="section-title">Personal Reflection & Development Guidance</h2>
                 <div class="ai-content">${formatAIContentForHTML(reportData.personalReport)}</div>
+            </div>
+            ` : ''}
+            
+            ${!isPersonalReport ? `
+            <div class="professional-signature">
+                <h3>Your Professional Development Journey</h3>
+                <p>
+                    This analysis represents a comprehensive assessment of your professional strengths and collaborative potential. 
+                    Use these insights to guide your career development, team positioning, and leadership growth opportunities.
+                </p>
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #d1d5db;">
+                    <small style="color: #9ca3af; font-size: 0.8rem;">
+                        Your unique strengths signature: ${strengthsArray[0]?.name?.toUpperCase() || 'THINKING'} (${strengthsArray[0]?.value || 0}%) + ${strengthsArray[1]?.name?.toUpperCase() || 'ACTING'} (${strengthsArray[1]?.value || 0}%)
+                    </small>
+                </div>
             </div>
             ` : ''}
             
