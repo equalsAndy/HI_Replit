@@ -1199,6 +1199,26 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 margin: 40px 0;
             }
             
+            .professional-conclusion {
+                background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+                border: 2px solid #475569;
+                border-radius: 12px;
+                padding: 30px;
+                margin: 40px 0;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .professional-conclusion::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #1e40af, #3b82f6, #06b6d4);
+            }
+            
             .footer {
                 background: #f8fafc;
                 padding: 30px;
