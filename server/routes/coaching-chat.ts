@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import {
-  generateCoachingResponse,
-  getOrCreateConversation,
-  saveCoachingMessage,
-  getConversationHistory
+// Temporarily disabled coaching chat service
+// import {
+//   generateCoachingResponse,
+//   getOrCreateConversation,
+//   saveCoachingMessage,
+//   getConversationHistory
 // } from '../services/coaching-chat-service.js';
 
 const router = Router();

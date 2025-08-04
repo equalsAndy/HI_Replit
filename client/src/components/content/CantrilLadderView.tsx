@@ -107,8 +107,8 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Workshop status for testing
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
-  const testWorkshopLocked = isWorkshopLocked();
+  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
+  // Remove unused test variable - using workshopCompleted directly
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -275,7 +275,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
   // Trigger save only when form data changes (NOT ladder values) and workshop not locked
   useEffect(() => {
     // Don't auto-save if workshop is locked
-    if (testWorkshopLocked) {
+    if (workshopCompleted) {
       return;
     }
     
@@ -283,7 +283,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
       // console.log('Cantril Ladder reflections auto-saving...'); // Reduced logging
       debouncedSave(formData);
     }
-  }, [formData, debouncedSave, testWorkshopLocked]);
+  }, [formData, debouncedSave, workshopCompleted]);
 
   // Handle text input changes
   const handleInputChange = (field: keyof CantrilFormData, value: string) => {
@@ -414,10 +414,10 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <textarea
               value={currentValue}
               onChange={(e) => handleInputChange(currentQuestionData.key, e.target.value)}
-              disabled={testWorkshopLocked}
-              readOnly={testWorkshopLocked}
+              disabled={workshopCompleted}
+              readOnly={workshopCompleted}
               className={`w-full h-40 p-4 border border-gray-300 rounded-md resize-none ${
-                testWorkshopLocked ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
+                workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : 'focus:ring-2 focus:ring-blue-500 focus:border-blue-500'
               }`}
               placeholder={currentQuestionData.placeholder}
             />
@@ -432,7 +432,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
             <Button
               variant="outline"
               onClick={prevQuestion}
-              disabled={currentQuestion === 0 || testWorkshopLocked}
+              disabled={currentQuestion === 0 || workshopCompleted}
               className="flex items-center gap-2"
             >
               <ChevronRight className="h-4 w-4 rotate-180" />
@@ -445,7 +445,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
                   variant="outline" 
                   size="sm"
                   onClick={fillWithDemoData}
-                  disabled={testWorkshopLocked}
+                  disabled={workshopCompleted}
                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                 >
                   <FileText className="w-4 h-4 mr-1" />
@@ -456,7 +456,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               {currentQuestion < cantrilQuestions.length - 1 ? (
                 <Button
                   onClick={nextQuestion}
-                  disabled={testWorkshopLocked}
+                  disabled={workshopCompleted}
                   className="flex items-center gap-2"
                 >
                   Next Question
@@ -465,7 +465,7 @@ const CantrilLadderView: React.FC<ContentViewProps> = ({
               ) : (
                 <Button 
                   onClick={handleNextStep}
-                  disabled={testWorkshopLocked}
+                  disabled={workshopCompleted}
                   className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2"
                 >
                   Next: Visualizing You

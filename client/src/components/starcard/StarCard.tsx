@@ -126,18 +126,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
 
   // Create derived profile and quadrantData for backward compatibility
   const derivedProfile: ProfileData = useMemo(() => {
-    // Use userProfileData if available, then fallback to props
-    if (userProfileData) {
-      const profileFromFetch = {
-        name: userProfileData.name || 'Your Name',
-        title: userProfileData.title || userProfileData.jobTitle || '',
-        organization: userProfileData.organization || '',
-        avatarUrl: userProfileData.profilePicture || undefined
-      };
-      console.log('🎯 StarCard Profile from userProfileData:', profileFromFetch);
-      return profileFromFetch;
-    }
-
+    // Since fetching is disabled, always use props first
     const profileFromProps = profile || {
       name: userName || 'Your Name',
       title: userTitle || '',
@@ -145,7 +134,21 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
       avatarUrl: undefined
     };
     
-    // console.log('🎯 StarCard Profile from props:', profileFromProps);
+    console.log('🎯 StarCard Profile from props:', profileFromProps);
+    console.log('🎯 StarCard Props received:', { profile, userName, userTitle, userOrg });
+    
+    // Fallback to userProfileData only if props don't have data (should not happen since fetching is disabled)
+    if (userProfileData && (!profileFromProps.name || profileFromProps.name === 'Your Name')) {
+      const profileFromFetch = {
+        name: userProfileData.name || 'Your Name',
+        title: userProfileData.title || userProfileData.jobTitle || '',
+        organization: userProfileData.organization || '',
+        avatarUrl: userProfileData.profilePicture || undefined
+      };
+      console.log('🎯 StarCard Profile from userProfileData fallback:', profileFromFetch);
+      return profileFromFetch;
+    }
+    
     return profileFromProps;
   }, [profile, userName, userTitle, userOrg, userProfileData]);
 
@@ -340,6 +343,7 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
     <div className="flex flex-col items-center">
       <div 
         ref={combinedRef}
+        data-starcard="true"
         className="bg-white border border-gray-200 rounded-lg p-5 flex-shrink-0"
         style={{ 
           width: CARD_WIDTH, 
@@ -358,12 +362,16 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
                 src={imageUrl || derivedProfile.avatarUrl} 
                 alt={derivedProfile.name} 
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  console.log('🖼️ Profile image failed to load:', imageUrl || derivedProfile.avatarUrl);
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.parentElement!.querySelector('.fallback-avatar')?.classList.remove('hidden');
+                }}
               />
-            ) : (
-              <div className="h-full w-full bg-gray-200 flex items-center justify-center">
-                <UserIcon className="h-8 w-8 text-gray-400" />
-              </div>
-            )}
+            ) : null}
+            <div className={`h-full w-full bg-gray-200 flex items-center justify-center fallback-avatar ${(imageUrl || derivedProfile.avatarUrl) ? 'hidden' : ''}`}>
+              <UserIcon className="h-8 w-8 text-gray-400" />
+            </div>
           </div>
           <div>
             <p className="font-medium text-gray-800">{derivedProfile.name || 'Your Name'}</p>

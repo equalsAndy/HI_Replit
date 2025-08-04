@@ -401,13 +401,39 @@ router.post('/documents', requireAdmin, upload.single('file'), async (req, res) 
       ) VALUES ($1, $2, 'chunking', 'pending', 0, NOW())
     `, [jobId, documentId]);
 
+    // Automatically process the document into chunks
+    try {
+      console.log('🔄 Automatically processing document for search...');
+      const { textSearchService } = await import('../services/text-search-service.js');
+      await textSearchService.processDocumentForSearch(documentId);
+      
+      // Update processing job to completed
+      await pool.query(`
+        UPDATE document_processing_jobs 
+        SET status = 'completed', progress_percentage = 100, completed_at = NOW()
+        WHERE id = $1
+      `, [jobId]);
+      
+      console.log('✅ Document automatically processed into searchable chunks');
+    } catch (processingError) {
+      console.error('❌ Auto-processing failed:', processingError);
+      
+      // Update processing job to failed
+      await pool.query(`
+        UPDATE document_processing_jobs 
+        SET status = 'failed', error_message = $1, completed_at = NOW()
+        WHERE id = $2
+      `, [processingError.message, jobId]);
+    }
+
     console.log('✅ Training document uploaded successfully:', documentId);
 
     res.status(201).json({
       success: true,
       document_id: documentId,
       job_id: jobId,
-      message: 'Training document uploaded successfully. Processing will begin shortly.'
+      message: 'Training document uploaded and processed successfully. Talia can now access this content.',
+      processing_status: 'completed'
     });
 
   } catch (error) {
@@ -421,6 +447,147 @@ router.post('/documents', requireAdmin, upload.single('file'), async (req, res) 
     res.status(500).json({
       success: false,
       error: 'Failed to upload training document',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
+
+// ===================================================================
+// ENDPOINT: POST /api/training/documents/text
+// Upload training document as text content (no file upload)
+// ===================================================================
+router.post('/documents/text', requireAdmin, async (req, res) => {
+  try {
+    console.log('📝 Text-based training document upload request received');
+    console.log('📝 User:', (req as any).user?.id);
+
+    const {
+      title,
+      content,
+      document_type,
+      category = 'coaching_system',
+      tags,
+      version = '1.0'
+    } = req.body;
+
+    console.log('📝 Creating text-based training document:', { title, document_type, category });
+
+    // Validation
+    if (!title || !content || !document_type) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title, content, and document_type are required'
+      });
+    }
+
+    if (content.length < 10) {
+      return res.status(400).json({
+        success: false,
+        error: 'Content must be at least 10 characters long'
+      });
+    }
+
+    // Validate document type
+    const validTypes = [
+      'coaching_guide', 'report_template', 'assessment_framework', 'best_practices',
+      'strengths_theory', 'flow_research', 'team_dynamics', 'industry_guidance',
+      'ast_methodology', 'ast_training_material', 'ast_workshop_guide',
+      'ast_assessment_info', 'ast_strengths_analysis', 'ast_flow_attributes',
+      'ast_reflection_prompts', 'ast_report_examples', 'ast_coaching_scripts'
+    ];
+
+    if (!validTypes.includes(document_type)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid document_type. Must be one of: ${validTypes.join(', ')}`
+      });
+    }
+
+    // Parse tags
+    let parsedTags = null;
+    if (tags) {
+      if (typeof tags === 'string') {
+        parsedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+      } else if (Array.isArray(tags)) {
+        parsedTags = tags.filter(tag => typeof tag === 'string' && tag.trim().length > 0);
+      }
+    }
+
+    // Create document record
+    const documentId = uuidv4();
+    await pool.query(`
+      INSERT INTO training_documents (
+        id, title, content, document_type, category, tags, version, status,
+        file_size, file_type, original_filename, uploaded_by, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, 'active', $8, 'text/plain', 'text-upload.txt', $9, NOW(), NOW())
+    `, [
+      documentId,
+      title,
+      content,
+      document_type,
+      category,
+      parsedTags,
+      version,
+      content.length,
+      (req as any).user?.id
+    ]);
+
+    // Create processing job and automatically process
+    const jobId = uuidv4();
+    await pool.query(`
+      INSERT INTO document_processing_jobs (
+        id, document_id, job_type, status, progress_percentage, created_at
+      ) VALUES ($1, $2, 'chunking', 'pending', 0, NOW())
+    `, [jobId, documentId]);
+
+    // Automatically process the document into chunks
+    try {
+      console.log('🔄 Automatically processing text document for search...');
+      const { textSearchService } = await import('../services/text-search-service.js');
+      await textSearchService.processDocumentForSearch(documentId);
+      
+      // Update processing job to completed
+      await pool.query(`
+        UPDATE document_processing_jobs 
+        SET status = 'completed', progress_percentage = 100, completed_at = NOW()
+        WHERE id = $1
+      `, [jobId]);
+      
+      console.log('✅ Text document automatically processed into searchable chunks');
+    } catch (processingError) {
+      console.error('❌ Auto-processing failed:', processingError);
+      
+      // Update processing job to failed
+      await pool.query(`
+        UPDATE document_processing_jobs 
+        SET status = 'failed', error_message = $1, completed_at = NOW()
+        WHERE id = $2
+      `, [processingError.message, jobId]);
+    }
+
+    console.log('✅ Text-based training document created successfully:', documentId);
+
+    res.status(201).json({
+      success: true,
+      document_id: documentId,
+      job_id: jobId,
+      message: 'Text document uploaded and processed successfully. Talia can now access this content.',
+      processing_status: 'completed',
+      document: {
+        id: documentId,
+        title,
+        document_type,
+        category,
+        content_length: content.length,
+        created_at: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error creating text-based training document:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create text-based training document',
       details: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }

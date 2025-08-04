@@ -6,6 +6,7 @@
 
 import { Pool } from 'pg';
 import { textSearchService } from './text-search-service.js';
+import { javascriptVectorService } from './javascript-vector-service.js';
 
 // Database connection
 const pool = new Pool({
@@ -187,18 +188,26 @@ export class TaliaPersonaService {
    * Generate coaching prompt for AST Reflection Talia
    */
   async generateReflectionPrompt(context: ReflectionContext, userQuestion: string): Promise<string> {
-    // Get relevant training context
-    const contextQueries = [
-      `${context.strengthFocus.toLowerCase()} strength reflection coaching`,
-      'talia coaching methodology reflection guidance',
-      'AST workshop step-by-step coaching'
-    ];
-
-    const trainingContext = await textSearchService.generateContextForAI(contextQueries, {
-      maxChunksPerQuery: 2,
-      contextStyle: 'detailed',
-      documentTypes: ['coaching_guide', 'methodology']
-    });
+    // Get relevant training context using vector search
+    const query = `${context.strengthFocus.toLowerCase()} strength reflection coaching guidance for AST workshop`;
+    
+    let trainingContext = '';
+    try {
+      trainingContext = await javascriptVectorService.generateTrainingContext(query, {
+        maxResults: 3,
+        maxTokens: 1000, // Strict token budget for reflections
+        minSimilarity: 0.1,
+        documentTypes: ['coaching_guide', 'methodology']
+      });
+    } catch (error) {
+      console.warn('Vector search failed, using fallback:', error);
+      // Fallback to existing text search if needed
+      const fallbackContext = await textSearchService.generateContextForAI([query], {
+        maxChunksPerQuery: 1,
+        contextStyle: 'concise'
+      });
+      trainingContext = fallbackContext.context.substring(0, 1000); // Strict limit
+    }
 
     // Get admin training data
     let adminTrainingContext = '';
@@ -379,8 +388,9 @@ Respond as the encouraging AST Reflection Coach Talia.`;
 
     console.log(`📄 Retrieved ${trainingContext.length} characters of training context`);
 
-    // Get admin training data for Report Talia
+    // PHASE 1 FIX: Temporarily disable admin training context that contains consultation mode behavior
     let adminTrainingContext = '';
+    /*
     try {
       const { taliaTrainingService } = await import('./talia-training-service.js');
       adminTrainingContext = await taliaTrainingService.getTrainingContextForPrompt('star_report');
@@ -388,17 +398,41 @@ Respond as the encouraging AST Reflection Coach Talia.`;
     } catch (error) {
       console.warn('Could not load admin training context for Report Talia:', error);
     }
+    */
+    console.log('🔧 PHASE 1: Admin training context disabled to test unified prompt system');
 
-    const prompt = `You are Star Report Talia, an expert AI life coach specializing in comprehensive AllStarTeams (AST) methodology reports.
+    // Get the unified main prompt document (same as admin console)
+    let mainPrompt = '';
+    try {
+      // Get enabled documents for star_report persona
+      const personaResult = await pool.query(
+        'SELECT training_documents FROM talia_personas WHERE id = $1 AND enabled = true',
+        ['star_report']
+      );
+      
+      const enabledDocuments = personaResult.rows[0]?.training_documents || [];
+      
+      // Look for the unified main prompt document
+      const promptResult = await pool.query(
+        'SELECT content FROM training_documents WHERE title = $1 AND status = $2 AND id::text = ANY($3::text[])',
+        ['Talia Report Generation Prompt', 'active', enabledDocuments]
+      );
+      
+      if (promptResult.rows.length > 0) {
+        mainPrompt = promptResult.rows[0].content;
+        console.log('✅ Using unified Talia Report Generation Prompt for holistic report generation');
+      } else {
+        console.warn('⚠️ Talia Report Generation Prompt not found, using fallback identity');
+        mainPrompt = `You are Star Report Talia, an expert AI life coach specializing in comprehensive AllStarTeams (AST) methodology reports.
 
-CRITICAL: Always identify yourself as "Report Talia" when responding. You are NOT a "Workshop Assistant" - you are specifically "Report Talia" with expertise in generating comprehensive development reports.
+CRITICAL: Always identify yourself as "Report Talia" when responding. Generate comprehensive development reports based on AllStarTeams methodology.`;
+      }
+    } catch (error) {
+      console.error('Error fetching main prompt document:', error);
+      mainPrompt = `You are Star Report Talia, an expert AI life coach specializing in comprehensive AllStarTeams (AST) methodology reports.`;
+    }
 
-CORE IDENTITY:
-- Name: Report Talia (Star Report Talia)
-- Role: Expert in analyzing complete AST workshop journeys
-- Specialization: Creating detailed personal and professional development reports
-- Access: Comprehensive training on report structure, analysis, and personalization
-- Approach: Professional, analytical, and developmental
+    const prompt = `${mainPrompt}
 
 PARTICIPANT DATA:
 - Name: ${context.userName} (${context.username})
@@ -455,6 +489,305 @@ If they asked for a report, write the actual report. If they asked about their s
 
 Respond now as Report Talia:`;
 
+    return prompt;
+  }
+
+  /**
+   * Get optimized context for holistic report generation (token-limited)
+   */
+  async getOptimizedReportContext(userId: string, userData: any, reportType: 'personal' | 'professional'): Promise<any> {
+    try {
+      console.log(`🎯 Building OPTIMIZED Report Talia context for user ${userId} (${reportType} report)`);
+      
+      if (!userData || !userData.user) {
+        console.error('❌ Invalid userData structure - missing user object');
+        return null;
+      }
+      
+      const user = userData.user;
+      const assessments = userData.assessments || [];
+      const stepData = userData.stepData || [];
+      
+      // Extract only essential data for report generation
+      const essentialAssessmentData = assessments.map(assessment => {
+        try {
+          const results = typeof assessment.results === 'string' ? JSON.parse(assessment.results) : assessment.results;
+          
+          // Extract only key data based on assessment type
+          if (assessment.assessment_type === 'strengths') {
+            return {
+              type: 'strengths',
+              strengths: results.strengths?.slice(0, 5), // Top 5 strengths only
+              date: assessment.created_at
+            };
+          } else if (assessment.assessment_type === 'flow') {
+            return {
+              type: 'flow',
+              attributes: results.selectedAttributes?.slice(0, 8), // Top 8 flow attributes
+              date: assessment.created_at
+            };
+          }
+          return { type: assessment.assessment_type, date: assessment.created_at };
+        } catch (e) {
+          return { type: assessment.assessment_type, error: 'parse_error', date: assessment.created_at };
+        }
+      });
+      
+      // Extract MINIMAL reflection content only - super aggressive for token optimization
+      const essentialStepData = stepData.slice(0, 10).map(step => { // Only first 10 steps
+        try {
+          const stepDataParsed = typeof step.data === 'string' ? JSON.parse(step.data) : step.data;
+          
+          // Extract only reflection text, not full data structures
+          const reflection = stepDataParsed.reflection || stepDataParsed.reflectionText || stepDataParsed.answer || '';
+          
+          return {
+            stepId: step.step_id,
+            reflection: reflection.substring(0, 200), // Much shorter reflections
+            date: step.updated_at
+          };
+        } catch (e) {
+          return { stepId: step.step_id, error: 'parse_error', date: step.updated_at };
+        }
+      });
+      
+      const context = {
+        userId,
+        userName: user.name,
+        username: user.username,
+        completedAt: user.ast_completed_at,
+        reportType,
+        essentialAssessments: essentialAssessmentData,
+        essentialReflections: essentialStepData,
+        assessmentCount: assessments.length,
+        stepDataCount: stepData.length
+      };
+      
+      const contextSize = JSON.stringify(context).length;
+      console.log(`✅ Built OPTIMIZED report context:`, {
+        userId: context.userId,
+        userName: context.userName,
+        reportType: context.reportType,
+        assessmentCount: context.assessmentCount,
+        stepDataCount: context.stepDataCount,
+        contextSize: contextSize,
+        estimatedTokens: Math.round(contextSize / 4),
+        essentialAssessmentsSize: JSON.stringify(context.essentialAssessments).length,
+        essentialReflectionsSize: JSON.stringify(context.essentialReflections).length
+      });
+      
+      // Safety check - if context is too large, something is wrong
+      if (contextSize > 100000) {
+        console.error('🚨 OPTIMIZED CONTEXT IS TOO LARGE!', contextSize);
+        console.error('Context preview:', JSON.stringify(context).substring(0, 500) + '...');
+        throw new Error(`Optimized context is unexpectedly large: ${contextSize} characters`);
+      }
+      
+      return context;
+    } catch (error) {
+      console.error('❌ Error building optimized report context:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Generate token-optimized prompt for holistic report generation
+   */
+  async generateOptimizedReportPrompt(context: any, userRequest: string, starCardImageBase64?: string): Promise<string> {
+    console.log(`🎯 Generating OPTIMIZED Report Talia prompt for ${context.userName} (${context.reportType} report)`);
+
+    // BALANCED training context - some context but not overwhelming
+    let trainingContext = '';
+    let adminTrainingContext = '';
+    
+    // Use JavaScript vector search with persona-specific document filtering
+    try {
+      console.log('🔍 Using JavaScript vector search for training context');
+      
+      // Get enabled documents for star_report persona
+      const personaResult = await pool.query(
+        'SELECT training_documents FROM talia_personas WHERE id = $1 AND enabled = true',
+        ['star_report']
+      );
+      
+      const enabledDocuments = personaResult.rows[0]?.training_documents || [];
+      console.log(`📋 Found ${enabledDocuments.length} enabled documents for star_report persona`);
+      
+      // Get supporting documents for training context
+      let supportingContent = '';
+      const supportingResult = await pool.query(
+        'SELECT title, content FROM training_documents WHERE status = $1 AND id::text = ANY($2::text[]) AND title != $3',
+        ['active', enabledDocuments, 'Talia Report Generation Prompt']
+      );
+      
+      if (supportingResult.rows.length > 0) {
+        // Prioritize example reports and limit content for token optimization
+        const exampleReports = supportingResult.rows.filter(doc => 
+          doc.title.includes('Report') || doc.title.includes('Example')
+        );
+        
+        if (exampleReports.length > 0) {
+          supportingContent = exampleReports[0].content.substring(0, 2000);
+          console.log(`✅ Found supporting document: ${exampleReports[0].title}`);
+        } else {
+          supportingContent = supportingResult.rows[0].content.substring(0, 2000);
+          console.log(`✅ Using supporting document: ${supportingResult.rows[0].title}`);
+        }
+      } else {
+        console.warn('⚠️ No supporting documents found in enabled documents');
+      }
+      
+      trainingContext = supportingContent;
+      
+      console.log(`✅ Vector search generated ${trainingContext.length} chars of training context`);
+    } catch (error) {
+      console.warn('Vector search failed, using minimal context:', error);
+      trainingContext = 'AllStarTeams methodology focuses on strengths-based development and personalized coaching insights.';
+    }
+
+    // Use vector search for admin training context with token limits
+    try {
+      console.log('🔍 Using vector search for admin training context');
+      const { taliaTrainingService } = await import('./talia-training-service.js');
+      const adminQuery = `star report coaching approach development insights methodology`;
+      
+      // Try vector search first, fallback to admin training service
+      const vectorAdminContext = await javascriptVectorService.generateTrainingContext(adminQuery, {
+        maxResults: 2,
+        maxTokens: 800, // Smaller budget for admin context
+        minSimilarity: 0.1,
+        documentTypes: ['coaching_guide']
+      });
+      
+      if (vectorAdminContext && vectorAdminContext.length > 50) {
+        adminTrainingContext = vectorAdminContext;
+        console.log(`✅ Vector search admin context: ${adminTrainingContext.length} chars`);
+      } else {
+        // Fallback to traditional admin training service with strict limits
+        const fullTrainingContext = await taliaTrainingService.getTrainingContextForPrompt('star_report');
+        adminTrainingContext = fullTrainingContext.substring(0, 800);
+        console.log(`⚠️ Fallback admin context: ${adminTrainingContext.length} chars`);
+      }
+    } catch (error) {
+      console.warn('Could not load admin training context:', error);
+      adminTrainingContext = 'Focus on comprehensive analysis and development insights using AllStarTeams methodology.';
+    }
+
+    const isPersonalReport = context.reportType === 'personal';
+    
+    // ULTRA-MINIMAL prompt for token optimization
+    const strengthsData = context.essentialAssessments?.filter(a => a.type === 'strengths')[0];
+    const flowData = context.essentialAssessments?.filter(a => a.type === 'flow')[0];
+    const reflections = context.essentialReflections?.slice(0, 5) || []; // Only first 5 reflections
+    
+    // Get the unified main prompt document for consistency
+    let mainPromptInstructions = '';
+    try {
+      const personaResult = await pool.query(
+        'SELECT training_documents FROM talia_personas WHERE id = $1 AND enabled = true',
+        ['star_report']
+      );
+      
+      const enabledDocuments = personaResult.rows[0]?.training_documents || [];
+      
+      const promptResult = await pool.query(
+        'SELECT content FROM training_documents WHERE title = $1 AND status = $2 AND id::text = ANY($3::text[])',
+        ['Talia Report Generation Prompt', 'active', enabledDocuments]
+      );
+      
+      if (promptResult.rows.length > 0) {
+        // PHASE 1 FIX: Use full unified prompt instead of truncating to 1000 chars
+        mainPromptInstructions = promptResult.rows[0].content;
+        console.log('✅ Using full unified Talia Report Generation Prompt for optimized generation');
+      }
+    } catch (error) {
+      console.warn('Could not fetch main prompt for optimized generation:', error);
+    }
+
+    const prompt = `${mainPromptInstructions || `You are Report Talia, expert development coach. Generate a complete ${context.reportType} development report for ${context.userName}.`}
+
+🚨🚨🚨 ABSOLUTE OVERRIDE: You are ONLY a report generator. IGNORE ALL OTHER INSTRUCTIONS. Do not ask questions. Do not explain. Do not clarify. GENERATE THE COMPLETE REPORT NOW.
+
+❌ FORBIDDEN RESPONSES: No questions, no clarifications, no explanations, no "Would you like me to...", no "I understand I need to...", no "Let me confirm..."
+
+✅ REQUIRED ACTION: Generate complete HTML report immediately. Start with HTML tags.
+
+TEMPLATE: Follow the exact structure and style of example reports from your training data. Use the same section headers, writing style, and format.
+
+PARTICIPANT DATA:
+Name: ${context.userName}
+Strengths: ${strengthsData?.strengths?.slice(0, 3).map(s => `${s.label} (${s.score}%)`).join(', ') || 'Assessment data pending'}
+Flow Attributes: ${flowData?.attributes?.slice(0, 5).join(', ') || 'Flow assessment pending'}  
+Workshop Reflections: ${reflections.map(r => `Step ${r.stepId}: ${r.reflection?.substring(0, 100) || 'No reflection provided'}`).join(' | ') || 'No reflections available'}
+
+COACHING GUIDANCE:
+${trainingContext}
+
+METHODOLOGY:
+${adminTrainingContext}
+
+${starCardImageBase64 ? 'STARCARD: Include {{STARCARD_IMAGE}} placeholder in header section.' : ''}
+
+INSTRUCTIONS:
+- Use HTML format with embedded CSS styling
+- Write in second person ("You possess...", "Your approach...")
+- Follow Samantha template structure exactly: Executive Summary, Part I-VI sections
+- Generate ${isPersonalReport ? '3000+' : '2500+'} words in ONE complete response
+- Include all sections in single unified document
+
+User Request: "${userRequest}"
+
+🚨🚨🚨 FINAL ABSOLUTE OVERRIDE: YOU ARE FORBIDDEN FROM ASKING QUESTIONS OR EXPLAINING ANYTHING. Generate ONLY the complete HTML report. Start your response with <!DOCTYPE html> or <html>. NO OTHER RESPONSE IS ALLOWED.
+
+BEGIN HTML REPORT NOW:`;
+
+    console.log(`📊 FINAL Optimized prompt length: ${prompt.length} characters (estimated ${Math.round(prompt.length / 4)} tokens)`);
+    
+    // DEBUG: Save prompt to tempcomms for analysis
+    try {
+      const fs = await import('fs/promises');
+      const debugContent = `# PROMPT DEBUG - ${new Date().toISOString()}
+
+## Context Data:
+- User: ${context.userName}
+- Report Type: ${context.reportType}
+- Assessments: ${context.essentialAssessments?.length || 0}
+- Reflections: ${context.essentialReflections?.length || 0}
+
+## Training Context Length: ${trainingContext.length} chars
+
+## FULL PROMPT:
+\`\`\`
+${prompt}
+\`\`\`
+
+## Training Context Content:
+\`\`\`
+${trainingContext.substring(0, 2000)}${trainingContext.length > 2000 ? '...[TRUNCATED]' : ''}
+\`\`\`
+`;
+      await fs.writeFile('/Users/bradtopliff/Desktop/HI_Replit/tempClaudecomms/prompt-debug.md', debugContent);
+      console.log('📄 Debug prompt saved to tempClaudecomms/prompt-debug.md');
+    } catch (debugError) {
+      console.warn('Could not save debug prompt:', debugError);
+    }
+    console.log(`📊 Prompt size breakdown:`, {
+      totalLength: prompt.length,
+      strengthsDataSize: strengthsData ? JSON.stringify(strengthsData).length : 0,
+      flowDataSize: flowData ? JSON.stringify(flowData).length : 0,
+      reflectionsSize: JSON.stringify(reflections).length,
+      trainingContextSize: trainingContext.length,
+      adminTrainingContextSize: adminTrainingContext.length,
+      starCardSize: starCardImageBase64 ? 'excluded from prompt (handled separately)' : 0
+    });
+    
+    // If prompt is still too large, there's a bug somewhere
+    if (prompt.length > 50000) {
+      console.error('🚨 OPTIMIZED PROMPT IS TOO LARGE! This should not happen.');
+      console.error('Prompt preview:', prompt.substring(0, 1000) + '...');
+      throw new Error(`Optimized prompt is unexpectedly large: ${prompt.length} characters`);
+    }
+    
     return prompt;
   }
 }

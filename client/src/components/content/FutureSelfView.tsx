@@ -85,7 +85,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   
   // No save status tracking - user controls saving via Next button
   const [isLoading, setIsLoading] = useState(true);
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Validation state
@@ -212,7 +212,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     formData.flowOptimizedLife.trim().length >= 10;
 
   const handleSubmit = async () => {
-    if (completed) {
+    if (workshopCompleted) {
       // If workshop is completed, just navigate
       markStepCompleted('4-4');
       setCurrentContent('final-reflection');
@@ -294,7 +294,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
     <div className="min-h-screen bg-gray-50">
 
       {/* Workshop Completion Banner */}
-      {completed && (
+      {workshopCompleted && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6 max-w-4xl mx-auto mt-4">
           <div className="flex items-center gap-3">
             <ChevronRight className="text-green-600" size={20} />
@@ -314,7 +314,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       <div className="w-full px-6 py-8">
         
         {/* Demo button */}
-        {!completed && (
+        {!workshopCompleted && (
           <div className="absolute top-4 right-4 z-10">
             <Button
               variant="ghost"
@@ -411,7 +411,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             </div>
             
             {/* Demo Button */}
-            {!completed && (
+            {!workshopCompleted && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -478,7 +478,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
                         onChange={(value) => handleReflectionChange(item.key as keyof FutureSelfData, value)}
                         isActive={true}
                         index={index}
-                        disabled={completed}
+                        disabled={workshopCompleted}
                       />
                     </div>
                   </motion.div>
@@ -510,7 +510,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
             onChange={(value) => handleReflectionChange('flowOptimizedLife', value)}
             isActive={true}
             index={0}
-            disabled={completed}
+            disabled={workshopCompleted}
           />
         </div>
 
@@ -531,16 +531,16 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
         <div className="max-w-4xl mx-auto flex justify-center">
           <Button 
             onClick={handleSubmit}
-            disabled={!hasMinimumContent && !completed}
+            disabled={!hasMinimumContent && !workshopCompleted}
             className={`px-8 py-3 ${
-              (hasMinimumContent || completed) 
+              (hasMinimumContent || workshopCompleted) 
                 ? "bg-blue-600 hover:bg-blue-700 text-white" 
                 : "bg-gray-300 cursor-not-allowed text-gray-500"
             }`}
             size="lg"
           >
             <span>
-              {completed 
+              {workshopCompleted 
                 ? "Continue to Final Reflection"
                 : hasMinimumContent 
                   ? "Save & Continue to Final Reflection"

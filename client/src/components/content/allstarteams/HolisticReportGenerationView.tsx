@@ -10,9 +10,11 @@ import {
   Eye,
   Users,
   Lock,
-  Clock
+  Clock,
+  Wrench
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 interface HolisticReportGenerationViewProps {
   navigate: (path: string) => void;
@@ -26,8 +28,9 @@ type GenerationStatus = 'not_generated' | 'generating' | 'completed' | 'failed';
 interface ReportStatus {
   reportId: string | null;
   status: GenerationStatus;
-  pdfUrl?: string;
+  reportUrl?: string; // Changed from pdfUrl to reportUrl
   downloadUrl?: string;
+  htmlUrl?: string;
   errorMessage?: string;
   generatedAt?: string;
 }
@@ -67,30 +70,54 @@ export default function HolisticReportGenerationView({
     staleTime: 30000
   });
 
-  // Mutation to generate report
-  const generateReportMutation = useMutation({
-    mutationFn: async (reportType: ReportType) => {
+  // Separate mutations for each report type to prevent simultaneous loading states
+  const generateStandardReportMutation = useMutation({
+    mutationFn: async () => {
       const response = await fetch('/api/reports/holistic/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ reportType })
+        body: JSON.stringify({ reportType: 'standard' })
       });
       
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.message || 'Failed to generate report');
+        throw new Error(error.message || 'Failed to generate standard report');
       }
       
       return response.json();
     },
-    onSuccess: (data, reportType) => {
-      console.log(`✅ ${reportType} report generation started:`, data);
-      // Refetch status to get updates
-      queryClient.invalidateQueries({ queryKey: ['holistic-report-status', reportType] });
+    onSuccess: (data) => {
+      console.log('✅ Standard report generation started:', data);
+      queryClient.invalidateQueries({ queryKey: ['holistic-report-status', 'standard'] });
     },
     onError: (error) => {
-      console.error('❌ Report generation failed:', error);
+      console.error('❌ Standard report generation failed:', error);
+    }
+  });
+
+  const generatePersonalReportMutation = useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/reports/holistic/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ reportType: 'personal' })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to generate personal report');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log('✅ Personal report generation started:', data);
+      queryClient.invalidateQueries({ queryKey: ['holistic-report-status', 'personal'] });
+    },
+    onError: (error) => {
+      console.error('❌ Personal report generation failed:', error);
     }
   });
 
@@ -100,13 +127,17 @@ export default function HolisticReportGenerationView({
   }, [markStepCompleted]);
 
   const handleGenerateReport = (reportType: ReportType) => {
-    generateReportMutation.mutate(reportType);
+    if (reportType === 'standard') {
+      generateStandardReportMutation.mutate();
+    } else {
+      generatePersonalReportMutation.mutate();
+    }
   };
 
   const handleViewReport = (reportType: ReportType) => {
     const status = reportType === 'standard' ? standardStatus : personalStatus;
-    if (status?.pdfUrl) {
-      window.open(status.pdfUrl, '_blank');
+    if (status?.reportUrl) {
+      window.open(status.reportUrl, '_blank');
     }
   };
 
@@ -185,13 +216,65 @@ export default function HolisticReportGenerationView({
         {status?.status === 'completed' && status.generatedAt && (
           <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded">
             <p className="text-sm text-green-800">
-              Generated on {new Date(status.generatedAt).toLocaleDateString()}
+              Generated on {new Date(status.generatedAt).toLocaleDateString('en-US', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })} at {new Date(status.generatedAt).toLocaleTimeString('en-US', {
+                timeZone: 'America/Los_Angeles',
+                hour: 'numeric',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+              })}
             </p>
           </div>
         )}
 
+        {/* Maintenance Message */}
+        {showMaintenanceWarning && (
+          <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
+            <span className="flex items-center gap-1">
+              <Wrench className="h-3 w-3" />
+              Report generation temporarily unavailable - system upgrade in progress
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-wrap gap-2">
-          {status?.status === 'completed' ? (
+          {/* Debug logging for status */}
+          {console.log(`Debug ${type} report status:`, {
+            status: status?.status,
+            reportUrl: status?.reportUrl,
+            hasReportUrl: !!status?.reportUrl,
+            showMaintenanceWarning
+          })}
+          
+          {/* Always show Generate button */}
+          <Button
+            onClick={() => handleGenerateReport(type)}
+            disabled={isLoading || status?.status === 'generating' || 
+              (type === 'standard' ? generateStandardReportMutation.isPending : generatePersonalReportMutation.isPending) || showMaintenanceWarning}
+            size="sm"
+            className={`flex items-center gap-2 ${showMaintenanceWarning ? 'bg-gray-400 cursor-not-allowed' : ''}`}
+          >
+            {showMaintenanceWarning ? (
+              <Wrench className="h-4 w-4" />
+            ) : status?.status === 'generating' || 
+             (type === 'standard' ? generateStandardReportMutation.isPending : generatePersonalReportMutation.isPending) ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <FileText className="h-4 w-4" />
+            )}
+            {showMaintenanceWarning ? 'Temporarily Unavailable' :
+             status?.status === 'generating' || 
+             (type === 'standard' ? generateStandardReportMutation.isPending : generatePersonalReportMutation.isPending) 
+             ? 'Generating...' : 'Generate Report'}
+          </Button>
+          
+          {/* Show View button when completed - more permissive conditions */}
+          {(status?.status === 'completed' || (status?.reportUrl && !showMaintenanceWarning)) && (
             <>
               <Button
                 onClick={() => handleViewReport(type)}
@@ -200,36 +283,31 @@ export default function HolisticReportGenerationView({
                 className="flex items-center gap-2"
               >
                 <Eye className="h-4 w-4" />
-                View PDF
+                View Report
               </Button>
-              <Button
-                onClick={() => handleDownloadReport(type)}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Download className="h-4 w-4" />
-                Download
-              </Button>
-            </>
-          ) : (
-            <Button
-              onClick={() => handleGenerateReport(type)}
-              disabled={isLoading || status?.status === 'generating' || generateReportMutation.isPending}
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              {status?.status === 'generating' || generateReportMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <FileText className="h-4 w-4" />
+              {/* PDF button temporarily hidden */}
+              {false && (
+                <Button
+                  onClick={() => handleDownloadReport(type)}
+                  size="sm"
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download
+                </Button>
               )}
-              {status?.status === 'generating' ? 'Generating...' : 'Generate Report'}
-            </Button>
+            </>
           )}
         </div>
       </CardContent>
     </Card>
   );
+
+  // Check if holistic reports are working properly
+  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
+
+  // System maintenance warning (but keep the normal interface)
+  const showMaintenanceWarning = !reportsWorking;
 
   return (
     <div className="max-w-6xl mx-auto p-6">

@@ -26,6 +26,11 @@ export const clientFeatureFlags: Record<string, ClientFeatureFlag> = {
     enabled: true, // Re-enabled until chat popup is ready
     environment: 'all',
     description: 'Original modal-based Reflection Talia interface'
+  },
+  holisticReportsWorking: {
+    enabled: true,
+    environment: 'all',
+    description: 'Holistic reports are generating real personalized content (not fallback templates)'
   }
 };
 

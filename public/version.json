@@ -1,6 +1,6 @@
 {
-  "version": "2.2.1",
-  "build": "1045",
-  "timestamp": "2025-08-04T17:45:08.000Z",
-  "environment": "development"
+  "version": "2.2.9",
+  "build": "0804.1144",
+  "timestamp": "2025-08-04T18:44:01.000Z",
+  "environment": "staging"
 }

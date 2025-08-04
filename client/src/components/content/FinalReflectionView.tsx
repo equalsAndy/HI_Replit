@@ -55,11 +55,8 @@ export default function FinalReflectionView({
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
 
-  // Auto-complete step 4-5 when component loads
-  useEffect(() => {
-    console.log('🎯 FinalReflectionView mounted - marking step 4-5 as completed');
-    markStepCompleted('4-5');
-  }, [markStepCompleted]);
+  // Note: Step 4-5 should only be marked completed when user actually submits their final reflection
+  // This is handled in the handleComplete function, not on component mount
 
   // Fetch existing final reflection data
   const { data: existingData } = useQuery({
@@ -126,7 +123,7 @@ export default function FinalReflectionView({
       setSaveStatus('saving');
       return apiRequest('/api/workshop-data/final-reflection', {
         method: 'POST',
-        body: JSON.stringify(data),
+        body: data, // apiRequest will handle JSON.stringify
       });
     },
     onSuccess: () => {
@@ -179,38 +176,60 @@ export default function FinalReflectionView({
     // Clear any previous validation errors
     setValidationError('');
     
-    // Save the final reflection data before completing
+    // Save the final reflection data - server will auto-complete workshop
     setSaveStatus('saving');
     try {
       const saveData = { futureLetterText: insight.trim() };
-      await saveMutation.mutateAsync(saveData);
+      const result = await saveMutation.mutateAsync(saveData);
       setSaveStatus('saved');
       
-      // Mark step as completed first
+      // Mark step as completed
       markStepCompleted('4-5');
       
-      // COMPLETE WORKSHOP - This will save to database and lock ALL workshop steps
-      console.log(`🎯 Calling completeWorkshop for ${appType.toUpperCase()}...`);
-      const result = await completeWorkshop(appType);
-      
-      if (!result.success) {
-        console.error('❌ Failed to complete workshop:', result.error);
-        // Still show modal but log the error
+      // Check if server auto-completed the workshop
+      if (result.workshopCompleted) {
+        console.log(`🎉 ${appType.toUpperCase()} Workshop auto-completed by server - all steps are now locked`);
+        
+        // Update local workshop status to reflect completion
+        if (result.completedAt) {
+          const completionField = appType === 'ast' ? 'astWorkshopCompleted' : 'iaWorkshopCompleted';
+          const timestampField = appType === 'ast' ? 'astCompletedAt' : 'iaCompletedAt';
+          
+          // Update global completion state manually
+          window.dispatchEvent(new CustomEvent('workshopCompleted', {
+            detail: {
+              [completionField]: true,
+              [timestampField]: result.completedAt
+            }
+          }));
+        }
+      } else {
+        console.warn('⚠️ Server did not auto-complete workshop, trying manual completion...');
+        // Fallback to manual completion if server didn't auto-complete
+        const fallbackResult = await completeWorkshop(appType);
+        if (!fallbackResult.success) {
+          console.error('❌ Failed to complete workshop manually:', fallbackResult.error);
+        }
       }
       
       // Show completion modal
       setShowModal(true);
       
-      console.log(`🎉 ${appType.toUpperCase()} Workshop completed - all steps are now locked`);
     } catch (error) {
       console.error('Failed to save final reflection:', error);
       setSaveStatus('error');
       
-      // Still complete the workshop even if save fails
-      console.log(`🎯 Fallback: Calling completeWorkshop for ${appType.toUpperCase()} after save error...`);
-      await completeWorkshop(appType);
-      markStepCompleted('4-5');
-      setShowModal(true);
+      // Still try to complete the workshop even if save fails
+      console.log(`🎯 Fallback: Trying to complete workshop after save error...`);
+      try {
+        await completeWorkshop(appType);
+        markStepCompleted('4-5');
+        setShowModal(true);
+      } catch (completionError) {
+        console.error('❌ Failed to complete workshop after save error:', completionError);
+        // Still show the modal so user isn't stuck
+        setShowModal(true);
+      }
     }
   };
 

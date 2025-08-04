@@ -35,6 +35,16 @@ export default function TeamWorkshopPrepView({
 
   return (
     <div className="max-w-6xl mx-auto p-6">
+      {/* Placeholder Content Notice */}
+      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-center gap-2 text-blue-800">
+          <span className="text-sm font-medium">🚧 Placeholder Content</span>
+        </div>
+        <p className="text-sm text-blue-700 mt-1">
+          This content is currently under development and shows placeholder information.
+        </p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Main Content - Left Side */}
         <div className="lg:col-span-2 space-y-6">

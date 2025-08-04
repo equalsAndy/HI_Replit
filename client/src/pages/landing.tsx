@@ -157,7 +157,7 @@ export default function Landing() {
                 variant="outline"
                 className="border-2 border-indigo-600 text-indigo-600 hover:bg-indigo-50 px-8 py-3 rounded-md text-lg font-semibold"
                 onClick={() => {
-                  window.location.href = '/invite-code';
+                  window.location.href = '/register';
                 }}
               >
                 I have an invite code

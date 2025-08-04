@@ -17,6 +17,12 @@ import trainingRoutes from './routes/training-routes.js';
 import aiManagementRoutes from './routes/ai-management-routes.js';
 import personaManagementRoutes from './routes/persona-management-routes.js';
 import betaTesterRoutes from './routes/beta-tester-routes.js';
+import metaliaRoutes from './routes/metalia-routes.js';
+import growthPlanRoutes from './routes/growth-plan-routes.js';
+import adminChatRoutes from './routes/admin-chat-routes.js';
+import trainingUploadRoutes from './routes/training-upload-routes.js';
+import taliaStatusRoutes from './routes/talia-status-routes.js';
+import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -169,7 +175,47 @@ app.get('/health', async (req, res) => {
   }
 });
 
-
+// Vector Service test endpoint
+app.get('/api/vector-status', async (req, res) => {
+  try {
+    const { javascriptVectorService } = await import('./services/javascript-vector-service.js');
+    const stats = javascriptVectorService.getStats();
+    
+    // Test vector search with a simple query
+    const testQuery = "personal development report coaching";
+    const testResults = await javascriptVectorService.findSimilarContent(testQuery, {
+      maxResults: 2,
+      maxTokens: 500,
+      minSimilarity: 0.1
+    });
+    
+    res.status(200).json({
+      status: 'healthy',
+      service: 'JavaScript Vector Search',
+      ...stats,
+      testQuery,
+      testResults: {
+        count: testResults.length,
+        totalTokens: testResults.reduce((sum, r) => sum + r.tokenCount, 0),
+        topSimilarity: testResults[0]?.similarity || 0,
+        documents: testResults.map(r => ({
+          title: r.documentTitle,
+          type: r.documentType,
+          similarity: r.similarity.toFixed(3),
+          tokens: r.tokenCount
+        }))
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      service: 'JavaScript Vector Search',
+      error: (error as Error).message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
 
 // Lazy initialization function
 async function initializeApp() {
@@ -289,14 +335,20 @@ async function initializeApp() {
       app.use('/api/discernment', discernmentRoutes);
       app.use('/api/coaching', coachingRoutes);
       // app.use('/api/coaching/chat', coachingChatRoutes);
-      app.use('/api/feature-flags', featureFlagRoutes);
+      app.use('/api', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
       app.use('/api/training-docs', trainingDocumentsRoutes);
       app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
       app.use('/api/admin/ai', personaManagementRoutes);
+      app.use('/api/admin/chat', adminChatRoutes);
+      app.use('/api/admin/ai', trainingUploadRoutes);
+      app.use('/api/talia-status', taliaStatusRoutes);
+      app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
+      app.use('/api/metalia', metaliaRoutes);
+  app.use('/api/growth-plan', growthPlanRoutes);
 
       // Changelog endpoint for test users (markdown)
       app.get('/changelog', async (req, res) => {
@@ -419,7 +471,9 @@ async function initializeApp() {
             username: users.username,
             name: users.name,
             role: users.role,
-            isTestUser: users.isTestUser
+            isTestUser: users.isTestUser,
+            astWorkshopCompleted: users.astWorkshopCompleted,
+            astCompletedAt: users.astCompletedAt
           })
           .from(users)
           .where(eq(users.id, 1));
@@ -442,6 +496,49 @@ async function initializeApp() {
           res.status(500).json({
             success: false,
             error: 'Failed to check user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Set user as workshop completed for testing
+      app.post('/set-user-workshop-completed', async (req, res) => {
+        try {
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          const result = await db.update(users)
+            .set({ 
+              astWorkshopCompleted: true,
+              astCompletedAt: new Date()
+            })
+            .where(eq(users.id, 1))
+            .returning({
+              id: users.id,
+              username: users.username,
+              name: users.name,
+              astWorkshopCompleted: users.astWorkshopCompleted,
+              astCompletedAt: users.astCompletedAt
+            });
+
+          if (result.length > 0) {
+            console.log('✅ User 1 marked as workshop completed:', result[0]);
+            res.json({
+              success: true,
+              user: result[0],
+              message: 'User 1 marked as AST workshop completed'
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              message: 'User not found'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error updating user:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to update user status',
             details: error instanceof Error ? error.message : String(error)
           });
         }
@@ -674,6 +771,16 @@ async function initializeApp() {
           res.sendFile(path.join(__dirname, '../dist/public/index.html'));
         });
         console.log('✅ Development static file serving ready');
+      }
+
+      // Initialize JavaScript Vector Service for training document retrieval
+      console.log('🔄 Initializing JavaScript Vector Service...');
+      try {
+        const { javascriptVectorService } = await import('./services/javascript-vector-service.js');
+        await javascriptVectorService.initialize();
+        console.log('✅ JavaScript Vector Service initialized');
+      } catch (error) {
+        console.warn('⚠️ Vector service initialization failed, will use fallback search:', error);
       }
 
       isInitialized = true;

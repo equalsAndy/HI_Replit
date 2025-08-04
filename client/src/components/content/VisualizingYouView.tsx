@@ -27,7 +27,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   const [showInstructions, setShowInstructions] = useState(true);
   const { toast } = useToast();
   const { shouldShowDemoButtons } = useTestUser();
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -278,7 +278,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
   return (
     <>      
       {/* Workshop Completion Banner */}
-      {completed && (
+      {workshopCompleted && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
             <Image className="text-green-600" size={20} />
@@ -363,8 +363,8 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                   onClick={() => removeImage(image.id)}
                   className="absolute top-2 right-2 bg-white rounded-full p-1 shadow-md opacity-70 hover:opacity-100 transition"
                   title="Remove image"
-                  disabled={completed}
-                  style={{ display: completed ? 'none' : 'block' }}
+                  disabled={workshopCompleted}
+                  style={{ display: workshopCompleted ? 'none' : 'block' }}
                 >
                   <X className="h-4 w-4 text-red-500" />
                 </button>
@@ -416,12 +416,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1"
-                disabled={completed}
+                disabled={workshopCompleted}
               />
               <Button 
                 variant="default" 
                 onClick={handleSearch}
-                disabled={isSearching || !searchQuery.trim() || completed}
+                disabled={isSearching || !searchQuery.trim() || workshopCompleted}
                 className="flex items-center gap-2"
               >
                 <Search className="h-4 w-4" /> 
@@ -455,9 +455,9 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                   <div 
                     key={image.id} 
                     className={`relative group rounded-md overflow-hidden border border-gray-200 ${
-                      completed ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
+                      workshopCompleted ? 'cursor-not-allowed opacity-60' : 'cursor-pointer'
                     }`}
-                    onClick={() => completed ? null : addImage(image)}
+                    onClick={() => workshopCompleted ? null : addImage(image)}
                   >
                     <img 
                       src={image.urls.regular} 
@@ -490,7 +490,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
                   variant="outline" 
                   size="sm"
                   onClick={addFallbackDemoImages}
-                  disabled={completed}
+                  disabled={workshopCompleted}
                   className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
                 >
                   Add Demo Images
@@ -510,12 +510,12 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
         <textarea
           value={imageMeaning}
           onChange={(e) => setImageMeaning(e.target.value)}
-          placeholder={completed ? "This workshop is completed and locked for editing" : "These images represent my vision because..."}
+          placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "These images represent my vision because..."}
           className={`w-full p-2 min-h-[120px] border border-gray-300 rounded-md ${
-            completed ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+            workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
           }`}
-          disabled={completed}
-          readOnly={completed}
+          disabled={workshopCompleted}
+          readOnly={workshopCompleted}
         />
       </div>
 
@@ -532,7 +532,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
 
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
-          {shouldShowDemoButtons && !completed && (
+          {shouldShowDemoButtons && !workshopCompleted && (
             <Button 
               variant="outline" 
               size="sm"
@@ -545,7 +545,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
           )}
           <Button 
             onClick={async () => {
-              if (completed) {
+              if (workshopCompleted) {
                 // If workshop is completed, just navigate
                 markStepCompleted('4-3');
                 setCurrentContent("future-self");
@@ -589,7 +589,7 @@ const VisualizingYouView: React.FC<ContentViewProps> = ({
             }}
             className="bg-indigo-600 hover:bg-indigo-700 text-white"
           >
-            {completed ? 'Continue to Future Self' : 'Next: Your Future Self'} <ChevronRight className="ml-2 h-4 w-4" />
+            {workshopCompleted ? 'Continue to Future Self' : 'Next: Your Future Self'} <ChevronRight className="ml-2 h-4 w-4" />
           </Button>
         </div>
       </div>

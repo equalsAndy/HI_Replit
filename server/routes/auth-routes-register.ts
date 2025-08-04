@@ -56,7 +56,8 @@ router.post('/validate-invite', async (req, res) => {
       invite: {
         email: result.invite?.email,
         role: result.invite?.role,
-        name: result.invite?.name
+        name: result.invite?.name,
+        isBetaTester: result.invite?.isBetaTester || result.invite?.is_beta_tester || false
       }
     });
   } catch (error) {
@@ -109,7 +110,7 @@ router.post('/register', async (req, res) => {
       });
     }
     
-    // Create the user with invite creator tracking
+    // Create the user with invite creator tracking and beta tester status
     const createResult = await userManagementService.createUser({
       username: data.username,
       password: data.password,
@@ -119,7 +120,8 @@ router.post('/register', async (req, res) => {
       organization: data.organization,
       jobTitle: data.jobTitle,
       profilePicture: data.profilePicture,
-      invitedBy: inviteResult.invite.createdBy
+      invitedBy: inviteResult.invite.createdBy,
+      isBetaTester: inviteResult.invite.isBetaTester || inviteResult.invite.is_beta_tester || false
     });
     
     if (!createResult.success) {

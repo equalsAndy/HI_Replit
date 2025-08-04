@@ -2,7 +2,6 @@ import React, { Suspense } from 'react';
 import { Route, Switch, useLocation, Router } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import InviteRegistrationPage from '@/pages/invite-registration';
-import InviteCodePage from '@/pages/invite-code';
 import BetaTesterPage from '@/pages/beta-tester';
 import AuthPage from '@/pages/auth-page';
 import LoginPage from '@/pages/auth/login';
@@ -28,6 +27,8 @@ import { useQuery } from '@tanstack/react-query';
 import { ProtectedRoute } from '@/components/core/ProtectedRoute';
 import { SessionManagerProvider } from '@/components/core/SessionManagerProvider';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useBetaWelcome } from '@/hooks/use-beta-welcome';
+import BetaTesterWelcomeModal from '@/components/modals/BetaTesterWelcomeModal';
 
 // No need for a custom history hook, we'll use the default wouter behavior
 
@@ -36,6 +37,27 @@ const AutoSyncWrapper: React.FC = () => {
   const { data: user, isLoggedIn } = useCurrentUser();
 
   return isLoggedIn && user?.id ? <AutoSync userId={user.id} /> : null;
+};
+
+// Component to handle beta tester welcome modal
+const BetaWelcomeWrapper: React.FC = () => {
+  const { data: user } = useCurrentUser();
+  const {
+    showWelcomeModal,
+    handleCloseModal,
+    handleDontShowAgain,
+    handleStartWorkshop,
+  } = useBetaWelcome();
+
+  return (
+    <BetaTesterWelcomeModal
+      isOpen={showWelcomeModal}
+      onClose={handleCloseModal}
+      onDontShowAgain={handleDontShowAgain}
+      onStartWorkshop={handleStartWorkshop}
+      user={user}
+    />
+  );
 };
 
 const App: React.FC = () => {
@@ -62,6 +84,7 @@ const App: React.FC = () => {
                 <SessionManagerProvider>
                   <div className="min-h-screen bg-background">
                     <AutoSyncWrapper />
+                    <BetaWelcomeWrapper />
                     <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                     <Switch>
                     {/* Main routes */}
@@ -83,7 +106,6 @@ const App: React.FC = () => {
                     <Route path="/auth" component={AuthPage} />
                     <Route path="/auth/login" component={AuthPage} />
                     <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
-                    <Route path="/invite-code" component={InviteCodePage} />
                     <Route path="/beta-tester" component={BetaTesterPage} />
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
 

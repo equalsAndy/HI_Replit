@@ -16,6 +16,8 @@ interface AIUsageLogEntry {
   errorMessage?: string;
   costEstimate?: number;
   sessionId?: string;
+  provider?: 'claude' | 'openai';
+  model?: string;
 }
 
 interface AIConfigCache {
@@ -40,8 +42,8 @@ class AIUsageLogger {
     try {
       await pool.query(
         `INSERT INTO ai_usage_logs 
-         (user_id, feature_name, api_call_count, tokens_used, response_time_ms, success, error_message, cost_estimate, session_id)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+         (user_id, feature_name, api_call_count, tokens_used, response_time_ms, success, error_message, cost_estimate, session_id, provider, model)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
         [
           entry.userId,
           entry.featureName,
@@ -51,11 +53,14 @@ class AIUsageLogger {
           entry.success,
           entry.errorMessage || null,
           entry.costEstimate || 0,
-          entry.sessionId || null
+          entry.sessionId || null,
+          entry.provider || 'claude',
+          entry.model || 'claude-3-5-sonnet'
         ]
       );
 
-      console.log(`📊 AI usage logged: ${entry.featureName} for user ${entry.userId} - Success: ${entry.success}`);
+      const providerInfo = entry.provider ? ` (${entry.provider}${entry.model ? `/${entry.model}` : ''})` : '';
+      console.log(`📊 AI usage logged: ${entry.featureName} for user ${entry.userId}${providerInfo} - Success: ${entry.success}`);
     } catch (error) {
       // Don't throw errors for logging failures to avoid breaking the main flow
       console.error('❌ Failed to log AI usage:', error);
@@ -163,6 +168,22 @@ class AIUsageLogger {
     };
 
     const rate = ratesPerToken[model as keyof typeof ratesPerToken] || ratesPerToken['claude-3-5-sonnet'];
+    return tokensUsed * rate;
+  }
+
+  /**
+   * Calculate estimated cost for OpenAI models
+   * OpenAI API pricing as of 2024
+   */
+  calculateOpenAICost(tokensUsed: number, model: string = 'gpt-4o-mini'): number {
+    const ratesPerToken = {
+      'gpt-4o-mini': 0.00000015,     // $0.000150 per 1K tokens (input) 
+      'gpt-4-turbo-preview': 0.00001, // $0.01 per 1K tokens (input)
+      'gpt-4': 0.00003,              // $0.03 per 1K tokens (input)
+      'gpt-3.5-turbo': 0.0000005     // $0.0005 per 1K tokens (input)
+    };
+
+    const rate = ratesPerToken[model as keyof typeof ratesPerToken] || ratesPerToken['gpt-4o-mini'];
     return tokensUsed * rate;
   }
 

@@ -11,9 +11,15 @@ export interface User {
   profilePicture?: string;
   role: 'admin' | 'facilitator' | 'participant' | 'student';
   isTestUser: boolean;
+  isBetaTester?: boolean;
+  hasSeenBetaWelcome?: boolean;
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
   iaAccess: boolean;
+  navigationProgress?: string; // JSON string with workshop progress
+  astWorkshopCompleted?: boolean;
+  iaWorkshopCompleted?: boolean;
+  canTrainTalia?: boolean; // Talia training access control
 }
 
 export function useCurrentUser() {

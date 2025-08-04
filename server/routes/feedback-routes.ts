@@ -1,7 +1,7 @@
 import express from 'express';
 import { db } from '../db.js';
 import { feedback, users } from '../../shared/schema.js';
-import { eq, desc, and, ilike, inArray, count } from 'drizzle-orm';
+import { eq, desc, and, ilike, inArray, count, or } from 'drizzle-orm';
 import { requireAuth, requireAdmin } from '../middleware/auth.js';
 import { featureFlags } from '../utils/feature-flags.js';
 
@@ -111,7 +111,7 @@ router.get('/beta-tester-counts', requireAdmin, async (req, res) => {
     const betaTesters = await db
       .select({ id: users.id, username: users.username, name: users.name })
       .from(users)
-      .where(eq(users.isBetaTester, true));
+      .where(or(eq(users.isBetaTester, true), eq(users.isTestUser, true)));
 
     if (betaTesters.length === 0) {
       return res.json({

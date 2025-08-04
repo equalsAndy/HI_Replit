@@ -34,6 +34,7 @@ class UserManagementService {
     jobTitle?: string | null;
     profilePicture?: string | null;
     invitedBy?: number | null;
+    isBetaTester?: boolean;
   }) {
     try {
       // Hash the password
@@ -42,8 +43,8 @@ class UserManagementService {
       
       // Insert the user into the database using raw SQL to avoid schema conflicts
       const result = await db.execute(sql`
-        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
-        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
+        INSERT INTO users (username, password, name, email, role, organization, job_title, profile_picture, is_test_user, is_beta_tester, content_access, ast_access, ia_access, invited_by, created_at, updated_at)
+        VALUES (${data.username}, ${hashedPassword}, ${data.name}, ${data.email.toLowerCase()}, ${data.role}, ${data.organization || null}, ${data.jobTitle || null}, ${data.profilePicture || null}, ${(data as any).isTestUser || false}, ${data.isBetaTester || false}, 'professional', true, true, ${data.invitedBy || null}, NOW(), NOW())
         RETURNING *
       `);
       
@@ -1038,6 +1039,38 @@ class UserManagementService {
       return {
         success: false,
         error: 'Failed to update password'
+      };
+    }
+  }
+
+  /**
+   * Mark beta welcome as seen for a user
+   */
+  async markBetaWelcomeAsSeen(userId: number) {
+    try {
+      const result = await db.execute(sql`
+        UPDATE users 
+        SET has_seen_beta_welcome = true, updated_at = NOW()
+        WHERE id = ${userId} AND is_beta_tester = true
+        RETURNING id, username, name, email, is_beta_tester, has_seen_beta_welcome
+      `);
+      
+      if (!result || result.length === 0) {
+        return {
+          success: false,
+          error: 'User not found or not a beta tester'
+        };
+      }
+      
+      return {
+        success: true,
+        user: result[0]
+      };
+    } catch (error) {
+      console.error('Error marking beta welcome as seen:', error);
+      return {
+        success: false,
+        error: 'Failed to update beta welcome status'
       };
     }
   }

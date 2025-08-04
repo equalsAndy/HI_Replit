@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { Pool } from 'pg';
+import { conversationLoggingService } from '../services/conversation-logging-service.js';
 // import { VectorDBService } from '../services/vector-db.js'; // Temporarily disabled
 
 const router = Router();
@@ -111,73 +112,14 @@ router.post('/chat', async (req, res) => {
     const { taliaTrainingService } = await import('../services/talia-training-service.js');
     const { userLearningService } = await import('../services/user-learning-service.js');
 
-    // Check for TRAIN command
-    if (taliaTrainingService.isTrainCommand(message)) {
-      // Allow training for reflection, coaching, and report personas
-      if (persona !== 'ast_reflection' && persona !== 'talia_coach' && persona !== 'star_report') {
-        return res.json({
-          response: "Training mode is only available for Talia coaching personas.",
-          confidence: 1.0,
-          timestamp: new Date().toISOString(),
-          source: 'training_system'
-        });
-      }
+    // TRAIN command has been replaced by METAlia escalation system
+    // Users can no longer directly train personas - improvements are now handled through escalations
 
-      // Enter training mode
-      const session = await taliaTrainingService.enterTrainingMode(userId?.toString() || 'anonymous', persona);
-      const trainingStartResponse = "🎓 **TRAINING MODE ACTIVATED**\n\nHi! I'm now in training mode. You can help me improve my coaching by:\n\n• Explaining what behavior you'd like me to change\n• Giving examples of better responses\n• Sharing specific coaching improvements\n\nWhen you're done, just say 'done' or 'finished' and I'll save this training to my permanent knowledge. How would you like me to improve?";
-      
-      // Log training mode start
-      const trainingEntry = {
-        timestamp: new Date().toISOString(),
-        userId: userId || 'anonymous',
-        sessionId: req.sessionID,
-        taliaResponse: trainingStartResponse,
-        persona,
-        context,
-        source: 'training_system',
-        type: 'training_start',
-        trainingSessionId: session.id
-      };
-      console.log('💾 TALIA TRAINING LOG:', JSON.stringify(trainingEntry, null, 2));
-      
-      return res.json({
-        response: trainingStartResponse,
-        confidence: 1.0,
-        timestamp: new Date().toISOString(),
-        source: 'training_system',
-        metadata: { trainingMode: true, sessionId: session.id }
-      });
-    }
-
-    // Check if user is in training mode
-    if (taliaTrainingService.isInTrainingMode(userId?.toString() || 'anonymous')) {
-      try {
-        const trainingResponse = await taliaTrainingService.processTrainingMessage(
-          userId?.toString() || 'anonymous', 
-          message
-        );
-        return res.json({
-          response: trainingResponse,
-          confidence: 1.0,
-          timestamp: new Date().toISOString(),
-          source: 'training_system',
-          metadata: { trainingMode: true }
-        });
-      } catch (trainingError) {
-        console.error('❌ Training error:', trainingError);
-        return res.json({
-          response: "Sorry, there was an issue with the training system. Training mode has been deactivated.",
-          confidence: 0.5,
-          timestamp: new Date().toISOString(),
-          source: 'training_system'
-        });
-      }
-    }
+    // Training mode has been removed - all improvements now handled through METAlia escalation system
     
-    // Try to use Claude API for intelligent responses
+    // Use OpenAI API for intelligent responses
     try {
-      const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
+      const { generateOpenAICoachingResponse } = await import('../services/openai-api-service.js');
       
       // Handle different context structures based on persona
       let claudeContext;
@@ -185,15 +127,14 @@ router.post('/chat', async (req, res) => {
       let targetUserId = userId;
       let userName = 'there';
       
-      if (persona === 'star_report' && context?.adminMode) {
-        // Admin mode - Report Talia with selected user context
-        console.log('🔧 Admin mode detected - using Report Talia persona');
-        console.log('🔧 Admin context received:', {
+      if (persona === 'star_report') {
+        // Report Talia with selected user context
+        console.log('🔧 Report Talia persona detected');
+        console.log('🔧 Report context received:', {
           selectedUserId: context.selectedUserId,
           selectedUserName: context.selectedUserName,
-          adminMode: context.adminMode,
           reportContext: context.reportContext,
-          adminUserId: userId
+          requestingUserId: userId
         });
         
         personaType = 'star_report';
@@ -285,7 +226,6 @@ router.post('/chat', async (req, res) => {
           reportContext: context.reportContext,
           selectedUserId: context.selectedUserId,
           selectedUserName: context.selectedUserName,
-          adminMode: true,
           userPersonalization: userCoachingContext,
           userData: userData
         };
@@ -310,19 +250,216 @@ router.post('/chat', async (req, res) => {
       
       console.log('🤖 Claude API call with:', { personaType, targetUserId, userName, claudeContext });
       
-      const response = await generateClaudeCoachingResponse({
+      // IMMEDIATE EXIT for holistic report generation to prevent token overload
+      const isHolisticReportGeneration = context?.reportContext === 'holistic_generation';
+      if (isHolisticReportGeneration) {
+        console.log('🚀 HOLISTIC REPORT GENERATION - Skipping coaching route processing, going directly to Claude API');
+        
+        // Pass the raw data but mark it for optimized processing
+        const optimizedContext = {
+          reportContext: 'holistic_generation',
+          selectedUserId: context.selectedUserId,
+          selectedUserName: context.selectedUserName,
+          userData: context.userData, // Full data for processing but will be optimized
+          starCardImageBase64: context.starCardImageBase64,
+          tokenOptimized: true // Flag to use optimized processing
+        };
+        
+        console.log('🔧 Using token-optimized processing for holistic report generation');
+        const originalSize = JSON.stringify(context.userData).length;
+        console.log(`📊 Original userData size: ${originalSize} characters (~${Math.round(originalSize/4)} tokens)`);
+        
+        // Go directly to generateOpenAICoachingResponse with optimized context
+        const response = await generateOpenAICoachingResponse({
+          userMessage: message,
+          personaType: personaType,
+          userName: userName,
+          contextData: optimizedContext,
+          userId: targetUserId,
+          sessionId: req.sessionID,
+          maxTokens: 25000
+        });
+        
+        console.log('✅ Holistic report generated successfully via optimized path');
+        
+        // Log Talia's response for review (legacy console logging)
+        const responseEntry = {
+          timestamp: new Date().toISOString(),
+          userId: userId || 'anonymous',
+          sessionId: req.sessionID,
+          taliaResponse: response,
+          persona,
+          context,
+          source: 'holistic_optimized',
+          type: 'holistic_report'
+        };
+        console.log('💾 HOLISTIC REPORT LOG:', JSON.stringify(responseEntry, null, 2));
+
+        // METAlia conversation logging for holistic reports
+        conversationLoggingService.logConversation({
+          personaType: personaType,
+          userId: targetUserId,
+          sessionId: req.sessionID,
+          userMessage: message,
+          taliaResponse: response,
+          contextData: optimizedContext,
+          requestData: {
+            originalPersona: persona,
+            requestTimestamp: new Date().toISOString(),
+            reportType: 'holistic_generation',
+            userAgent: req.headers['user-agent'],
+            clientIp: req.ip
+          },
+          responseMetadata: {
+            confidence: 0.9,
+            source: 'holistic_optimized',
+            tokensUsed: 25000 // High estimate for holistic reports
+          },
+          conversationOutcome: 'completed'
+        }).catch(error => {
+          console.warn('⚠️ Failed to log holistic report conversation to METAlia:', error);
+        });
+
+        // METAlia report quality monitoring (asynchronous)
+        try {
+          const { reportQualityMonitor } = await import('../services/report-quality-monitor.js');
+          reportQualityMonitor.analyzeReportQuality(
+            response,
+            targetUserId,
+            'personal',
+            context.userData
+          ).then(issues => {
+            if (issues.length > 0) {
+              console.log(`📊 METAlia: Detected ${issues.length} quality issues in holistic report for user ${targetUserId}`);
+            } else {
+              console.log(`✅ METAlia: Holistic report for user ${targetUserId} passed quality checks`);
+            }
+          }).catch(error => {
+            console.warn('⚠️ METAlia quality analysis failed:', error);
+          });
+        } catch (error) {
+          console.warn('⚠️ Could not load report quality monitor:', error);
+        }
+        
+        return res.json({ 
+          response: response,
+          confidence: 0.9,
+          timestamp: new Date().toISOString(),
+          source: 'holistic_optimized'
+        });
+      }
+      
+      // Report Talia should have no token limits and enhanced document access
+      const isReportTalia = persona === 'star_report';
+      const maxTokens = isReportTalia ? 8000 : 400; // Unlimited for report interface
+      
+      console.log('🔧 Coaching route context check:', {
+        persona,
+        reportContext: context?.reportContext,
+        isReportTalia,
+        isHolisticReportGeneration
+      });
+      
+      // Report Talia automatically gets training mode and document context
+      // BUT NOT for holistic report generation which needs token optimization
+      if (isReportTalia && !isHolisticReportGeneration) {
+        console.log('👩‍💼 Report Talia - enabling enhanced training mode and document access');
+        
+        try {
+          // Get comprehensive document training context
+          const { textSearchService } = await import('../services/text-search-service.js');
+          const { taliaTrainingService } = await import('../services/talia-training-service.js');
+          
+          // Search for relevant documents based on user message
+          let contextQueries = [
+            message, // Search based on user's actual message
+            'talia coaching methodology training guidelines',
+            'document review and analysis', 
+            'AST workshop methodology',
+            'coaching principles and approach'
+          ];
+
+          // Add specific queries for capability/document access questions
+          if (message.toLowerCase().includes('document') && 
+              (message.toLowerCase().includes('access') || message.toLowerCase().includes('available') || message.toLowerCase().includes('have'))) {
+            contextQueries.push(
+              'Report Talia Training Doc',
+              'talia report generation capabilities',
+              'available documents and templates',
+              'document access scope',
+              'training manual overview'
+            );
+          }
+
+          // Add specific queries for report generation questions
+          if (message.toLowerCase().includes('report') && 
+              (message.toLowerCase().includes('create') || message.toLowerCase().includes('generate') || message.toLowerCase().includes('write'))) {
+            contextQueries.push(
+              'Talia Report Generation Prompt',
+              'Personal Development Report guidelines',
+              'Professional Profile Report requirements',
+              'sample report templates',
+              'report generation methodology'
+            );
+          }
+
+          const documentContext = await textSearchService.generateContextForAI(contextQueries, {
+            maxChunksPerQuery: 4,
+            contextStyle: 'detailed',
+            documentTypes: ['coaching_guide', 'methodology', 'ast_training_material', 'report_template']
+          });
+          
+          // Get training conversation history if user asks about training or learning
+          let trainingHistory = '';
+          let reportInfluence = '';
+          
+          if (message.toLowerCase().includes('training') || 
+              message.toLowerCase().includes('learn') || 
+              message.toLowerCase().includes('feedback') ||
+              message.toLowerCase().includes('conversation')) {
+            trainingHistory = await taliaTrainingService.getTrainingConversationHistory('star_report');
+            console.log('📖 Retrieved training conversation history for admin discussion');
+          }
+          
+          // Get report generation influence if discussing reports
+          if (message.toLowerCase().includes('report') || 
+              message.toLowerCase().includes('holistic') || 
+              message.toLowerCase().includes('generation')) {
+            reportInfluence = await taliaTrainingService.getTrainingInfluenceOnReports('star_report');
+            console.log('📊 Retrieved training influence on report generation');
+          }
+          
+          // Enhance context with training mode, document access, and training conversation data
+          claudeContext.adminTrainingMode = true;
+          claudeContext.documentContext = documentContext.context;
+          claudeContext.availableDocuments = documentContext.metadata.documentSources;
+          claudeContext.searchedTerms = documentContext.metadata.searchTerms;
+          claudeContext.foundChunks = documentContext.metadata.totalChunks;
+          claudeContext.trainingConversationHistory = trainingHistory;
+          claudeContext.reportTrainingInfluence = reportInfluence;
+          
+          console.log(`📚 Retrieved ${documentContext.metadata.totalChunks} document chunks from ${documentContext.metadata.documentSources.length} sources`);
+          if (trainingHistory) console.log('📖 Added training conversation history to context');
+          if (reportInfluence) console.log('📊 Added report training influence to context');
+          
+        } catch (error) {
+          console.warn('Could not load document context for admin Talia:', error);
+        }
+      }
+
+      const response = await generateOpenAICoachingResponse({
         userMessage: message,
         personaType: personaType,
         userName: userName,
         contextData: claudeContext,
         userId: targetUserId,
         sessionId: req.sessionID,
-        maxTokens: 400
+        maxTokens: maxTokens
       });
       
       console.log('✅ Claude response generated successfully');
       
-      // Log Talia's response for review
+      // Log Talia's response for review (legacy console logging)
       const responseEntry = {
         timestamp: new Date().toISOString(),
         userId: userId || 'anonymous',
@@ -334,6 +471,59 @@ router.post('/chat', async (req, res) => {
         type: 'talia_response'
       };
       console.log('💾 TALIA RESPONSE LOG:', JSON.stringify(responseEntry, null, 2));
+
+      // METAlia conversation logging (asynchronous - don't block response)
+      conversationLoggingService.logConversation({
+        personaType: personaType,
+        userId: targetUserId,
+        sessionId: req.sessionID,
+        userMessage: message,
+        taliaResponse: response,
+        contextData: claudeContext,
+        requestData: {
+          originalPersona: persona,
+          requestTimestamp: new Date().toISOString(),
+          userAgent: req.headers['user-agent'],
+          clientIp: req.ip
+        },
+        responseMetadata: {
+          confidence: 0.9,
+          source: 'claude_api',
+          tokensUsed: maxTokens // Estimate, could be improved with actual token usage
+        },
+        conversationOutcome: 'completed'
+      }).catch(error => {
+        console.warn('⚠️ Failed to log conversation to METAlia:', error);
+      });
+      
+      // Capture learning from this conversation (async, don't block response)
+      if (persona && message && response) {
+        try {
+          const { conversationLearningService } = await import('../services/conversation-learning-service.js');
+          
+          // Analyze conversation and update learning document (don't await to avoid blocking response)
+          conversationLearningService.analyzeConversation(
+            persona,
+            message,
+            response,
+            undefined, // userFeedback will be captured separately if provided
+            { 
+              context, 
+              userId, 
+              sessionId: req.sessionID,
+              timestamp: new Date().toISOString()
+            }
+          ).then(async (learning) => {
+            await conversationLearningService.updateLearningDocument(persona, learning);
+            console.log(`🧠 Learning captured for persona: ${persona}`);
+          }).catch(learningError => {
+            console.warn('⚠️ Learning capture failed:', learningError.message);
+          });
+          
+        } catch (learningServiceError) {
+          console.warn('⚠️ Learning service unavailable:', learningServiceError.message);
+        }
+      }
       
       res.json({ 
         response: response,
@@ -363,7 +553,7 @@ router.post('/chat', async (req, res) => {
       const responseIndex = Math.floor(Math.random() * coachingResponses.length);
       const response = coachingResponses[responseIndex];
       
-      // Log fallback response for review
+      // Log fallback response for review (legacy console logging)
       const fallbackEntry = {
         timestamp: new Date().toISOString(),
         userId: userId || 'anonymous',
@@ -375,6 +565,30 @@ router.post('/chat', async (req, res) => {
         type: 'talia_response'
       };
       console.log('💾 TALIA RESPONSE LOG:', JSON.stringify(fallbackEntry, null, 2));
+
+      // METAlia conversation logging for fallback responses
+      conversationLoggingService.logConversation({
+        personaType: 'talia_coach',
+        userId: userId,
+        sessionId: req.sessionID,
+        userMessage: message,
+        taliaResponse: response,
+        contextData: context,
+        requestData: {
+          originalPersona: persona,
+          requestTimestamp: new Date().toISOString(),
+          userAgent: req.headers['user-agent'],
+          clientIp: req.ip
+        },
+        responseMetadata: {
+          confidence: 0.7,
+          source: 'fallback',
+          tokensUsed: 0 // Fallback responses don't use AI tokens
+        },
+        conversationOutcome: 'completed'
+      }).catch(error => {
+        console.warn('⚠️ Failed to log fallback conversation to METAlia:', error);
+      });
       
       res.json({ 
         response: response,
@@ -386,8 +600,36 @@ router.post('/chat', async (req, res) => {
     
   } catch (error) {
     console.error('❌ Error in coaching chat:', error);
+    
+    const errorResponse = "I'm sorry, I'm having trouble responding right now. Please try again in a moment.";
+    
+    // METAlia conversation logging for system errors
+    conversationLoggingService.logConversation({
+      personaType: persona || 'unknown',
+      userId: req.session?.userId,
+      sessionId: req.sessionID,
+      userMessage: message || 'Unknown message',
+      taliaResponse: errorResponse,
+      contextData: context || {},
+      requestData: {
+        originalPersona: persona,
+        requestTimestamp: new Date().toISOString(),
+        userAgent: req.headers['user-agent'],
+        clientIp: req.ip
+      },
+      responseMetadata: {
+        confidence: 0.0,
+        source: 'system_error',
+        tokensUsed: 0,
+        error: error.message
+      },
+      conversationOutcome: 'error'
+    }).catch(loggingError => {
+      console.warn('⚠️ Failed to log system error conversation to METAlia:', loggingError);
+    });
+    
     res.status(500).json({ 
-      response: "I'm sorry, I'm having trouble responding right now. Please try again in a moment.",
+      response: errorResponse,
       error: 'Failed to process coaching request' 
     });
   }
@@ -735,6 +977,66 @@ router.get('/profiles', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get profiles' });
+  }
+});
+
+// Public endpoint to check if AI coaching is enabled for a specific reflection area/step
+router.get('/reflection-area/:areaId/status', async (req, res) => {
+  try {
+    const { areaId } = req.params;
+    
+    console.log('🔍 Checking reflection area status (public):', areaId);
+
+    // Try to import reflection areas from persona management
+    try {
+      const { CURRENT_REFLECTION_AREAS } = await import('./persona-management-routes.js');
+      
+      // Find the area in current memory storage
+      const area = CURRENT_REFLECTION_AREAS.find(a => a.id === areaId);
+
+      if (!area) {
+        // Area not found, but return enabled=false instead of 404 for better UX
+        return res.json({
+          success: true,
+          area: {
+            id: areaId,
+            enabled: false,
+            name: `Reflection Area ${areaId}`,
+            workshopStep: areaId.replace('step_', '').replace('_', '-')
+          }
+        });
+      }
+
+      res.json({
+        success: true,
+        area: {
+          id: area.id,
+          enabled: area.enabled,
+          name: area.name,
+          workshopStep: area.workshopStep
+        }
+      });
+
+    } catch (importError) {
+      // Fallback: return default enabled status if import fails
+      console.warn('Could not import reflection areas, using fallback:', importError);
+      res.json({
+        success: true,
+        area: {
+          id: areaId,
+          enabled: true, // Default to enabled for fallback
+          name: `Reflection Area ${areaId}`,
+          workshopStep: areaId.replace('step_', '').replace('_', '-')
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error checking reflection area status:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to check reflection area status'
+    });
   }
 });
 

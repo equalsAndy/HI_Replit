@@ -9,6 +9,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { getAttributeColor, CARD_WIDTH, CARD_HEIGHT, QUADRANT_COLORS } from '@/components/starcard/starCardConstants';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
+import { useStarCardAutoCapture } from '@/hooks/useStarCardAutoCapture';
 import { 
   DndContext, 
   closestCenter,
@@ -185,6 +186,9 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
   
   // Workshop status for locking functionality
   const { completed: workshopCompleted, isWorkshopLocked } = useWorkshopStatus();
+  
+  // StarCard auto-capture functionality
+  const { captureStarCardFromPage } = useStarCardAutoCapture();
 
   // Fetch user data
   const { data: userData } = useQuery({
@@ -708,8 +712,19 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
 
           <div className="flex justify-center mt-8">
             <Button 
-              onClick={() => {
+              onClick={async () => {
                 if (isCardComplete) {
+                  // Auto-capture StarCard before proceeding
+                  if (user?.id) {
+                    console.log('🎯 Auto-capturing StarCard for user:', user.id);
+                    try {
+                      await captureStarCardFromPage(user.id);
+                    } catch (error) {
+                      console.warn('StarCard auto-capture failed, but continuing:', error);
+                      // Don't block user flow if capture fails
+                    }
+                  }
+                  
                   markStepCompleted('3-4');
                   setCurrentContent("wellbeing");
                 } else {
