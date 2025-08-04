@@ -95,33 +95,52 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
   // Add state for fetched assessment data
   const [fetchedAssessmentData, setFetchedAssessmentData] = useState<QuadrantData | null>(null);
 
-  // TEMPORARILY DISABLE ALL FETCHING TO STOP INFINITE LOOP
+  // Data fetching - only fetch if props don't provide complete data
   React.useEffect(() => {
-    // DISABLED - return early to prevent all data fetching
-    return;
+    // Skip fetching if we have complete profile data from props
+    if (profile && profile.name && profile.name !== 'Your Name') {
+      console.log('✅ StarCard: Using profile data from props, skipping fetch');
+      return;
+    }
     
-    // ALL FETCHING CODE DISABLED BELOW
-    /*
+    console.log('🔄 StarCard: Profile data incomplete, starting fetch:', profile);
+    
     let isMounted = true;
     
     const fetchData = async () => {
-      // ... all the original fetch code ...
+      try {
+        console.log('🔄 StarCard: Fetching user profile and assessment data...');
+        
+        // Fetch user profile
+        const userResponse = await fetch('/api/auth/me', {
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          const user = userData.user || userData;
+          if (isMounted) {
+            setUserProfileData(user);
+            console.log('✅ StarCard: User profile fetched:', user);
+          }
+        }
+      } catch (error) {
+        console.error('❌ StarCard: Error fetching data:', error);
+      }
     };
 
-    // Only run if we don't have the necessary data
-    const shouldFetch = !userProfileData || 
-                       (!fetchedAssessmentData && (!quadrantData || (quadrantData.thinking === 0 && quadrantData.acting === 0 && quadrantData.feeling === 0 && quadrantData.planning === 0))) ||
-                       ((!flowAttributes || flowAttributes.length === 0) && fetchedFlowAttributes.length === 0);
+    // Only fetch if we don't have complete profile data
+    const shouldFetch = !userProfileData && (!profile || !profile.name || profile.name === 'Your Name');
 
     if (shouldFetch) {
-      console.log('StarCard: Starting data fetch, current profile:', profile, 'userName:', userName);
+      console.log('🔄 StarCard: Starting data fetch, current profile:', profile);
       fetchData();
     }
 
     return () => {
       isMounted = false;
     };
-    */
   }, []); // Empty dependency array to run only once
 
   // Create derived profile and quadrantData for backward compatibility

@@ -124,6 +124,13 @@ const StarCardWithFetch: React.FC<StarCardWithFetchProps> = ({
     title: user?.title,
     organization: user?.organization
   });
+
+  console.log('🎯 StarCardWithFetch Final Profile Being Passed:', {
+    name: user?.name || user?.username || '',
+    title: user?.title || '',
+    organization: user?.organization || '',
+    avatarUrl: user?.profilePicture ? 'Present' : 'Missing'
+  });
   
   const profile = {
     name: user?.name || user?.username || '',
