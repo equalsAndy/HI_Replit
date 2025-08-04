@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { isFeatureEnabled } from '@/utils/featureFlags';
 import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
+import TaliaTrainingModal from './TaliaTrainingModal';
 
 interface FloatingAITriggerProps {
   currentStep?: string;
@@ -39,8 +41,13 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const [modalSize, setModalSize] = useState({ width: 450, height: 550 });
   const [isResizing, setIsResizing] = useState(false);
   const { shouldShowDemoButtons, isTestUser } = useTestUser();
+  const { data: currentUser } = useCurrentUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
+  
+  // Training modal state
+  const [showTrainingModal, setShowTrainingModal] = useState(false);
+  const [trainingContext, setTrainingContext] = useState<any>(null);
   
   // Get Report Talia context (null if not in admin area)
   const reportTaliaContext = useReportTaliaContextSafe();
@@ -82,7 +89,7 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
       try {
         // Map current step to reflection area ID format
         const stepId = `step_${currentStep.replace('-', '_')}`;
-        const response = await fetch(`/api/admin/ai/reflection-areas/${stepId}/status`);
+        const response = await fetch(`/api/coaching/reflection-area/${stepId}/status`);
         
         if (response.ok) {
           const data = await response.json();
@@ -110,8 +117,8 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   // Determine if user has access to AI features (test users only)
   const hasAIAccess = shouldShowDemoButtons && reflectionModalEnabled;
   
-  // Show button to test users or admin users in Report Talia context
-  const shouldShowButton = hasAIAccess || (reportTaliaContext?.isAdminContext);
+  // Show button only to admin users
+  const shouldShowButton = currentUser?.role === 'admin';
   
   // Determine if AI is available for this specific context
   // For admin mode: just need a selected user (admin access is implicit)
@@ -291,7 +298,7 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     try {
       // Determine persona and context based on admin mode
       const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
-      const persona = isAdminMode ? 'star_report' : 'talia_coach';
+      const persona = isAdminMode ? (reportTaliaContext?.selectedPersona || 'star_report') : 'talia_coach';
       
       // Build context for the request
       const requestContext = isAdminMode ? {
@@ -427,15 +434,17 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
     if (isAdminMode) {
       const userName = reportTaliaContext?.selectedUser?.name || 'the selected user';
-      return `Hi! I'm Report Talia, your expert AI coach for comprehensive development reports.
+      const personaName = reportTaliaContext?.selectedPersona === 'star_report' ? 'Report Talia' : 'Reflection Talia';
+      const capabilities = reportTaliaContext?.selectedPersona === 'star_report' 
+        ? '• Analysis of their strengths and assessment results\n• Insights into their growth patterns and development areas\n• Professional development recommendations\n• Report writing and coaching guidance'
+        : '• Interactive reflection and coaching guidance\n• Personalized development conversations\n• Step-by-step coaching support\n• Conversational learning assistance';
+        
+      return `Hi! I'm ${personaName}, your expert AI coach for comprehensive development support.
 
 I have access to ${userName}'s complete AST workshop data and can help you with:
-• Analysis of their strengths and assessment results
-• Insights into their growth patterns and development areas
-• Professional development recommendations
-• Report writing and coaching guidance
+${capabilities}
 
-You can also type "TRAIN" to help me improve my coaching abilities. How can I assist you with ${userName}'s development analysis?`;
+You can also type "TRAIN" to help me improve my ${personaName.toLowerCase()} abilities specifically. How can I assist you with ${userName}'s development?`;
     }
     
     // Regular workshop mode
@@ -465,6 +474,31 @@ Your task is to write 2-3 sentences about this. What specific situation comes to
       return "AI coaching is disabled";
     }
     return "Talia isn't available right now";
+  };
+
+  // Handle opening training modal
+  const handleOpenTraining = () => {
+    // Check permission - only admins for now
+    if (currentUser?.role !== 'admin') return;
+
+    // Determine persona based on context
+    const isAdminMode = reportTaliaContext?.isAdminContext && reportTaliaContext?.selectedUserId;
+    const persona = isAdminMode ? 'report_talia' : 'reflection_talia';
+
+    // Build training context
+    let trainingCtx = null;
+    if (!isAdminMode && context?.strengthLabel) {
+      // Regular workshop mode with reflection context
+      trainingCtx = {
+        currentStep: currentStep ? parseInt(currentStep.split('-')[1]) : 1,
+        strengthName: context.strengthLabel,
+        reflectionQuestion: context.questionText,
+        userReflection: '' // Could get from chat messages if needed
+      };
+    }
+
+    setTrainingContext(trainingCtx);
+    setShowTrainingModal(true);
   };
 
   return (
@@ -586,6 +620,16 @@ Your task is to write 2-3 sentences about this. What specific situation comes to
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {/* Training Link - Only show to admins for now */}
+                {currentUser?.role === 'admin' && (
+                  <button
+                    onClick={handleOpenTraining}
+                    className="text-xs text-white hover:text-blue-200 transition-colors underline underline-offset-2"
+                    title="Train Talia's responses and behaviors"
+                  >
+                    Train
+                  </button>
+                )}
                 <button
                   onClick={handleMaximize}
                   className="w-6 h-6 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 flex items-center justify-center transition-colors"
@@ -701,6 +745,17 @@ Your task is to write 2-3 sentences about this. What specific situation comes to
           </div>
         </div>
       )}
+
+      {/* Training Modal */}
+      <TaliaTrainingModal
+        isOpen={showTrainingModal}
+        onClose={() => {
+          setShowTrainingModal(false);
+          setTrainingContext(null);
+        }}
+        persona={reportTaliaContext?.isAdminContext ? 'report_talia' : 'reflection_talia'}
+        reflectionContext={trainingContext}
+      />
     </>
   );
 };

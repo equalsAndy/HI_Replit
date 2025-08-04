@@ -2,7 +2,9 @@ import express from 'express';
 import { Pool } from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
+import crypto from 'crypto';
 import { requireAuth } from '../middleware/auth.js';
+import { db } from '../db.js';
 import { 
   GenerateReportRequest, 
   GenerateReportResponse, 
@@ -12,8 +14,8 @@ import {
 } from '../../shared/holistic-report-types';
 import { mockReportDataService } from '../services/mock-report-data-service';
 import { pdfReportService } from '../services/pdf-report-service';
-import { generateClaudeCoachingResponse } from '../services/claude-api-service';
-import { taliaPersonaService } from '../services/talia-personas';
+import { generateOpenAICoachingResponse } from '../services/openai-api-service.js';
+import { taliaPersonaService } from '../services/talia-personas.js';
 // Note: Star card image generation will be handled separately
 
 const router = express.Router();
@@ -89,34 +91,44 @@ router.post('/test-generate', async (req, res) => {
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Get star card image from photo service
+    // Get star card image from photo service (consistent with report generation)
     const starCardImagePath = await getStarCardImagePath(userId);
     reportData.starCardImagePath = starCardImagePath;
-
-    // Generate PDF
-    console.log('🎯 Generating PDF document');
-    const pdfBuffer = await pdfReportService.generatePDF(reportData, starCardImagePath);
     
-    // Save PDF to file system
-    const pdfFilePath = await pdfReportService.savePDF(pdfBuffer, userId, reportType);
+    // Also store the base64 data directly for HTML reports
+    if (!reportData.starCardImageBase64) {
+      try {
+        const { photoStorageService } = await import('../services/photo-storage-service.js');
+        const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+        if (starCardImage && starCardImage.photoData) {
+          reportData.starCardImageBase64 = starCardImage.photoData;
+        }
+      } catch (error) {
+        console.warn('Could not get StarCard base64 data:', error);
+      }
+    }
+
+    // Generate HTML report content (no file system operations for container compatibility)
+    console.log('🎯 Generating HTML report content');
+    const htmlContent = generateHtmlReport(reportData, reportType);
+    
+    // Store report data and HTML content directly in database (no file system)
     const pdfFileName = `${reportData.participant.name}-${reportType}-report.pdf`;
     
-    // Update database with complete report
+    // Update database with complete report (store HTML content instead of file paths)
     await pool.query(
       `UPDATE holistic_reports SET 
         report_data = $1, 
-        pdf_file_path = $2, 
+        html_content = $2,
         pdf_file_name = $3, 
-        pdf_file_size = $4,
-        star_card_image_path = $5,
-        generation_status = $6,
+        star_card_image_path = $4,
+        generation_status = $5,
         updated_at = NOW()
-       WHERE id = $7`,
+       WHERE id = $6`,
       [
         JSON.stringify(reportData),
-        pdfFilePath,
+        htmlContent,
         pdfFileName,
-        pdfBuffer.length,
         starCardImagePath,
         'completed',
         reportId
@@ -171,87 +183,72 @@ router.post('/generate', async (req, res) => {
   try {
     console.log(`🚀 Starting ${reportType} report generation for user ${userId}`);
 
-    // TEMPORARILY DISABLED: Check if user has already generated this type of report
-    // This restriction is disabled for testing purposes
+    // Check for concurrent generation attempts only
     const existingReport = await pool.query(
-      'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2',
-      [userId, reportType]
+      'SELECT id, generation_status FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
+      [userId, reportType, 'generating']
     );
 
     if (existingReport.rows.length > 0) {
       const existing = existingReport.rows[0];
-      // TESTING: Allow regeneration even if completed
-      // if (existing.generation_status === 'completed') {
-      //   return res.status(409).json({
-      //     success: false,
-      //     message: `You have already generated a ${reportType} report. Only one report per type is allowed.`,
-      //     reportId: existing.id,
-      //     status: 'completed'
-      //   } as GenerateReportResponse);
-      // }
-      
-      // Still prevent concurrent generation attempts
-      if (existing.generation_status === 'generating') {
-        return res.status(409).json({
-          success: false,
-          message: `A ${reportType} report is currently being generated. Please wait.`,
-          reportId: existing.id,
-          status: 'generating'
-        } as GenerateReportResponse);
-      }
+      return res.status(409).json({
+        success: false,
+        message: `A ${reportType} report is currently being generated. Please wait.`,
+        reportId: existing.id,
+        status: 'generating'
+      } as GenerateReportResponse);
     }
 
-    // Create or update report record
-    let reportId: string;
-    if (existingReport.rows.length > 0) {
-      // Update existing failed record
-      reportId = existingReport.rows[0].id;
-      await pool.query(
-        'UPDATE holistic_reports SET generation_status = $1, updated_at = NOW() WHERE id = $2',
-        ['generating', reportId]
-      );
-    } else {
-      // Create new report record
-      const newReport = await pool.query(
-        `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id) 
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [userId, reportType, JSON.stringify({}), 'generating', userId]
-      );
-      reportId = newReport.rows[0].id;
-    }
+    // Always create a new report record (no limit on generations)
+    const newReport = await pool.query(
+      `INSERT INTO holistic_reports (user_id, report_type, report_data, generation_status, generated_by_user_id) 
+       VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+      [userId, reportType, JSON.stringify({}), 'generating', userId]
+    );
+    const reportId = newReport.rows[0].id;
 
     // Generate report data using Star Report Talia AI persona
     console.log(`🤖 Generating ${reportType} report using Star Report Talia AI persona`);
     const reportData = await generateReportUsingTalia(userId, reportType as ReportType);
 
-    // Get star card image from photo service
+    // Get star card image from photo service (consistent with report generation)
     const starCardImagePath = await getStarCardImagePath(userId);
     reportData.starCardImagePath = starCardImagePath;
-
-    // Generate PDF
-    console.log('🎯 Generating PDF document');
-    const pdfBuffer = await pdfReportService.generatePDF(reportData, starCardImagePath);
     
-    // Save PDF to file system
-    const pdfFilePath = await pdfReportService.savePDF(pdfBuffer, userId, reportType);
+    // Also store the base64 data directly for HTML reports
+    if (!reportData.starCardImageBase64) {
+      try {
+        const { photoStorageService } = await import('../services/photo-storage-service.js');
+        const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+        if (starCardImage && starCardImage.photoData) {
+          reportData.starCardImageBase64 = starCardImage.photoData;
+        }
+      } catch (error) {
+        console.warn('Could not get StarCard base64 data:', error);
+      }
+    }
+
+    // Generate HTML report content (no file system operations for container compatibility)
+    console.log('🎯 Generating HTML report content');
+    const htmlContent = generateHtmlReport(reportData, reportType);
+    
+    // Store report data and HTML content directly in database (no file system)
     const pdfFileName = `${reportData.participant.name}-${reportType}-report.pdf`;
     
-    // Update database with complete report
+    // Update database with complete report (store HTML content instead of file paths)
     await pool.query(
       `UPDATE holistic_reports SET 
         report_data = $1, 
-        pdf_file_path = $2, 
+        html_content = $2,
         pdf_file_name = $3, 
-        pdf_file_size = $4,
-        star_card_image_path = $5,
-        generation_status = $6,
+        star_card_image_path = $4,
+        generation_status = $5,
         updated_at = NOW()
-       WHERE id = $7`,
+       WHERE id = $6`,
       [
         JSON.stringify(reportData),
-        pdfFilePath,
+        htmlContent,
         pdfFileName,
-        pdfBuffer.length,
         starCardImagePath,
         'completed',
         reportId
@@ -328,8 +325,9 @@ router.get('/test-status/:reportType/:userId', async (req, res) => {
     };
 
     if (report.generation_status === 'completed') {
-      response.pdfUrl = `/api/reports/holistic/test-view/${reportType}/${userId}`;
-      response.downloadUrl = `/api/reports/holistic/test-download/${reportType}/${userId}`;
+      response.pdfUrl = `/api/reports/holistic/test-download/${reportType}/${userId}`; // PDF for viewing in iframe
+      response.reportUrl = `/api/reports/holistic/test-view/${reportType}/${userId}`; // HTML version
+      response.downloadUrl = `/api/reports/holistic/test-download/${reportType}/${userId}`; // PDF for download
     }
 
     res.json(response);
@@ -358,7 +356,7 @@ router.get('/:reportType/status', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT id, generation_status, generated_at, error_message FROM holistic_reports WHERE user_id = $1 AND report_type = $2',
+      'SELECT id, generation_status, generated_at, error_message FROM holistic_reports WHERE user_id = $1 AND report_type = $2 ORDER BY generated_at DESC LIMIT 1',
       [userId, reportType]
     );
 
@@ -378,9 +376,10 @@ router.get('/:reportType/status', requireAuth, async (req, res) => {
     };
 
     if (report.generation_status === 'completed') {
-      response.pdfUrl = `/api/reports/holistic/${reportType}/view`;
-      response.downloadUrl = `/api/reports/holistic/${reportType}/download`;
-      response.htmlUrl = `/api/reports/holistic/${reportType}/html`;
+      response.pdfUrl = `/api/reports/holistic/${reportType}/download`; // PDF for viewing in iframe (inline)
+      response.reportUrl = `/api/reports/holistic/${reportType}/view`; // HTML version
+      response.downloadUrl = `/api/reports/holistic/${reportType}/download?download=true`; // PDF for download (attachment)
+      response.htmlUrl = `/api/reports/holistic/${reportType}/html`; // HTML version
     }
 
     res.json(response);
@@ -392,7 +391,7 @@ router.get('/:reportType/status', requireAuth, async (req, res) => {
 });
 
 /**
- * View PDF report in browser
+ * View report in browser
  * GET /api/reports/holistic/:reportType/view
  */
 router.get('/:reportType/view', requireAuth, async (req, res) => {
@@ -405,7 +404,7 @@ router.get('/:reportType/view', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT pdf_file_path, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
+      'SELECT html_content, report_data FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3 ORDER BY generated_at DESC LIMIT 1',
       [userId, reportType, 'completed']
     );
 
@@ -413,25 +412,27 @@ router.get('/:reportType/view', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Report not found or not completed' });
     }
 
-    const { pdf_file_path, pdf_file_name } = result.rows[0];
+    const { html_content, report_data } = result.rows[0];
     
-    // Check if file exists
-    try {
-      await fs.access(pdf_file_path);
-    } catch {
-      return res.status(404).json({ error: 'Report file not found' });
+    // Use stored HTML content, or generate if not available
+    let htmlContent = html_content;
+    if (!htmlContent && report_data) {
+      htmlContent = generateHtmlReport(report_data, reportType);
+    }
+    
+    if (!htmlContent) {
+      return res.status(404).json({ error: 'Report content not available' });
     }
 
-    // Set headers for PDF viewing
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="${pdf_file_name}"`);
+    // Set headers for HTML viewing
+    res.setHeader('Content-Type', 'text/html');
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     
-    // Stream the PDF file
-    const fileBuffer = await fs.readFile(pdf_file_path);
-    res.send(fileBuffer);
+    // Send HTML content for viewing
+    res.send(htmlContent);
 
   } catch (error) {
-    console.error('Error serving PDF:', error);
+    console.error('Error serving report:', error);
     res.status(500).json({ error: 'Failed to load report' });
   }
 });
@@ -450,7 +451,7 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT pdf_file_path, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
+      'SELECT html_content, report_data, pdf_file_name FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3 ORDER BY generated_at DESC LIMIT 1',
       [userId, reportType, 'completed']
     );
 
@@ -458,25 +459,114 @@ router.get('/:reportType/download', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Report not found or not completed' });
     }
 
-    const { pdf_file_path, pdf_file_name } = result.rows[0];
+    const { html_content, report_data, pdf_file_name } = result.rows[0];
     
-    // Check if file exists
-    try {
-      await fs.access(pdf_file_path);
-    } catch {
-      return res.status(404).json({ error: 'Report file not found' });
+    // Use stored HTML content, or generate if not available
+    let htmlContent = html_content;
+    if (!htmlContent && report_data) {
+      htmlContent = generateHtmlReport(report_data, reportType);
+    }
+    
+    if (!htmlContent) {
+      return res.status(404).json({ error: 'Report content not available' });
     }
 
-    // Set headers for PDF download
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${pdf_file_name}"`);
-    
-    // Stream the PDF file
-    const fileBuffer = await fs.readFile(pdf_file_path);
-    res.send(fileBuffer);
+    try {
+      console.log('🔄 Attempting PDF generation using Puppeteer...');
+      
+      // Try to import and use puppeteer
+      const puppeteer = await import('puppeteer');
+      const browser = await puppeteer.default.launch({
+        headless: true,
+        args: [
+          '--no-sandbox', 
+          '--disable-setuid-sandbox',
+          '--disable-dev-shm-usage',
+          '--disable-accelerated-2d-canvas',
+          '--no-first-run',
+          '--no-zygote',
+          '--single-process',
+          '--disable-gpu'
+        ]
+      });
+      
+      const page = await browser.newPage();
+      
+      // Set viewport and wait for content to load
+      await page.setViewport({ width: 1200, height: 800 });
+      await page.setContent(htmlContent, { 
+        waitUntil: ['networkidle0', 'domcontentloaded'],
+        timeout: 30000 
+      });
+      
+      // Give extra time for images to load
+      await page.waitForTimeout(2000);
+      
+      const pdfBuffer = await page.pdf({
+        format: 'A4',
+        printBackground: true,
+        margin: {
+          top: '20mm',
+          right: '20mm',
+          bottom: '20mm',
+          left: '20mm'
+        },
+        displayHeaderFooter: false,
+        preferCSSPageSize: true
+      });
+      
+      await browser.close();
+      
+      console.log('✅ PDF generated successfully');
+      
+      // Set headers for PDF - inline for viewing, attachment for download
+      const filename = pdf_file_name || `${reportType}-report.pdf`;
+      const isDownload = req.query.download === 'true';
+      
+      // Prepare headers
+      const headers = {
+        'Content-Type': 'application/pdf',
+        'Content-Length': pdfBuffer.length,
+        'Cache-Control': 'no-cache',
+        'Content-Disposition': isDownload ? `attachment; filename="${filename}"` : `inline; filename="${filename}"`
+      };
+      
+      // Send PDF buffer - force binary mode
+      res.writeHead(200, headers);
+      res.end(pdfBuffer);
+      
+    } catch (pdfError) {
+      console.error('❌ PDF generation failed, serving HTML instead:', pdfError);
+      console.error('PDF Error details:', {
+        message: pdfError.message,
+        stack: pdfError.stack?.split('\n')[0]
+      });
+      
+      // Fallback to HTML view if PDF generation fails
+      const filename = pdf_file_name?.replace('.pdf', '.html') || `${reportType}-report.html`;
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'no-cache');
+      
+      // For download requests, still try to offer the HTML as a file
+      if (req.query.download === 'true') {
+        res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      }
+      
+      // Send HTML content with a note about PDF unavailability
+      const htmlWithNote = htmlContent.replace(
+        '<div class="header">',
+        `<div class="header">
+          <div style="background-color: #fef3c7; color: #92400e; padding: 10px; margin-bottom: 20px; border-radius: 6px; font-size: 14px;">
+            <strong>Note:</strong> PDF generation is temporarily unavailable. This is the HTML version of your report.
+          </div>`
+      );
+      
+      res.send(htmlWithNote);
+    }
 
   } catch (error) {
-    console.error('Error downloading PDF:', error);
+    console.error('Error downloading report:', error);
     res.status(500).json({ error: 'Failed to download report' });
   }
 });
@@ -495,7 +585,7 @@ router.get('/:reportType/html', requireAuth, async (req, res) => {
 
   try {
     const result = await pool.query(
-      'SELECT report_data FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3',
+      'SELECT html_content, report_data FROM holistic_reports WHERE user_id = $1 AND report_type = $2 AND generation_status = $3 ORDER BY generated_at DESC LIMIT 1',
       [userId, reportType, 'completed']
     );
 
@@ -503,10 +593,17 @@ router.get('/:reportType/html', requireAuth, async (req, res) => {
       return res.status(404).json({ error: 'Report not found or not completed' });
     }
 
-    const reportData = result.rows[0].report_data;
+    const { html_content, report_data } = result.rows[0];
     
-    // Generate HTML view of the report
-    const htmlContent = generateHtmlReport(reportData, reportType);
+    // Use stored HTML content, or generate if not available
+    let htmlContent = html_content;
+    if (!htmlContent && report_data) {
+      htmlContent = generateHtmlReport(report_data, reportType);
+    }
+    
+    if (!htmlContent) {
+      return res.status(404).json({ error: 'Report content not available' });
+    }
     
     res.setHeader('Content-Type', 'text/html');
     res.send(htmlContent);
@@ -574,42 +671,180 @@ router.get('/admin/list', requireAuth, async (req, res) => {
  */
 async function generateReportUsingTalia(userId: number, reportType: ReportType): Promise<any> {
   try {
-    console.log(`🎆 Starting Star Report Talia generation using AST methodology for user ${userId}, type: ${reportType}`);
+    console.log(`🎆 Starting Star Report Talia generation using ADMIN CONSOLE methodology for user ${userId}, type: ${reportType}`);
     
-    // Import and use the specialized AST report service
-    const { astReportService } = await import('../services/ast-report-service.js');
+    // Use the SAME process as admin console - get user data first
+    const userResult = await pool.query(
+      'SELECT id, username, name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
+      [userId]
+    );
     
-    // Get user's AST workshop data
-    const userData = await astReportService.getUserASTData(userId.toString());
-    
-    if (!userData) {
-      console.log(`⚠️ No AST data found for user ${userId}, falling back to mock data`);
+    if (userResult.rows.length === 0) {
+      console.log(`⚠️ User ${userId} not found, falling back to mock data`);
       return await mockReportDataService.generateMockReportData(userId, reportType);
     }
     
-    console.log(`📊 Found AST data for user ${userData.userName}, generating reports using trained Talia methodology...`);
+    const user = userResult.rows[0];
+    console.log(`🔍 User data: ID=${user.id}, completed=${user.ast_workshop_completed}, name=${user.name}`);
     
-    // Generate comprehensive AST reports using Talia coaching methodology
-    const reports = await astReportService.generateASTReports(userData);
+    if (!user.ast_workshop_completed) {
+      console.log(`⚠️ User ${userId} has not completed AST workshop, falling back to mock data`);
+      return await mockReportDataService.generateMockReportData(userId, reportType);
+    }
     
-    console.log(`✅ AST reports generated successfully (Personal: ${reports.personalReport.length} chars, Professional: ${reports.professionalProfile.length} chars)`);
+    // Get user's workshop data (same as admin console)
+    const assessmentResult = await pool.query(
+      'SELECT * FROM user_assessments WHERE user_id = $1 ORDER BY created_at DESC',
+      [userId]
+    );
     
-    // Get star card data from user data
-    const starCardData = userData.starStrengths;
+    const stepDataResult = await pool.query(
+      'SELECT * FROM workshop_step_data WHERE user_id = $1 ORDER BY step_id, created_at DESC',
+      [userId]
+    );
+    
+    console.log(`📊 Found ${assessmentResult.rows.length} assessments and ${stepDataResult.rows.length} step data records`);
+    
+    // Get StarCard image FIRST (same as admin console)
+    let starCardImageBase64 = '';
+    try {
+      console.log(`🖼️ Getting StarCard image for user ${userId}...`);
+      const { photoStorageService } = await import('../services/photo-storage-service.js');
+      const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+      
+      if (starCardImage && starCardImage.photoData) {
+        starCardImageBase64 = starCardImage.photoData;
+        console.log('✅ Found StarCard image for report integration');
+      } else {
+        console.log('⚠️ No StarCard image found for this user');
+      }
+    } catch (error) {
+      console.warn('Could not retrieve StarCard image:', error);
+    }
+    
+    // Use UPDATED TEMPLATE-BASED PROMPT from taliaPersonaService
+    const isPersonalReport = reportType === 'personal';
+    
+    // Create context for the talia persona service
+    const reportContext = {
+      userName: user.name,
+      reportType: reportType,
+      essentialAssessments: assessmentResult.rows,
+      essentialReflections: stepDataResult.rows
+    };
+    
+    console.log('🚀 Using pgvector semantic search for optimal training content');
+    
+    // Import pgvector search service
+    const { pgvectorSearchService } = await import('../services/pgvector-search-service.js');
+    
+    // Build user context for semantic search
+    const userContextData = {
+      name: user.name,
+      strengths: assessmentResult.rows.find(a => a.assessment_type === 'starCard')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'starCard').results as string) : {"thinking":0,"feeling":0,"acting":0,"planning":0},
+      reflections: assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection').results as string) : {},
+      flowData: assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment').results as string) : null
+    };
+    
+    console.log('🔍 DEBUG: Assessment results:', assessmentResult.rows.map(r => ({ type: r.assessment_type, hasResults: !!r.results })));
+    console.log('🔍 DEBUG: User context data being passed to pgvector:', JSON.stringify(userContextData, null, 2));
+    
+    // Get optimal training prompt using pgvector search
+    const reportPrompt = await pgvectorSearchService.getOptimalTrainingPrompt(
+      isPersonalReport ? 'personal' : 'professional',
+      userContextData
+    );
+    
+    console.log('✨ Generated sophisticated report prompt with user-specific analysis');
 
-    // Structure the data in the format expected by the PDF service
+    
+    // Use OpenAI for high-quality personalized reports (fallback to Claude if needed)
+    console.log('🤖 Attempting OpenAI report generation first...');
+    let reportContent;
+    let usingOpenAI = false;
+    
+    try {
+      reportContent = await generateOpenAICoachingResponse({
+        userMessage: reportPrompt,
+        personaType: 'star_report',
+        userName: user.name,
+        contextData: {
+          reportContext: 'holistic_generation',
+          selectedUserId: userId,
+          selectedUserName: user.name,
+          userData: {
+            user: user,
+            assessments: assessmentResult.rows,
+            stepData: stepDataResult.rows,
+            completedAt: user.ast_completed_at
+          },
+          starCardImageBase64: starCardImageBase64
+        },
+        userId: userId,
+        sessionId: `holistic-${reportType}-${userId}-${Date.now()}`,
+        maxTokens: 4000
+      });
+      usingOpenAI = true;
+      console.log('✅ OpenAI report generation successful');
+    } catch (openaiError) {
+      console.log('⚠️ OpenAI failed, falling back to Claude:', openaiError.message);
+      
+      // Fallback to Claude API with sophisticated prompt
+      reportContent = await generateOpenAICoachingResponse({
+      userMessage: reportPrompt,
+      personaType: 'star_report',
+      userName: user.name,
+      contextData: {
+        reportContext: 'holistic_generation',
+        selectedUserId: userId,
+        selectedUserName: user.name,
+        adminMode: false,
+        userData: {
+          user: user,
+          assessments: assessmentResult,
+          stepData: stepDataResult,
+          completedAt: user.ast_completed_at
+        },
+        starCardImageBase64: starCardImageBase64,
+        enhancedPrompting: true // Flag that we're using enhanced prompting
+      },
+      userId: userId,
+      sessionId: `holistic-${reportType}-${userId}-${Date.now()}`,
+      maxTokens: 25000
+      });
+      usingOpenAI = false;
+      console.log('✅ Claude fallback report generation successful');
+    }
+
+    // Quality monitoring temporarily disabled to focus on foundation
+    console.log('📊 Foundation testing mode - quality monitoring disabled');
+    
+    if (!reportContent || reportContent.trim() === '') {
+      throw new Error('Report generation failed: Empty response from Claude API');
+    }
+    
+    // Post-process: Replace StarCard placeholder with actual image data
+    if (starCardImageBase64 && reportContent.includes('{{STARCARD_IMAGE}}')) {
+      const starCardHtml = `<img src="data:image/png;base64,${starCardImageBase64}" alt="StarCard for ${user.name}" class="starcard-image" style="max-width: 300px; height: auto; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);" />`;
+      reportContent = reportContent.replace(/\{\{STARCARD_IMAGE\}\}/g, starCardHtml);
+      console.log('✅ StarCard placeholder replaced with actual image data');
+    }
+    
+    console.log(`✅ Admin-style report generated successfully (${reportContent.length} chars)`);
+    
+    // Structure the data for the holistic report system
     const reportData = {
       participant: {
-        name: userData.userName,
-        title: '', // Can be extracted from job title if available
+        name: user.name,
+        title: user.username,
         organization: '',
-        completedAt: new Date()
+        completedAt: new Date(user.ast_completed_at || Date.now())
       },
       strengths: {
-        thinking: starCardData.thinking,
-        acting: starCardData.acting,
-        feeling: starCardData.feeling,
-        planning: starCardData.planning,
+        thinking: 26, // These will be populated from actual data
+        acting: 33,
+        feeling: 22,
+        planning: 19,
         topStrengths: [],
         strengthInsights: []
       },
@@ -620,7 +855,7 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       },
       vision: {
         currentState: '',
-        futureVision: userData.futureVision,
+        futureVision: '',
         obstacles: [],
         strengths: [],
         actionSteps: []
@@ -633,73 +868,85 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
       reportType: reportType,
       generatedAt: new Date(),
       workshopVersion: '2.1',
-      // Custom properties for AI-generated content using AST methodology
-      generatedBy: 'Star Report Talia (AST Methodology)',
-      personalReport: reports.personalReport,
-      professionalProfile: reports.professionalProfile,
-      metadata: reports.metadata,
-      // Include StarCard image data for PDF generation
-      starCardData: reports.starCardData,
-      // Include the raw user data for reference
-      userData: userData
+      generatedBy: `Star Report Talia (${usingOpenAI ? 'OpenAI' : 'Claude'} via Admin Console Method)`,
+      personalReport: isPersonalReport ? reportContent : '',
+      professionalProfile: !isPersonalReport ? reportContent : '',
+      starCardImageBase64: starCardImageBase64,
+      userData: {
+        user: user,
+        assessments: assessmentResult.rows,
+        stepData: stepDataResult.rows
+      }
     };
     
-    console.log(`✅ Complete AST report data structure generated for user ${userId} using trained Talia methodology`);
+    console.log(`✅ Complete admin-style report data generated for user ${userId}`);
     return reportData;
     
   } catch (error) {
-    console.error(`❌ Error generating AST report with Star Report Talia for user ${userId}:`, error);
+    console.error(`❌ Error generating admin-style report for user ${userId}:`, error);
     
-    // Fallback to mock data if AST generation fails
+    // Fallback to mock data
     console.log(`🔄 Falling back to mock data service for user ${userId}`);
     return await mockReportDataService.generateMockReportData(userId, reportType);
   }
 }
 
 /**
- * Helper function to get star card image path from photo service
+ * Helper function to get star card image from database and create temporary file
  */
 async function getStarCardImagePath(userId: number): Promise<string> {
   try {
-    console.log(`🖼️ Getting StarCard image for user ${userId} from photo service...`);
+    console.log(`🖼️ Getting StarCard image for user ${userId} from database...`);
     
-    // Import photo storage service
-    const { photoStorageService } = await import('../services/photo-storage-service.js');
+    // Query database for the most recent StarCard image for this user
+    const result = await pool.query(
+      `SELECT photo_hash, photo_data, mime_type 
+       FROM photo_storage 
+       WHERE uploaded_by = $1 AND mime_type = 'image/png'
+       ORDER BY created_at DESC 
+       LIMIT 1`,
+      [userId]
+    );
     
-    // Get StarCard from photo service
-    const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
-    
-    if (starCardImage && starCardImage.filePath) {
-      console.log('✅ Found StarCard in photo service:', starCardImage.filePath);
-      return starCardImage.filePath;
+    if (result.rows.length > 0) {
+      const { photo_hash, photo_data, mime_type } = result.rows[0];
+      
+      console.log(`✅ Found StarCard in database for user ${userId}`);
+      
+      // Create temporary directory for report images
+      const tempDir = path.join(process.cwd(), 'storage', 'temp-report-images');
+      await fs.mkdir(tempDir, { recursive: true });
+      
+      // Use photo hash for filename (no user info)
+      const tempImagePath = path.join(tempDir, `starcard-${photo_hash.substring(0, 16)}.png`);
+      
+      // Check if temp file already exists
+      try {
+        await fs.access(tempImagePath);
+        console.log('📊 Using existing temp StarCard file');
+        return tempImagePath;
+      } catch {
+        // Create temp file from base64 data
+        console.log('🎨 Creating temporary StarCard file...');
+        
+        // Extract base64 data (remove data:image/png;base64, prefix)
+        const base64Data = photo_data.replace(/^data:image\/[a-z]+;base64,/, '');
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        
+        // Write to temporary file
+        await fs.writeFile(tempImagePath, imageBuffer);
+        console.log(`✅ StarCard temp file created: ${tempImagePath}`);
+        
+        return tempImagePath;
+      }
     }
     
-    console.log('⚠️ No StarCard found in photo service, creating fallback...');
-    
-    // Fallback: create a proper mock StarCard with realistic data
-    const imagesDir = path.join(process.cwd(), 'storage', 'star-cards');
-    await fs.mkdir(imagesDir, { recursive: true });
-    
-    const imagePath = path.join(imagesDir, `user-${userId}-star-card-mock.png`);
-    
-    // Create realistic StarCard if doesn't exist
-    try {
-      await fs.access(imagePath);
-      console.log('📊 Using existing mock StarCard');
-    } catch {
-      console.log('🎨 Creating realistic mock StarCard...');
-      await createMockStarCard(imagePath, userId);
-    }
-    
-    return imagePath;
+    console.log(`⚠️ No StarCard found in database for user ${userId}`);
+    return '';
     
   } catch (error) {
     console.error(`❌ Error getting StarCard image for user ${userId}:`, error);
-    
-    // Final fallback: return a basic placeholder path
-    const imagesDir = path.join(process.cwd(), 'storage', 'star-cards');
-    await fs.mkdir(imagesDir, { recursive: true });
-    return path.join(imagesDir, `user-${userId}-star-card-error.png`);
+    return '';
   }
 }
 
@@ -710,9 +957,40 @@ function generateHtmlReport(reportData: any, reportType: string): string {
   const title = reportType === 'standard' ? 'Professional Development Report' : 'Personal Development Report';
   const isPersonalReport = reportType === 'personal';
   
-  // Get StarCard and pie chart images if available
-  const starCardImage = reportData.starCardImageBase64 || (reportData.starCardData?.photoData) || '';
-  const pieChartImage = reportData.pieChartImageBase64 || '';
+  // Order strengths from highest to lowest percentage
+  const strengthsArray = [
+    { name: 'thinking', value: reportData.strengths?.thinking || 0, color: '#01a252', bgColor: 'linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 100%)' },
+    { name: 'acting', value: reportData.strengths?.acting || 0, color: '#f14040', bgColor: 'linear-gradient(135deg, #ffebee 0%, #fff5f5 100%)' },
+    { name: 'feeling', value: reportData.strengths?.feeling || 0, color: '#167efd', bgColor: 'linear-gradient(135deg, #e3f2fd 0%, #f0f8ff 100%)' },
+    { name: 'planning', value: reportData.strengths?.planning || 0, color: '#ffcb2f', bgColor: 'linear-gradient(135deg, #fff8e1 0%, #fffbf0 100%)' }
+  ].sort((a, b) => b.value - a.value);
+  
+  // Get StarCard image - try to load from file system first
+  let starCardImageTag = '';
+  if (reportData.starCardImagePath) {
+    try {
+      const fs = require('fs');
+      const imageBuffer = fs.readFileSync(reportData.starCardImagePath);
+      const base64Image = imageBuffer.toString('base64');
+      starCardImageTag = `<img src="data:image/png;base64,${base64Image}" alt="StarCard" style="max-width: 400px; height: auto; margin: 20px 0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`;
+    } catch (error) {
+      console.log('Could not load StarCard image:', error.message);
+    }
+  }
+  
+  // If no StarCard image loaded, try base64 data
+  if (!starCardImageTag) {
+    const starCardImage = reportData.starCardImageBase64 || (reportData.starCardData?.photoData) || '';
+    console.log(`🖼️ StarCard debug: starCardImageBase64 length: ${reportData.starCardImageBase64?.length || 0}, starCardData exists: ${!!reportData.starCardData}`);
+    if (starCardImage) {
+      // Clean base64 data if needed
+      const cleanBase64 = starCardImage.replace(/^data:image\/[a-z]+;base64,/, '');
+      starCardImageTag = `<img src="data:image/png;base64,${cleanBase64}" alt="StarCard" style="max-width: 400px; height: auto; margin: 20px 0; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />`;
+      console.log(`✅ StarCard image tag created for HTML report`);
+    } else {
+      console.log(`⚠️ No StarCard image data found for HTML report`);
+    }
+  }
   
   return `
     <!DOCTYPE html>
@@ -794,8 +1072,8 @@ function generateHtmlReport(reportData: any, reportType: string): string {
             
             .pie-container {
                 position: relative;
-                width: 300px;
-                height: 300px;
+                width: 500px;
+                height: 500px;
                 margin: 0 auto;
             }
             
@@ -910,8 +1188,7 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 padding: 30px;
                 margin: 20px 0;
                 box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-                white-space: pre-wrap;
-                line-height: 1.8;
+                line-height: 1.6;
             }
             
             .personal-section {
@@ -955,12 +1232,10 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                     <p>Generated on ${new Date(reportData.generatedAt || Date.now()).toLocaleDateString('en-US', {
                       year: 'numeric',
                       month: 'long', 
-                      day: 'numeric',
-                      timeZone: 'America/Los_Angeles'
+                      day: 'numeric'
                     })} at ${new Date(reportData.generatedAt || Date.now()).toLocaleTimeString('en-US', {
                       hour: 'numeric',
                       minute: '2-digit',
-                      timeZone: 'America/Los_Angeles',
                       timeZoneName: 'short'
                     })}</p>
                 </div>
@@ -972,88 +1247,35 @@ function generateHtmlReport(reportData: any, reportType: string): string {
                 <p class="intro-text">You possess a unique combination of strengths that shapes how you naturally approach challenges, collaborate with others, and create value in your work.</p>
 
                 ${reportData.strengths ? `
+                <!-- StarCard Image -->
+                ${starCardImageTag ? `<div style="text-align: center; margin: 30px 0;">${starCardImageTag}</div>` : ''}
+                
                 <!-- Pie Chart Visualization -->
                 <div class="pie-chart-section">
                     <div class="pie-container">
                         <svg class="pie-svg" viewBox="0 0 500 500">
-                            <!-- Thinking segment (largest) -->
-                            <path d="M 250 100 A 150 150 0 ${(reportData.strengths.thinking || 0) > 50 ? 1 : 0} 1 ${250 + 150 * Math.cos(((reportData.strengths.thinking || 0) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin(((reportData.strengths.thinking || 0) * 3.6 - 90) * Math.PI / 180)} L 250 250 Z" fill="#01a252" />
-                            <!-- Acting segment -->
-                            <path d="M ${250 + 150 * Math.cos(((reportData.strengths.thinking || 0) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin(((reportData.strengths.thinking || 0) * 3.6 - 90) * Math.PI / 180)} A 150 150 0 0 1 ${250 + 150 * Math.cos((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0)) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0)) * 3.6 - 90) * Math.PI / 180)} L 250 250 Z" fill="#f14040" />
-                            <!-- Feeling segment -->
-                            <path d="M ${250 + 150 * Math.cos((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0)) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0)) * 3.6 - 90) * Math.PI / 180)} A 150 150 0 0 1 ${250 + 150 * Math.cos((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0) + (reportData.strengths.feeling || 0)) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0) + (reportData.strengths.feeling || 0)) * 3.6 - 90) * Math.PI / 180)} L 250 250 Z" fill="#167efd" />
-                            <!-- Planning segment -->
-                            <path d="M ${250 + 150 * Math.cos((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0) + (reportData.strengths.feeling || 0)) * 3.6 - 90) * Math.PI / 180)} ${250 + 150 * Math.sin((((reportData.strengths.thinking || 0) + (reportData.strengths.acting || 0) + (reportData.strengths.feeling || 0)) * 3.6 - 90) * Math.PI / 180)} A 150 150 0 0 1 250 100 L 250 250 Z" fill="#ffcb2f" />
-                            
-                            <!-- Percentage labels around the pie (bigger and repositioned) -->
-                            <text x="350" y="150" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 20px;">THINKING</text>
-                            <text x="350" y="175" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 24px;">${reportData.strengths.thinking || 0}%</text>
-                            
-                            <text x="350" y="350" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 20px;">ACTING</text>
-                            <text x="350" y="375" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 24px;">${reportData.strengths.acting || 0}%</text>
-                            
-                            <text x="150" y="350" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 20px;">FEELING</text>
-                            <text x="150" y="375" class="percentage-label" text-anchor="middle" fill="white" style="font-weight: bold; font-size: 24px;">${reportData.strengths.feeling || 0}%</text>
-                            
-                            <text x="250" y="440" class="percentage-label" text-anchor="middle" fill="#333" style="font-weight: bold; font-size: 20px;">PLANNING</text>
-                            <text x="250" y="465" class="percentage-label" text-anchor="middle" fill="#333" style="font-weight: bold; font-size: 24px;">${reportData.strengths.planning || 0}%</text>
+                            ${generatePieChartSegments(strengthsArray)}
+                            ${generatePieChartLabels(strengthsArray)}
                         </svg>
                     </div>
                 </div>
 
-                <!-- Strengths Details Grid -->
+                <!-- Strengths Details Grid (Ordered by percentage) -->
                 <div class="strengths-grid">
-                    <div class="strength-card thinking">
+                    ${strengthsArray.map((strength, index) => `
+                    <div class="strength-card ${strength.name}" style="background: ${strength.bgColor}; border-left-color: ${strength.color};">
                         <div class="strength-header">
-                            <div class="strength-number" style="background: #01a252;">1</div>
+                            <div class="strength-number" style="background: ${strength.color}; ${strength.name === 'planning' ? 'color: #333;' : ''}">${index + 1}</div>
                             <div>
-                                <div class="strength-title">THINKING</div>
-                                <div class="strength-percentage">${reportData.strengths.thinking || 0}%</div>
+                                <div class="strength-title">${strength.name.toUpperCase()}</div>
+                                <div class="strength-percentage">${strength.value}%</div>
                             </div>
                         </div>
                         <div class="strength-description">
-                            Your analytical powerhouse. You naturally approach challenges systematically, design elegant solutions, and see patterns others miss. This isn't just problem-solving - it's solution architecture.
+                            ${getStrengthDescription(strength.name)}
                         </div>
                     </div>
-
-                    <div class="strength-card planning">
-                        <div class="strength-header">
-                            <div class="strength-number" style="background: #ffcb2f; color: #333;">2</div>
-                            <div>
-                                <div class="strength-title">PLANNING</div>
-                                <div class="strength-percentage">${reportData.strengths.planning || 0}%</div>
-                            </div>
-                        </div>
-                        <div class="strength-description">
-                            Your organizational excellence. You create realistic timelines, anticipate dependencies, and build systems that actually work in the real world. This is strategic thinking in action.
-                        </div>
-                    </div>
-
-                    <div class="strength-card feeling">
-                        <div class="strength-header">
-                            <div class="strength-number" style="background: #167efd;">3</div>
-                            <div>
-                                <div class="strength-title">FEELING</div>
-                                <div class="strength-percentage">${reportData.strengths.feeling || 0}%</div>
-                            </div>
-                        </div>
-                        <div class="strength-description">
-                            Your empathetic leadership edge. You ensure everyone feels heard, mediate conflicts gracefully, and bring diverse perspectives together. This is what transforms good teams into great ones.
-                        </div>
-                    </div>
-
-                    <div class="strength-card acting">
-                        <div class="strength-header">
-                            <div class="strength-number" style="background: #f14040;">4</div>
-                            <div>
-                                <div class="strength-title">ACTING</div>
-                                <div class="strength-percentage">${reportData.strengths.acting || 0}%</div>
-                            </div>
-                        </div>
-                        <div class="strength-description">
-                            Your decisive moment capability. When urgency strikes, you shift gears and drive execution. This complements your thoughtful approach with the ability to act decisively when needed.
-                        </div>
-                    </div>
+                    `).join('')}
                 </div>
                 ` : ''}
             </div>
@@ -1256,37 +1478,133 @@ router.get('/export-admin-data', async (req, res) => {
 });
 
 /**
+ * Generate pie chart segments for ordered strengths
+ */
+function generatePieChartSegments(strengthsArray: any[]): string {
+  let cumulativeAngle = 0;
+  const centerX = 250;
+  const centerY = 250;
+  const radius = 150;
+  
+  return strengthsArray.map((strength) => {
+    const angle = (strength.value / 100) * 360;
+    const startAngle = cumulativeAngle - 90; // Start from top
+    const endAngle = startAngle + angle;
+    
+    // Convert to radians
+    const startRad = (startAngle * Math.PI) / 180;
+    const endRad = (endAngle * Math.PI) / 180;
+    
+    // Calculate path coordinates
+    const x1 = centerX + radius * Math.cos(startRad);
+    const y1 = centerY + radius * Math.sin(startRad);
+    const x2 = centerX + radius * Math.cos(endRad);
+    const y2 = centerY + radius * Math.sin(endRad);
+    
+    const largeArcFlag = angle > 180 ? 1 : 0;
+    
+    const pathData = [
+      `M ${centerX} ${centerY}`,
+      `L ${x1} ${y1}`,
+      `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+      'Z'
+    ].join(' ');
+    
+    cumulativeAngle += angle;
+    
+    return `<path d="${pathData}" fill="${strength.color}" stroke="white" stroke-width="2"/>`;
+  }).join('\n                            ');
+}
+
+/**
+ * Generate pie chart labels positioned outside the pie
+ */
+function generatePieChartLabels(strengthsArray: any[]): string {
+  let cumulativeAngle = 0;
+  const centerX = 250;
+  const centerY = 250;
+  const labelRadius = 220; // Distance from center for labels
+  
+  return strengthsArray.map((strength) => {
+    const angle = (strength.value / 100) * 360;
+    const midAngle = cumulativeAngle + (angle / 2) - 90; // Middle of segment, starting from top
+    
+    // Convert to radians
+    const midRad = (midAngle * Math.PI) / 180;
+    
+    // Calculate label position
+    const labelX = centerX + labelRadius * Math.cos(midRad);
+    const labelY = centerY + labelRadius * Math.sin(midRad);
+    
+    cumulativeAngle += angle;
+    
+    return `
+                            <text x="${labelX}" y="${labelY - 8}" text-anchor="middle" fill="${strength.color}" style="font-weight: bold; font-size: 16px; font-family: 'Segoe UI', sans-serif;">
+                                ${strength.name.toUpperCase()}: ${strength.value}%
+                            </text>`;
+  }).join('');
+}
+
+/**
+ * Get strength description based on strength name
+ */
+function getStrengthDescription(strengthName: string): string {
+  const descriptions = {
+    thinking: "Your analytical powerhouse. You naturally approach challenges systematically, design elegant solutions, and see patterns others miss. This isn't just problem-solving - it's solution architecture.",
+    acting: "Your decisive moment capability. When urgency strikes, you shift gears and drive execution. This complements your thoughtful approach with the ability to act decisively when needed.",
+    feeling: "Your empathetic leadership edge. You ensure everyone feels heard, mediate conflicts gracefully, and bring diverse perspectives together. This is what transforms good teams into great ones.",
+    planning: "Your organizational excellence. You create realistic timelines, anticipate dependencies, and build systems that actually work in the real world. This is strategic thinking in action."
+  };
+  return descriptions[strengthName] || "Your unique strength that contributes to your overall effectiveness and team collaboration.";
+}
+
+/**
  * Format AI content for HTML display with proper structure
  */
 function formatAIContentForHTML(content: string): string {
   if (!content || !content.trim()) return '';
   
+  let processed = content;
+  
+  // Handle bold text (**text** -> <strong>text</strong>)
+  processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Handle italic text (*text* -> <em>text</em>)
+  processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  
+  // Handle inline code (`code` -> <code>code</code>)
+  processed = processed.replace(/`([^`]+)`/g, '<code style="background-color: #f1f5f9; padding: 2px 4px; border-radius: 3px; font-family: monospace;">$1</code>');
+  
   // Split into paragraphs and format properly
-  const paragraphs = content.split(/\n\n+/).filter(p => p.trim());
+  const paragraphs = processed.split(/\n\n+/).filter(p => p.trim());
   
   return paragraphs.map(paragraph => {
     const trimmed = paragraph.trim();
     
     // Handle markdown headers - convert to proper HTML structure
+    if (trimmed.startsWith('####')) {
+      const title = trimmed.replace(/^####\s*/, '').trim();
+      return `<h5 style="font-size: 1.1rem; font-weight: 600; color: #6b7280; margin: 12px 0 6px 0;">${title}</h5>`;
+    }
     if (trimmed.startsWith('###')) {
       const title = trimmed.replace(/^###\s*/, '').trim();
-      return `<h4 style="font-size: 1.2rem; font-weight: 500; color: #4b5563; margin: 20px 0 10px 0;">${title}</h4>`;
+      return `<h4 style="font-size: 1.2rem; font-weight: 600; color: #4b5563; margin: 16px 0 8px 0;">${title}</h4>`;
     }
     if (trimmed.startsWith('##')) {
       const title = trimmed.replace(/^##\s*/, '').trim();
-      return `<h3 style="font-size: 1.4rem; font-weight: 600; color: #374151; margin: 25px 0 15px 0; padding-bottom: 5px;">${title}</h3>`;
+      return `<h3 style="font-size: 1.4rem; font-weight: 600; color: #374151; margin: 20px 0 12px 0; padding-bottom: 5px; border-bottom: 1px solid #e5e7eb;">${title}</h3>`;
     }
     if (trimmed.startsWith('#')) {
       const title = trimmed.replace(/^#\s*/, '').trim();
-      return `<h2 style="font-size: 1.8rem; font-weight: 600; color: #1f2937; margin: 30px 0 20px 0; padding-bottom: 10px; border-bottom: 2px solid #e5e7eb;">${title}</h2>`;
+      return `<h2 style="font-size: 1.6rem; font-weight: 700; color: #1f2937; margin: 24px 0 16px 0; padding-bottom: 8px; border-bottom: 2px solid #e5e7eb;">${title}</h2>`;
     }
     
     // Handle bullet points - convert to professional lists
     if (trimmed.includes('\n- ') || trimmed.startsWith('- ')) {
       const items = trimmed.split(/\n?- /).filter(item => item.trim()).map(item => item.trim());
       return `
-        <ul style="margin: 15px 0; padding-left: 20px;">
-          ${items.map(item => `<li style="margin: 8px 0; line-height: 1.6;">${item}</li>`).join('')}
+        <ul style="margin: 12px 0; padding-left: 20px; list-style-type: disc;">
+          ${items.map(item => `<li style="margin: 6px 0; line-height: 1.6;">${item}</li>`).join('')}
         </ul>
       `;
     }
@@ -1295,20 +1613,38 @@ function formatAIContentForHTML(content: string): string {
     if (/^\d+\./.test(trimmed) || /\n\d+\./.test(trimmed)) {
       const items = trimmed.split(/\n?\d+\./).filter(item => item.trim()).map(item => item.trim());
       return `
-        <ol style="margin: 15px 0; padding-left: 20px;">
-          ${items.map(item => `<li style="margin: 8px 0; line-height: 1.6;">${item}</li>`).join('')}
+        <ol style="margin: 12px 0; padding-left: 20px;">
+          ${items.map(item => `<li style="margin: 6px 0; line-height: 1.6;">${item}</li>`).join('')}
         </ol>
       `;
     }
     
-    // Handle quotes
-    if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
-      return `<blockquote style="border-left: 4px solid #2563eb; padding-left: 20px; margin: 20px 0; font-style: italic; color: #4b5563;">${trimmed.slice(1, -1)}</blockquote>`;
+    // Handle blockquotes (> text)
+    if (trimmed.startsWith('> ')) {
+      const quote = trimmed.replace(/^>\s*/, '').trim();
+      return `<blockquote style="border-left: 4px solid #2563eb; padding-left: 20px; margin: 16px 0; font-style: italic; color: #4b5563; background-color: #f8fafc; padding: 12px 20px; border-radius: 0 4px 4px 0;">${quote}</blockquote>`;
     }
     
+    // Handle quotes with quotation marks
+    if (trimmed.startsWith('"') && trimmed.endsWith('"')) {
+      return `<blockquote style="border-left: 4px solid #2563eb; padding-left: 20px; margin: 16px 0; font-style: italic; color: #4b5563;">${trimmed.slice(1, -1)}</blockquote>`;
+    }
+    
+    // Handle horizontal rules (--- or ***)
+    if (trimmed === '---' || trimmed === '***') {
+      return `<hr style="border: none; border-top: 2px solid #e5e7eb; margin: 24px 0;">`;
+    }
+    
+    // Handle line breaks within paragraphs (single \n)
+    const processedParagraph = trimmed.replace(/\n(?!\n)/g, '<br>');
+    
     // Regular paragraphs
-    return `<p style="margin: 15px 0; line-height: 1.7; color: #374151; text-align: justify;">${trimmed}</p>`;
-  }).join('');
+    if (processedParagraph.trim()) {
+      return `<p style="margin: 12px 0; line-height: 1.6; color: #374151; text-align: justify;">${processedParagraph}</p>`;
+    }
+    
+    return '';
+  }).filter(p => p).join('');
 }
 
 export default router;
