@@ -17,7 +17,7 @@ interface ReflectionAreaStatus {
  */
 export async function checkReflectionAreaStatus(areaId: string): Promise<ReflectionAreaStatus | null> {
   try {
-    const response = await fetch(`/api/admin/ai/reflection-areas/${areaId}/status`, {
+    const response = await fetch(`/api/coaching/reflection-area/${areaId}/status`, {
       credentials: 'include'
     });
 

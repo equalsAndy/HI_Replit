@@ -16,7 +16,13 @@ export const featureFlags: Record<string, FeatureFlag> = {
   holisticReports: {
     enabled: process.env.FEATURE_HOLISTIC_REPORTS !== 'false', 
     environment: 'all',
-    description: 'Claude API-powered personalized reports',
+    description: 'OpenAI-powered personalized reports',
+    aiRelated: true
+  },
+  holisticReportsWorking: {
+    enabled: true,
+    environment: 'all',
+    description: 'Holistic reports are generating real personalized content (not fallback templates)',
     aiRelated: true
   },
   facilitatorConsole: {

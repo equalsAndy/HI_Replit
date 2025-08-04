@@ -130,6 +130,7 @@ export class TaliaTrainingService {
     try {
       // Use Claude API for intelligent training responses
       const { generateClaudeCoachingResponse } = await import('./claude-api-service.js');
+      const { textSearchService } = await import('./text-search-service.js');
       
       // Build context from conversation history
       const conversationHistory = session.conversationHistory
@@ -137,7 +138,20 @@ export class TaliaTrainingService {
         .map(msg => `${msg.role}: ${msg.content}`)
         .join('\n');
       
-      // Special training prompt for Talia
+      // Get relevant training context from documents
+      const contextQueries = [
+        'talia coaching methodology training guidelines',
+        'coaching behavior and approach',
+        'training feedback and improvement'
+      ];
+
+      const trainingContext = await textSearchService.generateContextForAI(contextQueries, {
+        maxChunksPerQuery: 2,
+        contextStyle: 'detailed',
+        documentTypes: ['coaching_guide', 'methodology']
+      });
+      
+      // Special training prompt for Talia with document context
       const trainingPrompt = `You are Talia in TRAINING MODE. Your job is to:
 
 1. LISTEN CAREFULLY to the feedback being given
@@ -145,11 +159,17 @@ export class TaliaTrainingService {
 3. ASK CLARIFYING QUESTIONS to understand exactly what behavior changes are wanted
 4. BE CONVERSATIONAL and engaged, not robotic
 5. ACKNOWLEDGE specific feedback with understanding
+6. REFERENCE your training documents when relevant to show you understand your role
+
+TRAINING CONTEXT FROM YOUR DOCUMENTS:
+${trainingContext.context}
 
 Current conversation:
 ${conversationHistory}
 
 Latest user message: "${userMessage}"
+
+IMPORTANT: You have access to your training documents and should reference them to show understanding of your role and methodology. When discussing your behavior or approach, draw from the training materials to demonstrate your knowledge.
 
 If the user asks "what was my feedback?" or similar, SUMMARIZE the specific feedback they gave you.
 If they're giving you new feedback, ACKNOWLEDGE it specifically and ask clarifying questions.
@@ -320,7 +340,8 @@ This training will now be part of my permanent knowledge and will help me provid
   async getTrainingContextForPrompt(personaId: string): Promise<string> {
     const trainingData = await this.loadTrainingData(personaId);
     
-    if (!trainingData || !trainingData.trainingSessions.length) {
+    // Check if training is disabled
+    if (!trainingData || !trainingData.trainingSessions.length || trainingData.enabled === false) {
       return '';
     }
 
@@ -350,6 +371,172 @@ Apply this training context to improve your coaching responses.`;
 
     await this.saveTrainingData(personaId, context);
     console.log(`✅ Admin training added for persona ${personaId} by user ${adminUserId}`);
+  }
+
+  /**
+   * Get comprehensive training conversation history for admin review
+   */
+  async getTrainingConversationHistory(personaId: string): Promise<string> {
+    const trainingData = await this.loadTrainingData(personaId);
+    
+    if (!trainingData || !trainingData.trainingSessions.length) {
+      return `# Training Conversation History for ${personaId}
+
+## Status
+No training conversations have been recorded yet for this persona.
+
+## Getting Started
+- Use the TRAIN command during conversations to start a training session
+- Training sessions capture feedback, behavior changes, and coaching improvements
+- All training is automatically saved and becomes part of Talia's knowledge base
+
+## Available Training Commands
+- **TRAIN** - Enter training mode to provide feedback and coaching improvements
+- Training sessions end when you say "done", "finished", or "exit"`;
+    }
+
+    // Generate comprehensive training history document
+    const totalSessions = trainingData.trainingSessions.length;
+    const totalGuidelines = trainingData.guidelines.length;
+    const lastUpdated = trainingData.lastUpdated;
+
+    let historyDoc = `# Training Conversation History for ${personaId}
+
+## Overview
+- **Total Training Sessions:** ${totalSessions}
+- **Total Guidelines Generated:** ${totalGuidelines}
+- **Last Updated:** ${new Date(lastUpdated).toLocaleString()}
+
+## Recent Training Sessions
+`;
+
+    // Show last 10 training sessions with details
+    const recentSessions = trainingData.trainingSessions.slice(-10).reverse();
+    recentSessions.forEach((session, index) => {
+      historyDoc += `
+### Session ${totalSessions - index} - ${new Date(session.timestamp).toLocaleDateString()}
+**Topic:** ${session.topic}
+**Desired Behavior Changes:** ${session.desiredBehavior}
+**Guidelines Added:** ${session.guidelines.length}
+**Examples Provided:** ${session.examples.length}
+
+**Key Guidelines:**
+${session.guidelines.map((g, i) => `${i + 1}. ${g}`).join('\n')}
+
+**Training Examples:**
+${session.examples.map((e, i) => `${i + 1}. "${e.substring(0, 200)}${e.length > 200 ? '...' : ''}"`).join('\n')}
+
+---
+`;
+    });
+
+    // Add accumulated guidelines section
+    historyDoc += `
+## All Current Guidelines
+These are the accumulated guidelines from all training sessions:
+
+${trainingData.guidelines.slice(-20).map((g, i) => `${i + 1}. ${g}`).join('\n')}
+
+## Training Impact
+This training data is automatically integrated into Talia's responses to:
+- Improve coaching approach and techniques
+- Provide more personalized and effective guidance
+- Apply learned behaviors consistently across conversations
+- Reference specific feedback and improvements made
+
+## Usage in Reports
+Training conversations directly influence:
+- Holistic report generation quality and tone
+- Coaching methodology application
+- Personalization of insights and recommendations
+- Response to user-specific needs and preferences
+`;
+
+    return historyDoc;
+  }
+
+  /**
+   * Get training influence on holistic reports
+   */
+  async getTrainingInfluenceOnReports(personaId: string): Promise<string> {
+    const trainingData = await this.loadTrainingData(personaId);
+    
+    if (!trainingData || !trainingData.trainingSessions.length) {
+      return `## Training Influence on Reports
+
+Currently, no specific training has been recorded for ${personaId}. Reports will use:
+- Base coaching methodology from training documents
+- Standard AllStarTeams framework
+- Default report templates and structures
+
+**To improve report quality through training:**
+1. Use the TRAIN command to provide feedback on report content
+2. Discuss specific improvements needed in report tone or focus
+3. Provide examples of preferred coaching language and approach
+4. Training will automatically be applied to future report generation`;
+    }
+
+    // Analyze training data for report-relevant insights
+    const reportRelevantSessions = trainingData.trainingSessions.filter(session => 
+      session.topic.toLowerCase().includes('report') || 
+      session.desiredBehavior.toLowerCase().includes('report') ||
+      session.desiredBehavior.toLowerCase().includes('coaching') ||
+      session.desiredBehavior.toLowerCase().includes('analysis')
+    );
+
+    const reportGuidelines = trainingData.guidelines.filter(guideline =>
+      guideline.toLowerCase().includes('report') ||
+      guideline.toLowerCase().includes('analysis') ||
+      guideline.toLowerCase().includes('insight') ||
+      guideline.toLowerCase().includes('recommendation')
+    );
+
+    let influenceDoc = `## Training Influence on Holistic Reports
+
+### Current Training Impact
+- **Total Training Sessions:** ${trainingData.trainingSessions.length}
+- **Report-Specific Training:** ${reportRelevantSessions.length} sessions
+- **Report-Related Guidelines:** ${reportGuidelines.length}
+- **Last Training Update:** ${new Date(trainingData.lastUpdated).toLocaleDateString()}
+
+### Report-Specific Training Applied
+`;
+
+    if (reportRelevantSessions.length > 0) {
+      reportRelevantSessions.forEach((session, index) => {
+        influenceDoc += `
+**Training Session ${index + 1}:** ${session.topic}
+- Focus: ${session.desiredBehavior.substring(0, 150)}...
+- Guidelines: ${session.guidelines.join('; ')}
+`;
+      });
+    } else {
+      influenceDoc += `
+*No report-specific training sessions yet. General coaching training is still applied.*
+`;
+    }
+
+    influenceDoc += `
+### Report Generation Guidelines from Training
+${reportGuidelines.length > 0 ? reportGuidelines.map((g, i) => `${i + 1}. ${g}`).join('\n') : '*No specific report guidelines yet*'}
+
+### How Training Improves Reports
+1. **Tone and Style:** Training feedback shapes the coaching voice used in reports
+2. **Content Focus:** Learned preferences guide which insights to emphasize
+3. **Personalization:** Training examples improve user-specific customization
+4. **Methodology Application:** Refined understanding of AllStarTeams principles
+5. **Insight Quality:** Enhanced ability to generate meaningful development recommendations
+
+### Areas for Future Training
+Consider training Talia on:
+- Specific report section preferences (executive summary, development recommendations)
+- Coaching language that resonates best with different user types
+- Balance between detailed analysis and actionable insights
+- Integration of StarCard visuals with written analysis
+- Tone adjustments for personal vs professional reports
+`;
+
+    return influenceDoc;
   }
 }
 

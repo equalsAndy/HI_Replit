@@ -112,10 +112,11 @@ export interface GenerateReportResponse {
 }
 
 export interface ReportStatusResponse {
-  reportId: string;
-  status: ReportGenerationStatus;
-  pdfUrl?: string;
+  reportId: string | null;
+  status: ReportGenerationStatus | 'not_generated';
+  reportUrl?: string; // Changed from pdfUrl to reportUrl since it shows HTML
   downloadUrl?: string;
+  htmlUrl?: string;
   errorMessage?: string;
   generatedAt?: Date;
 }

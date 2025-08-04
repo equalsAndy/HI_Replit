@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { textSearchService } from './text-search-service.js';
-import { generateClaudeCoachingResponse } from './claude-api-service.js';
+import { generateOpenAICoachingResponse } from './openai-api-service.js';
 
 // Database connection
 const pool = new Pool({
@@ -296,14 +296,14 @@ ESSENTIAL QUALITY STANDARDS:
 
 This is a CONFIDENTIAL personal development report for ${userData.userName}'s private use only.`;
 
-    const response = await generateClaudeCoachingResponse({
+    const response = await generateOpenAICoachingResponse({
       userMessage: prompt,
-      personaType: 'talia',
+      personaType: 'star_report',
       userName: userData.userName,
       userId: parseInt(userData.userId),
       contextData: context.context,
       sessionId: `ast-personal-${userData.userId}-${Date.now()}`,
-      maxTokens: 4000  // Increased for comprehensive AST reports
+      maxTokens: 8000  // Unlimited for comprehensive AST reports
     });
 
     return response;
@@ -371,14 +371,14 @@ PRIVACY BOUNDARIES - EXCLUDE:
 
 This is a PROFESSIONAL profile report suitable for sharing with colleagues and team members to optimize collaboration with ${userData.userName}.`;
 
-    const response = await generateClaudeCoachingResponse({
+    const response = await generateOpenAICoachingResponse({
       userMessage: prompt,
-      personaType: 'talia',
+      personaType: 'star_report',
       userName: userData.userName,
       userId: parseInt(userData.userId),
       contextData: context.context,
       sessionId: `ast-professional-${userData.userId}-${Date.now()}`,
-      maxTokens: 4000  // Increased for comprehensive AST reports
+      maxTokens: 8000  // Unlimited for comprehensive AST reports
     });
 
     return response;

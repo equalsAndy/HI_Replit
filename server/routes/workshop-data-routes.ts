@@ -26,12 +26,31 @@ async function generateAndStoreStarCard(userId: number): Promise<void> {
     
     // Find the starCard assessment
     const starCardAssessment = assessments.find(a => a.assessmentType === 'starCard');
-    if (!starCardAssessment) {
-      throw new Error('No StarCard assessment found for user');
-    }
+    let starCardData;
     
-    const starCardData = JSON.parse(starCardAssessment.results);
-    console.log(`📊 Found StarCard data for user ${userId}:`, starCardData);
+    if (!starCardAssessment) {
+      console.warn(`⚠️ No StarCard assessment found for user ${userId}, using default values`);
+      // Use default StarCard data if assessment not found
+      starCardData = {
+        thinking: 25,
+        acting: 25,
+        feeling: 25,
+        planning: 25
+      };
+    } else {
+      try {
+        starCardData = JSON.parse(starCardAssessment.results);
+        console.log(`📊 Found StarCard data for user ${userId}:`, starCardData);
+      } catch (parseError) {
+        console.warn(`⚠️ Failed to parse StarCard data for user ${userId}, using defaults:`, parseError);
+        starCardData = {
+          thinking: 25,
+          acting: 25,
+          feeling: 25,
+          planning: 25
+        };
+      }
+    }
     
     // For now, we'll create a placeholder until StarCard image generation is built
     // In future: Use actual StarCard component rendering to PNG
@@ -1813,102 +1832,85 @@ workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLock
       });
     }
     
-    res.json({
-      success: true,
-      data: assessmentData,
-      meta: { 
-        saved_at: new Date().toISOString(),
-        assessmentType: 'finalReflection' 
-      }
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      error: error instanceof Error ? (error as Error).message : 'Save failed',
-      code: 'SAVE_ERROR'
-    });
-  }
-});
-
-// POST /api/workshop-data/final-reflection
-workshopDataRouter.post('/final-reflection', authenticateUser, checkWorkshopLocked, async (req: Request, res: Response) => {
-  try {
-    let userId = (req.session as any).userId || (req.cookies.userId ? parseInt(req.cookies.userId) : null);
+    // AUTO-COMPLETE WORKSHOP: Final reflection submission should complete the workshop
+    console.log(`🎯 Final reflection saved for user ${userId}, auto-completing AST workshop...`);
     
-    if (req.cookies.userId && parseInt(req.cookies.userId) === 1 && (req.session as any).userId && (req.session as any).userId !== 1) {
-      userId = (req.session as any).userId;
-    }
-    
-    if (!userId) {
-      return res.status(401).json({
-        success: false,
-        message: 'Not authenticated'
-      });
-    }
-    
-    const { futureLetterText } = req.body;
-    
-    // Validation
-    if (!futureLetterText || typeof futureLetterText !== 'string' || futureLetterText.trim().length === 0) {
-      return res.status(400).json({
-        success: false,
-        error: 'Future letter text is required',
-        code: 'VALIDATION_ERROR',
-        details: { futureLetterText: 'Required field' }
-      });
-    }
-    
-    if (futureLetterText.length > 5000) {
-      return res.status(400).json({
-        success: false,
-        error: 'Future letter text must be 5000 characters or less',
-        code: 'VALIDATION_ERROR',
-        details: { futureLetterText: 'Must be 5000 characters or less' }
-      });
-    }
-    
-    const reflectionData = {
-      futureLetterText: futureLetterText.trim()
-    };
-    
-    // Check if reflection already exists
-    const existingReflection = await db
-      .select()
-      .from(schema.userAssessments)
-      .where(
-        and(
-          eq(schema.userAssessments.userId, userId),
-          eq(schema.userAssessments.assessmentType, 'finalReflection')
-        )
-      );
-    
-    if (existingReflection.length > 0) {
-      // Update existing reflection
-      await db
-        .update(schema.userAssessments)
-        .set({
-          results: JSON.stringify(reflectionData)
+    try {
+      // Mark workshop as completed
+      const completedAt = new Date();
+      await db.update(users)
+        .set({ 
+          astWorkshopCompleted: true,
+          astCompletedAt: completedAt
         })
-        .where(eq(schema.userAssessments.id, existingReflection[0].id));
-    } else {
-      // Create new reflection record
-      await db.insert(schema.userAssessments).values({
-        userId,
-        assessmentType: 'finalReflection',
-        results: JSON.stringify(reflectionData)
+        .where(eq(users.id, userId));
+
+      // Auto-generate StarCard and unlock holistic reports
+      console.log(`🎯 AST workshop completed for user ${userId}, generating StarCard and unlocking reports...`);
+      
+      // Get user's navigation progress
+      const user = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+      let progress = {};
+      try {
+        progress = JSON.parse(user[0]?.navigationProgress || '{}');
+      } catch (e) {
+        progress = {};
+      }
+      
+      // Auto-generate StarCard PNG and store in photo service
+      try {
+        await generateAndStoreStarCard(userId);
+      } catch (starCardError) {
+        console.error(`⚠️ StarCard generation failed for user ${userId}, continuing without it:`, starCardError);
+        // Continue with workshop completion even if StarCard generation fails
+      }
+      
+      // Update navigation progress to unlock holistic reports (step 5-2)
+      const updatedProgress = {
+        ...progress,
+        ast: {
+          ...progress.ast,
+          holisticReportsUnlocked: true,
+          completedSteps: [...(progress.ast?.completedSteps || []), '5-2'].filter((step, index, arr) => arr.indexOf(step) === index)
+        }
+      };
+      
+      await db.update(users)
+        .set({ 
+          navigationProgress: JSON.stringify(updatedProgress)
+        })
+        .where(eq(users.id, userId));
+        
+      console.log(`✅ AST workshop auto-completed, StarCard generated and holistic reports unlocked for user ${userId}`);
+      
+      res.json({
+        success: true,
+        data: assessmentData,
+        workshopCompleted: true,
+        completedAt: completedAt.toISOString(),
+        holisticReportsUnlocked: true,
+        meta: { 
+          saved_at: new Date().toISOString(),
+          assessmentType: 'finalReflection' 
+        }
+      });
+      
+    } catch (workshopError) {
+      console.error(`⚠️ Failed to auto-complete workshop for user ${userId}:`, workshopError);
+      
+      // Still return success for the reflection save, but without workshop completion
+      res.json({
+        success: true,
+        data: assessmentData,
+        workshopCompleted: false,
+        error: 'Final reflection saved but workshop completion failed',
+        meta: { 
+          saved_at: new Date().toISOString(),
+          assessmentType: 'finalReflection' 
+        }
       });
     }
-    
-    res.json({
-      success: true,
-      data: reflectionData,
-      meta: { 
-        saved_at: new Date().toISOString(),
-        assessmentType: 'finalReflection' 
-      }
-    });
   } catch (error) {
-    console.error('Error saving final reflection:', error);
     res.status(400).json({
       success: false,
       error: error instanceof Error ? (error as Error).message : 'Save failed',
@@ -2881,9 +2883,9 @@ workshopDataRouter.post('/complete-workshop', authenticateUser, async (req: Requ
       progress = {};
     }
     
-    // Define required steps for each workshop type
+    // Define required steps for each workshop type (progression steps only, not menu items)
     const requiredSteps = appType === 'ast' 
-      ? ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5', '5-1', '5-2', '5-3', '5-4', '6-1'] 
+      ? ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'] 
       : ['ia-1-1', 'ia-2-1', 'ia-3-1', 'ia-4-1', 'ia-5-1', 'ia-6-1', 'ia-8-1'];
     
     const completedSteps = progress[appType]?.completedSteps || [];

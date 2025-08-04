@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown, ChevronUp, FileText, MessageCircle } from "lucide-react";
 import { useCoachingModal } from '@/hooks/useCoachingModal';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { StrengthData } from '@/types/coaching';
 import ReflectionCoachingButton from '@/components/coaching/ReflectionCoachingButton';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
@@ -49,7 +50,8 @@ interface StepByStepReflectionProps {
 export default function StepByStepReflection({ 
   starCard: initialStarCard, 
   setCurrentContent,
-  markStepCompleted
+  markStepCompleted,
+  workshopLocked = false
 }: StepByStepReflectionProps) {
   
   // State for managing reflection steps
@@ -57,6 +59,7 @@ export default function StepByStepReflection({
   const [showExamples, setShowExamples] = useState(false);
   const totalSteps = 6; // Total number of steps in the reflection journey
   const { shouldShowDemoButtons, isTestUser, user } = useTestUser();
+  const { data: currentUser } = useCurrentUser();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
   
   // Talia coaching modal
@@ -74,9 +77,7 @@ export default function StepByStepReflection({
     }
   };
   
-  // Workshop status for testing
-  // const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
-  const workshopLocked = false; // isWorkshopLocked('ast');
+  // Workshop status is now passed as prop from parent component
 
   // State for star card data with proper initialization
   const [starCard, setStarCard] = useState<StarCardType | undefined>(initialStarCard);
@@ -552,7 +553,7 @@ export default function StepByStepReflection({
   // Check if current reflection meets minimum requirements (or workshop is locked for viewing)
   const isCurrentReflectionValid = (): boolean => {
     // If workshop is locked, allow navigation for viewing regardless of content length
-    if (workshopLocked || workshopLocked) {
+    if (workshopLocked) {
       return true;
     }
     
@@ -576,7 +577,7 @@ export default function StepByStepReflection({
       setShowExamples(false);
     } else if (currentStep === totalSteps) {
       // Only save reflections if workshop is not locked
-      if (!workshopLocked && !workshopLocked) {
+      if (!workshopLocked) {
         await saveReflections();
       } else {
         console.log('🔒 Workshop locked - skipping save on completion');
@@ -1055,15 +1056,15 @@ export default function StepByStepReflection({
                 id={`strength-${currentStep}-reflection`}
                 value={getCurrentReflectionText()}
                 onChange={(e) => handleReflectionChange(currentStep, e.target.value)}
-                disabled={workshopLocked || workshopLocked}
-                readOnly={workshopLocked || workshopLocked}
+                disabled={workshopLocked}
+                readOnly={workshopLocked}
                 placeholder={currentStep <= 4 
                   ? `Describe specific moments when you've used your ${sortedQuadrants[currentStep-1].label.toLowerCase()} strength effectively...`
                   : currentStep === 5 
                   ? "Describe the team environment where you perform at your best..."
                   : "Describe your unique contribution to the team..."}
                 className={`min-h-[140px] w-full p-3 border rounded-md focus:ring-2 focus:border-transparent resize-vertical ${
-                  workshopLocked || workshopLocked
+                  workshopLocked
                     ? 'opacity-60 cursor-not-allowed bg-gray-100'
                     : currentStep <= 4
                     ? sortedQuadrants[currentStep-1].label === 'THINKING'
@@ -1105,7 +1106,7 @@ export default function StepByStepReflection({
               {shouldShowDemoButtons && (
                 <button
                   onClick={fillWithDemoData}
-                  disabled={workshopLocked || workshopLocked}
+                  disabled={workshopLocked}
                   className="px-3 py-1.5 border border-gray-300 rounded-md bg-white text-blue-600 hover:text-blue-800 hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm flex items-center gap-2"
                 >
                   <FileText className="w-4 h-4" />

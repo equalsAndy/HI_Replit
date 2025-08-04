@@ -19,6 +19,7 @@ import TestUserBanner from "../auth/TestUserBanner";
 import { FeedbackTrigger } from "../feedback/FeedbackTrigger";
 import { detectCurrentPage } from "../../utils/pageContext";
 import { useStepContextSafe } from "../../contexts/StepContext";
+import BetaTesterWelcomeModal from "@/components/modals/BetaTesterWelcomeModal";
 
 // Environment badge helper - displays dynamic version from build process
 const EnvironmentBadge = () => {
@@ -115,6 +116,7 @@ export function NavBar() {
   const [, navigate] = useLocation();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isTestInfoOpen, setIsTestInfoOpen] = useState(false);
+  const [isBetaTesterModalOpen, setIsBetaTesterModalOpen] = useState(false);
   const { toast } = useToast();
   const { currentStepId } = useStepContextSafe();
 
@@ -131,6 +133,7 @@ export function NavBar() {
       jobTitle?: string;
       role?: string;
       isTestUser: boolean;
+      isBetaTester?: boolean;
       profilePicture?: string;
     }
   }>({ 
@@ -361,6 +364,18 @@ export function NavBar() {
                 </Button>
               )}
 
+              {/* Beta Tester badge - shown for beta testers */}
+              {user?.isBetaTester && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="rounded-md text-white hover:bg-yellow-400 cursor-pointer"
+                  onClick={() => setIsBetaTesterModalOpen(true)}
+                >
+                  Beta Tester
+                </Button>
+              )}
+
               {/* Profile Editor with logout functionality */}
               <ProfileEditor
                 user={user}
@@ -383,6 +398,22 @@ export function NavBar() {
             onClose={() => setIsProfileModalOpen(false)}
           />
         )}
+
+        {/* Beta Tester Welcome Modal */}
+        <BetaTesterWelcomeModal
+          isOpen={isBetaTesterModalOpen}
+          onClose={() => setIsBetaTesterModalOpen(false)}
+          onDontShowAgain={() => {
+            // This won't change the persistent setting, just closes the modal
+            // The persistent setting is handled by the useBetaWelcome hook
+            setIsBetaTesterModalOpen(false);
+          }}
+          onStartWorkshop={() => {
+            setIsBetaTesterModalOpen(false);
+            navigate('/allstarteams');
+          }}
+          user={user}
+        />
       </div>
     </div>
   );

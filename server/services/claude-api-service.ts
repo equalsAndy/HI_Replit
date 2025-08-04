@@ -74,7 +74,8 @@ async function callClaudeAPI(
   }
 
   // Check if user can use AI (rate limits, feature toggles)
-  if (userId) {
+  // Skip rate limiting in development mode for testing
+  if (userId && process.env.NODE_ENV !== 'development') {
     const canUse = await aiUsageLogger.canUseAI(userId, featureName);
     if (!canUse.allowed) {
       throw new Error(`AI usage not allowed: ${canUse.reason}`);
@@ -195,7 +196,15 @@ function validateCoachingResponse(response: string, personaType: string): string
   // Also skip truncation for report generation context
   const isReportGeneration = response.includes('# Personal Development Report') || 
     response.includes('## AllStarTeams Workshop Analysis') ||
-    response.includes('*Generated for');
+    response.includes('*Generated for') ||
+    response.includes('<h1>Your Personal Development Report</h1>') ||
+    response.includes('<h1>Professional Development Analysis</h1>') ||
+    response.includes('Your Personal Development Report') ||
+    response.includes('Professional Development Analysis') ||
+    response.includes('Executive Summary') ||
+    response.includes('<div class="report-container">') ||
+    response.includes('<html') ||
+    response.includes('<!DOCTYPE html');
   
   if (!isASTReport && !isReportGeneration && response.length > 1500) {
     console.warn('⚠️ Response too long, truncating');
@@ -410,9 +419,66 @@ export async function generateClaudeCoachingResponse(requestData: CoachingReques
     }
 
     // Handle Star Report Talia persona
-    if (personaType === 'star_report' && contextData?.adminMode) {
+    if (personaType === 'star_report') {
       
-      // Check if a user is selected
+      // Token-optimized holistic report generation
+      if (contextData?.reportContext === 'holistic_generation') {
+        console.log('🎯 Optimized Report Talia - Holistic report generation with token limits');
+        console.log('🔧 Context check:', {
+          reportContext: contextData?.reportContext,
+          selectedUserId: contextData?.selectedUserId,
+          hasUserData: !!contextData?.userData
+        });
+        
+        const persona = getCurrentPersona('star_report');
+        
+        try {
+          // Create optimized report context with essential data only
+          const optimizedContext = await taliaPersonaService.getOptimizedReportContext(
+            contextData.selectedUserId.toString(), 
+            contextData.userData,
+            userMessage.includes('Personal Development') ? 'personal' : 'professional'
+          );
+          
+          if (optimizedContext) {
+            console.log('✅ Created optimized context, generating prompt...');
+            const optimizedPrompt = await taliaPersonaService.generateOptimizedReportPrompt(
+              optimizedContext, 
+              userMessage,
+              contextData.starCardImageBase64
+            );
+            
+            console.log(`📊 Optimized prompt length: ${optimizedPrompt.length} chars, estimated tokens: ${Math.round(optimizedPrompt.length / 4)}`);
+            
+            const messages: ClaudeMessage[] = [{ role: 'user', content: userMessage }];
+            
+            // Calculate total token estimate before API call
+            const totalPromptSize = optimizedPrompt.length + userMessage.length;
+            const estimatedTokens = Math.round(totalPromptSize / 4);
+            console.log(`🔢 Total API call size: system=${optimizedPrompt.length} + user=${userMessage.length} = ${totalPromptSize} chars (~${estimatedTokens} tokens)`);
+            
+            // Safety check before API call
+            if (estimatedTokens > 180000) {
+              console.error('🚨 ESTIMATED TOKENS TOO HIGH FOR API CALL!', estimatedTokens);
+              throw new Error(`Estimated tokens ${estimatedTokens} exceed safe limit of 180k`);
+            }
+            
+            const response = await callClaudeAPI(optimizedPrompt, messages, maxTokens, userId, 'holistic_reports', sessionId);
+            
+            return validateCoachingResponse(response, personaType);
+          } else {
+            console.error('❌ Failed to create optimized context, falling back to error');
+            throw new Error('Failed to create optimized report context');
+          }
+        } catch (error) {
+          console.error('❌ Error in optimized report generation:', error);
+          throw error;
+        }
+      }
+      
+      // Enhanced admin context handling
+      
+      // Standard user selection handling  
       if (!contextData?.selectedUserId) {
         return `Hi! I'm Report Talia, your comprehensive development report expert.
 
@@ -429,7 +495,13 @@ Once you've selected a user, I'll have access to their complete workshop data in
 • Future vision planning
 • Well-being insights
 
-What would you like to know about after selecting a user?`;
+**I can also discuss:**
+• My training conversation history and what I've learned
+• How training influences report generation
+• Document review and methodology discussions
+• Report generation approaches and improvements
+
+What would you like to know about?`;
       }
       
       console.log(`🎯 Using Star Report Talia for user: ${contextData.selectedUserName} (ID: ${contextData.selectedUserId})`);
@@ -437,12 +509,55 @@ What would you like to know about after selecting a user?`;
       const persona = getCurrentPersona('star_report');
       console.log(`🎯 Database persona config:`, { name: persona.name, tokenLimit: persona.tokenLimit });
       
+      // PHASE 1 TEST: Use unified prompt directly without additional context to isolate the issue
+      console.log('🧪 PHASE 1 TEST: Using simplified unified prompt approach');
+      
+      // Get just the unified prompt document directly
+      const pool = (await import('pg')).Pool;
+      const dbPool = new pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      });
+      
+      try {
+        const promptResult = await dbPool.query(
+          'SELECT content FROM training_documents WHERE title = $1 AND status = $2',
+          ['Talia Report Generation Prompt', 'active']
+        );
+        
+        if (promptResult.rows.length > 0) {
+          const unifiedPrompt = promptResult.rows[0].content;
+          
+          // PHASE 2 FIX: Send ONLY the unified prompt with minimal data context
+          // Remove ALL additional instructions that could trigger consultation mode
+          const testPrompt = `${unifiedPrompt}
+
+USER DATA:
+- Name: ${contextData.selectedUserName}
+- Report Type: Personal Development Report
+- User has completed AST workshop assessments
+
+Generate the Personal Development Report now.`;
+
+          const messages: ClaudeMessage[] = [{ role: 'user', content: testPrompt }];
+          const response = await callClaudeAPI('', messages, 8000, userId, 'holistic_reports', sessionId);
+          
+          return validateCoachingResponse(response, personaType);
+        }
+      } catch (error) {
+        console.error('🧪 Test approach failed:', error);
+      } finally {
+        await dbPool.end();
+      }
+      
+      // Fallback to original approach if test fails
       const reportContext = await taliaPersonaService.getReportContext(contextData.selectedUserId.toString(), contextData.userData);
       if (reportContext) {
         const reportPrompt = await taliaPersonaService.generateReportPrompt(reportContext, userMessage);
         
         const messages: ClaudeMessage[] = [{ role: 'user', content: userMessage }];
-        const response = await callClaudeAPI(reportPrompt, messages, persona.tokenLimit, userId, 'holistic_reports', sessionId);
+        // No token limits for admin interface
+        const response = await callClaudeAPI(reportPrompt, messages, 8000, userId, 'holistic_reports', sessionId);
         
         return validateCoachingResponse(response, personaType);
       }

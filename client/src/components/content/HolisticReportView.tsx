@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor } from 'lucide-react';
+import { Download, FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
+import { isFeatureEnabled } from '@/utils/featureFlags';
 
 interface HolisticReportViewProps {
   navigate: (path: string) => void;
@@ -141,9 +142,10 @@ export default function HolisticReportView({
     isLoading: boolean
   ) => {
     const isGenerating = generateReportMutation.isPending && generateReportMutation.variables === reportType;
-    const canGenerate = !status || status.status === 'not_generated' || status.status === 'failed';
+    const canGenerate = (!status || status.status === 'not_generated' || status.status === 'failed') && reportsWorking;
     const isCompleted = status?.status === 'completed';
     const isFailed = status?.status === 'failed';
+    const isDisabledDueToMaintenance = !reportsWorking;
 
     return (
       <Card className={`transition-all duration-200 ${isCompleted ? 'border-green-200 bg-green-50' : 'border-gray-200'}`}>
@@ -200,7 +202,13 @@ export default function HolisticReportView({
                   </div>
                   {status?.generatedAt && (
                     <p className="text-green-700 text-sm mt-1">
-                      Generated on {new Date(status.generatedAt).toLocaleDateString()} at {new Date(status.generatedAt).toLocaleTimeString([], { 
+                      Generated on {new Date(status.generatedAt).toLocaleDateString('en-US', {
+                        timeZone: 'America/Los_Angeles',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })} at {new Date(status.generatedAt).toLocaleTimeString('en-US', { 
+                        timeZone: 'America/Los_Angeles',
                         hour: '2-digit', 
                         minute: '2-digit', 
                         hour12: true,
@@ -211,15 +219,30 @@ export default function HolisticReportView({
                 </div>
               )}
 
+              {/* Maintenance Message */}
+              {showMaintenanceWarning && (
+                <div className="mb-3 p-2 bg-amber-50 border border-amber-200 rounded text-sm text-amber-700">
+                  <span className="flex items-center gap-1">
+                    <Wrench className="h-3 w-3" />
+                    Report generation temporarily unavailable - system upgrade in progress
+                  </span>
+                </div>
+              )}
+
               {/* Action Buttons */}
               <div className="flex gap-2 flex-wrap">
-                {canGenerate && (
+                {(canGenerate || isDisabledDueToMaintenance) && (
                   <Button
                     onClick={() => handleGenerateReport(reportType)}
-                    disabled={isGenerating || generateReportMutation.isPending}
-                    className="bg-blue-600 hover:bg-blue-700"
+                    disabled={isGenerating || generateReportMutation.isPending || isDisabledDueToMaintenance}
+                    className={`${isDisabledDueToMaintenance ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'}`}
                   >
-                    {isGenerating ? (
+                    {isDisabledDueToMaintenance ? (
+                      <>
+                        <Wrench className="h-4 w-4 mr-2" />
+                        Temporarily Unavailable
+                      </>
+                    ) : isGenerating ? (
                       <>
                         <Clock className="h-4 w-4 mr-2 animate-spin" />
                         Generating...
@@ -259,11 +282,20 @@ export default function HolisticReportView({
                     <Button
                       onClick={() => handleGenerateReport(reportType)}
                       variant="outline"
-                      className="border-blue-200 hover:bg-blue-50 text-blue-700"
-                      disabled={isGenerating || generateReportMutation.isPending}
+                      className={`${isDisabledDueToMaintenance ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-blue-200 hover:bg-blue-50 text-blue-700'}`}
+                      disabled={isGenerating || generateReportMutation.isPending || isDisabledDueToMaintenance}
                     >
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Regenerate
+                      {isDisabledDueToMaintenance ? (
+                        <>
+                          <Wrench className="h-4 w-4 mr-2" />
+                          Unavailable
+                        </>
+                      ) : (
+                        <>
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Regenerate
+                        </>
+                      )}
                     </Button>
                   </>
                 )}
@@ -284,6 +316,39 @@ export default function HolisticReportView({
     });
   };
 
+  // Check if holistic reports are working properly
+  const reportsWorking = isFeatureEnabled('holisticReportsWorking');
+
+  // Auto health check every 30 seconds when reports are disabled
+  const { data: healthStatus } = useQuery({
+    queryKey: ['report-health-check'],
+    queryFn: async () => {
+      const response = await fetch('/api/admin/reports/health-check', {
+        credentials: 'include'
+      });
+      if (!response.ok) return { isWorking: false, hasRealData: false };
+      return response.json();
+    },
+    enabled: !reportsWorking, // Only run when reports are disabled
+    refetchInterval: 30000, // Check every 30 seconds
+    staleTime: 25000
+  });
+
+  // Auto-enable reports if health check passes
+  React.useEffect(() => {
+    if (!reportsWorking && healthStatus?.isWorking && healthStatus?.hasRealData) {
+      console.log('🎉 Health check passed - reports should be working again!');
+      // In a real app, this would trigger a feature flag update
+      // For now, just refresh the page to pick up the change
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
+    }
+  }, [reportsWorking, healthStatus]);
+
+  // System maintenance warning (but keep the normal interface)
+  const showMaintenanceWarning = !reportsWorking;
+
   return (
     <>
       <div className="max-w-6xl mx-auto p-6">
@@ -294,6 +359,7 @@ export default function HolisticReportView({
           are now available, synthesizing your journey into actionable insights for continued growth.
         </p>
       </div>
+
 
       {/* Report Type Explanation */}
       <Card className="mb-8 bg-blue-50 border-blue-200">

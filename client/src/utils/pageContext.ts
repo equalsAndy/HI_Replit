@@ -25,11 +25,11 @@ const STEP_MAPPINGS: Record<string, { title: string; workshop: 'ast' | 'ia'; mod
   'visualizing-you': { title: 'Visualizing You', workshop: 'ast', module: 'Module 3: Visualization' },
   'future-self': { title: 'Your Future Self', workshop: 'ast', module: 'Module 3: Visualization' },
   'final-reflection': { title: 'Final Reflection', workshop: 'ast', module: 'Module 3: Visualization' },
-  'download-star-card': { title: 'Download your Star Card', workshop: 'ast', module: 'Next Steps' },
-  'holistic-report': { title: 'Your Holistic Report', workshop: 'ast', module: 'Next Steps' },
-  'growth-plan': { title: 'Growth Plan', workshop: 'ast', module: 'Next Steps' },
-  'team-workshop-prep': { title: 'Team Workshop Prep', workshop: 'ast', module: 'Next Steps' },
-  'workshop-resources': { title: 'Workshop Resources', workshop: 'ast', module: 'Next Steps' },
+  '5-1': { title: 'Download your Star Card', workshop: 'ast', module: 'Next Steps' },
+  '5-2': { title: 'Your Holistic Report', workshop: 'ast', module: 'Next Steps' },
+  '5-3': { title: 'Growth Plan', workshop: 'ast', module: 'Next Steps' },
+  '5-4': { title: 'Team Workshop Prep', workshop: 'ast', module: 'Next Steps' },
+  '6-1': { title: 'Workshop Resources', workshop: 'ast', module: 'Next Steps' },
 
   // IA Workshop Steps
   'ia-1-1': { title: 'Introduction to IA', workshop: 'ia', module: 'Section 1: Getting Started' },

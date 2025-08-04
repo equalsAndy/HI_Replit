@@ -24,3 +24,5 @@ curl -I http://34.220.143.127
 
 # 6. Check container logs if needed
 sudo docker logs staging-app
+
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-starcard-fix-20250804-1145

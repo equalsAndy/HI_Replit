@@ -9,8 +9,8 @@ WORKDIR /app
 # Copy package files (root level in monorepo)
 COPY package*.json ./
 
-# Install only production dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install only production dependencies (use legacy peer deps for canvas compatibility)
+RUN npm ci --only=production --legacy-peer-deps && npm cache clean --force
 
 # Copy built application (already built locally)
 COPY dist ./dist

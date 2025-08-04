@@ -4,10 +4,10 @@
 export const aiDevConfig = {
   // Claude API configuration for development
   claude: {
-    enabled: process.env.ENVIRONMENT === 'development',
+    enabled: process.env.ENVIRONMENT === 'development' || process.env.ENVIRONMENT === 'production',
     apiKey: process.env.CLAUDE_API_KEY,
     model: 'claude-3-5-sonnet-20241022',
-    maxTokens: 4000,
+    maxTokens: 8000,
     temperature: 0.7,
     timeout: 30000
   },
@@ -92,8 +92,8 @@ export function validateAIConfiguration(): { valid: boolean; errors: string[] } 
 
 // Helper to safely enable AI features for development
 export function enableAIForDevelopment(feature: 'holisticReports' | 'aiCoaching' | 'all'): boolean {
-  if (process.env.ENVIRONMENT !== 'development') {
-    console.warn('AI features can only be enabled in development environment');
+  if (process.env.ENVIRONMENT !== 'development' && process.env.ENVIRONMENT !== 'production') {
+    console.warn('AI features can only be enabled in development or production environment');
     return false;
   }
   

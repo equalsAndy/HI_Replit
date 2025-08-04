@@ -54,7 +54,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
 
   const [saving, setSaving] = useState(false);
   const { shouldShowDemoButtons } = useTestUser();
-  const { completed, loading, isWorkshopLocked } = useWorkshopStatus();
+  const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
 
   const { toast } = useToast();
@@ -136,11 +136,19 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
   const debouncedSave = useCallback(
     debounce(async (answersToSave) => {
       try {
+        // Transform answers to match API expected format
+        const transformedData = {
+          strengths: answersToSave[2] || '', // Question 2: "Which strengths or qualities do you need to nurture — and why?"
+          values: answersToSave[1] || '',    // Question 1: "When does stress or distraction tend to show up for you?"
+          passions: answersToSave[3] || '',  // Question 3: "How will you harness your strengths to create forward momentum..."
+          growthAreas: answersToSave[4] || '' // Question 4: "What would you like to explore, develop, or try that's new for you?"
+        };
+
         const response = await fetch('/api/workshop-data/rounding-out', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
-          body: JSON.stringify({ answers: answersToSave })
+          body: JSON.stringify(transformedData)
         });
         
         const result = await response.json();
@@ -167,12 +175,20 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       console.log('completeReflection: Starting save process...');
       setSaving(true);
       
-      console.log('completeReflection: Making API request with answers:', answers);
+      // Transform answers to match API expected format
+      const transformedData = {
+        strengths: answers[2] || '', // Question 2: "Which strengths or qualities do you need to nurture — and why?"
+        values: answers[1] || '',    // Question 1: "When does stress or distraction tend to show up for you?"
+        passions: answers[3] || '',  // Question 3: "How will you harness your strengths to create forward momentum..."
+        growthAreas: answers[4] || '' // Question 4: "What would you like to explore, develop, or try that's new for you?"
+      };
+      
+      console.log('completeReflection: Making API request with transformed data:', transformedData);
       const response = await fetch('/api/workshop-data/rounding-out', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ answers })
+        body: JSON.stringify(transformedData)
       });
       
       console.log('completeReflection: API response status:', response.status);
@@ -375,7 +391,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
       </div>
 
       {/* Workshop Completion Banner */}
-      {completed && (
+      {workshopCompleted && (
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
           <div className="flex items-center gap-3">
             <Check className="text-green-600" size={20} />
@@ -513,13 +529,13 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
             <Textarea
               value={currentAnswer}
               onChange={handleAnswerChange}
-              placeholder={completed ? "This workshop is completed and locked for editing" : "Your answer here..."}
+              placeholder={workshopCompleted ? "This workshop is completed and locked for editing" : "Your answer here..."}
               className={`min-h-[120px] mb-4 border border-gray-300 ${
-                completed ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
+                workshopCompleted ? 'opacity-60 cursor-not-allowed bg-gray-100' : ''
               }`}
               rows={4}
-              disabled={completed}
-              readOnly={completed}
+              disabled={workshopCompleted}
+              readOnly={workshopCompleted}
             />
 
             <div className="flex justify-between items-center">
@@ -533,7 +549,7 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
               </Button>
 
               <div className="flex gap-2">
-                {shouldShowDemoButtons && !completed && (
+                {shouldShowDemoButtons && !workshopCompleted && (
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -555,14 +571,14 @@ const FlowRoundingOutView: React.FC<ContentViewProps> = ({
                 ) : (
                   <Button
                     onClick={handleSaveReflection}
-                    disabled={saving || !allQuestionsAnswered() || completed}
+                    disabled={saving || !allQuestionsAnswered() || workshopCompleted}
                     className={`${
-                      allQuestionsAnswered() && !saving && !completed
+                      allQuestionsAnswered() && !saving && !workshopCompleted
                         ? "bg-indigo-600 hover:bg-indigo-700 text-white" 
                         : "bg-gray-300 cursor-not-allowed text-gray-500"
                     }`}
                   >
-                    {completed ? 'Workshop Completed' : saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
+                    {workshopCompleted ? 'Workshop Completed' : saving ? 'Saving...' : 'Next: Add Flow to Star Card'}
                   </Button>
                 )}
               </div>

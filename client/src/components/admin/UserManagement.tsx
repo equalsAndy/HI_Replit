@@ -47,6 +47,7 @@ interface User {
   isTestUser: boolean;
   isBetaTester: boolean;
   showDemoDataButtons: boolean;
+  canTrainTalia: boolean;
   // Access control fields
   contentAccess: 'student' | 'professional' | 'both';
   astAccess: boolean;
@@ -79,6 +80,7 @@ const createUserSchema = z.object({
   isTestUser: z.boolean().default(false),
   isBetaTester: z.boolean().default(false),
   showDemoDataButtons: z.boolean().default(true),
+  canTrainTalia: z.boolean().default(false),
 });
 
 type CreateUserFormValues = z.infer<typeof createUserSchema>;
@@ -97,6 +99,7 @@ const editUserSchema = z.object({
   isTestUser: z.boolean(),
   isBetaTester: z.boolean().default(false),
   showDemoDataButtons: z.boolean().default(true),
+  canTrainTalia: z.boolean().default(false),
   changePassword: z.boolean().default(false),
   newPassword: z.string().optional(),
 }).refine((data) => {
@@ -315,6 +318,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       isTestUser: false,
       isBetaTester: false,
       showDemoDataButtons: true,
+      canTrainTalia: false,
       changePassword: false,
       newPassword: '',
     },
@@ -738,6 +742,7 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
       isTestUser: user.isTestUser || false,
       isBetaTester: user.isBetaTester || false,
       showDemoDataButtons: user.showDemoDataButtons !== undefined ? user.showDemoDataButtons : true,
+      canTrainTalia: user.canTrainTalia || false,
       changePassword: false,
       newPassword: '',
     });
@@ -1736,6 +1741,35 @@ export function UserManagement({ currentUser }: { currentUser?: { id: number; na
                                 <FormLabel className="text-sm font-medium">Show Demo Data Buttons</FormLabel>
                                 <FormDescription className="text-xs text-muted-foreground">
                                   Controls if Test User can see demo data buttons
+                                </FormDescription>
+                              </div>
+                            </div>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    )}
+
+                    {/* Talia Training Access - Admin Only */}
+                    {watchedRole === 'admin' && (
+                      <FormField
+                        control={editForm.control}
+                        name="canTrainTalia"
+                        render={({ field }) => (
+                          <FormItem>
+                            <div className="flex items-center space-x-3 rounded-md border p-3">
+                              <FormControl>
+                                <Switch 
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                  aria-label="Toggle Talia training access"
+                                  className="data-[state=checked]:bg-purple-500"
+                                />
+                              </FormControl>
+                              <div className="space-y-1 leading-none">
+                                <FormLabel className="text-sm font-medium">Talia Training Access</FormLabel>
+                                <FormDescription className="text-xs text-muted-foreground">
+                                  Allow user to access TRAIN command and train Talia personas
                                 </FormDescription>
                               </div>
                             </div>

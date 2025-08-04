@@ -880,6 +880,7 @@ const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
   isUpdating,
   error
 }) => {
+  const [activeTab, setActiveTab] = useState('metadata');
   const [formData, setFormData] = useState({
     title: document.title,
     document_type: document.document_type,
@@ -888,23 +889,81 @@ const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
     version: document.version,
     status: document.status
   });
+  const [documentContent, setDocumentContent] = useState<string>('');
+  const [contentLoading, setContentLoading] = useState(false);
+  const [contentError, setContentError] = useState<string>('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Fetch document content when switching to content tab
+  useEffect(() => {
+    if (activeTab === 'content' && !documentContent && !contentLoading) {
+      fetchDocumentContent();
+    }
+  }, [activeTab]);
+
+  const fetchDocumentContent = async () => {
+    setContentLoading(true);
+    setContentError('');
+    try {
+      const response = await fetch(`/api/admin/ai/training-docs/${document.id}/content`, {
+        credentials: 'include'
+      });
+      const data = await response.json();
+      if (data.success) {
+        setDocumentContent(data.document.content);
+      } else {
+        setContentError(data.error || 'Failed to load content');
+      }
+    } catch (err) {
+      setContentError('Failed to load document content');
+    } finally {
+      setContentLoading(false);
+    }
+  };
+
+  const handleMetadataSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onUpdate(formData);
   };
 
+  const handleContentSave = async () => {
+    try {
+      const response = await fetch(`/api/admin/ai/training-docs/${document.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: documentContent }),
+        credentials: 'include'
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        // Refresh the document list
+        window.location.reload(); // Simple refresh for now
+      } else {
+        setContentError(data.error || 'Failed to save content');
+      }
+    } catch (err) {
+      setContentError('Failed to save content');
+    }
+  };
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Document</DialogTitle>
+          <DialogTitle>Edit Document: {document.title}</DialogTitle>
           <DialogDescription>
-            Update the document details
+            Update document metadata or edit content directly
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="metadata">Metadata</TabsTrigger>
+            <TabsTrigger value="content">Content</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="metadata" className="mt-4">
+            <form onSubmit={handleMetadataSubmit} className="space-y-4">
           {error && (
             <Alert className="border-red-200 bg-red-50">
               <AlertCircle className="h-4 w-4 text-red-600" />
@@ -995,15 +1054,60 @@ const EditDocumentDialog: React.FC<EditDocumentDialogProps> = ({
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isUpdating}>
-              {isUpdating ? 'Updating...' : 'Update Document'}
-            </Button>
-          </div>
-        </form>
+              <div className="flex justify-end gap-3 pt-4">
+                <Button type="button" variant="outline" onClick={onClose} disabled={isUpdating}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isUpdating}>
+                  {isUpdating ? 'Updating...' : 'Update Metadata'}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="content" className="mt-4">
+            <div className="space-y-4">
+              {contentError && (
+                <Alert className="border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-red-800">{contentError}</AlertDescription>
+                </Alert>
+              )}
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium mb-2">Document Content</label>
+                {contentLoading ? (
+                  <div className="flex items-center justify-center p-8 border rounded-lg">
+                    <Spinner className="h-6 w-6" />
+                    <span className="ml-2">Loading content...</span>
+                  </div>
+                ) : (
+                  <Textarea
+                    value={documentContent}
+                    onChange={(e) => setDocumentContent(e.target.value)}
+                    placeholder="Document content..."
+                    className="w-full min-h-[500px] max-h-[600px] font-mono text-sm resize-y"
+                    style={{ overflow: 'auto' }}
+                  />
+                )}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t bg-white sticky bottom-0">
+                <Button type="button" variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button 
+                  type="button" 
+                  onClick={handleContentSave}
+                  disabled={contentLoading}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Save Content & Reprocess
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

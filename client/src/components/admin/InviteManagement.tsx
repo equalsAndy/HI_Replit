@@ -113,12 +113,17 @@ export const InviteManagement: React.FC = () => {
 
   const fetchUserRole = async () => {
     try {
+      console.log('🔍 InviteManagement: Fetching user role...');
       const response = await fetch('/api/auth/me', {
         credentials: 'include'
       });
       const data = await response.json();
+      console.log('🔍 InviteManagement: Auth response:', data);
       if (data.success && data.user) {
+        console.log('🔍 InviteManagement: Setting user role to:', data.user.role);
         setUserRole(data.user.role);
+      } else {
+        console.log('🔍 InviteManagement: No user data in response');
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
@@ -166,6 +171,11 @@ export const InviteManagement: React.FC = () => {
       fetchOrganizations();
       fetchCohorts();
     }
+  }, [userRole]);
+
+  // Debug useEffect to track userRole changes
+  useEffect(() => {
+    console.log('🔍 InviteManagement: userRole state changed to:', userRole);
   }, [userRole]);
 
   const fetchInvites = async () => {
@@ -424,25 +434,34 @@ export const InviteManagement: React.FC = () => {
                 </div>
               </div>
               
-              {/* Beta Tester Checkbox - only show for admins */}
-              {userRole === 'admin' && (
-                <div className="flex items-center space-x-2 pt-4 border-t">
-                  <Checkbox
-                    id="betaTester"
-                    checked={newInvite.isBetaTester}
-                    onCheckedChange={(checked) => 
-                      setNewInvite({ ...newInvite, isBetaTester: !!checked })
-                    }
-                    disabled={isSendingInvite}
-                  />
-                  <Label htmlFor="betaTester" className="text-sm font-medium">
-                    Beta Tester
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Mark this user as a beta tester with enhanced access and features
-                  </p>
+              {/* Beta Tester Checkbox - show for admins */}
+              <div className="pt-4 border-t">
+                <div className="text-xs text-muted-foreground mb-2">
+                  Debug: Current user role = "{userRole}"
                 </div>
-              )}
+                {userRole === 'admin' ? (
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="betaTester"
+                      checked={newInvite.isBetaTester}
+                      onCheckedChange={(checked) => 
+                        setNewInvite({ ...newInvite, isBetaTester: !!checked })
+                      }
+                      disabled={isSendingInvite}
+                    />
+                    <Label htmlFor="betaTester" className="text-sm font-medium">
+                      Beta Tester
+                    </Label>
+                    <p className="text-sm text-muted-foreground">
+                      Mark this user as a beta tester with enhanced access and features
+                    </p>
+                  </div>
+                ) : (
+                  <div className="text-sm text-muted-foreground">
+                    Beta Tester checkbox only available for admin users (current: {userRole})
+                  </div>
+                )}
+              </div>
               
               {/* Cohort and Organization Assignment Section for Facilitators */}
               {userRole === 'facilitator' && (

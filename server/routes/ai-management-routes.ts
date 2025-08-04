@@ -314,13 +314,19 @@ router.get('/beta-testers', requireAdmin, async (req, res) => {
         u.name,
         u.email,
         u.is_beta_tester,
+        u.is_test_user,
         u.beta_tester_granted_at,
         u.beta_tester_granted_by,
-        admin.username as granted_by_username
+        admin.username as granted_by_username,
+        CASE 
+          WHEN u.is_beta_tester = true THEN 'beta_tester'
+          WHEN u.is_test_user = true THEN 'test_user'
+          ELSE 'none'
+        END as access_type
       FROM users u
       LEFT JOIN users admin ON u.beta_tester_granted_by = admin.id
-      WHERE u.is_beta_tester = true
-      ORDER BY u.beta_tester_granted_at DESC
+      WHERE u.is_beta_tester = true OR u.is_test_user = true
+      ORDER BY u.beta_tester_granted_at DESC NULLS LAST, u.username
     `);
 
     res.json({
@@ -648,7 +654,7 @@ router.post('/report-talia/update-completion', requireAdmin, async (req, res) =>
  * POST /api/admin/ai/report-talia/generate-report
  */
 router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
-  const { userId } = req.body;
+  const { userId, reportType = 'personal' } = req.body;
   const adminUserId = (req.session as any)?.userId;
 
   try {
@@ -693,8 +699,25 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
       [userId]
     );
 
-    // Import Claude API service for report generation
-    const { generateClaudeCoachingResponse } = await import('../services/claude-api-service.js');
+    // Import OpenAI API service for report generation
+    const { generateOpenAICoachingResponse } = await import('../services/openai-api-service.js');
+
+    // Get StarCard image for the user FIRST (before using in template)
+    let starCardImageBase64 = '';
+    try {
+      console.log(`🖼️ Getting StarCard image for user ${userId}...`);
+      const { photoStorageService } = await import('../services/photo-storage-service.js');
+      const starCardImage = await photoStorageService.getUserStarCard(userId.toString());
+      
+      if (starCardImage && starCardImage.imageData) {
+        starCardImageBase64 = starCardImage.imageData;
+        console.log('✅ Found StarCard image for report integration');
+      } else {
+        console.log('⚠️ No StarCard image found for this user');
+      }
+    } catch (error) {
+      console.warn('Could not retrieve StarCard image:', error);
+    }
 
     // Prepare user data for Report Talia
     const userData = {
@@ -704,67 +727,34 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
       completedAt: user.ast_completed_at
     };
 
-    // Generate report using Star Report Talia persona with proper configuration
-    const reportPrompt = `You are Report Talia generating a comprehensive Personal Development Report following the EXACT format and structure of the Samantha Personal Report template in your training documents.
+    // Use Foundation Training Documents (METAlia disabled)
+    const isPersonalReport = reportType === 'personal';
+    console.log('🚀 Admin Console: Using pgvector semantic search for optimal training content');
+    console.log('🔧 FIXED DATA MAPPING - Testing strengths data fix');
+    
+    // Import pgvector search service
+    const { pgvectorSearchService } = await import('../services/pgvector-search-service.js');
+    
+    // Build user context for semantic search using correct data sources
+    const userContextData = {
+      name: user.name,
+      strengths: assessmentResult.rows.find(a => a.assessment_type === 'starCard')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'starCard').results) : {"thinking":0,"feeling":0,"acting":0,"planning":0},
+      reflections: assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'stepByStepReflection').results) : {},
+      flowData: assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment')?.results ? JSON.parse(assessmentResult.rows.find(a => a.assessment_type === 'flowAssessment').results) : null
+    };
+    
+    console.log('🔍 DEBUG: Admin route - Assessment result rows:', assessmentResult.rows.map(r => ({ type: r.assessment_type, hasResults: !!r.results })));
+    console.log('🔍 DEBUG: Admin route - User context data:', JSON.stringify(userContextData, null, 2));
+    
+    // Get optimal training prompt using pgvector search
+    const reportPrompt = await pgvectorSearchService.getOptimalTrainingPrompt(
+      isPersonalReport ? 'personal' : 'professional',
+      userContextData
+    );
+    
+    console.log('📋 Generated pgvector-optimized prompt for admin console');
 
-CRITICAL INSTRUCTIONS:
-1. This is a PERSONAL DEVELOPMENT REPORT (not professional/business focused)
-2. Use the EXACT structure from the Samantha Personal Report template
-3. Write in SECOND PERSON ("You possess...", "Your signature...") not third person
-4. Use the SAME intimate, personal tone as the Samantha template
-5. Follow the SAME section structure: "Part I", "Part II", etc.
-6. This is a complete standalone markdown document (no conversational elements)
-
-REQUIRED TEMPLATE STRUCTURE (follow exactly):
-# Your Personal Development Report
-## Understanding Your Unique Strengths Signature
-
-**${user.name} | [Role] | AllStarTeams Workshop Results**
-
-## Executive Summary
-[Personal, intimate analysis using "You possess..." tone]
-
-## Part I: Your Strengths Signature Deep Dive
-### The Architecture of Your Natural Talents
-### How Your Energy Flows
-### Your Unique Operating System
-### Understanding Your Supporting Strengths
-
-## Part II: Optimizing Your Flow State
-### Your Current Flow Profile
-### Flow Optimization Strategy for Your Signature
-
-## Part III: Bridging to Your Future Self
-### The Evolution of Your Signature
-### Bridging Strategies: Present to Future
-
-## Part IV: Your Development Pathway
-### Core Development Areas
-### Personal Well-being and Integration
-
-## Part V: Your Signature in Action
-### Daily Practices That Honor Your Signature
-### Handling Challenges and Stress
-
-## Part VI: Your Unique Value Proposition
-### What You Bring That Others Don't
-### Recognition and Career Positioning
-
-## Conclusion: Embracing Your Signature
-
-TONE: Personal, intimate, coaching-focused (like the Samantha template)
-LENGTH: 3000+ words with deep psychological analysis
-PERSPECTIVE: Second person ("You", "Your") throughout
-
-USER DATA:
-- Name: ${user.name} (${user.username})
-- Completed AST: ${user.ast_completed_at}
-- Assessment Records: ${assessmentResult.rows.length}
-- Workshop Data: ${stepDataResult.rows.length}
-
-Generate the complete Personal Development Report following the Samantha template structure and tone exactly:`;
-
-    console.log('🔧 About to call generateClaudeCoachingResponse with params:', {
+    console.log('🔧 About to call generateOpenAICoachingResponse with params:', {
       userMessage: reportPrompt.substring(0, 100) + '...',
       personaType: 'star_report',
       userName: user.name,
@@ -776,7 +766,38 @@ Generate the complete Personal Development Report following the Samantha templat
       }
     });
 
-    const reportContent = await generateClaudeCoachingResponse({
+    // DEBUG: Save the admin console prompt to tempcomms
+    try {
+      const fs = await import('fs/promises');
+      const debugContent = `# ADMIN CONSOLE PROMPT DEBUG - ${new Date().toISOString()}
+
+## Context Data:
+- User: ${user.name} (ID: ${userId})
+- Report Type: ${isPersonalReport ? 'Personal' : 'Professional'}
+- Assessments: ${assessmentResult.rows.length}
+- Workshop Data: ${stepDataResult.rows.length}
+
+## FULL ADMIN CONSOLE PROMPT:
+\`\`\`
+${reportPrompt}
+\`\`\`
+
+## Notes:
+- This is the exact prompt sent to Claude from the admin console
+- PersonaType: star_report
+- AdminMode: true
+- Context: md_generation
+- Foundation Mode: Using training documents only (METAlia disabled)
+`;
+      await fs.writeFile('/Users/bradtopliff/Desktop/HI_Replit/tempClaudecomms/admin-prompt-debug.md', debugContent);
+      console.log('📄 Admin console debug prompt saved to tempClaudecomms/admin-prompt-debug.md');
+    } catch (debugError) {
+      console.warn('Could not save admin debug prompt:', debugError);
+    }
+
+    // StarCard image already retrieved above before template construction
+
+    const reportContent = await generateOpenAICoachingResponse({
       userMessage: reportPrompt,
       personaType: 'star_report',
       userName: user.name,
@@ -784,8 +805,10 @@ Generate the complete Personal Development Report following the Samantha templat
         reportContext: 'md_generation',
         selectedUserId: userId,
         selectedUserName: user.name,
+        userData: userData,
+        starCardImageBase64: starCardImageBase64,
         adminMode: true,
-        userData: userData
+        foundationMode: true // Flag that we're using foundation training documents only
       },
       userId: userId,
       sessionId: `report-gen-${Date.now()}`,
@@ -796,31 +819,24 @@ Generate the complete Personal Development Report following the Samantha templat
       throw new Error('Report generation failed: Empty response from Claude API');
     }
 
-    // Save report to storage
+    // Quality monitoring disabled - testing foundation only
+    console.log('📊 Foundation testing mode - METAlia quality monitoring disabled');
+
+    // Generate report filename (for reference only - no file system write in production)
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const filename = `report-talia-${user.username}-${timestamp}.md`;
 
-    // Create storage directory if it doesn't exist
-    const fs = await import('fs');
-    const path = await import('path');
-    const storageDir = path.join(process.cwd(), 'storage', 'reports');
-    
-    if (!fs.existsSync(storageDir)) {
-      fs.mkdirSync(storageDir, { recursive: true });
-    }
+    console.log(`✅ Report Talia ${reportType} report generated: ${filename}`);
+    console.log(`🗃️ ${reportType} report generated by admin ${adminUserId} for user ${userId}`);
 
-    const filePath = path.join(storageDir, filename);
-    fs.writeFileSync(filePath, reportContent, 'utf8');
-
-    console.log(`✅ Report Talia MD report generated and saved: ${filename}`);
-    console.log(`🗃️ Report generated by admin ${adminUserId} for user ${userId}`);
-
+    // Return report content directly (no file system persistence in container environment)
     res.json({
       success: true,
       report: {
         filename: filename,
-        filePath: filePath,
         content: reportContent,
+        reportType: reportType,
+        hasStarCard: !!starCardImageBase64,
         generatedAt: new Date().toISOString(),
         generatedBy: adminUserId,
         targetUser: {
@@ -829,7 +845,8 @@ Generate the complete Personal Development Report following the Samantha templat
           username: user.username
         }
       },
-      message: `Report successfully generated for ${user.name}`
+      message: `${reportType === 'personal' ? 'Personal development' : 'Professional development'} report successfully generated for ${user.name}${starCardImageBase64 ? ' (with StarCard)' : ' (no StarCard available)'}`,
+      note: 'Report content returned in response (container environment)'
     });
 
   } catch (error) {
@@ -837,6 +854,521 @@ Generate the complete Personal Development Report following the Samantha templat
     res.status(500).json({
       success: false,
       error: 'Failed to generate Report Talia MD report',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get training document content for editing
+ * GET /api/ai-management/training-docs/:id/content
+ */
+router.get('/training-docs/:id/content', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      'SELECT id, title, content FROM training_documents WHERE id = $1',
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Training document not found'
+      });
+    }
+
+    const document = result.rows[0];
+    res.json({
+      success: true,
+      document: {
+        id: document.id,
+        title: document.title,
+        content: document.content
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching document content:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch document content',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Update training document content and reprocess chunks
+ * PUT /api/ai-management/training-docs/:id
+ */
+router.put('/training-docs/:id', requireAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  if (!content || typeof content !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: 'Content is required and must be a string'
+    });
+  }
+
+  try {
+    console.log(`📝 Updating training document ${id}`);
+
+    // Update the document content
+    const updateResult = await pool.query(
+      'UPDATE training_documents SET content = $1, updated_at = NOW() WHERE id = $2 RETURNING title, document_type',
+      [content, id]
+    );
+
+    if (updateResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Training document not found'
+      });
+    }
+
+    const document = updateResult.rows[0];
+    console.log(`✅ Updated document: ${document.title}`);
+
+    // Delete existing chunks for this document
+    await pool.query('DELETE FROM document_chunks WHERE document_id = $1', [id]);
+    console.log('🗑️ Deleted existing document chunks');
+
+    // Reprocess and create new chunks
+    const chunkSize = 1000; // Standard chunk size
+    const chunks = [];
+    let startIndex = 0;
+
+    while (startIndex < content.length) {
+      const endIndex = Math.min(startIndex + chunkSize, content.length);
+      const chunkContent = content.slice(startIndex, endIndex);
+      
+      chunks.push({
+        content: chunkContent,
+        startIndex,
+        endIndex: endIndex - 1,
+        tokenCount: Math.ceil(chunkContent.length / 4) // Approximate token count
+      });
+      
+      startIndex = endIndex;
+    }
+
+    // Insert new chunks
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      await pool.query(
+        `INSERT INTO document_chunks (
+          document_id, chunk_index, content, token_count, metadata
+        ) VALUES ($1, $2, $3, $4, $5)`,
+        [id, i, chunk.content, chunk.tokenCount, JSON.stringify({
+          startIndex: chunk.startIndex,
+          endIndex: chunk.endIndex
+        })]
+      );
+    }
+
+    console.log(`✅ Created ${chunks.length} new chunks for document`);
+
+    // Reinitialize vector service to pick up changes
+    try {
+      const { javascriptVectorService } = await import('../services/javascript-vector-service.js');
+      await javascriptVectorService.initialize();
+      console.log('🔄 Vector service reinitialized with updated document');
+    } catch (vectorError) {
+      console.warn('⚠️ Could not reinitialize vector service:', vectorError);
+    }
+
+    res.json({
+      success: true,
+      message: `Document "${document.title}" updated successfully`,
+      chunksCreated: chunks.length,
+      documentInfo: {
+        title: document.title,
+        type: document.document_type,
+        contentLength: content.length,
+        chunks: chunks.length
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Error updating training document:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update training document',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Fix Talia prompt documents - upload and enable for star_report persona
+ * POST /api/ai-management/fix-talia-prompts
+ */
+router.post('/fix-talia-prompts', requireAdmin, async (req, res) => {
+  try {
+    console.log('🔧 Fixing Talia prompt documents...');
+    
+    const fs = await import('fs/promises');
+    
+    // Check if documents already exist
+    // No longer auto-creating or force-assigning hardwired prompt documents
+    // All documents are now managed through the persona management interface
+    console.log('📋 Skipping hardwired prompt document creation - all documents managed via persona interface');
+    
+    res.json({
+      success: true,
+      message: 'Talia prompt documents fixed successfully',
+      documentsCreated: createdDocIds.length,
+      documentsEnabled: promptDocIds.length,
+      enabledDocuments: updatedEnabledDocs,
+      promptDocuments: allPromptDocs.rows.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        enabled: updatedEnabledDocs.includes(doc.id.toString())
+      }))
+    });
+    
+  } catch (error) {
+    console.error('❌ Error fixing Talia prompt documents:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fix Talia prompt documents',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Initialize learning documents for all personas
+ * POST /api/admin/ai/initialize-learning-documents
+ */
+router.post('/initialize-learning-documents', requireAdmin, async (req, res) => {
+  try {
+    console.log('🚀 Initializing learning documents for all personas...');
+    
+    const { conversationLearningService } = await import('../services/conversation-learning-service.js');
+    await conversationLearningService.initializeAllPersonaLearningDocuments();
+    
+    console.log('✅ Learning documents initialized successfully');
+    
+    res.json({
+      success: true,
+      message: 'Learning documents initialized for all personas',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Error initializing learning documents:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to initialize learning documents',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get detailed document information for personas with processing status
+ * GET /api/admin/ai/persona-documents
+ */
+router.get('/persona-documents', requireAdmin, async (req, res) => {
+  try {
+    console.log('🔧 Fetching detailed document information for personas');
+
+    const result = await pool.query(`
+      SELECT 
+        td.id,
+        td.title,
+        td.document_type,
+        td.category,
+        td.status,
+        td.created_at,
+        td.updated_at,
+        td.file_size,
+        td.original_filename,
+        COALESCE(chunk_counts.chunk_count, 0) as chunk_count,
+        CASE 
+          WHEN chunk_counts.chunk_count > 0 THEN 'processed'
+          ELSE 'pending'
+        END as processing_status
+      FROM training_documents td
+      LEFT JOIN (
+        SELECT 
+          document_id, 
+          COUNT(*) as chunk_count
+        FROM document_chunks 
+        GROUP BY document_id
+      ) chunk_counts ON td.id = chunk_counts.document_id
+      WHERE td.status = 'active'
+      ORDER BY td.updated_at DESC
+    `);
+
+    // Get persona document assignments
+    const personaResult = await pool.query(`
+      SELECT id, training_documents 
+      FROM talia_personas 
+      WHERE enabled = true
+    `);
+
+    const personaDocuments = personaResult.rows.reduce((acc, persona) => {
+      acc[persona.id] = persona.training_documents || [];
+      return acc;
+    }, {} as Record<string, string[]>);
+
+    const documentsWithPersonaInfo = result.rows.map(doc => ({
+      ...doc,
+      assignedToPersonas: Object.entries(personaDocuments)
+        .filter(([_, docIds]) => docIds.includes(doc.id))
+        .map(([personaId]) => personaId),
+      isProcessed: doc.chunk_count > 0,
+      lastUpdated: doc.updated_at,
+      processingStatus: doc.chunk_count > 0 ? 'processed' : 'pending'
+    }));
+
+    res.json({
+      success: true,
+      documents: documentsWithPersonaInfo,
+      totalDocuments: result.rows.length,
+      message: 'Document information retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('❌ Error fetching persona document information:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch persona document information',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get training data for a specific persona in editable format
+ * GET /api/admin/ai/training-data/:personaId
+ */
+router.get('/training-data/:personaId', requireAdmin, async (req, res) => {
+  const { personaId } = req.params;
+  
+  try {
+    const { taliaTrainingService } = await import('../services/talia-training-service.js');
+    const trainingData = await taliaTrainingService.loadTrainingData(personaId);
+    
+    if (!trainingData) {
+      return res.json({
+        success: true,
+        trainingData: {
+          guidelines: [],
+          examples: [],
+          trainingSessions: [],
+          lastUpdated: null
+        },
+        message: 'No training data found - will create new'
+      });
+    }
+    
+    res.json({
+      success: true,
+      trainingData: trainingData,
+      personaId: personaId,
+      message: 'Training data retrieved successfully'
+    });
+    
+  } catch (error) {
+    console.error(`❌ Error getting training data for ${personaId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get training data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Update training data for a specific persona
+ * PUT /api/admin/ai/training-data/:personaId
+ */
+router.put('/training-data/:personaId', requireAdmin, async (req, res) => {
+  const { personaId } = req.params;
+  const { guidelines, examples } = req.body;
+  
+  try {
+    if (!Array.isArray(guidelines) || !Array.isArray(examples)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Guidelines and examples must be arrays'
+      });
+    }
+    
+    const { taliaTrainingService } = await import('../services/talia-training-service.js');
+    
+    // Load existing data
+    let trainingData = await taliaTrainingService.loadTrainingData(personaId) || {
+      trainingSessions: [],
+      guidelines: [],
+      examples: [],
+      lastUpdated: null
+    };
+    
+    // Update guidelines and examples
+    trainingData.guidelines = guidelines;
+    trainingData.examples = examples;
+    trainingData.lastUpdated = new Date().toISOString();
+    
+    // Save the updated training data
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const trainingFilePath = path.join(process.cwd(), 'storage', 'talia-training.json');
+    
+    // Load full training file
+    let fullTrainingData = {};
+    try {
+      const existingData = await fs.readFile(trainingFilePath, 'utf-8');
+      fullTrainingData = JSON.parse(existingData);
+    } catch (error) {
+      // File doesn't exist yet
+    }
+    
+    // Update specific persona data
+    fullTrainingData[personaId] = trainingData;
+    
+    // Save back to file
+    await fs.writeFile(trainingFilePath, JSON.stringify(fullTrainingData, null, 2));
+    
+    console.log(`✅ Training data updated for persona ${personaId} by admin`);
+    
+    res.json({
+      success: true,
+      message: 'Training data updated successfully',
+      personaId: personaId,
+      guidelinesCount: guidelines.length,
+      examplesCount: examples.length
+    });
+    
+  } catch (error) {
+    console.error(`❌ Error updating training data for ${personaId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to update training data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Toggle training data on/off for a persona
+ * POST /api/admin/ai/training-data/:personaId/toggle
+ */
+router.post('/training-data/:personaId/toggle', requireAdmin, async (req, res) => {
+  const { personaId } = req.params;
+  const { enabled } = req.body;
+  
+  try {
+    if (typeof enabled !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: 'enabled must be a boolean value'
+      });
+    }
+    
+    const { taliaTrainingService } = await import('../services/talia-training-service.js');
+    
+    // Load existing data
+    let trainingData = await taliaTrainingService.loadTrainingData(personaId) || {
+      trainingSessions: [],
+      guidelines: [],
+      examples: [],
+      lastUpdated: null
+    };
+    
+    // Add or update the enabled flag
+    trainingData.enabled = enabled;
+    trainingData.lastUpdated = new Date().toISOString();
+    
+    // Save the updated training data
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const trainingFilePath = path.join(process.cwd(), 'storage', 'talia-training.json');
+    
+    // Load full training file
+    let fullTrainingData = {};
+    try {
+      const existingData = await fs.readFile(trainingFilePath, 'utf-8');
+      fullTrainingData = JSON.parse(existingData);
+    } catch (error) {
+      // File doesn't exist yet
+    }
+    
+    // Update specific persona data
+    fullTrainingData[personaId] = trainingData;
+    
+    // Save back to file
+    await fs.writeFile(trainingFilePath, JSON.stringify(fullTrainingData, null, 2));
+    
+    console.log(`✅ Training data ${enabled ? 'enabled' : 'disabled'} for persona ${personaId} by admin`);
+    
+    res.json({
+      success: true,
+      message: `Training data ${enabled ? 'enabled' : 'disabled'} successfully`,
+      personaId: personaId,
+      enabled: enabled
+    });
+    
+  } catch (error) {
+    console.error(`❌ Error toggling training data for ${personaId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to toggle training data',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+/**
+ * Get learning document for a specific persona
+ * GET /api/admin/ai/learning-document/:personaId
+ */
+router.get('/learning-document/:personaId', requireAdmin, async (req, res) => {
+  const { personaId } = req.params;
+  
+  try {
+    const { conversationLearningService } = await import('../services/conversation-learning-service.js');
+    const learningDocId = await conversationLearningService.getLearningDocumentId(personaId);
+    
+    if (!learningDocId) {
+      return res.status(404).json({
+        success: false,
+        error: 'Learning document not found for this persona'
+      });
+    }
+    
+    // Get the learning document details
+    const docResult = await pool.query(`
+      SELECT id, title, content, created_at, updated_at
+      FROM training_documents 
+      WHERE id = $1 AND document_type = 'conversation_learning'
+    `, [learningDocId]);
+    
+    if (docResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: 'Learning document not found'
+      });
+    }
+    
+    res.json({
+      success: true,
+      learningDocument: docResult.rows[0],
+      personaId: personaId
+    });
+    
+  } catch (error) {
+    console.error(`❌ Error getting learning document for ${personaId}:`, error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to get learning document',
       details: error instanceof Error ? error.message : 'Unknown error'
     });
   }

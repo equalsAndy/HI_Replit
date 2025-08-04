@@ -70,6 +70,7 @@ export const users: any = pgTable('users', {
   profilePicture: text('profile_picture'),
   isTestUser: boolean('is_test_user').default(false).notNull(),
   isBetaTester: boolean('is_beta_tester').default(false).notNull(),
+  hasSeenBetaWelcome: boolean('has_seen_beta_welcome').default(false).notNull(),
   showDemoDataButtons: boolean('show_demo_data_buttons').default(true).notNull(), // For test users to toggle demo data buttons
   navigationProgress: text('navigation_progress'), // JSON string storing navigation state
   // Access control fields
@@ -87,6 +88,8 @@ export const users: any = pgTable('users', {
   teamId: integer('team_id'),
   // Invite tracking field
   invitedBy: integer('invited_by'),
+  // Talia training access control
+  canTrainTalia: boolean('can_train_talia').default(false).notNull(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });
@@ -102,7 +105,8 @@ export const insertUserSchema = createInsertSchema(users).extend({
   astAccess: z.boolean().default(true),
   iaAccess: z.boolean().default(true),
   astWorkshopCompleted: z.boolean().default(false),
-  iaWorkshopCompleted: z.boolean().default(false)
+  iaWorkshopCompleted: z.boolean().default(false),
+  canTrainTalia: z.boolean().default(false)
 });
 
 // Type definitions for TypeScript
@@ -186,6 +190,9 @@ export const invites = pgTable('invites', {
   expiresAt: timestamp('expires_at'),
   usedAt: timestamp('used_at'),
   usedBy: integer('used_by'),
+  cohortId: integer('cohort_id'),
+  organizationId: varchar('organization_id', { length: 255 }),
+  isBetaTester: boolean('is_beta_tester').default(false).notNull(),
 });
 
 // Create insert schema for invites with role validation

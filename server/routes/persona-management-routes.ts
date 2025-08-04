@@ -632,3 +632,4 @@ router.get('/reflection-areas/:areaId/status', async (req, res) => {
 });
 
 export default router;
+export { CURRENT_REFLECTION_AREAS };
