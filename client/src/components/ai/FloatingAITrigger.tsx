@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide-react';
-import { useTestUser } from '@/hooks/useTestUser';
+// import { useTestUser } from '@/hooks/useTestUser';
 import { useCurrentUser } from '@/hooks/use-current-user';
-import { isFeatureEnabled } from '@/utils/featureFlags';
+// import { isFeatureEnabled } from '@/utils/featureFlags';
 // import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
 // import TaliaTrainingModal from './TaliaTrainingModal';
 
@@ -40,8 +40,8 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const [isMaximized, setIsMaximized] = useState(false);
   const [modalSize, setModalSize] = useState({ width: 450, height: 550 });
   const [isResizing, setIsResizing] = useState(false);
-  const { shouldShowDemoButtons, isTestUser } = useTestUser();
-  const { data: currentUser } = useCurrentUser();
+  // const { shouldShowDemoButtons, isTestUser } = useTestUser();
+  const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   
@@ -111,14 +111,14 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
     checkStepReflectionStatus();
   }, [currentStep, workshopType]);
 
-  // Check if reflection modal is enabled
-  const reflectionModalEnabled = isFeatureEnabled('reflectionModal');
+  // Check if reflection modal is enabled - temporarily disabled
+  const reflectionModalEnabled = true; // isFeatureEnabled('reflectionModal');
 
-  // Determine if user has access to AI features (test users only)
-  const hasAIAccess = shouldShowDemoButtons && reflectionModalEnabled;
+  // Determine if user has access to AI features (test users only) - temporarily disabled  
+  const hasAIAccess = true; // shouldShowDemoButtons && reflectionModalEnabled;
   
-  // Show button only to admin users
-  const shouldShowButton = currentUser?.role === 'admin';
+  // Show button only to admin users - wait for user data to load
+  const shouldShowButton = !isUserLoading && currentUser?.role === 'admin';
   
   // Determine if AI is available for this specific context
   // For admin mode: just need a selected user (admin access is implicit)
@@ -258,9 +258,8 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   //   } : null
   // });
 
-  // Only show to test users (but may be disabled based on context)
-  if (!shouldShowButton) {
-    console.log('🤖 FloatingAITrigger: Not rendering - not admin user');
+  // Only show to admin users - return null if user is still loading or not admin
+  if (isUserLoading || !shouldShowButton) {
     return null;
   }
 
