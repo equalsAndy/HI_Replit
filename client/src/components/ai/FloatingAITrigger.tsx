@@ -3,8 +3,8 @@ import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide
 import { useTestUser } from '@/hooks/useTestUser';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { isFeatureEnabled } from '@/utils/featureFlags';
-import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
-import TaliaTrainingModal from './TaliaTrainingModal';
+// import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
+// import TaliaTrainingModal from './TaliaTrainingModal';
 
 interface FloatingAITriggerProps {
   currentStep?: string;
@@ -49,8 +49,8 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const [showTrainingModal, setShowTrainingModal] = useState(false);
   const [trainingContext, setTrainingContext] = useState<any>(null);
   
-  // Get Report Talia context (null if not in admin area)
-  const reportTaliaContext = useReportTaliaContextSafe();
+  // Get Report Talia context (null if not in admin area) - Temporarily disabled
+  const reportTaliaContext = null;
 
   // Check AI coaching status from admin console and step-specific reflection area status
   useEffect(() => {
@@ -260,7 +260,7 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
 
   // Only show to test users (but may be disabled based on context)
   if (!shouldShowButton) {
-    console.log('🤖 FloatingAITrigger: Not rendering - not a test user');
+    console.log('🤖 FloatingAITrigger: Not rendering - not admin user');
     return null;
   }
 
@@ -746,8 +746,8 @@ Your task is to write 2-3 sentences about this. What specific situation comes to
         </div>
       )}
 
-      {/* Training Modal */}
-      <TaliaTrainingModal
+      {/* Training Modal - Temporarily disabled to fix initialization error */}
+      {/* <TaliaTrainingModal
         isOpen={showTrainingModal}
         onClose={() => {
           setShowTrainingModal(false);
@@ -755,7 +755,7 @@ Your task is to write 2-3 sentences about this. What specific situation comes to
         }}
         persona={reportTaliaContext?.isAdminContext ? 'report_talia' : 'reflection_talia'}
         reflectionContext={trainingContext}
-      />
+      /> */}
     </>
   );
 };
