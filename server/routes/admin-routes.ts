@@ -217,6 +217,7 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
       password: z.string().optional(),
       resetPassword: z.boolean().optional(),
       setCustomPassword: z.boolean().optional(),
+      changePassword: z.boolean().optional(),
       newPassword: z.string().optional(),
     });
 
@@ -237,14 +238,15 @@ router.put('/users/:id', requireAuth, isAdmin, async (req: Request, res: Respons
     if (updateData.resetPassword) {
       // Reset password - generate temporary password
       processedUpdateData.password = undefined; // This will trigger temporary password generation
-    } else if (updateData.setCustomPassword && updateData.newPassword) {
-      // Set custom password
+    } else if ((updateData.setCustomPassword || updateData.changePassword) && updateData.newPassword) {
+      // Set custom password (support both field names for compatibility)
       processedUpdateData.password = updateData.newPassword;
     }
     
     // Remove the frontend form fields before sending to service
     delete processedUpdateData.resetPassword;
     delete processedUpdateData.setCustomPassword;
+    delete processedUpdateData.changePassword;
     delete processedUpdateData.newPassword;
 
     // Debug log the data being sent to service
