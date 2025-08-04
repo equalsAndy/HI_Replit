@@ -25,4 +25,6 @@ curl -I http://34.220.143.127
 # 6. Check container logs if needed
 sudo docker logs staging-app
 
-sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-starcard-fix-20250804-1145
+sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-openai-integration-20250804-1213
+
+echo 'OPENAI_API_KEY=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' >> staging.env

@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import FloatingAITrigger from './FloatingAITrigger';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+import FloatingAITrigger from './FloatingAITrigger.safe';
 
 interface AIContext {
   stepName?: string;
@@ -62,9 +62,9 @@ export const FloatingAIProvider: React.FC<FloatingAIProviderProps> = ({
     aiEnabled: true
   });
 
-  const updateContext = (newContext: Partial<AIContext>) => {
+  const updateContext = useMemo(() => (newContext: Partial<AIContext>) => {
     setContext(prev => ({ ...prev, ...newContext }));
-  };
+  }, []);
 
   // Memoize the trigger visibility check to prevent infinite loops
   const [currentPath, setCurrentPath] = useState(window.location.pathname);
@@ -99,14 +99,14 @@ export const FloatingAIProvider: React.FC<FloatingAIProviderProps> = ({
     }
   }, [currentPath]);
 
-  const contextValue: FloatingAIContextType = {
+  const contextValue: FloatingAIContextType = useMemo(() => ({
     currentStep,
     workshopType,
     context,
     updateContext,
     setCurrentStep,
     setWorkshopType
-  };
+  }), [currentStep, workshopType, context, updateContext]);
 
   return (
     <FloatingAIContext.Provider value={contextValue}>
