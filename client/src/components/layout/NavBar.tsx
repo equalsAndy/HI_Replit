@@ -68,7 +68,7 @@ const EnvironmentBadge = () => {
   const viteMode = import.meta.env.MODE;
   const isDev = import.meta.env.DEV;
   const isLocalhost = window.location.hostname === 'localhost' || window.location.port === '8080';
-  const isStaging = viteMode === 'staging' || window.location.hostname.includes('app2.heliotropeimaginal.com') || (versionInfo.environment === 'staging' && !isLocalhost);
+  const isStaging = viteMode === 'staging' || (versionInfo.environment === 'staging' && !isLocalhost);
   const isProduction = versionInfo.environment === 'production';
   
   // Development detection (but not if version.json says staging or production)
