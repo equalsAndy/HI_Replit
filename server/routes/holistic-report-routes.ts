@@ -832,6 +832,27 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
     
     console.log(`✅ Admin-style report generated successfully (${reportContent.length} chars)`);
     
+    // Extract actual StarCard assessment data from user assessments
+    const starCardAssessment = assessmentResult.rows.find(a => a.assessment_type === 'starCard');
+    let actualStrengths = { thinking: 0, acting: 0, feeling: 0, planning: 0 };
+    
+    if (starCardAssessment && starCardAssessment.results) {
+      try {
+        const starCardData = JSON.parse(starCardAssessment.results as string);
+        actualStrengths = {
+          thinking: starCardData.thinking || 0,
+          acting: starCardData.acting || 0,
+          feeling: starCardData.feeling || 0,
+          planning: starCardData.planning || 0
+        };
+        console.log(`✅ Extracted actual user strengths data:`, actualStrengths);
+      } catch (error) {
+        console.warn(`⚠️ Failed to parse StarCard data for user ${userId}, using defaults:`, error);
+      }
+    } else {
+      console.warn(`⚠️ No StarCard assessment found for user ${userId}, using default values`);
+    }
+
     // Structure the data for the holistic report system
     const reportData = {
       participant: {
@@ -841,10 +862,10 @@ async function generateReportUsingTalia(userId: number, reportType: ReportType):
         completedAt: new Date(user.ast_completed_at || Date.now())
       },
       strengths: {
-        thinking: 26, // These will be populated from actual data
-        acting: 33,
-        feeling: 22,
-        planning: 19,
+        thinking: actualStrengths.thinking,
+        acting: actualStrengths.acting,
+        feeling: actualStrengths.feeling,
+        planning: actualStrengths.planning,
         topStrengths: [],
         strengthInsights: []
       },
