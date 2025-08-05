@@ -94,3 +94,8 @@ process-*.js
 
 # Test directories at root level
 src/test/
+
+# Development variations and archive files
+*.minimal.tsx
+*.safe.tsx
+*-archive.tsx
