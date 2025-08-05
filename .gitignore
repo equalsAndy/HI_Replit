@@ -81,3 +81,16 @@ tempClaudecomms/
 test-*.html
 keys/Unsplash.txt
 temp/
+
+# Temporary development and deployment files
+production-deployment-*.json
+production-public-endpoint.json
+*-starcard-data.json
+generate-*.js
+process-*.js
+*-base64.txt
+*-logo-*.png
+*-logo-*.jpg
+
+# Test directories at root level
+src/test/
