@@ -287,80 +287,12 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
           <>
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {/* Page Context Section */}
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-4">
-                <div className="flex items-center gap-3 mb-4">
-                  <h3 className="text-sm font-semibold text-blue-900">Is your feedback about</h3>
-                  <div className="bg-blue-500 text-white px-2 py-1 rounded text-xs font-semibold">
-                    {currentPage.title}
-                  </div>
-                  <span className="text-sm font-semibold text-blue-900">?</span>
+              {/* Hidden system info - still collected for submission but not displayed */}
+              {systemInfo && (
+                <div className="hidden">
+                  Technical Information: Browser: {systemInfo.browser}, OS: {systemInfo.os}, Screen: {systemInfo.screen}, Workshop: {currentPage.workshopName} ({currentPage.workshop.toUpperCase()})
                 </div>
-                
-                <div className="space-y-3">
-                  {[
-                    { value: 'current', label: `Yes, ${currentPage.title}` },
-                    { value: 'other', label: "No, it's about a different workshop page" },
-                    { value: 'general', label: 'No, general workshop feedback' },
-                  ].map((option) => (
-                    <label
-                      key={option.value}
-                      className={`flex items-center gap-3 p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                        formData.pageContext === option.value
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 bg-white hover:border-blue-300'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="pageContext"
-                        value={option.value}
-                        checked={formData.pageContext === option.value}
-                        onChange={(e) => setFormData({ ...formData, pageContext: e.target.value as any })}
-                        className="w-4 h-4 text-blue-500"
-                      />
-                      <span className="text-sm font-medium text-gray-700">{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-
-                {/* Page Dropdown */}
-                {formData.pageContext === 'other' && (
-                  <div className="mt-3">
-                    <select
-                      value={formData.targetPage || ''}
-                      onChange={(e) => setFormData({ ...formData, targetPage: e.target.value })}
-                      className="w-full p-3 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none bg-white text-gray-900"
-                    >
-                      <option value="">Select a workshop page...</option>
-                      {Object.entries(WORKSHOP_PAGES[currentPage.workshop]).map(([module, pages]) => (
-                        <optgroup key={module} label={module}>
-                          {pages.map((page) => (
-                            <option key={page.value} value={page.value}>
-                              {page.label}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                {/* System Info */}
-                {systemInfo && (
-                  <div className="mt-4 bg-gray-50 border border-gray-200 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-gray-600 mb-2">
-                      Technical Information (automatically captured)
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-500">
-                      <div><strong>Browser:</strong> {systemInfo.browser}</div>
-                      <div><strong>OS:</strong> {systemInfo.os}</div>
-                      <div><strong>Screen:</strong> {systemInfo.screen}</div>
-                      <div><strong>Workshop:</strong> {currentPage.workshopName} ({currentPage.workshop.toUpperCase()})</div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              )}
 
               {/* Feedback Type */}
               <div>
