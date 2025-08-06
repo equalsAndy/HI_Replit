@@ -90,7 +90,7 @@ export const FeedbackTrigger: React.FC<FeedbackTriggerProps> = ({
     <>
       <button
         onClick={handleOpenModal}
-        className={`inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 transition-colors ${className}`}
+        className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 border border-blue-500 rounded-lg text-sm font-medium text-white hover:bg-blue-700 hover:border-blue-600 transition-colors shadow-sm ${className}`}
       >
         <MessageCircle size={16} />
         Give Feedback

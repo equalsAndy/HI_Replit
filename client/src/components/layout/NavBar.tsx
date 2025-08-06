@@ -337,7 +337,7 @@ export function NavBar() {
               <FeedbackTrigger 
                 currentPage={detectCurrentPage(currentStepId || undefined)}
                 variant="button"
-                className="text-xs bg-blue-600 hover:bg-blue-700 text-white border-blue-500 shadow-sm"
+                className="text-xs"
               />
 
               {/* Admin/Facilitator button - shown for admin and facilitator users */}
