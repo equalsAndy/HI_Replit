@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
+import { useTestUser } from '../../hooks/useTestUser';
 
 interface SystemInfo {
   browser: string;
@@ -71,6 +72,7 @@ const WORKSHOP_PAGES = {
 };
 
 export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, currentPage }) => {
+  const { isTestUser, user } = useTestUser();
   const [formData, setFormData] = useState<Partial<FeedbackData>>({
     pageContext: 'current',
     feedbackType: 'bug',
@@ -81,6 +83,9 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Check if user is admin (admins are also considered test users for priority level)
+  const isAdminOrTestUser = isTestUser || user?.role === 'admin';
 
   // Auto-detect system information
   useEffect(() => {
@@ -378,42 +383,44 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, c
                 </div>
               </div>
 
-              {/* Priority Level */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-900 mb-3">Priority Level</h3>
-                <div className="flex gap-2">
-                  {[
-                    { value: 'low', label: 'Low', color: 'green' },
-                    { value: 'medium', label: 'Medium', color: 'orange' },
-                    { value: 'high', label: 'High', color: 'red' },
-                    { value: 'blocker', label: 'Blocker', color: 'gray' },
-                  ].map((priority) => (
-                    <button
-                      key={priority.value}
-                      onClick={() => setFormData({ ...formData, priority: priority.value as any })}
-                      className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
-                        formData.priority === priority.value
-                          ? priority.color === 'green'
-                            ? 'bg-green-100 text-green-800 border-2 border-green-500'
+              {/* Priority Level - Only visible to test users and admins */}
+              {isAdminOrTestUser && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 mb-3">Priority Level</h3>
+                  <div className="flex gap-2">
+                    {[
+                      { value: 'low', label: 'Low', color: 'green' },
+                      { value: 'medium', label: 'Medium', color: 'orange' },
+                      { value: 'high', label: 'High', color: 'red' },
+                      { value: 'blocker', label: 'Blocker', color: 'gray' },
+                    ].map((priority) => (
+                      <button
+                        key={priority.value}
+                        onClick={() => setFormData({ ...formData, priority: priority.value as any })}
+                        className={`flex-1 py-2 px-3 text-sm font-medium rounded-lg transition-all ${
+                          formData.priority === priority.value
+                            ? priority.color === 'green'
+                              ? 'bg-green-100 text-green-800 border-2 border-green-500'
+                              : priority.color === 'orange'
+                              ? 'bg-orange-100 text-orange-800 border-2 border-orange-500'
+                              : priority.color === 'red'
+                              ? 'bg-red-100 text-red-800 border-2 border-red-500'
+                              : 'bg-gray-100 text-gray-800 border-2 border-gray-500'
+                            : priority.color === 'green'
+                            ? 'bg-green-50 text-green-700 border-2 border-green-200 hover:border-green-300'
                             : priority.color === 'orange'
-                            ? 'bg-orange-100 text-orange-800 border-2 border-orange-500'
+                            ? 'bg-orange-50 text-orange-700 border-2 border-orange-200 hover:border-orange-300'
                             : priority.color === 'red'
-                            ? 'bg-red-100 text-red-800 border-2 border-red-500'
-                            : 'bg-gray-100 text-gray-800 border-2 border-gray-500'
-                          : priority.color === 'green'
-                          ? 'bg-green-50 text-green-700 border-2 border-green-200 hover:border-green-300'
-                          : priority.color === 'orange'
-                          ? 'bg-orange-50 text-orange-700 border-2 border-orange-200 hover:border-orange-300'
-                          : priority.color === 'red'
-                          ? 'bg-red-50 text-red-700 border-2 border-red-200 hover:border-red-300'
-                          : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300'
-                      }`}
-                    >
-                      {priority.label}
-                    </button>
-                  ))}
+                            ? 'bg-red-50 text-red-700 border-2 border-red-200 hover:border-red-300'
+                            : 'bg-gray-50 text-gray-700 border-2 border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        {priority.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Footer */}
