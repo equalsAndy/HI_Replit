@@ -36,6 +36,15 @@ export function useLogout() {
         // Store logout message for auth page
         storeSessionMessage('logged-out');
         
+        // Clear beta welcome session storage on logout
+        // This ensures beta testers can see the welcome modal on next login
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.startsWith('beta_welcome_shown_')) {
+            sessionStorage.removeItem(key);
+            console.log('🧹 Cleared beta welcome session storage on logout:', key);
+          }
+        });
+        
         // Use fetch directly for better control (avoid redirects during the request)
         await fetch('/api/auth/logout', {
           method: 'POST',
