@@ -114,9 +114,22 @@ git merge --no-ff branch-name
 ## 🗄️ Database & Environment Management
 
 ### **Database Environments**
-- **Development**: AWS Lightsail PostgreSQL (safe for testing)
+- **Development**: AWS RDS PostgreSQL (`ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com`) - safe for testing
 - **Staging**: app2.heliotropeimaginal.com  
 - **Production**: app.heliotropeimaginal.com (PROTECTED)
+
+### **⚠️ IMPORTANT: Current Development Database**
+The development environment currently uses the **AWS RDS database** (not local PostgreSQL). All development, beta testing, and feature work should be done against this RDS instance:
+
+```bash
+# Current development database connection
+DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
+```
+
+**Key Points:**
+- User accounts, beta tester data, and notes are stored in this RDS database
+- All database migrations and schema changes should be applied here
+- Beta tester functionality (User 16, etc.) exists in this database, not local PostgreSQL
 
 ### **Environment Safety**
 ```bash
@@ -125,10 +138,13 @@ npm run dev              # Development server
 npm run build           # Production build
 npm run test            # Run tests
 
-# Database operations (development only)
-npm run db:migrate      # Run migrations
-npm run db:seed        # Seed test data
-npm run db:reset       # Reset database
+# Database operations (RDS development database)
+npm run db:migrate      # Run migrations on RDS
+npm run db:seed        # Seed test data on RDS  
+npm run db:reset       # Reset RDS database (USE WITH CAUTION)
+
+# Direct RDS database access
+NODE_TLS_REJECT_UNAUTHORIZED=0 PGPASSWORD=HeliotropeDev2025 psql -h ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com -U dbmasteruser -d postgres
 ```
 
 ### **Admin Access**

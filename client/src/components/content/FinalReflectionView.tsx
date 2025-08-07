@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useTestUser } from '@/hooks/useTestUser';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { FileText } from 'lucide-react';
 import ladderImage from '@assets/journeyladder_1749683540778.png';
 import allstarteamsLogo from '@assets/all-star-teams-logo-250px.png';
@@ -10,6 +11,7 @@ import { validateTextInput } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useApplication } from '@/hooks/use-application';
+import { BetaFinalReflectionModal } from '@/components/beta-testing/BetaFinalReflectionModal';
 
 interface FinalReflectionViewProps {
   currentContent: string;
@@ -31,7 +33,9 @@ export default function FinalReflectionView({
   const queryClient = useQueryClient();
   const [insight, setInsight] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showBetaEndModal, setShowBetaEndModal] = useState(false);
   const { shouldShowDemoButtons } = useTestUser();
+  const { data: user } = useCurrentUser();
   
   // Application context for proper app type detection
   const { currentApp } = useApplication();
@@ -212,8 +216,10 @@ export default function FinalReflectionView({
         }
       }
       
-      // Show completion modal
-      setShowModal(true);
+      // Show completion modal (but not for beta users - they have their own flow)
+      if (!user?.isBetaTester) {
+        setShowModal(true);
+      }
       
     } catch (error) {
       console.error('Failed to save final reflection:', error);
@@ -224,18 +230,23 @@ export default function FinalReflectionView({
       try {
         await completeWorkshop(appType);
         markStepCompleted('4-5');
-        setShowModal(true);
+        // Show modal (but not for beta users)
+        if (!user?.isBetaTester) {
+          setShowModal(true);
+        }
       } catch (completionError) {
         console.error('❌ Failed to complete workshop after save error:', completionError);
-        // Still show the modal so user isn't stuck
-        setShowModal(true);
+        // Still show the modal so user isn't stuck (but not for beta users)
+        if (!user?.isBetaTester) {
+          setShowModal(true);
+        }
       }
     }
   };
 
   // Prevent body scroll when modal is open
   useEffect(() => {
-    if (showModal) {
+    if (showModal || showBetaEndModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
@@ -244,7 +255,20 @@ export default function FinalReflectionView({
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [showModal]);
+  }, [showModal, showBetaEndModal]);
+
+  // Show beta tester end modal when they first arrive at Final Reflection
+  useEffect(() => {
+    if (user?.isBetaTester && !completed) {
+      const sessionKey = `beta_end_modal_shown_${user.id}`;
+      const hasShownThisSession = sessionStorage.getItem(sessionKey);
+      
+      if (!hasShownThisSession) {
+        setShowBetaEndModal(true);
+        sessionStorage.setItem(sessionKey, 'true');
+      }
+    }
+  }, [user?.isBetaTester, user?.id, completed]);
 
   const handleModalOption = (option: string) => {
     setIsModalCountingDown(false); // Stop countdown
@@ -1064,6 +1088,12 @@ export default function FinalReflectionView({
           }
         }
       `}</style>
+
+      {/* Beta Tester Workshop End Modal */}
+      <BetaFinalReflectionModal
+        isOpen={showBetaEndModal}
+        onClose={() => setShowBetaEndModal(false)}
+      />
     </>
   );
 }
