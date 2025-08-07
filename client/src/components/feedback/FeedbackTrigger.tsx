@@ -31,8 +31,21 @@ export const FeedbackTrigger: React.FC<FeedbackTriggerProps> = ({
     return null;
   }
 
-  // Show feedback to test users and beta testers
-  if (!isTestUser && !user?.isBetaTester) {
+  // Visibility logic based on user type and variant
+  const isBetaTester = user?.isBetaTester || false;
+  const shouldShowToUser = isTestUser || isBetaTester;
+  
+  if (!shouldShowToUser) {
+    return null;
+  }
+
+  // FAB variant only for beta testers
+  if (variant === 'fab' && !isBetaTester) {
+    return null;
+  }
+
+  // Button/text variants only for test users (not beta testers)
+  if ((variant === 'button' || variant === 'text') && isBetaTester) {
     return null;
   }
 

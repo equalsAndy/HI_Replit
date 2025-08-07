@@ -10,26 +10,42 @@ export interface PageData {
 
 // Map content step IDs to readable titles and modules
 const STEP_MAPPINGS: Record<string, { title: string; workshop: 'ast' | 'ia'; module?: string }> = {
-  // AST Workshop Steps
-  'welcome': { title: 'Welcome & Introduction', workshop: 'ast', module: 'Introduction' },
-  'intro-strengths': { title: 'Introduction to Star Strengths', workshop: 'ast', module: 'Module 1: Self-Awareness' },
-  'strengths-assessment': { title: 'Star Strengths Assessment', workshop: 'ast', module: 'Module 1: Self-Awareness' },
-  'star-card-preview': { title: 'Review Your Star Card', workshop: 'ast', module: 'Module 1: Self-Awareness' },
-  'reflection': { title: 'Strength Reflection', workshop: 'ast', module: 'Module 1: Self-Awareness' },
-  'intro-to-flow': { title: 'Introduction to Flow', workshop: 'ast', module: 'Module 2: Flow' },
-  'flow-assessment': { title: 'Flow Assessment', workshop: 'ast', module: 'Module 2: Flow' },
-  'flow-rounding-out': { title: 'Rounding Out', workshop: 'ast', module: 'Module 2: Flow' },
-  'flow-star-card': { title: 'Add Flow to Star Card', workshop: 'ast', module: 'Module 2: Flow' },
-  'wellbeing': { title: 'Ladder of Well-being', workshop: 'ast', module: 'Module 3: Visualization' },
-  'cantril-ladder': { title: 'Well-being Reflections', workshop: 'ast', module: 'Module 3: Visualization' },
-  'visualizing-you': { title: 'Visualizing You', workshop: 'ast', module: 'Module 3: Visualization' },
-  'future-self': { title: 'Your Future Self', workshop: 'ast', module: 'Module 3: Visualization' },
-  'final-reflection': { title: 'Final Reflection', workshop: 'ast', module: 'Module 3: Visualization' },
-  '5-1': { title: 'Download your Star Card', workshop: 'ast', module: 'Next Steps' },
-  '5-2': { title: 'Your Holistic Report', workshop: 'ast', module: 'Next Steps' },
-  '5-3': { title: 'Growth Plan', workshop: 'ast', module: 'Next Steps' },
-  '5-4': { title: 'Team Workshop Prep', workshop: 'ast', module: 'Next Steps' },
-  '6-1': { title: 'Workshop Resources', workshop: 'ast', module: 'Next Steps' },
+  // AST Workshop Steps - Using step IDs with menu item names
+  '1-1': { title: 'Introduction', workshop: 'ast', module: 'Introduction' },
+  '2-1': { title: 'Intro to Star Strengths', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  '2-2': { title: 'Star Strengths Self-Assessment', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  '2-3': { title: 'Review Your Star Card', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  '2-4': { title: 'Strength Reflection', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  '3-1': { title: 'Intro to Flow', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  '3-2': { title: 'Flow Assessment', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  '3-3': { title: 'Rounding Out', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  '3-4': { title: 'Add Flow to Star Card', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  '4-1': { title: 'Ladder of Well-being', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
+  '4-2': { title: 'Well-being Reflections', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
+  '4-3': { title: 'Visualizing You', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  '4-4': { title: 'Your Future Self', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  '4-5': { title: 'Final Reflection', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  '5-1': { title: 'Download your Star Card', workshop: 'ast', module: 'NEXT STEPS' },
+  '5-2': { title: 'Your Holistic Report', workshop: 'ast', module: 'NEXT STEPS' },
+  '5-3': { title: 'Growth Plan', workshop: 'ast', module: 'NEXT STEPS' },
+  '5-4': { title: 'Team Workshop Prep', workshop: 'ast', module: 'NEXT STEPS' },
+  '6-1': { title: 'Workshop Resources', workshop: 'ast', module: 'NEXT STEPS' },
+  
+  // Legacy content key mappings for backward compatibility
+  'welcome': { title: 'Introduction', workshop: 'ast', module: 'Introduction' },
+  'intro-strengths': { title: 'Intro to Star Strengths', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  'strengths-assessment': { title: 'Star Strengths Self-Assessment', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  'star-card-preview': { title: 'Review Your Star Card', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  'reflection': { title: 'Strength Reflection', workshop: 'ast', module: 'DISCOVER YOUR STAR STRENGTHS' },
+  'intro-to-flow': { title: 'Intro to Flow', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  'flow-assessment': { title: 'Flow Assessment', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  'flow-rounding-out': { title: 'Rounding Out', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  'flow-star-card': { title: 'Add Flow to Star Card', workshop: 'ast', module: 'IDENTIFY YOUR FLOW' },
+  'wellbeing': { title: 'Ladder of Well-being', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
+  'cantril-ladder': { title: 'Well-being Reflections', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 1' },
+  'visualizing-you': { title: 'Visualizing You', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  'future-self': { title: 'Your Future Self', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
+  'final-reflection': { title: 'Final Reflection', workshop: 'ast', module: 'VISUALIZE YOUR POTENTIAL Part 2' },
 
   // IA Workshop Steps
   'ia-1-1': { title: 'Introduction to IA', workshop: 'ia', module: 'Section 1: Getting Started' },
@@ -59,7 +75,7 @@ const STEP_MAPPINGS: Record<string, { title: string; workshop: 'ast' | 'ia'; mod
 // Map URL patterns to page data
 const PAGE_MAPPINGS: Record<string, Partial<PageData>> = {
   // AST Workshop Pages
-  '/allstarteams': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'Workshop Home' },
+  '/allstarteams': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'AllStarTeams Workshop' },
   '/workshop/ast/strengths': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'Strengths Discovery', module: 'Module 1' },
   '/workshop/ast/flow': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'Flow Assessment', module: 'Module 1' },
   '/workshop/ast/future-self': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'Future Self Vision', module: 'Module 1' },
@@ -71,7 +87,7 @@ const PAGE_MAPPINGS: Record<string, Partial<PageData>> = {
   '/workshop/ast/progress': { workshop: 'ast', workshopName: 'AllStarTeams', title: 'Progress Tracking', module: 'Post-Workshop' },
   
   // IA Workshop Pages  
-  '/imaginal-agility': { workshop: 'ia', workshopName: 'Imaginal Agility', title: 'Workshop Home' },
+  '/imaginal-agility': { workshop: 'ia', workshopName: 'Imaginal Agility', title: 'Imaginal Agility Workshop' },
   '/workshop/ia/intro': { workshop: 'ia', workshopName: 'Imaginal Agility', title: 'Introduction', module: 'Module 1' },
   '/workshop/ia/vision': { workshop: 'ia', workshopName: 'Imaginal Agility', title: 'Vision Setting', module: 'Module 1' },
   '/workshop/ia/current-state': { workshop: 'ia', workshopName: 'Imaginal Agility', title: 'Current State Assessment', module: 'Module 2' },
@@ -105,10 +121,16 @@ export function detectCurrentPage(currentStepId?: string): PageData {
   const currentTitle = document.title;
   const currentHTML = document.documentElement.outerHTML;
 
+  console.log('🔍 detectCurrentPage called with:', {
+    currentStepId,
+    currentUrl,
+    currentTitle: currentTitle.substring(0, 100)
+  });
+
   // If we have a step ID, use that for accurate detection
   if (currentStepId && STEP_MAPPINGS[currentStepId]) {
     const stepInfo = STEP_MAPPINGS[currentStepId];
-    return {
+    const result = {
       title: stepInfo.title,
       workshop: stepInfo.workshop,
       workshopName: stepInfo.workshop === 'ast' ? 'AllStarTeams' : 'Imaginal Agility',
@@ -116,18 +138,24 @@ export function detectCurrentPage(currentStepId?: string): PageData {
       url: currentUrl,
       stepId: currentStepId,
     };
+    console.log('✅ Found step mapping for', currentStepId, ':', result);
+    return result;
+  } else if (currentStepId) {
+    console.log('❌ No step mapping found for stepId:', currentStepId, 'Available mappings:', Object.keys(STEP_MAPPINGS));
   }
 
   // Try exact URL mapping first
   for (const [urlPattern, pageData] of Object.entries(PAGE_MAPPINGS)) {
     if (currentUrl.includes(urlPattern) || currentUrl === urlPattern) {
-      return {
+      const result = {
         title: pageData.title || 'Unknown Page',
         workshop: pageData.workshop || 'ast',
         workshopName: pageData.workshopName || 'Workshop',
         module: pageData.module,
         url: currentUrl,
       };
+      console.log('🔗 Found URL mapping for', urlPattern, ':', result);
+      return result;
     }
   }
 

@@ -99,3 +99,5 @@ src/test/
 *.minimal.tsx
 *.safe.tsx
 *-archive.tsx
+storage/star-cards/*.png
+storage/temp-report-images/*.png
