@@ -217,37 +217,43 @@ class InviteService {
   }
   
   /**
-   * Get invites with enhanced information (cohort, organization names)
+   * Get invites with enhanced information (cohort, organization names, user status)
    */
   async getInvitesWithDetails(creatorId?: number) {
     try {
       let query = sql`
         SELECT 
           i.*,
-          u.name as creator_name,
-          u.email as creator_email,
-          u.role as creator_role,
+          creator.name as creator_name,
+          creator.email as creator_email,
+          creator.role as creator_role,
           c.name as cohort_name,
-          o.name as organization_name
+          o.name as organization_name,
+          invited_user.is_test_user,
+          invited_user.is_beta_tester as user_is_beta_tester
         FROM invites i
-        LEFT JOIN users u ON i.created_by = u.id
+        LEFT JOIN users creator ON i.created_by = creator.id
         LEFT JOIN cohorts c ON i.cohort_id = c.id
         LEFT JOIN organizations o ON i.organization_id = o.id
+        LEFT JOIN users invited_user ON i.email = invited_user.email
       `;
       
       if (creatorId) {
         query = sql`
           SELECT 
             i.*,
-            u.name as creator_name,
-            u.email as creator_email,
-            u.role as creator_role,
+            creator.name as creator_name,
+            creator.email as creator_email,
+            creator.role as creator_role,
             c.name as cohort_name,
-            o.name as organization_name
+            o.name as organization_name,
+            invited_user.is_test_user,
+            invited_user.is_beta_tester as user_is_beta_tester
           FROM invites i
-          LEFT JOIN users u ON i.created_by = u.id
+          LEFT JOIN users creator ON i.created_by = creator.id
           LEFT JOIN cohorts c ON i.cohort_id = c.id
           LEFT JOIN organizations o ON i.organization_id = o.id
+          LEFT JOIN users invited_user ON i.email = invited_user.email
           WHERE i.created_by = ${creatorId}
         `;
       }
@@ -274,18 +280,25 @@ class InviteService {
   }
 
   /**
-   * Get all invites (admin only) with creator information
+   * Get all invites (admin only) with creator information and user status
    */
   async getAllInvites() {
     try {
       const result = await db.execute(sql`
         SELECT 
           i.*,
-          u.name as creator_name,
-          u.email as creator_email,
-          u.role as creator_role
+          creator.name as creator_name,
+          creator.email as creator_email,
+          creator.role as creator_role,
+          c.name as cohort_name,
+          o.name as organization_name,
+          invited_user.is_test_user,
+          invited_user.is_beta_tester as user_is_beta_tester
         FROM invites i
-        LEFT JOIN users u ON i.created_by = u.id
+        LEFT JOIN users creator ON i.created_by = creator.id
+        LEFT JOIN cohorts c ON i.cohort_id = c.id
+        LEFT JOIN organizations o ON i.organization_id = o.id
+        LEFT JOIN users invited_user ON i.email = invited_user.email
         ORDER BY i.created_at DESC
       `);
       

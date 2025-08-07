@@ -74,6 +74,8 @@ interface Invite {
   organization_id?: string;
   is_beta_tester?: boolean;
   isBetaTester?: boolean;
+  is_test_user?: boolean;
+  user_is_beta_tester?: boolean;
   [key: string]: any; // Allow additional properties for flexibility
 }
 
@@ -562,6 +564,7 @@ export const InviteManagement: React.FC = () => {
                       <TableHead>Invite Code</TableHead>
                       <TableHead>Role</TableHead>
                       <TableHead>Beta Tester</TableHead>
+                      <TableHead>Test User</TableHead>
                       <TableHead>Organization</TableHead>
                       <TableHead>Cohort</TableHead>
                       {userRole === 'admin' && <TableHead>Created By</TableHead>}
@@ -605,9 +608,18 @@ export const InviteManagement: React.FC = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          {invite.is_beta_tester || invite.isBetaTester ? (
+                          {invite.is_beta_tester || invite.isBetaTester || invite.user_is_beta_tester ? (
                             <Badge variant="outline" className="bg-purple-50 text-purple-800 border-purple-200">
                               Beta Tester
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {invite.is_test_user ? (
+                            <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
+                              Test User
                             </Badge>
                           ) : (
                             <span className="text-muted-foreground text-sm">—</span>
