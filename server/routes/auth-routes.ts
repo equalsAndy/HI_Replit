@@ -121,10 +121,11 @@ router.post('/login', async (req, res) => {
       sessionStore: !!(req.session as any)?.store
     });
 
-    // Set session data
+    // Set session data including full user object
     (req.session as any).userId = result.user?.id;
     (req.session as any).username = result.user?.username;
     (req.session as any).userRole = result.user?.role;
+    (req.session as any).user = result.user; // Store full user object for beta tester access
 
     // Force session save with comprehensive error handling
     req.session.save((err: unknown) => {
@@ -134,7 +135,9 @@ router.post('/login', async (req, res) => {
         console.error('❌ Session data:', {
           userId: (req.session as any).userId,
           username: (req.session as any).username,
-          userRole: (req.session as any).userRole
+          userRole: (req.session as any).userRole,
+          userIsBetaTester: (req.session as any).user?.isBetaTester,
+          fullUser: !!(req.session as any).user
         });
         return res.status(500).json({
           success: false,
@@ -145,6 +148,8 @@ router.post('/login', async (req, res) => {
       
       console.log('✅ Session saved successfully for user:', result.user?.id);
       console.log('✅ Session ID:', req.sessionID);
+      console.log('✅ Beta tester status:', result.user?.isBetaTester);
+      console.log('✅ User role:', result.user?.role);
       
       // Send the user data (without the password)
       res.json(result);
