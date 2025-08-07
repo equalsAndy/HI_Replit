@@ -12,6 +12,7 @@ import LandingPage from '@/pages/landing';
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
+import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
 import AdminDashboard from '@/pages/admin/dashboard-new';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
@@ -28,7 +29,12 @@ import { ProtectedRoute } from '@/components/core/ProtectedRoute';
 import { SessionManagerProvider } from '@/components/core/SessionManagerProvider';
 import { useCurrentUser } from '@/hooks/use-current-user';
 import { useBetaWelcome } from '@/hooks/use-beta-welcome';
+import { useBetaFeedbackReview } from '@/hooks/use-beta-feedback-review';
+import { useBetaWorkshopCompletion } from '@/hooks/use-beta-workshop-completion';
 import BetaTesterWelcomeModal from '@/components/modals/BetaTesterWelcomeModal';
+import { BetaTesterFAB } from '@/components/beta-testing/BetaTesterFAB';
+import { BetaTesterReviewModal } from '@/components/beta-testing/BetaTesterReviewModal';
+import { BetaTesterFeedbackModal } from '@/components/beta-testing/BetaTesterFeedbackModal';
 
 // No need for a custom history hook, we'll use the default wouter behavior
 
@@ -42,12 +48,23 @@ const AutoSyncWrapper: React.FC = () => {
 // Component to handle beta tester welcome modal
 const BetaWelcomeWrapper: React.FC = () => {
   const { data: user } = useCurrentUser();
+  
+  console.log('🔍 BetaWelcomeWrapper render - User data:', {
+    userId: user?.id,
+    username: user?.username,
+    isBetaTester: user?.isBetaTester,
+    hasSeenBetaWelcome: user?.hasSeenBetaWelcome,
+    role: user?.role
+  });
+  
   const {
     showWelcomeModal,
     handleCloseModal,
     handleDontShowAgain,
     handleStartWorkshop,
   } = useBetaWelcome();
+
+  console.log('🔍 BetaWelcomeWrapper - showWelcomeModal:', showWelcomeModal);
 
   return (
     <BetaTesterWelcomeModal
@@ -56,6 +73,45 @@ const BetaWelcomeWrapper: React.FC = () => {
       onDontShowAgain={handleDontShowAgain}
       onStartWorkshop={handleStartWorkshop}
       user={user}
+    />
+  );
+};
+
+// Component to handle beta tester feedback review modal
+const BetaFeedbackReviewWrapper: React.FC = () => {
+  const {
+    showReviewModal,
+    handleCloseReview,
+    handleCompleteReview,
+    workshopType
+  } = useBetaFeedbackReview();
+
+  return (
+    <BetaTesterReviewModal
+      isOpen={showReviewModal}
+      onClose={handleCloseReview}
+      onComplete={handleCompleteReview}
+      workshopType={workshopType}
+    />
+  );
+};
+
+// Component to handle beta tester workshop completion feedback
+const BetaCompletionFeedbackWrapper: React.FC = () => {
+  const {
+    isBetaTester,
+    showFeedbackModal,
+    closeFeedbackModal,
+    submitFeedback
+  } = useBetaWorkshopCompletion();
+
+  if (!isBetaTester) return null;
+
+  return (
+    <BetaTesterFeedbackModal
+      isOpen={showFeedbackModal}
+      onClose={closeFeedbackModal}
+      onSubmitFeedback={submitFeedback}
     />
   );
 };
@@ -85,6 +141,8 @@ const App: React.FC = () => {
                   <div className="min-h-screen bg-background">
                     <AutoSyncWrapper />
                     <BetaWelcomeWrapper />
+                    <BetaFeedbackReviewWrapper />
+                    <BetaCompletionFeedbackWrapper />
                     <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                     <Switch>
                     {/* Main routes */}
@@ -107,6 +165,11 @@ const App: React.FC = () => {
                     <Route path="/auth/login" component={AuthPage} />
                     <Route path="/login" component={AuthPage} /> {/* Alias for backward compatibility */}
                     <Route path="/beta-tester" component={BetaTesterPage} />
+                    <Route path="/beta-feedback-survey">
+                      <ProtectedRoute>
+                        <BetaFeedbackSurveyPage />
+                      </ProtectedRoute>
+                    </Route>
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
 
                     {/* Workshop routes */}
@@ -151,6 +214,7 @@ const App: React.FC = () => {
                     <Route component={NotFoundPage} />
                   </Switch>
                   </Suspense>
+                  <BetaTesterFAB />
                   <Toaster />
                 </div>
                 </SessionManagerProvider>

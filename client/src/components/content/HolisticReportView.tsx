@@ -109,6 +109,11 @@ export default function HolisticReportView({
         title,
         downloadUrl: status.downloadUrl
       });
+      
+      // Dispatch event for beta tester feedback modal trigger
+      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+        detail: { reportType, viewType: 'pdf' }
+      }));
     }
   };
 
@@ -123,6 +128,11 @@ export default function HolisticReportView({
     const status = reportType === 'standard' ? standardStatus : personalStatus;
     if (status?.htmlUrl) {
       window.open(status.htmlUrl, '_blank');
+      
+      // Dispatch event for beta tester feedback modal trigger
+      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+        detail: { reportType, viewType: 'html' }
+      }));
     }
   };
 

@@ -73,18 +73,18 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
   onDontShowAgain,
   user,
 }) => {
-  const [dontShowAgain, setDontShowAgain] = useState(false);
+  const [showAtStartup, setShowAtStartup] = useState(true);
   const progress = getWorkshopProgress(user);
 
   const handleClose = () => {
-    if (dontShowAgain) {
+    if (!showAtStartup) {
       onDontShowAgain(true);
     }
     onClose();
   };
 
   const handleStartWorkshop = () => {
-    if (dontShowAgain) {
+    if (!showAtStartup) {
       onDontShowAgain(true);
     }
     onStartWorkshop();
@@ -173,10 +173,12 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     AllStarTeams is a workshop that helps people discover their strengths, find their flow, and build better teams. 
                     You're testing the <strong>individual self-directed experience</strong> - complete the workshop through the Final Reflection.
                   </p>
-                  <p className="text-slate-500 text-base italic">
-                    <em>Note: Some features will be disabled during testing (team features, growth plan). 
-                    You may see some AI features with a chatbot called Talia - these are very new but feel free to try them out.</em>
-                  </p>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+                    <h3 className="text-amber-800 font-semibold mb-2">Note:</h3>
+                    <p className="text-amber-700 text-sm leading-relaxed">
+                      Some features are marked as <strong>samples</strong> (team features, growth plan) - these are features to come and you're welcome to share feedback.
+                    </p>
+                  </div>
                 </>
               )}
             </div>
@@ -221,11 +223,21 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     3
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
-                    Use the Feedback Button
+                    Take Notes Along the Way
                   </h3>
-                  <p className="text-slate-600 text-sm leading-relaxed">
-                    Click the feedback button in the yellow bar at the top. Tell us about bugs, confusing parts, or ideas for improvement.
-                  </p>
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 mt-1">
+                      <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-700 rounded-full flex items-center justify-center shadow-lg">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-white">
+                          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" fill="currentColor"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <p className="text-slate-600 text-sm leading-relaxed flex-1">
+                      If you would like to take notes on your experience, click this in the lower right of your screen. 
+                      Tell us about bugs, confusing parts, or ideas for improvement as you go through the workshop.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Step 4 */}
@@ -234,10 +246,11 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
                     4
                   </div>
                   <h3 className="text-slate-800 text-lg font-semibold mb-3">
-                    Complete the Final Survey
+                    Complete the Feedback Review
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed">
-                    After your Final Reflection, you'll see a survey to help us understand your overall experience. Please fill it out!
+                    After your Final Reflection, review your notes and submit your feedback. 
+                    Then download your report and explore the additional features available.
                   </p>
                 </div>
               </div>
@@ -267,15 +280,15 @@ const BetaTesterWelcomeModal: React.FC<BetaTesterWelcomeModalProps> = ({
               </Button>
             </div>
 
-            {/* Don't Show Again */}
+            {/* Show at Startup */}
             <div className="flex items-center justify-center gap-2 text-sm text-slate-500">
               <Checkbox
-                id="dontShowAgain"
-                checked={dontShowAgain}
-                onCheckedChange={(checked) => setDontShowAgain(!!checked)}
+                id="showAtStartup"
+                checked={showAtStartup}
+                onCheckedChange={(checked) => setShowAtStartup(!!checked)}
               />
-              <label htmlFor="dontShowAgain" className="cursor-pointer">
-                Don't show this welcome message again
+              <label htmlFor="showAtStartup" className="cursor-pointer">
+                Show this at startup
               </label>
             </div>
           </div>
