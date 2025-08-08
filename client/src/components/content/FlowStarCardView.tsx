@@ -226,17 +226,19 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
     })
   );
 
-  // Determine if card is already complete
-  const isCardComplete = (flowAttributesData?.attributes && 
+  // Determine if card is already complete (attributes saved to database)
+  const isCardComplete = flowAttributesData?.attributes && 
                         Array.isArray(flowAttributesData.attributes) && 
-                        flowAttributesData.attributes.length > 0) ||
-                        (selectedAttributes.length === 4 && selectedAttributes.every(attr => attr.rank !== null));
+                        flowAttributesData.attributes.length > 0;
 
   // Check if attributes exist in database (should disable picker)
   const hasExistingAttributes = flowAttributesData?.success && 
                                flowAttributesData?.attributes && 
                                Array.isArray(flowAttributesData.attributes) && 
                                flowAttributesData.attributes.length > 0;
+
+  // Check if user has selected exactly 4 attributes for UI state
+  const hasSelected4Attributes = selectedAttributes.filter(attr => attr.rank !== null).length === 4;
 
   useEffect(() => {
     console.log("FlowStarCardView useEffect - flowAttributesData:", flowAttributesData);
@@ -697,11 +699,11 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           </div>
 
-          {selectedAttributes.filter(attr => attr.rank !== null).length === 4 && showSelectionInterface ? (
+          {hasSelected4Attributes && showSelectionInterface ? (
             <div className="mt-2">
               <Button
                 className="w-full bg-indigo-700 hover:bg-indigo-800"
-                disabled={selectedAttributes.filter(attr => attr.rank !== null).length !== 4 || flowAttributesMutation.isPending}
+                disabled={!hasSelected4Attributes || flowAttributesMutation.isPending}
                 onClick={saveFlowAttributes}
               >
                 {flowAttributesMutation.isPending ? "Saving..." : 
