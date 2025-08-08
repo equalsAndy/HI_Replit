@@ -18,8 +18,8 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
 
   const handleContinue = () => {
     onClose();
-    // Navigate to the final reflection step - adjust this path based on your routing
-    setLocation('/allstarteams/final-reflection');
+    // Navigate to AllStarTeams - the user should already be on the final reflection step
+    setLocation('/allstarteams');
   };
 
   const handleClose = () => {

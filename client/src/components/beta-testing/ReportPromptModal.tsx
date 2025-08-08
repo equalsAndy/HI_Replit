@@ -17,15 +17,23 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
 
   const handleGoToReport = () => {
     onClose();
-    setLocation('/allstarteams'); // Navigate to workshop page where they can access reports
+    // Navigate directly to the holistic report content
+    setLocation('/allstarteams');
     
-    // Scroll to holistic report section after a brief delay
+    // Set content to holistic report and scroll to it
     setTimeout(() => {
+      // Trigger navigation to holistic report content
+      const navigationEvent = new CustomEvent('autoNavigateToContent', {
+        detail: { content: 'holistic-report', stepId: '5-2' }
+      });
+      window.dispatchEvent(navigationEvent);
+      
+      // Also try direct element targeting as fallback
       const reportElement = document.querySelector('[data-content="holistic-report"]');
       if (reportElement) {
         reportElement.scrollIntoView({ behavior: 'smooth' });
       }
-    }, 500);
+    }, 300);
   };
 
   return (
@@ -95,7 +103,7 @@ export const ReportPromptModal: React.FC<ReportPromptModalProps> = ({
               onClick={onClose}
               className="flex-1 px-4 py-2 text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-200"
             >
-              Maybe Later
+              Dismiss
             </button>
             <button
               onClick={handleGoToReport}

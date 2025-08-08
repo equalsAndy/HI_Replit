@@ -349,15 +349,18 @@ psql $DATABASE_URL -c "SELECT version();"
 
 ### **Health Check Endpoints**
 ```bash
-# Basic health check
-curl http://localhost:8080/api/health
-
-# Database status
-curl http://localhost:8080/api/db-status
+# Basic health check (CORRECT ENDPOINT)
+curl http://localhost:8080/health
 
 # Feature flag status (development only)
 curl http://localhost:8080/api/workshop-data/feature-status
+
+# Production health check
+curl https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/health
+curl https://app2.heliotropeimaginal.com/health
 ```
+
+**⚠️ IMPORTANT:** Health endpoint is `/health` NOT `/api/health`
 
 ## 🤖 AI Integration (Claude API)
 
@@ -443,9 +446,120 @@ When providing SSH commands:
 ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
 ```
 
-### **Production Deployment (Tag-Based)**
+### **Production Deployment Options**
+
+#### **Option 1: Quick Patch Deployment (Recommended for small fixes)**
 ```bash
-# CAREFUL: Production is protected
+# For UI fixes, small bug fixes, configuration updates
+# 1. Make changes locally and build
+npm run build
+
+# 2. Build lightweight Docker image
+docker build -t quick-patch .
+PATCH_TAG="patch-$(date +%Y%m%d-%H%M)"
+
+# 3. Tag and push to ECR
+docker tag quick-patch 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG
+
+# 4. Deploy with existing configuration
+cat > patch-deployment.json << EOF
+{
+  "allstarteams-app": {
+    "image": "962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PATCH_TAG",
+    "environment": {
+      "NODE_ENV": "production",
+      "DATABASE_URL": "postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require",
+      "SESSION_SECRET": "dev-secret-key-2025-heliotrope-imaginal",
+      "CLAUDE_API_KEY": "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",
+      "OPENAI_API_KEY": "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",
+      "FEATURE_HOLISTIC_REPORTS": "true",
+      "FEATURE_DEBUG_PANEL": "false",
+      "NODE_TLS_REJECT_UNAUTHORIZED": "0",
+      "ENVIRONMENT": "production"
+    },
+    "ports": {
+      "8080": "HTTP"
+    }
+  }
+}
+EOF
+
+aws lightsail create-container-service-deployment \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --containers file://patch-deployment.json \
+  --public-endpoint file://production-public-endpoint.json
+```
+
+#### **Option 2: Dependency-Fixed Deployment (For dependency issues)**
+```bash
+# Use when encountering module not found errors or dependency issues
+# Build on staging VM with ALL dependencies included
+
+# 1. SSH to staging VM and build fixed image
+ssh -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem ubuntu@34.220.143.127
+
+# 2. On staging VM - create production build directory
+mkdir -p production-build
+cd production-build
+
+# 3. Copy application files and create fixed Dockerfile
+# (Copy dist/, shared/, package*.json from local build)
+
+cat > Dockerfile.dependency-fix << 'EOF'
+FROM node:18-alpine
+
+# Install system dependencies for canvas and build tools
+RUN apk add --no-cache \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    python3 \
+    make \
+    g++ \
+    dumb-init
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install ALL dependencies (including dev dependencies for modules like drizzle-zod)
+RUN npm ci --legacy-peer-deps && npm cache clean --force
+
+# Copy application files
+COPY dist/ ./dist/
+COPY shared/ ./shared/
+
+# Create non-root user
+RUN adduser -D -s /bin/sh appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8080
+
+# Start application
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
+EOF
+
+# 4. Build, tag, and push fixed image
+FIXED_TAG="production-dependency-fixed-$(date +%Y%m%d-%H%M)"
+sudo docker build -f Dockerfile.dependency-fix -t $FIXED_TAG .
+sudo docker tag $FIXED_TAG 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$FIXED_TAG
+aws ecr get-login-password --region us-west-2 | sudo docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+sudo docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$FIXED_TAG
+
+# 5. Deploy to production (run locally)
+# Use the deployment configuration with the fixed tag
+```
+
+#### **Option 3: Full Tagged Release (For major versions)**
+```bash
+# For major releases, new features, version milestones
 # Always test in staging first
 
 # 1. Create production tag (single-line format)
@@ -458,61 +572,76 @@ git push origin v1.x.x
 git checkout v1.x.x
 docker build -t allstarteams-app:v1.x.x .
 
-# 3. Push tagged container
-aws lightsail push-container-image \
-  --region us-west-2 \
-  --service-name hi-replit-v2 \
-  --label allstarteams-app-v1.x.x \
-  --image allstarteams-app:v1.x.x
+# 3. Push tagged container to ECR
+PROD_TAG="production-v$(git describe --tags)"
+docker tag allstarteams-app:v1.x.x 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PROD_TAG
+aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 962000089613.dkr.ecr.us-west-2.amazonaws.com
+docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:$PROD_TAG
 
 # 4. Deploy with production configuration
-cat > production-deployment.json << EOF
+# Use standard deployment.json with new image tag
+```
+
+### **Critical Deployment Configuration**
+
+#### **Required Configuration Files**
+```bash
+# production-public-endpoint.json (⚠️ IMPORTANT: Correct health check path)
 {
-  "containers": {
-    "allstarteams-app": {
-      "image": ":hi-replit-v2.allstarteams-app-v1.x.x.latest",
-      "environment": {
-        "NODE_ENV": "production"
-      },
-      "ports": {
-        "8080": "HTTP"
-      }
-    }
-  },
-  "publicEndpoint": {
-    "containerName": "allstarteams-app",
-    "containerPort": 8080,
-    "healthCheck": {
-      "healthyThreshold": 5,
-      "unhealthyThreshold": 5,
-      "timeoutSeconds": 60,
-      "intervalSeconds": 90,
-      "path": "/"
-    }
+  "containerName": "allstarteams-app",
+  "containerPort": 8080,
+  "healthCheck": {
+    "healthyThreshold": 5,
+    "unhealthyThreshold": 5,
+    "timeoutSeconds": 60,
+    "intervalSeconds": 90,
+    "path": "/health",
+    "successCodes": "200-499"
   }
 }
-EOF
 
-aws lightsail create-container-service-deployment \
-  --region us-west-2 \
-  --service-name hi-replit-v2 \
-  --containers file://production-deployment.json \
-  --public-endpoint file://production-deployment.json
+# ⚠️ CRITICAL: Health check path MUST be "/health" NOT "/api/health"
+# Deployments will fail to activate with incorrect health check path
+```
+
+#### **Custom Domain Configuration**
+```bash
+# Production URLs (both working after Route 53 DNS fix):
+# ✅ https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
+# ✅ https://app2.heliotropeimaginal.com/
+
+# Route 53 Configuration:
+# Record: app2.heliotropeimaginal.com
+# Type: CNAME
+# Value: hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
+# TTL: 300
 ```
 
 ### **Deployment Health Checks**
 ```bash
-# Verify staging deployment
-curl -I https://hi-app-staging.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
-curl https://hi-app-staging.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/api/feature-flags/status
+# Verify staging deployment (VM)
+curl -I http://34.220.143.127/
+curl http://34.220.143.127/health
 
-# Verify production deployment
+# Verify production deployment (both URLs)
 curl -I https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/
+curl -I https://app2.heliotropeimaginal.com/
+
+# Check health endpoints
+curl https://hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com/health
+curl https://app2.heliotropeimaginal.com/health
 
 # Monitor deployment status
 aws lightsail get-container-services \
   --region us-west-2 \
-  --service-name hi-replit-v2
+  --service-name hi-replit-v2 \
+  --query 'containerServices[0].{state: state, currentVersion: currentDeployment.version, nextVersion: nextDeployment.version, nextState: nextDeployment.state}'
+
+# Check container logs for errors
+aws lightsail get-container-log \
+  --region us-west-2 \
+  --service-name hi-replit-v2 \
+  --container-name allstarteams-app | tail -20
 ```
 
 ### **Semantic Versioning System**
@@ -538,12 +667,50 @@ npm run build:production
 - ⚠️ **Always use `-m "message"` with git commands** (avoid quote> prompts)
 - ⚠️ **Port 8080 only** (macOS AirPlay uses 5000)
 - ⚠️ **Health check timeout max 60 seconds** (not 90)
+- ⚠️ **Health check path MUST be "/health"** (NOT "/api/health")
 - ⚠️ **Test staging before production deployment**
 - ⚠️ **Use existing service `hi-replit-v2`** (don't create new services)
 - ⚠️ **Build with `--platform linux/amd64`** for VM/container compatibility on Apple Silicon
 - ⚠️ **ECR image tags must include architecture suffix** (e.g., `-amd64`) for VM deployments
 - ⚠️ **Include `NODE_TLS_REJECT_UNAUTHORIZED=0`** in environment for database SSL issues
 - ⚠️ **Use version-manager.sh** for proper semantic versioning
+
+### **Common Deployment Issues & Solutions**
+
+#### **Issue: Deployment Stuck in ACTIVATING State**
+**Symptoms:** Deployment shows "ACTIVATING" for extended period
+**Cause:** Incorrect health check path in configuration
+**Solution:** 
+```bash
+# Check health check configuration in production-public-endpoint.json
+# Ensure path is "/health" not "/api/health"
+# Update and redeploy with correct configuration
+```
+
+#### **Issue: Module Not Found Errors (drizzle-zod, etc.)**
+**Symptoms:** Container starts then crashes with ERR_MODULE_NOT_FOUND
+**Cause:** Production Docker build excludes dev dependencies
+**Solution:** Use Option 2 (Dependency-Fixed Deployment) - build on staging VM with ALL dependencies
+
+#### **Issue: Custom Domain Not Working**
+**Symptoms:** Custom domain times out, Lightsail URL works
+**Cause:** DNS record points to wrong IP address
+**Solution:**
+```bash
+# Check DNS resolution
+nslookup app2.heliotropeimaginal.com
+nslookup hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
+
+# Update Route 53 CNAME record to point to Lightsail service
+# Record: app2 (not full domain)
+# Type: CNAME
+# Value: hi-replit-v2.tqr7xha9v8ynw.us-west-2.cs.amazonlightsail.com
+```
+
+#### **Issue: Container Restarts with SIGTERM**
+**Symptoms:** Container starts successfully then receives SIGTERM
+**Cause:** Health check failures or missing dependencies
+**Solution:** Check container logs for specific error messages, ensure health endpoint works
 
 ## 🤖 Claude Code Integration & Capabilities
 
