@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MessageCircle, X, HelpCircle, Send, Maximize2, Minimize2 } from 'lucide-react';
 // import { useTestUser } from '@/hooks/useTestUser';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 // import { isFeatureEnabled } from '@/utils/featureFlags';
 // import { useReportTaliaContextSafe } from '../../contexts/ReportTaliaContext';
 // import TaliaTrainingModal from './TaliaTrainingModal';
@@ -42,6 +43,7 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   const [isResizing, setIsResizing] = useState(false);
   // const { shouldShowDemoButtons, isTestUser } = useTestUser();
   const { data: currentUser, isLoading: isUserLoading } = useCurrentUser();
+  const { astCompleted, iaCompleted } = useWorkshopStatus();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const resizeRef = useRef<HTMLDivElement>(null);
   
@@ -117,8 +119,11 @@ const FloatingAITrigger: React.FC<FloatingAITriggerProps> = ({
   // Determine if user has access to AI features (test users only) - temporarily disabled  
   const hasAIAccess = true; // shouldShowDemoButtons && reflectionModalEnabled;
   
-  // Show button only to admin users - wait for user data to load
-  const shouldShowButton = !isUserLoading && currentUser?.role === 'admin';
+  // Determine if workshop is completed based on workshop type
+  const isWorkshopCompleted = workshopType === 'ast' ? astCompleted : iaCompleted;
+  
+  // Show button only to admin users and hide after workshop completion - wait for user data to load
+  const shouldShowButton = !isUserLoading && currentUser?.role === 'admin' && !isWorkshopCompleted;
   
   // Determine if AI is available for this specific context
   // For admin mode: just need a selected user (admin access is implicit)

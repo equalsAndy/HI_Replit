@@ -12,13 +12,9 @@ export function useBetaWelcome() {
   useEffect(() => {
     if (!isLoggedIn || !user) {
       setShowWelcomeModal(false);
-    } else if (user?.id) {
-      // Clear session storage when a user successfully logs in
-      // This ensures beta testers can see the welcome modal on each new login
-      const sessionKey = `beta_welcome_shown_${user.id}`;
-      sessionStorage.removeItem(sessionKey);
-      console.log('🧹 Cleared beta welcome session storage for new login:', sessionKey);
     }
+    // Don't automatically clear session storage on every login
+    // Only clear it when explicitly requested (like from navbar button)
   }, [isLoggedIn, user?.id]);
 
   // Check if we should show the beta welcome modal
@@ -29,14 +25,13 @@ export function useBetaWelcome() {
       userId: user?.id,
       username: user?.username,
       isBetaTester: user?.isBetaTester,
+      hasSeenBetaWelcome: user?.hasSeenBetaWelcome,
       currentPath: window.location.pathname
     });
 
-    // Skip on initial mount to prevent showing during page load
+    // Mark that we've passed the initial mount for future reference
     if (isInitialMount.current) {
-      console.log('⏭️ Skipping initial mount');
       isInitialMount.current = false;
-      return;
     }
 
     // Only proceed if user authentication is stable and complete
@@ -66,6 +61,11 @@ export function useBetaWelcome() {
         const sessionKey = `beta_welcome_shown_${user.id}`;
         const hasShownThisSession = sessionStorage.getItem(sessionKey);
         
+        // Only show welcome modal on fresh logins, not page refreshes
+        // Use a session-based flag to track if we've already shown the welcome
+        const freshLoginKey = `beta_fresh_login_${user.id}`;
+        const isFreshLogin = sessionStorage.getItem(freshLoginKey) === 'true';
+        
         console.log('🔍 DETAILED Beta welcome analysis:', {
           userId: user.id,
           username: user.username,
@@ -74,18 +74,19 @@ export function useBetaWelcome() {
           hasShownThisSession: !!hasShownThisSession,
           sessionKey,
           sessionValue: hasShownThisSession,
+          freshLoginKey,
+          isFreshLogin,
           currentPath: window.location.pathname,
           shouldShow_isBeta: user.isBetaTester,
           shouldShow_notSeenWelcome: !user.hasSeenBetaWelcome,
-          shouldShow_notShownThisSession: !hasShownThisSession
+          shouldShow_notShownThisSession: !hasShownThisSession,
+          shouldShow_isFreshLogin: isFreshLogin
         });
         
-        // Show modal if user is a beta tester and either:
-        // 1. They haven't permanently disabled "show at startup" (hasSeenBetaWelcome is the "show at startup" setting)
-        // 2. OR we haven't shown it this session (for subsequent page visits)
         const shouldShowWelcome = user.isBetaTester && 
                                  !user.hasSeenBetaWelcome && 
-                                 !hasShownThisSession;
+                                 !hasShownThisSession &&
+                                 isFreshLogin;
         
         console.log('🎯 Final decision - shouldShowWelcome:', shouldShowWelcome);
         
@@ -94,11 +95,14 @@ export function useBetaWelcome() {
           setShowWelcomeModal(true);
           // Mark as shown this session to prevent showing on refresh
           sessionStorage.setItem(sessionKey, 'true');
+          // Clear the fresh login flag since we've shown the modal
+          sessionStorage.removeItem(freshLoginKey);
         } else {
           console.log('🚫 NOT showing welcome modal because:');
           if (!user.isBetaTester) console.log('   - User is not a beta tester');
           if (user.hasSeenBetaWelcome) console.log('   - User has already seen welcome (hasSeenBetaWelcome = true)');
           if (hasShownThisSession) console.log('   - Already shown this session');
+          if (!isFreshLogin) console.log('   - Not a fresh login (page refresh or direct navigation)');
           
           if (user.hasSeenBetaWelcome && !hasShownThisSession) {
             // If user has disabled "show at startup", go directly to workshop
@@ -163,11 +167,24 @@ export function useBetaWelcome() {
     }
   };
 
+  const triggerWelcomeModal = () => {
+    if (user?.isBetaTester && user?.id) {
+      // Clear the session storage to allow the modal to show
+      const sessionKey = `beta_welcome_shown_${user.id}`;
+      sessionStorage.removeItem(sessionKey);
+      console.log('🔄 Manually triggering beta welcome modal, cleared session:', sessionKey);
+      
+      // Show the modal directly (bypass fresh login check for manual triggers)
+      setShowWelcomeModal(true);
+    }
+  };
+
   return {
     showWelcomeModal,
     handleCloseModal,
     handleDontShowAgain,
     handleStartWorkshop,
+    triggerWelcomeModal,
     isBetaTester: user?.isBetaTester || false,
   };
 }

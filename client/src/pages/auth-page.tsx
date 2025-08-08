@@ -100,27 +100,49 @@ const AuthPage: React.FC = () => {
       // Small delay to ensure user data is updated before redirect
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Try to redirect to original destination first
-      const didRedirectToReturn = redirectToReturnUrl();
+      // Route users based on their role and user type
+      if (result.user.role === 'admin') {
+        // Admins go to admin console
+        setLocation('/admin');
+        return;
+      }
       
-      if (!didRedirectToReturn) {
-        // Redirect based on user role and selected app
-        if (result.user.role === 'admin') {
-          setLocation('/admin');
+      if (result.user.role === 'facilitator') {
+        // Facilitators go to dashboard/console
+        setLocation('/dashboard');
+        return;
+      }
+      
+      if (result.user.isTestUser) {
+        // Test users go to dashboard/console
+        setLocation('/dashboard');
+        return;
+      }
+      
+      // Beta testers and regular users go directly to workshops
+      // Clear any stored return URL to prevent redirect to dashboard
+      sessionStorage.removeItem('returnUrl');
+      
+      if (result.user.isBetaTester || !result.user.isTestUser) {
+        if (result.user.astAccess) {
+          setLocation('/allstarteams');
+        } else if (result.user.iaAccess) {
+          setLocation('/imaginal-agility');
         } else if (selectedApp) {
-          // Redirect to the selected workshop
+          // Use selected app if no explicit access defined
           if (selectedApp === 'ast') {
             setLocation('/allstarteams');
           } else if (selectedApp === 'imaginal-agility') {
             setLocation('/imaginal-agility');
           } else {
-            // Default to dashboard if app is unknown
-            setLocation('/dashboard');
+            // Default to AllStarTeams for regular users
+            setLocation('/allstarteams');
           }
         } else {
-          // No app selected, go to dashboard
-          setLocation('/dashboard');
+          // Default to AllStarTeams for regular users
+          setLocation('/allstarteams');
         }
+        return;
       }
     } catch (error) {
       console.error('Login error:', error);

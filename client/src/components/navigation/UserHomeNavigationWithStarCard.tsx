@@ -494,10 +494,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
                                 </div>
 
                                 <span className="flex-1">
-                                  {(step.id === '5-2' || step.id === '5-3') && !shouldShowDemoButtons 
-                                    ? `${step.title} (Coming Soon)`
-                                    : step.title
-                                  }
+                                  {step.title}
                                 </span>
 
                                 {/* Content type icons on the right side - 25% lighter */}

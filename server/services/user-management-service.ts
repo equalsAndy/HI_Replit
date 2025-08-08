@@ -127,11 +127,30 @@ class UserManagementService {
         };
       }
       
-      // Return the user without the password
-      const { password: _, ...userWithoutPassword } = user;
+      // Return the user without the password and map database fields to camelCase
+      const { password: _, ...rawUser } = user;
       return {
         success: true,
-        user: userWithoutPassword
+        user: {
+          id: rawUser.id,
+          username: rawUser.username,
+          name: rawUser.name,
+          email: rawUser.email,
+          role: rawUser.role,
+          organization: rawUser.organization,
+          jobTitle: rawUser.job_title,
+          profilePicture: rawUser.profile_picture,
+          isTestUser: rawUser.is_test_user,
+          isBetaTester: rawUser.is_beta_tester,
+          hasSeenBetaWelcome: rawUser.has_seen_beta_welcome,
+          showDemoDataButtons: rawUser.show_demo_data_buttons,
+          contentAccess: rawUser.content_access,
+          astAccess: rawUser.ast_access,
+          iaAccess: rawUser.ia_access,
+          invitedBy: rawUser.invited_by,
+          createdAt: rawUser.created_at,
+          updatedAt: rawUser.updated_at
+        }
       };
     } catch (error) {
       console.error('Error authenticating user:', error);
@@ -160,11 +179,30 @@ class UserManagementService {
       
       const user = result[0];
       
-      // Return the user without the password
-      const { password, ...userWithoutPassword } = user;
+      // Return the user without the password and map database fields to camelCase
+      const { password: _, ...rawUser } = user;
       return {
         success: true,
-        user: userWithoutPassword
+        user: {
+          id: rawUser.id,
+          username: rawUser.username,
+          name: rawUser.name,
+          email: rawUser.email,
+          role: rawUser.role,
+          organization: rawUser.organization,
+          jobTitle: rawUser.jobTitle,
+          profilePicture: rawUser.profilePicture,
+          isTestUser: rawUser.isTestUser,
+          isBetaTester: rawUser.isBetaTester,
+          hasSeenBetaWelcome: rawUser.hasSeenBetaWelcome,
+          showDemoDataButtons: rawUser.showDemoDataButtons,
+          contentAccess: rawUser.contentAccess,
+          astAccess: rawUser.astAccess,
+          iaAccess: rawUser.iaAccess,
+          invitedBy: rawUser.invitedBy,
+          createdAt: rawUser.createdAt,
+          updatedAt: rawUser.updatedAt
+        }
       };
     } catch (error) {
       console.error('Error getting user by ID:', error);

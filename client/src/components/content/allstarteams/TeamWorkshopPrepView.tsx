@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import { 
   Users, 
   Clock, 
@@ -28,9 +29,45 @@ export default function TeamWorkshopPrepView({
   markStepCompleted,
   setCurrentContent
 }: TeamWorkshopPrepViewProps) {
+  const { data: user } = useCurrentUser();
+  
+  // Debug prop types on component mount
+  React.useEffect(() => {
+    console.log('TeamWorkshopPrepView props:', {
+      navigate: typeof navigate,
+      markStepCompleted: typeof markStepCompleted,
+      setCurrentContent: typeof setCurrentContent,
+      user: user
+    });
+  }, [navigate, markStepCompleted, setCurrentContent, user]);
+  
   const handleNext = () => {
-    markStepCompleted('5-4');
-    setCurrentContent('methodology');
+    try {
+      markStepCompleted('5-4');
+      
+      // For beta testers (who aren't admins), go to feedback survey
+      // Note: Beta testers are marked as isTestUser:true but they're different from console test users
+      if (user?.isBetaTester && user?.role !== 'admin') {
+        console.log('Beta user detected, navigating to beta feedback survey');
+        if (typeof navigate === 'function') {
+          navigate('/beta-feedback-survey');
+        } else {
+          console.error('Navigate function is not available');
+          // Fallback: use window.location
+          window.location.href = '/beta-feedback-survey';
+        }
+      } else {
+        // For everyone else, continue to workshop resources
+        console.log('Non-beta user, continuing to workshop resources');
+        if (typeof setCurrentContent === 'function') {
+          setCurrentContent('workshop-resources');
+        } else {
+          console.error('setCurrentContent function is not available');
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleNext:', error);
+    }
   };
 
   return (
@@ -270,7 +307,7 @@ export default function TeamWorkshopPrepView({
       {/* Continue Button */}
       <div className="flex justify-center mt-8">
         <Button onClick={handleNext} className="flex items-center gap-2">
-          Continue to More Information
+          {user?.isBetaTester && user?.role !== 'admin' ? 'Beta Feedback' : 'Continue to More Information'}
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>

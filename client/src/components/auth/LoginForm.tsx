@@ -72,30 +72,57 @@ export function LoginForm() {
         description: `Welcome back, ${data.user.name || 'User'}!`,
       });
       
-      // Admin users should always go to admin console
+      // Route users based on their role and user type
       if (data.user.role === 'admin') {
+        // Admins go to admin console
         navigate('/admin');
         return;
       }
       
-      // Check if we should redirect to a specific workshop
-      const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
-      
-      if (selectedWorkshop) {
-        // Clear the stored selection
-        sessionStorage.removeItem('selectedWorkshop');
-        
-        // Redirect to the appropriate workshop
-        if (selectedWorkshop === 'allstarteams') {
-          navigate('/workshop/allstarteams');
-        } else if (selectedWorkshop === 'imaginalagility') {
-          navigate('/workshop/imaginalagility');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
-        // No stored workshop selection, go to dashboard
+      if (data.user.role === 'facilitator') {
+        // Facilitators go to dashboard/console
         navigate('/dashboard');
+        return;
+      }
+      
+      if (data.user.isTestUser) {
+        // Test users go to dashboard/console
+        navigate('/dashboard');
+        return;
+      }
+      
+      // Beta testers and regular users go directly to workshops
+      // Clear any stored return URL to prevent session manager override
+      sessionStorage.removeItem('returnUrl');
+      
+      if (data.user.isBetaTester || !data.user.isTestUser) {
+        if (data.user.astAccess) {
+          navigate('/allstarteams');
+        } else if (data.user.iaAccess) {
+          navigate('/imaginal-agility');
+        } else {
+          // Check if we should redirect to a specific workshop
+          const selectedWorkshop = sessionStorage.getItem('selectedWorkshop');
+          
+          if (selectedWorkshop) {
+            // Clear the stored selection
+            sessionStorage.removeItem('selectedWorkshop');
+            
+            // Redirect to the appropriate workshop
+            if (selectedWorkshop === 'allstarteams') {
+              navigate('/allstarteams');
+            } else if (selectedWorkshop === 'imaginalagility') {
+              navigate('/imaginal-agility');
+            } else {
+              // Default to AllStarTeams for regular users
+              navigate('/allstarteams');
+            }
+          } else {
+            // Default to AllStarTeams for regular users
+            navigate('/allstarteams');
+          }
+        }
+        return;
       }
     },
     onError: (error: Error) => {

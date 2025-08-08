@@ -17,6 +17,7 @@ import trainingRoutes from './routes/training-routes.js';
 import aiManagementRoutes from './routes/ai-management-routes.js';
 import personaManagementRoutes from './routes/persona-management-routes.js';
 import betaTesterRoutes from './routes/beta-tester-routes.js';
+import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.js';
 import metaliaRoutes from './routes/metalia-routes.js';
 import growthPlanRoutes from './routes/growth-plan-routes.js';
 import adminChatRoutes from './routes/admin-chat-routes.js';
@@ -347,6 +348,7 @@ async function initializeApp() {
       app.use('/api/talia-status', taliaStatusRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
+      app.use('/api/beta-tester', betaTesterNotesRoutes);
       app.use('/api/metalia', metaliaRoutes);
   app.use('/api/growth-plan', growthPlanRoutes);
 
@@ -539,6 +541,62 @@ async function initializeApp() {
           res.status(500).json({
             success: false,
             error: 'Failed to update user status',
+            details: error instanceof Error ? error.message : String(error)
+          });
+        }
+      });
+
+      // Refresh session data from database (debug endpoint)
+      app.post('/refresh-session', async (req, res) => {
+        try {
+          const userId = (req.session as any)?.userId;
+          if (!userId) {
+            return res.status(401).json({
+              success: false,
+              error: 'Not logged in'
+            });
+          }
+
+          const { eq } = await import('drizzle-orm');
+          const { users } = await import('../shared/schema.js');
+          
+          // Get fresh user data from database
+          const result = await db.select()
+            .from(users)
+            .where(eq(users.id, userId));
+
+          if (result.length > 0) {
+            const user = result[0];
+            // Update session with fresh data
+            (req.session as any).user = {
+              id: user.id,
+              username: user.username,
+              name: user.name,
+              email: user.email,
+              role: user.role,
+              isTestUser: user.isTestUser,
+              isBetaTester: user.isBetaTester,
+              astWorkshopCompleted: user.astWorkshopCompleted,
+              iaWorkshopCompleted: user.iaWorkshopCompleted
+            };
+
+            console.log('✅ Session refreshed for user:', user.username);
+            res.json({
+              success: true,
+              message: 'Session refreshed with latest database values',
+              user: (req.session as any).user
+            });
+          } else {
+            res.status(404).json({
+              success: false,
+              error: 'User not found in database'
+            });
+          }
+        } catch (error) {
+          console.error('❌ Error refreshing session:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to refresh session',
             details: error instanceof Error ? error.message : String(error)
           });
         }
