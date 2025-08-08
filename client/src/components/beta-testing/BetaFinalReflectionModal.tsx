@@ -37,7 +37,7 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         <div 
-          className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all duration-400 animate-in slide-in-from-bottom-8 zoom-in-95"
+          className="bg-white rounded-2xl shadow-2xl max-w-xl w-full max-h-[95vh] overflow-y-auto transform transition-all duration-400 animate-in slide-in-from-bottom-8 zoom-in-95"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
@@ -50,7 +50,7 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
 
           {/* Header with gradient and shimmer effect */}
           <div 
-            className="text-white p-8 pb-6 rounded-t-2xl relative overflow-hidden"
+            className="text-white p-6 pb-4 rounded-t-2xl relative overflow-hidden"
             style={{
               background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
             }}
@@ -67,10 +67,10 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
             <div className="relative z-10">
               {/* AST Logo Container */}
               <div 
-                className="w-16 h-16 flex items-center justify-center p-3 mb-5 border-2 border-white border-opacity-30"
+                className="w-12 h-12 flex items-center justify-center p-2 mb-3 border-2 border-white border-opacity-30"
                 style={{
                   background: 'rgba(255, 255, 255, 0.2)',
-                  borderRadius: '16px'
+                  borderRadius: '12px'
                 }}
               >
                 <img 
@@ -80,72 +80,54 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
                 />
               </div>
               
-              <h1 className="text-2xl md:text-3xl font-bold mb-2 leading-tight">
+              <h1 className="text-xl font-bold mb-1 leading-tight">
                 Hi Beta Tester, you're Almost Done! 🎉
               </h1>
-              <p className="text-lg opacity-90 leading-relaxed">
+              <p className="text-sm opacity-90 leading-relaxed">
                 Final Reflection - The last step of your workshop journey
               </p>
             </div>
           </div>
 
           {/* Content */}
-          <div className="p-8">
-            <div className="text-gray-600 text-base leading-relaxed mb-6">
-              When you finish the Final Reflection, all your previous answers will be locked and your holistic report will be <strong className="text-gray-800 font-semibold">*unlocked*</strong> along with the sample growth plan and the example team workshop prep. The most important part is to generate and review your reports, as this is the result of your previous work. As you'll see on the page the professional report is meant to be shared while the personal report is your choice whether to share.
+          <div className="p-6">
+            <div className="text-gray-600 text-sm leading-relaxed mb-4">
+              When you finish the Final Reflection, all your previous answers will be locked and your holistic report will be <strong className="text-gray-800 font-semibold">*unlocked*</strong> along with the sample growth plan and example team workshop prep. The most important part is to generate and review your reports, as this is the result of your previous work.
             </div>
-            <div className="text-gray-600 text-base leading-relaxed mb-6">
-              After you see your reports, click through the growth plan and team prep. The button at the end of team prep will trigger a screen to complete your feedback. You will be able to review and edit any notes you took and then there will be some final questions.
+            <div className="text-gray-600 text-sm leading-relaxed mb-4">
+              After you see your reports, click through the growth plan and team prep. The button at the end will trigger feedback completion where you can review notes and answer final questions.
             </div>
 
             {/* What's Left to See Section */}
             <div 
-              className="rounded-2xl p-6 mb-6 border"
+              className="rounded-xl p-4 mb-4 border"
               style={{
                 background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
                 border: '1px solid #e2e8f0'
               }}
             >
-              <div className="flex items-center gap-3 mb-5">
+              <div className="flex items-center gap-2 mb-3">
                 <div 
-                  className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center text-white font-semibold"
+                  className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-white font-semibold text-sm"
                 >
                   👀
                 </div>
-                <h3 className="text-xl font-semibold text-gray-800">What's left to see:</h3>
+                <h3 className="text-lg font-semibold text-gray-800">What's left to see:</h3>
               </div>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-2">
                 {[
-                  {
-                    title: 'Download your Star Card',
-                    description: 'Get your personalized strength profile to keep and share'
-                  },
-                  {
-                    title: 'Your Holistic Report*',
-                    description: 'Comprehensive insights based on your authentic responses'
-                  },
-                  {
-                    title: 'Growth Plan',
-                    description: 'Sample development pathway based on your results'
-                  },
-                  {
-                    title: 'Team Workshop Prep',
-                    description: 'Preview of how your insights translate to team collaboration'
-                  },
-                  {
-                    title: 'Workshop Resources',
-                    description: 'Additional materials and next steps information'
-                  }
+                  'Download your Star Card',
+                  'Your Holistic Report*',
+                  'Growth Plan', 
+                  'Team Workshop Prep',
+                  'Workshop Resources'
                 ].map((item, index) => (
-                  <div key={index} className="flex items-start gap-4">
+                  <div key={index} className="flex items-center gap-2">
                     <div 
-                      className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mt-2 flex-shrink-0"
+                      className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex-shrink-0"
                     />
-                    <div>
-                      <h4 className="font-semibold text-gray-800 mb-1">{item.title}</h4>
-                      <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
-                    </div>
+                    <span className="text-sm font-medium text-gray-700">{item}</span>
                   </div>
                 ))}
               </div>
@@ -155,7 +137,7 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
             {/* Continue Button */}
             <button 
               onClick={handleContinue}
-              className="w-full py-4 px-8 rounded-xl text-white font-semibold text-lg transition-all duration-300 relative overflow-hidden group"
+              className="w-full py-3 px-6 rounded-xl text-white font-semibold transition-all duration-300 relative overflow-hidden group"
               style={{
                 background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
               }}
@@ -174,7 +156,7 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
             </button>
 
             {/* Footer Note */}
-            <div className="text-center text-gray-500 text-sm mt-4 italic">
+            <div className="text-center text-gray-500 text-xs mt-3 italic">
               Your feedback will help shape the future of AllStarTeams ✨
             </div>
           </div>
