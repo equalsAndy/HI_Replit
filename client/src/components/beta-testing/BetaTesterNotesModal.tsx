@@ -408,9 +408,6 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
                   {pageContext?.workshop.toUpperCase()}
                 </span>
               </h2>
-              <p className="text-sm opacity-90">
-                Capture feedback for: {pageContext?.title}
-              </p>
             </div>
           </div>
           <button

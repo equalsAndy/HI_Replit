@@ -235,7 +235,7 @@ export const clientFeatureFlags = {
 # All features enabled for production
 NODE_ENV=production
 ENVIRONMENT=production
-CLAUDE_API_KEY=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
+CLAUDE_API_KEY=your-claude-api-key-here
 FEATURE_HOLISTIC_REPORTS=true
 FEATURE_DEBUG_PANEL=false  # Keep disabled in production
 DATABASE_URL=postgresql://production_connection_string
@@ -372,7 +372,7 @@ curl https://app2.heliotropeimaginal.com/health
 ### **Claude API Configuration**
 ```bash
 # Environment variables required
-CLAUDE_API_KEY=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
+CLAUDE_API_KEY=your-claude-api-key-here
 FEATURE_AI_COACHING=true
 FEATURE_HOLISTIC_REPORTS=true
 ```
@@ -472,8 +472,8 @@ cat > patch-deployment.json << EOF
       "NODE_ENV": "production",
       "DATABASE_URL": "postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require",
       "SESSION_SECRET": "dev-secret-key-2025-heliotrope-imaginal",
-      "CLAUDE_API_KEY": "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",
-      "OPENAI_API_KEY": "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",
+      "CLAUDE_API_KEY": "your-claude-api-key-here",
+      "OPENAI_API_KEY": "your-openai-api-key-here",
       "FEATURE_HOLISTIC_REPORTS": "true",
       "FEATURE_DEBUG_PANEL": "false",
       "NODE_TLS_REJECT_UNAUTHORIZED": "0",
