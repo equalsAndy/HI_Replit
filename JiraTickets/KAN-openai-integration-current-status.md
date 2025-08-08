@@ -111,7 +111,7 @@ OpenAI Projects:
 
 ### Environment Variables
 ```bash
-OPENAI_API_KEY=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
+OPENAI_API_KEY=your-openai-api-key-here
 NODE_ENV=development
 ENVIRONMENT=development
 ```

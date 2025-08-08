@@ -76,10 +76,10 @@ getClaudeAPIStatus()
 #### Environment Variables Cleaned
 ```bash
 # STILL PRESENT (for potential fallback use):
-CLAUDE_API_KEY=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
+CLAUDE_API_KEY=your-claude-api-key-here
 
 # NEW PRIMARY:
-OPENAI_API_KEY=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
+OPENAI_API_KEY=your-openai-api-key-here
 ```
 
 ### 📊 MIGRATION STATISTICS
