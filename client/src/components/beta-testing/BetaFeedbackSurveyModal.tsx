@@ -121,12 +121,12 @@ export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = (
 
   // Fetch beta tester notes
   const { data: notes = [], isLoading: notesLoading, error: notesError } = useQuery<BetaNote[]>({
-    queryKey: ['/api/beta-tester-notes/my-notes'],
+    queryKey: ['/api/beta-tester/notes'],
     queryFn: async () => {
       console.log('🔍 Fetching beta tester notes for user:', user?.username, 'isBetaTester:', user?.isBetaTester);
       
       // Use the /notes endpoint with includeSubmitted=true to get all notes
-      const response = await fetch('/api/beta-tester-notes/notes?includeSubmitted=true', {
+      const response = await fetch('/api/beta-tester/notes?includeSubmitted=true', {
         credentials: 'include'
       });
       if (!response.ok) {
@@ -155,7 +155,7 @@ export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = (
   // Delete note mutation
   const deleteNoteMutation = useMutation({
     mutationFn: async (noteId: number) => {
-      const response = await fetch(`/api/beta-tester-notes/${noteId}`, {
+      const response = await fetch(`/api/beta-tester/notes/${noteId}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -170,7 +170,7 @@ export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = (
   // Update note mutation
   const updateNoteMutation = useMutation({
     mutationFn: async ({ noteId, content }: { noteId: number; content: string }) => {
-      const response = await fetch(`/api/beta-tester-notes/${noteId}`, {
+      const response = await fetch(`/api/beta-tester/notes/${noteId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -208,7 +208,7 @@ export const BetaFeedbackSurveyModal: React.FC<BetaFeedbackSurveyModalProps> = (
         finalComments: feedback.finalComments
       };
 
-      const response = await fetch('/api/beta-tester-notes/feedback', {
+      const response = await fetch('/api/beta-tester/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

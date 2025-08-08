@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench } from 'lucide-react';
+import { FileText, Eye, AlertCircle, CheckCircle, Clock, RefreshCw, Monitor, Wrench, MessageSquareText } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { PDFViewer } from '@/components/ui/pdf-viewer';
 import { isFeatureEnabled } from '@/utils/featureFlags';
+import { BetaFeedbackSurveyModal } from '../beta-testing/BetaFeedbackSurveyModal';
+import { useCurrentUser } from '../../hooks/use-current-user';
 
 interface HolisticReportViewProps {
   navigate: (path: string) => void;
@@ -46,7 +48,10 @@ export default function HolisticReportView({
     title: '',
     downloadUrl: undefined
   });
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [hasViewedReport, setHasViewedReport] = useState(false);
   const queryClient = useQueryClient();
+  const { data: user } = useCurrentUser();
 
   // Fetch status for both report types
   const { data: standardStatus, isLoading: standardLoading } = useQuery<ReportStatus>({
@@ -110,6 +115,9 @@ export default function HolisticReportView({
         downloadUrl: status.downloadUrl
       });
       
+      // Track that user has viewed a report
+      setHasViewedReport(true);
+      
       // Dispatch event for beta tester feedback modal trigger
       window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
         detail: { reportType, viewType: 'pdf' }
@@ -117,17 +125,14 @@ export default function HolisticReportView({
     }
   };
 
-  const handleDownloadReport = (reportType: 'standard' | 'personal') => {
-    const status = reportType === 'standard' ? standardStatus : personalStatus;
-    if (status?.downloadUrl) {
-      window.open(status.downloadUrl, '_blank');
-    }
-  };
 
   const handleViewHtmlReport = (reportType: 'standard' | 'personal') => {
     const status = reportType === 'standard' ? standardStatus : personalStatus;
     if (status?.htmlUrl) {
       window.open(status.htmlUrl, '_blank');
+      
+      // Track that user has viewed a report
+      setHasViewedReport(true);
       
       // Dispatch event for beta tester feedback modal trigger
       window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
@@ -141,8 +146,35 @@ export default function HolisticReportView({
     const hasCompletedReport = standardStatus?.status === 'completed' || personalStatus?.status === 'completed';
     if (hasCompletedReport) {
       markStepCompleted('5-2');
+      
+      // For beta testers, automatically mark as having viewed reports when they're completed and displayed
+      if ((user?.isBetaTester || user?.role === 'admin') && !hasViewedReport) {
+        setHasViewedReport(true);
+        
+        // Dispatch event for beta tester feedback system
+        window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+          detail: { reportType: 'auto', viewType: 'display' }
+        }));
+      }
     }
-  }, [standardStatus, personalStatus, markStepCompleted]);
+  }, [standardStatus, personalStatus, markStepCompleted, user, hasViewedReport]);
+
+  // Additional check: user can give feedback ONLY after BOTH reports are completed
+  const canGiveFeedback = hasViewedReport || 
+    (standardStatus?.status === 'completed' && personalStatus?.status === 'completed');
+
+  // Debug logging for beta tester detection
+  console.log('🔍 HolisticReportView - User data:', {
+    userId: user?.id,
+    username: user?.username,
+    isBetaTester: user?.isBetaTester,
+    role: user?.role,
+    hasViewedReport,
+    canGiveFeedback,
+    standardStatus: standardStatus?.status,
+    personalStatus: personalStatus?.status,
+    shouldShowButton: user?.isBetaTester || user?.role === 'admin'
+  });
 
   const renderReportCard = (
     reportType: 'standard' | 'personal',
@@ -282,14 +314,6 @@ export default function HolisticReportView({
                       View HTML
                     </Button>
                     <Button
-                      onClick={() => handleDownloadReport(reportType)}
-                      variant="outline"
-                      className="border-green-200 hover:bg-green-50"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download PDF
-                    </Button>
-                    <Button
                       onClick={() => handleGenerateReport(reportType)}
                       variant="outline"
                       className={`${isDisabledDueToMaintenance ? 'border-gray-300 text-gray-400 cursor-not-allowed' : 'border-blue-200 hover:bg-blue-50 text-blue-700'}`}
@@ -359,17 +383,66 @@ export default function HolisticReportView({
   // System maintenance warning (but keep the normal interface)
   const showMaintenanceWarning = !reportsWorking;
 
+  // Force debug log every render
+  console.log('🔍 HolisticReportView RENDERING - Beta button should show:', {
+    userExists: !!user,
+    userId: user?.id,
+    isBetaTester: user?.isBetaTester,
+    role: user?.role,
+    shouldShowButton: user?.isBetaTester || user?.role === 'admin',
+    hasViewedReport,
+    canGiveFeedback,
+    standardCompleted: standardStatus?.status === 'completed',
+    personalCompleted: personalStatus?.status === 'completed'
+  });
+
   return (
     <>
       <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Star Report</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Holistic Development Reports</h1>
         <p className="text-lg text-gray-700">
           Congratulations on completing your AllStarTeams workshop! Your personalized development reports 
           are now available, synthesizing your journey into actionable insights for continued growth.
         </p>
       </div>
 
+
+      {/* Beta Tester Feedback Button - Before Report Generation */}
+      {(user?.isBetaTester || user?.role === 'admin') && (
+        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                  <MessageSquareText className="w-5 h-5" />
+                  Share Your Workshop Experience
+                </h3>
+                <p className="text-purple-800 text-sm">
+                  {canGiveFeedback 
+                    ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
+                    : "Please generate and view BOTH reports below before providing feedback. Once you've reviewed both your Professional and Personal insights, we'd appreciate hearing about your workshop experience."
+                  }
+                </p>
+              </div>
+              <div className="ml-4">
+                <Button
+                  onClick={() => setIsFeedbackModalOpen(true)}
+                  disabled={!canGiveFeedback}
+                  className={`px-6 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
+                    canGiveFeedback
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <MessageSquareText className="w-4 h-4" />
+                  {canGiveFeedback ? 'Give Feedback' : 'Generate Reports First'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Report Type Explanation */}
       <Card className="mb-8 bg-blue-50 border-blue-200">
@@ -443,6 +516,7 @@ export default function HolisticReportView({
           </CardContent>
         </Card>
       )}
+
     </div>
 
       {/* PDF Viewer Modal */}
@@ -454,6 +528,12 @@ export default function HolisticReportView({
           onClose={closePdfViewer}
         />
       )}
+
+      {/* Beta Feedback Survey Modal */}
+      <BetaFeedbackSurveyModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+      />
     </>
   );
 }

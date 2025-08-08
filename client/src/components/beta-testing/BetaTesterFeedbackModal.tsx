@@ -285,11 +285,6 @@ export const BetaTesterFeedbackModal: React.FC<BetaTesterFeedbackModalProps> = (
                             <span className={`text-sm font-medium text-${color}-800 capitalize`}>
                               {note.noteType}
                             </span>
-                            {note.stepId && (
-                              <span className="text-xs bg-white px-2 py-1 rounded text-gray-600">
-                                Step {note.stepId}
-                              </span>
-                            )}
                           </div>
                           <div className="flex gap-1">
                             <button

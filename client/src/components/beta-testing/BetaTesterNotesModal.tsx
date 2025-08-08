@@ -68,7 +68,6 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
   const [showSuccess, setShowSuccess] = useState(false);
   const [pageContext, setPageContext] = useState<PageContext | null>(null);
   const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null);
-  const [contextRelevant, setContextRelevant] = useState(true);
 
   // Track current URL for dependency
   const [currentUrl, setCurrentUrl] = useState(window.location.pathname);
@@ -101,7 +100,6 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
           console.log('📝 Context actually changed, updating...');
           setPageContext(enhancedContext);
           setSystemInfo(getSystemInfo());
-          setContextRelevant(true); // Reset context relevance
           
           // Update URL tracking
           setCurrentUrl(window.location.pathname);
@@ -327,7 +325,7 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
           pageTitle: pageContext.title,
           stepId: pageContext.stepId,
           moduleName: pageContext.module,
-          questionContext: contextRelevant ? pageContext.questionContext : null,
+          questionContext: null, // Context hidden from user interface
           urlPath: pageContext.url,
           noteContent: noteContent.trim(),
           noteType,
@@ -440,43 +438,6 @@ export const BetaTesterNotesModal: React.FC<BetaTesterNotesModalProps> = ({ isOp
             {/* Form Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Context Display */}
-              {pageContext && contextRelevant && (
-                <div className="bg-purple-50 border border-purple-200 rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="text-sm font-semibold text-purple-900">Current Context</div>
-                    <button
-                      type="button"
-                      onClick={() => setContextRelevant(false)}
-                      className="text-xs text-purple-600 hover:text-purple-800 underline"
-                    >
-                      not relevant
-                    </button>
-                  </div>
-                  <div className="space-y-1 text-xs text-purple-700">
-                    <div><strong>Step:</strong> {pageContext.stepId} ({pageContext.title})</div>
-                    {pageContext.questionContext && (
-                      <div><strong>Question:</strong> {pageContext.questionContext}</div>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {/* Context removed message */}
-              {pageContext && !contextRelevant && (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-gray-600">Context removed from note</div>
-                    <button
-                      type="button"
-                      onClick={() => setContextRelevant(true)}
-                      className="text-xs text-purple-600 hover:text-purple-800 underline"
-                    >
-                      restore
-                    </button>
-                  </div>
-                </div>
-              )}
 
               {/* Note Type */}
               <div>
