@@ -19,8 +19,9 @@ import YourStarCardView from '../YourStarCardView';
 import StarCardResourceView from '../StarCardResourceView';
 import PlaceholderView from '../PlaceholderView';
 import DownloadStarCardView from './DownloadStarCardView';
-import HolisticReportView from '../HolisticReportView';
+import HolisticReportView from './HolisticReportView';
 import HolisticReportGenerationView from './HolisticReportGenerationView';
+import GeneralHolisticReportView from '../HolisticReportView';
 import GrowthPlanView from './GrowthPlanView';
 import QuarterlyReportView from './QuarterlyReportView';
 import TeamWorkshopPrepView from './TeamWorkshopPrepView';
@@ -244,7 +245,7 @@ const AllStarTeamsContent: React.FC<AllStarTeamsContentProps> = ({
 
     case 'holistic-report':
       return (
-        <HolisticReportGenerationView 
+        <GeneralHolisticReportView 
           navigate={navigate}
           markStepCompleted={markStepCompleted}
           setCurrentContent={setCurrentContent}

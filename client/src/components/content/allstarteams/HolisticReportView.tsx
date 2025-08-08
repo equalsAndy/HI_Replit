@@ -2,8 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink } from 'lucide-react';
+import { Download, ChevronRight, FileText, Loader2, CheckCircle, AlertCircle, ExternalLink, MessageSquareText } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { BetaFeedbackSurveyModal } from '../../beta-testing/BetaFeedbackSurveyModal';
+import { useCurrentUser } from '../../../hooks/use-current-user';
 
 interface HolisticReportViewProps {
   navigate: (path: string) => void;
@@ -18,6 +20,9 @@ export default function HolisticReportView({
 }: HolisticReportViewProps) {
   const [generating, setGenerating] = useState(false);
   const [reportGenerated, setReportGenerated] = useState(false);
+  const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
+  const [hasViewedReport, setHasViewedReport] = useState(false);
+  const { data: user } = useCurrentUser();
 
   // Query to check if user has completed all required assessments
   const { data: userAssessments, isLoading } = useQuery({
@@ -43,6 +48,32 @@ export default function HolisticReportView({
   useEffect(() => {
     markStepCompleted('5-2');
   }, [markStepCompleted]);
+
+  // Feedback submission handler
+  const handleSubmitFeedback = async (feedbackData: any) => {
+    try {
+      const response = await fetch('/api/beta-tester/feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(feedbackData)
+      });
+
+      if (response.ok) {
+        console.log('✅ Beta feedback submitted successfully');
+        alert('Thank you for your feedback! Your input helps us improve the AllStarTeams experience.');
+        return true;
+      } else {
+        throw new Error('Failed to submit feedback');
+      }
+    } catch (error) {
+      console.error('Error submitting beta feedback:', error);
+      alert('Failed to submit feedback. Please try again.');
+      return false;
+    }
+  };
 
   const handleDownload = async () => {
     if (!allAssessmentsComplete) {
@@ -75,7 +106,13 @@ export default function HolisticReportView({
       window.URL.revokeObjectURL(url);
       
       setReportGenerated(true);
+      setHasViewedReport(true);
       markStepCompleted('5-2');
+      
+      // Dispatch event for beta tester feedback modal trigger
+      window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+        detail: { reportType: 'pdf', viewType: 'download' }
+      }));
       
     } catch (error) {
       console.error('Failed to generate report:', error);
@@ -98,6 +135,14 @@ export default function HolisticReportView({
     
     // Open HTML report in new tab
     window.open('/api/report/html/me', '_blank');
+    
+    // Track that user has viewed a report
+    setHasViewedReport(true);
+    
+    // Dispatch event for beta tester feedback modal trigger
+    window.dispatchEvent(new CustomEvent('holistic-report-viewed', {
+      detail: { reportType: 'html', viewType: 'html' }
+    }));
   };
 
   if (isLoading) {
@@ -115,8 +160,60 @@ export default function HolisticReportView({
     );
   }
 
+  // Determine if user can give feedback (has completed assessments and viewed/generated reports)
+  const canGiveFeedback = hasViewedReport || reportGenerated || allAssessmentsComplete;
+
+  // Debug logging for beta tester detection
+  console.log('🔍 AST HolisticReportView - User data:', {
+    userId: user?.id,
+    username: user?.username,
+    isBetaTester: user?.isBetaTester,
+    role: user?.role,
+    hasViewedReport,
+    reportGenerated,
+    allAssessmentsComplete,
+    canGiveFeedback,
+    shouldShowButton: user?.isBetaTester || user?.role === 'admin'
+  });
+
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Beta Tester Feedback Button - Before Report Generation */}
+      {(user?.isBetaTester || user?.role === 'admin') && (
+        <Card className="mb-6 bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-purple-900 mb-2 flex items-center gap-2">
+                  <MessageSquareText className="w-5 h-5" />
+                  Share Your Workshop Experience
+                </h3>
+                <p className="text-purple-800 text-sm">
+                  {canGiveFeedback 
+                    ? "Thank you for completing your workshop! We'd love to hear about your experience with AllStarTeams."
+                    : "Please generate and view your reports below before providing feedback. Once you've reviewed your personalized insights, we'd appreciate hearing about your workshop experience."
+                  }
+                </p>
+              </div>
+              <div className="ml-4">
+                <Button
+                  onClick={() => setIsFeedbackModalOpen(true)}
+                  disabled={!canGiveFeedback}
+                  className={`px-6 py-2 rounded-lg flex items-center gap-2 font-medium transition-all ${
+                    canGiveFeedback
+                      ? 'bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white'
+                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  }`}
+                >
+                  <MessageSquareText className="w-4 h-4" />
+                  {canGiveFeedback ? 'Give Feedback' : 'Generate Reports First'}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card className="mb-8">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -212,6 +309,13 @@ export default function HolisticReportView({
           </div>
         </CardContent>
       </Card>
+
+      {/* Beta Feedback Survey Modal */}
+      <BetaFeedbackSurveyModal
+        isOpen={isFeedbackModalOpen}
+        onClose={() => setIsFeedbackModalOpen(false)}
+        onSubmitFeedback={handleSubmitFeedback}
+      />
     </div>
   );
 }

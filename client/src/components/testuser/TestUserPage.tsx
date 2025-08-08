@@ -98,20 +98,35 @@ const TestUserPage: React.FC = () => {
         pathname: window.location.pathname
       });
       
-      // Allow access if user is a test user OR an admin (regardless of test user flag)
-      const hasAccess = userResponse?.user?.isTestUser || userResponse?.user?.role === 'admin';
+      // Allow access if user is a test user (but not beta tester) OR an admin
+      // Beta testers should go directly to workshop, not to the console
+      const hasAccess = (userResponse?.user?.isTestUser && !userResponse?.user?.isBetaTester) || 
+                       userResponse?.user?.role === 'admin';
       
       console.log('🔍 Access granted:', hasAccess);
       
       // Only redirect if we're on the /testuser route and user doesn't have access
       if (!hasAccess && window.location.pathname === '/testuser') {
-        console.log('❌ Access denied, redirecting to dashboard');
-        toast({
-          variant: 'destructive',
-          title: 'Access Denied',
-          description: 'This page is only available to test users and administrators.',
-        });
-        setLocation('/dashboard');
+        console.log('❌ Access denied, redirecting beta tester to workshop');
+        
+        // If user is a beta tester, redirect to their workshop instead of showing error
+        if (userResponse?.user?.isBetaTester) {
+          if (userResponse.user.astAccess) {
+            setLocation('/allstarteams');
+          } else if (userResponse.user.iaAccess) {
+            setLocation('/imaginal-agility');
+          } else {
+            setLocation('/auth');
+          }
+        } else {
+          // For other users without access, show error and redirect to auth/login
+          toast({
+            variant: 'destructive',
+            title: 'Access Denied',
+            description: 'This page is only available to test users and administrators.',
+          });
+          setLocation('/auth');
+        }
       } else if (hasAccess && window.location.pathname === '/testuser') {
         console.log('✅ Access granted, staying on test user page');
       }

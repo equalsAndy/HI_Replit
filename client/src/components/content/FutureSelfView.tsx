@@ -9,6 +9,7 @@ import { validateAtLeastOneField } from '@/lib/validation';
 import { ValidationMessage } from '@/components/ui/validation-message';
 import { useWorkshopStatus } from '@/hooks/use-workshop-status';
 import { useFloatingAI } from '@/components/ai/FloatingAIProvider';
+import { useTestUser } from '@/hooks/useTestUser';
 
 // Define ContentViewProps interface
 interface ContentViewProps {
@@ -87,6 +88,7 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const { astCompleted: workshopCompleted, loading: workshopLoading } = useWorkshopStatus();
   const { updateContext, setCurrentStep: setFloatingAIStep } = useFloatingAI();
+  const { shouldShowDemoButtons } = useTestUser();
   
   // Validation state
   const [validationError, setValidationError] = useState<string>('');
@@ -313,8 +315,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
       {/* Full-width container */}
       <div className="w-full px-6 py-8">
         
-        {/* Demo button */}
-        {!workshopCompleted && (
+        {/* Demo button - Only for test users */}
+        {!workshopCompleted && shouldShowDemoButtons && (
           <div className="absolute top-4 right-4 z-10">
             <Button
               variant="ghost"
@@ -410,8 +412,8 @@ const FutureSelfView: React.FC<ContentViewProps> = ({
               </div>
             </div>
             
-            {/* Demo Button */}
-            {!workshopCompleted && (
+            {/* Demo Button - Only for test users */}
+            {!workshopCompleted && shouldShowDemoButtons && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

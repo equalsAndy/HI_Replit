@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ChevronRight, ChevronLeft, Calendar, Target, TrendingUp, Clock, CheckCircle, Star } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import tuningForkImage from '@assets/turningfork_1749438223210.png';
 import StarCard from '@/components/starcard/StarCard';
 import WellBeingLadderSvg from '@/components/visualization/WellBeingLadderSvg';
@@ -55,6 +56,7 @@ export default function GrowthPlanView({
   const [year, setYear] = useState(new Date().getFullYear());
   const [formData, setFormData] = useState<Partial<GrowthPlanData>>({});
 
+  const { data: user } = useCurrentUser();
   const queryClient = useQueryClient();
 
   // Fetch user's Star Card data
@@ -117,7 +119,13 @@ export default function GrowthPlanView({
       setCurrentStep(currentStep + 1);
     } else {
       markStepCompleted('5-3');
-      // setCurrentContent('final-report');
+      
+      // Beta users should go to team workshop prep instead of final report
+      if (user?.isBetaTester && user?.role !== 'admin') {
+        setCurrentContent('team-workshop-prep');
+      } else {
+        // setCurrentContent('final-report');
+      }
     }
   };
 

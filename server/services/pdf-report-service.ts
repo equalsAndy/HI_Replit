@@ -595,7 +595,7 @@ export class PDFReportService implements PDFGenerationService {
         
         .pie-container {
             position: relative;
-            width: 500px;
+            width: 700px;
             height: 500px;
             margin: 0 auto;
         }

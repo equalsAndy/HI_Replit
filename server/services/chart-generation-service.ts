@@ -32,7 +32,7 @@ interface ChartConfig {
 
 // Default chart configuration matching design specifications
 const DEFAULT_CHART_CONFIG: ChartConfig = {
-  width: 500,
+  width: 600,  // Increased from 500 to give more horizontal space
   height: 500,
   backgroundColor: '#ffffff',
   fonts: {
@@ -144,7 +144,12 @@ export class ChartGenerationService {
             }
           },
           layout: {
-            padding: 20
+            padding: {
+              left: 40,
+              right: 40,
+              top: 20,
+              bottom: 20
+            }
           }
         }
       };

@@ -320,17 +320,9 @@ export default function HolisticReportGenerationView({
         </CardHeader>
         <CardContent>
           <p className="text-lg text-gray-700 mb-4">
-            Generate comprehensive reports that synthesize your entire AllStarTeams workshop journey 
-            using our AI system that has learned from all your coaching interactions and reflections.
+            Generate comprehensive reports that synthesize your entire AllStarTeams workshop journey.
           </p>
           
-          <div className="bg-blue-50 p-4 rounded-lg mb-6">
-            <h3 className="font-semibold text-blue-900 mb-2">✨ AI-Powered Personalization</h3>
-            <p className="text-blue-800 text-sm">
-              Your reports are personalized using insights from your coaching conversations, 
-              combined with your assessment results and workshop reflections for truly individualized development guidance.
-            </p>
-          </div>
         </CardContent>
       </Card>
 

@@ -542,15 +542,14 @@ export default function AllStarTeams() {
     const unlockedSteps = navProgress?.unlockedSteps || [];
     const completedSteps = navProgress?.completedSteps || [];
 
-    // Special logic for steps 5-2 and 5-3: only available to test users AND after final reflection completion
+    // Special logic for steps 5-2 and 5-3: available to all users after final reflection completion
     if (stepId === '5-2' || stepId === '5-3') {
       const finalReflectionCompleted = completedSteps.includes('4-5');
-      const isTestUser = shouldShowDemoButtons;
       
-      console.log(`🔓 Step ${stepId} accessibility check: isTestUser=${isTestUser}, finalReflectionCompleted=${finalReflectionCompleted}`);
+      console.log(`🔓 Step ${stepId} accessibility check: finalReflectionCompleted=${finalReflectionCompleted}`);
       
-      // Only available to test users who have completed final reflection
-      return isTestUser && finalReflectionCompleted;
+      // Available to all users who have completed final reflection
+      return finalReflectionCompleted;
     }
 
     // Check if step is in unlocked steps

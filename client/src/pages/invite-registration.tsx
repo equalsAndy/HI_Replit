@@ -49,6 +49,15 @@ const InviteRegistrationPage: React.FC = () => {
   // Handle completion of profile setup
   const handleProfileComplete = () => {
     setCurrentStep(2);
+    
+    // Clear any beta welcome session storage to ensure clean slate for first login
+    // This ensures the welcome modal will show properly after login
+    Object.keys(sessionStorage).forEach(key => {
+      if (key.startsWith('beta_welcome_shown_')) {
+        sessionStorage.removeItem(key);
+      }
+    });
+    
     toast({
       title: 'Registration complete!',
       description: 'Your account has been successfully created. You can now log in.',

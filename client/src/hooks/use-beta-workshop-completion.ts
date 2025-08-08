@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useCurrentUser } from './use-current-user';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -9,7 +9,7 @@ interface BetaWorkshopCompletionState {
 }
 
 export const useBetaWorkshopCompletion = () => {
-  const { user } = useCurrentUser();
+  const { data: user } = useCurrentUser();
   const queryClient = useQueryClient();
   const [completionState, setCompletionState] = useState<BetaWorkshopCompletionState>({
     showFeedbackModal: false,
@@ -57,6 +57,7 @@ export const useBetaWorkshopCompletion = () => {
   // Debug logging
   console.log('🔍 useBetaWorkshopCompletion - Debug info:', {
     userId: user?.id,
+    username: user?.username,
     isBetaTester,
     astWorkshopCompleted: user?.astWorkshopCompleted,
     iaWorkshopCompleted: user?.iaWorkshopCompleted,
@@ -88,6 +89,26 @@ export const useBetaWorkshopCompletion = () => {
     };
   }, [isBetaTester, workshopCompleted, user?.id]);
 
+  const checkFeedbackStatus = useCallback(async () => {
+    try {
+      const response = await fetch('/api/beta-tester/feedback-status', {
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Don't automatically show feedback modal - only set completion state
+        setCompletionState(prev => ({
+          ...prev,
+          workshopCompleted: true
+          // Remove showFeedbackModal: true - this should only be triggered manually
+        }));
+      }
+    } catch (error) {
+      console.error('Error checking feedback status:', error);
+    }
+  }, []);
+
   // Auto-check if we should show feedback modal on mount
   useEffect(() => {
     if (isBetaTester && workshopCompleted && user?.id) {
@@ -103,28 +124,7 @@ export const useBetaWorkshopCompletion = () => {
       // Check if user has already submitted feedback
       checkFeedbackStatus();
     }
-  }, [isBetaTester, workshopCompleted, user?.id]);
-
-  const checkFeedbackStatus = async () => {
-    try {
-      const response = await fetch('/api/beta-tester-notes/feedback-status', {
-        credentials: 'include'
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        if (!data.hasSubmittedFeedback) {
-          setCompletionState(prev => ({
-            ...prev,
-            workshopCompleted: true,
-            showFeedbackModal: true
-          }));
-        }
-      }
-    } catch (error) {
-      console.error('Error checking feedback status:', error);
-    }
-  };
+  }, [isBetaTester, workshopCompleted, user?.id, checkFeedbackStatus]);
 
   const closeFeedbackModal = () => {
     setCompletionState(prev => ({
@@ -135,7 +135,7 @@ export const useBetaWorkshopCompletion = () => {
 
   const submitFeedback = async (feedbackData: any) => {
     try {
-      const response = await fetch('/api/beta-tester-notes/feedback', {
+      const response = await fetch('/api/beta-tester/feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

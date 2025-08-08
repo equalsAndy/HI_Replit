@@ -710,10 +710,11 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
             </div>
           ) : null}
 
-          <div className="flex justify-center mt-8">
-            <Button 
-              onClick={async () => {
-                if (isCardComplete) {
+          {/* Only show Next button after flow attributes are added */}
+          {isCardComplete && (
+            <div className="flex justify-center mt-8">
+              <Button 
+                onClick={async () => {
                   // Auto-capture StarCard before proceeding
                   if (user?.id) {
                     console.log('🎯 Auto-capturing StarCard for user:', user.id);
@@ -727,26 +728,13 @@ const FlowStarCardView: React.FC<ContentViewProps> = ({
                   
                   markStepCompleted('3-4');
                   setCurrentContent("wellbeing");
-                } else {
-                  toast({
-                    title: "Step Not Complete",
-                    description: "Please select and save 4 flow attributes to your Star Card before proceeding.",
-                    variant: "destructive"
-                  });
-                }
-              }}
-              disabled={!isCardComplete}
-              className={`${isCardComplete 
-                ? 'bg-indigo-600 hover:bg-indigo-700 text-white' 
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {isCardComplete 
-                ? "Next: Ladder of Well-being" 
-                : "Complete flow attributes to continue"
-              } <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              >
+                Next: Ladder of Well-being <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </>

@@ -75,7 +75,9 @@ interface Invite {
   is_beta_tester?: boolean;
   isBetaTester?: boolean;
   is_test_user?: boolean;
+  isTestUser?: boolean;
   user_is_beta_tester?: boolean;
+  user_is_test_user?: boolean;
   [key: string]: any; // Allow additional properties for flexibility
 }
 
@@ -168,10 +170,17 @@ export const InviteManagement: React.FC = () => {
 
   useEffect(() => {
     fetchUserRole();
-    fetchInvites();
-    if (userRole === 'facilitator') {
-      fetchOrganizations();
-      fetchCohorts();
+  }, []);
+
+  // Fetch invites and other data after userRole is determined
+  useEffect(() => {
+    if (userRole) {
+      console.log('🔍 InviteManagement: userRole determined, fetching invites:', userRole);
+      fetchInvites();
+      if (userRole === 'facilitator') {
+        fetchOrganizations();
+        fetchCohorts();
+      }
     }
   }, [userRole]);
 
@@ -181,20 +190,24 @@ export const InviteManagement: React.FC = () => {
   }, [userRole]);
 
   const fetchInvites = async () => {
+    console.log('🔍 InviteManagement: fetchInvites called, userRole:', userRole);
     setIsLoadingInvites(true);
     try {
       // Use role-appropriate endpoint
       const endpoint = userRole === 'admin' ? '/api/admin/invites' : '/api/invites';
+      console.log('🔍 InviteManagement: Fetching from endpoint:', endpoint);
       const response = await fetch(endpoint, {
         credentials: 'include'
       });
 
       const data = await response.json();
+      console.log('🔍 InviteManagement: API response:', data);
 
       if (data.success) {
+        console.log('🔍 InviteManagement: Processing', data.invites?.length, 'invites');
         // Process the invites to add computed properties and normalize property names
         const processedInvites = data.invites.map((invite: any) => {
-          console.log('Processing invite:', invite);
+          console.log('🔍 InviteManagement: Processing invite:', invite);
           return {
             ...invite,
             inviteCode: invite.inviteCode || invite.invite_code,
@@ -202,6 +215,7 @@ export const InviteManagement: React.FC = () => {
             isUsed: !!invite.usedAt || !!invite.used_at
           };
         });
+        console.log('🔍 InviteManagement: Processed invites:', processedInvites);
         setInvites(processedInvites);
       } else {
         toast({
@@ -617,7 +631,7 @@ export const InviteManagement: React.FC = () => {
                           )}
                         </TableCell>
                         <TableCell>
-                          {invite.is_test_user ? (
+                          {invite.is_test_user || invite.isTestUser || invite.user_is_test_user ? (
                             <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
                               Test User
                             </Badge>

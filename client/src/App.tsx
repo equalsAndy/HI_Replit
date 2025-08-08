@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Route, Switch, useLocation, Router } from 'wouter';
 import { Toaster } from '@/components/ui/toaster';
 import InviteRegistrationPage from '@/pages/invite-registration';
@@ -31,6 +31,7 @@ import { useCurrentUser } from '@/hooks/use-current-user';
 import { useBetaWelcome } from '@/hooks/use-beta-welcome';
 import { useBetaFeedbackReview } from '@/hooks/use-beta-feedback-review';
 import { useBetaWorkshopCompletion } from '@/hooks/use-beta-workshop-completion';
+import { ReportPromptModal } from '@/components/beta-testing/ReportPromptModal';
 import BetaTesterWelcomeModal from '@/components/modals/BetaTesterWelcomeModal';
 import { BetaTesterFAB } from '@/components/beta-testing/BetaTesterFAB';
 import { BetaTesterReviewModal } from '@/components/beta-testing/BetaTesterReviewModal';
@@ -62,9 +63,18 @@ const BetaWelcomeWrapper: React.FC = () => {
     handleCloseModal,
     handleDontShowAgain,
     handleStartWorkshop,
+    triggerWelcomeModal,
   } = useBetaWelcome();
 
   console.log('🔍 BetaWelcomeWrapper - showWelcomeModal:', showWelcomeModal);
+
+  // Make triggerWelcomeModal available globally for navbar
+  React.useEffect(() => {
+    (window as any).triggerBetaWelcomeModal = triggerWelcomeModal;
+    return () => {
+      delete (window as any).triggerBetaWelcomeModal;
+    };
+  }, [triggerWelcomeModal]);
 
   return (
     <BetaTesterWelcomeModal
@@ -92,6 +102,38 @@ const BetaFeedbackReviewWrapper: React.FC = () => {
       onClose={handleCloseReview}
       onComplete={handleCompleteReview}
       workshopType={workshopType}
+    />
+  );
+};
+
+// Component to handle showing report prompt modal after workshop completion
+const BetaReportPromptWrapper: React.FC = () => {
+  const { data: user } = useCurrentUser();
+  const [showReportPrompt, setShowReportPrompt] = useState(false);
+
+  useEffect(() => {
+    // Listen for workshopCompleted events
+    const handleWorkshopCompleted = (event: CustomEvent) => {
+      console.log('🎉 Workshop completed, showing report prompt modal');
+      // Only show for beta testers and admins
+      if (user?.isBetaTester || user?.role === 'admin') {
+        setShowReportPrompt(true);
+      }
+    };
+
+    window.addEventListener('workshopCompleted', handleWorkshopCompleted as EventListener);
+
+    return () => {
+      window.removeEventListener('workshopCompleted', handleWorkshopCompleted as EventListener);
+    };
+  }, [user]);
+
+  if (!user?.isBetaTester && user?.role !== 'admin') return null;
+
+  return (
+    <ReportPromptModal
+      isOpen={showReportPrompt}
+      onClose={() => setShowReportPrompt(false)}
     />
   );
 };
@@ -142,6 +184,7 @@ const App: React.FC = () => {
                     <AutoSyncWrapper />
                     <BetaWelcomeWrapper />
                     <BetaFeedbackReviewWrapper />
+                    <BetaReportPromptWrapper />
                     <BetaCompletionFeedbackWrapper />
                     <Suspense fallback={<div className="p-8 text-center">Loading...</div>}>
                     <Switch>
