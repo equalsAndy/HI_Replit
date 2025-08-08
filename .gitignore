@@ -20,6 +20,7 @@ test-*.js
 
 # Version and build artifacts (these are managed by versioning system)
 public/version.json
+client/public/version.json
 
 # Development logs and debugging
 *.log
@@ -91,6 +92,21 @@ process-*.js
 *-base64.txt
 *-logo-*.png
 *-logo-*.jpg
+
+# Environment files (development should not be committed)
+server/.env.development
+server/.env.staging
+server/.env.production
+client/.env.development
+client/.env.staging
+client/.env.production
+
+# Staging deployment packages
+staging-deploy-*/
+staging-deploy-beta-*/
+
+# Database setup scripts (for local use only)
+setup-local-dev-database.sh
 
 # Test directories at root level
 src/test/

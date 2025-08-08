@@ -118,18 +118,33 @@ git merge --no-ff branch-name
 - **Staging**: app2.heliotropeimaginal.com  
 - **Production**: app.heliotropeimaginal.com (PROTECTED)
 
-### **⚠️ IMPORTANT: Current Development Database**
-The development environment currently uses the **AWS RDS database** (not local PostgreSQL). All development, beta testing, and feature work should be done against this RDS instance:
+### **✅ UPDATED: Local Development Database Setup**
+The development environment now uses a **local PostgreSQL database** for safer development during beta testing phase:
 
 ```bash
-# Current development database connection
-DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
+# Local development database connection
+DATABASE_URL=postgresql://bradtopliff@localhost:5432/heliotrope_dev
 ```
 
 **Key Points:**
-- User accounts, beta tester data, and notes are stored in this RDS database
-- All database migrations and schema changes should be applied here
-- Beta tester functionality (User 16, etc.) exists in this database, not local PostgreSQL
+- **Development**: Uses local PostgreSQL database (`heliotrope_dev`)
+- **Staging/Production**: Uses AWS RDS database (protected from dev changes)
+- **Beta Testing**: Protected from local development experiments
+- **Data Safety**: Local changes don't affect live beta testing data
+
+**Local Database Management:**
+```bash
+# Connect to local development database
+psql heliotrope_dev
+
+# Reset local database if needed
+dropdb heliotrope_dev && createdb heliotrope_dev
+DATABASE_URL="postgresql://bradtopliff@localhost:5432/heliotrope_dev" npx drizzle-kit push
+
+# Check local database status
+psql heliotrope_dev -c "\dt"  # List tables
+psql heliotrope_dev -c "SELECT username, role FROM users LIMIT 10;"  # Check users
+```
 
 ### **Environment Safety**
 ```bash
@@ -400,6 +415,67 @@ FEATURE_HOLISTIC_REPORTS=true
 ### **Staging Deployment (VM-Based)**
 ⚠️ **UPDATE**: Staging now uses VM deployment due to ARM64/AMD64 compatibility issues with container services.
 
+#### **Option 1: Direct Build Deployment (Recommended)**
+```bash
+# 1. Build application locally with proper structure
+npm run build  # Creates dist/ directory with correct static files
+
+# 2. Create deployment package
+mkdir staging-deploy-package
+cp -r dist/ staging-deploy-package/
+cp -r shared/ staging-deploy-package/
+cp package.json package-lock.json staging-deploy-package/
+
+# 3. Upload to staging VM
+scp -r -i /Users/bradtopliff/Desktop/HI_Replit/keys/ubuntu-staging-key.pem staging-deploy-package/ ubuntu@34.220.143.127:~/
+
+# 4. Deploy on VM (SSH: ssh -i keys/ubuntu-staging-key.pem ubuntu@34.220.143.127)
+cd ~/staging-deploy-package/
+
+# Create Dockerfile for proper structure
+cat > Dockerfile << 'EOF'
+FROM node:18-alpine
+RUN apk add --no-cache cairo-dev jpeg-dev pango-dev giflib-dev python3 make g++ dumb-init
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --legacy-peer-deps && npm cache clean --force
+COPY dist/ ./dist/
+COPY shared/ ./shared/
+RUN adduser -D -s /bin/sh appuser && chown -R appuser:appuser /app
+USER appuser
+EXPOSE 8080
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/index.js"]
+EOF
+
+# Create environment file
+cat > staging.env << 'ENVEOF'
+NODE_ENV=staging
+DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
+SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal
+NODE_TLS_REJECT_UNAUTHORIZED=0
+ENVIRONMENT=development
+CLAUDE_API_KEY=your-claude-api-key-here
+OPENAI_API_KEY=your-openai-api-key-here
+FEATURE_HOLISTIC_REPORTS=true
+FEATURE_DEBUG_PANEL=false
+ENVEOF
+
+# Stop old container and deploy new one
+sudo docker stop staging-app || true
+sudo docker rm staging-app || true
+sudo docker build -t staging-app .
+sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped staging-app
+
+# ⚠️ CRITICAL FIX: Server expects static files at /dist/public but they're at /app/dist/public
+sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
+
+# Verify deployment
+curl http://34.220.143.127/health
+curl http://34.220.143.127/  # Should show HTML page
+```
+
+#### **Option 2: ECR-Based Deployment**
 ```bash
 # 1. Build with staging environment
 ./update-version.sh 1.0.0 staging
@@ -413,24 +489,47 @@ aws ecr get-login-password --region us-west-2 | docker login --username AWS --pa
 docker tag staging-amd64 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-$(date +%Y%m%d-%H%M)
 docker push 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-$(date +%Y%m%d-%H%M)
 
-# 4. Deploy to VM (via Lightsail Console SSH)
+# 4. Deploy to VM
 # Access: https://lightsail.aws.amazon.com/ → hi-staging-vm → Connect using SSH
 # VM IP: 34.220.143.127
 
-# Create environment file (line by line to avoid truncation)
-echo 'NODE_ENV=staging' > staging.env
-echo 'DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require' >> staging.env
-echo 'SESSION_SECRET=dev-secret-key-2025-heliotrope-imaginal' >> staging.env
-echo 'NODE_TLS_REJECT_UNAUTHORIZED=0' >> staging.env
-echo 'ENVIRONMENT=development' >> staging.env
-echo 'CLAUDE_API_KEY=your-claude-api-key-here' >> staging.env
-
-# Deploy container (NODE_ENV override no longer needed after package.json fix)
+# Deploy container
 sudo docker stop staging-app || true
 sudo docker rm staging-app || true
-sudo docker run -d --name staging-app -p 80:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-[TAG]
+sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped 962000089613.dkr.ecr.us-west-2.amazonaws.com/hi-replit-app:staging-[TAG]
+
+# ⚠️ Apply static files fix if needed
+sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
 
 # Verify: http://34.220.143.127
+```
+
+#### **Common Staging Issues and Solutions**
+
+**Static Files Not Found Error:**
+```bash
+# Symptom: "Error: ENOENT: no such file or directory, stat '/dist/public/index.html'"
+# Root Cause: Server hardcoded to serve from /dist/public but files are at /app/dist/public
+# Solution: Copy files to expected location
+sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
+```
+
+**Port Already in Use Error:**
+```bash
+# Symptom: "bind: address already in use" on port 80
+# Root Cause: nginx running on port 80, old Node.js process on port 8080  
+# Solution: Kill old process, use port 8080 (nginx proxies 80→8080)
+sudo kill [OLD_PID]  # Find PID with: sudo ss -tulnp | grep :8080
+sudo docker run -d --name staging-app -p 8080:8080 --env-file staging.env --restart unless-stopped [IMAGE]
+```
+
+**Container Build Failures:**
+```bash
+# Symptom: "COPY failed: file not found in build context: stat dist/"
+# Root Cause: Wrong Dockerfile structure for actual files
+# Solution: Match Dockerfile COPY commands to actual file structure
+# Check files: ls -la [deploy-directory]/
+# Update Dockerfile COPY commands accordingly
 ```
 
 ### **SSH Command Guidelines**
@@ -674,6 +773,51 @@ npm run build:production
 - ⚠️ **ECR image tags must include architecture suffix** (e.g., `-amd64`) for VM deployments
 - ⚠️ **Include `NODE_TLS_REJECT_UNAUTHORIZED=0`** in environment for database SSL issues
 - ⚠️ **Use version-manager.sh** for proper semantic versioning
+- ⚠️ **ALWAYS apply static files fix on staging VM** after deployment
+- ⚠️ **Verify deployment with both `/health` and `/` endpoints**
+- ⚠️ **Use `npm run build` (not `npm run build:staging`) for proper dist/ structure**
+
+### **Deployment Lessons Learned (August 2025)**
+
+#### **Static Files Architecture Issue**
+**Problem**: Server is hardcoded to serve static files from absolute path `/dist/public` but Docker containers place files at `/app/dist/public`.
+
+**Root Cause**: The Express static middleware configuration expects files at container root `/dist/public`, not within the app directory.
+
+**Permanent Solutions**:
+1. **Fix server code** to use relative paths or environment variable
+2. **Update build process** to create proper directory structure
+3. **Modify Dockerfile** to place files at expected locations
+
+**Temporary Workaround** (always required on staging VM):
+```bash
+sudo docker exec --user root staging-app sh -c 'mkdir -p /dist && cp -r /app/dist/public /dist/public'
+```
+
+#### **VM Deployment Architecture Benefits**
+**Advantages over ECR-based deployment**:
+- ✅ **Direct build control**: Can fix file structure issues immediately
+- ✅ **No dependency conflicts**: Full control over npm install process  
+- ✅ **Easier debugging**: Direct container access for troubleshooting
+- ✅ **Faster iteration**: No ECR push/pull delays
+- ✅ **Real-time fixes**: Can apply post-deployment fixes instantly
+
+**Recommended Process**:
+1. **Local build** creates proper `dist/` structure with `npm run build`
+2. **Upload package** via SCP to staging VM
+3. **Build Docker image** directly on VM with proper Dockerfile
+4. **Deploy container** with environment configuration
+5. **Apply static files fix** as mandatory post-deployment step
+6. **Verify with multiple endpoints** (`/health`, `/`, and key assets)
+
+#### **Common Error Patterns and Solutions**
+| Error | Root Cause | Solution |
+|-------|------------|----------|
+| `ENOENT: no such file or directory, stat '/dist/public/index.html'` | Static files path mismatch | Apply static files fix |
+| `bind: address already in use` | Port conflict with nginx/old process | Use port 8080, kill old process |
+| `COPY failed: file not found in build context: stat dist/` | Wrong Dockerfile structure | Match COPY commands to actual files |
+| `Cannot GET /api/health` | Wrong health endpoint | Use `/health` not `/api/health` |
+| Container starts then exits | Missing dependencies | Use dependency-fixed Dockerfile |
 
 ### **Common Deployment Issues & Solutions**
 
