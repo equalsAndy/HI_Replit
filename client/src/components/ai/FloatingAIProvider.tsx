@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
-import FloatingAITrigger from './FloatingAITrigger.safe';
+import FloatingAITrigger from './FloatingAITrigger';
 
 interface AIContext {
   stepName?: string;

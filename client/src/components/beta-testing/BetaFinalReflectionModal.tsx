@@ -91,11 +91,33 @@ export const BetaFinalReflectionModal: React.FC<BetaFinalReflectionModalProps> =
 
           {/* Content */}
           <div className="p-6">
-            <div className="text-gray-600 text-sm leading-relaxed mb-4">
-              When you finish the Final Reflection, all your previous answers will be locked and your holistic report will be <strong className="text-gray-800 font-semibold">*unlocked*</strong> along with the sample growth plan and example team workshop prep. The most important part is to generate and review your reports, as this is the result of your previous work.
-            </div>
-            <div className="text-gray-600 text-sm leading-relaxed mb-4">
-              After you see your reports, click through the growth plan and team prep. The button at the end will trigger feedback completion where you can review notes and answer final questions.
+            <div className="space-y-4 mb-4">
+              {/* Main message */}
+              <div>
+                <p className="text-gray-600 text-sm leading-relaxed mb-4">
+                  When you finish the Final Reflection, all your previous answers will be locked and your holistic report will be <strong className="text-gray-800 font-semibold">*unlocked*</strong> along with the sample growth plan and example team workshop prep. The most important part is to generate and review your reports, as this is the result of your previous work.
+                </p>
+              </div>
+
+              {/* Process flow with bullet points */}
+              <div 
+                className="rounded-xl p-4 mb-4"
+                style={{
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  border: '1px solid #bfdbfe'
+                }}
+              >
+                <h3 className="font-semibold text-blue-900 mb-3 text-sm">
+                  Your Beta Testing Journey:
+                </h3>
+                
+                <div className="space-y-2 text-xs text-blue-800">
+                  <p><strong>1.</strong> Complete Final Reflection → Reports unlock</p>
+                  <p><strong>2.</strong> Review both reports (professional & personal)</p>
+                  <p><strong>3.</strong> Click through Growth Plan and Team Workshop Prep</p>
+                  <p><strong>4.</strong> Complete feedback at end of Team Workshop Prep</p>
+                </div>
+              </div>
             </div>
 
             {/* What's Left to See Section */}

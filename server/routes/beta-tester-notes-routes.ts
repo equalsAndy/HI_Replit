@@ -9,6 +9,45 @@ import { BetaTesterNotesService, BetaTesterNote } from '../services/beta-tester-
 
 const router = express.Router();
 
+/**
+ * Helper function to verify beta tester access with database fallback
+ */
+async function verifyBetaTesterAccess(req: express.Request, res: express.Response): Promise<boolean> {
+  const userId = (req.session as any)?.userId;
+  if (!userId) {
+    res.status(401).json({ error: 'Authentication required' });
+    return false;
+  }
+
+  // Check session data first
+  let isBetaTester = (req.session as any)?.user?.isBetaTester;
+  let userRole = (req.session as any)?.user?.role;
+  
+  // If session data is incomplete, fetch from database
+  if (isBetaTester === undefined || userRole === undefined) {
+    console.log('🔍 Session data incomplete for user', userId, '- fetching from database');
+    const { userManagementService } = await import('../services/user-management-service.js');
+    const userResult = await userManagementService.getUserById(userId);
+    if (userResult.success) {
+      isBetaTester = userResult.user?.isBetaTester;
+      userRole = userResult.user?.role;
+      // Update session with fresh data
+      (req.session as any).user = { ...(req.session as any)?.user, ...userResult.user };
+      console.log('✅ Updated session with fresh user data:', { isBetaTester, userRole });
+    } else {
+      console.log('❌ Failed to fetch user data from database');
+    }
+  }
+  
+  if (!isBetaTester && userRole !== 'admin') {
+    console.log('❌ Beta tester access denied for user:', userId, { isBetaTester, role: userRole });
+    res.status(403).json({ error: 'Beta tester access required' });
+    return false;
+  }
+  
+  return true;
+}
+
 
 /**
  * Get all beta tester notes for the current user (alias endpoint)
@@ -233,16 +272,11 @@ router.post('/feedback', async (req, res) => {
  */
 router.post('/notes', async (req, res) => {
   try {
-    const userId = req.session?.userId;
-    if (!userId) {
-      return res.status(401).json({ error: 'Authentication required' });
-    }
-
-    // Verify user is a beta tester or admin (admins are also beta testers)
-    if (!req.session?.user?.isBetaTester && req.session?.user?.role !== 'admin') {
-      console.log('❌ Beta tester access denied for user:', req.session?.userId, { isBetaTester: req.session?.user?.isBetaTester, role: req.session?.user?.role });
-      return res.status(403).json({ error: 'Beta tester access required' });
-    }
+    // Use helper function for beta tester access verification
+    const hasAccess = await verifyBetaTesterAccess(req, res);
+    if (!hasAccess) return; // Response already sent by helper
+    
+    const userId = (req.session as any)?.userId;
 
     const noteData: BetaTesterNote = {
       userId,
