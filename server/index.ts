@@ -11,6 +11,8 @@ import coachingRoutes from './routes/coaching-routes.js';
 import coachingChatRoutes from './routes/coaching-chat-routes.js';
 import featureFlagRoutes from './routes/feature-flag-routes.js';
 import jiraRoutes from './routes/jira-routes.js';
+import feedbackRoutes from './routes/feedback-routes.js';
+import betaTesterRoutes from './routes/beta-tester-notes-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -198,6 +200,8 @@ async function initializeApp() {
       app.use('/api/coaching/chat', coachingChatRoutes);
       app.use('/api/feature-flags', featureFlagRoutes);
       app.use('/api/jira', jiraRoutes);
+      app.use('/api/feedback', feedbackRoutes);
+      app.use('/api/beta-testers', betaTesterRoutes);
 
       // Temporary endpoint to fix admin user test status
       app.post('/fix-admin-test-user', async (req, res) => {
