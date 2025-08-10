@@ -606,248 +606,6 @@ export default function StepByStepReflection({
     }
   };
 
-  // Render strength reflection step (steps 1-4)
-  const renderStrengthReflection = (step: number) => {
-    let strength;
-    let ordinal;
-
-    switch(step) {
-      case 1: 
-        strength = sortedQuadrants[0];
-        ordinal = "1st";
-        break;
-      case 2: 
-        strength = sortedQuadrants[1];
-        ordinal = "2nd";
-        break;
-      case 3: 
-        strength = sortedQuadrants[2];
-        ordinal = "3rd";
-        break;
-      case 4: 
-        strength = sortedQuadrants[3];
-        ordinal = "4th";
-        break;
-      default:
-        strength = sortedQuadrants[0];
-        ordinal = "1st";
-    }
-
-    const colors = strengthColors[strength.label];
-    const prompt = getStrengthPrompt(strength.label);
-
-    return (
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <div className={`${colors.bg} p-2 rounded-full mr-3`}>
-            <div className={`w-8 h-8 ${colors.circle} rounded-full flex items-center justify-center text-white font-bold`}>
-              {step}
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-gray-800">
-            Your {ordinal} Strength: {strength.label.charAt(0) + strength.label.slice(1).toLowerCase()} ({strength.score}%)
-          </h3>
-        </div>
-
-        <div className="ml-16 mb-6">
-          <p className="text-gray-700 mb-3">
-            {getStrengthDescription(strength.label)}
-          </p>
-
-          <div className={`${colors.lightBg} border ${colors.border} rounded-lg p-4 mb-4`}>
-            <h4 className={`font-medium ${colors.text} mb-3`}>{prompt.question}</h4>
-            <p className="text-gray-700 text-sm mb-3">
-              Consider moments when your {strength.label.toLowerCase()} nature made a difference. Reflect on:
-            </p>
-            <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-              {prompt.bullets.map((bullet, index) => (
-                <li key={index}>{bullet}</li>
-              ))}
-            </ul>
-
-            {!shouldShowDemoButtons && (
-              <div className="text-xs text-gray-500 italic">
-                Coaching only available for test users
-              </div>
-            )}
-
-            {/* Example suggestions */}
-            <div className="mb-2 text-xs text-gray-600">
-              <p className="font-medium mb-1">Example:</p>
-              <p className="italic">{prompt.examples[0]}</p>
-            </div>
-          </div>
-
-          <div className={`mt-4 p-4 ${
-            step <= 4 
-              ? sortedQuadrants[step-1].label === 'THINKING' 
-                ? 'bg-green-50 border-2 border-green-200'
-                : sortedQuadrants[step-1].label === 'ACTING'
-                ? 'bg-red-50 border-2 border-red-200'
-                : sortedQuadrants[step-1].label === 'FEELING'
-                ? 'bg-blue-50 border-2 border-blue-200'
-                : 'bg-yellow-50 border-2 border-yellow-200'
-              : 'bg-gray-50 border-2 border-gray-200'
-          } rounded-lg shadow-sm`}>
-            <label htmlFor={`strength-${step}-reflection`} className={`block text-lg font-semibold ${
-              step <= 4
-                ? sortedQuadrants[step-1].label === 'THINKING'
-                  ? 'text-green-800'
-                  : sortedQuadrants[step-1].label === 'ACTING'
-                  ? 'text-red-800'
-                  : sortedQuadrants[step-1].label === 'FEELING'
-                  ? 'text-blue-800'
-                  : 'text-yellow-800'
-                : 'text-gray-800'
-            } mb-2`}>
-              Your Reflection Space
-            </label>
-            <p className="text-gray-700 mb-3 text-sm italic">
-                {step <= 4 
-                  ? `Write 2-3 sentences about when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively`
-                  : step === 5 
-                  ? "Write 2-3 sentences about your ideal team environment"
-                  : "Write 2-3 sentences about your unique contribution"}
-              </p>
-              <textarea 
-                id={`strength-${step}-reflection`}
-                value={step === 1 ? reflections.strength1 : 
-                     step === 2 ? reflections.strength2 : 
-                     step === 3 ? reflections.strength3 : 
-                     step === 4 ? reflections.strength4 :
-                     step === 5 ? reflections.teamValues :
-                     reflections.uniqueContribution}
-                onChange={(e) => handleReflectionChange(step, e.target.value)}
-                placeholder={step <= 4 
-                  ? `Describe specific moments when you've used your ${sortedQuadrants[step-1].label.toLowerCase()} strength effectively...`
-                  : step === 5 
-                  ? "Describe the team environment where you perform at your best..."
-                  : "Describe your unique contribution to the team..."}
-                className={`min-h-[140px] w-full p-3 border rounded-md focus:ring-2 focus:border-transparent resize-vertical ${
-                  step <= 4
-                    ? sortedQuadrants[step-1].label === 'THINKING'
-                      ? 'border-green-300 focus:border-green-500 focus:ring-green-500'
-                      : sortedQuadrants[step-1].label === 'ACTING'
-                      ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                      : sortedQuadrants[step-1].label === 'FEELING'
-                      ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
-                      : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
-                    : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500'
-                } rounded-md bg-white`}
-              />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render team values reflection (step 5)
-  const renderTeamValuesReflection = () => {
-    return (
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <div className="bg-indigo-100 p-2 rounded-full mr-3">
-            <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-white font-bold">
-              5
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-gray-800">What You Value Most in Team Environments</h3>
-        </div>
-
-        <div className="ml-16 mb-6">
-          <p className="text-gray-700 mb-3">
-            Based on your strengths profile, certain team environments will help you perform at your best. 
-            Consider what team qualities or behaviors would complement your unique strengths distribution.
-          </p>
-
-          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-indigo-800 mb-2">Consider what you value in team environments:</h4>
-            <ul className="list-disc ml-5 text-sm text-gray-700 mb-3 space-y-1">
-              <li>What type of communication style works best for you?</li>
-              <li>How much structure vs. flexibility do you need?</li>
-              <li>What kinds of roles or responsibilities energize you?</li>
-              <li>How do you prefer to receive feedback?</li>
-            </ul>
-
-            {/* Example suggestions for team values */}
-            <div className="mb-2 text-xs text-gray-600">
-              <p className="font-medium mb-1">Example:</p>
-              <p className="italic">I thrive in environments with clear structure but room for flexibility. I value teams where everyone's input is heard and we maintain open, honest communication about both successes and challenges.</p>
-            </div>
-          </div>
-
-          <div className="mt-4 p-4 bg-indigo-50 border-2 border-indigo-200 rounded-lg shadow-sm">
-            <label htmlFor="team-values-reflection" className="block text-lg font-semibold text-indigo-800 mb-2">
-              Your Reflection Space
-            </label>
-            <p className="text-gray-700 mb-3 text-sm italic">
-              Write 2-3 sentences about the team environment where you perform best
-            </p>
-            <textarea 
-              id="team-values-reflection"
-              value={reflections.teamValues}
-              onChange={(e) => handleReflectionChange(5, e.target.value)}
-              placeholder="Describe the team environment where you perform at your best..."
-              className="min-h-[140px] w-full p-3 border border-indigo-300 focus:border-indigo-500 focus:ring-indigo-500 focus:ring-2 rounded-md bg-white resize-vertical"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // Render unique contribution reflection (step 6)
-  const renderUniqueContributionReflection = () => {
-    return (
-      <div className="mb-8">
-        <div className="flex items-center mb-4">
-          <div className="bg-green-100 p-2 rounded-full mr-3">
-            <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold">
-              6
-            </div>
-          </div>
-          <h3 className="text-xl font-bold text-gray-800">Your Unique Contribution</h3>
-        </div>
-
-        <div className="ml-16 mb-6">
-          <p className="text-gray-700 mb-3">
-            Your particular strengths profile creates a unique combination that you bring to your team. 
-            Think about how your top strengths work together to create value.
-          </p>
-
-          <div className="bg-green-50 border border-green-100 rounded-lg p-4 mb-4">
-            <h4 className="font-medium text-green-800 mb-2">Consider your unique combination of strengths:</h4>
-            <p className="text-gray-700 text-sm mb-3">
-              Your top two strengths are {topStrength.label.toLowerCase()} ({topStrength.score}%) and {secondStrength.label.toLowerCase()} ({secondStrength.score}%). 
-              How do these work together to create a unique perspective or approach?
-            </p>
-
-            {/* Example suggestions for unique contribution */}
-            <div className="mb-2 text-xs text-gray-600">
-              <p className="font-medium mb-1">Example:</p>
-              <p className="italic">My unique contribution comes from combining strong analytical thinking with a people-focused approach. This allows me to solve complex problems while ensuring solutions work well for everyone involved.</p>
-            </div>
-          </div>
-
-          <div className="mt-4 p-4 bg-green-50 border-2 border-green-200 rounded-lg shadow-sm">
-            <label htmlFor="unique-contribution-reflection" className="block text-lg font-semibold text-green-800 mb-2">
-              Your Reflection Space
-            </label>
-            <p className="text-gray-700 mb-3 text-sm italic">
-              Write 2-3 sentences about your unique contribution to the team
-            </p>
-            <textarea 
-              id="unique-contribution-reflection"
-              value={reflections.uniqueContribution}
-              onChange={(e) => handleReflectionChange(6, e.target.value)}
-              placeholder="Describe your unique contribution to the team..."
-              className="min-h-[140px] w-full p-3 border border-green-300 focus:border-green-500 focus:ring-green-500 focus:ring-2 rounded-md bg-white resize-vertical"
-            />
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   // Check if we have starCard data
   if (!initialStarCard) {
@@ -1007,7 +765,9 @@ export default function StepByStepReflection({
                   : sortedQuadrants[currentStep-1].label === 'FEELING'
                   ? 'bg-blue-50 border-2 border-blue-200'
                   : 'bg-yellow-50 border-2 border-yellow-200'
-                : 'bg-gray-50 border-2 border-gray-200'
+                : currentStep === 5 
+                ? 'bg-gray-100 border-2 border-gray-300'
+                : 'bg-gray-200 border-2 border-gray-400'
             } rounded-lg shadow-sm`}>
               <label htmlFor="strength-1-reflection" className={`block text-lg font-semibold ${
                 currentStep <= 4
@@ -1018,9 +778,17 @@ export default function StepByStepReflection({
                     : sortedQuadrants[currentStep-1].label === 'FEELING'
                     ? 'text-blue-800'
                     : 'text-yellow-800'
+                  : currentStep === 5
+                  ? 'text-gray-700'
                   : 'text-gray-800'
               } mb-2`}>
-                Your Reflection Space
+                Your {
+                  currentStep <= 4 
+                    ? `${sortedQuadrants[currentStep-1].label.charAt(0) + sortedQuadrants[currentStep-1].label.slice(1).toLowerCase()} Reflection Space`
+                    : currentStep === 5 
+                    ? "Team Environment Reflection Space"
+                    : "Unique Contribution Reflection Space"
+                }
               </label>
               <p className="text-gray-700 mb-3 text-sm italic">
                 {currentStep <= 4 
@@ -1074,7 +842,9 @@ export default function StepByStepReflection({
                       : sortedQuadrants[currentStep-1].label === 'FEELING'
                       ? 'border-blue-300 focus:border-blue-500 focus:ring-blue-500'
                       : 'border-yellow-300 focus:border-yellow-500 focus:ring-yellow-500'
-                    : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500'
+                    : currentStep === 5
+                    ? 'border-gray-400 focus:border-gray-600 focus:ring-gray-500'
+                    : 'border-gray-500 focus:border-gray-700 focus:ring-gray-600'
                 } rounded-md bg-white`}
               />
 
