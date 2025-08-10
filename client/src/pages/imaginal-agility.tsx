@@ -238,11 +238,20 @@ export default function ImaginalAgilityHome() {
     const currentStepIndex = iaStepOrder.indexOf(stepId);
     if (currentStepIndex === -1) return false; // Unknown step
 
-    // Check if previous step is completed
+    // 🔥 FIX: Allow access to completed steps (users should be able to go back)
+    if (completedSteps.includes(stepId)) {
+      console.log(`✅ IA Step ${stepId} is accessible (already completed)`);
+      return true;
+    }
+
+    // Check if previous step is completed to allow progression
     if (currentStepIndex === 0) return true; // First step is always accessible
     
     const previousStepId = iaStepOrder[currentStepIndex - 1];
-    return completedSteps.includes(previousStepId);
+    const canAccess = completedSteps.includes(previousStepId);
+    
+    console.log(`🔍 IA Step ${stepId} accessibility: previous step ${previousStepId} completed: ${canAccess}`);
+    return canAccess;
   };
 
   // Get content key from step ID

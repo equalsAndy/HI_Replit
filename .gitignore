@@ -56,3 +56,19 @@ chromadb_data/
 __pycache__/
 *.pyc
 *.pyo
+
+# Archive and sensitive directories (cleaned up)
+keys/
+storage/
+tempClaudecomms/
+
+# Development artifacts (prevent future clutter)
+*.rtf
+*-base64.txt
+Commands.*
+test-*.html
+setup-*.sh
+*starcard*.json
+*generator*.js
+auth-system-fixes.md
+beta-tester-test.md
