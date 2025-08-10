@@ -532,4 +532,123 @@ router.get('/feedback-status', async (req, res) => {
   }
 });
 
+/**
+ * Admin endpoint - Get all beta tester notes
+ */
+router.get('/admin/notes', async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.session?.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { db } = await import('../db.js');
+
+    // Get all beta tester notes with user information using raw SQL
+    const notes = await db.execute(`
+      SELECT 
+        btn.id,
+        btn.user_id as userId,
+        u.name as userName,
+        u.username,
+        btn.workshop_type as workshopType,
+        btn.page_title as pageTitle,
+        btn.step_id as stepId,
+        btn.module_name as moduleName,
+        btn.question_context as questionContext,
+        btn.url_path as urlPath,
+        btn.note_content as noteContent,
+        btn.note_type as noteType,
+        btn.created_at as createdAt,
+        btn.updated_at as updatedAt,
+        btn.submitted_at as submittedAt
+      FROM beta_tester_notes btn
+      LEFT JOIN users u ON btn.user_id = u.id
+      ORDER BY btn.created_at DESC
+    `);
+
+    console.log('📊 Beta notes query result:', {
+      type: typeof notes,
+      isArray: Array.isArray(notes),
+      hasRows: !!notes.rows,
+      rowsLength: notes.rows?.length,
+      directLength: Array.isArray(notes) ? notes.length : 'not array',
+      keys: Object.keys(notes || {})
+    });
+
+    const notesArray = notes.rows || (Array.isArray(notes) ? notes : []);
+    
+    res.json({
+      success: true,
+      notes: notesArray,
+      total: notesArray.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching admin beta notes:', error);
+    res.status(500).json({ error: 'Failed to fetch beta tester notes' });
+  }
+});
+
+/**
+ * Admin endpoint - Get all beta feedback surveys
+ */
+router.get('/admin/surveys', async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.session?.user?.role !== 'admin') {
+      return res.status(403).json({ error: 'Admin access required' });
+    }
+
+    const { db } = await import('../db.js');
+    const { users } = await import('../../shared/schema.js');
+    const { desc, eq } = await import('drizzle-orm');
+
+    // Get all beta feedback surveys with user information
+    const surveys = await db.execute(`
+      SELECT 
+        bfs.id,
+        bfs.user_id,
+        u.name as user_name,
+        u.username,
+        bfs.overall_quality,
+        bfs.authenticity,
+        bfs.recommendation,
+        bfs.rose,
+        bfs.bud,
+        bfs.thorn,
+        bfs.professional_application,
+        bfs.improvements,
+        bfs.interests,
+        bfs.final_comments,
+        bfs.submitted_at,
+        bfs.created_at
+      FROM beta_feedback_surveys bfs
+      LEFT JOIN users u ON bfs.user_id = u.id
+      ORDER BY bfs.submitted_at DESC
+    `);
+
+    console.log('📊 Beta surveys query result:', {
+      type: typeof surveys,
+      isArray: Array.isArray(surveys),
+      hasRows: !!surveys.rows,
+      rowsLength: surveys.rows?.length,
+      directLength: Array.isArray(surveys) ? surveys.length : 'not array',
+      keys: Object.keys(surveys || {})
+    });
+
+    const surveysArray = surveys.rows || (Array.isArray(surveys) ? surveys : []);
+
+    res.json({
+      success: true,
+      surveys: surveysArray,
+      total: surveysArray.length
+    });
+
+  } catch (error) {
+    console.error('Error fetching admin beta surveys:', error);
+    res.status(500).json({ error: 'Failed to fetch beta feedback surveys' });
+  }
+});
+
 export default router;
