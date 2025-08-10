@@ -10,7 +10,6 @@ import discernmentRoutes from './routes/discernment-routes.js';
 import coachingRoutes from './routes/coaching-routes.js';
 import coachingChatRoutes from './routes/coaching-chat-routes.js';
 import featureFlagRoutes from './routes/feature-flag-routes.js';
-import jiraRoutes from './routes/jira-routes.js';
 import feedbackRoutes from './routes/feedback-routes.js';
 import betaTesterRoutes from './routes/beta-tester-notes-routes.js';
 import { initializeDatabase } from './db.js';
@@ -199,7 +198,6 @@ async function initializeApp() {
       app.use('/api/coaching', coachingRoutes);
       app.use('/api/coaching/chat', coachingChatRoutes);
       app.use('/api/feature-flags', featureFlagRoutes);
-      app.use('/api/jira', jiraRoutes);
       app.use('/api/feedback', feedbackRoutes);
       app.use('/api/beta-testers', betaTesterRoutes);
 
