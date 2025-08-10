@@ -1,19 +1,19 @@
 Report Talia
 
 Project ID:
-proj_8orRfMnH1xclTnoUKhb6FdZQ
+your-openai-project-id-here
 
 API Key:
-your-openai-api-key-herenJ-QTBtoLG5h4LWDuzNJKu_MG_yGJFIC4_p2a9BopHByppUJkvSUmNZ1sn750YLZZT3BlbkFJ8W3FrQlLlCp5bOPTMv2hBzl38jDTCAw0K4eOgJab3JMcZ5FaHF6HgOxdgoyvroBhkH88zeXmYA
+your-openai-api-key-here
 
 Reflection Talia 
 
 Project ID: 
-proj_i6GwA64DOnguRTPEMpPLFdCG
+your-openai-project-id-here
 
 API Key:
-your-openai-api-key-herenB_UNEKBMfGWfpajVB-BmSMBxTUzRojWiW7xO6KxD-Ff2P98S831XlzkGT3BlbkFJHcwBmuZLw2rKh7TvPDdvu77s6klHdzjZlPa8NawpkVJ_JaQivOyVzIEunyin_8RShlcQWT5XMA
+your-openai-api-key-here
 
-SeltActualAdmin
-API Key
-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
+SelfActualAdmin
+API Key:
+your-openai-admin-api-key-here
