@@ -176,6 +176,79 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// System info endpoint - provides enhanced version and system information
+app.get('/api/system/info', async (req, res) => {
+  try {
+    // Get version info from file
+    let versionInfo = {
+      version: 'unknown',
+      build: 'unknown',
+      environment: 'unknown',
+      timestamp: 'unknown'
+    };
+    
+    try {
+      const versionPath = path.join(__dirname, '../public/version.json');
+      const versionData = JSON.parse(fs.readFileSync(versionPath, 'utf8'));
+      versionInfo = {
+        version: versionData.version || 'unknown',
+        build: versionData.build || 'unknown',
+        environment: versionData.environment || 'unknown',
+        timestamp: versionData.timestamp || 'unknown'
+      };
+    } catch (err) {
+      // Keep default unknown values
+    }
+
+    // Detect database type from DATABASE_URL
+    let databaseType = 'unknown';
+    const dbUrl = process.env.DATABASE_URL;
+    if (dbUrl) {
+      if (dbUrl.includes('localhost') || dbUrl.includes('127.0.0.1')) {
+        databaseType = 'local database';
+      } else if (dbUrl.includes('amazonaws.com') || dbUrl.includes('rds')) {
+        databaseType = 'production database';
+      } else {
+        databaseType = 'remote database';
+      }
+    }
+
+    // Determine actual environment based on deployment context
+    let actualEnvironment = versionInfo.environment;
+    
+    // Override environment detection logic
+    if (process.env.ENVIRONMENT === 'staging' || process.env.NODE_ENV === 'staging') {
+      actualEnvironment = 'staging';
+    } else if (process.env.ENVIRONMENT === 'production' || process.env.NODE_ENV === 'production') {
+      actualEnvironment = 'production';
+    } else if (process.env.ENVIRONMENT === 'development' || process.env.NODE_ENV === 'development') {
+      // For development, check if we're actually in a staging-like setup
+      if (dbUrl && dbUrl.includes('amazonaws.com')) {
+        actualEnvironment = 'staging';
+      } else {
+        actualEnvironment = 'development';
+      }
+    }
+
+    res.status(200).json({
+      version: versionInfo.version,
+      build: versionInfo.build,
+      environment: actualEnvironment,
+      timestamp: versionInfo.timestamp,
+      databaseType,
+      nodeEnv: process.env.NODE_ENV,
+      envVar: process.env.ENVIRONMENT,
+      status: 'ok'
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: (error as Error).message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Vector Service test endpoint
 app.get('/api/vector-status', async (req, res) => {
   try {

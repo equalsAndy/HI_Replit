@@ -6,6 +6,7 @@ interface VersionInfo {
   build: string;
   timestamp: string;
   environment: string;
+  databaseType?: string;
 }
 
 interface VersionInfoProps {
@@ -21,25 +22,41 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
     version: 'N/A',
     build: '',
     timestamp: '',
-    environment: 'unknown'
+    environment: 'unknown',
+    databaseType: 'unknown'
   });
 
   useEffect(() => {
     const fetchVersionInfo = async () => {
       try {
-        console.log('🔍 VersionInfo: Fetching version data...');
-        const response = await fetch('/version.json');
+        console.log('🔍 VersionInfo: Fetching enhanced system info...');
+        const response = await fetch('/api/system/info');
         if (response.ok) {
           const data = await response.json();
-          console.log('🔍 VersionInfo: Received data:', data);
+          console.log('🔍 VersionInfo: Received enhanced data:', data);
           setVersionInfo({
             version: data.version || 'N/A',
             build: data.build || '',
             timestamp: data.timestamp || '',
-            environment: data.environment || 'unknown'
+            environment: data.environment || 'unknown',
+            databaseType: data.databaseType || 'unknown'
           });
         } else {
-          console.warn('🔍 VersionInfo: Response not ok:', response.status);
+          console.warn('🔍 VersionInfo: Enhanced endpoint failed, trying fallback...');
+          
+          // Fallback to original version.json endpoint
+          const fallbackResponse = await fetch('/version.json');
+          if (fallbackResponse.ok) {
+            const fallbackData = await fallbackResponse.json();
+            console.log('🔍 VersionInfo: Fallback data received:', fallbackData);
+            setVersionInfo({
+              version: fallbackData.version || 'N/A',
+              build: fallbackData.build || '',
+              timestamp: fallbackData.timestamp || '',
+              environment: fallbackData.environment || 'unknown',
+              databaseType: 'unknown' // No database info in fallback
+            });
+          }
         }
       } catch (error) {
         console.warn('🔍 VersionInfo: Could not fetch version info:', error);
@@ -90,6 +107,9 @@ export const VersionInfo: React.FC<VersionInfoProps> = ({
         </div>
         <div style={{ marginBottom: '2px' }}>
           Environment: {versionInfo.environment}
+        </div>
+        <div style={{ marginBottom: '2px' }}>
+          Database: {versionInfo.databaseType}
         </div>
         {versionInfo.timestamp && (
           <div>Built: {formatDate(versionInfo.timestamp)}</div>
