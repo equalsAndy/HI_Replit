@@ -16,7 +16,7 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
       {/* Video Section using VideoPlayer component */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
-          workshopType="imaginal-agility"
+          workshopType="ia"
           stepId="ia-2-1"
           title="The I4C Prism Model"
           forceUrl="https://youtu.be/ILCq73dTuzk"
@@ -35,55 +35,39 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
             Like white light through a prism, imagination refracts into four core human capabilities:
           </p>
           
-          {/* I4C Capabilities Grid */}
-          <div className="grid md:grid-cols-2 gap-6 mt-8">
-            <div className="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-lg border border-green-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-white font-bold">C</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-green-800">Curiosity</h3>
-                  <p className="text-sm text-green-700">the drive to explore</p>
-                </div>
-              </div>
-            </div>
+          {/* I4C Capabilities Graphics */}
+          <div className="flex justify-center items-center gap-12 mt-8 flex-wrap">
+            <img 
+              src="/assets/Curiosity_1749499596783.png" 
+              alt="Curiosity - the drive to explore"
+              className="w-32 h-auto object-contain"
+              onLoad={() => console.log('✅ Curiosity graphic loaded successfully')}
+              onError={(e) => console.error('❌ Failed to load Curiosity graphic:', e.currentTarget.src)}
+            />
             
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-lg border border-blue-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-white font-bold">E</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-blue-800">Empathy</h3>
-                  <p className="text-sm text-blue-700">the capacity to relate</p>
-                </div>
-              </div>
-            </div>
+            <img 
+              src="/assets/empathy_1749499596783.png" 
+              alt="Empathy - the capacity to relate"
+              className="w-32 h-auto object-contain"
+              onLoad={() => console.log('✅ Empathy graphic loaded successfully')}
+              onError={(e) => console.error('❌ Failed to load Empathy graphic:', e.currentTarget.src)}
+            />
             
-            <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-lg border border-orange-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-white font-bold">C</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-orange-800">Creativity</h3>
-                  <p className="text-sm text-orange-700">the power to generate</p>
-                </div>
-              </div>
-            </div>
+            <img 
+              src="/assets/Creativity_1749499596783.png" 
+              alt="Creativity - the power to generate"
+              className="w-32 h-auto object-contain"
+              onLoad={() => console.log('✅ Creativity graphic loaded successfully')}
+              onError={(e) => console.error('❌ Failed to load Creativity graphic:', e.currentTarget.src)}
+            />
             
-            <div className="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-lg border border-red-200">
-              <div className="flex items-center mb-4">
-                <div className="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mr-4">
-                  <span className="text-white font-bold">C</span>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-red-800">Courage</h3>
-                  <p className="text-sm text-red-700">the strength to act</p>
-                </div>
-              </div>
-            </div>
+            <img 
+              src="/assets/courage_1749499596782.png" 
+              alt="Courage - the strength to act"
+              className="w-32 h-auto object-contain"
+              onLoad={() => console.log('✅ Courage graphic loaded successfully')}
+              onError={(e) => console.error('❌ Failed to load Courage graphic:', e.currentTarget.src)}
+            />
           </div>
           
           <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 mt-8">

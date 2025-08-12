@@ -960,7 +960,7 @@ export function useNavigationProgress(appType: 'ast' | 'ia' = 'ast') {
 
     // Additional aliases for compatibility
     updateCurrentStep: setCurrentStep,
-    isStepAccessibleByProgression: isStepAccessible,
+    isStepAccessibleByProgression: canNavigateToStep,
     getCurrentVideoProgress: (stepId: string) => progress.videoProgress[stepId]?.current || 0,
 
     // New completion modal detection

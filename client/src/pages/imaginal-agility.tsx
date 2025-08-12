@@ -223,6 +223,11 @@ export default function ImaginalAgilityHome() {
     if (stepId === 'ia-7-2') return false; // Locked for now
     if (stepId === 'ia-6-coming-soon') return false; // Quarterly tune-up locked
 
+    // FIXED: Allow navigation to any completed step (for revisiting)
+    if (completedSteps.includes(stepId)) {
+      return true;
+    }
+
     // Define the main progression order for IA
     const iaStepOrder = [
       // Welcome & Orientation
@@ -241,7 +246,7 @@ export default function ImaginalAgilityHome() {
     const currentStepIndex = iaStepOrder.indexOf(stepId);
     if (currentStepIndex === -1) return false; // Unknown step
 
-    // Check if previous step is completed
+    // For new steps: Check if previous step is completed
     if (currentStepIndex === 0) return true; // First step is always accessible
     
     const previousStepId = iaStepOrder[currentStepIndex - 1];

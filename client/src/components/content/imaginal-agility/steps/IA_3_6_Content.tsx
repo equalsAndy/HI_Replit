@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { FileText } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useVideoByStepId } from '@/hooks/use-videos';
 
 interface IA36ContentProps {
   onNext?: (stepId: string) => void;
@@ -22,6 +23,23 @@ interface IA36StepData {
 
 const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  
+  // Get video data to check autoplay setting
+  const { data: videoData } = useVideoByStepId('ia', 'ia-3-6');
+  
+  // Debug logging for autoplay setting
+  React.useEffect(() => {
+    if (videoData) {
+      console.log('🎬 IA-3-6 Video data:', {
+        title: videoData.title,
+        autoplay: videoData.autoplay,
+        stepId: videoData.stepId,
+        url: videoData.url ? 'present' : 'missing'
+      });
+    } else {
+      console.log('🎬 IA-3-6 No video data found for step ia-3-6');
+    }
+  }, [videoData]);
   
   // Initialize with empty data structure
   const initialData: IA36StepData = {
@@ -58,7 +76,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
       'Death - Afterlife - Reincarnation',
       'Health & Aging',
       'Meaning of Life',
-      'Why do good people suffer while bad people flourish?'
+      'Why do good people suffer?'
     ],
     popular: [
       'Alien Life',
@@ -94,7 +112,7 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
           stepId="ia-3-6"
           title="The Unimaginable"
           aspectRatio="16:9"
-          autoplay={false}
+          autoplay={videoData?.autoplay ?? false}
           className="w-full max-w-2xl mx-auto"
         />
       </div>
@@ -140,43 +158,48 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         </CardHeader>
         <CardContent className="space-y-6">
           
-          {/* Universal Level */}
+          {/* Universal Level - 2x2 Grid */}
           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <h3 className="font-semibold text-blue-800 mb-3">UNIVERSAL (Everyone - Existentially)</h3>
+            <h3 className="font-semibold text-blue-800 mb-3 text-center">UNIVERSAL (Everyone - Existentially)</h3>
             <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
-              {mysteries.universal.map((mystery) => (
-                <div key={mystery} className="flex items-center space-x-2">
-                  <RadioGroupItem value={mystery} id={mystery} />
-                  <Label htmlFor={mystery} className="text-sm">{mystery}</Label>
-                </div>
-              ))}
+              <div className="grid grid-cols-2 gap-4">
+                {mysteries.universal.map((mystery) => (
+                  <div key={mystery} className="flex items-start space-x-2">
+                    <RadioGroupItem value={mystery} id={mystery} className="mt-0.5 shrink-0" />
+                    <Label htmlFor={mystery} className="text-sm leading-tight">{mystery}</Label>
+                  </div>
+                ))}
+              </div>
             </RadioGroup>
           </div>
 
-          {/* Popular Culture Level */}
-          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-            <h3 className="font-semibold text-green-800 mb-3">POPULAR CULTURE (Global Audiences)</h3>
-            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
-              {mysteries.popular.map((mystery) => (
-                <div key={mystery} className="flex items-center space-x-2">
-                  <RadioGroupItem value={mystery} id={mystery} />
-                  <Label htmlFor={mystery} className="text-sm">{mystery}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-          </div>
+          {/* Popular Culture and Academic - Side by Side */}
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Popular Culture Level */}
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+              <h3 className="font-semibold text-green-800 mb-3 text-center">POPULAR CULTURE (Global Audiences)</h3>
+              <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
+                {mysteries.popular.map((mystery) => (
+                  <div key={mystery} className="flex items-start space-x-2">
+                    <RadioGroupItem value={mystery} id={mystery} className="mt-0.5 shrink-0" />
+                    <Label htmlFor={mystery} className="text-sm leading-tight">{mystery}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
 
-          {/* Academic Level */}
-          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-            <h3 className="font-semibold text-purple-800 mb-3">ACADEMIC (Specialists)</h3>
-            <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
-              {mysteries.academic.map((mystery) => (
-                <div key={mystery} className="flex items-center space-x-2">
-                  <RadioGroupItem value={mystery} id={mystery} />
-                  <Label htmlFor={mystery} className="text-sm">{mystery}</Label>
-                </div>
-              ))}
-            </RadioGroup>
+            {/* Academic Level */}
+            <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="font-semibold text-purple-800 mb-3 text-center">ACADEMIC (Specialists)</h3>
+              <RadioGroup value={data.selectedMystery} onValueChange={(value) => updateData({ selectedMystery: value })}>
+                {mysteries.academic.map((mystery) => (
+                  <div key={mystery} className="flex items-start space-x-2">
+                    <RadioGroupItem value={mystery} id={mystery} className="mt-0.5 shrink-0" />
+                    <Label htmlFor={mystery} className="text-sm leading-tight">{mystery}</Label>
+                  </div>
+                ))}
+              </RadioGroup>
+            </div>
           </div>
 
           {data.selectedMystery && (

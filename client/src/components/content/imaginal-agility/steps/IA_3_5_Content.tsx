@@ -16,7 +16,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
       {/* Video Only - No Additional Content */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
-          workshopType="imaginal-agility"
+          workshopType="ia"
           stepId="ia-3-5"
           title="IA Solo Inspiration"
           forceUrl="https://youtu.be/vGIYaL7jTJo"

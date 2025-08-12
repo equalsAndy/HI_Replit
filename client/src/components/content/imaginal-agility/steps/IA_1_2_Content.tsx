@@ -16,7 +16,7 @@ const IA_1_2_Content: React.FC<IA12ContentProps> = ({ onNext }) => {
       {/* Video Section using VideoPlayer component */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
-          workshopType="imaginal-agility"
+          workshopType="ia"
           stepId="ia-1-2"
           title="AI's 4X Mental Challenge"
           forceUrl="https://youtu.be/ceER5Wq_zfU"
