@@ -94,7 +94,7 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
       {/* Video Section */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
-          workshopType="imaginal-agility"
+          workshopType="ia"
           stepId="ia-3-2"
           title="Autoflow Practice"
           forceUrl="https://youtu.be/nY7XqMOkz_k"

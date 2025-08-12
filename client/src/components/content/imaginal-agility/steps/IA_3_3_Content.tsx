@@ -7,6 +7,8 @@ import { VideoPlayer } from '@/components/content/VideoPlayer';
 import { FileText, RefreshCw, Loader2 } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { searchUnsplash } from '@/services/api-services';
+import { imaginalAgilityNavigationSections } from '@/components/navigation/navigationData';
 
 interface IA33ContentProps {
   onNext?: (stepId: string) => void;
@@ -40,6 +42,17 @@ const INITIAL_DATA: IA33StepData = {
   imageTitle: ''
 };
 
+// Helper function to get step title from navigation data
+const getStepTitle = (stepId: string): string => {
+  for (const section of imaginalAgilityNavigationSections) {
+    const step = section.steps.find(s => s.id === stepId);
+    if (step) {
+      return step.title;
+    }
+  }
+  return stepId; // Fallback to step ID if title not found
+};
+
 const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isMountedRef = useRef(true);
@@ -64,16 +77,13 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
   } = data || INITIAL_DATA;
 
   // State for image search
-  const [searchResults, setSearchResults] = useState<Array<{
-    id: string;
-    urls: { regular: string; small: string };
-    alt_description: string;
-    user: { name: string };
-    description?: string;
-  }>>([]);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState<string | null>(null);
+  
+  // State for tab management
+  const [activeTab, setActiveTab] = useState<'upload' | 'search'>('upload');
 
   // Cleanup effect to prevent state updates after unmount
   useEffect(() => {
@@ -82,138 +92,59 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
     };
   }, []);
 
-  // Search images from database (curated fallback)
+  // Search images using Unsplash API
   const searchImages = async (query: string) => {
     if (!query.trim()) return;
     
-    console.log('🔍 Starting search for:', query);
+    console.log('🔍 Starting Unsplash search for:', query);
     setSearchLoading(true);
     setSearchError(null);
 
     try {
-      // Use curated fallback images based on search terms
-      const getSearchResults = (searchTerm: string) => {
-        console.log('🔍 Processing search term:', searchTerm);
-        const searchTermLower = searchTerm.toLowerCase();
-        
-        if (searchTermLower.includes('seed') || searchTermLower.includes('growth') || searchTermLower.includes('breakthrough')) {
-          return [
-            {
-              id: 'seed-1',
-              urls: { 
-                regular: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80'
-              },
-              alt_description: 'Small plant growing through concrete crack',
-              user: { name: 'Unsplash' },
-              description: 'Seedling breaking through concrete'
-            },
-            {
-              id: 'seed-2', 
-              urls: {
-                regular: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?w=400&q=80'
-              },
-              alt_description: 'Green sprout emerging from soil',
-              user: { name: 'Unsplash' },
-              description: 'New growth emerging from earth'
-            }
-          ];
-        }
-        
-        if (searchTermLower.includes('flame') || searchTermLower.includes('fire') || searchTermLower.includes('spark')) {
-          return [
-            {
-              id: 'flame-1',
-              urls: {
-                regular: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1551632436-cbf8dd35adfa?w=400&q=80'
-              },
-              alt_description: 'Phoenix rising from flames',
-              user: { name: 'Unsplash' },
-              description: 'Phoenix rising from fire'
-            },
-            {
-              id: 'flame-2',
-              urls: {
-                regular: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&q=80'
-              },
-              alt_description: 'Bright flame against dark background',
-              user: { name: 'Unsplash' },
-              description: 'Single flame burning bright'
-            }
-          ];
-        }
-
-        if (searchTermLower.includes('potential') || searchTermLower.includes('depth') || searchTermLower.includes('mirror')) {
-          return [
-            {
-              id: 'potential-1',
-              urls: {
-                regular: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80'
-              },
-              alt_description: 'Mountain peak reaching toward the sky',
-              user: { name: 'Unsplash' },
-              description: 'Mountain peak representing potential'
-            },
-            {
-              id: 'potential-2',
-              urls: {
-                regular: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
-                small: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80'
-              },
-              alt_description: 'Light rays breaking through storm clouds',
-              user: { name: 'Unsplash' },
-              description: 'Light revealing hidden depths'
-            }
-          ];
-        }
-
-        // Default results for any other search terms - always return something
-        console.log('🔍 Using default results for search term:', searchTermLower);
-        return [
-          {
-            id: 'default-1',
-            urls: { 
-              regular: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
-              small: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80'
-            },
-            alt_description: 'Mountain peak reaching toward the sky',
-            user: { name: 'Unsplash' },
-            description: 'Mountain peak in clouds'
-          },
-          {
-            id: 'default-2',
-            urls: { 
-              regular: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
-              small: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80'
-            },
-            alt_description: 'Light rays breaking through storm clouds',
-            user: { name: 'Unsplash' },
-            description: 'Light breaking through darkness'
-          },
-          {
-            id: 'default-3',
-            urls: { 
-              regular: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
-              small: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80'
-            },
-            alt_description: 'Small plant growing through concrete crack',
-            user: { name: 'Unsplash' },
-            description: 'Seedling breaking through concrete'
-          }
-        ];
-      };
-
-      const results = getSearchResults(query);
-      console.log('🔍 Search results:', results);
-      setSearchResults(results);
+      // Use the real Unsplash API
+      const results = await searchUnsplash(query, 12); // Get 12 results
+      console.log('🔍 Unsplash search results:', results);
+      setSearchResults(results || []);
 
     } catch (error) {
-      console.error('Error searching images:', error);
-      setSearchError('Failed to search images. Please try again.');
+      console.error('Error searching Unsplash:', error);
+      setSearchError(`Failed to search images: ${error.message || 'Please try again.'}`);
+      
+      // Fallback to curated images if Unsplash fails
+      console.log('🔍 Falling back to curated images...');
+      const fallbackResults = [
+        {
+          id: 'fallback-1',
+          urls: { 
+            regular: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
+            small: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400&q=80'
+          },
+          alt_description: 'Small plant growing through concrete crack',
+          user: { name: 'Curated' },
+          description: 'Seedling breaking through concrete'
+        },
+        {
+          id: 'fallback-2',
+          urls: { 
+            regular: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+            small: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&q=80'
+          },
+          alt_description: 'Mountain peak reaching toward the sky',
+          user: { name: 'Curated' },
+          description: 'Mountain peak in clouds'
+        },
+        {
+          id: 'fallback-3',
+          urls: { 
+            regular: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80',
+            small: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=400&q=80'
+          },
+          alt_description: 'Light rays breaking through storm clouds',
+          user: { name: 'Curated' },
+          description: 'Light breaking through darkness'
+        }
+      ];
+      setSearchResults(fallbackResults);
     } finally {
       setSearchLoading(false);
     }
@@ -263,8 +194,8 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
     }
   };
 
-  // Handle save and navigation
-  const handleSave = async () => {
+  // Handle continue with auto-save
+  const handleContinue = async () => {
     try {
       // Force immediate save of current data
       await saveNow();
@@ -282,9 +213,9 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       return;
     }
     
-    // Fill with demo data using seedling image
+    // Fill with demo data using nature breaking through concrete image
     safeUpdateData({
-      selectedImage: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=800&q=80',
+      selectedImage: '/assets/artem-shuba-yd5ZyiRRpa8-unsplash.jpg',
       uploadedImage: null,
       reflection: "This represents my resilience and ability to find creative solutions even in rigid environments. The part of me that wants expression is my innovative problem-solving nature.",
       imageTitle: "Breakthrough"
@@ -338,121 +269,198 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
       </div>
       
       {/* Upload or Choose an Image Card */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
-        <h2 className="text-xl font-semibold text-purple-700 mb-4">📋 Upload or Choose an Image</h2>
-        <p className="text-gray-700 mb-6">
-          Select or upload an image that reflects something within you — a quality, energy, or capacity 
-          that feels present but underused.
-        </p>
-
-        {/* Upload Section (Primary Option) */}
-        <div className="mb-8">
-          <div className="mb-3 text-sm text-gray-700 font-medium flex items-center">
-            🔒 Upload your own image
-          </div>
-          <p className="text-xs text-gray-500 mb-3">(e.g., symbolic photo, drawing, graphic)</p>
-          <Input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="block w-full text-sm text-gray-600 file:mr-4 file:py-3 file:px-6 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100 file:cursor-pointer"
-            onChange={handleImageUpload}
-          />
-        </div>
-
-        {/* Search Section */}
-        <div className="mb-8 pt-6 border-t border-gray-200">
-          <div className="mb-3 text-sm text-gray-700 font-medium">
-            🔍 Search our image bank
-          </div>
-          <div className="flex gap-2">
-            <Input
-              type="text"
-              placeholder="Search images (try: potential, flame, depth, seed, spark, mirror, growth)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="flex-1 px-4 py-3"
-            />
-            <Button
-              type="button"
-              onClick={handleSearchClick}
-              disabled={!searchQuery.trim() || searchLoading}
-              className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Tag suggestions: potential, flame, depth, seed, spark, mirror, growth (Press Enter or click Search)
+      <div className="bg-white rounded-xl shadow-lg border border-purple-200 mb-8">
+        <div className="p-8 pb-0">
+          <h2 className="text-xl font-semibold text-purple-700 mb-4">📋 Upload or Choose an Image</h2>
+          <p className="text-gray-700 mb-6">
+            Select or upload an image that reflects something within you — a quality, energy, or capacity 
+            that feels present but underused.
           </p>
 
-          {/* Search Error */}
-          {searchError && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mt-4">
-              <p className="text-red-700 text-sm">{searchError}</p>
-            </div>
-          )}
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-200 mb-6">
+            <button
+              type="button"
+              onClick={() => setActiveTab('upload')}
+              className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'upload'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              🔒 Upload Your Own
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('search')}
+              className={`px-6 py-3 font-medium text-sm border-b-2 transition-colors ${
+                activeTab === 'search'
+                  ? 'border-purple-600 text-purple-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              🔍 Search Image Bank
+            </button>
+          </div>
+        </div>
 
-          {/* Search Loading */}
-          {searchLoading && (
-            <div className="flex justify-center items-center h-32 mt-4">
-              <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
-              <span className="ml-2 text-gray-600">Searching images...</span>
-            </div>
-          )}
+        {/* Tab Content */}
+        <div className="px-8 pb-8">
+          {/* Upload Tab */}
+          {activeTab === 'upload' && (
+            <div className="space-y-6">
+              <div>
+                <p className="text-sm text-gray-600 mb-3">(e.g., symbolic photo, drawing, graphic)</p>
+                <div className="w-full border border-gray-300 rounded-lg overflow-hidden">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="w-full h-14 text-sm text-gray-600 cursor-pointer
+                              file:mr-4 file:h-14 file:py-0 file:px-6 file:border-0 file:border-r file:border-gray-200
+                              file:text-sm file:font-medium file:bg-purple-50 file:text-purple-700 
+                              hover:file:bg-purple-100 file:cursor-pointer file:flex file:items-center
+                              border-0 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset"
+                    onChange={handleImageUpload}
+                  />
+                </div>
+              </div>
 
-          {/* Search Results */}
-          {searchResults.length > 0 && (
-            <div className="mt-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {searchResults.map((img) => (
-                  <div key={img.id} className="space-y-2">
-                    <button
-                      type="button"
-                      className={`w-full border-2 rounded-lg p-1 focus:outline-none transition-all ${
-                        selectedImage === img.urls.regular 
-                          ? 'border-purple-600 ring-2 ring-purple-200' 
-                          : 'border-gray-200 hover:border-purple-300'
-                      }`}
-                      onClick={() => handleSelectImage(img.urls.regular)}
-                      title={img.alt_description}
-                    >
-                      <img 
-                        src={img.urls.small} 
-                        alt={img.alt_description} 
-                        className="w-full h-24 object-cover rounded"
-                      />
-                    </button>
-                    <p className="text-xs text-gray-500 text-center px-1">
-                      {img.description || img.alt_description}
+              {/* Example Section - moved to Upload tab */}
+              <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+                <h3 className="font-semibold text-gray-800 mb-4">EXAMPLE:</h3>
+                <div className="flex items-start space-x-4">
+                  <img 
+                    src="/assets/artem-shuba-yd5ZyiRRpa8-unsplash.jpg"
+                    alt="Nature breaking through concrete"
+                    className="w-16 h-16 object-cover rounded-lg border border-gray-300"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-700 mb-2">
+                      <strong>Image:</strong> Nature breaking through concrete
+                    </p>
+                    <p className="text-sm text-gray-700 mb-2">
+                      <strong>Word:</strong> Breakthrough
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Reflection:</strong> This represents my resilience and ability to find creative solutions even in rigid 
+                      environments. The part of me that wants expression is my innovative problem-solving nature.
                     </p>
                   </div>
-                ))}
+                </div>
               </div>
+            </div>
+          )}
+
+          {/* Search Tab */}
+          {activeTab === 'search' && (
+            <div className="space-y-6">
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Search images (try: potential, flame, depth, seed, spark, mirror, growth)"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="flex-1 px-4 py-3"
+                />
+                <Button
+                  type="button"
+                  onClick={handleSearchClick}
+                  disabled={!searchQuery.trim() || searchLoading}
+                  className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {searchLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Search'}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Tag suggestions: potential, flame, depth, seed, spark, mirror, growth (Press Enter or click Search)
+              </p>
+
+              {/* Search Error */}
+              {searchError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-700 text-sm">{searchError}</p>
+                </div>
+              )}
+
+              {/* Search Loading */}
+              {searchLoading && (
+                <div className="flex justify-center items-center h-32">
+                  <Loader2 className="w-8 h-8 animate-spin text-purple-600" />
+                  <span className="ml-2 text-gray-600">Searching images...</span>
+                </div>
+              )}
+
+              {/* Search Results */}
+              {searchResults.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {searchResults.map((img) => (
+                    <div key={img.id} className="space-y-2">
+                      <button
+                        type="button"
+                        className={`w-full border-2 rounded-lg p-1 focus:outline-none transition-all ${
+                          selectedImage === img.urls.regular 
+                            ? 'border-purple-600 ring-2 ring-purple-200' 
+                            : 'border-gray-200 hover:border-purple-300'
+                        }`}
+                        onClick={() => handleSelectImage(img.urls.regular)}
+                        title={img.alt_description || img.description}
+                      >
+                        <img 
+                          src={img.urls.small} 
+                          alt={img.alt_description || img.description || 'Image'} 
+                          className="w-full h-24 object-cover rounded"
+                        />
+                      </button>
+                      <p className="text-xs text-gray-500 text-center px-1">
+                        {img.description || img.alt_description || 'Inspiration image'}
+                      </p>
+                      <p className="text-xs text-gray-400 text-center">
+                        by {img.user?.name || 'Unknown'}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
+      </div>
 
-        {/* Preview Box */}
-        {previewImage && (
-          <div className="pt-6 border-t border-gray-200">
-            <div className="text-sm text-gray-700 mb-3 font-medium">Preview Box:</div>
-            <div className="flex flex-col md:flex-row items-start space-y-4 md:space-y-0 md:space-x-6">
-              <img
-                src={previewImage}
-                alt="Selected preview"
-                className="w-48 h-48 object-cover rounded-lg border-2 border-purple-300 shadow-lg"
-              />
-              <div className="flex-1 space-y-3">
-                <p className="text-xs text-gray-500 italic">
-                  Optional: crop, replace, or redraw
-                </p>
+      {/* Your Image Section */}
+      {previewImage && (
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
+          <h2 className="text-xl font-semibold text-purple-700 mb-4">Your Image</h2>
+          <div className="flex flex-col lg:flex-row items-start space-y-6 lg:space-y-0 lg:space-x-8">
+            <img
+              src={previewImage}
+              alt="Your selected image"
+              className="w-64 h-64 object-cover rounded-lg border-2 border-purple-300 shadow-lg flex-shrink-0"
+            />
+            <div className="flex-1 space-y-4">
+              <div>
+                <Label className="block mb-3 text-gray-700 font-medium">
+                  Choose one word to title your image (e.g., Emergence, Spark, Flow):
+                </Label>
+                <Input
+                  value={imageTitle}
+                  onChange={(e) => safeUpdateData({ imageTitle: e.target.value })}
+                  placeholder="Enter one word..."
+                  className="w-full max-w-md"
+                />
               </div>
+              <Button
+                onClick={chooseDifferentImage}
+                variant="outline"
+                className="border-purple-300 text-purple-700 hover:bg-purple-50"
+              >
+                ● Choose Different Image
+              </Button>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
       
       {/* Describe Your Inner Potential Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
@@ -461,46 +469,11 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
           What does this image reveal about a part of you that wants expression or strength?
         </Label>
         <Textarea
-          className="w-full mb-6 min-h-[120px]"
+          className="w-full min-h-[120px]"
           value={reflection}
           onChange={(e) => safeUpdateData({ reflection: e.target.value })}
           placeholder="This image represents..."
         />
-        
-        <div className="border-t border-gray-200 pt-6">
-          <Label className="block mb-3 text-gray-700 font-medium">
-            Choose one word to title your image (e.g., Emergence, Spark, Flow):
-          </Label>
-          <Input
-            value={imageTitle}
-            onChange={(e) => safeUpdateData({ imageTitle: e.target.value })}
-            placeholder="Enter one word..."
-          />
-        </div>
-      </div>
-
-      {/* Example Section */}
-      <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 mb-8">
-        <h3 className="font-semibold text-gray-800 mb-4">EXAMPLE:</h3>
-        <div className="flex items-start space-x-4">
-          <img 
-            src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&q=80"
-            alt="Seedling breaking through concrete"
-            className="w-16 h-16 object-cover rounded-lg border border-gray-300"
-          />
-          <div className="flex-1">
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>Image:</strong> A seedling breaking through concrete
-            </p>
-            <p className="text-sm text-gray-700 mb-2">
-              <strong>Reflection:</strong> This represents my resilience and ability to find creative solutions even in rigid 
-              environments. The part of me that wants expression is my innovative problem-solving nature.
-            </p>
-            <p className="text-sm text-gray-700">
-              <strong>Word:</strong> Breakthrough
-            </p>
-          </div>
-        </div>
       </div>
 
       {/* Action Buttons */}
@@ -518,28 +491,11 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         )}
         
         <Button
-          onClick={handleSave}
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3"
+          onClick={handleContinue}
+          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
           disabled={saving || !previewImage || !reflection || !imageTitle}
         >
-          {saving ? 'Saving...' : '● Save Image & Reflection'}
-        </Button>
-        
-        <Button
-          onClick={chooseDifferentImage}
-          variant="outline"
-          className="border-purple-300 text-purple-700 hover:bg-purple-50 px-6 py-3"
-          disabled={!previewImage}
-        >
-          ● Choose Different Image
-        </Button>
-        
-        <Button
-          onClick={() => onNext && onNext('ia-3-4')}
-          className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3"
-          disabled={!previewImage || !reflection || !imageTitle}
-        >
-          ● Continue to Next Step
+          {saving ? 'Saving...' : `Continue to ${getStepTitle('ia-3-4')}`}
         </Button>
       </div>
     </div>

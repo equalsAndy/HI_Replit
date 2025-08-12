@@ -16,7 +16,7 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
       {/* Video Section using VideoPlayer component */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
-          workshopType="imaginal-agility"
+          workshopType="ia"
           stepId="ia-3-1"
           title="The Ladder of Imagination"
           forceUrl="https://youtu.be/k4073NSNJYE"
@@ -35,56 +35,21 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
             The Ladder maps five distinct modes of imagination:
           </p>
           
-          {/* Ladder Rungs */}
-          <div className="space-y-4 mt-8">
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg border border-gray-200 flex items-center">
-              <div className="w-10 h-10 bg-gray-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold">1</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800">Auto-Flow</h3>
-                <p className="text-sm text-gray-600">habitual, often unconscious thought</p>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200 flex items-center">
-              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold">2</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-blue-800">Visualization</h3>
-                <p className="text-sm text-blue-600">holding positive mental images</p>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200 flex items-center">
-              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold">3</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-green-800">Higher Purpose</h3>
-                <p className="text-sm text-green-600">envisioning meaning beyond self</p>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200 flex items-center">
-              <div className="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold">4</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-yellow-800">Inspiration</h3>
-                <p className="text-sm text-yellow-600">moments of creative breakthrough</p>
-              </div>
-            </div>
-            
-            <div className="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200 flex items-center">
-              <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-4">
-                <span className="text-white font-bold">5</span>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold text-purple-800">The Unimaginable</h3>
-                <p className="text-sm text-purple-600">transcending current limits</p>
-              </div>
+          {/* Ladder of Imagination Graphic */}
+          <div className="flex justify-center mt-8 mb-8">
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 max-w-2xl">
+              <img 
+                src="/assets/Ladder1_solo.png" 
+                alt="The Ladder of Imagination - Five modes from Auto-Flow to The Unimaginable"
+                className="w-full h-auto max-w-lg mx-auto"
+                style={{ maxHeight: '500px', objectFit: 'contain' }}
+                onLoad={() => console.log('✅ Ladder graphic loaded successfully')}
+                onError={(e) => {
+                  console.error('❌ Failed to load ladder graphic');
+                  console.log('Image src:', e.currentTarget.src);
+                  console.log('Full URL attempted:', window.location.origin + e.currentTarget.src);
+                }}
+              />
             </div>
           </div>
           
