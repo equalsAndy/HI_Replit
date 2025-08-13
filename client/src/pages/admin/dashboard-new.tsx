@@ -3,10 +3,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { UserManagement as FullUserManagement } from '../../components/admin/UserManagement';
 import FeedbackManagement from '../../components/admin/FeedbackManagement';
 import AIManagement from '../../components/admin/AIManagement';
-import TrainingDocumentsManagement from '../../components/admin/TrainingDocumentsManagement';
-import PersonaManagement from '../../components/admin/PersonaManagement';
-import PersonaDocumentSync from '../../components/admin/PersonaDocumentSync';
-import FeatureFlagManagement from '../../components/admin/FeatureFlagManagement';
 import AdminChat from '../../components/admin/AdminChat';
 import { useToast } from '../../hooks/use-toast';
 import { Play, Edit3, Trash2, Eye, ChevronUp, ChevronDown, Bot, BookOpen, Brain, Users, Mail, Video } from 'lucide-react';
@@ -756,421 +752,179 @@ const UserManagement: React.FC = () => {
   return <FullUserManagement />;
 };
 
-// METAlia Management Component
-const METAliaManagement: React.FC = () => {
-  const [activeMetaTab, setActiveMetaTab] = React.useState('overview');
-  const [qualityStats, setQualityStats] = React.useState<any>(null);
-  const [recentReports, setRecentReports] = React.useState<any[]>([]);
-  const [loading, setLoading] = React.useState(false);
-  const { toast } = useToast();
-
-  // Fetch quality statistics
-  const fetchQualityStats = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch('/api/metalia/analytics/conversations?personaType=star_report&days=7', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success && data.analytics.length > 0) {
-        setQualityStats(data.analytics[0]);
-      }
-    } catch (error) {
-      console.error('Failed to fetch quality stats:', error);
-    } finally {
-      setLoading(false);
+// AI Training Launcher Component  
+const ReportAssistantLauncher: React.FC = () => {
+  const styles = {
+    container: { padding: '20px' },
+    header: { marginBottom: '30px' },
+    title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' },
+    subtitle: { color: '#6b7280', fontSize: '14px' },
+    launchCard: {
+      padding: '40px',
+      border: '2px solid #e5e7eb',
+      borderRadius: '12px',
+      textAlign: 'center' as const,
+      backgroundColor: '#f8fafc'
+    },
+    launchButton: {
+      padding: '12px 24px',
+      backgroundColor: '#3b82f6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      margin: '0 auto'
     }
   };
 
-  // Fetch recent reports
-  const fetchRecentReports = async () => {
-    try {
-      const response = await fetch('/api/metalia/conversations?personaType=star_report&limit=10', {
-        credentials: 'include'
-      });
-      const data = await response.json();
-      if (data.success) {
-        setRecentReports(data.conversations);
-      }
-    } catch (error) {
-      console.error('Failed to fetch recent reports:', error);
-    }
+  const handleLaunchReportAssistant = () => {
+    window.open('/ai-training', '_blank');
   };
 
-  React.useEffect(() => {
-    if (activeMetaTab === 'overview') {
-      fetchQualityStats();
-    } else if (activeMetaTab === 'conversations') {
-      fetchRecentReports();
-    }
-  }, [activeMetaTab]);
+  return (
+    <div style={styles.container}>
+      <div style={styles.header}>
+        <h2 style={styles.title}>AI Training & Testing Tool</h2>
+        <p style={styles.subtitle}>
+          Comprehensive interface for training AI personas, running A/B tests, and managing training documents
+        </p>
+      </div>
+
+      <div style={styles.launchCard}>
+        <h3 style={{ marginBottom: '16px', fontSize: '20px' }}>AI Training Interface</h3>
+        <p style={{ marginBottom: '24px', color: '#6b7280' }}>
+          Launch the comprehensive training tool to work with AI personas, test responses, and upload training documents to OpenAI.
+        </p>
+        <button
+          style={styles.launchButton}
+          onClick={handleLaunchReportAssistant}
+        >
+          <BookOpen size={20} />
+          Launch AI Training
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// IA Assistant Launcher Component  
+const IAAssistantLauncher: React.FC = () => {
+  const [showIAChat, setShowIAChat] = React.useState(false);
 
   const styles = {
     container: { padding: '20px' },
-    header: {
-      marginBottom: '30px',
-      paddingBottom: '20px',
-      borderBottom: '2px solid #e5e7eb'
+    header: { marginBottom: '30px' },
+    title: { fontSize: '24px', fontWeight: 'bold', marginBottom: '8px' },
+    subtitle: { color: '#6b7280', fontSize: '14px' },
+    launchCard: {
+      padding: '40px',
+      border: '2px solid #e5e7eb',
+      borderRadius: '12px',
+      textAlign: 'center' as const,
+      backgroundColor: '#faf5ff'
     },
-    title: {
-      fontSize: '28px',
-      fontWeight: 'bold',
-      color: '#1f2937',
-      margin: '0 0 8px 0',
+    launchButton: {
+      padding: '12px 24px',
+      backgroundColor: '#8b5cf6',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '600',
+      cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
-      gap: '12px'
+      gap: '8px',
+      margin: '0 auto'
     },
-    subtitle: {
-      fontSize: '16px',
-      color: '#6b7280',
-      margin: 0
-    },
-    tabsList: {
+    modal: {
+      position: 'fixed' as const,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0,0,0,0.5)',
       display: 'flex',
-      backgroundColor: '#f9fafb',
-      borderBottom: '1px solid #e5e7eb',
-      borderRadius: '8px 8px 0 0',
-      marginBottom: '20px'
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+      padding: '20px'
     },
-    tab: {
-      flex: 1,
-      padding: '12px 20px',
-      border: 'none',
-      backgroundColor: 'transparent',
-      cursor: 'pointer',
-      fontSize: '14px',
-      fontWeight: '500',
-      borderBottom: '3px solid transparent'
-    },
-    activeTab: {
+    modalContent: {
       backgroundColor: 'white',
-      borderBottom: '3px solid #8b5cf6',
-      color: '#8b5cf6'
-    },
-    comingSoon: {
-      textAlign: 'center' as const,
-      padding: '60px 20px',
-      backgroundColor: '#f8fafc',
-      borderRadius: '8px',
-      border: '2px dashed #e2e8f0'
-    },
-    badge: {
-      padding: '4px 12px',
-      backgroundColor: '#fef3c7',
-      color: '#d97706',
       borderRadius: '12px',
-      fontSize: '12px',
-      fontWeight: '600',
-      marginLeft: '12px'
+      width: '95vw',
+      height: '90vh',
+      overflow: 'hidden',
+      display: 'flex',
+      flexDirection: 'column' as const
+    },
+    modalHeader: {
+      padding: '20px',
+      borderBottom: '1px solid #e5e7eb',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    },
+    modalBody: {
+      flex: 1,
+      overflow: 'auto'
+    },
+    closeButton: {
+      padding: '8px 16px',
+      backgroundColor: '#6b7280',
+      color: 'white',
+      border: 'none',
+      borderRadius: '6px',
+      cursor: 'pointer'
     }
   };
 
   return (
     <div style={styles.container}>
       <div style={styles.header}>
-        <h2 style={styles.title}>
-          <Brain size={32} color="#8b5cf6" />
-          METAlia - Report Quality Monitor
-        </h2>
+        <h2 style={styles.title}>Imaginal Agility Assistant</h2>
         <p style={styles.subtitle}>
-          Comprehensive AI persona management, conversation analysis, and automated training optimization for all Talia personas.
+          AI chat interface for Imaginal Agility workshop support and testing
         </p>
       </div>
 
-      <div style={styles.tabsList}>
-        {[
-          { id: 'overview', label: 'Report Quality' },
-          { id: 'conversations', label: 'Recent Reports' },
-          { id: 'escalations', label: 'Quality Issues' },
-          { id: 'monitoring', label: 'Live Monitoring' }
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            style={{
-              ...styles.tab,
-              ...(activeMetaTab === tab.id ? styles.activeTab : {})
-            }}
-            onClick={() => setActiveMetaTab(tab.id)}
-          >
-            {tab.label}
-          </button>
-        ))}
+      <div style={styles.launchCard}>
+        <h3 style={{ marginBottom: '16px', fontSize: '20px' }}>IA AI Assistant</h3>
+        <p style={{ marginBottom: '24px', color: '#6b7280' }}>
+          Launch the AI assistant interface configured specifically for Imaginal Agility workshop participants and facilitators.
+        </p>
+        <button
+          style={styles.launchButton}
+          onClick={() => setShowIAChat(true)}
+        >
+          <Bot size={20} />
+          Launch IA Assistant
+        </button>
       </div>
 
-      {activeMetaTab === 'overview' && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <h3 style={{ color: '#1f2937', fontSize: '20px', margin: 0 }}>📊 Report Quality Dashboard</h3>
-            <button 
-              onClick={fetchQualityStats}
-              disabled={loading}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#8b5cf6',
-                color: 'white',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1
-              }}
-            >
-              {loading ? 'Loading...' : 'Refresh'}
-            </button>
-          </div>
-          
-          {qualityStats ? (
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
-              gap: '20px',
-              marginBottom: '30px'
-            }}>
-              <div style={{ 
-                padding: '20px', 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                border: '1px solid #e5e7eb',
-                textAlign: 'center' as const
-              }}>
-                <h4 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '14px' }}>Total Reports</h4>
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#8b5cf6' }}>
-                  {qualityStats.total_conversations || 0}
-                </div>
-              </div>
-              <div style={{ 
-                padding: '20px', 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                border: '1px solid #e5e7eb',
-                textAlign: 'center' as const
-              }}>
-                <h4 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '14px' }}>Quality Score</h4>
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#10b981' }}>
-                  {qualityStats.total_conversations > 0 
-                    ? Math.round((qualityStats.total_conversations - (qualityStats.escalation_count || 0)) / qualityStats.total_conversations * 100)
-                    : 100}%
-                </div>
-              </div>
-              <div style={{ 
-                padding: '20px', 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                border: '1px solid #e5e7eb',
-                textAlign: 'center' as const
-              }}>
-                <h4 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '14px' }}>Issues Found</h4>
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#ef4444' }}>
-                  {qualityStats.escalation_count || 0}
-                </div>
-              </div>
-              <div style={{ 
-                padding: '20px', 
-                backgroundColor: 'white', 
-                borderRadius: '8px', 
-                border: '1px solid #e5e7eb',
-                textAlign: 'center' as const
-              }}>
-                <h4 style={{ color: '#1f2937', marginBottom: '8px', fontSize: '14px' }}>Avg Response Time</h4>
-                <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#6366f1' }}>
-                  {qualityStats.avg_response_time_ms 
-                    ? Math.round(qualityStats.avg_response_time_ms / 1000) + 's'
-                    : 'N/A'}
-                </div>
-              </div>
+      {/* IA Chat Modal */}
+      {showIAChat && (
+        <div style={styles.modal}>
+          <div style={styles.modalContent}>
+            <div style={styles.modalHeader}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '600' }}>
+                Imaginal Agility AI Assistant
+              </h3>
+              <button
+                style={styles.closeButton}
+                onClick={() => setShowIAChat(false)}
+              >
+                Close
+              </button>
             </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
-              <p style={{ color: '#6b7280' }}>
-                {loading ? 'Loading quality statistics...' : 'No report data available yet. Generate some reports to see quality monitoring in action.'}
-              </p>
-            </div>
-          )}
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-            gap: '20px',
-            marginTop: '30px'
-          }}>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              border: '1px solid #e5e7eb' 
-            }}>
-              <h4 style={{ color: '#1f2937', marginBottom: '12px' }}>📊 Conversation Analytics</h4>
-              <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                Comprehensive logging and analysis of all Talia conversations with pattern recognition and effectiveness tracking.
-              </p>
-            </div>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              border: '1px solid #e5e7eb' 
-            }}>
-              <h4 style={{ color: '#1f2937', marginBottom: '12px' }}>🚨 Escalation Management</h4>
-              <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                Handle clarification requests from Talia personas and coordinate resolution with admin approval workflows.
-              </p>
-            </div>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              border: '1px solid #e5e7eb' 
-            }}>
-              <h4 style={{ color: '#1f2937', marginBottom: '12px' }}>🎯 Training Optimization</h4>
-              <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                AI-powered analysis of instruction effectiveness with automated suggestions for improvement.
-              </p>
-            </div>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: 'white', 
-              borderRadius: '8px', 
-              border: '1px solid #e5e7eb' 
-            }}>
-              <h4 style={{ color: '#1f2937', marginBottom: '12px' }}>👥 Persona Coordination</h4>
-              <p style={{ color: '#6b7280', fontSize: '14px' }}>
-                Centralized management of Report Talia, Coach Talia, Reflection Talia with role-specific optimization.
-              </p>
-            </div>
-          </div>
-          <div style={{ 
-            marginTop: '40px', 
-            padding: '20px', 
-            backgroundColor: '#dcfce7', 
-            borderRadius: '8px',
-            border: '1px solid #22c55e'
-          }}>
-            <h4 style={{ color: '#166534', marginBottom: '8px' }}>✅ Report Quality Enhancement - ACTIVE</h4>
-            <p style={{ color: '#166534', fontSize: '14px', marginBottom: '12px' }}>
-              METAlia report quality monitoring is now operational and actively improving report generation.
-            </p>
-            <div style={{ display: 'flex', gap: '20px', fontSize: '12px' }}>
-              <span style={{ color: '#059669' }}>✅ Enhanced Prompting</span>
-              <span style={{ color: '#059669' }}>✅ Quality Monitoring</span>
-              <span style={{ color: '#059669' }}>✅ Auto Escalation</span>
-              <span style={{ color: '#059669' }}>✅ Data Integration</span>
-              <span style={{ color: '#059669' }}>✅ Real-time Analysis</span>
-            </div>
-            <p style={{ color: '#166534', fontSize: '12px', marginTop: '8px' }}>
-              <strong>Result:</strong> Reports now match Samantha Lee quality with personalized analysis and user-specific data.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {activeMetaTab === 'conversations' && (
-        <div style={styles.container}>
-          <h3 style={{ marginBottom: '20px', color: '#374151' }}>Recent Report Analysis</h3>
-          {recentReports.length > 0 ? (
-            <div style={{ display: 'grid', gap: '16px' }}>
-              {recentReports.map((report, index) => (
-                <div key={index} style={{
-                  padding: '16px',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  backgroundColor: '#f9fafb'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <h4 style={{ color: '#374151', margin: 0 }}>User {report.userId}</h4>
-                    <span style={{ 
-                      fontSize: '12px', 
-                      color: report.qualityScore > 8 ? '#059669' : report.qualityScore > 6 ? '#d97706' : '#dc2626'
-                    }}>
-                      Quality: {report.qualityScore}/10
-                    </span>
-                  </div>
-                  <p style={{ color: '#6b7280', fontSize: '14px', margin: '4px 0' }}>
-                    Generated: {new Date(report.createdAt).toLocaleString()}
-                  </p>
-                  <p style={{ color: '#6b7280', fontSize: '14px', margin: 0 }}>
-                    Issues: {report.issueCount || 0} detected
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div style={{ 
-              textAlign: 'center', 
-              padding: '40px', 
-              color: '#6b7280' 
-            }}>
-              <p>No recent reports available for analysis.</p>
-              <p style={{ fontSize: '14px', marginTop: '8px' }}>
-                Generate some reports to see quality analytics here.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {activeMetaTab === 'escalations' && (
-        <div style={styles.container}>
-          <h3 style={{ marginBottom: '20px', color: '#374151' }}>Quality Issue Escalations</h3>
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#f0f9ff',
-            borderRadius: '8px',
-            border: '1px solid #0ea5e9'
-          }}>
-            <h4 style={{ color: '#0c4a6e', marginBottom: '12px' }}>🔄 Active Monitoring</h4>
-            <p style={{ color: '#0c4a6e', fontSize: '14px', marginBottom: '16px' }}>
-              METAlia automatically detects and escalates reports with quality issues.
-            </p>
-            <div style={{ display: 'grid', grid: 'template-columns: repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-              <div style={{ padding: '12px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#059669' }}>0</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Critical Issues</div>
-              </div>
-              <div style={{ padding: '12px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#d97706' }}>0</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Medium Issues</div>
-              </div>
-              <div style={{ padding: '12px', backgroundColor: 'white', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#6b7280' }}>0</div>
-                <div style={{ fontSize: '12px', color: '#6b7280' }}>Low Issues</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {activeMetaTab === 'monitoring' && (
-        <div style={styles.container}>
-          <h3 style={{ marginBottom: '20px', color: '#374151' }}>Real-time Quality Monitoring</h3>
-          <div style={{
-            padding: '20px',
-            backgroundColor: '#f0fdf4',
-            borderRadius: '8px',
-            border: '1px solid #22c55e'
-          }}>
-            <h4 style={{ color: '#166534', marginBottom: '12px' }}>🎯 System Status</h4>
-            <div style={{ display: 'grid', gap: '12px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#166534' }}>Enhanced Prompting</span>
-                <span style={{ color: '#059669', fontWeight: 'bold' }}>✅ ACTIVE</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#166534' }}>Quality Analysis</span>
-                <span style={{ color: '#059669', fontWeight: 'bold' }}>✅ ACTIVE</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#166534' }}>Auto Escalation</span>
-                <span style={{ color: '#059669', fontWeight: 'bold' }}>✅ ACTIVE</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ color: '#166534' }}>Data Integration</span>
-                <span style={{ color: '#059669', fontWeight: 'bold' }}>✅ ACTIVE</span>
-              </div>
-            </div>
-            <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}>
-              <p style={{ color: '#166534', fontSize: '14px', margin: 0 }}>
-                <strong>Performance:</strong> METAlia has successfully replaced basic prompting with sophisticated user analysis, 
-                eliminating generic template reports and ensuring personalized, high-quality output.
-              </p>
+            <div style={styles.modalBody}>
+              <AdminChat />
             </div>
           </div>
         </div>
@@ -1178,6 +932,7 @@ const METAliaManagement: React.FC = () => {
     </div>
   );
 };
+
 
 // Cohort Management Component (Disabled)
 const CohortManagement: React.FC = () => {
@@ -1692,7 +1447,7 @@ export default function AdminDashboard() {
   const [, navigate] = useLocation();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = React.useState('users');
-  const [activeAITab, setActiveAITab] = React.useState('dashboard');
+  const [activeAITab, setActiveAITab] = React.useState('overview');
   const [contentAccess, setContentAccess] = React.useState<'student' | 'professional'>('professional');
   const [astLogoError, setAstLogoError] = React.useState(false);
   const [iaLogoError, setIaLogoError] = React.useState(false);
@@ -2095,13 +1850,9 @@ export default function AdminDashboard() {
               <div style={styles.subTabsContainer}>
                 <div style={styles.subTabsList}>
                   {[
-                    { id: 'dashboard', label: 'Dashboard', icon: Bot },
-                    { id: 'chat', label: 'Admin Chat', icon: () => <span style={{ marginRight: '8px' }}>💬</span> },
-                    { id: 'training', label: 'Training Docs', icon: BookOpen },
-                    { id: 'personas', label: 'Personas', icon: Users },
-                    { id: 'sync', label: 'Document Sync', icon: () => <span style={{ marginRight: '8px' }}>🔄</span> },
-                    { id: 'flags', label: 'Feature Flags', icon: () => <span style={{ marginRight: '8px' }}>🎛️</span> },
-                    { id: 'metalia', label: 'METAlia', icon: Brain }
+                    { id: 'overview', label: 'Overview', icon: Bot },
+                    { id: 'training', label: 'Training', icon: BookOpen },
+                    { id: 'ia-chat', label: 'IA Assistant', icon: () => <span style={{ marginRight: '8px' }}>🤖</span> }
                   ].map((subTab) => (
                     <button
                       key={subTab.id}
@@ -2118,13 +1869,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <div style={styles.subTabContent}>
-                {activeAITab === 'dashboard' && <AIManagement />}
-                {activeAITab === 'chat' && <AdminChat />}
-                {activeAITab === 'training' && <TrainingDocumentsManagement />}
-                {activeAITab === 'personas' && <PersonaManagement />}
-                {activeAITab === 'sync' && <PersonaDocumentSync />}
-                {activeAITab === 'flags' && <FeatureFlagManagement />}
-                {activeAITab === 'metalia' && <METAliaManagement />}
+                {activeAITab === 'overview' && <AIManagement />}
+                {activeAITab === 'training' && <ReportAssistantLauncher />}
+                {activeAITab === 'ia-chat' && <IAAssistantLauncher />}
               </div>
             </div>
           )}

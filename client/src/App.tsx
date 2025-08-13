@@ -15,6 +15,7 @@ import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
 import AdminDashboard from '@/pages/admin/dashboard-new';
+import AiTrainingPage from '@/pages/ai-training';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
@@ -247,6 +248,18 @@ const App: React.FC = () => {
                       <ProtectedRoute requireAdmin={true}>
                         <AdminDashboard />
                       </ProtectedRoute>
+                    </Route>
+                    <Route path="/ai-training">
+                      <ProtectedRoute requireAdmin={true}>
+                        <AiTrainingPage />
+                      </ProtectedRoute>
+                    </Route>
+                    {/* Backward compatibility: redirect old path to new */}
+                    <Route path="/report-assistant">
+                      {() => {
+                        window.location.replace('/ai-training');
+                        return null;
+                      }}
                     </Route>
 
                     {/* Reset and test routes */}
