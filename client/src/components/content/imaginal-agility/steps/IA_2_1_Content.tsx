@@ -38,7 +38,7 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
           {/* I4C Capabilities Graphics */}
           <div className="flex justify-center items-center gap-12 mt-8 flex-wrap">
             <img 
-              src="/assets/Curiosity_1749499596783.png" 
+              src="/assets/Curiosity_new.png" 
               alt="Curiosity - the drive to explore"
               className="w-32 h-auto object-contain"
               onLoad={() => console.log('✅ Curiosity graphic loaded successfully')}
@@ -46,15 +46,15 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
             />
             
             <img 
-              src="/assets/empathy_1749499596783.png" 
-              alt="Empathy - the capacity to relate"
+              src="/assets/Caring_new.png" 
+              alt="Caring - the capacity to nurture and connect"
               className="w-32 h-auto object-contain"
-              onLoad={() => console.log('✅ Empathy graphic loaded successfully')}
-              onError={(e) => console.error('❌ Failed to load Empathy graphic:', e.currentTarget.src)}
+              onLoad={() => console.log('✅ Caring graphic loaded successfully')}
+              onError={(e) => console.error('❌ Failed to load Caring graphic:', e.currentTarget.src)}
             />
             
             <img 
-              src="/assets/Creativity_1749499596783.png" 
+              src="/assets/Creativity_new.png" 
               alt="Creativity - the power to generate"
               className="w-32 h-auto object-contain"
               onLoad={() => console.log('✅ Creativity graphic loaded successfully')}
@@ -62,7 +62,7 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
             />
             
             <img 
-              src="/assets/courage_1749499596782.png" 
+              src="/assets/Courage_new.png" 
               alt="Courage - the strength to act"
               className="w-32 h-auto object-contain"
               onLoad={() => console.log('✅ Courage graphic loaded successfully')}
