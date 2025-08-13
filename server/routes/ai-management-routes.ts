@@ -4,11 +4,26 @@ import { requireAuth, requireAdmin } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Database connection
-const pool = new Pool({
+// Database connections (default + optional alternate for training/ultra)
+const poolDefault = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
+
+const poolUltra = process.env.DATABASE_URL_ULTRA
+  ? new Pool({
+      connectionString: process.env.DATABASE_URL_ULTRA,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    })
+  : null;
+
+// Backward compatibility alias for existing routes
+const pool = poolDefault;
+
+function getPoolForProject(projectType?: string): Pool {
+  if (projectType && /ultra/i.test(projectType) && poolUltra) return poolUltra;
+  return poolDefault;
+}
 
 // Types for AI Management
 interface AIConfiguration {
@@ -654,7 +669,7 @@ router.post('/report-talia/update-completion', requireAdmin, async (req, res) =>
  * POST /api/admin/ai/report-talia/generate-report
  */
 router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
-  const { userId, reportType = 'personal' } = req.body;
+  const { userId, reportType = 'personal', projectType } = req.body;
   const adminUserId = (req.session as any)?.userId;
 
   try {
@@ -668,7 +683,8 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     }
 
     // Check if user has completed AST workshop
-    const userResult = await pool.query(
+    const db = getPoolForProject(projectType);
+    const userResult = await db.query(
       'SELECT id, username, name, ast_workshop_completed, ast_completed_at FROM users WHERE id = $1',
       [userId]
     );
@@ -689,12 +705,12 @@ router.post('/report-talia/generate-report', requireAdmin, async (req, res) => {
     }
 
     // Get user's workshop data (assessments, step data, etc.)
-    const assessmentResult = await pool.query(
+    const assessmentResult = await db.query(
       'SELECT * FROM user_assessments WHERE user_id = $1 ORDER BY created_at DESC',
       [userId]
     );
 
-    const stepDataResult = await pool.query(
+    const stepDataResult = await db.query(
       'SELECT * FROM workshop_step_data WHERE user_id = $1 ORDER BY step_id, created_at DESC',
       [userId]
     );
