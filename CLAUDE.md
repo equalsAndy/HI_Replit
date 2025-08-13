@@ -118,33 +118,60 @@ git merge --no-ff branch-name
 - **Staging**: app2.heliotropeimaginal.com  
 - **Production**: app.heliotropeimaginal.com (PROTECTED)
 
-### **✅ UPDATED: Local Development Database Setup**
-The development environment now uses a **local PostgreSQL database** for safer development during beta testing phase:
+### **✅ UPDATED: Development Database Strategy**
+The development environment uses a **flexible database approach** based on the type of work being performed:
 
 ```bash
-# Local development database connection
+# Local development database (for dangerous operations)
 DATABASE_URL=postgresql://bradtopliff@localhost:5432/heliotrope_dev
+
+# Production RDS database (for safe development)
+DATABASE_URL=postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require
 ```
 
+**Database Selection Guidelines:**
+- **Use LOCAL database when:**
+  - Testing schema migrations or database changes
+  - Experimenting with AI training documents
+  - Developing features that modify user data
+  - Running potentially destructive operations
+  - Testing data import/export scripts
+
+- **Use PRODUCTION RDS when:**
+  - Working on UI changes or frontend features
+  - Testing API endpoints that only read data
+  - Debugging with real data patterns
+  - Developing features that don't modify database structure
+
 **Key Points:**
-- **Development**: Uses local PostgreSQL database (`heliotrope_dev`)
-- **Staging/Production**: Uses AWS RDS database (protected from dev changes)
-- **Beta Testing**: Protected from local development experiments
-- **Data Safety**: Local changes don't affect live beta testing data
+- **Development**: Switch between local (`heliotrope_dev`) and production RDS as needed
+- **Staging/Production**: Both use AWS RDS database (shared for beta testing continuity)
+- **Beta Testing**: Protected by using local database for dangerous development
+- **Data Safety**: Local database for experimentation, production RDS for safe development
 
 **Local Database Management:**
 ```bash
 # Connect to local development database
 psql heliotrope_dev
 
-# Reset local database if needed
+# Reset local database if needed (safe to do anytime)
 dropdb heliotrope_dev && createdb heliotrope_dev
 DATABASE_URL="postgresql://bradtopliff@localhost:5432/heliotrope_dev" npx drizzle-kit push
 
 # Check local database status
 psql heliotrope_dev -c "\dt"  # List tables
 psql heliotrope_dev -c "SELECT username, role FROM users LIMIT 10;"  # Check users
+
+# Switch to local database for dangerous operations
+export DATABASE_URL="postgresql://bradtopliff@localhost:5432/heliotrope_dev"
+npm run dev
+
+# Switch back to production RDS for normal development
+export DATABASE_URL="postgresql://dbmasteruser:HeliotropeDev2025@ls-3a6b051cdbc2d5e1ea4c550eb3e0cc5aef8be307.cvue4a2gwocx.us-west-2.rds.amazonaws.com:5432/postgres?sslmode=require"
+npm run dev
 ```
+
+**⚠️ IMPORTANT:** Always use local database when working with AI training documents, schema changes, or any operations that could affect live beta testing data.
 
 ### **Environment Safety**
 ```bash
