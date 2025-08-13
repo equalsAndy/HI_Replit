@@ -109,7 +109,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
                 {[
                   {capacity: 'Imagination', score: parseFloat(resultData.imagination) || 0, icon: '/assets/Imagination_sq.png', color: 'bg-purple-50 border-purple-200'},
                   {capacity: 'Curiosity', score: parseFloat(resultData.curiosity) || 0, icon: '/assets/Curiosity_sq.png', color: 'bg-blue-50 border-blue-200'},
-                  {capacity: 'Empathy', score: parseFloat(resultData.empathy) || 0, icon: '/assets/empathy_sq.png', color: 'bg-green-50 border-green-200'},
+                  {capacity: 'Caring', score: parseFloat(resultData.empathy) || 0, icon: '/assets/Caring_sq.png', color: 'bg-green-50 border-green-200'},
                   {capacity: 'Creativity', score: parseFloat(resultData.creativity) || 0, icon: '/assets/Creativity_sq.png', color: 'bg-orange-50 border-orange-200'},
                   {capacity: 'Courage', score: parseFloat(resultData.courage) || 0, icon: '/assets/courage_sq.png', color: 'bg-red-50 border-red-200'}
                 ].map(item => (
@@ -204,7 +204,7 @@ function IA_2_2_Content({ onNext, onOpenAssessment }: IA_2_2_ContentProps) {
               },
               {
                 icon: Users,
-                label: 'Empathy',
+                label: 'Caring',
                 description: 'Your ability to understand and connect with others emotional experiences',
                 color: 'text-green-600'
               },
