@@ -67,21 +67,41 @@ const IA_3_4_Content: React.FC<IA34ContentProps> = ({ onNext }) => {
         From Insight to Intention
       </h1>
       
-      {/* Introduction Card */}
-      <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200 mb-8">
-        <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-          <p className="text-lg leading-relaxed font-medium text-purple-700">
-            PURPOSE:
-          </p>
-          <p className="text-lg leading-relaxed">
-            This exercise transforms your potential vision of yourself worth growing into. Now, let's explore where that vision might be pointing. Reflect on your I4C Radar Map and the capacities you're developing.
-          </p>
-          <p className="text-lg leading-relaxed">
-            This is the moment to give your vision direction — by identifying a purpose that matters to you. It might be something new, or something you're already part of.
-          </p>
-          <p className="text-lg leading-relaxed font-medium text-purple-700">
-            Either way, this rung on the Ladder is a chance to reflect, renew, or begin.
-          </p>
+      {/* Rung 3 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Rung 3 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/Rung3.png" 
+              alt="Rung 3: From Insight to Intention"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ Rung 3 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load Rung 3 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose Card */}
+        <div className="bg-white rounded-xl shadow-lg p-8 border border-purple-200">
+          <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
+            <p className="text-lg leading-relaxed font-medium text-purple-700">
+              PURPOSE:
+            </p>
+            <p className="text-lg leading-relaxed">
+              This exercise transforms your potential vision of yourself worth growing into. Now, let's explore where that vision might be pointing. Reflect on your I4C Radar Map and the capacities you're developing.
+            </p>
+            <p className="text-lg leading-relaxed">
+              This is the moment to give your vision direction — by identifying a purpose that matters to you. It might be something new, or something you're already part of.
+            </p>
+            <p className="text-lg leading-relaxed font-medium text-purple-700">
+              Either way, this rung on the Ladder is a chance to reflect, renew, or begin.
+            </p>
+          </div>
         </div>
       </div>
 

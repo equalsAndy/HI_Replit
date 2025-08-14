@@ -79,31 +79,50 @@ const IA_4_6_Content: React.FC<IA_4_6_ContentProps> = ({ onNext }) => {
         Nothing is Unimaginable
       </h1>
       
+      {/* ADV Rung 5 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* ADV Rung 5 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/ADV_Rung5.png" 
+              alt="Advanced Rung 5: Unlimited Vision"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ ADV Rung 5 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load ADV Rung 5 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+          <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
+          <div className="text-gray-700 space-y-2 mb-4">
+            <p>You've climbed the Ladder of Imagination.</p>
+            <p>You've seen patterns, tensions, possibilities, mysteries.</p>
+            <p>You've invited the muse and stretched into moral imagination.</p>
+            <p className="font-medium">
+              Now we ask you to pause—at the edge of structure—and imagine not just for yourself, but for the world.
+            </p>
+          </div>
+          <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
+            <p className="text-lg font-medium text-purple-800 text-center">
+              From Mastery to Vision: Cross the threshold. Say what only you can say.
+            </p>
+            <p className="text-purple-700 text-center mt-2 font-semibold">
+              No tools. No AI. Just your voice and vision, awakened.
+            </p>
+          </div>
+        </div>
+      </div>
+      
       {/* Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
-            <h3 className="text-xl font-semibold text-purple-800 mb-4">From Mastery to Vision</h3>
-            <p className="text-lg text-purple-700">
-              Cross the threshold. Say what only you can say.
-            </p>
-          </div>
-          
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h4 className="text-lg font-semibold text-yellow-800 mb-3">🎯 PURPOSE</h4>
-            <div className="text-yellow-700 space-y-2">
-              <p>You've climbed the Ladder of Imagination.</p>
-              <p>You've seen patterns, tensions, possibilities, mysteries.</p>
-              <p>You've invited the muse and stretched into moral imagination.</p>
-              <p className="font-medium">
-                Now we ask you to pause—at the edge of structure—and imagine not just for yourself, but for the world.
-              </p>
-              <p className="font-semibold">
-                No tools. No AI.<br/>
-                Just your voice and vision, awakened.
-              </p>
-            </div>
-          </div>
           
           {/* The Challenge */}
           <div className="bg-red-50 border border-red-200 rounded-lg p-6">

@@ -39,13 +39,13 @@ const IA_3_1_Content: React.FC<IA31ContentProps> = ({ onNext }) => {
           <div className="flex justify-center mt-8 mb-8">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 max-w-2xl">
               <img 
-                src="/assets/Ladder1_solo.png" 
-                alt="The Ladder of Imagination - Five modes from Auto-Flow to The Unimaginable"
+                src="/assets/AllRungs.png" 
+                alt="The Ladder of Imagination - All five rungs from Auto-Flow to The Unimaginable"
                 className="w-full h-auto max-w-lg mx-auto"
                 style={{ maxHeight: '500px', objectFit: 'contain' }}
-                onLoad={() => console.log('✅ Ladder graphic loaded successfully')}
+                onLoad={() => console.log('✅ All Rungs graphic loaded successfully')}
                 onError={(e) => {
-                  console.error('❌ Failed to load ladder graphic');
+                  console.error('❌ Failed to load All Rungs graphic');
                   console.log('Image src:', e.currentTarget.src);
                   console.log('Full URL attempted:', window.location.origin + e.currentTarget.src);
                 }}

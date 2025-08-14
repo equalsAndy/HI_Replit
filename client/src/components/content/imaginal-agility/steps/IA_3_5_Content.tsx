@@ -70,6 +70,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<string | null>(null);
   const debounceRef = useRef<any>(null);
+  const draftKey = 'ia-3-5:draft';
   const [reflectionStep, setReflectionStep] = useState<number>(0);
   const [patternReflection, setPatternReflection] = useState('');
   const [momentStory, setMomentStory] = useState('');
@@ -151,7 +152,13 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     );
   };
 
-  // Load existing data from server
+  // Helper to map ids to interlude objects (in grid order)
+  const idsToInterludes = useCallback((ids: string[]) => {
+    const map = new Map(interludes.map(i => [i.id, i] as const));
+    return sortByGridOrder(ids.map(id => map.get(id)).filter(Boolean) as InterludeData[]);
+  }, [sortByGridOrder]);
+
+  // Load existing data from server, then overlay local draft if present
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -161,22 +168,69 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
         const json = await res.json();
         if (!mounted || !json?.data) return;
         const data = json.data as { selectedInterludes?: string[]; responses?: Record<string, string>; completed?: string[] };
-        const sel = (data.selectedInterludes || []).map(id => interludes.find(i => i.id === id)).filter(Boolean) as InterludeData[];
+        let selIds = data.selectedInterludes || [];
+        let resp = data.responses || {};
+        let comp = data.completed || [];
+        // Overlay local draft if present
+        try {
+          const raw = localStorage.getItem(draftKey);
+          if (raw) {
+            const draft = JSON.parse(raw) as { selectedInterludes?: string[]; responses?: Record<string,string>; completed?: string[] };
+            if (draft.selectedInterludes?.length) selIds = Array.from(new Set([...selIds, ...draft.selectedInterludes]));
+            if (draft.responses) resp = { ...resp, ...draft.responses };
+            if (draft.completed?.length) comp = Array.from(new Set([...comp, ...draft.completed]));
+          }
+        } catch {}
+        const sel = idsToInterludes(selIds);
         setSelectedInterludes(sel);
-        setResponses(data.responses || {});
-        setCompleted(data.completed || []);
-        setSavedSnapshot({ selected: data.selectedInterludes || [], responses: data.responses || {}, completed: data.completed || [] });
+        setResponses(resp);
+        setCompleted(comp);
+        setSavedSnapshot({ selected: selIds, responses: resp, completed: comp });
       } catch {}
     })();
     return () => { mounted = false; };
-  }, []);
+  }, [idsToInterludes]);
 
-  const buildPayload = (): { selectedInterludes: string[]; responses: Record<string, string>; completed: string[]; meta: { lastEditedAt: string } } => ({
-    selectedInterludes: selectedInterludes.map(i => i.id),
-    responses,
-    completed,
-    meta: { lastEditedAt: new Date().toISOString() }
-  });
+  // Only persist completed reflections to the database
+  const buildPayload = (): { selectedInterludes: string[]; responses: Record<string, string>; completed: string[]; meta: { lastEditedAt: string } } => {
+    const ids = completed;
+    const pruned: Record<string, string> = {};
+    ids.forEach(id => { if (responses[id]) pruned[id] = responses[id]; });
+    return {
+      selectedInterludes: ids,
+      responses: pruned,
+      completed: ids,
+      meta: { lastEditedAt: new Date().toISOString() }
+    };
+  };
+
+  // Lightweight immediate save used by Complete/Unmark toggle
+  const saveCompletedImmediate = async (nextCompleted: string[]) => {
+    try {
+      const pruned: Record<string, string> = {};
+      nextCompleted.forEach(id => { if (responses[id]) pruned[id] = responses[id]; });
+      const payload = {
+        data: {
+          selectedInterludes: nextCompleted,
+          responses: pruned,
+          completed: nextCompleted,
+          meta: { lastEditedAt: new Date().toISOString() }
+        }
+      };
+      await fetch('/api/ia/steps/ia-3-5', {
+        method: 'PUT',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      setSavedSnapshot({ selected: [...nextCompleted], responses: pruned, completed: [...nextCompleted] });
+      setSaveMsg('Saved');
+      setTimeout(() => setSaveMsg(null), 1200);
+    } catch (e) {
+      setSaveMsg('Save failed');
+      setTimeout(() => setSaveMsg(null), 1500);
+    }
+  };
 
   const saveAll = async () => {
     setSaving(true);
@@ -204,7 +258,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
     await saveAll();
   };
 
-  // Debounced autosave on changes
+  // Debounced autosave on changes (local draft only)
   const hasChanges = useMemo(() => {
     const selIds = selectedInterludes.map(i => i.id);
     return (
@@ -217,15 +271,32 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
   useEffect(() => {
     if (!hasChanges) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    setSaveMsg('Autosaving…');
+    setSaveMsg('Draft saved locally — use Save All to persist.');
     debounceRef.current = setTimeout(() => {
-      saveAll();
+      try {
+        const draft = {
+          selectedInterludes: selectedInterludes.map(i => i.id),
+          responses,
+          completed
+        };
+        localStorage.setItem(draftKey, JSON.stringify(draft));
+      } catch {}
     }, 1500);
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasChanges]);
+
+  const clearDraft = () => {
+    try { localStorage.removeItem(draftKey); } catch {}
+    // Revert to last saved snapshot
+    setSelectedInterludes(idsToInterludes(savedSnapshot.selected));
+    setResponses(savedSnapshot.responses || {});
+    setCompleted(savedSnapshot.completed || []);
+    setSaveMsg('Draft cleared');
+    setTimeout(() => setSaveMsg(null), 1200);
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
@@ -246,24 +317,44 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
         />
       </div>
 
-      {/* Intro */}
-      <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
-        <blockquote className="text-xl italic text-purple-800 mb-4 text-center">
-          "Inspiration exists, but it has to find you working." — Picasso
-        </blockquote>
-        <div className="space-y-4 text-gray-700">
-          <p>
-            This climb on the Ladder of Imagination is your work, and this rung is where you may rightly invite inspiration.
-          </p>
-          <p>
-            It arrives when we make space.
-          </p>
-          <p>
-            This rung is not about effort. It's about returning to the spark that makes you feel most alive.
-          </p>
-          <p className="font-medium text-purple-700">
-            We call this your <em>Interlude</em> — a moment of renewal before continuing your climb.
-          </p>
+      {/* Rung 4 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Rung 4 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/Rung4.png" 
+              alt="Rung 4: Inspiration"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ Rung 4 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load Rung 4 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose / Intro Card */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+          <blockquote className="text-xl italic text-purple-800 mb-4 text-center">
+            "Inspiration exists, but it has to find you working." — Picasso
+          </blockquote>
+          <div className="space-y-4 text-gray-700">
+            <p>
+              This climb on the Ladder of Imagination is your work, and this rung is where you may rightly invite inspiration.
+            </p>
+            <p>
+              It arrives when we make space.
+            </p>
+            <p>
+              This rung is not about effort. It's about returning to the spark that makes you feel most alive.
+            </p>
+            <p className="font-medium text-purple-700">
+              We call this your <em>Interlude</em> — a moment of renewal before continuing your climb.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -297,10 +388,19 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
             {selectedInterludes.length > 0 && (
               <div className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-600">{saveMsg || ' '}</div>
-                  <Button onClick={saveAll} disabled={saving || !hasChanges} className="bg-purple-600 hover:bg-purple-700 text-white">
-                    {saving ? 'Saving…' : 'Save All'}
-                  </Button>
+                  <div className="text-sm text-gray-600">
+                    {hasChanges ? 'Unsaved draft — not persisted' : (saveMsg || ' ')}
+                  </div>
+                  <div className="flex gap-2">
+                    {hasChanges && (
+                      <Button onClick={clearDraft} variant="outline" className="text-gray-700 border-gray-300 hover:bg-gray-50">
+                        Clear Draft
+                      </Button>
+                    )}
+                    <Button onClick={saveAll} disabled={saving || !hasChanges} className="bg-purple-600 hover:bg-purple-700 text-white">
+                      {saving ? 'Saving…' : 'Save All'}
+                    </Button>
+                  </div>
                 </div>
                 {sortByGridOrder(selectedInterludes).map(sel => {
                   const idx = interludeIndexMap[sel.id] || 0;
@@ -326,7 +426,14 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                               variant="outline" 
                               size="sm"
                               className={completed.includes(sel.id) ? "text-green-700 border-green-300 bg-green-50" : "text-green-700 border-green-300 hover:bg-green-50"}
-                              onClick={() => setCompleted(prev => prev.includes(sel.id) ? prev.filter(id => id !== sel.id) : [...prev, sel.id])}
+                              onClick={async () => {
+                                const next = completed.includes(sel.id)
+                                  ? completed.filter(id => id !== sel.id)
+                                  : [...completed, sel.id];
+                                setCompleted(next);
+                                // Persist immediately
+                                void saveCompletedImmediate(next);
+                              }}
                             >
                               {completed.includes(sel.id) ? '✓ Complete' : 'Mark Complete'}
                             </Button>
@@ -358,14 +465,6 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   disabled={!canProceedToReflection}
                 >
                   Continue to The Unimaginable
-                </Button>
-                <Button
-                  onClick={() => onNext && onNext('ia-3-6')}
-                  variant="outline"
-                  className="text-purple-700 border-purple-300 hover:bg-purple-50 px-8 py-3"
-                  disabled={!canProceedToReflection}
-                >
-                  Skip to The Unimaginable
                 </Button>
               </div>
             </div>

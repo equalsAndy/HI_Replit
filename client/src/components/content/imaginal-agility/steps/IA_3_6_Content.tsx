@@ -117,36 +117,50 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
         />
       </div>
 
-      {/* Einstein Quote */}
-      <Card className="mb-8 border-purple-200">
-        <CardContent className="pt-6">
-          <blockquote className="text-lg italic text-center text-gray-700 mb-4">
+      {/* Rung 5 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Rung 5 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/Rung5.png" 
+              alt="Rung 5: The Unimaginable"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ Rung 5 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load Rung 5 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Einstein Quotes and Purpose Combined */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+          <blockquote className="text-lg italic text-center text-gray-700 mb-3">
             "Imagination is more important than knowledge, for knowledge is limited."
           </blockquote>
-          <p className="text-center text-gray-600">— Albert Einstein</p>
-          <blockquote className="text-lg italic text-center text-gray-700 mb-4 mt-6">
+          <p className="text-center text-gray-600 mb-4">— Albert Einstein</p>
+          
+          <blockquote className="text-lg italic text-center text-gray-700 mb-3">
             "The highest use of imagination is to imagine the unimaginable."
           </blockquote>
-          <p className="text-center text-gray-600">— Cynthia Ozick</p>
-        </CardContent>
-      </Card>
-      
-      {/* Purpose */}
-      <Card className="mb-8 border-purple-200">
-        <CardHeader className="bg-purple-50">
-          <CardTitle className="text-purple-800">PURPOSE</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <p className="text-gray-700">
-            Even today, humanity still faces profound mysteries we cannot explain. When we hit the boundary of what we know, 
-            imagination allows us to ask: "What if?"
-          </p>
-          <p className="text-gray-700 mt-4">
-            This Exercise is not about answers—it's about daring to imagine beyond logic, science, or common sense. 
-            It is your opportunity to stretch your inner limits and discover what lies beyond.
-          </p>
-        </CardContent>
-      </Card>
+          <p className="text-center text-gray-600 mb-6">— Cynthia Ozick</p>
+          
+          <div className="border-t border-purple-200 pt-4">
+            <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
+            <p className="text-gray-700 mb-3">
+              Even today, humanity still faces profound mysteries we cannot explain. When we hit the boundary of what we know, 
+              imagination allows us to ask: "What if?"
+            </p>
+            <p className="text-gray-700">
+              This Exercise is not about answers—it's about daring to imagine beyond logic, science, or common sense. 
+              It is your opportunity to stretch your inner limits and discover what lies beyond.
+            </p>
+          </div>
+        </div>
+      </div>
 
       {/* Universal Mysteries Matrix */}
       <Card className="mb-8">
