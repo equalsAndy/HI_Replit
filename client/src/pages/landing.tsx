@@ -209,7 +209,7 @@ export default function Landing() {
                   </div>
                   
                   <div className="text-gray-700 leading-relaxed space-y-4">
-                    <p><strong>Develop Your Imagination</strong> as a core strategic capability.</p>
+                    <p><strong>Develop Your Imagination</strong> as a core strategic capability as a foundation for growth and change.</p>
                     <p><strong>Learn The I4C Model</strong> to enhance your curiosity, caring, creativity, and courage.</p>
                     <p><strong>Climb Ladder Of Imagination</strong> through structured visioning and creative problem-solving.</p>
                     <p><strong>Elevate Your Human-AI Collaboration Quotient</strong> (HaiQ) for the future workforce.</p>
