@@ -178,7 +178,6 @@ export default function Landing() {
                     />
                   </div>
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">AllStarTeams</h3>
                     <p className="text-lg font-semibold text-indigo-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
@@ -204,7 +203,6 @@ export default function Landing() {
                     />
                   </div>
                   <div className="text-center mb-6">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-2">Imaginal Agility</h3>
                     <p className="text-lg font-semibold text-purple-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
