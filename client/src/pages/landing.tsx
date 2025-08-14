@@ -184,11 +184,11 @@ export default function Landing() {
                   
                   <div className="text-gray-700 leading-relaxed space-y-3">
                     <ul className="space-y-2">
-                      <li>• <strong>Build Self-Awareness</strong> through Five Strengths Model: Imagining, Thinking, Planning, Acting, and Feeling.</li>
-                      <li>• <strong>Identify Flow State</strong> when performing at your peak.</li>
-                      <li>• <strong>Enhance Wellbeing</strong> by reflecting on current state and how to reach optimal one.</li>
-                      <li>• <strong>Envision Future Growth</strong> to activate deep learning and development.</li>
-                      <li>• <strong>Build Exceptional Teams</strong> by enhancing Collaboration through Strengths-Based Fusion Mapping</li>
+                      <li>• <strong>Build Self-Awareness</strong> through Five Strengths Model: Imagining, Thinking, Planning, Acting, and Feeling</li>
+                      <li>• <strong>Identify Flow State</strong> when performing at your peak</li>
+                      <li>• <strong>Enhance Wellbeing</strong> by reflecting on current state and reaching optimal performance</li>
+                      <li>• <strong>Envision Future Growth</strong> to activate deep learning and development</li>
+                      <li>• <strong>Build Exceptional Teams</strong> through Strengths-Based Fusion Mapping</li>
                       <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
                     </ul>
                   </div>
@@ -212,11 +212,11 @@ export default function Landing() {
                   
                   <div className="text-gray-700 leading-relaxed space-y-3">
                     <ul className="space-y-2">
-                      <li>• <strong>Develop your imagination</strong> on a core strategic capability</li>
-                      <li>• <strong>Learn the I4C Model</strong> to enhance your: Curiosity, Caring, Creativity, and Courage.</li>
-                      <li>• <strong>Climb Ladder of Imagination</strong></li>
-                      <li>• <strong>Elevate your Human-AI Collaboration Quotient</strong> (HaiQ)</li>
-                      <li>• <strong>Grow Return on Imagination</strong> (ROI 2.0) at Scale</li>
+                      <li>• <strong>Develop your imagination</strong> as a core strategic capability for leadership and innovation</li>
+                      <li>• <strong>Learn the I4C Model</strong> to enhance your: Curiosity, Caring, Creativity, and Courage</li>
+                      <li>• <strong>Climb Ladder of Imagination</strong> through structured visioning and creative problem-solving</li>
+                      <li>• <strong>Elevate your Human-AI Collaboration Quotient</strong> (HaiQ) for the future workforce</li>
+                      <li>• <strong>Grow Return on Imagination</strong> (ROI 2.0) at scale across teams and organizations</li>
                       <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
                     </ul>
                   </div>
