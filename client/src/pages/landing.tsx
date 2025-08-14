@@ -182,15 +182,13 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-indigo-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-3">
-                    <ul className="space-y-2">
-                      <li>• <strong>Build Self-Awareness</strong> through Five Strengths Model: Imagining, Thinking, Planning, Acting, and Feeling</li>
-                      <li>• <strong>Identify Flow State</strong> when performing at your peak</li>
-                      <li>• <strong>Enhance Wellbeing</strong> by reflecting on current state and reaching optimal performance</li>
-                      <li>• <strong>Envision Future Growth</strong> to activate deep learning and development</li>
-                      <li>• <strong>Build Exceptional Teams</strong> through Strengths-Based Fusion Mapping</li>
-                      <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
-                    </ul>
+                  <div className="text-gray-700 leading-relaxed space-y-4">
+                    <p><strong>Build Self-Awareness</strong> through five strengths model: imagining, thinking, planning, acting, and feeling.</p>
+                    <p><strong>Identify Flow State</strong> when performing at your peak and recreate it on demand.</p>
+                    <p><strong>Enhance Wellbeing</strong> by reflecting on current state and how to reach optimal one.</p>
+                    <p><strong>Envision Future Growth</strong> to activate deep learning and development.</p>
+                    <p><strong>Build Exceptional Teams</strong> through strengths-based fusion mapping and mutual understanding.</p>
+                    <p><strong>Humanistic AI</strong> provides supplementary coaching and analytics.</p>
                   </div>
                 </div>
               </div>
@@ -210,15 +208,13 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-purple-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-3">
-                    <ul className="space-y-2">
-                      <li>• <strong>Develop your imagination</strong> as a core strategic capability for leadership and innovation</li>
-                      <li>• <strong>Learn the I4C Model</strong> to enhance your: Curiosity, Caring, Creativity, and Courage</li>
-                      <li>• <strong>Climb Ladder of Imagination</strong> through structured visioning and creative problem-solving</li>
-                      <li>• <strong>Elevate your Human-AI Collaboration Quotient</strong> (HaiQ) for the future workforce</li>
-                      <li>• <strong>Grow Return on Imagination</strong> (ROI 2.0) at scale across teams and organizations</li>
-                      <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
-                    </ul>
+                  <div className="text-gray-700 leading-relaxed space-y-4">
+                    <p><strong>Develop Your Imagination</strong> as a core strategic capability.</p>
+                    <p><strong>Learn The I4C Model</strong> to enhance your curiosity, caring, creativity, and courage.</p>
+                    <p><strong>Climb Ladder Of Imagination</strong> through structured visioning and creative problem-solving.</p>
+                    <p><strong>Elevate Your Human-AI Collaboration Quotient</strong> (HaiQ) for the future workforce.</p>
+                    <p><strong>Grow Return On Imagination</strong> (ROI 2.0) at scale across teams and organizations.</p>
+                    <p><strong>Humanistic AI</strong> provides supplementary coaching and analytics.</p>
                   </div>
                 </div>
               </div>
