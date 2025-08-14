@@ -1,4 +1,19 @@
+console.log('🚀 Server startup beginning...');
+
 import "dotenv/config";
+import { config } from 'dotenv';
+import path from 'path';
+
+console.log('🔧 Loading environment config...');
+
+// Load environment-specific config
+const envFile = `.env.${process.env.NODE_ENV || 'development'}`;
+config({ path: path.join(process.cwd(), 'server', envFile) });
+
+console.log('🔧 Environment loaded:', process.env.NODE_ENV);
+console.log('🔧 Database URL exists:', !!process.env.DATABASE_URL);
+console.log('🔧 Loading express...');
+
 import express from 'express';
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
@@ -15,7 +30,7 @@ import feedbackRoutes from './routes/feedback-routes.js';
 import trainingDocumentsRoutes from './routes/training-documents-routes.js';
 import trainingRoutes from './routes/training-routes.js';
 import aiManagementRoutes from './routes/ai-management-routes.js';
-import personaManagementRoutes from './routes/persona-management-routes.js';
+// import personaManagementRoutes from './routes/persona-management-routes.js'; // Temporarily disabled - causes startup hang
 import betaTesterRoutes from './routes/beta-tester-routes.js';
 import betaTesterNotesRoutes from './routes/beta-tester-notes-routes.js';
 import metaliaRoutes from './routes/metalia-routes.js';
@@ -24,6 +39,8 @@ import adminChatRoutes from './routes/admin-chat-routes.js';
 import trainingUploadRoutes from './routes/training-upload-routes.js';
 import taliaStatusRoutes from './routes/talia-status-routes.js';
 import personaDocumentSyncRoutes from './routes/persona-document-sync-routes.js';
+import assistantTestRoutes from './routes/assistant-test-routes.js';
+import iaStepRoutes from './routes/ia-step-routes.js';
 import { initializeDatabase } from './db.js';
 import { db } from './db.js';
 import { validateFlagsOnStartup } from './middleware/validateFlags.js';
@@ -306,14 +323,23 @@ async function initializeApp() {
       
       // Database initialization
       console.log('📊 Initializing database connection...');
-      await initializeDatabase();
-      console.log('✅ Database connection successful');
+      try {
+        await initializeDatabase();
+        console.log('✅ Database connection successful');
+      } catch (dbError) {
+        console.error('❌ Database initialization failed:', dbError);
+        console.log('⚠️ Continuing without database...');
+      }
       
       // Load persona configurations from database
-      console.log('🤖 Loading persona configurations...');
-      const { loadPersonasFromDatabase } = await import('./routes/persona-management-routes.js');
-      await loadPersonasFromDatabase();
-      console.log('✅ Persona configurations loaded from database');
+      console.log('🤖 Skipping persona configurations (temporarily disabled due to startup hang)');
+      // try {
+      //   const { loadPersonasFromDatabase } = await import('./routes/persona-management-routes.js');
+      //   await loadPersonasFromDatabase();
+      //   console.log('✅ Persona configurations loaded from database');
+      // } catch (error) {
+      //   console.warn('⚠️ Persona configurations loading failed, continuing without them:', error.message);
+      // }
       
       // Feature flag validation
       console.log('🚩 Validating feature flag configuration...');
@@ -415,9 +441,11 @@ async function initializeApp() {
       app.use('/api/training-docs', trainingDocumentsRoutes);
       app.use('/api/training', trainingRoutes);
       app.use('/api/admin/ai', aiManagementRoutes);
-      app.use('/api/admin/ai', personaManagementRoutes);
+      // app.use('/api/admin/ai', personaManagementRoutes); // Temporarily disabled - causes startup hang
       app.use('/api/admin/chat', adminChatRoutes);
-      app.use('/api/admin/ai', trainingUploadRoutes);
+app.use('/api/admin/ai', trainingUploadRoutes);
+app.use('/api/admin/ai', assistantTestRoutes);
+app.use('/api', iaStepRoutes);
       app.use('/api/talia-status', taliaStatusRoutes);
       app.use('/api/admin/ai', personaDocumentSyncRoutes);
       app.use('/api/beta-tester', betaTesterRoutes);
@@ -907,7 +935,9 @@ async function initializeApp() {
       // Initialize JavaScript Vector Service for training document retrieval
       console.log('🔄 Initializing JavaScript Vector Service...');
       try {
+        console.log('⏳ Loading vector service module...');
         const { javascriptVectorService } = await import('./services/javascript-vector-service.js');
+        console.log('⏳ Starting vector service initialization...');
         await javascriptVectorService.initialize();
         console.log('✅ JavaScript Vector Service initialized');
       } catch (error) {
