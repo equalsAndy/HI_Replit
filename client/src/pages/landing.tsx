@@ -182,16 +182,15 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-indigo-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-4">
-                    <p>
-                      <strong>Discover your core strengths</strong> through the Five Strengths model: Imagining, Thinking, Planning, Acting, and Feeling.
-                    </p>
-                    <p>
-                      <strong>Master flow states</strong> - the optimal conditions where you perform at your peak and experience deep engagement.
-                    </p>
-                    <p>
-                      <strong>Build exceptional teams</strong> by mapping collective strengths and creating shared flow experiences for collaborative excellence.
-                    </p>
+                  <div className="text-gray-700 leading-relaxed space-y-3">
+                    <ul className="space-y-2">
+                      <li>• <strong>Build Self-Awareness</strong> through Five Strengths Model: Imagining, Thinking, Planning, Acting, and Feeling.</li>
+                      <li>• <strong>Identify Flow State</strong> when performing at your peak.</li>
+                      <li>• <strong>Enhance Wellbeing</strong> by reflecting on current state and how to reach optimal one.</li>
+                      <li>• <strong>Envision Future Growth</strong> to activate deep learning and development.</li>
+                      <li>• <strong>Build Exceptional Teams</strong> by enhancing Collaboration through Strengths-Based Fusion Mapping</li>
+                      <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
+                    </ul>
                   </div>
                 </div>
               </div>
@@ -211,16 +210,15 @@ export default function Landing() {
                     <p className="text-lg font-semibold text-purple-600 mb-4">Individual & Team Workshop</p>
                   </div>
                   
-                  <div className="text-gray-700 leading-relaxed space-y-4">
-                    <p>
-                      <strong>Develop your imagination</strong> as the central force that amplifies the 4Cs: Curiosity, Caring, Creativity, and Courage.
-                    </p>
-                    <p>
-                      <strong>Master Human-AI collaboration</strong> using the I4C framework to understand your unique human capabilities and work optimally with AI.
-                    </p>
-                    <p>
-                      <strong>Lead with imagination</strong> by applying imaginative leadership principles in team settings and AI integration strategies.
-                    </p>
+                  <div className="text-gray-700 leading-relaxed space-y-3">
+                    <ul className="space-y-2">
+                      <li>• <strong>Develop your imagination</strong> on a core strategic capability</li>
+                      <li>• <strong>Learn the I4C Model</strong> to enhance your: Curiosity, Caring, Creativity, and Courage.</li>
+                      <li>• <strong>Climb Ladder of Imagination</strong></li>
+                      <li>• <strong>Elevate your Human-AI Collaboration Quotient</strong> (HaiQ)</li>
+                      <li>• <strong>Grow Return on Imagination</strong> (ROI 2.0) at Scale</li>
+                      <li>• <strong>Humanistic AI</strong> provides supplementary coaching and analytics</li>
+                    </ul>
                   </div>
                 </div>
               </div>
