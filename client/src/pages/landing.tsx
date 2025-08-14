@@ -212,7 +212,7 @@ export default function Landing() {
                     <p><strong>Develop Your Imagination</strong> as a core strategic capability as a foundation for growth and change.</p>
                     <p><strong>Learn The I4C Model</strong> to enhance your curiosity, caring, creativity, and courage.</p>
                     <p><strong>Climb Ladder Of Imagination</strong> through structured visioning and creative problem-solving.</p>
-                    <p><strong>Elevate Your Human-AI Collaboration Quotient</strong> (HaiQ) for the future workforce.</p>
+                    <p><strong>Elevate Your HaiQ</strong> (Human-AI Collaboration Quotient) for the future workforce.</p>
                     <p><strong>Grow Return On Imagination</strong> (ROI 2.0) at scale across teams and organizations.</p>
                     <p><strong>Humanistic AI</strong> provides supplementary coaching and analytics.</p>
                   </div>
