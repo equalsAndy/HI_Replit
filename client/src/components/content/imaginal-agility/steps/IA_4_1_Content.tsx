@@ -55,13 +55,13 @@ const IA_4_1_Content: React.FC<IA_4_1_ContentProps> = ({ onNext }) => {
         <div className="text-center">
           <h3 className="text-xl font-semibold text-purple-800 mb-6">🔝 Advanced Ladder of Imagination</h3>
           <img 
-            src="/assets/Ladder2_solo.png" 
-            alt="Advanced Ladder of Imagination - Five advanced modes of imaginative practice"
+            src="/assets/ADV_AllRungs.png" 
+            alt="Advanced Ladder of Imagination - Five advanced rungs for sophisticated imaginative practice"
             className="w-full h-auto max-w-2xl mx-auto mb-6"
             style={{ maxHeight: '500px', objectFit: 'contain' }}
-            onLoad={() => console.log('✅ Advanced Ladder graphic loaded successfully')}
+            onLoad={() => console.log('✅ ADV_AllRungs graphic loaded successfully')}
             onError={(e) => {
-              console.error('❌ Failed to load Advanced Ladder graphic');
+              console.error('❌ Failed to load ADV_AllRungs graphic');
               console.log('Image src:', e.currentTarget.src);
               console.log('Full URL attempted:', window.location.origin + e.currentTarget.src);
             }}

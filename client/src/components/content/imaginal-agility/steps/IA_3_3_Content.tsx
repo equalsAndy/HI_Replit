@@ -248,14 +248,6 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
         Visualizing Your Potential
       </h1>
       
-      {/* Purpose Section */}
-      <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 mb-8 border border-purple-200">
-        <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
-        <p className="text-gray-700 leading-relaxed">
-          This exercise develops your capacity for symbolic visualization and inner potential recognition. You'll select or upload an image that represents an underused quality within you, then reflect on what it reveals about your creative potential.
-        </p>
-      </div>
-
       {/* Video Section */}
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
         <VideoPlayer
@@ -266,6 +258,34 @@ const IA_3_3_Content: React.FC<IA33ContentProps> = ({ onNext }) => {
           autoplay={false}
           className="w-full max-w-2xl mx-auto"
         />
+      </div>
+
+      {/* Rung 2 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Rung 2 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/Rung2.png" 
+              alt="Rung 2: Visualizing Your Potential"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ Rung 2 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load Rung 2 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-6 border border-purple-200">
+          <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
+          <p className="text-gray-700 leading-relaxed">
+            This exercise develops your capacity for symbolic visualization and inner potential recognition. You'll select or upload an image that represents an underused quality within you, then reflect on what it reveals about your creative potential.
+          </p>
+        </div>
       </div>
       
       {/* Upload or Choose an Image Card */}

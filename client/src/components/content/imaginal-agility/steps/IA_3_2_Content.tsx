@@ -103,19 +103,39 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
           className="w-full max-w-2xl mx-auto"
         />
       </div>
-      
-      {/* Purpose Card */}
-      <Card className="mb-8 border-purple-200">
-        <CardHeader className="bg-purple-50">
-          <CardTitle className="text-purple-800">PURPOSE</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <p className="text-gray-700">
-            This exercise develops awareness of Autoflow. This is the first rung on the Ladder of Imagination — 
-            a foundation for developing Imaginal Agility.
-          </p>
-        </CardContent>
-      </Card>
+
+      {/* Rung 1 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* Rung 1 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/Rung1.png" 
+              alt="Rung 1: Autoflow"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ Rung 1 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load Rung 1 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose Card */}
+        <Card className="border-purple-200">
+          <CardHeader className="bg-purple-50">
+            <CardTitle className="text-purple-800">PURPOSE</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <p className="text-gray-700">
+              This exercise develops awareness of Autoflow. This is the first rung on the Ladder of Imagination — 
+              a foundation for developing Imaginal Agility.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
       {/* Activity Section */}
       <Card className="mb-8">
@@ -125,72 +145,54 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
         <CardContent className="space-y-6">
           
           {/* Step 1: Center */}
-          <div className={`p-4 rounded-lg border-2 ${currentStep >= 1 ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
             <h3 className="font-semibold text-purple-700 mb-3">Step 1: Center</h3>
             <ul className="list-disc pl-6 space-y-1 text-gray-700">
               <li>Sit comfortably, feet on the floor, and close your eyes.</li>
               <li>Take three deep breaths, slowly inhale and exhale.</li>
             </ul>
-            {currentStep === 1 && (
-              <Button 
-                onClick={() => setCurrentStep(2)}
-                className="mt-4 bg-purple-600 hover:bg-purple-700"
-              >
-                Continue to Step 2
-              </Button>
-            )}
           </div>
 
           {/* Step 2: Observe */}
-          <div className={`p-4 rounded-lg border-2 ${currentStep >= 2 ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
             <h3 className="font-semibold text-purple-700 mb-3">Step 2: Observe</h3>
             <ul className="list-disc pl-6 space-y-1 text-gray-700">
               <li>Allow yourself to feel present in your body.</li>
               <li>Simply observe your passing thoughts and images.</li>
             </ul>
-            {currentStep === 2 && (
-              <Button 
-                onClick={() => setCurrentStep(3)}
-                className="mt-4 bg-purple-600 hover:bg-purple-700"
-              >
-                Continue to Step 3
-              </Button>
-            )}
           </div>
 
           {/* Step 3: Record */}
-          <div className={`p-4 rounded-lg border-2 ${currentStep >= 3 ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
+          <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
             <h3 className="font-semibold text-purple-700 mb-3">Step 3: Record</h3>
             <p className="text-gray-700 mb-4">
               Now note one word and/or image that comes to mind. Share on Moment Capture Template:
             </p>
-            {currentStep >= 3 && (
-              <div className="space-y-4">
-                <Textarea
-                  placeholder="Describe the word or image that came to mind..."
-                  value={momentText}
-                  onChange={(e) => setMomentText(e.target.value)}
-                  className="min-h-[100px]"
-                />
-                {momentText.trim() && (
-                  <Button 
-                    onClick={() => setCurrentStep(4)}
-                    className="bg-purple-600 hover:bg-purple-700"
-                  >
-                    Continue to Step 4
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="space-y-4">
+              <Textarea
+                placeholder="Describe the word or image that came to mind..."
+                value={momentText}
+                onChange={(e) => setMomentText(e.target.value)}
+                className="min-h-[100px]"
+              />
+              {momentText.trim() && (
+                <Button 
+                  onClick={() => setCurrentStep(4)}
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  Continue to Step 4
+                </Button>
+              )}
+            </div>
           </div>
 
-          {/* Step 4: Tag It */}
-          <div className={`p-4 rounded-lg border-2 ${currentStep >= 4 ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-            <h3 className="font-semibold text-purple-700 mb-3">Step 4: Tag It</h3>
-            <p className="text-gray-700 mb-4">
-              What feeling or theme fits best? Select one:
-            </p>
-            {currentStep >= 4 && (
+          {/* Step 4: Tag It - Only show when active */}
+          {currentStep >= 4 && (
+            <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
+              <h3 className="font-semibold text-purple-700 mb-3">Step 4: Tag It</h3>
+              <p className="text-gray-700 mb-4">
+                What feeling or theme fits best? Select one:
+              </p>
               <div className="space-y-4">
                 <RadioGroup value={selectedTag} onValueChange={setSelectedTag}>
                   <div className="grid grid-cols-2 gap-2">
@@ -214,16 +216,16 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                   </Button>
                 )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
-          {/* Step 5: Save to Timeline */}
-          <div className={`p-4 rounded-lg border-2 ${currentStep >= 5 ? 'border-purple-300 bg-purple-50' : 'border-gray-200 bg-gray-50'}`}>
-            <h3 className="font-semibold text-purple-700 mb-3">Step 5: Save to Timeline</h3>
-            <p className="text-gray-700 mb-4">
-              This is your first data point. You'll revisit your timeline later.
-            </p>
-            {currentStep >= 5 && (
+          {/* Step 5: Save to Timeline - Only show when active */}
+          {currentStep >= 5 && (
+            <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
+              <h3 className="font-semibold text-purple-700 mb-3">Step 5: Save to Timeline</h3>
+              <p className="text-gray-700 mb-4">
+                This is your first data point. You'll revisit your timeline later.
+              </p>
               <div className="space-y-4">
                 <div className="bg-white p-4 rounded border border-gray-200">
                   <h4 className="font-medium text-gray-800 mb-2">Your Moment:</h4>
@@ -246,8 +248,8 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                   </Button>
                 </div>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -292,7 +294,12 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
           )}
           <Button 
             onClick={() => onNext && onNext('ia-3-3')}
-            className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
+            disabled={savedMoments.length === 0}
+            className={`px-8 py-3 text-lg ${
+              savedMoments.length === 0 
+                ? 'bg-gray-400 cursor-not-allowed text-gray-200' 
+                : 'bg-purple-600 hover:bg-purple-700 text-white'
+            }`}
           >
             Continue to Visualizing Your Potential
           </Button>

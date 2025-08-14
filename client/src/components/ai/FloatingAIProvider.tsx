@@ -111,14 +111,15 @@ export const FloatingAIProvider: React.FC<FloatingAIProviderProps> = ({
   return (
     <FloatingAIContext.Provider value={contextValue}>
       {children}
-      {shouldShowTrigger && (
+      {/* Talia FAB temporarily hidden - comment out to re-enable */}
+      {/* {shouldShowTrigger && (
         <FloatingAITrigger
           currentStep={currentStep}
           workshopType={workshopType}
           aiEnabled={context.aiEnabled}
           context={context}
         />
-      )}
+      )} */}
     </FloatingAIContext.Provider>
   );
 };

@@ -78,23 +78,43 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
         Autoflow Mindful Prompts
       </h1>
       
+      {/* ADV Rung 1 Graphic and Purpose Side by Side */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        {/* ADV Rung 1 Graphic */}
+        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+          <div className="flex justify-center">
+            <img 
+              src="/assets/ADV_Rung1.png" 
+              alt="Advanced Rung 1: Meta-Awareness"
+              className="w-full h-auto max-w-md mx-auto"
+              style={{ maxHeight: '400px', objectFit: 'contain' }}
+              onLoad={() => console.log('✅ ADV Rung 1 graphic loaded successfully')}
+              onError={(e) => {
+                console.error('❌ Failed to load ADV Rung 1 graphic');
+                console.log('Image src:', e.currentTarget.src);
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Purpose Section */}
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-xl p-6 border border-purple-200">
+          <h2 className="text-lg font-semibold text-purple-800 mb-3">PURPOSE</h2>
+          <p className="text-gray-700 leading-relaxed mb-4">
+            This exercise strengthens your capacity for meta-awareness. It builds directly on Autoflow by asking you to notice and 
+            disrupt habitual thought loops—especially in work-related situations—using a simple, interactive prompt.
+          </p>
+          <div className="bg-purple-100 border border-purple-300 rounded-lg p-4">
+            <p className="text-lg font-medium text-purple-800 text-center">
+              From Autoflow to Meta-Awareness: Reveal and reframe your thinking.
+            </p>
+          </div>
+        </div>
+      </div>
+      
       {/* Content Card */}
       <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
         <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
-          <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-6 border border-purple-200">
-            <h3 className="text-xl font-semibold text-purple-800 mb-4">From Autoflow to Meta-Awareness</h3>
-            <p className="text-lg text-purple-700">
-              Reveal and reframe your thinking.
-            </p>
-          </div>
-          
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h4 className="text-lg font-semibold text-yellow-800 mb-3">🎯 PURPOSE</h4>
-            <p className="text-yellow-700">
-              This exercise strengthens your capacity for meta-awareness. It builds directly on Autoflow by asking you to notice and 
-              disrupt habitual thought loops—especially in work-related situations—using a simple, interactive prompt.
-            </p>
-          </div>
           
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
             <h4 className="text-lg font-semibold text-blue-800 mb-4">📋 ACTIVITY</h4>
