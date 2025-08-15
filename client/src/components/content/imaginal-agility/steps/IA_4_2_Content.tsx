@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { FileText } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { IAChatModal } from '../IAChatModal';
 
 interface IA_4_2_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -21,6 +22,7 @@ interface IA42StepData {
 
 const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const [isChatOpen, setIsChatOpen] = useState(false);
   
   // Initialize with empty data structure
   const initialData: IA42StepData = {
@@ -124,7 +126,7 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
               <div className="border-l-4 border-purple-500 pl-4">
                 <h5 className="font-semibold text-gray-800 mb-2">Step 1: Notice the Loop</h5>
                 <p className="text-gray-700 mb-3">
-                  Bring to mind a current work challenge. Now, notice a reactive thought or recurring narrative you associate with it.
+                  Bring to mind a current work challenge. Now, notice a reactive thought or recurring narrative you associate with it. <span className="italic text-gray-600">This will not be shared with others.</span>
                 </p>
                 <Textarea
                   placeholder="Describe your work challenge and the reactive thought pattern..."
@@ -138,15 +140,19 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
               <div className="border-l-4 border-purple-500 pl-4">
                 <h5 className="font-semibold text-gray-800 mb-2">Step 2: Prompt the Pattern</h5>
                 <p className="text-gray-700 mb-3">
-                  Ask AI: "What's one way to reframe this thought or response?"<br/>
-                  <span className="text-sm text-gray-600">(Use our built-in prompt tool or your preferred AI agent.)</span>
+                  Ask AI: "What's one way to reframe this thought or response?"
                 </p>
-                <Textarea
-                  placeholder="Paste the AI's response here..."
-                  value={data.aiResponse}
-                  onChange={(e) => updateData({ aiResponse: e.target.value })}
-                  className="w-full h-20"
-                />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsChatOpen(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 flex items-center gap-2"
+                    disabled={!data.challenge.trim()}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Launch AI
+                  </Button>
+                  {/* Prompt is prefilled in the chat modal; you can edit it before sending */}
+                </div>
               </div>
               
               {/* Step 3 */}
@@ -254,6 +260,19 @@ const IA_4_2_Content: React.FC<IA_4_2_ContentProps> = ({ onNext }) => {
           {saving ? 'Saving...' : 'Continue to Visualization Stretch'}
         </Button>
       </div>
+
+      {/* IA Chat Modal */}
+      <IAChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        stepId="ia-4-2"
+        contextData={{
+          challenge: data.challenge,
+          stepName: "Autoflow Mindful Prompts",
+          purpose: "meta-awareness and reframing reactive thought patterns"
+        }}
+        onResponseReceived={(response) => updateData({ aiResponse: response })}
+      />
     </div>
   );
 };

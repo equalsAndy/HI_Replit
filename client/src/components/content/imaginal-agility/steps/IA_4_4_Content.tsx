@@ -3,9 +3,11 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { FileText } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useHigherPurposeData } from '@/hooks/usePreviousExerciseData';
+import { IAChatModal } from '../IAChatModal';
 
 interface IA_4_4_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -23,6 +25,10 @@ interface IA44StepData {
 
 const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Fetch higher purpose data from previous exercises
+  const { data: higherPurposeData } = useHigherPurposeData();
   
   // Initialize with empty data structure
   const initialData: IA44StepData = {
@@ -142,11 +148,28 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
               {/* Step 1 */}
               <div className="border-l-4 border-purple-500 pl-4">
                 <h5 className="font-semibold text-gray-800 mb-2">Step 1: Recall Your Higher Purpose</h5>
-                <p className="text-gray-700 mb-3">
-                  What core intention did you uncover earlier? Write it in your own words.
-                </p>
+                {higherPurposeData?.purpose ? (
+                  <div className="mb-3">
+                    <p className="text-gray-700 mb-2">
+                      In <strong>From Insight to Intention</strong> you reflected on your purpose. You said:
+                    </p>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3">
+                      <p className="text-purple-800 italic">"{higherPurposeData.purpose}"</p>
+                      <p className="text-sm text-purple-600 mt-2">Source: {higherPurposeData.source}</p>
+                    </div>
+                    <p className="text-gray-700 mb-3">
+                      Now write your core intention in your own words for this exercise:
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-700 mb-3">
+                    What core intention did you uncover earlier? Write it in your own words.
+                  </p>
+                )}
                 <Textarea
-                  placeholder="Describe your higher purpose or core intention..."
+                  placeholder={higherPurposeData?.purpose 
+                    ? "Refine your higher purpose based on the reflection above..." 
+                    : "Describe your higher purpose or core intention..."}
                   value={higherPurpose}
                   onChange={(e) => updateData({ higherPurpose: e.target.value })}
                   className="w-full h-20"
@@ -186,12 +209,19 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
                   Use this built-in prompt: "Offer three unconventional or overlooked perspectives on this challenge—and what it 
                   might need most from someone like me."
                 </p>
-                <Textarea
-                  placeholder="Paste the AI's three perspectives here..."
-                  value={aiPerspectives}
-                  onChange={(e) => updateData({ aiPerspectives: e.target.value })}
-                  className="w-full h-24"
-                />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsChatOpen(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 flex items-center gap-2"
+                    disabled={!higherPurpose.trim() || !selectedChallenge}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Launch AI
+                  </Button>
+                  <span className="text-sm text-gray-500 self-center">
+                    {!higherPurpose.trim() || !selectedChallenge ? 'Complete Steps 1-2 first' : 'Get AI perspectives on global challenge'}
+                  </span>
+                </div>
               </div>
               
               {/* Step 4 */}
@@ -279,6 +309,21 @@ const IA_4_4_Content: React.FC<IA_4_4_ContentProps> = ({ onNext }) => {
           Continue to Inspiration Support
         </Button>
       </div>
+
+      {/* IA Chat Modal */}
+      <IAChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        stepId="ia-4-4"
+        contextData={{
+          purposeSentence: higherPurpose,
+          higherPurpose,
+          selectedChallenge,
+          stepName: "Higher Purpose Uplift",
+          purpose: "global moral imagination and connecting personal purpose to world challenges"
+        }}
+        onResponseReceived={(response) => updateData({ aiPerspectives: response })}
+      />
     </div>
   );
 };

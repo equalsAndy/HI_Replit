@@ -19,7 +19,6 @@ const IA_5_1_Content: React.FC<IA51ContentProps> = ({ onNext }) => {
           workshopType="ia"
           stepId="ia-5-1"
           title="Outcomes and Benefits Overview"
-          forceUrl="https://youtu.be/8URE4ruMkYs"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"

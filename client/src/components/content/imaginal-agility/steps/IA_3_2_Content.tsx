@@ -97,7 +97,6 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
           workshopType="ia"
           stepId="ia-3-2"
           title="Autoflow Practice"
-          forceUrl="https://youtu.be/nY7XqMOkz_k"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"

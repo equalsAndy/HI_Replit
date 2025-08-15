@@ -310,7 +310,6 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
           workshopType="ia"
           stepId="ia-3-5"
           title="IA Solo Inspiration"
-          forceUrl="https://youtu.be/vGIYaL7jTJo"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"

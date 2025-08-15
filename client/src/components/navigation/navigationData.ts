@@ -212,17 +212,17 @@ export const imaginalAgilityNavigationSections: IANavigationSection[] = [
   {
     id: '7',
     title: 'TEAM LADDER OF IMAGINATION',
-    expanded: false, // Default collapsed
+    expanded: false, // Expanded only after ia-4-6 completion
     steps: [
       { 
         id: 'ia-7-1', 
-        title: 'Team Ladder Overview', 
+        title: 'Welcome', 
         type: 'video',
         contentKey: 'ia-7-1'
       },
       { 
         id: 'ia-7-2', 
-        title: 'Whiteboard Link', 
+        title: 'Team Whiteboard Workspace', 
         type: 'interactive',
         contentKey: 'ia-7-2'
       }

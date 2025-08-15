@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { FileText } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useVisualizationData } from '@/hooks/usePreviousExerciseData';
+import { IAChatModal } from '../IAChatModal';
 
 interface IA_4_3_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -22,6 +24,10 @@ interface IA43StepData {
 
 const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Fetch visualization data from IA-3-3
+  const { data: visualizationData } = useVisualizationData();
   
   // Initialize with empty data structure
   const initialData: IA43StepData = {
@@ -125,11 +131,30 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
               {/* Step 1 */}
               <div className="border-l-4 border-purple-500 pl-4">
                 <h5 className="font-semibold text-gray-800 mb-2">Step 1: Name the Frame</h5>
-                <p className="text-gray-700 mb-3">
-                  Recall the visualization you formed earlier. Summarize it in a single sentence.
-                </p>
+                {visualizationData?.reflection ? (
+                  <div className="mb-3">
+                    <p className="text-gray-700 mb-2">
+                      In <strong>Visualizing your Potential</strong> "Describe Your Inner Potential: What does this image reveal about a part of you that wants expression or strength?" you said:
+                    </p>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3">
+                      <p className="text-purple-800 italic">"{visualizationData.reflection}"</p>
+                      {visualizationData.imageTitle && (
+                        <p className="text-sm text-purple-600 mt-2">Image title: {visualizationData.imageTitle}</p>
+                      )}
+                    </div>
+                    <p className="text-gray-700 mb-3">
+                      Now summarize this visualization in a single sentence for the next exercise:
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-700 mb-3">
+                    Recall the visualization you formed earlier. Summarize it in a single sentence.
+                  </p>
+                )}
                 <Textarea
-                  placeholder="Summarize your earlier visualization in one sentence..."
+                  placeholder={visualizationData?.reflection 
+                    ? "Summarize your visualization reflection in one sentence..." 
+                    : "Summarize your earlier visualization in one sentence..."}
                   value={data.currentFrame}
                   onChange={(e) => updateData({ currentFrame: e.target.value })}
                   className="w-full h-20"
@@ -142,12 +167,19 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
                 <p className="text-gray-700 mb-3">
                   Ask: "What's one possibility I haven't considered that would expand this pattern or move it to the next level?"
                 </p>
-                <Textarea
-                  placeholder="Paste the AI's stretching suggestion here..."
-                  value={data.aiStretch}
-                  onChange={(e) => updateData({ aiStretch: e.target.value })}
-                  className="w-full h-24"
-                />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsChatOpen(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 flex items-center gap-2"
+                    disabled={!data.currentFrame.trim()}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Launch AI
+                  </Button>
+                  <span className="text-sm text-gray-500 self-center">
+                    {!data.currentFrame.trim() ? 'Complete Step 1 first' : 'Get AI help with visualization stretching'}
+                  </span>
+                </div>
               </div>
               
               {/* Step 3 */}
@@ -252,6 +284,21 @@ const IA_4_3_Content: React.FC<IA_4_3_ContentProps> = ({ onNext }) => {
           {saving ? 'Saving...' : 'Continue to Higher Purpose Uplift'}
         </Button>
       </div>
+
+      {/* IA Chat Modal */}
+      <IAChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        stepId="ia-4-3"
+        contextData={{
+          visualizationSentence: data.currentFrame,
+          currentFrame: data.currentFrame,
+          previousText: visualizationData?.reflection || '',
+          stepName: "Visualization Stretch",
+          purpose: "perceptual expansion and stretching beyond current assumptions"
+        }}
+        onResponseReceived={(response) => updateData({ aiStretch: response })}
+      />
     </div>
   );
 };

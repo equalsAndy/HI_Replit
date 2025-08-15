@@ -19,7 +19,6 @@ const IA_1_2_Content: React.FC<IA12ContentProps> = ({ onNext }) => {
           workshopType="ia"
           stepId="ia-1-2"
           title="AI's 4X Mental Challenge"
-          forceUrl="https://youtu.be/ceER5Wq_zfU"
           aspectRatio="16:9"
           autoplay={true}
           className="w-full max-w-2xl mx-auto"
