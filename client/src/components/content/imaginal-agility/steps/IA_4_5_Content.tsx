@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FileText } from 'lucide-react';
+import { FileText, Sparkles } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
+import { useInterludeData } from '@/hooks/usePreviousExerciseData';
+import { IAChatModal } from '../IAChatModal';
 
 interface IA_4_5_ContentProps {
   onNext?: (nextStepId: string) => void;
@@ -19,6 +21,10 @@ interface IA45StepData {
 
 const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
   const { shouldShowDemoButtons } = useTestUser();
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  
+  // Fetch interlude/inspiration data from previous exercises
+  const { data: interludeData } = useInterludeData();
   
   // Initialize with empty data structure
   const initialData: IA45StepData = {
@@ -120,12 +126,32 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
               {/* Step 1 */}
               <div className="border-l-4 border-purple-500 pl-4">
                 <h5 className="font-semibold text-gray-800 mb-2">Step 1: Revisit Your Interlude Cluster</h5>
-                <p className="text-gray-700 mb-3">
-                  Look back at your three Interludes from earlier. What patterns did you notice? What do they reveal about how 
-                  inspiration lives in you?
-                </p>
+                {interludeData?.patterns && interludeData.patterns.length > 0 ? (
+                  <div className="mb-3">
+                    <p className="text-gray-700 mb-2">
+                      From your earlier exercises, you captured these inspiration moments:
+                    </p>
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mb-3 space-y-2">
+                      {interludeData.patterns.map((pattern, index) => (
+                        <p key={index} className="text-purple-800 italic">
+                          "• {pattern}"
+                        </p>
+                      ))}
+                    </div>
+                    <p className="text-gray-700 mb-3">
+                      What patterns do you notice across these moments? What do they reveal about how inspiration lives in you?
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-gray-700 mb-3">
+                    Look back at your three Interludes from earlier. What patterns did you notice? What do they reveal about how 
+                    inspiration lives in you?
+                  </p>
+                )}
                 <Textarea
-                  placeholder="Describe the patterns you noticed in your inspiration moments..."
+                  placeholder={interludeData?.patterns && interludeData.patterns.length > 0 
+                    ? "Describe the patterns you notice across these inspiration moments..." 
+                    : "Describe the patterns you noticed in your inspiration moments..."}
                   value={data.interludePatterns}
                   onChange={(e) => updateData({ interludePatterns: e.target.value })}
                   className="w-full h-24"
@@ -148,12 +174,19 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
                     "If a Muse visited me now—based on my interludes, purpose, and path—what form might it take? What might it want to say?"
                   </p>
                 </div>
-                <Textarea
-                  placeholder="Paste the AI's description of your Muse here..."
-                  value={data.musePrompt}
-                  onChange={(e) => updateData({ musePrompt: e.target.value })}
-                  className="w-full h-24"
-                />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={() => setIsChatOpen(true)}
+                    className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 flex items-center gap-2"
+                    disabled={!data.interludePatterns.trim()}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Launch AI
+                  </Button>
+                  <span className="text-sm text-gray-500 self-center">
+                    {!data.interludePatterns.trim() ? 'Complete Step 1 first' : 'Get AI help connecting with your Muse'}
+                  </span>
+                </div>
               </div>
               
               {/* Step 3 */}
@@ -240,6 +273,19 @@ const IA_4_5_Content: React.FC<IA_4_5_ContentProps> = ({ onNext }) => {
           {saving ? 'Saving...' : 'Continue to Nothing is Unimaginable'}
         </Button>
       </div>
+
+      {/* IA Chat Modal */}
+      <IAChatModal
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        stepId="ia-4-5"
+        contextData={{
+          interludePatterns: data.interludePatterns,
+          stepName: "Inspiration Support",
+          purpose: "muse collaboration and deepening relationship with creative source"
+        }}
+        onResponseReceived={(response) => updateData({ musePrompt: response })}
+      />
     </div>
   );
 };

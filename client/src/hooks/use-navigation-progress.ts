@@ -127,19 +127,40 @@ const calculateUnlockedSteps = (completedSteps: string[], appType: 'ast' | 'ia' 
       'ia-5-1', 'ia-5-2', 'ia-5-3', 'ia-5-4', 'ia-5-5',
       // Quarterly Tune-Up
       'ia-6-1', 'ia-6-2',
-      // More Info
+      // Team Ladder (Available for review)
       'ia-7-1', 'ia-7-2'
     ];
     const unlocked = ['ia-1-1']; // First step always unlocked
 
-    // Linear progression through IA sequence
-    for (let i = 0; i < iaSequence.length - 1; i++) {
-      const currentStep = iaSequence[i];
-      const nextStep = iaSequence[i + 1];
+    // Linear progression through main IA sequence (excluding Team Ladder)
+    const mainSequence = iaSequence.slice(0, -2); // Remove ia-7-1 and ia-7-2 from main sequence
+    
+    for (let i = 0; i < mainSequence.length - 1; i++) {
+      const currentStep = mainSequence[i];
+      const nextStep = mainSequence[i + 1];
 
       if (completedSteps.includes(currentStep) && !unlocked.includes(nextStep)) {
         unlocked.push(nextStep);
         console.log(`📝 IA MODE: Step ${currentStep} completed → unlocked ${nextStep}`);
+      }
+    }
+    
+    // Special unlock: ia-4-6 completion unlocks Outcomes & Benefits and Team Ladder
+    if (completedSteps.includes('ia-4-6')) {
+      // Unlock Outcomes & Benefits section
+      if (!unlocked.includes('ia-5-1')) {
+        unlocked.push('ia-5-1');
+        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-5-1 (Outcomes & Benefits Overview)`);
+      }
+      
+      // Unlock Team Ladder section
+      if (!unlocked.includes('ia-7-1')) {
+        unlocked.push('ia-7-1');
+        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-7-1 (Team Ladder Welcome)`);
+      }
+      if (!unlocked.includes('ia-7-2')) {
+        unlocked.push('ia-7-2');
+        console.log(`🎯 IA MODE: Step ia-4-6 completed → unlocked ia-7-2 (Team Whiteboard Workspace)`);
       }
     }
 
@@ -204,8 +225,15 @@ const calculateSectionExpansion = (currentStepId: string, completedSteps: string
       '4': true,  // Advanced Ladder - expanded initially
       '5': false, // Outcomes & Benefits
       '6': false, // Quarterly Tune-up
-      '7': false  // Additional Info
+      '7': false  // Team Ladder - only expanded after ia-4-6 completion
     };
+    
+    // Special unlock: ia-4-6 completion unlocks Outcomes & Benefits and Team Ladder sections
+    if (completedSteps.includes('ia-4-6')) {
+      expansion['5'] = true;
+      expansion['7'] = true;
+      console.log(`🎯 IA MODE: ia-4-6 completed → expanded Outcomes & Benefits section 5 and Team Ladder section 7`);
+    }
     
     // KAN-112: Workshop completion unlocks sections 5, 6, 7 permanently
     if (workshopCompleted) {

@@ -19,7 +19,6 @@ const IA_2_1_Content: React.FC<IA21ContentProps> = ({ onNext }) => {
           workshopType="ia"
           stepId="ia-2-1"
           title="The I4C Prism Model"
-          forceUrl="https://youtu.be/ILCq73dTuzk"
           aspectRatio="16:9"
           autoplay={false}
           className="w-full max-w-2xl mx-auto"

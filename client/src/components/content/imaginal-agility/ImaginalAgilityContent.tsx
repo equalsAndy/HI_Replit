@@ -41,20 +41,14 @@ const ImaginalAgilityAssessmentContent: React.FC<{ onOpenAssessment?: () => void
       <div className="mb-8">
         {/* Video Section */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
-          <div className="flex justify-center mb-4">
-            <div className="w-full max-w-2xl">
-              <div className="relative w-full" style={{ aspectRatio: '16/9' }}>
-                <iframe 
-                  src="https://www.youtube.com/embed/Xdn8lkSzTZU" 
-                  title="Self-Assessment" 
-                  frameBorder="0" 
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                  allowFullScreen
-                  className="absolute inset-0 w-full h-full rounded-lg shadow-md"
-                ></iframe>
-              </div>
-            </div>
-          </div>
+          <VideoPlayer
+            workshopType="ia"
+            stepId="ia-4-1"
+            title="Self-Assessment"
+            aspectRatio="16:9"
+            autoplay={false}
+            className="w-full max-w-2xl mx-auto"
+          />
         </div>
       </div>
       
@@ -289,10 +283,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             {/* Video Section using VideoPlayer component */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
               <VideoPlayer
-                workshopType="imaginal-agility"
+                workshopType="ia"
                 stepId="ia-1-1"
                 title="Welcome to Imaginal Agility"
-                forceUrl="https://youtu.be/ScQ7JqLOOVY"
                 aspectRatio="16:9"
                 autoplay={true}
                 className="w-full max-w-2xl mx-auto"
@@ -318,7 +311,9 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
                   It's the first step in building Imaginal Agility — a skillset for navigating change, solving problems, and creating value.
                 </p>
                 <p className="text-xl font-semibold text-purple-600 mt-8">
-                  You're not just learning about imagination. You're harnessing it
+                  Team Option<br/>
+                  This Micro Course is a starting point to discover your own powers of imagination. You'll then be ready for learning how a team can amplify this power to the Nth Degree!<br/><br/>
+                  Just Imagine!
                 </p>
               </div>
             </div>
@@ -383,17 +378,16 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
         return (
           <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-3xl font-bold text-purple-700 mb-8">
-              Team Ladder Overview
+              Welcome
             </h1>
             {/* Video Section using VideoPlayer component */}
             <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-gray-200">
               <VideoPlayer
-                workshopType="imaginal-agility"
+                workshopType="ia"
                 stepId="ia-7-1"
-                title="Team Ladder Overview"
-                forceUrl="https://youtu.be/ScQ7JqLOOVY"
+                title="Welcome"
                 aspectRatio="16:9"
-                autoplay={true}
+                autoplay={false}
                 className="w-full max-w-2xl mx-auto"
               />
             </div>
@@ -401,10 +395,31 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
               <div className="prose prose-lg max-w-none text-gray-800 space-y-6">
                 <p className="text-lg leading-relaxed">
-                  Team-based imagination development using the Ladder of Imagination framework.
+                  This page activates the final part of your journey — where your personal growth becomes shared intelligence.
                 </p>
+                
+                <p className="text-lg leading-relaxed font-medium">
+                  As a team, you'll climb five steps:
+                </p>
+                
+                <ul className="list-disc pl-6 space-y-2 text-lg">
+                  <li>Express what you're sensing</li>
+                  <li>Visualize what's possible</li>
+                  <li>Align around shared purpose</li>
+                  <li>Surface hidden energetic patterns</li>
+                  <li>Co-create practices that shape the future</li>
+                </ul>
+                
                 <p className="text-lg leading-relaxed">
-                  This section introduces collaborative practices for teams to develop their collective imaginative capacity.
+                  Use images, metaphors, and insights. Let AI assist when needed. Move at your own pace — together.
+                </p>
+                
+                <p className="text-lg leading-relaxed font-medium">
+                  This is not a test. It's a tool for real collaboration.
+                </p>
+                
+                <p className="text-lg leading-relaxed">
+                  When you're ready, begin the first rung.
                 </p>
               </div>
             </div>
@@ -413,7 +428,7 @@ const ImaginalAgilityContent: React.FC<ImaginalAgilityContentProps> = ({ stepId,
                 onClick={() => onNext && onNext('ia-7-2')}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3 text-lg"
               >
-                Continue to Team Workspace
+                Begin the First Rung
               </Button>
             </div>
           </div>
