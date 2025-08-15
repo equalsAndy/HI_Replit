@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { FileText } from 'lucide-react';
+import { FileText, X } from 'lucide-react';
 import { useTestUser } from '@/hooks/useTestUser';
 import { useWorkshopStepData } from '@/hooks/useWorkshopStepData';
 
@@ -58,6 +58,12 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
       setSelectedTag('');
       setCurrentStep(1); // Reset to beginning for another moment
     }
+  };
+
+  const deleteMoment = (indexToDelete: number) => {
+    const newMoments = savedMoments.filter((_, index) => index !== indexToDelete);
+    updateData({ savedMoments: newMoments });
+    console.log(`Deleted moment at index ${indexToDelete}`);
   };
 
   const tryAnotherMoment = () => {
@@ -223,7 +229,10 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
             <div className="p-4 rounded-lg border-2 border-purple-300 bg-purple-50">
               <h3 className="font-semibold text-purple-700 mb-3">Step 5: Save to Timeline</h3>
               <p className="text-gray-700 mb-4">
-                This is your first data point. You'll revisit your timeline later.
+                {savedMoments.length === 0 
+                  ? "This is your first data point. You'll revisit your timeline later."
+                  : `Add this moment to your timeline. You now have ${savedMoments.length} moment${savedMoments.length === 1 ? '' : 's'} captured.`
+                }
               </p>
               <div className="space-y-4">
                 <div className="bg-white p-4 rounded border border-gray-200">
@@ -236,14 +245,14 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
                     onClick={saveMoment}
                     className="bg-green-600 hover:bg-green-700"
                   >
-                    Save Moment
+                    {savedMoments.length === 0 ? 'Save Moment' : 'Add to Timeline'}
                   </Button>
                   <Button 
                     onClick={tryAnotherMoment}
                     variant="outline"
                     className="border-purple-300 text-purple-700 hover:bg-purple-50"
                   >
-                    Try Another Moment
+                    {savedMoments.length === 0 ? 'Try Another Moment' : 'Delete & Try Another'}
                   </Button>
                 </div>
               </div>
@@ -261,9 +270,20 @@ const IA_3_2_Content: React.FC<IA32ContentProps> = ({ onNext }) => {
           <CardContent className="pt-6">
             <div className="space-y-3">
               {savedMoments.map((moment, index) => (
-                <div key={index} className="bg-white p-3 rounded border border-gray-200">
-                  <p className="text-gray-700">"{moment.text}"</p>
-                  <p className="text-xs text-purple-600 mt-1">#{moment.tag}</p>
+                <div key={index} className="bg-white p-3 rounded border border-gray-200 group hover:border-gray-300 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1 pr-3">
+                      <p className="text-gray-700">"{moment.text}"</p>
+                      <p className="text-xs text-purple-600 mt-1">#{moment.tag}</p>
+                    </div>
+                    <button
+                      onClick={() => deleteMoment(index)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-red-50 rounded text-red-500 hover:text-red-700"
+                      title="Delete this moment"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

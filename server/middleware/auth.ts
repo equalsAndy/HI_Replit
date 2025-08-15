@@ -26,7 +26,13 @@ export const requireAuth = (req: Request, res: Response, next: NextFunction) => 
   const cookieUserId = req.cookies?.userId;
 
   console.log('Auth check - Session:', sessionUserId, 'Cookie:', cookieUserId);
-  console.log('Full session data:', req.session);
+  
+  // Log session data safely (sanitized to avoid base64 profile pictures)
+  const sessionCopy = { ...req.session };
+  if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
+    sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
+  }
+  console.log('Full session data:', sessionCopy);
 
   const userId = sessionUserId || (cookieUserId ? parseInt(cookieUserId) : null);
 

@@ -293,15 +293,89 @@ const IA_3_6_Content: React.FC<IA36ContentProps> = ({ onNext }) => {
             <CardTitle className="text-purple-800">Reconnecting to Your I4C</CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <p className="text-gray-700 mb-4">
+            <p className="text-gray-700 mb-6">
               This leap wasn't just a creative act—it was an expression of your I4C:
             </p>
-            <ul className="list-disc pl-6 space-y-2 text-gray-700">
-              <li><strong>Imagination</strong> shaped a world no one had seen.</li>
-              <li><strong>Curiosity</strong> led you to choose your mystery.</li>
-              <li><strong>Caring</strong> connected you to its importance.</li>
-              <li><strong>Courage</strong> helped you explore what others might avoid.</li>
-            </ul>
+            
+            {/* I4C Graphics Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+              {/* Imagination */}
+              <div className="flex flex-col items-center text-center">
+                <img 
+                  src="/assets/Imagination_new.png" 
+                  alt="Imagination"
+                  className="w-16 h-16 mb-2"
+                  onError={(e) => {
+                    console.error('❌ Failed to load Imagination graphic');
+                    e.currentTarget.src = '/assets/Imagination_sq.png'; // Fallback
+                  }}
+                />
+                <h4 className="font-semibold text-purple-700 mb-1">Imagination</h4>
+                <p className="text-sm text-gray-600">Shaped a world no one had seen</p>
+              </div>
+
+              {/* Curiosity */}
+              <div className="flex flex-col items-center text-center">
+                <img 
+                  src="/assets/Curiosity_new.png" 
+                  alt="Curiosity"
+                  className="w-16 h-16 mb-2"
+                  onError={(e) => {
+                    console.error('❌ Failed to load Curiosity graphic');
+                    e.currentTarget.src = '/assets/Curiosity_sq.png'; // Fallback
+                  }}
+                />
+                <h4 className="font-semibold text-purple-700 mb-1">Curiosity</h4>
+                <p className="text-sm text-gray-600">Led you to choose your mystery</p>
+              </div>
+
+              {/* Caring */}
+              <div className="flex flex-col items-center text-center">
+                <img 
+                  src="/assets/Caring_new.png" 
+                  alt="Caring"
+                  className="w-16 h-16 mb-2"
+                  onError={(e) => {
+                    console.error('❌ Failed to load Caring graphic');
+                    e.currentTarget.src = '/assets/Caring_sq.png'; // Fallback
+                  }}
+                />
+                <h4 className="font-semibold text-purple-700 mb-1">Caring</h4>
+                <p className="text-sm text-gray-600">Connected you to its importance</p>
+              </div>
+
+              {/* Courage */}
+              <div className="flex flex-col items-center text-center">
+                <img 
+                  src="/assets/Courage_new.png" 
+                  alt="Courage"
+                  className="w-16 h-16 mb-2"
+                  onError={(e) => {
+                    console.error('❌ Failed to load Courage graphic');
+                    e.currentTarget.src = '/assets/courage_sq.png'; // Fallback
+                  }}
+                />
+                <h4 className="font-semibold text-purple-700 mb-1">Courage</h4>
+                <p className="text-sm text-gray-600">Helped you explore what others might avoid</p>
+              </div>
+            </div>
+
+            {/* Add Creativity as 5th element */}
+            <div className="flex justify-center mb-6">
+              <div className="flex flex-col items-center text-center">
+                <img 
+                  src="/assets/Creativity_new.png" 
+                  alt="Creativity"
+                  className="w-16 h-16 mb-2"
+                  onError={(e) => {
+                    console.error('❌ Failed to load Creativity graphic');
+                    e.currentTarget.src = '/assets/Creativity_sq.png'; // Fallback
+                  }}
+                />
+                <h4 className="font-semibold text-purple-700 mb-1">Creativity</h4>
+                <p className="text-sm text-gray-600">Brought forth something entirely new</p>
+              </div>
+            </div>
             <p className="text-purple-700 font-medium mt-4 text-center">
               Even here, at the far edge of thought, your core capabilities are active. You just used them all—in your own way.
             </p>
