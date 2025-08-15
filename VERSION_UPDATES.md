@@ -1,6 +1,6 @@
 # Version Updates & Changelog
 
-## v2.1.1 - IA Exercise AI Integration & Navigation Improvements (2025-08-15)
+## v2.3.0 - IA Exercise AI Integration & Navigation Improvements (2025-08-15)
 
 ### 🚀 New Features
 
@@ -69,15 +69,32 @@ None. All changes are additive and maintain backward compatibility.
 
 ## Previous Versions
 
-### v2.1.0 - Advanced Ladder Graphics & Content (2025-08-14)
-- Added comprehensive ladder rung graphics across all IA workshop steps
-- Enhanced workshop descriptions and typography improvements
-- Content refinements for imagination development exercises
+### v2.2.0 - Comprehensive Ladder Graphics & Visual System (2025-08-14)
+**Major Visual Enhancement Release**
+- **Complete Ladder Visualization**: Added 12 new graphics (AllRungs, Rung1-5, ADV_AllRungs, ADV_Rung1-5)
+- **Side-by-Side Layouts**: Redesigned all IA-3 and IA-4 steps with graphics + purpose sections
+- **Visual Progression Theme**: Established consistent visual identity across foundational and advanced ladders
+- **Enhanced I4C Graphics**: Upgraded to larger format graphics for better visibility
+- **Build System Updates**: Updated scripts to properly copy all graphics assets
+- **UI Improvements**: Consolidated purpose sections and improved layout consistency
 
-### v2.0.x - Core Platform Features
-- Dual workshop platform (AST + IA)
+**Files Added**: 12 ladder graphic assets (PNG files)
+**Files Modified**: 15+ IA step components, build scripts, version files
+
+### v2.1.0 - IA Inspiration System & Infrastructure (2025-08-14)
+**Major Feature Release**
+- **Complete IA-3-5 Rebuild**: 9 interlude options with color-coded calendar selection
+- **Advanced Reflection System**: 3-step process (Pattern, Moment, Feeling) with autosave
+- **Server Optimization**: Fixed startup performance issues and route organization
+- **Word Counting & Tracking**: Enhanced user experience with completion tracking
+- **Infrastructure Improvements**: Jira integration and dependency analysis
+
+**Impact**: 500+ lines of new code, complete user experience overhaul for inspiration exercises
+
+### v2.0.x - Core Platform Foundation
+- Dual workshop platform (AST + IA) architecture
 - Workshop separation and navigation system
-- Feature flag management
+- Feature flag management system
 - Assessment and progress tracking
 - Basic IA workshop structure
 
