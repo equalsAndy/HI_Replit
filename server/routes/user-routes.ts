@@ -31,7 +31,12 @@ const upload = multer({
  */
 router.get('/me', async (req, res) => {
   try {
-    console.log('Me request - Session data:', req.session);
+    // Log session data safely (sanitized to avoid base64 profile pictures)
+    const sessionCopy = { ...req.session };
+    if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
+      sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
+    }
+    console.log('Me request - Session data:', sessionCopy);
     console.log('Me request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie
@@ -106,7 +111,12 @@ router.get('/me', async (req, res) => {
  */
 router.get('/profile', async (req, res) => {
   try {
-    console.log('Profile request - Session data:', req.session);
+    // Log session data safely (sanitized to avoid base64 profile pictures)
+    const sessionCopy = { ...req.session };
+    if (sessionCopy.user?.profilePicture && sessionCopy.user.profilePicture.length > 100) {
+      sessionCopy.user.profilePicture = `[Base64 Data - ${sessionCopy.user.profilePicture.length} characters]`;
+    }
+    console.log('Profile request - Session data:', sessionCopy);
     console.log('Profile request - Cookies:', req.cookies);
 
     // Check session or cookie authentication - prioritize session over cookie

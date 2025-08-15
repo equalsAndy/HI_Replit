@@ -75,6 +75,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
   const [patternReflection, setPatternReflection] = useState('');
   const [momentStory, setMomentStory] = useState('');
   const [feelingClaim, setFeelingClaim] = useState('');
+  const [showIncompleteWarning, setShowIncompleteWarning] = useState(false);
 
   // Maintain selection in grid order (left-to-right, top-to-bottom)
   const interludeIndexMap = useMemo(() => {
@@ -102,6 +103,36 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
 
   // Exercise considered complete when at least one selected interlude is marked complete
   const canProceedToReflection = selectedInterludes.length > 0 && completed.length > 0;
+  
+  // Check if there are incomplete interludes
+  const hasIncompleteInterludes = selectedInterludes.length > completed.length;
+  
+  // Handle continue button click with warning check
+  const handleContinue = async () => {
+    if (hasIncompleteInterludes) {
+      setShowIncompleteWarning(true);
+    } else {
+      await saveAll();
+      onNext && onNext('ia-3-6');
+    }
+  };
+  
+  // Handle continue after warning confirmation
+  const handleContinueWithIncomplete = async () => {
+    // Remove incomplete interludes from selection and responses
+    const completedInterludeIds = completed;
+    const newSelectedInterludes = selectedInterludes.filter(interlude => completedInterludeIds.includes(interlude.id));
+    const newResponses = Object.fromEntries(
+      Object.entries(responses).filter(([id]) => completedInterludeIds.includes(id))
+    );
+    
+    setSelectedInterludes(newSelectedInterludes);
+    setResponses(newResponses);
+    setShowIncompleteWarning(false);
+    
+    await saveAll();
+    onNext && onNext('ia-3-6');
+  };
 
   const colorThemes = [
     { border: 'border-indigo-300', bg: 'bg-indigo-50', ring: 'ring-indigo-200', text: 'text-indigo-800', dot: 'bg-indigo-300' },
@@ -359,23 +390,15 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
 
       {reflectionStep === 0 && (
         <>
-          {/* Instructions */}
+          {/* Interlude Grid */}
           <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Instructions</h2>
-            <div className="space-y-3 text-gray-700">
-              <p>Choose one Interlude that resonates with you.</p>
-              <p>There's no right or wrong.</p>
-              <p>Just follow what draws you in, and take a few minutes to reflect.</p>
-              <p className="font-medium">Once complete, you'll map your Inner Spark.</p>
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">INTERLUDE GRID</h2>
+            <div className="space-y-3 text-gray-700 mb-6">
+              <p className="text-center">Choose your Interlude(s) from the grid below. Each opens a short prompt + text entry.</p>
+              <p className="text-center">There's no right or wrong.</p>
+              <p className="text-center">Just follow what draws you in, and take a few minutes to reflect.</p>
+              <p className="text-center font-medium">Once complete, you'll map your Inner Spark.</p>
             </div>
-          </div>
-
-          {/* Interlude Calendar */}
-          <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">INTERLUDE CALENDAR</h2>
-            <p className="text-center text-gray-600 mb-6">
-              Choose your Interlude (one or more) from the Calendar below. Each opens a short prompt + text entry.
-            </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {interludes.map((interlude) => (
@@ -459,7 +482,7 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={async () => { await saveAll(); onNext && onNext('ia-3-6'); }}
+                  onClick={handleContinue}
                   className="bg-purple-600 hover:bg-purple-700 text-white px-8 py-3"
                   disabled={!canProceedToReflection}
                 >
@@ -603,6 +626,36 @@ const IA_3_5_Content: React.FC<IA35ContentProps> = ({ onNext }) => {
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Incomplete Interludes Warning Dialog */}
+      {showIncompleteWarning && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md mx-4">
+            <h3 className="text-lg font-semibold text-gray-800 mb-4">
+              Incomplete Interludes
+            </h3>
+            <p className="text-gray-700 mb-6">
+              You have {selectedInterludes.length - completed.length} incomplete interlude{selectedInterludes.length - completed.length === 1 ? '' : 's'}. 
+              If you continue, incomplete interludes will be deleted.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <Button
+                onClick={() => setShowIncompleteWarning(false)}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Go Back & Complete
+              </Button>
+              <Button
+                onClick={handleContinueWithIncomplete}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Continue & Delete Incomplete
+              </Button>
             </div>
           </div>
         </div>
