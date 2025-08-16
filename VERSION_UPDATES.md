@@ -1,5 +1,73 @@
 # Version Updates & Changelog
 
+## v2.2.1 - Bundle Optimization & Performance Monitoring (2025-08-16)
+
+### ⚡ Performance Improvements
+
+#### KAN-147: Bundle Analysis & Code Splitting Infrastructure
+- **HTML2Canvas Code Splitting**: Successfully moved html2canvas library to separate chunk (48KB reduction)
+- **Bundle Size Monitoring**: Automated tracking system with performance budgets and alerts
+- **Performance Budgets**: 500KB main bundle limit with automated compliance checking
+- **Bundle Analysis Tools**: rollup-plugin-visualizer integration for detailed size analysis
+
+#### Monitoring & Tracking System
+- **Automated Bundle Tracking**: `scripts/bundle-size-check.js` tracks every build
+- **Performance History**: JSON-based tracking of last 50 builds with size trends
+- **Budget Compliance**: Real-time alerts when bundles exceed performance targets
+- **Development Workflows**: Git-safe optimization with rollback capabilities
+
+### 📊 Current Performance Status
+- **Main Bundle**: 535KB gzipped (target: 500KB) - 35KB over budget
+- **HTML2Canvas**: 48KB gzipped in separate chunk (successfully optimized)
+- **Total Assets**: 677KB gzipped (within 1MB budget)
+- **Potential Savings**: 72% reduction possible through route-based code splitting
+
+### 🔧 Technical Infrastructure
+
+#### Build System Enhancements
+- **Bundle Size Integration**: Automatic analysis runs with every `npm run build`
+- **Performance Monitoring**: `bundle-size-history.json` tracks size trends over time
+- **Alert System**: Console warnings when budgets are exceeded
+- **Visualization Tools**: HTML reports for detailed bundle composition analysis
+
+#### Code Splitting Implementation
+- **Dynamic Imports**: html2canvas moved to dynamic import pattern
+- **Module Separation**: Clear separation between main bundle and utility libraries
+- **Future-Ready**: Infrastructure in place for route-based and vendor code splitting
+
+### 📁 Files Added
+- `scripts/bundle-size-check.js` - Automated bundle size monitoring
+- `docs/performance-tracking/README.md` - Performance monitoring documentation
+- `docs/performance-tracking/bundle-size-history.json` - Historical size tracking
+- `docs/KAN-147-COMPLETION-SUMMARY.md` - Implementation summary and results
+- `docs/KAN-147-future-code-splitting-plan.md` - Roadmap for continued optimization
+- `JiraTickets/KAN-147-implementation-report.md` - Technical implementation details
+
+### 📝 Files Modified
+- `client/vite.config.ts` - Added bundle analysis and performance budget plugins
+- `client/src/lib/html2canvas.ts` - Converted to dynamic import pattern
+- `client/src/hooks/use-screenshot.ts` - Updated for dynamic html2canvas loading
+- `client/src/services/starcard-capture-service.ts` - Optimized import strategy
+- `package.json` - Added bundle analysis scripts
+- `CLAUDE.md` - Updated with performance monitoring documentation
+
+### 🎯 Impact & Results
+- **Immediate Optimization**: 48KB reduction through html2canvas code splitting
+- **Monitoring Foundation**: Complete infrastructure for ongoing performance tracking
+- **Development Workflow**: Safe optimization process with git branching and rollback
+- **Future Optimization**: Clear roadmap for achieving 500KB main bundle target
+
+### 🔄 Breaking Changes
+None. All optimizations maintain full application functionality and backward compatibility.
+
+### 📈 Next Steps
+- Route-based code splitting for workshops (AST/IA separation)
+- Vendor chunk optimization for large dependencies
+- Asset compression and optimization
+- Continued monitoring and performance budget enforcement
+
+---
+
 ## v2.3.0 - IA Exercise AI Integration & Navigation Improvements (2025-08-15)
 
 ### 🚀 New Features
