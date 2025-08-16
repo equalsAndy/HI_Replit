@@ -9,19 +9,22 @@ import LoginPage from '@/pages/auth/login';
 import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
-import AllStarTeamsPage from '@/pages/allstarteams';
-import ImaginalAgilityPage from '@/pages/imaginal-agility';
-import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
+// Lazy load workshop components for better code splitting
+const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
+const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
+const ImaginalAgilityWorkshopNew = React.lazy(() => import('@/pages/ImaginalAgilityWorkshopNew'));
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
-import AdminDashboard from '@/pages/admin/dashboard-new';
-import AiTrainingPage from '@/pages/ai-training';
+// Lazy load admin components for better code splitting
+const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
+const AiTrainingPage = React.lazy(() => import('@/pages/ai-training'));
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
+import WorkshopLoader from '@/components/core/WorkshopLoader';
 import AutoSync from '@/components/AutoSync';
 import { FloatingAIProvider } from '@/components/ai/FloatingAIProvider';
 import { ReportTaliaProvider } from '@/contexts/ReportTaliaContext';
@@ -216,42 +219,56 @@ const App: React.FC = () => {
                     </Route>
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
 
-                    {/* Workshop routes */}
+                    {/* Workshop routes with lazy loading */}
                     <Route path="/allstarteams">
                       <ProtectedRoute>
-                        <AllStarTeamsPage />
+                        <Suspense fallback={<WorkshopLoader workshopName="AllStar Teams Workshop" />}>
+                          <AllStarTeamsPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ast">
                       <ProtectedRoute>
-                        <AllStarTeamsPage />
+                        <Suspense fallback={<WorkshopLoader workshopName="AllStar Teams Workshop" />}>
+                          <AllStarTeamsPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/imaginal-agility">
                       <ProtectedRoute>
-                        <ImaginalAgilityWorkshopNew />
+                        <Suspense fallback={<WorkshopLoader workshopName="Imaginal Agility Workshop" />}>
+                          <ImaginalAgilityWorkshopNew />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ia-legacy">
                       <ProtectedRoute>
-                        <ImaginalAgilityPage />
+                        <Suspense fallback={<WorkshopLoader workshopName="Imaginal Agility Workshop (Legacy)" />}>
+                          <ImaginalAgilityPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
 
-                    {/* Admin routes */}
+                    {/* Admin routes with lazy loading */}
                     <Route path="/admin">
                       <ProtectedRoute requireAdmin={true}>
-                        <AdminDashboard />
+                        <Suspense fallback={<WorkshopLoader workshopName="Admin Dashboard" />}>
+                          <AdminDashboard />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/admin/dashboard">
                       <ProtectedRoute requireAdmin={true}>
-                        <AdminDashboard />
+                        <Suspense fallback={<WorkshopLoader workshopName="Admin Dashboard" />}>
+                          <AdminDashboard />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ai-training">
                       <ProtectedRoute requireAdmin={true}>
-                        <AiTrainingPage />
+                        <Suspense fallback={<WorkshopLoader workshopName="AI Training Console" />}>
+                          <AiTrainingPage />
+                        </Suspense>
                       </ProtectedRoute>
                     </Route>
                     {/* Backward compatibility: redirect old path to new */}
