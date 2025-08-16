@@ -488,6 +488,34 @@ router.put('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Respon
   }
 });
 
+// Delete video
+router.delete('/videos/:id', requireAuth, isAdmin, async (req: Request, res: Response) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'Invalid video ID' });
+    }
+
+    console.log(`Admin deleting video ${id}`);
+    
+    // Delete video using the user management service
+    const deleteResult = await userManagementService.deleteVideo(id);
+    
+    if (!deleteResult.success) {
+      return res.status(404).json({ 
+        message: deleteResult.error || 'Video not found'
+      });
+    }
+    
+    console.log(`Video ${id} deleted successfully`);
+    
+    res.status(200).json({ message: 'Video deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting video:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 /**
  * Delete a user completely (admin only)
  */
