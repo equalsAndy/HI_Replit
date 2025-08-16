@@ -417,6 +417,7 @@ const autoMarkStepsCompleted = (currentStepId: string, userAssessments: any): st
 };
 
 // Get next step prioritizing main sequence over resources
+// After completing the main sequence (through 4-5), advance into section 5
 const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
   const mainSequence = ['1-1', '2-1', '2-2', '2-3', '2-4', '3-1', '3-2', '3-3', '3-4', '4-1', '4-2', '4-3', '4-4', '4-5'];
 
@@ -427,9 +428,9 @@ const getNextStepFromCompletedSteps = (completedSteps: string[]): string => {
     }
   }
 
-  // If main sequence is complete (including 4-5), stay at final step
-  // Do NOT auto-navigate to resources after completing 4-5
-  return '4-5';
+  // If main sequence is complete (including 4-5), move to first resource section
+  // This prevents the app from restoring users back to Final Reflection on refresh
+  return '5-1';
 };
 
 interface NavigationStep {

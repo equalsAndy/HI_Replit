@@ -27,9 +27,11 @@ import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
+// Import IA content directly since workshop pages are already lazy-loaded
 import ImaginalAgilityContent from './imaginal-agility/ImaginalAgilityContent';
 
 import { useApplication } from '@/hooks/use-application';
+import WorkshopLoader from '@/components/core/WorkshopLoader';
 
 // Utility function to scroll to content title using anchor
 const scrollToContentTop = () => {

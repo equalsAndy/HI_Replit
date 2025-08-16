@@ -1,5 +1,3 @@
-import html2canvas from 'html2canvas';
-
 /**
  * Converts an HTML element to an image and triggers a download
  * @param element The HTML element to capture
@@ -10,6 +8,9 @@ export async function downloadElementAsImage(
   filename: string = 'download.png'
 ): Promise<void> {
   try {
+    // Dynamically import html2canvas to keep it out of main bundle
+    const html2canvas = (await import('html2canvas')).default;
+    
     // Create canvas from the element
     const canvas = await html2canvas(element, {
       backgroundColor: null,

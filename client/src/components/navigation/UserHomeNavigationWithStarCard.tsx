@@ -280,7 +280,7 @@ const UserHomeNavigation: React.FC<UserHomeNavigationProps> = ({
 
       // Section 5: Resources
       '5-1': 'your-star-card',
-      '5-2': 'pdf-summary',
+      '5-2': 'holistic-report',
 
       // Section 6: Workshop Resources
       '6-1': 'workshop-resources',

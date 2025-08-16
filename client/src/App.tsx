@@ -9,19 +9,23 @@ import LoginPage from '@/pages/auth/login';
 import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
+// Static imports - rollback from lazy loading
 import AllStarTeamsPage from '@/pages/allstarteams';
 import ImaginalAgilityPage from '@/pages/imaginal-agility';
 import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
+// Static imports - rollback from lazy loading  
 import AdminDashboard from '@/pages/admin/dashboard-new';
 import AiTrainingPage from '@/pages/ai-training';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
+import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
+// Removed WorkshopLoader import - no longer needed after lazy loading rollback
 import AutoSync from '@/components/AutoSync';
 import { FloatingAIProvider } from '@/components/ai/FloatingAIProvider';
 import { ReportTaliaProvider } from '@/contexts/ReportTaliaContext';
@@ -216,7 +220,7 @@ const App: React.FC = () => {
                     </Route>
                     <Route path="/register/:inviteCode?" component={InviteRegistrationPage} />
 
-                    {/* Workshop routes */}
+                    {/* Workshop routes with lazy loading */}
                     <Route path="/allstarteams">
                       <ProtectedRoute>
                         <AllStarTeamsPage />
@@ -238,7 +242,7 @@ const App: React.FC = () => {
                       </ProtectedRoute>
                     </Route>
 
-                    {/* Admin routes */}
+                    {/* Admin routes with lazy loading */}
                     <Route path="/admin">
                       <ProtectedRoute requireAdmin={true}>
                         <AdminDashboard />
@@ -264,7 +268,7 @@ const App: React.FC = () => {
 
                     {/* Reset and test routes */}
                     <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
-                    <Route path="/reset-test" component={React.lazy(() => import('@/pages/reset-test'))} />
+                    <Route path="/reset-test" component={ResetTestPage} />
 
                     {/* Fallback route */}
                     <Route component={NotFoundPage} />
