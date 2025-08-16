@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { QuadrantData } from '@shared/schema';
-import { downloadElementAsImage } from '@/lib/html2canvas';
 import { UserIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import allStarTeamsLogo from '@/assets/all-star-teams-logo-250px.png';
@@ -319,6 +318,8 @@ const StarCard = React.forwardRef<HTMLDivElement, StarCardProps>(({
     if (!cardRef.current) return;
     setDownloading(true);
     try {
+      // Use dynamic import for consistent code-splitting with other components
+      const { downloadElementAsImage } = await import('@/lib/html2canvas');
       await downloadElementAsImage(cardRef.current, `${derivedProfile.name || 'User'}_Star_Card.png`);
     } catch (error) {
       console.error("Error downloading star card:", error);
