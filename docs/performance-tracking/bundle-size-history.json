@@ -1,0 +1,198 @@
+[
+  {
+    "timestamp": "2025-08-16T16:31:07.730Z",
+    "mainBundleSize": 653925,
+    "totalSize": 693856,
+    "bundles": [
+      {
+        "name": "html2canvas-Ci2ETXQl.js",
+        "type": "js",
+        "size": 408,
+        "estimatedGzipped": 122,
+        "isMain": false
+      },
+      {
+        "name": "index-B4JNcQuY.js",
+        "type": "js",
+        "size": 2179751,
+        "estimatedGzipped": 653925,
+        "isMain": true
+      },
+      {
+        "name": "index-VNkjiNbx.css",
+        "type": "css",
+        "size": 159236,
+        "estimatedGzipped": 39809,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 639KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T16:35:44.130Z",
+    "mainBundleSize": 653925,
+    "totalSize": 693856,
+    "bundles": [
+      {
+        "name": "html2canvas-Ci2ETXQl.js",
+        "type": "js",
+        "size": 408,
+        "estimatedGzipped": 122,
+        "isMain": false
+      },
+      {
+        "name": "index-B4JNcQuY.js",
+        "type": "js",
+        "size": 2179751,
+        "estimatedGzipped": 653925,
+        "isMain": true
+      },
+      {
+        "name": "index-VNkjiNbx.css",
+        "type": "css",
+        "size": 159236,
+        "estimatedGzipped": 39809,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 639KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T16:36:53.527Z",
+    "mainBundleSize": 592804,
+    "totalSize": 693456,
+    "bundles": [
+      {
+        "name": "html2canvas-DCxPhZBB.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DLGMql_8.js",
+        "type": "js",
+        "size": 1976012,
+        "estimatedGzipped": 592804,
+        "isMain": true
+      },
+      {
+        "name": "index-VNkjiNbx.css",
+        "type": "css",
+        "size": 159236,
+        "estimatedGzipped": 39809,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 579KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T16:38:31.944Z",
+    "mainBundleSize": 592804,
+    "totalSize": 693456,
+    "bundles": [
+      {
+        "name": "html2canvas-DCxPhZBB.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-DLGMql_8.js",
+        "type": "js",
+        "size": 1976012,
+        "estimatedGzipped": 592804,
+        "isMain": true
+      },
+      {
+        "name": "index-VNkjiNbx.css",
+        "type": "css",
+        "size": 159236,
+        "estimatedGzipped": 39809,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 579KB / 500KB"
+      ]
+    }
+  },
+  {
+    "timestamp": "2025-08-16T16:40:38.216Z",
+    "mainBundleSize": 592805,
+    "totalSize": 693457,
+    "bundles": [
+      {
+        "name": "html2canvas-Db1RoipA.js",
+        "type": "js",
+        "size": 524,
+        "estimatedGzipped": 157,
+        "isMain": false
+      },
+      {
+        "name": "html2canvas.esm-BfxBtG_O.js",
+        "type": "js",
+        "size": 202285,
+        "estimatedGzipped": 60686,
+        "isMain": false
+      },
+      {
+        "name": "index-C2298VxC.js",
+        "type": "js",
+        "size": 1976016,
+        "estimatedGzipped": 592805,
+        "isMain": true
+      },
+      {
+        "name": "index-VNkjiNbx.css",
+        "type": "css",
+        "size": 159236,
+        "estimatedGzipped": 39809,
+        "isMain": false
+      }
+    ],
+    "budgetStatus": {
+      "mainBundleStatus": "FAIL",
+      "totalSizeStatus": "PASS",
+      "warnings": [
+        "Main bundle approaching size limit: 579KB / 500KB"
+      ]
+    }
+  }
+]

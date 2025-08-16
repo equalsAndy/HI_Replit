@@ -350,6 +350,54 @@ describe('Feature X', () => {
 });
 ```
 
+## 📊 Performance Monitoring (KAN-147)
+
+### **Bundle Size Tracking**
+Automated performance monitoring tracks bundle sizes and enforces performance budgets.
+
+```bash
+# Check current bundle size (without rebuild)
+npm run bundle:analyze
+
+# Full build + bundle analysis
+npm run bundle:check
+
+# Normal build (includes automatic analysis)
+npm run build
+```
+
+### **Performance Budgets**
+- **Main Bundle**: 500 KB gzipped (⚠️ Currently **FAILING** at 639 KB)
+- **Total Assets**: 1000 KB gzipped (✅ Currently **PASSING** at 693 KB)
+- **Warning Threshold**: 90% of budget
+
+### **Current Bundle Status**
+```bash
+📦 Main bundle: 639KB gzipped  ❌ EXCEEDS BUDGET
+📦 Total assets: 693KB gzipped ✅ Within budget
+🎯 Budget status: Main=FAIL, Total=PASS
+```
+
+### **Performance History**
+All measurements tracked in `/docs/performance-tracking/bundle-size-history.json`:
+- **Retention**: Last 50 builds
+- **Metrics**: Bundle sizes, budget compliance, timestamps
+- **Trends**: Track size increases over time
+
+### **Code Splitting Potential**
+Based on KAN-147 experiments:
+- **72% reduction possible**: 639 KB → 165 KB gzipped
+- **Route-based splitting**: Separate chunks per workshop
+- **Implementation blocked**: Module resolution conflicts (see implementation report)
+
+### **Optimization Priority**
+1. **High**: Implement code splitting (see `/JiraTickets/KAN-147-implementation-report.md`)
+2. **Medium**: Audit and remove unused dependencies
+3. **Low**: Compress assets and static files
+
+### **Performance Monitoring Documentation**
+Detailed monitoring setup and analysis: `/docs/performance-tracking/README.md`
+
 ## 🔍 Debugging & Troubleshooting
 
 ### **Common Issues & Solutions**

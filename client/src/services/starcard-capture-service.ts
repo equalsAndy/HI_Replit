@@ -3,7 +3,7 @@
  * Automatically captures StarCard as PNG and saves to server database or filesystem
  */
 
-import html2canvas from 'html2canvas';
+// html2canvas imported dynamically to keep it out of main bundle
 
 export interface StarCardCaptureOptions {
   userId?: number;
@@ -43,6 +43,9 @@ class StarCardCaptureService {
         quality = 2
       } = options;
 
+      // Dynamically import html2canvas to keep it out of main bundle
+      const html2canvas = (await import('html2canvas')).default;
+      
       // Capture the StarCard as canvas
       const canvas = await html2canvas(element, {
         backgroundColor: '#ffffff',

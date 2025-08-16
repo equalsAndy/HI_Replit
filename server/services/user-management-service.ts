@@ -779,7 +779,9 @@ class UserManagementService {
         growthPlans: 0,
         finalReflections: 0,
         discernmentProgress: 0,
-        workshopStepData: 0
+        workshopStepData: 0,
+        holisticReports: 0,
+        holisticReportFiles: 0
       };
 
       // 1. Delete ALL user assessments (includes star cards, flow data, reflections, etc.)
@@ -884,13 +886,49 @@ class UserManagementService {
       // Add workshop step data to deleted data tracking
       deletedData.workshopStepData = workshopStepDataDeleted;
 
+      // 9. Delete holistic report DB records
+      try {
+        const holisticResult = await db.execute(sql`DELETE FROM holistic_reports WHERE user_id = ${userId}`);
+        deletedData.holisticReports = holisticResult.length || 0;
+        console.log(`Deleted ${deletedData.holisticReports} holistic report DB records for user ${userId}`);
+      } catch (error) {
+        console.log(`No holistic reports found for user ${userId}`);
+      }
+
+      // 10. Delete holistic report PDF files from /uploads
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const uploadsDir = path.resolve(process.cwd(), 'uploads');
+        const files = fs.readdirSync(uploadsDir);
+        const userPattern = new RegExp(`HI-Report-.*${userId}.*\\.pdf$`);
+        let deletedFiles = 0;
+        for (const file of files) {
+          if (userPattern.test(file)) {
+            try {
+              fs.unlinkSync(path.join(uploadsDir, file));
+              deletedFiles++;
+              console.log(`Deleted holistic report file: ${file}`);
+            } catch (err) {
+              console.error(`Error deleting file ${file}:`, err);
+            }
+          }
+        }
+        deletedData.holisticReportFiles = deletedFiles;
+        console.log(`Deleted ${deletedFiles} holistic report PDF files for user ${userId}`);
+      } catch (error) {
+        console.error(`Error deleting holistic report files for user ${userId}:`, error);
+      }
+
       const totalRecordsDeleted = deletedData.userAssessments + 
         deletedData.navigationProgressTable + 
         deletedData.workshopParticipation + 
         deletedData.growthPlans + 
         deletedData.finalReflections + 
         deletedData.discernmentProgress + 
-        deletedData.workshopStepData;
+        deletedData.workshopStepData +
+        deletedData.holisticReports +
+        deletedData.holisticReportFiles;
 
       console.log(`Completed data deletion for user ${userId}:`, deletedData);
 

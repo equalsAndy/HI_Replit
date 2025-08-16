@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useState, Suspense } from 'react';
+import React, { useState } from 'react';
 import WelcomeView from './WelcomeView';
 import IntroStrengthsView from './IntroStrengthsView';
 import AssessmentView from './AssessmentView';
@@ -27,8 +27,8 @@ import ImaginationAssessmentContent from './ImaginationAssessmentContent';
 import FiveCSAssessmentContent from './FiveCSAssessmentContent';
 import { ImaginalAgilityResults } from '../assessment/ImaginalAgilityResults';
 import { DiscernmentExercise } from '../discernment/DiscernmentExercise';
-// Lazy load IA content to prevent it from being included in main bundle
-const ImaginalAgilityContent = React.lazy(() => import('./imaginal-agility/ImaginalAgilityContent'));
+// Import IA content directly since workshop pages are already lazy-loaded
+import ImaginalAgilityContent from './imaginal-agility/ImaginalAgilityContent';
 
 import { useApplication } from '@/hooks/use-application';
 import WorkshopLoader from '@/components/core/WorkshopLoader';
@@ -86,29 +86,27 @@ const ContentViews: React.FC<ContentViewsProps> = ({
     // Use the improved ImaginalAgilityContent component for all IA steps
     if (currentContent.startsWith('ia-')) {
       return (
-        <Suspense fallback={<WorkshopLoader workshopName="Imaginal Agility Content" />}>
-          <ImaginalAgilityContent 
-            stepId={currentContent}
-            onNext={(nextStepId) => {
-              if (nextStepId && markStepCompleted && setCurrentContent) {
-                markStepCompleted(currentContent);
-                setCurrentContent(nextStepId);
-                scrollToContentTop();
+        <ImaginalAgilityContent 
+          stepId={currentContent}
+          onNext={(nextStepId) => {
+            if (nextStepId && markStepCompleted && setCurrentContent) {
+              markStepCompleted(currentContent);
+              setCurrentContent(nextStepId);
+              scrollToContentTop();
+            }
+          }}
+          onOpenAssessment={() => {
+            if (setIsAssessmentModalOpen) {
+              // Mark ia-3-1 as completed when assessment is opened
+              if (currentContent === 'ia-3-1' && markStepCompleted) {
+                markStepCompleted('ia-3-1');
               }
-            }}
-            onOpenAssessment={() => {
-              if (setIsAssessmentModalOpen) {
-                // Mark ia-3-1 as completed when assessment is opened
-                if (currentContent === 'ia-3-1' && markStepCompleted) {
-                  markStepCompleted('ia-3-1');
-                }
-                setIsAssessmentModalOpen(true);
-              }
-            }}
-            assessmentResults={null} // This would come from API in real implementation
-            user={user}
-          />
-        </Suspense>
+              setIsAssessmentModalOpen(true);
+            }
+          }}
+          assessmentResults={null} // This would come from API in real implementation
+          user={user}
+        />
       );
     }
     

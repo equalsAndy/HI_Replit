@@ -9,22 +9,23 @@ import LoginPage from '@/pages/auth/login';
 import TestUserPage from '@/pages/testuser';
 import NotFoundPage from '@/pages/not-found';
 import LandingPage from '@/pages/landing';
-// Lazy load workshop components for better code splitting
-const AllStarTeamsPage = React.lazy(() => import('@/pages/allstarteams'));
-const ImaginalAgilityPage = React.lazy(() => import('@/pages/imaginal-agility'));
-const ImaginalAgilityWorkshopNew = React.lazy(() => import('@/pages/ImaginalAgilityWorkshopNew'));
+// Static imports - rollback from lazy loading
+import AllStarTeamsPage from '@/pages/allstarteams';
+import ImaginalAgilityPage from '@/pages/imaginal-agility';
+import ImaginalAgilityWorkshopNew from '@/pages/ImaginalAgilityWorkshopNew';
 import BetaFeedbackSurveyPage from '@/pages/beta-feedback-survey';
 
-// Lazy load admin components for better code splitting
-const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard-new'));
-const AiTrainingPage = React.lazy(() => import('@/pages/ai-training'));
+// Static imports - rollback from lazy loading  
+import AdminDashboard from '@/pages/admin/dashboard-new';
+import AiTrainingPage from '@/pages/ai-training';
 import WorkshopResetTestPage from '@/pages/workshop-reset-test';
+import ResetTestPage from '@/pages/reset-test';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 import { ApplicationProvider } from '@/hooks/use-application';
 import { DemoModeProvider } from '@/hooks/use-demo-mode';
 import ErrorBoundary from '@/components/core/ErrorBoundary';
-import WorkshopLoader from '@/components/core/WorkshopLoader';
+// Removed WorkshopLoader import - no longer needed after lazy loading rollback
 import AutoSync from '@/components/AutoSync';
 import { FloatingAIProvider } from '@/components/ai/FloatingAIProvider';
 import { ReportTaliaProvider } from '@/contexts/ReportTaliaContext';
@@ -222,53 +223,39 @@ const App: React.FC = () => {
                     {/* Workshop routes with lazy loading */}
                     <Route path="/allstarteams">
                       <ProtectedRoute>
-                        <Suspense fallback={<WorkshopLoader workshopName="AllStar Teams Workshop" />}>
-                          <AllStarTeamsPage />
-                        </Suspense>
+                        <AllStarTeamsPage />
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ast">
                       <ProtectedRoute>
-                        <Suspense fallback={<WorkshopLoader workshopName="AllStar Teams Workshop" />}>
-                          <AllStarTeamsPage />
-                        </Suspense>
+                        <AllStarTeamsPage />
                       </ProtectedRoute>
                     </Route>
                     <Route path="/imaginal-agility">
                       <ProtectedRoute>
-                        <Suspense fallback={<WorkshopLoader workshopName="Imaginal Agility Workshop" />}>
-                          <ImaginalAgilityWorkshopNew />
-                        </Suspense>
+                        <ImaginalAgilityWorkshopNew />
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ia-legacy">
                       <ProtectedRoute>
-                        <Suspense fallback={<WorkshopLoader workshopName="Imaginal Agility Workshop (Legacy)" />}>
-                          <ImaginalAgilityPage />
-                        </Suspense>
+                        <ImaginalAgilityPage />
                       </ProtectedRoute>
                     </Route>
 
                     {/* Admin routes with lazy loading */}
                     <Route path="/admin">
                       <ProtectedRoute requireAdmin={true}>
-                        <Suspense fallback={<WorkshopLoader workshopName="Admin Dashboard" />}>
-                          <AdminDashboard />
-                        </Suspense>
+                        <AdminDashboard />
                       </ProtectedRoute>
                     </Route>
                     <Route path="/admin/dashboard">
                       <ProtectedRoute requireAdmin={true}>
-                        <Suspense fallback={<WorkshopLoader workshopName="Admin Dashboard" />}>
-                          <AdminDashboard />
-                        </Suspense>
+                        <AdminDashboard />
                       </ProtectedRoute>
                     </Route>
                     <Route path="/ai-training">
                       <ProtectedRoute requireAdmin={true}>
-                        <Suspense fallback={<WorkshopLoader workshopName="AI Training Console" />}>
-                          <AiTrainingPage />
-                        </Suspense>
+                        <AiTrainingPage />
                       </ProtectedRoute>
                     </Route>
                     {/* Backward compatibility: redirect old path to new */}
@@ -281,7 +268,7 @@ const App: React.FC = () => {
 
                     {/* Reset and test routes */}
                     <Route path="/workshop-reset-test" component={WorkshopResetTestPage} />
-                    <Route path="/reset-test" component={React.lazy(() => import('@/pages/reset-test'))} />
+                    <Route path="/reset-test" component={ResetTestPage} />
 
                     {/* Fallback route */}
                     <Route component={NotFoundPage} />
