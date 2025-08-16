@@ -562,6 +562,15 @@ export function SimpleVideoManagement() {
               <TableRow>
                 <TableHead 
                   className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleSort('id')}
+                >
+                  <div className="flex items-center">
+                    ID
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="cursor-pointer hover:bg-muted/50"
                   onClick={() => handleSort('title')}
                 >
                   <div className="flex items-center">
@@ -622,6 +631,7 @@ export function SimpleVideoManagement() {
               {filteredAndSortedVideos && filteredAndSortedVideos.length > 0 ? (
                 filteredAndSortedVideos.map((video) => (
                   <TableRow key={video.id}>
+                    <TableCell className="font-mono text-sm text-muted-foreground">{video.id}</TableCell>
                     <TableCell className="font-medium">{video.title}</TableCell>
                     <TableCell>
                       <Badge variant={
@@ -702,13 +712,13 @@ export function SimpleVideoManagement() {
                 ))
               ) : videos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     No videos found. Add your first video to get started.
                   </TableCell>
                 </TableRow>
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
+                  <TableCell colSpan={9} className="text-center py-8">
                     <div className="space-y-2">
                       <p>No videos match your current filters.</p>
                       <Button 

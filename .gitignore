@@ -117,3 +117,7 @@ src/test/
 *-archive.tsx
 storage/star-cards/*.png
 storage/temp-report-images/*.png
+
+# Database backups - contain sensitive production data
+backups/
+cookies.txt

@@ -726,6 +726,43 @@ class UserManagementService {
   }
 
   /**
+   * Delete a video
+   */
+  async deleteVideo(id: number) {
+    try {
+      console.log(`Attempting to delete video ${id}`);
+      
+      const { sql } = await import('drizzle-orm');
+      
+      // First check if video exists
+      const existingVideo = await db.execute(sql`SELECT id FROM videos WHERE id = ${id}`);
+      
+      if (existingVideo.length === 0) {
+        console.log(`Video ${id} not found`);
+        return {
+          success: false,
+          error: 'Video not found'
+        };
+      }
+      
+      // Delete the video
+      const result = await db.execute(sql`DELETE FROM videos WHERE id = ${id}`);
+      
+      console.log(`Successfully deleted video ${id}`);
+      
+      return {
+        success: true
+      };
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      return {
+        success: false,
+        error: 'Failed to delete video: ' + (error instanceof Error ? (error as Error).message : 'Unknown error')
+      };
+    }
+  }
+
+  /**
    * Delete all user data except profile and password
    */
   async deleteUserData(userId: number) {

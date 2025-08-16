@@ -80,7 +80,8 @@ function ImaginalAgilityWorkshopContent() {
 
   // Function to determine if a step is accessible for IA workshop
   const isStepAccessible = (sectionId: string, stepId: string) => {
-    return isStepUnlocked(stepId);
+    // Allow access to both unlocked steps AND previously completed steps
+    return isStepUnlocked(stepId) || isStepCompleted(stepId);
   };
 
   // Handle step clicks for IA navigation
